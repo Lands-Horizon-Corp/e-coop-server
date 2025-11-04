@@ -3,13 +3,11 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -84,7 +82,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeDeposit,
@@ -92,7 +90,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
@@ -114,7 +112,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
@@ -123,7 +121,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/loan/search
@@ -162,7 +160,11 @@ func (c *Controller) accountController() {
 				result = append(result, acc)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, result))
+		paginated, err := c.core.AccountManager.PaginationData(context, ctx, result)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated data: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
@@ -208,7 +210,11 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, result))
+		paginated, err := c.core.AccountManager.PaginationData(context, ctx, result)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated data: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET: /api/v1/account/ar-ledger/search
@@ -226,7 +232,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARLedger,
@@ -234,7 +240,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/ar-aging/search
@@ -253,7 +259,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARAging,
@@ -262,7 +268,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/fines/search
@@ -281,7 +287,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeFines,
@@ -290,7 +296,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/interest/search
@@ -309,7 +315,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeInterest,
@@ -317,7 +323,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/svf-ledger/search
@@ -335,7 +341,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeSVFLedger,
@@ -343,7 +349,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/w-off/search
@@ -361,7 +367,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeWOff,
@@ -369,7 +375,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/ap-ledger/search
@@ -388,7 +394,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeAPLedger,
@@ -396,7 +402,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/other/search
@@ -415,7 +421,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeOther,
@@ -423,7 +429,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: /api/v1/account/time-deposit/search
@@ -442,7 +448,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeTimeDeposit,
@@ -450,7 +456,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET: Search (NO footstep)
@@ -475,7 +481,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Filtered(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModels(accounts))
 	})
 
 	// POST: Create (WITH footstep)
@@ -791,7 +797,7 @@ func (c *Controller) accountController() {
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
 
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
@@ -916,6 +922,7 @@ func (c *Controller) accountController() {
 	})
 
 	// DELETE: Bulk (WITH footstep)
+	// DELETE /account/bulk-delete - Bulk delete accounts by IDs.
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
@@ -927,7 +934,7 @@ func (c *Controller) accountController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/account/bulk-delete), invalid request body: " + err.Error(),
+				Description: "Failed bulk delete accounts (/account/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -935,106 +942,24 @@ func (c *Controller) accountController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/account/bulk-delete), no IDs provided",
+				Description: "Failed bulk delete accounts (/account/bulk-delete) | no IDs provided",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
+
+		if err := c.core.AccountManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/account/bulk-delete), user org error: " + err.Error(),
+				Description: "Failed bulk delete accounts (/account/bulk-delete) | error: " + err.Error(),
 				Module:      "Account",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Unauthorized bulk delete attempt for account (/account/bulk-delete)",
-				Module:      "Account",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
-		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/account/bulk-delete), begin tx error: " + tx.Error.Error(),
-				Module:      "Account",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/account/bulk-delete), invalid UUID: " + rawID + " - " + err.Error(),
-					Module:      "Account",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
-			}
-			account, err := c.core.AccountManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/account/bulk-delete), account not found: " + rawID + " - " + err.Error(),
-					Module:      "Account",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account with ID " + rawID + " not found: " + err.Error()})
-			}
-			if userOrg.Branch.BranchSetting.CashOnHandAccountID != nil && *userOrg.Branch.BranchSetting.CashOnHandAccountID == account.ID {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/account/bulk-delete), cannot delete cash on hand account: " + account.Name,
-					Module:      "Account",
-				})
-				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete cash on hand account: " + account.Name})
-			}
-			if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID != nil && *userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == account.ID {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/account/bulk-delete), cannot delete paid up share capital account: " + account.Name,
-					Module:      "Account",
-				})
-				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
-			}
-			if err := c.core.AccountManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/account/bulk-delete), db error: " + rawID + " - " + err.Error(),
-					Module:      "Account",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account with ID " + rawID + ": " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/account/bulk-delete), commit error: " + err.Error(),
-				Module:      "Account",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete accounts: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity: "bulk-delete-success",
-			Description: "Bulk deleted accounts (/account/bulk-delete): IDs=" + func() string {
-				var sb strings.Builder
-				for _, id := range reqBody.IDs {
-					sb.WriteString(id)
-					sb.WriteByte(',')
-				}
-				return sb.String()
-			}(),
-			Module: "Account",
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted accounts (/account/bulk-delete)",
+			Module:      "Account",
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
@@ -1096,7 +1021,7 @@ func (c *Controller) accountController() {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
@@ -1158,7 +1083,7 @@ func (c *Controller) accountController() {
 		account.GeneralLedgerDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
@@ -1219,7 +1144,7 @@ func (c *Controller) accountController() {
 		account.FinancialStatementDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
@@ -1251,7 +1176,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                    userOrg.OrganizationID,
 			BranchID:                          *userOrg.BranchID,
 			ShowInGeneralLedgerSourceWithdraw: true,
@@ -1259,7 +1184,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1276,7 +1201,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournal: true,
@@ -1284,7 +1209,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1301,7 +1226,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourcePayment: true,
@@ -1309,7 +1234,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1330,7 +1255,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			CurrencyID:                       currencyID,
@@ -1339,7 +1264,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1356,7 +1281,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                      userOrg.OrganizationID,
 			BranchID:                            *userOrg.BranchID,
 			ShowInGeneralLedgerSourceAdjustment: true,
@@ -1364,7 +1289,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1381,7 +1306,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                          userOrg.OrganizationID,
 			BranchID:                                *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
@@ -1389,7 +1314,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1406,7 +1331,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			ShowInGeneralLedgerSourceCheckVoucher: true,
@@ -1414,7 +1339,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -1431,7 +1356,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1439,7 +1364,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 	//
 	req.RegisterRoute(handlers.Route{
@@ -1460,7 +1385,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1469,7 +1394,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 
 	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
@@ -1525,7 +1450,7 @@ func (c *Controller) accountController() {
 		account.ComputationSheetID = computationSheetID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
@@ -1553,7 +1478,7 @@ func (c *Controller) accountController() {
 		account.ComputationSheetID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.Update(context, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))

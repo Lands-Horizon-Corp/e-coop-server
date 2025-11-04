@@ -72,3 +72,29 @@ func (r *Registry[TData, TResponse, TRequest]) Pagination(
 		PageSize:  data.PageSize,
 	}, nil
 }
+
+func (r *Registry[TData, TResponse, TRequest]) PaginationData(
+	context context.Context,
+	ctx echo.Context,
+	data []*TData,
+) (*filter.PaginationResult[TResponse], error) {
+	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
+	if err != nil {
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
+	}
+	result, err := r.filtering.DataQuery(
+		data,
+		filterRoot,
+		pageIndex, pageSize,
+	)
+	if err != nil {
+		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to retrieve paginated data")
+	}
+	return &filter.PaginationResult[TResponse]{
+		Data:      r.ToModels(result.Data),
+		TotalSize: result.TotalSize,
+		TotalPage: result.TotalPage,
+		PageIndex: result.PageIndex,
+		PageSize:  result.PageSize,
+	}, nil
+}
