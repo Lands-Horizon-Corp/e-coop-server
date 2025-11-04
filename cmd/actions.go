@@ -22,14 +22,14 @@ import (
 func migrateDatabase() {
 	color.Blue("Migrating database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.Newmodelcore),
+		fx.Provide(server.NewProvider, core.NewCore),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
@@ -48,7 +48,7 @@ func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
 		fx.StartTimeout(3*time.Hour), // Longer timeout for seeding
-		fx.Provide(server.NewProvider, core.Newmodelcore, seeder.NewSeeder),
+		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
@@ -69,7 +69,7 @@ func seedDatabase() {
 					if err := prov.Service.RunBroker(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					if err := seed.Run(ctx, 5); err != nil {
@@ -88,7 +88,7 @@ func seedDatabase() {
 func seedDatabasePerformance(multiplier int32) {
 	color.Blue("Seeding database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.Newmodelcore, seeder.NewSeeder),
+		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
@@ -109,7 +109,7 @@ func seedDatabasePerformance(multiplier int32) {
 					if err := prov.Service.RunBroker(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					if err := seed.Run(ctx, multiplier); err != nil {
@@ -128,14 +128,14 @@ func seedDatabasePerformance(multiplier int32) {
 func resetDatabase() {
 	color.Blue("Resetting database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.Newmodelcore),
+		fx.Provide(server.NewProvider, core.NewCore),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					if err := prov.Service.RunStorage(ctx); err != nil {
@@ -166,7 +166,7 @@ func startServer() {
 		fx.Provide(
 			server.NewProvider,
 			server.NewValidator,
-			core.Newmodelcore,
+			core.NewCore,
 			v1.NewController,
 			event.NewEvent,
 			seeder.NewSeeder,
@@ -183,7 +183,7 @@ func startServer() {
 					if err := prov.Service.Run(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					return nil
@@ -226,7 +226,7 @@ func refreshDatabase() {
 	color.Blue("Refreshing database...")
 	app := fx.New(
 		fx.StartTimeout(3*time.Hour), // Longer timeout for full refresh
-		fx.Provide(server.NewProvider, core.Newmodelcore, seeder.NewSeeder),
+		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core, seed *seeder.Seeder) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -242,7 +242,7 @@ func refreshDatabase() {
 					if err := prov.Service.RunBroker(ctx); err != nil {
 						return err
 					}
-					if err := mod.Start(ctx); err != nil {
+					if err := mod.Start(); err != nil {
 						return err
 					}
 					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {

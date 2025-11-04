@@ -164,7 +164,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Delete existing add-on entries (they will be recalculated)
 	for _, entry := range addOn {
-		if err := e.core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
+		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -339,7 +339,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
-		if err := e.core.LoanTransactionEntryManager.DeleteByIDWithTx(ctx, tx, entry.ID); err != nil {
+		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
 			tx.Rollback()
 			e.Footstep(ctx, echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -430,7 +430,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
-	if err := e.core.LoanTransactionManager.UpdateFieldsWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
+	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "data-error",

@@ -605,7 +605,7 @@ func (e *Event) TransactionPayment(
 
 	transaction.UpdatedAt = now
 	transaction.UpdatedByID = userOrg.UserID
-	if err := e.core.TransactionManager.UpdateFieldsWithTx(ctx, tx, transaction.ID, transaction); err != nil {
+	if err := e.core.TransactionManager.UpdateByIDWithTx(ctx, tx, transaction.ID, transaction); err != nil {
 		tx.Rollback()
 		e.Footstep(ctx, echoCtx, FootstepEvent{
 			Activity:    "transaction-update-error",
