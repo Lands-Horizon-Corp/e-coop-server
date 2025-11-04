@@ -85,15 +85,14 @@ func (c *Controller) organizationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Subscription plan not found: " + err.Error()})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + endTx(tx.Error).Error()})
 		}
 		var subscriptionEndDate time.Time
 		if req.SubscriptionPlanIsYearly {
@@ -130,13 +129,12 @@ func (c *Controller) organizationController() {
 		}
 
 		if err := c.core.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create org error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization: " + endTx(err).Error()})
 		}
 
 		longitude := 0.0
@@ -158,13 +156,12 @@ func (c *Controller) organizationController() {
 			Longitude:      &longitude,
 		}
 		if err := c.core.BranchManager.CreateWithTx(context, tx, branch); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create branch error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 
 		// Create default branch settings for the new branch
@@ -221,24 +218,22 @@ func (c *Controller) organizationController() {
 		}
 
 		if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create branch settings error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
 		}
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: generate dev key error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 		}
 		userOrganization := &core.UserOrganization{
 			CreatedAt:                time.Now().UTC(),
@@ -265,13 +260,12 @@ func (c *Controller) organizationController() {
 			UserSettingNumberPadding: 7,
 		}
 		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrganization); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create user org error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user organization: " + endTx(err).Error()})
 		}
 		for _, category := range req.OrganizationCategories {
 			if err := c.core.OrganizationCategoryManager.CreateWithTx(context, tx, &core.OrganizationCategory{
@@ -280,13 +274,12 @@ func (c *Controller) organizationController() {
 				OrganizationID: &organization.ID,
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Create organization failed: create org category error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + endTx(err).Error()})
 			}
 		}
 
@@ -308,17 +301,15 @@ func (c *Controller) organizationController() {
 		}
 		for _, orgMedia := range *organizationMedia {
 			if err := c.core.OrganizationMediaManager.CreateWithTx(context, tx, &orgMedia); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Create organization failed: create org media error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization media: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization media: " + endTx(err).Error()})
 			}
 		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: commit tx error: " + err.Error(),
@@ -392,15 +383,14 @@ func (c *Controller) organizationController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You are not authorized to update this organization"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + endTx(tx.Error).Error()})
 		}
 		organization.Name = req.Name
 		organization.Address = req.Address
@@ -420,34 +410,31 @@ func (c *Controller) organizationController() {
 		organization.UpdatedByID = user.ID
 		organization.IsPrivate = req.IsPrivate
 		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: update org error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update organization: " + endTx(err).Error()})
 		}
 		organizationsFromCategory, err := c.core.GetOrganizationCategoryByOrganization(context, organization.ID)
 		if err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: get org categories error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get organization categories: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get organization categories: " + endTx(err).Error()})
 		}
 
 		for _, category := range organizationsFromCategory {
 			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update organization failed: delete org category error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + endTx(err).Error()})
 			}
 		}
 
@@ -459,18 +446,16 @@ func (c *Controller) organizationController() {
 				OrganizationID: &organization.ID,
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update organization failed: create org category error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization category: " + endTx(err).Error()})
 			}
 		}
 
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: commit tx error: " + err.Error(),
@@ -538,79 +523,71 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete organization with more than 2 user organizations"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + endTx(tx.Error).Error()})
 		}
 		for _, category := range organization.OrganizationCategories {
 			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete org category error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + endTx(err).Error()})
 			}
 		}
 		branches, err := c.core.GetBranchesByOrganization(context, organization.ID)
 		if err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: get branches error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branches for organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branches for organization: " + endTx(err).Error()})
 		}
 		for _, branch := range branches {
 			if err := c.core.OrganizationDestroyer(context, tx, *organizationID, branch.ID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: destroy branch error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to destroy organization branch: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to destroy organization branch: " + endTx(err).Error()})
 			}
 			if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete branch error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + endTx(err).Error()})
 			}
 		}
 		if err := c.core.OrganizationManager.DeleteWithTx(context, tx, *organizationID); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: delete org error: " + err.Error(),
 				Module:      "Organization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization: " + endTx(err).Error()})
 		}
 		for _, userOrganization := range userOrganizations {
 			if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete user org error: " + err.Error(),
 					Module:      "Organization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + endTx(err).Error()})
 			}
 		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: commit tx error: " + err.Error(),
