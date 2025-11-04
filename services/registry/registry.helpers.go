@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
 )
 
 // parseFilters decodes and validates filter parameters
@@ -104,4 +106,48 @@ func parseQuery(ctx echo.Context) (filter.Root, int, int, error) {
 	}
 
 	return filterRoot, pageIndex, pageSize, nil
+}
+
+// --- Helper Methods ---
+func (c *Registry[TData, TResponse, TRequest]) reloadWithPreloads(
+	entity *TData,
+	preloads ...string,
+) error {
+	if preloads == nil {
+		preloads = c.preloads
+	}
+	id, err := handlers.GetID(entity)
+	if err != nil {
+		return eris.Wrap(err, "cannot reload without ID")
+	}
+	db := c.service.Database.Client().Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	if err := db.Where("id = ?", id).First(entity).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s", id)
+	}
+	return nil
+}
+
+func (c *Registry[TData, TResponse, TRequest]) reloadWithPreloadsTx(
+	tx *gorm.DB,
+	entity *TData,
+	preloads ...string,
+) error {
+	if preloads == nil {
+		preloads = c.preloads
+	}
+	id, err := handlers.GetID(entity)
+	if err != nil {
+		return eris.Wrap(err, "cannot reload without ID in transaction")
+	}
+	db := tx.Model(new(TData))
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	if err := db.Where("id = ?", id).First(entity).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s in transaction", id)
+	}
+	return nil
 }
