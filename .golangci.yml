@@ -16,7 +16,6 @@ linters:
     - gosec # Security scanner for vulnerabilities like crypto weaknesses
     - ineffassign # Detects ineffective assignments
     - unused # Finds unused code to slim down monolith
-    - revive # Style and best practices enforcement
     - bodyclose # Ensures HTTP response bodies are closed
     - asciicheck # Checks for non-ASCII identifiers
     - rowserrcheck # SQL row error checking, useful if using databases

@@ -38,4 +38,3 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneRaw(
 	}
 	return r.ToModel(data), nil
 }
-
