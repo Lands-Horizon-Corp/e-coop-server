@@ -24,9 +24,8 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithFields(
 		preloads = r.preloads
 	}
 	filterRoot.Preload = preloads
-	data, err := r.filtering.Hybrid(
+	data, err := r.filtering.DataGorm(
 		r.Client(context).Where(fields).Find(&entities),
-		r.threshold,
 		filterRoot,
 		pageIndex, pageSize,
 	)
