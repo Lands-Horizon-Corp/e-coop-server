@@ -51,11 +51,14 @@ func (c *Controller) journalVoucherController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.core.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.core.JournalVoucherManager.PaginationWithFields(context, ctx, &core.JournalVoucher{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.Pagination(context, ctx, journalVouchers))
+		return ctx.JSON(http.StatusOK, journalVouchers)
 	})
 
 	// GET /journal-voucher/:journal_voucher_id: Get specific journal voucher by ID. (NO footstep)
@@ -316,7 +319,7 @@ func (c *Controller) journalVoucherController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher"})
 				}
 				entry.DeletedByID = &user.UserID
-				if err := c.core.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry); err != nil {
+				if err := c.core.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher entry: " + err.Error()})
 				}

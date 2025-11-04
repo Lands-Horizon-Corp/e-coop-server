@@ -81,11 +81,14 @@ func (c *Controller) loanTagController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.core.LoanTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		loanTags, err := c.core.LoanTagManager.PaginationWithFields(context, ctx, &core.LoanTag{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan tags for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.Pagination(context, ctx, loanTags))
+		return ctx.JSON(http.StatusOK, loanTags)
 	})
 
 	// GET /loan-tag/:loan_tag_id: Get specific loan tag by ID. (NO footstep)

@@ -51,11 +51,14 @@ func (c *Controller) loanStatusController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.LoanStatusCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.LoanStatusManager.PaginationWithFields(context, ctx, &core.LoanStatus{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan status records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanStatusManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// GET /loan-status/:loan_status_id: Get a specific loan status record by ID. (NO footstep)

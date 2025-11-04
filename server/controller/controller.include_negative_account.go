@@ -33,7 +33,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager.Find(context, &core.IncludeNegativeAccount{
+		records, err := c.core.IncludeNegativeAccountManager.PaginationWithFields(context, ctx, &core.IncludeNegativeAccount{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -41,7 +41,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager.Pagination(context, ctx, records))
+		return ctx.JSON(http.StatusOK, records)
 	})
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search

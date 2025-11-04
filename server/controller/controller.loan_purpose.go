@@ -51,11 +51,14 @@ func (c *Controller) loanPurposeController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.LoanPurposeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.LoanPurposeManager.PaginationWithFields(context, ctx, &core.LoanPurpose{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan purpose records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// GET /loan-purpose/:loan_purpose_id: Get a specific loan purpose record by ID. (NO footstep)

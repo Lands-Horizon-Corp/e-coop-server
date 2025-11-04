@@ -239,7 +239,7 @@ func (c *Controller) loanTransactionEntryController() {
 		// Set deleted by user
 		loanTransactionEntry.DeletedByID = &userOrg.UserID
 
-		if err := c.core.LoanTransactionEntryManager.Delete(context, loanTransactionEntry); err != nil {
+		if err := c.core.LoanTransactionEntryManager.Delete(context, loanTransactionEntry.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 		}
 

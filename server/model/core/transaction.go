@@ -231,3 +231,33 @@ func (m *Core) TransactionCurrentBranch(context context.Context, organizationID 
 		BranchID:       branchID,
 	})
 }
+
+// TransactionsByUserType retrieves transactions based on user type (member or employee)
+// For members, it looks up their member profile and filters by MemberProfileID
+// For employees, it filters by EmployeeUserID
+func (m *Core) TransactionsByUserType(
+	context context.Context,
+	userID uuid.UUID,
+	userType UserOrganizationType,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*Transaction, error) {
+	var filter Transaction
+
+	if userType == UserOrganizationTypeMember {
+		memberProfile, err := m.MemberProfileManager.FindOne(context, &MemberProfile{
+			UserID: &userID,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve member profile: %w", err)
+		}
+		filter.MemberProfileID = &memberProfile.ID
+	} else {
+		filter.EmployeeUserID = &userID
+	}
+
+	filter.OrganizationID = organizationID
+	filter.BranchID = branchID
+
+	return m.TransactionManager.Find(context, &filter)
+}

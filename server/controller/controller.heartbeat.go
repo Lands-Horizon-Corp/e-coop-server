@@ -33,7 +33,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = core.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -74,7 +74,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = core.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -119,7 +119,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = req.UserOrganizationStatus
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.Update(context, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
 		if err := c.provider.Service.Broker.Dispatch(context, []string{
