@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -48,11 +45,13 @@ func (c *Controller) organizationMediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.core.OrganizationMediaFindByOrganization(context, user.OrganizationID)
+		organizationMedia, err := c.core.OrganizationMediaManager.PaginationWithFields(context, ctx, &core.OrganizationMedia{
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch organization media for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.Pagination(context, ctx, organizationMedia))
+		return ctx.JSON(http.StatusOK, organizationMedia)
 	})
 
 	// GET /organization-media/organization/:organization_id: Get all media for a specific organization by ID. (NO footstep)
@@ -242,7 +241,7 @@ func (c *Controller) organizationMediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /organization-media/bulk-delete: Bulk delete organization media by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for organization media (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/organization-media/bulk-delete",
 		Method:      "DELETE",
@@ -251,82 +250,42 @@ func (c *Controller) organizationMediaController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), invalid request body.",
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), no IDs provided.",
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | no IDs provided",
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No organization media IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate the heavy lifting (DB transaction, validations, DeletedBy, storage cleanup if any)
+		// to the manager layer.
+		if err := c.core.OrganizationMediaManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | error: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete organization media: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			mediaID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), invalid UUID: " + rawID,
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, mediaID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), not found: " + rawID,
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Organization media not found with ID: %s", rawID)})
-			}
 
-			namesSlice = append(namesSlice, organizationMedia.Name)
-			if err := c.core.OrganizationMediaManager.DeleteWithTx(context, tx, mediaID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), db error: " + err.Error(),
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization media: " + err.Error()})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), commit error: " + err.Error(),
-				Module:      "OrganizationMedia",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted organization media (/organization-media/bulk-delete): " + names,
+			Description: "Bulk deleted organization media (/organization-media/bulk-delete)",
 			Module:      "OrganizationMedia",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

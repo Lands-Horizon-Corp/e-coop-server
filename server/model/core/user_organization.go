@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -487,4 +488,26 @@ func (m *Core) Members(context context.Context, organizationID uuid.UUID, branch
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeMember,
 	})
+}
+
+func (m *Core) UserOrganizationsNoneUserMembers(context context.Context, branchID, organizationID uuid.UUID) ([]*UserOrganization, error) {
+	userOrganization, err := m.UserOrganizationManager.Find(context, &UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserType:       UserOrganizationTypeMember,
+	})
+	if err != nil {
+		return nil, eris.Wrapf(err, "Failed to retrieve user organizations: %v", err)
+	}
+	filteredUserOrganizations := []*UserOrganization{}
+	for _, uo := range userOrganization {
+		if uo.BranchID == nil {
+			continue
+		}
+		userProfile, _ := m.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
+		if userProfile == nil {
+			filteredUserOrganizations = append(filteredUserOrganizations, uo)
+		}
+	}
+	return filteredUserOrganizations, nil
 }

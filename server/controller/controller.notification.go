@@ -7,8 +7,8 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (c *Controller) notificationController() {
@@ -63,75 +63,50 @@ func (c *Controller) notificationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "View notifications failed: begin tx error: " + tx.Error.Error(),
-				Module:      "Notification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
+		var notifications []*core.Notification
+		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
+			for _, notificationID := range reqBody.IDs {
+				notification, getErr := c.core.NotificationManager.GetByID(context, notificationID)
+				if getErr != nil {
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: fmt.Sprintf("View notifications failed: notification not found: %s", notificationID.String()),
+						Module:      "Notification",
+					})
+					return fmt.Errorf("notification with ID %s not found: %v", notificationID.String(), getErr)
+				}
 
-		for _, rawID := range reqBody.IDs {
-			notificationID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
+				if notification.IsViewed {
+					continue
+				}
+
+				notification.IsViewed = true
+				if updateErr := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); updateErr != nil {
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: "View notifications failed: update error: " + updateErr.Error(),
+						Module:      "Notification",
+					})
+					return fmt.Errorf("failed to update notification: %v", updateErr)
+				}
+			}
+
+			var getUserErr error
+			notifications, getUserErr = c.core.GetNotificationByUser(context, user.ID)
+			if getUserErr != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
-					Description: "View notifications failed: invalid UUID: " + rawID,
+					Description: "View notifications failed: get notifications error: " + getUserErr.Error(),
 					Module:      "Notification",
 				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
+				return fmt.Errorf("failed to get notifications: %v", getUserErr)
 			}
 
-			notification, err := c.core.NotificationManager.GetByID(context, notificationID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: fmt.Sprintf("View notifications failed: notification not found: %s", rawID),
-					Module:      "Notification",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", rawID, err)})
-			}
+			return nil
+		})
 
-			if notification.IsViewed {
-				continue
-			}
-
-			notification.IsViewed = true
-			if err := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: "View notifications failed: update error: " + err.Error(),
-					Module:      "Notification",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update notification: " + err.Error()})
-			}
-		}
-
-		notifications, err := c.core.GetNotificationByUser(context, user.ID)
 		if err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "View notifications failed: get notifications error: " + err.Error(),
-				Module:      "Notification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "View notifications failed: commit tx error: " + err.Error(),
-				Module:      "Notification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
@@ -180,63 +155,49 @@ func (c *Controller) notificationController() {
 			})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to view notifications: transaction start error - " + tx.Error.Error(),
-				Module:      "Notification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"message": "Failed to start database transaction.",
-				"error":   tx.Error.Error(),
-			})
-		}
-
 		viewedCount := 0
-		for _, notif := range notifications {
-			notification, err := c.core.NotificationManager.GetByID(context, notif.ID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, err),
-					Module:      "Notification",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{
-					"message": fmt.Sprintf("Notification with ID %s not found.", notif.ID),
-					"error":   err.Error(),
-				})
+		var newNotifications []*core.Notification
+		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
+			for _, notif := range notifications {
+				notification, getErr := c.core.NotificationManager.GetByID(context, notif.ID)
+				if getErr != nil {
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, getErr),
+						Module:      "Notification",
+					})
+					return fmt.Errorf("notification with ID %s not found: %v", notif.ID, getErr)
+				}
+
+				if notification.IsViewed {
+					continue
+				}
+
+				notification.IsViewed = true
+				if updateErr := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); updateErr != nil {
+					c.event.Footstep(context, ctx, event.FootstepEvent{
+						Activity:    "update-error",
+						Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, updateErr),
+						Module:      "Notification",
+					})
+					return fmt.Errorf("failed to update notification %s: %v", notif.ID, updateErr)
+				}
+
+				viewedCount++
 			}
 
-			if notification.IsViewed {
-				continue
-			}
-
-			notification.IsViewed = true
-			if err := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, err),
-					Module:      "Notification",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{
-					"message": fmt.Sprintf("Failed to update notification %s.", notif.ID),
-					"error":   err.Error(),
-				})
-			}
-
-			viewedCount++
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to commit notification updates - " + err.Error(),
-				Module:      "Notification",
+			var findErr error
+			newNotifications, findErr = c.core.NotificationManager.Find(context, &core.Notification{
+				UserID: user.ID,
 			})
+			if findErr != nil {
+				return fmt.Errorf("failed to get the new notification updates: %v", findErr)
+			}
+
+			return nil
+		})
+
+		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"message": "Failed to save notification updates.",
 				"error":   err.Error(),
@@ -249,15 +210,6 @@ func (c *Controller) notificationController() {
 			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
 			Module:      "Notification",
 		})
-		newNotifications, err := c.core.NotificationManager.Find(context, &core.Notification{
-			UserID: user.ID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"message": "Failed to get the new notification updates.",
-				"error":   err.Error(),
-			})
-		}
 		return ctx.JSON(http.StatusOK, c.core.NotificationManager.ToModels(newNotifications))
 	})
 

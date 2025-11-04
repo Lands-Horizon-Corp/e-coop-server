@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -226,7 +225,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
 			UserType:       core.UserOrganizationTypeEmployee,
@@ -234,7 +233,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -248,7 +247,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
 			UserType:       core.UserOrganizationTypeOwner,
@@ -256,7 +255,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	// Get paginated user organizations for members on current branch
@@ -271,7 +270,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -279,7 +278,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	// Get paginated user organizations for members without profiles on current branch
@@ -294,25 +293,15 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
-			OrganizationID: user.OrganizationID,
-			BranchID:       user.BranchID,
-			UserType:       core.UserOrganizationTypeMember,
-		})
+		userOrganization, err := c.core.UserOrganizationsNoneUserMembers(context, *user.BranchID, user.OrganizationID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
-		filteredUserOrganizations := []*core.UserOrganization{}
-		for _, uo := range userOrganization {
-			if uo.BranchID == nil {
-				continue
-			}
-			userProfile, _ := c.core.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
-			if userProfile == nil {
-				filteredUserOrganizations = append(filteredUserOrganizations, uo)
-			}
+		noneUsers, err := c.core.UserOrganizationManager.PaginationData(context, ctx, userOrganization)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.Pagination(context, ctx, filteredUserOrganizations))
+		return ctx.JSON(http.StatusOK, noneUsers)
 	})
 
 	// Retrieve all user organizations for a user (optionally including pending)
@@ -371,7 +360,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
 			OrganizationID:    user.OrganizationID,
 			BranchID:          user.BranchID,
 			ApplicationStatus: "pending",
@@ -379,7 +368,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve join requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.Pagination(context, ctx, userOrganization))
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	// Get all join requests for user organizations in the current branch
@@ -1117,7 +1106,7 @@ func (c *Controller) userOrganinzationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete user organizations by IDs
+	// Simplified bulk-delete handler for user organizations (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
@@ -1129,8 +1118,8 @@ func (c *Controller) userOrganinzationController() {
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Bulk delete failed: invalid request body: " + err.Error(),
+				Activity:    "bulk-delete-error",
+				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "UserOrganization",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -1138,69 +1127,26 @@ func (c *Controller) userOrganinzationController() {
 
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Bulk delete failed: no IDs provided",
+				Activity:    "bulk-delete-error",
+				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | no IDs provided",
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.UserOrganizationManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Bulk delete failed: begin tx error: " + tx.Error.Error(),
+				Activity:    "bulk-delete-error",
+				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
-		}
-
-		for _, rawID := range reqBody.IDs {
-			userOrgID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete-error",
-					Description: fmt.Sprintf("Bulk delete failed: invalid UUID: %s - %v", rawID, err),
-					Module:      "UserOrganization",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
-			}
-
-			if _, err := c.core.UserOrganizationManager.GetByID(context, userOrgID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete-error",
-					Description: fmt.Sprintf("Bulk delete failed: user org with ID %s not found: %v", rawID, err),
-					Module:      "UserOrganization",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("User organization with ID %s not found: %v", rawID, err)})
-			}
-
-			if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrgID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "delete-error",
-					Description: fmt.Sprintf("Bulk delete failed: delete error for ID %s: %v", rawID, err),
-					Module:      "UserOrganization",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete user organization with ID %s: %v", rawID, err)})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Bulk delete failed: commit tx error: " + err.Error(),
-				Module:      "UserOrganization",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete user organizations: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity:    "delete-success",
-			Description: fmt.Sprintf("Bulk deleted user organizations: %v", reqBody.IDs),
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted user organizations (/user-organization/bulk-delete)",
 			Module:      "UserOrganization",
 		})
 

@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -219,7 +216,7 @@ func (c *Controller) timeDepositComputationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /time-deposit-computation/bulk-delete: Bulk delete time deposit computations by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for time deposit computations (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
@@ -228,80 +225,41 @@ func (c *Controller) timeDepositComputationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), invalid request body.",
+				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TimeDepositComputation",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), no IDs provided.",
+				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | no IDs provided",
 				Module:      "TimeDepositComputation",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No time deposit computation IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), begin tx error: " + tx.Error.Error(),
-				Module:      "TimeDepositComputation",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-		var idsSlice []string
-		for _, rawID := range reqBody.IDs {
-			timeDepositComputationID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), invalid UUID: " + rawID,
-					Module:      "TimeDepositComputation",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			timeDepositComputation, err := c.core.TimeDepositComputationManager.GetByID(context, timeDepositComputationID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), not found: " + rawID,
-					Module:      "TimeDepositComputation",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation not found with ID: %s", rawID)})
-			}
-			idsSlice = append(idsSlice, timeDepositComputation.ID.String())
-			if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, timeDepositComputationID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), db error: " + err.Error(),
-					Module:      "TimeDepositComputation",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation: " + err.Error()})
-			}
-		}
-		ids := strings.Join(idsSlice, ",")
 
-		if err := tx.Commit().Error; err != nil {
+		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
+		if err := c.core.TimeDepositComputationManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation/bulk-delete), commit error: " + err.Error(),
+				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | error: " + err.Error(),
 				Module:      "TimeDepositComputation",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete time deposit computations: " + err.Error()})
 		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted time deposit computations (/time-deposit-computation/bulk-delete): " + ids,
+			Description: "Bulk deleted time deposit computations (/time-deposit-computation/bulk-delete)",
 			Module:      "TimeDepositComputation",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

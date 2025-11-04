@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -202,7 +199,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /time-deposit-computation-pre-mature/bulk-delete: Bulk delete time deposit computation pre mature by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for time deposit computation pre-mature (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",
@@ -211,80 +208,41 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), invalid request body.",
+				Description: "Time deposit computation pre-mature bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TimeDepositComputationPreMature",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), no IDs provided.",
+				Description: "Time deposit computation pre-mature bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete) | no IDs provided",
 				Module:      "TimeDepositComputationPreMature",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No time deposit computation pre mature IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), begin tx error: " + tx.Error.Error(),
-				Module:      "TimeDepositComputationPreMature",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-		var idsSlice []string
-		for _, rawID := range reqBody.IDs {
-			timeDepositComputationPreMatureID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), invalid UUID: " + rawID,
-					Module:      "TimeDepositComputationPreMature",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			timeDepositComputationPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, timeDepositComputationPreMatureID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), not found: " + rawID,
-					Module:      "TimeDepositComputationPreMature",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation pre mature not found with ID: %s", rawID)})
-			}
-			idsSlice = append(idsSlice, timeDepositComputationPreMature.ID.String())
-			if err := c.core.TimeDepositComputationPreMatureManager.DeleteWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), db error: " + err.Error(),
-					Module:      "TimeDepositComputationPreMature",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation pre mature: " + err.Error()})
-			}
-		}
-		ids := strings.Join(idsSlice, ",")
 
-		if err := tx.Commit().Error; err != nil {
+		// Delegate deletion to the manager. Manager should handle transactionality, per-record validation and DeletedBy bookkeeping.
+		if err := c.core.TimeDepositComputationPreMatureManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete), commit error: " + err.Error(),
+				Description: "Time deposit computation pre-mature bulk delete failed (/time-deposit-computation-pre-mature/bulk-delete) | error: " + err.Error(),
 				Module:      "TimeDepositComputationPreMature",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete time deposit computation pre-mature records: " + err.Error()})
 		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted time deposit computation pre mature (/time-deposit-computation-pre-mature/bulk-delete): " + ids,
+			Description: "Bulk deleted time deposit computation pre-mature records (/time-deposit-computation-pre-mature/bulk-delete)",
 			Module:      "TimeDepositComputationPreMature",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

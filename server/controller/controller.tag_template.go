@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,14 +47,14 @@ func (c *Controller) tagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TagTemplateManager.Find(context, &core.TagTemplate{
+		value, err := c.core.TagTemplateManager.PaginationWithFields(context, ctx, &core.TagTemplate{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve tag templates for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// Returns a single tag template by its ID.
@@ -250,7 +247,7 @@ func (c *Controller) tagTemplateController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Deletes multiple tag templates by their IDs.
+	// Simplified bulk-delete handler for tag templates (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
@@ -259,80 +256,41 @@ func (c *Controller) tagTemplateController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete tag templates failed: invalid request body.",
+				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TagTemplate",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete tag templates failed: no IDs provided.",
+				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | no IDs provided",
 				Module:      "TagTemplate",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete tag templates failed: begin tx error: " + tx.Error.Error(),
-				Module:      "TagTemplate",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete tag templates failed: invalid UUID: " + rawID,
-					Module:      "TagTemplate",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
-			}
-			template, err := c.core.TagTemplateManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete tag templates failed: not found: " + rawID,
-					Module:      "TagTemplate",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("TagTemplate with ID %s not found: %v", rawID, err)})
-			}
-			namesSlice = append(namesSlice, template.Name)
-			if err := c.core.TagTemplateManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete tag templates failed: delete error: " + err.Error(),
-					Module:      "TagTemplate",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete tag template with ID %s: %v", rawID, err)})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
 
-		if err := tx.Commit().Error; err != nil {
+		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
+		if err := c.core.TagTemplateManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete tag templates failed: commit tx error: " + err.Error(),
+				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | error: " + err.Error(),
 				Module:      "TagTemplate",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete tag templates: " + err.Error()})
 		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted tag templates: " + names,
+			Description: "Bulk deleted tag templates (/tag-template/bulk-delete)",
 			Module:      "TagTemplate",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }
