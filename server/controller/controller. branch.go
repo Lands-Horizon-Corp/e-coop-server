@@ -175,35 +175,24 @@ func (c *Controller) branchController() {
 			IsMainBranch:   req.IsMainBranch,
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create error",
-				Description: fmt.Sprintf("Failed to start DB transaction for POST /branch/organization/:organization_id: %v", tx.Error),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		if err := c.core.BranchManager.CreateWithTx(context, tx, branch); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 		currency, err := c.core.CurrencyFindByAlpha2(context, branch.CountryCode)
 		if err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to find currency for branch country code for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find currency for branch country code: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find currency for branch country code: " + endTx(err).Error()})
 		}
 		// Create default branch settings for the new branch
 		branchSetting := &core.BranchSetting{
@@ -258,13 +247,12 @@ func (c *Controller) branchController() {
 		}
 
 		if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch settings for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
 		}
 
 		if userOrganization.BranchID == nil {
@@ -274,25 +262,23 @@ func (c *Controller) branchController() {
 			userOrganization.UpdatedByID = user.ID
 
 			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to update user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + endTx(err).Error()})
 			}
 		} else {
 			// Create new user organization for this branch
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to generate developer key for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 			}
 
 			newUserOrg := &core.UserOrganization{
@@ -318,18 +304,16 @@ func (c *Controller) branchController() {
 			}
 
 			if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to create new user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create new user organization: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create new user organization: " + endTx(err).Error()})
 			}
 		}
 
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to commit transaction for POST /branch/organization/:organization_id: %v", err),
@@ -545,36 +529,25 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete branch with more than 2 members"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "delete error",
-				Description: fmt.Sprintf("Failed to start DB transaction for DELETE /branch/:branch_id: %v", tx.Error),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+
 		if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete branch for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + endTx(err).Error()})
 		}
 		if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete user organization for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + endTx(err).Error()})
 		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to commit transaction for DELETE /branch/:branch_id: %v", err),
@@ -650,15 +623,7 @@ func (c *Controller) branchController() {
 			BranchID: *userOrg.BranchID,
 		})
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update error",
-				Description: fmt.Sprintf("Failed to start DB transaction for PUT /branch-settings: %v", tx.Error),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		if err != nil {
 			// Create new branch settings if they don't exist
@@ -712,13 +677,12 @@ func (c *Controller) branchController() {
 			}
 
 			if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to create branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
 			}
 		} else {
 			// Update existing branch settings
@@ -769,18 +733,16 @@ func (c *Controller) branchController() {
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 
 			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
 			}
 		}
 
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to commit transaction for PUT /branch-settings: %v", err),
@@ -853,16 +815,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
 		}
 		// Start database transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
-				Module:      "ChargesRateScheme",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
@@ -875,19 +828,18 @@ func (c *Controller) branchController() {
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + endTx(err).Error()})
 		}
 
 		// Handle deletions first
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
 			if err := c.core.UnbalancedAccountManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete unbalanced account: " + err.Error(),
 					Module:      "UnbalancedAccount",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + endTx(err).Error()})
 			}
 		}
 
@@ -897,8 +849,7 @@ func (c *Controller) branchController() {
 				// Update existing record
 				existingAccount, err := c.core.UnbalancedAccountManager.GetByID(context, *accountReq.ID)
 				if err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + endTx(err).Error()})
 				}
 
 				existingAccount.Name = accountReq.Name
@@ -912,8 +863,7 @@ func (c *Controller) branchController() {
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
 				if err := c.core.UnbalancedAccountManager.UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 				}
 			} else {
 				// Create new record
@@ -932,12 +882,11 @@ func (c *Controller) branchController() {
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}
 				if err := c.core.UnbalancedAccountManager.CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + endTx(err).Error()})
 				}
 			}
 		}
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit unbalanced account update transaction: " + err.Error(),

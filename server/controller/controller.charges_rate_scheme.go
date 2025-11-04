@@ -272,16 +272,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 
 		// Start database transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to start database transaction: " + tx.Error.Error(),
-				Module:      "ChargesRateScheme",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		chargesRateScheme.MemberTypeID = req.MemberTypeID
 		chargesRateScheme.ModeOfPayment = req.ModeOfPayment
@@ -340,26 +331,24 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.CurrencyID = req.CurrencyID
 
 		if err := c.core.ChargesRateSchemeManager.UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme: " + endTx(err).Error()})
 		}
 
 		// Handle deletions first
 		if req.ChargesRateSchemeAccountsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeAccountsDeleted {
 				if err := c.core.ChargesRateSchemeAccountManager.DeleteWithTx(context, tx, id); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme account: " + err.Error(),
 						Module:      "ChargesRateScheme",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme account: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme account: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -367,13 +356,12 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateByRangeOrMinimumAmountsDeleted != nil {
 			for _, id := range req.ChargesRateByRangeOrMinimumAmountsDeleted {
 				if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteWithTx(context, tx, id); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by range or minimum amount: " + err.Error(),
 						Module:      "ChargesRateScheme",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by range or minimum amount: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by range or minimum amount: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -381,13 +369,12 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateSchemeModeOfPaymentsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeModeOfPaymentsDeleted {
 				if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteWithTx(context, tx, id); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme mode of payment: " + err.Error(),
 						Module:      "ChargesRateScheme",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme mode of payment: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme mode of payment: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -395,13 +382,12 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateByTermsDeleted != nil {
 			for _, id := range req.ChargesRateByTermsDeleted {
 				if err := c.core.ChargesRateByTermManager.DeleteWithTx(context, tx, id); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by term: " + err.Error(),
 						Module:      "ChargesRateScheme",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by term: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by term: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -413,15 +399,13 @@ func (c *Controller) chargesRateSchemeController() {
 					// Update existing record
 					existingAccount, err := c.core.ChargesRateSchemeAccountManager.GetByID(context, *accountReq.ID)
 					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme account: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme account: " + endTx(err).Error()})
 					}
 					existingAccount.AccountID = accountReq.AccountID
 					existingAccount.UpdatedAt = time.Now().UTC()
 					existingAccount.UpdatedByID = user.UserID
 					if err := c.core.ChargesRateSchemeAccountManager.UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 					}
 				} else {
 					// Create new record
@@ -436,8 +420,7 @@ func (c *Controller) chargesRateSchemeController() {
 						OrganizationID:      user.OrganizationID,
 					}
 					if err := c.core.ChargesRateSchemeAccountManager.CreateWithTx(context, tx, newAccount); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + endTx(err).Error()})
 					}
 				}
 			}
@@ -450,8 +433,7 @@ func (c *Controller) chargesRateSchemeController() {
 					// Update existing record
 					existingRange, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *rangeReq.ID)
 					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by range or minimum amount: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 					existingRange.From = rangeReq.From
 					existingRange.To = rangeReq.To
@@ -461,8 +443,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingRange.UpdatedAt = time.Now().UTC()
 					existingRange.UpdatedByID = user.UserID
 					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByIDWithTx(context, tx, existingRange.ID, existingRange); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				} else {
 					// Create new record
@@ -481,8 +462,7 @@ func (c *Controller) chargesRateSchemeController() {
 						OrganizationID:      user.OrganizationID,
 					}
 					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.CreateWithTx(context, tx, newRange); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by range or minimum amount: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				}
 			}
@@ -495,8 +475,7 @@ func (c *Controller) chargesRateSchemeController() {
 					// Update existing record
 					existingMode, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *modeReq.ID)
 					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme mode of payment: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 					existingMode.From = modeReq.From
 					existingMode.To = modeReq.To
@@ -525,8 +504,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingMode.UpdatedAt = time.Now().UTC()
 					existingMode.UpdatedByID = user.UserID
 					if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateByIDWithTx(context, tx, existingMode.ID, existingMode); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				} else {
 					// Create new record
@@ -564,8 +542,7 @@ func (c *Controller) chargesRateSchemeController() {
 						OrganizationID:      user.OrganizationID,
 					}
 					if err := c.core.ChargesRateSchemeModeOfPaymentManager.CreateWithTx(context, tx, newMode); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme mode of payment: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				}
 			}
@@ -578,8 +555,7 @@ func (c *Controller) chargesRateSchemeController() {
 					// Update existing record
 					existingTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *termReq.ID)
 					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by term: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by term: " + endTx(err).Error()})
 					}
 					existingTerm.Name = termReq.Name
 					existingTerm.Description = termReq.Description
@@ -609,8 +585,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingTerm.UpdatedAt = time.Now().UTC()
 					existingTerm.UpdatedByID = user.UserID
 					if err := c.core.ChargesRateByTermManager.UpdateByIDWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + endTx(err).Error()})
 					}
 				} else {
 					// Create new record
@@ -649,15 +624,14 @@ func (c *Controller) chargesRateSchemeController() {
 						OrganizationID:      user.OrganizationID,
 					}
 					if err := c.core.ChargesRateByTermManager.CreateWithTx(context, tx, newTerm); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + endTx(err).Error()})
 					}
 				}
 			}
 		}
 
 		// Commit the transaction
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit charges rate scheme update transaction: " + err.Error(),

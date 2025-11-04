@@ -380,16 +380,11 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				_ = s.progressBar.Add(1)
 
 				// Run organization seeder for accounting setup
-				tx := s.provider.Service.Database.Client().Begin()
-				if tx.Error != nil {
-					tx.Rollback()
-					return err
-				}
+				tx, endTx := s.provider.Service.Database.StartTransaction(ctx)
 				if err := s.core.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
-					tx.Rollback()
-					return err
+					return endTx(err)
 				}
-				if err := tx.Commit().Error; err != nil {
+				if err := endTx(nil); err != nil {
 					return err
 				}
 				s.provider.Service.Logger.Info("💼 Setup accounting system for organization")

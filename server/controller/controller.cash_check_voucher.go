@@ -226,15 +226,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		// Start transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Cash check voucher creation failed (/cash-check-voucher), transaction error: " + tx.Error.Error(),
-				Module:      "CashCheckVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		// Calculate totals from entries
 		totalDebit, totalCredit := 0.0, 0.0
@@ -247,13 +239,12 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Validate balance (optional - some vouchers might not require balanced entries)
 		if totalDebit != totalCredit && totalDebit > 0 && totalCredit > 0 {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), unbalanced entries.",
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit) + " " + endTx(fmt.Errorf("unbalanced entries")).Error()})
 		}
 
 		cashCheckVoucher := &core.CashCheckVoucher{
@@ -312,13 +303,12 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Save cash check voucher first
 		if err := c.core.CashCheckVoucherManager.CreateWithTx(context, tx, cashCheckVoucher); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + endTx(err).Error()})
 		}
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
@@ -328,7 +318,7 @@ func (c *Controller) cashCheckVoucherController() {
 				Description: "End transaction batch failed: retrieve error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + endTx(err).Error()})
 		}
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
@@ -351,20 +341,18 @@ func (c *Controller) cashCheckVoucherController() {
 				}
 
 				if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Cash check voucher creation failed (/cash-check-voucher), entry save error: " + err.Error(),
 						Module:      "CashCheckVoucher",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher entry: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher entry: " + endTx(err).Error()})
 				}
 			}
 		}
 
 		// Commit transaction
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), commit error: " + err.Error(),
@@ -448,15 +436,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		// Start transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), transaction error: " + tx.Error.Error(),
-				Module:      "CashCheckVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		// Update cash check voucher fields
 		cashCheckVoucher.PayTo = request.PayTo
@@ -511,22 +491,19 @@ func (c *Controller) cashCheckVoucherController() {
 			for _, entryID := range request.CashCheckVoucherEntriesDeleted {
 				entry, err := c.core.CashCheckVoucherEntryManager.GetByID(context, entryID)
 				if err != nil {
-					tx.Rollback()
 					continue
 				}
 				if entry.CashCheckVoucherID != cashCheckVoucher.ID {
-					tx.Rollback()
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher"})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher: " + endTx(fmt.Errorf("invalid entry")).Error()})
 				}
 				entry.DeletedByID = &user.UserID
 				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), delete entry error: " + err.Error(),
 						Module:      "CashCheckVoucher",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash check voucher entry: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash check voucher entry: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -537,7 +514,7 @@ func (c *Controller) cashCheckVoucherController() {
 				Description: "End transaction batch failed: retrieve error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + endTx(err).Error()})
 		}
 		// Handle cash check voucher entries (create new or update existing)
 		if request.CashCheckVoucherEntries != nil {
@@ -546,13 +523,12 @@ func (c *Controller) cashCheckVoucherController() {
 					// Update existing entry
 					entry, err := c.core.CashCheckVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
-						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), get entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
 						})
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cash check voucher entry: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cash check voucher entry: " + endTx(err).Error()})
 					}
 					entry.AccountID = entryReq.AccountID
 					entry.EmployeeUserID = &user.UserID
@@ -565,13 +541,12 @@ func (c *Controller) cashCheckVoucherController() {
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.core.CashCheckVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
-						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), update entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
 						})
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher entry: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher entry: " + endTx(err).Error()})
 					}
 				} else {
 					entry := &core.CashCheckVoucherEntry{
@@ -593,13 +568,12 @@ func (c *Controller) cashCheckVoucherController() {
 					}
 
 					if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), entry save error: " + err.Error(),
 							Module:      "CashCheckVoucher",
 						})
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher entry: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher entry: " + endTx(err).Error()})
 					}
 				}
 			}
@@ -607,18 +581,16 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Save updated cash check voucher
 		if err := c.core.CashCheckVoucherManager.UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher: " + endTx(err).Error()})
 		}
 
 		// Commit transaction
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), commit error: " + err.Error(),
