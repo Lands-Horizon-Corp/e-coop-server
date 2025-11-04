@@ -16,6 +16,7 @@ func (r *Registry[TData, TResponse, TRequest]) Create(
 	if err := db.Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create entity")
 	}
+	r.OnCreate(context, data)
 	return nil
 }
 
@@ -28,6 +29,7 @@ func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
 	if err := tx.Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create entity with transaction")
 	}
+	r.OnCreate(context, data)
 	return nil
 }
 
@@ -52,6 +54,9 @@ func (r *Registry[TData, TResponse, TRequest]) CreateManyWithTx(
 ) error {
 	if err := tx.Create(data).Error; err != nil {
 		return eris.Wrap(err, "failed to create entities with transaction")
+	}
+	for _, entity := range data {
+		r.OnCreate(context, entity)
 	}
 	return nil
 }

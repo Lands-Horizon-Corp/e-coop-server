@@ -18,6 +18,7 @@ func (r *Registry[TData, TResponse, TRequest]) Delete(
 	if err := db.Delete(&entity, id).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entity")
 	}
+	r.OnDelete(context, &entity)
 	return nil
 }
 
@@ -31,6 +32,7 @@ func (r *Registry[TData, TResponse, TRequest]) DeleteWithTx(
 	if err := tx.Delete(&entity, id).Error; err != nil {
 		return eris.Wrap(err, "failed to delete entity with transaction")
 	}
+	r.OnDelete(context, &entity)
 	return nil
 }
 
@@ -40,9 +42,17 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 	ids []uuid.UUID,
 ) error {
 	db := r.Client(context)
-	var entity []*TData
-	if err := db.Delete(entity, ids).Error; err != nil {
+	var entities []TData
+	// First, fetch the entities to be deleted
+	if err := db.Find(&entities, ids).Error; err != nil {
+		return eris.Wrap(err, "failed to find entities for bulk delete")
+	}
+	// Then delete them
+	if err := db.Delete(&entities, ids).Error; err != nil {
 		return eris.Wrap(err, "failed to bulk delete entities")
+	}
+	for _, data := range entities {
+		r.OnDelete(context, &data)
 	}
 	return nil
 }
@@ -53,9 +63,17 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDeleteWithTx(
 	tx *gorm.DB,
 	ids []uuid.UUID,
 ) error {
-	var entity []*TData
-	if err := tx.Delete(&entity, ids).Error; err != nil {
-		return eris.Wrap(err, "failed to bulk delete entities with transaction")
+	var entities []TData
+	// First, fetch the entities to be deleted
+	if err := tx.Find(&entities, ids).Error; err != nil {
+		return eris.Wrap(err, "failed to find entities for bulk delete")
+	}
+	// Then delete them
+	if err := tx.Delete(&entities, ids).Error; err != nil {
+		return eris.Wrap(err, "failed to bulk delete entities")
+	}
+	for _, data := range entities {
+		r.OnDelete(context, &data)
 	}
 	return nil
 }

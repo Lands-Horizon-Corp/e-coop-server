@@ -32,6 +32,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
 	}
+	r.OnUpdate(context, fields)
 	return nil
 }
 
@@ -61,5 +62,6 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if err := db.Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s with transaction", id)
 	}
+	r.OnUpdate(context, fields)
 	return nil
 }
