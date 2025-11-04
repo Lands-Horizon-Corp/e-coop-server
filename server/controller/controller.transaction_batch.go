@@ -385,15 +385,14 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "There is an ongoing transaction batch"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: begin tx error: " + tx.Error.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
 		transBatch := &core.TransactionBatch{
 			CreatedAt:                     time.Now().UTC(),
@@ -428,13 +427,12 @@ func (c *Controller) transactionBatchController() {
 			RequestView:                   false,
 		}
 		if err := c.core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + endTx(err).Error()})
 		}
 		batchFunding := &core.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
@@ -452,15 +450,14 @@ func (c *Controller) transactionBatchController() {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 		if err := c.core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create batch funding error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create batch funding: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create batch funding: " + endTx(err).Error()})
 		}
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: commit tx error: " + err.Error(),

@@ -141,15 +141,14 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
 		seededAny := false
 		for _, userOrganization := range userOrganizations {
@@ -176,27 +175,25 @@ func (c *Controller) userOrganinzationController() {
 				continue
 			}
 			if err := c.core.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: seeder error: " + err.Error(),
 					Module:      "UserOrganization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + endTx(err).Error()})
 			}
 			userOrganization.IsSeeded = true
 			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: update seed status error: " + err.Error(),
 					Module:      "UserOrganization",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization seed status: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization seed status: " + endTx(err).Error()})
 			}
 			seededAny = true
 		}
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: commit tx error: " + err.Error(),
@@ -641,36 +638,32 @@ func (c *Controller) userOrganinzationController() {
 			UserSettingUsedVoucher:   0,
 			UserSettingNumberPadding: 7,
 		}
-		tx := c.provider.Service.Database.Client().Begin()
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
 		if err := c.core.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: redeem invitation code error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + endTx(err).Error()})
 		}
 		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create user organization: " + err.Error()})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create user organization: " + endTx(err).Error()})
 		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: commit tx error: " + err.Error(),
