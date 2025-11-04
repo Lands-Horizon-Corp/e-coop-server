@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,7 +33,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.Filtered(context, ctx, adjustmentEntries))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.ToModels(adjustmentEntries))
 	})
 
 	// GET /adjustment-entry/search: Paginated search of adjustment entries for the current branch. (NO footstep)
@@ -54,11 +51,14 @@ func (c *Controller) adjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.core.AdjustmentEntryManager.PaginationWithFields(context, ctx, &core.AdjustmentEntry{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.Pagination(context, ctx, adjustmentEntries))
+		return ctx.JSON(http.StatusOK, adjustmentEntries)
 	})
 
 	// GET /adjustment-entry/:adjustment_entry_id: Get specific adjustment entry by ID. (NO footstep)
@@ -280,74 +280,32 @@ func (c *Controller) adjustmentEntryController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-entry/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AdjustmentEntry",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-entry/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | no IDs provided",
 				Module:      "AdjustmentEntry",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No adjustment entry IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AdjustmentEntryManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-entry/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | error: " + err.Error(),
 				Module:      "AdjustmentEntry",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete adjustment entries: " + err.Error()})
 		}
-		var namesBuilder strings.Builder
-		for _, rawID := range reqBody.IDs {
-			adjustmentEntryID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-entry/bulk-delete), invalid UUID: " + rawID,
-					Module:      "AdjustmentEntry",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByID(context, adjustmentEntryID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-entry/bulk-delete), not found: " + rawID,
-					Module:      "AdjustmentEntry",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Adjustment entry not found with ID: %s", rawID)})
-			}
-			namesBuilder.WriteString(adjustmentEntry.ReferenceNumber)
-			namesBuilder.WriteByte(',')
-			if err := c.core.AdjustmentEntryManager.DeleteWithTx(context, tx, adjustmentEntryID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/adjustment-entry/bulk-delete), db error: " + err.Error(),
-					Module:      "AdjustmentEntry",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete adjustment entry: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/adjustment-entry/bulk-delete), commit error: " + err.Error(),
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted adjustment entries (/adjustment-entry/bulk-delete): " + namesBuilder.String(),
+			Description: "Bulk deleted adjustment entries (/adjustment-entry/bulk-delete)",
 			Module:      "AdjustmentEntry",
 		})
 		return ctx.NoContent(http.StatusNoContent)
@@ -416,7 +374,12 @@ func (c *Controller) adjustmentEntryController() {
 				result = append(result, entry)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.Pagination(context, ctx, result))
+
+		paginated, err := c.core.AdjustmentEntryManager.PaginationData(context, ctx, result)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate adjustment entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/total
@@ -496,7 +459,11 @@ func (c *Controller) adjustmentEntryController() {
 				result = append(result, entry)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.Pagination(context, ctx, result))
+		paginated, err := c.core.AdjustmentEntryManager.PaginationData(context, ctx, result)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate adjustment entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total
