@@ -48,11 +48,15 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := c.core.MemberClassificationHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.PaginationWithFields(context, ctx, &core.MemberClassificationHistory{
+			OrganizationID:  user.OrganizationID,
+			BranchID:        *user.BranchID,
+			MemberProfileID: *memberProfileID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationHistoryManager.Pagination(context, ctx, memberClassificationHistory))
+		return ctx.JSON(http.StatusOK, memberClassificationHistory)
 	})
 
 	// Get all member classifications for the current branch
@@ -86,11 +90,14 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberClassificationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.MemberClassificationManager.PaginationWithFields(context, ctx, &core.MemberClassification{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// Create a new member classification

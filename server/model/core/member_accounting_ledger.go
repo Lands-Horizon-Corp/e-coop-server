@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type (
@@ -197,14 +196,13 @@ func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, orga
 // Returns nil if not found (without error), allowing for create-or-update patterns
 // MemberAccountingLedgerFindForUpdate returns MemberAccountingLedgerFindForUpdate for the current branch or organization where applicable.
 func (m *Core) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
-	var ledger MemberAccountingLedger
-	err := tx.WithContext(ctx).
-		Model(&MemberAccountingLedger{}).
-		Where("member_profile_id = ? AND account_id = ? AND organization_id = ? AND branch_id = ?",
-			memberProfileID, accountID, organizationID, branchID).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
-		First(&ledger).Error
-
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+	ledger, err := m.MemberAccountingLedgerManager.FindOneWithSQLLock(ctx, tx, filters, nil)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // Not found, but not an error - allows create-or-update pattern
@@ -212,7 +210,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm
 		return nil, err
 	}
 
-	return &ledger, nil
+	return ledger, nil
 }
 
 // MemberAccountingLedgerUpdateOrCreate safely updates existing or creates new member accounting ledger
