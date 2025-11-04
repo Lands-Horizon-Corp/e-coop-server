@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -252,7 +249,6 @@ func (c *Controller) companyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /company/bulk-delete: Bulk delete companies by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/company/bulk-delete",
 		Method:      "DELETE",
@@ -261,77 +257,36 @@ func (c *Controller) companyController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/company/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Company",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/company/bulk-delete) | no IDs provided",
 				Module:      "Company",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No company IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.CompanyManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/company/bulk-delete) | error: " + err.Error(),
 				Module:      "Company",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete companies: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			companyID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			company, err := c.core.CompanyManager.GetByID(context, companyID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), not found: " + rawID,
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Company not found with ID: %s", rawID)})
-			}
-			sb.WriteString(company.Name)
-			sb.WriteByte(',')
-			if err := c.core.CompanyManager.DeleteWithTx(context, tx, companyID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), db error: " + err.Error(),
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete company: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), commit error: " + err.Error(),
-				Module:      "Company",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted companies (/company/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted companies (/company/bulk-delete)",
 			Module:      "Company",
 		})
 		return ctx.NoContent(http.StatusNoContent)

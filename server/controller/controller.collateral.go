@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -253,7 +250,6 @@ func (c *Controller) collateralController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /collateral/bulk-delete: Bulk delete collateral records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
@@ -262,77 +258,36 @@ func (c *Controller) collateralController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Collateral bulk delete failed (/collateral/bulk-delete), invalid request body.",
+				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Collateral",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Collateral bulk delete failed (/collateral/bulk-delete), no IDs provided.",
+				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | no IDs provided",
 				Module:      "Collateral",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.CollateralManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Collateral bulk delete failed (/collateral/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | error: " + err.Error(),
 				Module:      "Collateral",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete collateral records: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			collateralID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Collateral bulk delete failed (/collateral/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Collateral",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			collateral, err := c.core.CollateralManager.GetByID(context, collateralID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Collateral bulk delete failed (/collateral/bulk-delete), record not found: " + rawID,
-					Module:      "Collateral",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Collateral record not found with ID: %s", rawID)})
-			}
-			sb.WriteString(collateral.Name)
-			sb.WriteByte(',')
-			if err := c.core.CollateralManager.DeleteWithTx(context, tx, collateralID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Collateral bulk delete failed (/collateral/bulk-delete), db error: " + err.Error(),
-					Module:      "Collateral",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete collateral record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Collateral bulk delete failed (/collateral/bulk-delete), commit error: " + err.Error(),
-				Module:      "Collateral",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete transaction: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted collaterals (/collateral/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted collaterals (/collateral/bulk-delete)",
 			Module:      "Collateral",
 		})
 		return ctx.NoContent(http.StatusNoContent)

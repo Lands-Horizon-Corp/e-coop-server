@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -203,7 +200,6 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /charges-rate-by-range-or-minimum-amount/bulk-delete: Bulk delete charges rate by range or minimum amount by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-by-range-or-minimum-amount/bulk-delete",
 		Method:      "DELETE",
@@ -215,74 +211,32 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate by range or minimum amount IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate by range or minimum amount: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			chargesRateByRangeOrMinimumAmountID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), invalid UUID: " + rawID,
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, chargesRateByRangeOrMinimumAmountID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), not found: " + rawID,
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate by range or minimum amount not found with ID: %s", rawID)})
-			}
-			sb.WriteString(chargesRateByRangeOrMinimumAmount.ID.String())
-			sb.WriteByte(',')
-			if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteWithTx(context, tx, chargesRateByRangeOrMinimumAmountID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), db error: " + err.Error(),
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by range or minimum amount: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), commit error: " + err.Error(),
-				Module:      "ChargesRateByRangeOrMinimumAmount",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete)",
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
 		return ctx.NoContent(http.StatusNoContent)

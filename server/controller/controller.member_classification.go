@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -263,7 +260,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member classifications by IDs
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-classification/bulk-delete",
 		Method:      "DELETE",
@@ -276,7 +272,7 @@ func (c *Controller) memberClassificationController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), invalid request body.",
+				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberClassification",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -284,69 +280,24 @@ func (c *Controller) memberClassificationController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | no IDs provided",
 				Module:      "MemberClassification",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.MemberClassificationManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberClassification",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member classifications: " + err.Error()})
 		}
 
-		var namesBuilder strings.Builder
-		for _, rawID := range reqBody.IDs {
-			memberClassificationID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberClassification",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-			value, err := c.core.MemberClassificationManager.GetByID(context, memberClassificationID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), not found: " + rawID,
-					Module:      "MemberClassification",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member classification with ID '%s' not found: %s", rawID, err.Error())})
-			}
-			namesBuilder.WriteString(value.Name)
-			namesBuilder.WriteString(",")
-			if err := c.core.MemberClassificationManager.DeleteWithTx(context, tx, memberClassificationID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberClassification",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member classification with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberClassification",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member classifications (/member-classification/bulk-delete): " + namesBuilder.String(),
+			Description: "Bulk deleted member classifications (/member-classification/bulk-delete)",
 			Module:      "MemberClassification",
 		})
 		return ctx.NoContent(http.StatusNoContent)

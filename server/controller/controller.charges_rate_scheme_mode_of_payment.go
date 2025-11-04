@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -241,86 +238,44 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /charges-rate-scheme-mode-of-payment/bulk-delete: Bulk delete charges rate scheme model of payment by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-scheme-mode-of-payment/bulk-delete",
 		Method:      "DELETE",
-		Note:        "Deletes multiple charges rate scheme model of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		Note:        "Deletes multiple charges rate scheme mode of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateSchemeModeOfPayment",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateSchemeModeOfPayment",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate scheme model of payment IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate scheme mode of payment IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateSchemeModeOfPayment",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate scheme mode of payment: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			chargesRateSchemeModeOfPaymentID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), invalid UUID: " + rawID,
-					Module:      "ChargesRateSchemeModeOfPayment",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			chargesRateSchemeModeOfPayment, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, chargesRateSchemeModeOfPaymentID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), not found: " + rawID,
-					Module:      "ChargesRateSchemeModeOfPayment",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate scheme model of payment not found with ID: %s", rawID)})
-			}
-			sb.WriteString(chargesRateSchemeModeOfPayment.ID.String())
-			sb.WriteByte(',')
-			if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), db error: " + err.Error(),
-					Module:      "ChargesRateSchemeModeOfPayment",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme model of payment: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-scheme-mode-of-payment/bulk-delete), commit error: " + err.Error(),
-				Module:      "ChargesRateSchemeModeOfPayment",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate scheme model of payment (/charges-rate-scheme-mode-of-payment/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted charges rate scheme mode of payment (/charges-rate-scheme-mode-of-payment/bulk-delete)",
 			Module:      "ChargesRateSchemeModeOfPayment",
 		})
 		return ctx.NoContent(http.StatusNoContent)
