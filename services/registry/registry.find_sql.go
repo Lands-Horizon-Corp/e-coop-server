@@ -7,6 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // FilterOp represents database filter operations for query conditions.
@@ -197,6 +199,165 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneWithSQL(
 
 	if err := db.First(&entity).Error; err != nil {
 		return nil, eris.Wrapf(err, "failed to find entity with %d filters", len(filters))
+	}
+	return &entity, nil
+}
+
+// FindWithSQLLock finds entities matching the provided SQL filters with row-level lock (FOR UPDATE)
+func (r *Registry[TData, TResponse, TRequest]) FindWithSQLLock(
+	context context.Context,
+	tx *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) ([]*TData, error) {
+	var entities []*TData
+
+	// Handle joins for related table filters
+	joinMap := make(map[string]bool)
+	for _, f := range filters {
+		// Check if field references a relationship (contains dot)
+		if strings.Contains(f.Field, ".") {
+			parts := strings.Split(f.Field, ".")
+			if len(parts) == 2 {
+				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
+				if !joinMap[relationName] {
+					tx = tx.Joins(relationName)
+					joinMap[relationName] = true
+				}
+			}
+		}
+	}
+
+	// Apply locking
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+
+	for _, f := range filters {
+		switch f.Op {
+		case OpEq:
+			tx = tx.Where(fmt.Sprintf("%s = ?", f.Field), f.Value)
+		case OpGt:
+			tx = tx.Where(fmt.Sprintf("%s > ?", f.Field), f.Value)
+		case OpGte:
+			tx = tx.Where(fmt.Sprintf("%s >= ?", f.Field), f.Value)
+		case OpLt:
+			tx = tx.Where(fmt.Sprintf("%s < ?", f.Field), f.Value)
+		case OpLte:
+			tx = tx.Where(fmt.Sprintf("%s <= ?", f.Field), f.Value)
+		case OpNe:
+			tx = tx.Where(fmt.Sprintf("%s <> ?", f.Field), f.Value)
+		case OpIn:
+			tx = tx.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		case OpNotIn:
+			tx = tx.Where(fmt.Sprintf("%s NOT IN (?)", f.Field), f.Value)
+		case OpLike:
+			tx = tx.Where(fmt.Sprintf("%s LIKE ?", f.Field), f.Value)
+		case OpILike:
+			// Case-insensitive LIKE
+			tx = tx.Where(fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", f.Field), f.Value)
+		case OpIsNull:
+			tx = tx.Where(fmt.Sprintf("%s IS NULL", f.Field))
+		case OpNotNull:
+			tx = tx.Where(fmt.Sprintf("%s IS NOT NULL", f.Field))
+		default:
+			tx = tx.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
+		}
+	}
+
+	for _, preload := range preloads {
+		tx = tx.Preload(preload)
+	}
+
+	if len(sorts) > 0 {
+		for _, s := range sorts {
+			tx = tx.Order(fmt.Sprintf("%s %s", s.Field, s.Order))
+		}
+	} else {
+		tx = tx.Order("updated_at DESC")
+	}
+
+	if err := tx.Find(&entities).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find entities with %d filters and lock", len(filters))
+	}
+	return entities, nil
+}
+
+// FindOneWithSQLLock finds a single entity matching the provided SQL filters with row-level lock (FOR UPDATE)
+func (r *Registry[TData, TResponse, TRequest]) FindOneWithSQLLock(
+	context context.Context,
+	tx *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) (*TData, error) {
+	var entity TData
+
+	// Handle joins for related table filters
+	joinMap := make(map[string]bool)
+	for _, f := range filters {
+		// Check if field references a relationship (contains dot)
+		if strings.Contains(f.Field, ".") {
+			parts := strings.Split(f.Field, ".")
+			if len(parts) == 2 {
+				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
+				if !joinMap[relationName] {
+					tx = tx.Joins(relationName)
+					joinMap[relationName] = true
+				}
+			}
+		}
+	}
+
+	// Apply locking
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+
+	for _, f := range filters {
+		switch f.Op {
+		case OpEq:
+			tx = tx.Where(fmt.Sprintf("%s = ?", f.Field), f.Value)
+		case OpGt:
+			tx = tx.Where(fmt.Sprintf("%s > ?", f.Field), f.Value)
+		case OpGte:
+			tx = tx.Where(fmt.Sprintf("%s >= ?", f.Field), f.Value)
+		case OpLt:
+			tx = tx.Where(fmt.Sprintf("%s < ?", f.Field), f.Value)
+		case OpLte:
+			tx = tx.Where(fmt.Sprintf("%s <= ?", f.Field), f.Value)
+		case OpNe:
+			tx = tx.Where(fmt.Sprintf("%s <> ?", f.Field), f.Value)
+		case OpIn:
+			tx = tx.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
+		case OpNotIn:
+			tx = tx.Where(fmt.Sprintf("%s NOT IN (?)", f.Field), f.Value)
+		case OpLike:
+			tx = tx.Where(fmt.Sprintf("%s LIKE ?", f.Field), f.Value)
+		case OpILike:
+			// Case-insensitive LIKE
+			tx = tx.Where(fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", f.Field), f.Value)
+		case OpIsNull:
+			tx = tx.Where(fmt.Sprintf("%s IS NULL", f.Field))
+		case OpNotNull:
+			tx = tx.Where(fmt.Sprintf("%s IS NOT NULL", f.Field))
+		default:
+			tx = tx.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
+		}
+	}
+
+	for _, preload := range preloads {
+		tx = tx.Preload(preload)
+	}
+
+	// Apply sorting
+	if len(sorts) > 0 {
+		for _, s := range sorts {
+			tx = tx.Order(fmt.Sprintf("%s %s", s.Field, s.Order))
+		}
+	} else {
+		tx = tx.Order("updated_at DESC")
+	}
+
+	if err := tx.First(&entity).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find entity with %d filters and lock", len(filters))
 	}
 	return &entity, nil
 }
