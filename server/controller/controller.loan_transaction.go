@@ -693,7 +693,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		newTx, newEndTx := c.provider.Service.Database.StartTransaction(context)
-		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, newEndTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
@@ -1277,7 +1277,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		newTx, newEndTx := c.provider.Service.Database.StartTransaction(context)
-		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, newTx, newEndTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: cashOnCashEquivalenceAccountID,
 			LoanTransactionID:              loanTransaction.ID,
 		})
@@ -1800,7 +1800,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, event.LoanBalanceEvent{
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransaction.ID,
 		})
 		if err != nil {
