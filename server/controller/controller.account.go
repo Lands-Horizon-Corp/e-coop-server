@@ -31,14 +31,14 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/search",
@@ -58,7 +58,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyID,
@@ -66,7 +66,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.Pagination(context, ctx, accounts))
+		return ctx.JSON(http.StatusOK, accounts)
 	})
 	// GET: /api/v1/account/deposit/search
 	req.RegisterRoute(handlers.Route{
