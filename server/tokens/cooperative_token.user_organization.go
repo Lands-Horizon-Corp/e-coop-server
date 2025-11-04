@@ -8,9 +8,9 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
@@ -83,7 +83,7 @@ func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrgan
 
 // UserOrganizationCSRFModels maps a slice of UserOrganizationCSRF to a slice of UserOrganizationCSRFResponse.
 func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModels(data []*UserOrganizationCSRF) []*UserOrganizationCSRFResponse {
-	return services.ToModels(data, m.UserOrganizationCSRFModel)
+	return registry.ToModels(data, m.UserOrganizationCSRFModel)
 }
 
 // GetID returns the user organization ID from the UserOrganizationCSRF struct.
