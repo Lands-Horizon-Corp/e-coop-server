@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -117,15 +118,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		// Start transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Journal voucher creation failed (/journal-voucher), transaction start error: " + tx.Error.Error(),
-				Module:      "JournalVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		totalDebit, totalCredit := 0.0, 0.0
 		if request.JournalVoucherEntries != nil {
@@ -135,13 +128,12 @@ func (c *Controller) journalVoucherController() {
 			}
 		}
 		if totalDebit != totalCredit {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match: " + endTx(fmt.Errorf("debit and credit totals do not match")).Error()})
 		}
 
 		journalVoucher := &core.JournalVoucher{
@@ -163,13 +155,12 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if err := c.core.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), db error: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher: " + endTx(err).Error()})
 		}
 
 		// Handle journal voucher entries
@@ -193,18 +184,17 @@ func (c *Controller) journalVoucherController() {
 				}
 
 				if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Journal voucher entry creation failed (/journal-voucher), db error: " + err.Error(),
 						Module:      "JournalVoucher",
 					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + endTx(err).Error()})
 				}
 			}
 		}
 
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), commit error: " + err.Error(),
@@ -287,15 +277,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		// Start transaction
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), transaction start error: " + tx.Error.Error(),
-				Module:      "JournalVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + tx.Error.Error()})
-		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		// Update journal voucher fields
 		journalVoucher.Date = request.Date
@@ -311,17 +293,14 @@ func (c *Controller) journalVoucherController() {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
 				entry, err := c.core.JournalVoucherEntryManager.GetByID(context, deletedID)
 				if err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for deletion: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for deletion: " + endTx(err).Error()})
 				}
 				if entry.JournalVoucherID != journalVoucher.ID {
-					tx.Rollback()
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher"})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher: " + endTx(fmt.Errorf("invalid journal voucher entry")).Error()})
 				}
 				entry.DeletedByID = &user.UserID
 				if err := c.core.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
-					tx.Rollback()
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher entry: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher entry: " + endTx(err).Error()})
 				}
 			}
 		}
@@ -331,12 +310,10 @@ func (c *Controller) journalVoucherController() {
 				if entryReq.ID != nil {
 					entry, err := c.core.JournalVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for update: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for update: " + endTx(err).Error()})
 					}
 					if entry.JournalVoucherID != journalVoucher.ID {
-						tx.Rollback()
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update entry that doesn't belong to this journal voucher"})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update entry that doesn't belong to this journal voucher: " + endTx(fmt.Errorf("invalid journal voucher entry")).Error()})
 					}
 					entry.AccountID = entryReq.AccountID
 					entry.MemberProfileID = entryReq.MemberProfileID
@@ -348,8 +325,7 @@ func (c *Controller) journalVoucherController() {
 					entry.UpdatedByID = user.UserID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.core.JournalVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
 					}
 				} else {
 					entry := &core.JournalVoucherEntry{
@@ -369,8 +345,7 @@ func (c *Controller) journalVoucherController() {
 						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					}
 					if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-						tx.Rollback()
-						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + err.Error()})
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + endTx(err).Error()})
 					}
 				}
 
@@ -379,16 +354,15 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.TotalCredit = totalCredit
 		journalVoucher.TotalDebit = totalDebit
 		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
-			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), db error: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + endTx(err).Error()})
 		}
 
-		if err := tx.Commit().Error; err != nil {
+		if err := endTx(nil); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), commit error: " + err.Error(),
