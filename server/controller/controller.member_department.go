@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -263,7 +260,7 @@ func (c *Controller) memberDepartmentController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member departments by IDs
+	// Simplified bulk-delete handler for member departments (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-department/bulk-delete",
 		Method:      "DELETE",
@@ -276,7 +273,7 @@ func (c *Controller) memberDepartmentController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member departments failed (/member-department/bulk-delete), invalid request body.",
+				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberDepartment",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -285,72 +282,25 @@ func (c *Controller) memberDepartmentController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member departments failed (/member-department/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | no IDs provided",
 				Module:      "MemberDepartment",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberDepartmentManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member departments failed (/member-department/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberDepartment",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			memberDepartmentID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member departments failed (/member-department/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberDepartment",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-
-			value, err := c.core.MemberDepartmentManager.GetByID(context, memberDepartmentID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member departments failed (/member-department/bulk-delete), not found: " + rawID,
-					Module:      "MemberDepartment",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member department with ID '%s' not found: %s", rawID, err.Error())})
-			}
-
-			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberDepartmentManager.DeleteWithTx(context, tx, memberDepartmentID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member departments failed (/member-department/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberDepartment",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member department with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member departments failed (/member-department/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberDepartment",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member departments: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member departments (/member-department/bulk-delete): " + names,
+			Description: "Bulk deleted member departments (/member-department/bulk-delete)",
 			Module:      "MemberDepartment",
 		})
 

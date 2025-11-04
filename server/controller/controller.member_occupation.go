@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -51,11 +48,15 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.core.MemberOccupationHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager.PaginationWithFields(context, ctx, &core.MemberOccupationHistory{
+			MemberProfileID: *memberProfileID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager.Pagination(context, ctx, memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, memberOccupationHistory)
 	})
 
 	// Get all member occupations for the current branch
@@ -89,11 +90,14 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.MemberOccupationManager.PaginationWithFields(context, ctx, &core.MemberOccupation{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// Create a new member occupation
@@ -261,12 +265,12 @@ func (c *Controller) memberOccupationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member occupations by IDs
+	// Simplified bulk-delete handler for member occupations (matches feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple member occupation records by their IDs.",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -274,7 +278,7 @@ func (c *Controller) memberOccupationController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), invalid request body.",
+				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberOccupation",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -283,72 +287,24 @@ func (c *Controller) memberOccupationController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | no IDs provided",
 				Module:      "MemberOccupation",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.MemberOccupationManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberOccupation",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			memberOccupationID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberOccupation",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-
-			value, err := c.core.MemberOccupationManager.GetByID(context, memberOccupationID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), not found: " + rawID,
-					Module:      "MemberOccupation",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member occupation with ID '%s' not found: %s", rawID, err.Error())})
-			}
-
-			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberOccupationManager.DeleteWithTx(context, tx, memberOccupationID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberOccupation",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member occupation with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberOccupation",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member occupations: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member occupations (/member-occupation/bulk-delete): " + names,
+			Description: "Bulk deleted member occupations (/member-occupation/bulk-delete)",
 			Module:      "MemberOccupation",
 		})
 

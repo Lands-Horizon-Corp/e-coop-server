@@ -1,16 +1,13 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -247,7 +244,7 @@ func (c *Controller) mediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /media/bulk-delete: Bulk delete media records by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for media (moves storage + DB work into manager)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
@@ -255,99 +252,43 @@ func (c *Controller) mediaController() {
 		Note:        "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody struct {
-			IDs []string `json:"ids"`
-		}
+		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Media bulk delete failed (/media/bulk-delete), invalid request body.",
+				Description: "Media bulk delete failed (/media/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Media",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Media bulk delete failed (/media/bulk-delete), no IDs provided.",
+				Description: "Media bulk delete failed (/media/bulk-delete) | no IDs provided",
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		// Delegate storage deletion and DB transaction to the manager.
+		// Assumes MediaManager.BulkDelete(ctx context.Context, ids []string) error exists
+		if err := c.core.MediaManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Media bulk delete failed (/media/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Media bulk delete failed (/media/bulk-delete) | error: " + err.Error(),
 				Module:      "Media",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete media records: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			mediaID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Media bulk delete failed (/media/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Media",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			media, err := c.core.MediaManager.GetByID(context, mediaID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Media bulk delete failed (/media/bulk-delete), not found: " + rawID,
-					Module:      "Media",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Media record not found with ID: %s", rawID)})
-			}
-			namesSlice = append(namesSlice, media.FileName)
-			if err := c.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
-				FileName:   media.FileName,
-				FileSize:   media.FileSize,
-				FileType:   media.FileType,
-				StorageKey: media.StorageKey,
-				URL:        media.URL,
-				BucketName: media.BucketName,
-				Status:     "delete",
-			}); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Media bulk delete failed (/media/bulk-delete), storage delete error: " + err.Error(),
-					Module:      "Media",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete file from storage: " + err.Error()})
-			}
-			if err := c.core.MediaManager.DeleteWithTx(context, tx, mediaID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Media bulk delete failed (/media/bulk-delete), db error: " + err.Error(),
-					Module:      "Media",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Media bulk delete failed (/media/bulk-delete), commit error: " + err.Error(),
-				Module:      "Media",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted media (/media/bulk-delete): " + names,
+			Description: "Bulk deleted media (/media/bulk-delete)",
 			Module:      "Media",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

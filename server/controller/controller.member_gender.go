@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -51,11 +48,15 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := c.core.MemberGenderHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberGenderHistory, err := c.core.MemberGenderHistoryManager.PaginationWithFields(context, ctx, &core.MemberGenderHistory{
+			MemberProfileID: *memberProfileID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGenderHistoryManager.Pagination(context, ctx, memberGenderHistory))
+		return ctx.JSON(http.StatusOK, memberGenderHistory)
 	})
 
 	// Get all member genders for the current branch
@@ -89,11 +90,14 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.core.MemberGenderCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGender, err := c.core.MemberGenderManager.PaginationWithFields(context, ctx, &core.MemberGender{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.Pagination(context, ctx, memberGender))
+		return ctx.JSON(http.StatusOK, memberGender)
 	})
 
 	// Create a new member gender
@@ -261,7 +265,7 @@ func (c *Controller) memberGenderController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member genders by IDs
+	// Simplified bulk-delete handler for member genders (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
@@ -274,7 +278,7 @@ func (c *Controller) memberGenderController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member genders failed (/member-gender/bulk-delete), invalid request body.",
+				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberGender",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -283,72 +287,25 @@ func (c *Controller) memberGenderController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member genders failed (/member-gender/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | no IDs provided",
 				Module:      "MemberGender",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberGenderManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member genders failed (/member-gender/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberGender",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			memberGenderID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member genders failed (/member-gender/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberGender",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-
-			value, err := c.core.MemberGenderManager.GetByID(context, memberGenderID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member genders failed (/member-gender/bulk-delete), not found: " + rawID,
-					Module:      "MemberGender",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member gender with ID '%s' not found: %s", rawID, err.Error())})
-			}
-
-			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberGenderManager.DeleteWithTx(context, tx, memberGenderID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member genders failed (/member-gender/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberGender",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member gender with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member genders failed (/member-gender/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberGender",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member genders: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member genders (/member-gender/bulk-delete): " + names,
+			Description: "Bulk deleted member genders (/member-gender/bulk-delete)",
 			Module:      "MemberGender",
 		})
 

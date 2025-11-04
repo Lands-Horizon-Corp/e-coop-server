@@ -3,7 +3,6 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -372,11 +371,14 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberProfileCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		value, err := c.core.MemberProfileManager.PaginationWithFields(context, ctx, &core.MemberProfile{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, value)
 	})
 
 	// Retrieve a specific member profile by member_profile_id
@@ -460,7 +462,7 @@ func (c *Controller) memberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member profiles by IDs
+	// Simplified bulk-delete handler for member profiles (delegates heavy work to manager)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
@@ -469,81 +471,39 @@ func (c *Controller) memberProfileController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member profiles failed: invalid request body.",
+				Description: "Bulk delete member profiles failed (/member-profile/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberProfile",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member profiles failed: no IDs provided.",
+				Description: "Bulk delete member profiles failed (/member-profile/bulk-delete) | no IDs provided",
 				Module:      "MemberProfile",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
-		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member profiles failed: begin tx error: " + tx.Error.Error(),
-				Module:      "MemberProfile",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		var namesBuilder strings.Builder
-		for _, rawID := range reqBody.IDs {
-			if rawID == "" {
-				continue
-			}
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member profiles failed: invalid UUID: " + rawID,
-					Module:      "MemberProfile",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
-			}
-			memberProfile, err := c.core.MemberProfileManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member profiles failed: member profile not found: " + rawID,
-					Module:      "MemberProfile",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", rawID, err)})
-			}
-			namesBuilder.WriteString(memberProfile.FullName)
-			namesBuilder.WriteString(",")
-			if err := c.core.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member profiles failed: destroy error: " + err.Error(),
-					Module:      "MemberProfile",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member profile with ID %s: %v", rawID, err)})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
+		// Delegate the complex destruction (related records, storage, DeletedBy, transaction) to the manager.
+		// Assumes c.core.MemberProfileManager.BulkDelete(ctx context.Context, ids []string) error exists.
+		if err := c.core.MemberProfileManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member profiles failed: commit tx error: " + err.Error(),
+				Description: "Bulk delete member profiles failed (/member-profile/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberProfile",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member profiles: " + err.Error()})
 		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member profiles: " + namesBuilder.String(),
+			Description: "Bulk deleted member profiles (/member-profile/bulk-delete)",
 			Module:      "MemberProfile",
 		})
 

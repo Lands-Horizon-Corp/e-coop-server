@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -201,88 +198,50 @@ func (c *Controller) memberEducationalAttainmentController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete educational attainment records by IDs
+	// Simplified bulk-delete handler for member educational attainments (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple educational attainment records by their IDs.",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), invalid request body.",
+				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), no IDs provided.",
+				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | no IDs provided",
 				Module:      "MemberEducationalAttainment",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		// Delegate deletion to the manager. Manager should handle transactionality, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberEducationalAttainmentManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete educational attainment records: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			attainmentID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberEducationalAttainment",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-			value, err := c.core.MemberEducationalAttainmentManager.GetByID(context, attainmentID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), not found: " + rawID,
-					Module:      "MemberEducationalAttainment",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Educational attainment record with ID '%s' not found: %s", rawID, err.Error())})
-			}
-			namesSlice = append(namesSlice, value.SchoolName)
-			if err := c.core.MemberEducationalAttainmentManager.DeleteWithTx(context, tx, attainmentID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberEducationalAttainment",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete educational attainment record with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberEducationalAttainment",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted educational attainments (/member-educational-attainment/bulk-delete): " + names,
+			Description: "Bulk deleted educational attainments (/member-educational-attainment/bulk-delete)",
 			Module:      "MemberEducationalAttainment",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

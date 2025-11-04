@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -446,7 +443,7 @@ func (c *Controller) journalVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /journal-voucher/bulk-delete: Bulk delete journal vouchers by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for journal vouchers (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/journal-voucher/bulk-delete",
 		Method:      "DELETE",
@@ -455,82 +452,42 @@ func (c *Controller) journalVoucherController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | no IDs provided",
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No journal voucher IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.JournalVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | error: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete journal vouchers: " + err.Error()})
 		}
-		var voucherNumbersSlice []string
-		for _, rawID := range reqBody.IDs {
-			journalVoucherID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher/bulk-delete), invalid UUID: " + rawID,
-					Module:      "JournalVoucher",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, journalVoucherID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher/bulk-delete), not found: " + rawID,
-					Module:      "JournalVoucher",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
-			}
-			voucherNumbersSlice = append(voucherNumbersSlice, journalVoucher.CashVoucherNumber)
-			if err := c.core.JournalVoucherManager.DeleteWithTx(context, tx, journalVoucherID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/journal-voucher/bulk-delete), db error: " + err.Error(),
-					Module:      "JournalVoucher",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/journal-voucher/bulk-delete), commit error: " + err.Error(),
-				Module:      "JournalVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
-		voucherNumbers := strings.Join(voucherNumbersSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted journal vouchers (/journal-voucher/bulk-delete): " + voucherNumbers,
+			Description: "Bulk deleted journal vouchers (/journal-voucher/bulk-delete)",
 			Module:      "JournalVoucher",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/print
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",

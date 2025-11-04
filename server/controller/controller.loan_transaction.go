@@ -3,14 +3,12 @@ package v1
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -1566,7 +1564,9 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction and all related records deleted successfully"})
 	})
 
-	// DELETE /api/v1/loan-transaction/bulk-delete
+	// Simplified bulk-delete handler for loan transactions.
+	// Keeps authorization in the handler but moves heavy deletion logic into the manager.
+	// Expects c.core.LoanTransactionManager.BulkDeleteWithOrg(ctx, ids, userOrg) or similar to exist.
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/loan-transaction/bulk-delete",
 		Method:      "DELETE",
@@ -1575,307 +1575,60 @@ func (c *Controller) loanTransactionController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/loan-transaction/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/loan-transaction/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | no IDs provided",
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No loan transaction IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
+		// Authorization / org+branch resolution stays in the handler
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | auth/organization error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			c.event.Footstep(context, ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | unauthorized user type",
+				Module:      "LoanTransaction",
+			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete loan transactions"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate complex deletion (transaction, related records, ownership checks) to the manager.
+		// Manager signature assumed: BulkDeleteWithOrg(ctx context.Context, ids []string, userOrg core.UserOrganization) error
+		if err := c.core.LoanTransactionManager.BulkDeleteWithOrg(context, reqBody.IDs, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/loan-transaction/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTransaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			loanTransactionID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), invalid UUID: " + rawID,
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-
-			loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, loanTransactionID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), not found: " + rawID,
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan transaction not found with ID: %s", rawID)})
-			}
-
-			// Check if the loan transaction belongs to the user's organization and branch
-			if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
-				tx.Rollback()
-				return ctx.JSON(http.StatusForbidden, map[string]string{"error": fmt.Sprintf("Access denied to loan transaction: %s", rawID)})
-			}
-
-			namesSlice = append(namesSlice, fmt.Sprintf("LT-%s", loanTransaction.ID.String()[:8]))
-
-			// Delete all LoanClearanceAnalysis records
-			clearanceAnalysisList, err := c.core.LoanClearanceAnalysisManager.Find(context, &core.LoanClearanceAnalysis{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), clearance analysis find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis records: " + err.Error()})
-			}
-
-			for _, clearanceAnalysis := range clearanceAnalysisList {
-				clearanceAnalysis.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), clearance analysis delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + err.Error()})
-				}
-			}
-
-			// Delete all LoanClearanceAnalysisInstitution records
-			institutionList, err := c.core.LoanClearanceAnalysisInstitutionManager.Find(context, &core.LoanClearanceAnalysisInstitution{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), institution find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution records: " + err.Error()})
-			}
-
-			for _, institution := range institutionList {
-				institution.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), institution delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + err.Error()})
-				}
-			}
-
-			// Delete all LoanTermsAndConditionSuggestedPayment records
-			suggestedPaymentList, err := c.core.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &core.LoanTermsAndConditionSuggestedPayment{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), suggested payment find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment records: " + err.Error()})
-			}
-
-			for _, suggestedPayment := range suggestedPaymentList {
-				suggestedPayment.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), suggested payment delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + err.Error()})
-				}
-			}
-
-			// Delete all LoanTermsAndConditionAmountReceipt records
-			amountReceiptList, err := c.core.LoanTermsAndConditionAmountReceiptManager.Find(context, &core.LoanTermsAndConditionAmountReceipt{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), amount receipt find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt records: " + err.Error()})
-			}
-
-			for _, amountReceipt := range amountReceiptList {
-				amountReceipt.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), amount receipt delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + err.Error()})
-				}
-			}
-
-			// Delete all LoanTransactionEntry records
-			transactionEntryList, err := c.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), transaction entry find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan transaction entry records: " + err.Error()})
-			}
-
-			for _, transactionEntry := range transactionEntryList {
-				transactionEntry.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTransactionEntryManager.DeleteWithTx(context, tx, transactionEntry); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), transaction entry delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
-				}
-			}
-
-			// Delete all ComakerMemberProfile records
-			comakerMemberProfileList, err := c.core.ComakerMemberProfileManager.Find(context, &core.ComakerMemberProfile{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), comaker member profile find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile records: " + err.Error()})
-			}
-
-			for _, comakerMemberProfile := range comakerMemberProfileList {
-				comakerMemberProfile.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), comaker member profile delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + err.Error()})
-				}
-			}
-
-			// Delete all ComakerCollateral records
-			comakerCollateralList, err := c.core.ComakerCollateralManager.Find(context, &core.ComakerCollateral{
-				LoanTransactionID: loanTransaction.ID,
-				OrganizationID:    userOrg.OrganizationID,
-				BranchID:          *userOrg.BranchID,
-			})
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), comaker collateral find error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker collateral records: " + err.Error()})
-			}
-
-			for _, comakerCollateral := range comakerCollateralList {
-				comakerCollateral.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral); err != nil {
-					tx.Rollback()
-					c.event.Footstep(context, ctx, event.FootstepEvent{
-						Activity:    "bulk-delete-error",
-						Description: "Bulk delete failed (/loan-transaction/bulk-delete), comaker collateral delete error: " + err.Error(),
-						Module:      "LoanTransaction",
-					})
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker collateral: " + err.Error()})
-				}
-			}
-
-			// Set deleted by user for main loan transaction
-			loanTransaction.DeletedByID = &userOrg.UserID
-
-			// Delete the main loan transaction
-			if err := c.core.LoanTransactionManager.DeleteWithTx(context, tx, loanTransaction); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/loan-transaction/bulk-delete), main transaction delete error: " + err.Error(),
-					Module:      "LoanTransaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction: " + err.Error()})
-			}
-		}
-
-		// Commit the transaction
-		names := strings.Join(namesSlice, ",")
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/loan-transaction/bulk-delete), commit error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
+			// Manager should return appropriate error types (validation/not-found/forbidden/internal)
+			// Map manager errors to HTTP status as needed (here we return 500 for generic failure).
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan transactions: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted loan transactions (/loan-transaction/bulk-delete): " + names,
+			Description: "Bulk deleted loan transactions (/loan-transaction/bulk-delete)",
 			Module:      "LoanTransaction",
 		})
 

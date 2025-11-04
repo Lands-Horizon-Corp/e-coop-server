@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -259,88 +256,49 @@ func (c *Controller) loanStatusController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /loan-status/bulk-delete: Bulk delete loan status records by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for loan statuses (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/loan-status/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple loan status records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Loan status bulk delete failed (/loan-status/bulk-delete), invalid request body.",
+				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanStatus",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Loan status bulk delete failed (/loan-status/bulk-delete), no IDs provided.",
+				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | no IDs provided",
 				Module:      "LoanStatus",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.LoanStatusManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Loan status bulk delete failed (/loan-status/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanStatus",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan status records: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Loan status bulk delete failed (/loan-status/bulk-delete), invalid UUID: " + rawID,
-					Module:      "LoanStatus",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			status, err := c.core.LoanStatusManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Loan status bulk delete failed (/loan-status/bulk-delete), not found: " + rawID,
-					Module:      "LoanStatus",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan status record not found with ID: %s", rawID)})
-			}
-			namesSlice = append(namesSlice, status.Name)
-			if err := c.core.LoanStatusManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Loan status bulk delete failed (/loan-status/bulk-delete), db error: " + err.Error(),
-					Module:      "LoanStatus",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan status record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Loan status bulk delete failed (/loan-status/bulk-delete), commit error: " + err.Error(),
-				Module:      "LoanStatus",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-		names := strings.Join(namesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted loan statuses (/loan-status/bulk-delete): " + names,
+			Description: "Bulk deleted loan statuses (/loan-status/bulk-delete)",
 			Module:      "LoanStatus",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

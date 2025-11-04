@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -220,48 +217,53 @@ func (c *Controller) memberCenterController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.ToModel(memberCenter))
 	})
 
-	// Delete a member center by ID
+	// Delete a member center by ID (cleaned up messages to match other handlers)
 	req.RegisterRoute(handlers.Route{
 		Route:  "/api/v1/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		memberCenterID, err := handlers.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
-				Description: "Delete member center failed (/member-center/:member_center_id), invalid member_center_id: " + err.Error(),
+				Description: "Delete member center failed (/member-center/:member_center_id) | invalid member_center_id: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
+
 		value, err := c.core.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
-				Description: "Delete member center failed (/member-center/:member_center_id), not found: " + err.Error(),
+				Description: "Delete member center failed (/member-center/:member_center_id) | not found: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
+
 		if err := c.core.MemberCenterManager.Delete(context, *memberCenterID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
-				Description: "Delete member center failed (/member-center/:member_center_id), db error: " + err.Error(),
+				Description: "Delete member center failed (/member-center/:member_center_id) | db error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member center: " + err.Error()})
 		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member center (/member-center/:member_center_id): " + value.Name,
 			Module:      "MemberCenter",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member centers by IDs
+	// Simplified bulk-delete handler for member centers (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
@@ -274,79 +276,37 @@ func (c *Controller) memberCenterController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member centers failed (/member-center/bulk-delete), invalid request body.",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member centers failed (/member-center/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | no IDs provided",
 				Module:      "MemberCenter",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberCenterManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member centers failed (/member-center/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member centers: " + err.Error()})
 		}
 
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			memberCenterID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member centers failed (/member-center/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberCenter",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-			value, err := c.core.MemberCenterManager.GetByID(context, memberCenterID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member centers failed (/member-center/bulk-delete), not found: " + rawID,
-					Module:      "MemberCenter",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member center with ID '%s' not found: %s", rawID, err.Error())})
-			}
-			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberCenterManager.DeleteWithTx(context, tx, memberCenterID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member centers failed (/member-center/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberCenter",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member center with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member centers failed (/member-center/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberCenter",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member centers (/member-center/bulk-delete): " + names,
+			Description: "Bulk deleted member centers (/member-center/bulk-delete)",
 			Module:      "MemberCenter",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

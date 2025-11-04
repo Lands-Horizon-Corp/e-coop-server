@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -51,11 +48,15 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.core.MemberGroupHistoryMemberProfileID(context, *memberProfileID, user.OrganizationID, *user.BranchID)
+		memberGroupHistory, err := c.core.MemberGroupHistoryManager.PaginationWithFields(context, ctx, &core.MemberGroupHistory{
+			MemberProfileID: *memberProfileID,
+			BranchID:        *user.BranchID,
+			OrganizationID:  user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history by profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupHistoryManager.Pagination(context, ctx, memberGroupHistory))
+		return ctx.JSON(http.StatusOK, memberGroupHistory)
 	})
 
 	// Get all member groups for the current branch
@@ -70,11 +71,14 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := c.core.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGroup, err := c.core.MemberGroupManager.FindRaw(context, &core.MemberGroup{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.ToModels(memberGroup))
+		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
 	// Get paginated member groups
@@ -90,11 +94,14 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberGroupCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGroup, err := c.core.MemberGroupManager.PaginationWithFields(context, ctx, &core.MemberGroup{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups for pagination: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.Pagination(context, ctx, value))
+		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
 	// Create a new member group
@@ -262,12 +269,12 @@ func (c *Controller) memberGroupController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Bulk delete member groups by IDs
+	// Simplified bulk-delete handler for member groups (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-group/bulk-delete",
-		Method:       "DELETE",
-		ResponseType: core.IDSRequest{},
-		Note:         "Deletes multiple member group records by their IDs.",
+		Route:       "/api/v1/member-group/bulk-delete",
+		Method:      "DELETE",
+		Note:        "Deletes multiple member group records by their IDs.",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -275,7 +282,7 @@ func (c *Controller) memberGroupController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member groups failed (/member-group/bulk-delete), invalid request body.",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberGroup",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -284,72 +291,25 @@ func (c *Controller) memberGroupController() {
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member groups failed (/member-group/bulk-delete), no IDs provided.",
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | no IDs provided",
 				Module:      "MemberGroup",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberGroupManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member groups failed (/member-group/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberGroup",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			memberGroupID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member groups failed (/member-group/bulk-delete), invalid UUID: " + rawID,
-					Module:      "MemberGroup",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID '%s': %s", rawID, err.Error())})
-			}
-
-			value, err := c.core.MemberGroupManager.GetByID(context, memberGroupID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member groups failed (/member-group/bulk-delete), not found: " + rawID,
-					Module:      "MemberGroup",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member group with ID '%s' not found: %s", rawID, err.Error())})
-			}
-
-			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberGroupManager.DeleteWithTx(context, tx, memberGroupID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member groups failed (/member-group/bulk-delete), db error: " + err.Error(),
-					Module:      "MemberGroup",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member group with ID '%s': %s", rawID, err.Error())})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member groups failed (/member-group/bulk-delete), commit error: " + err.Error(),
-				Module:      "MemberGroup",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member groups: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member groups (/member-group/bulk-delete): " + names,
+			Description: "Bulk deleted member groups (/member-group/bulk-delete)",
 			Module:      "MemberGroup",
 		})
 

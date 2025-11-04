@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,7 +32,7 @@ func (c *Controller) memberTypeReferenceController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is required"})
 		}
-		refs, err := c.core.MemberTypeReferenceManager.Find(context, &core.MemberTypeReference{
+		refs, err := c.core.MemberTypeReferenceManager.PaginationWithFields(context, ctx, &core.MemberTypeReference{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			MemberTypeID:   *memberTypeID,
@@ -43,7 +40,7 @@ func (c *Controller) memberTypeReferenceController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "MemberTypeReference not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberTypeReferenceManager.Pagination(context, ctx, refs))
+		return ctx.JSON(http.StatusOK, refs)
 	})
 
 	// Get a single member type reference by its ID
@@ -238,89 +235,50 @@ func (c *Controller) memberTypeReferenceController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-
-	// Bulk delete member type references by IDs
+	// Simplified bulk-delete handler for member type references (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/member-type-reference/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
 		Note:        "Deletes multiple member type reference records by their IDs.",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member type references failed: invalid request body.",
+				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberTypeReference",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member type references failed: no IDs provided.",
+				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | no IDs provided",
 				Module:      "MemberTypeReference",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
+		if err := c.core.MemberTypeReferenceManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member type references failed: begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberTypeReference",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member type references: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member type references failed: invalid UUID: " + rawID,
-					Module:      "MemberTypeReference",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s - %v", rawID, err)})
-			}
-			ref, err := c.core.MemberTypeReferenceManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member type references failed: record not found: " + rawID,
-					Module:      "MemberTypeReference",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberTypeReference with ID %s not found: %v", rawID, err)})
-			}
-			namesSlice = append(namesSlice, ref.Description)
-			if err := c.core.MemberTypeReferenceManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete member type references failed: delete error: " + err.Error(),
-					Module:      "MemberTypeReference",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to delete member type reference with ID %s: %v", rawID, err)})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete member type references failed: commit tx error: " + err.Error(),
-				Module:      "MemberTypeReference",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted member type references: " + names,
+			Description: "Bulk deleted member type references (/member-type-reference/bulk-delete)",
 			Module:      "MemberTypeReference",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }
