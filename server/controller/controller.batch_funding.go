@@ -49,11 +49,12 @@ func (c *Controller) batchFundingController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.FindOneWithConditions(context, map[string]any{
-			"organization_id": userOrg.OrganizationID,
-			"branch_id":       *userOrg.BranchID,
-			"is_closed":       false,
-		})
+		transactionBatch, err := c.core.CurrentClosedTransactionBatch(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -167,7 +168,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.core.BatchFundingManager.Find(context, &core.BatchFunding{
+		batchFunding, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -176,7 +177,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve batch funding records: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager.Pagination(context, ctx, batchFunding))
+		return ctx.JSON(http.StatusOK, batchFunding)
 	})
 
 	// GET /api/v1/batch-funding/search
@@ -195,7 +196,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.core.BatchFundingManager.Find(context, &core.BatchFunding{
+		batchFundings, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -203,6 +204,6 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve batch funding records: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager.Pagination(context, ctx, batchFundings))
+		return ctx.JSON(http.StatusOK, batchFundings)
 	})
 }

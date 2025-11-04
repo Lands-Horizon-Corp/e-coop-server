@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -583,4 +584,19 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID uu
 	}
 
 	return m.TransactionBatchManager.FindWithSQL(ctx, filters, nil)
+}
+
+func (m *Core) CurrentClosedTransactionBatch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*TransactionBatch, error) {
+	return m.TransactionBatchManager.FindOneWithSQL(context,
+		[]registry.FilterSQL{
+			{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+			{Field: "employee_user_id", Op: registry.OpEq, Value: userID},
+			{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+			{Field: "is_closed", Op: registry.OpEq, Value: false},
+		},
+		[]registry.FilterSortSQL{
+			{Field: "updated_at", Order: filter.SortOrderDesc},
+		},
+	)
+
 }

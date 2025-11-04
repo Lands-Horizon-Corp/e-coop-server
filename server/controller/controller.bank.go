@@ -51,11 +51,14 @@ func (c *Controller) bankController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.core.BankCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		banks, err := c.core.BankManager.PaginationWithFields(context, ctx, &core.Bank{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch banks for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.BankManager.Pagination(context, ctx, banks))
+		return ctx.JSON(http.StatusOK, banks)
 	})
 
 	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
