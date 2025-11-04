@@ -196,7 +196,7 @@ func (c *Controller) transactionController() {
 		transaction.ReferenceNumber = req.ReferenceNumber
 		transaction.UpdatedAt = time.Now().UTC()
 		transaction.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionManager.UpdateFieldsWithTx(context, tx, transaction.ID, transaction); err != nil {
+		if err := c.core.TransactionManager.UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",

@@ -150,7 +150,7 @@ func (c *Controller) memberJointAccountController() {
 		value.Birthday = req.Birthday
 		value.FamilyRelationship = req.FamilyRelationship
 
-		if err := c.core.MemberJointAccountManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberJointAccountManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),
@@ -193,7 +193,7 @@ func (c *Controller) memberJointAccountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Joint account record not found: " + err.Error()})
 		}
-		if err := c.core.MemberJointAccountManager.DeleteByID(context, *memberJointAccountID); err != nil {
+		if err := c.core.MemberJointAccountManager.Delete(context, *memberJointAccountID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),

@@ -170,7 +170,7 @@ func (c *Controller) onlineRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create online remittance failed: update batch error: " + err.Error(),
@@ -297,7 +297,7 @@ func (c *Controller) onlineRemittanceController() {
 			existingOnlineRemittance.DateEntry = &now
 		}
 
-		if err := c.core.OnlineRemittanceManager.UpdateFields(context, *onlineRemittanceID, existingOnlineRemittance); err != nil {
+		if err := c.core.OnlineRemittanceManager.UpdateByID(context, *onlineRemittanceID, existingOnlineRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update online remittance failed: update error: " + err.Error(),
@@ -330,7 +330,7 @@ func (c *Controller) onlineRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update online remittance failed: update batch error: " + err.Error(),
@@ -445,7 +445,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Online remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.core.OnlineRemittanceManager.DeleteByID(context, *onlineRemittanceID); err != nil {
+		if err := c.core.OnlineRemittanceManager.Delete(context, *onlineRemittanceID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete online remittance failed: delete error: " + err.Error(),
@@ -478,7 +478,7 @@ func (c *Controller) onlineRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete online remittance failed: update batch error: " + err.Error(),

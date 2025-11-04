@@ -289,7 +289,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
 
-		if err := c.core.MemberProfileMediaManager.DeleteByID(context, memberProfileMedia.ID); err != nil {
+		if err := c.core.MemberProfileMediaManager.Delete(context, memberProfileMedia.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile media delete failed (/member-profile-media/:member_profile_media_id), db error: " + err.Error(),

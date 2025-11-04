@@ -123,7 +123,7 @@ func (c *Controller) contactController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
-		if err := c.core.ContactUsManager.DeleteByID(context, *contactID); err != nil {
+		if err := c.core.ContactUsManager.Delete(context, *contactID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), db error: " + err.Error(),
@@ -202,7 +202,7 @@ func (c *Controller) contactController() {
 			}
 			emailsBuilder.WriteString(contact.Email)
 			emailsBuilder.WriteString(",")
-			if err := c.core.ContactUsManager.DeleteByIDWithTx(context, tx, contactID); err != nil {
+			if err := c.core.ContactUsManager.DeleteWithTx(context, tx, contactID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -325,7 +325,7 @@ func (c *Controller) computationSheetController() {
 		sheet.UpdatedAt = time.Now().UTC()
 		sheet.UpdatedByID = user.UserID
 
-		if err := c.core.ComputationSheetManager.UpdateFields(context, sheet.ID, sheet); err != nil {
+		if err := c.core.ComputationSheetManager.UpdateByID(context, sheet.ID, sheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), db error: " + err.Error(),
@@ -366,7 +366,7 @@ func (c *Controller) computationSheetController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
 		}
-		if err := c.core.ComputationSheetManager.DeleteByID(context, *id); err != nil {
+		if err := c.core.ComputationSheetManager.Delete(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Computation sheet delete failed (/computation-sheet/:id), db error: " + err.Error(),
@@ -441,7 +441,7 @@ func (c *Controller) computationSheetController() {
 			}
 			sb.WriteString(sheet.Name)
 			sb.WriteByte(',')
-			if err := c.core.ComputationSheetManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.ComputationSheetManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

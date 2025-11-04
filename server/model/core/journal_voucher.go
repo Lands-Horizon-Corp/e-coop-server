@@ -128,7 +128,7 @@ type (
 
 		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
-		JournalVoucherEntriesDeleted []uuid.UUID                   `json:"journal_voucher_entries_deleted,omitempty"`
+		JournalVoucherEntriesDeleted uuid.UUIDs                    `json:"journal_voucher_entries_deleted,omitempty"`
 	}
 
 	// JournalVoucherPrintRequest represents the request structure for creating/updating journalvoucherprint

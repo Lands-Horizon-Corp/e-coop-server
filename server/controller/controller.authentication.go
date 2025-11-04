@@ -360,7 +360,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: update user error: " + err.Error(),
@@ -485,7 +485,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsContactVerified = true
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: update user error: " + err.Error(),
@@ -683,7 +683,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsEmailVerified = true
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: update user error: " + err.Error(),

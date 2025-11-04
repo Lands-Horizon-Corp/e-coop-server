@@ -126,7 +126,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
 
-		if err := c.core.FeedbackManager.DeleteByID(context, *feedbackID); err != nil {
+		if err := c.core.FeedbackManager.Delete(context, *feedbackID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
@@ -209,7 +209,7 @@ func (c *Controller) feedbackController() {
 
 			emailsSlice = append(emailsSlice, feedback.Email)
 
-			if err := c.core.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
+			if err := c.core.FeedbackManager.DeleteWithTx(context, tx, feedbackID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

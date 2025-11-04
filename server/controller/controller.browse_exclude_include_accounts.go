@@ -198,7 +198,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		record.UpdatedAt = time.Now().UTC()
 		record.UpdatedByID = user.UserID
 
-		if err := c.core.BrowseExcludeIncludeAccountsManager.UpdateFields(context, record.ID, record); err != nil {
+		if err := c.core.BrowseExcludeIncludeAccountsManager.UpdateByID(context, record.ID, record); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), db error: " + err.Error(),
@@ -239,7 +239,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse exclude include account not found"})
 		}
-		if err := c.core.BrowseExcludeIncludeAccountsManager.DeleteByID(context, record.ID); err != nil {
+		if err := c.core.BrowseExcludeIncludeAccountsManager.Delete(context, record.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Browse exclude include account delete failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), db error: " + err.Error(),
@@ -313,7 +313,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Browse exclude include account not found with ID: %s", rawID)})
 			}
-			if err := c.core.BrowseExcludeIncludeAccountsManager.DeleteByIDWithTx(context, tx, record.ID); err != nil {
+			if err := c.core.BrowseExcludeIncludeAccountsManager.DeleteWithTx(context, tx, record.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

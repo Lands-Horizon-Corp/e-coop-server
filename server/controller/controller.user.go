@@ -56,7 +56,7 @@ func (c *Controller) userController() {
 		user.LastName = req.LastName
 		user.FullName = req.FullName
 		user.Suffix = req.Suffix
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user profile: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(user))
@@ -106,7 +106,7 @@ func (c *Controller) userController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: update user error: " + err.Error(),
@@ -173,7 +173,7 @@ func (c *Controller) userController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Media ID is the same as the current one"})
 		}
 		user.MediaID = req.MediaID
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change profile picture failed: update user error: " + err.Error(),
@@ -239,7 +239,7 @@ func (c *Controller) userController() {
 			user.ContactNumber = req.ContactNumber
 			user.IsContactVerified = false
 		}
-		if err := c.core.UserManager.UpdateFields(context, user.ID, user); err != nil {
+		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change general profile failed: update user error: " + err.Error(),

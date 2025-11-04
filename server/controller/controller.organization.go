@@ -419,7 +419,7 @@ func (c *Controller) organizationController() {
 		organization.UpdatedAt = time.Now().UTC()
 		organization.UpdatedByID = user.ID
 		organization.IsPrivate = req.IsPrivate
-		if err := c.core.OrganizationManager.UpdateFieldsWithTx(context, tx, organization.ID, organization); err != nil {
+		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -440,7 +440,7 @@ func (c *Controller) organizationController() {
 		}
 
 		for _, category := range organizationsFromCategory {
-			if err := c.core.OrganizationCategoryManager.DeleteByIDWithTx(context, tx, category.ID); err != nil {
+			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -549,7 +549,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
 		}
 		for _, category := range organization.OrganizationCategories {
-			if err := c.core.OrganizationCategoryManager.DeleteByIDWithTx(context, tx, category.ID); err != nil {
+			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -579,7 +579,7 @@ func (c *Controller) organizationController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to destroy organization branch: " + err.Error()})
 			}
-			if err := c.core.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
+			if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -589,7 +589,7 @@ func (c *Controller) organizationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
 			}
 		}
-		if err := c.core.OrganizationManager.DeleteByIDWithTx(context, tx, *organizationID); err != nil {
+		if err := c.core.OrganizationManager.DeleteWithTx(context, tx, *organizationID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -599,7 +599,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization: " + err.Error()})
 		}
 		for _, userOrganization := range userOrganizations {
-			if err := c.core.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrganization.ID); err != nil {
+			if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",

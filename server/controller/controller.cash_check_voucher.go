@@ -563,7 +563,7 @@ func (c *Controller) cashCheckVoucherController() {
 					entry.UpdatedByID = user.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
-					if err := c.core.CashCheckVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
+					if err := c.core.CashCheckVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						c.event.Footstep(context, ctx, event.FootstepEvent{
 							Activity:    "update-error",
@@ -605,7 +605,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		// Save updated cash check voucher
-		if err := c.core.CashCheckVoucherManager.UpdateFieldsWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -657,7 +657,7 @@ func (c *Controller) cashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
-		if err := c.core.CashCheckVoucherManager.DeleteByID(context, *cashCheckVoucherID); err != nil {
+		if err := c.core.CashCheckVoucherManager.Delete(context, *cashCheckVoucherID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), delete error: " + err.Error(),
@@ -798,7 +798,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + err.Error()})
 		}
 
@@ -852,7 +852,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve cash check voucher: " + err.Error()})
 		}
 
@@ -910,7 +910,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
@@ -965,7 +965,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = nil
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print for cash check voucher: " + err.Error()})
 		}
 
@@ -1016,7 +1016,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print cash check voucher: " + err.Error()})
 		}
 
@@ -1077,7 +1077,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedBy = nil
 
-		if err := c.core.CashCheckVoucherManager.UpdateFields(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for cash check voucher: " + err.Error()})
 		}
 

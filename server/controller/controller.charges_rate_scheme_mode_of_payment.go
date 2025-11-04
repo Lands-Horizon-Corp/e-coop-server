@@ -184,7 +184,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		chargesRateSchemeModeOfPayment.Column22 = req.Column22
 		chargesRateSchemeModeOfPayment.UpdatedAt = time.Now().UTC()
 		chargesRateSchemeModeOfPayment.UpdatedByID = user.UserID
-		if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateFields(context, chargesRateSchemeModeOfPayment.ID, chargesRateSchemeModeOfPayment); err != nil {
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateByID(context, chargesRateSchemeModeOfPayment.ID, chargesRateSchemeModeOfPayment); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme model of payment update failed (/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id), db error: " + err.Error(),
@@ -225,7 +225,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme model of payment not found"})
 		}
-		if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteByID(context, *chargesRateSchemeModeOfPaymentID); err != nil {
+		if err := c.core.ChargesRateSchemeModeOfPaymentManager.Delete(context, *chargesRateSchemeModeOfPaymentID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme model of payment delete failed (/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id), db error: " + err.Error(),
@@ -300,7 +300,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			}
 			sb.WriteString(chargesRateSchemeModeOfPayment.ID.String())
 			sb.WriteByte(',')
-			if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
+			if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteWithTx(context, tx, chargesRateSchemeModeOfPaymentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

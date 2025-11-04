@@ -283,7 +283,7 @@ type (
 		CheckEntryAccountID   *uuid.UUID `json:"check_entry_account_id,omitempty"`
 
 		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
-		CashCheckVoucherEntriesDeleted []uuid.UUID                     `json:"cash_check_voucher_entries_deleted,omitempty"`
+		CashCheckVoucherEntriesDeleted uuid.UUIDs                      `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
 
 	// CashCheckVoucherPrintRequest represents the request structure for creating/updating cashcheckvoucherprint

@@ -206,7 +206,7 @@ func (c *Controller) timeDepositTypeController() {
 		timeDepositType.Header10 = req.Header10
 		timeDepositType.Header11 = req.Header11
 
-		if err := c.core.TimeDepositTypeManager.UpdateFieldsWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
+		if err := c.core.TimeDepositTypeManager.UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -219,7 +219,7 @@ func (c *Controller) timeDepositTypeController() {
 		// Handle deletions first
 		if req.TimeDepositComputationsDeleted != nil {
 			for _, id := range req.TimeDepositComputationsDeleted {
-				if err := c.core.TimeDepositComputationManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -233,7 +233,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		if req.TimeDepositComputationPreMaturesDeleted != nil {
 			for _, id := range req.TimeDepositComputationPreMaturesDeleted {
-				if err := c.core.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.TimeDepositComputationPreMatureManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -270,7 +270,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingComputation.Header11 = computationReq.Header11
 					existingComputation.UpdatedAt = time.Now().UTC()
 					existingComputation.UpdatedByID = user.UserID
-					if err := c.core.TimeDepositComputationManager.UpdateFieldsWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
+					if err := c.core.TimeDepositComputationManager.UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + err.Error()})
 					}
@@ -322,7 +322,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingPreMature.Rate = preMatureReq.Rate
 					existingPreMature.UpdatedAt = time.Now().UTC()
 					existingPreMature.UpdatedByID = user.UserID
-					if err := c.core.TimeDepositComputationPreMatureManager.UpdateFieldsWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
+					if err := c.core.TimeDepositComputationPreMatureManager.UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + err.Error()})
 					}
@@ -396,7 +396,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
-		if err := c.core.TimeDepositTypeManager.DeleteByID(context, *timeDepositTypeID); err != nil {
+		if err := c.core.TimeDepositTypeManager.Delete(context, *timeDepositTypeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
@@ -470,7 +470,7 @@ func (c *Controller) timeDepositTypeController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit type not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, timeDepositType.Name)
-			if err := c.core.TimeDepositTypeManager.DeleteByIDWithTx(context, tx, timeDepositTypeID); err != nil {
+			if err := c.core.TimeDepositTypeManager.DeleteWithTx(context, tx, timeDepositTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

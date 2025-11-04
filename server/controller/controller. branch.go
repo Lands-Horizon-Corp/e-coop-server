@@ -37,7 +37,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BranchManager.Filtered(context, ctx, branches))
+		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModels(branches))
 	})
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
@@ -56,7 +56,7 @@ func (c *Controller) branchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.BranchManager.Filtered(context, ctx, branches))
+		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModels(branches))
 	})
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.
@@ -273,7 +273,7 @@ func (c *Controller) branchController() {
 			userOrganization.UpdatedAt = time.Now().UTC()
 			userOrganization.UpdatedByID = user.ID
 
-			if err := c.core.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create error",
@@ -447,7 +447,7 @@ func (c *Controller) branchController() {
 		branch.Longitude = req.Longitude
 		branch.IsMainBranch = req.IsMainBranch
 
-		if err := c.core.BranchManager.UpdateFields(context, branch.ID, branch); err != nil {
+		if err := c.core.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch for PUT /branch/:branch_id: %v", err),
@@ -555,7 +555,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
 		}
-		if err := c.core.BranchManager.DeleteByIDWithTx(context, tx, branch.ID); err != nil {
+		if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -564,7 +564,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + err.Error()})
 		}
-		if err := c.core.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrganization.ID); err != nil {
+		if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -768,7 +768,7 @@ func (c *Controller) branchController() {
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 
-			if err := c.core.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update error",
@@ -869,7 +869,7 @@ func (c *Controller) branchController() {
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.BranchSettingManager.UpdateFieldsWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+		if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
@@ -880,7 +880,7 @@ func (c *Controller) branchController() {
 
 		// Handle deletions first
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
-			if err := c.core.UnbalancedAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.UnbalancedAccountManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -911,7 +911,7 @@ func (c *Controller) branchController() {
 
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
-				if err := c.core.UnbalancedAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+				if err := c.core.UnbalancedAccountManager.UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 					tx.Rollback()
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
 				}

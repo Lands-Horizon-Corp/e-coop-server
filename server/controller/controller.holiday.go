@@ -205,7 +205,7 @@ func (c *Controller) holidayController() {
 		holiday.Description = req.Description
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
-		if err := c.core.HolidayManager.UpdateFields(context, holiday.ID, holiday); err != nil {
+		if err := c.core.HolidayManager.UpdateByID(context, holiday.ID, holiday); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), db error: " + err.Error(),
@@ -246,7 +246,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Holiday record not found"})
 		}
-		if err := c.core.HolidayManager.DeleteByID(context, *holidayID); err != nil {
+		if err := c.core.HolidayManager.Delete(context, *holidayID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Holiday delete failed (/holiday/:holiday_id), db error: " + err.Error(),
@@ -320,7 +320,7 @@ func (c *Controller) holidayController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Holiday record not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, holiday.Name)
-			if err := c.core.HolidayManager.DeleteByIDWithTx(context, tx, holidayID); err != nil {
+			if err := c.core.HolidayManager.DeleteWithTx(context, tx, holidayID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

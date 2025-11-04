@@ -193,7 +193,7 @@ type (
 		Icon                      string                `json:"icon,omitempty"`
 		Type                      ChargesRateSchemeType `json:"type" validate:"required,oneof=by_range by_type by_term"`
 		CurrencyID                uuid.UUID             `json:"currency_id" validate:"required"`
-		AccountIDs                []uuid.UUID           `json:"account_ids,omitempty"`
+		AccountIDs                uuid.UUIDs            `json:"account_ids,omitempty"`
 
 		MemberTypeID  *uuid.UUID         `json:"member_type_id,omitempty"`
 		ModeOfPayment *LoanModeOfPayment `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
@@ -251,10 +251,10 @@ type (
 		ChargesRateByTerms                 []*ChargesRateByTermRequest                 `json:"charges_rate_by_terms,omitempty"`
 
 		// Deletion arrays
-		ChargesRateSchemeAccountsDeleted          []uuid.UUID `json:"charges_rate_scheme_accounts_deleted,omitempty"`
-		ChargesRateByRangeOrMinimumAmountsDeleted []uuid.UUID `json:"charges_rate_by_range_or_minimum_amounts_deleted,omitempty"`
-		ChargesRateSchemeModeOfPaymentsDeleted    []uuid.UUID `json:"charges_rate_scheme_model_of_payments_deleted,omitempty"`
-		ChargesRateByTermsDeleted                 []uuid.UUID `json:"charges_rate_by_terms_deleted,omitempty"`
+		ChargesRateSchemeAccountsDeleted          uuid.UUIDs `json:"charges_rate_scheme_accounts_deleted,omitempty"`
+		ChargesRateByRangeOrMinimumAmountsDeleted uuid.UUIDs `json:"charges_rate_by_range_or_minimum_amounts_deleted,omitempty"`
+		ChargesRateSchemeModeOfPaymentsDeleted    uuid.UUIDs `json:"charges_rate_scheme_model_of_payments_deleted,omitempty"`
+		ChargesRateByTermsDeleted                 uuid.UUIDs `json:"charges_rate_by_terms_deleted,omitempty"`
 	}
 )
 

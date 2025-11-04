@@ -209,7 +209,7 @@ func (c *Controller) memberTypeController() {
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
-		if err := c.core.MemberTypeManager.UpdateFields(context, memberType.ID, memberType); err != nil {
+		if err := c.core.MemberTypeManager.UpdateByID(context, memberType.ID, memberType); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: update error: " + err.Error(),
@@ -250,7 +250,7 @@ func (c *Controller) memberTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", memberTypeID, err)})
 		}
-		if err := c.core.MemberTypeManager.DeleteByID(context, *memberTypeID); err != nil {
+		if err := c.core.MemberTypeManager.Delete(context, *memberTypeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type failed: " + err.Error(),
@@ -330,7 +330,7 @@ func (c *Controller) memberTypeController() {
 
 			namesBuilder.WriteString(memberType.Name)
 			namesBuilder.WriteString(",")
-			if err := c.core.MemberTypeManager.DeleteByIDWithTx(context, tx, memberTypeID); err != nil {
+			if err := c.core.MemberTypeManager.DeleteWithTx(context, tx, memberTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

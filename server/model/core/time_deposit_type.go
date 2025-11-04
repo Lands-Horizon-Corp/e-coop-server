@@ -118,8 +118,8 @@ type (
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureRequest `json:"time_deposit_computation_pre_matures,omitempty"`
 
 		// Deletion arrays
-		TimeDepositComputationsDeleted          []uuid.UUID `json:"time_deposit_computations_deleted,omitempty"`
-		TimeDepositComputationPreMaturesDeleted []uuid.UUID `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
+		TimeDepositComputationsDeleted          uuid.UUIDs `json:"time_deposit_computations_deleted,omitempty"`
+		TimeDepositComputationPreMaturesDeleted uuid.UUIDs `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
 	}
 )
 

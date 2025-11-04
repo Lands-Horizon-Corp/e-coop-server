@@ -145,7 +145,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		timeDepositComputationPreMature.Rate = req.Rate
 		timeDepositComputationPreMature.UpdatedAt = time.Now().UTC()
 		timeDepositComputationPreMature.UpdatedByID = user.UserID
-		if err := c.core.TimeDepositComputationPreMatureManager.UpdateFields(context, timeDepositComputationPreMature.ID, timeDepositComputationPreMature); err != nil {
+		if err := c.core.TimeDepositComputationPreMatureManager.UpdateByID(context, timeDepositComputationPreMature.ID, timeDepositComputationPreMature); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation pre mature update failed (/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id), db error: " + err.Error(),
@@ -186,7 +186,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation pre mature not found"})
 		}
-		if err := c.core.TimeDepositComputationPreMatureManager.DeleteByID(context, *timeDepositComputationPreMatureID); err != nil {
+		if err := c.core.TimeDepositComputationPreMatureManager.Delete(context, *timeDepositComputationPreMatureID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation pre mature delete failed (/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id), db error: " + err.Error(),
@@ -260,7 +260,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation pre mature not found with ID: %s", rawID)})
 			}
 			idsSlice = append(idsSlice, timeDepositComputationPreMature.ID.String())
-			if err := c.core.TimeDepositComputationPreMatureManager.DeleteByIDWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
+			if err := c.core.TimeDepositComputationPreMatureManager.DeleteWithTx(context, tx, timeDepositComputationPreMatureID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -205,7 +205,7 @@ func (c *Controller) memberGroupController() {
 		memberGroup.BranchID = *user.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
-		if err := c.core.MemberGroupManager.UpdateFields(context, memberGroup.ID, memberGroup); err != nil {
+		if err := c.core.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -246,7 +246,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
-		if err := c.core.MemberGroupManager.DeleteByID(context, *memberGroupID); err != nil {
+		if err := c.core.MemberGroupManager.Delete(context, *memberGroupID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -326,7 +326,7 @@ func (c *Controller) memberGroupController() {
 			}
 
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberGroupManager.DeleteByIDWithTx(context, tx, memberGroupID); err != nil {
+			if err := c.core.MemberGroupManager.DeleteWithTx(context, tx, memberGroupID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

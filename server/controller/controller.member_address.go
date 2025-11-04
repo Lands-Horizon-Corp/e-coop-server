@@ -162,7 +162,7 @@ func (c *Controller) memberAddressController() {
 		value.Address = req.Address
 		value.Longitude = req.Longitude
 		value.Latitude = req.Latitude
-		if err := c.core.MemberAddressManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberAddressManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), db error: " + err.Error(),
@@ -203,7 +203,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
-		if err := c.core.MemberAddressManager.DeleteByID(context, *memberAddressID); err != nil {
+		if err := c.core.MemberAddressManager.Delete(context, *memberAddressID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), db error: " + err.Error(),

@@ -170,7 +170,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), batch totals update error: " + err.Error(),
@@ -298,7 +298,7 @@ func (c *Controller) checkRemittanceController() {
 			updatedCheckRemittance.DateEntry = &now
 		}
 
-		if err := c.core.CheckRemittanceManager.UpdateFields(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
+		if err := c.core.CheckRemittanceManager.UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -330,7 +330,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
@@ -438,7 +438,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Check remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.core.CheckRemittanceManager.DeleteByID(context, *checkRemittanceID); err != nil {
+		if err := c.core.CheckRemittanceManager.Delete(context, *checkRemittanceID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -470,7 +470,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),

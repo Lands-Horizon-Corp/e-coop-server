@@ -228,7 +228,7 @@ func (c *Controller) currencyController() {
 		currency.Timezone = req.Timezone
 		currency.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CurrencyManager.UpdateFields(context, currency.ID, currency); err != nil {
+		if err := c.core.CurrencyManager.UpdateByID(context, currency.ID, currency); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: update error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
 
-		if err := c.core.CurrencyManager.DeleteByID(context, *currencyID); err != nil {
+		if err := c.core.CurrencyManager.Delete(context, *currencyID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: delete error: " + err.Error(),
@@ -358,7 +358,7 @@ func (c *Controller) currencyController() {
 			sb.WriteString(" (")
 			sb.WriteString(currency.CurrencyCode)
 			sb.WriteString("),")
-			if err := c.core.CurrencyManager.DeleteByIDWithTx(context, tx, currencyID); err != nil {
+			if err := c.core.CurrencyManager.DeleteWithTx(context, tx, currencyID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -201,7 +201,7 @@ func (c *Controller) journalVoucherTagController() {
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = user.UserID
-		if err := c.core.JournalVoucherTagManager.UpdateFields(context, tag.ID, tag); err != nil {
+		if err := c.core.JournalVoucherTagManager.UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher tag not found"})
 		}
-		if err := c.core.JournalVoucherTagManager.DeleteByID(context, *tagID); err != nil {
+		if err := c.core.JournalVoucherTagManager.Delete(context, *tagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher tag delete failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -347,7 +347,7 @@ func (c *Controller) journalVoucherTagController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher tag not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, tag.Name)
-			if err := c.core.JournalVoucherTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
+			if err := c.core.JournalVoucherTagManager.DeleteWithTx(context, tx, tagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

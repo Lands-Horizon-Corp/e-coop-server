@@ -144,7 +144,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 		value.Value = req.Value
 		value.ExpiryDate = req.ExpiryDate
 
-		if err := c.core.MemberGovernmentBenefitManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberGovernmentBenefitManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update government benefit failed (/member-government-benefit/:member_government_benefit_id), db error: " + err.Error(),
@@ -185,7 +185,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Government benefit record not found: " + err.Error()})
 		}
-		if err := c.core.MemberGovernmentBenefitManager.DeleteByID(context, *memberGovernmentBenefitID); err != nil {
+		if err := c.core.MemberGovernmentBenefitManager.Delete(context, *memberGovernmentBenefitID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete government benefit failed (/member-government-benefit/:member_government_benefit_id), db error: " + err.Error(),

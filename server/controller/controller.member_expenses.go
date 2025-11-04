@@ -137,7 +137,7 @@ func (c *Controller) memberExpenseController() {
 		value.Amount = req.Amount
 		value.Description = req.Description
 
-		if err := c.core.MemberExpenseManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberExpenseManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),
@@ -178,7 +178,7 @@ func (c *Controller) memberExpenseController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member expense not found: " + err.Error()})
 		}
-		if err := c.core.MemberExpenseManager.DeleteByID(context, *memberExpenseID); err != nil {
+		if err := c.core.MemberExpenseManager.Delete(context, *memberExpenseID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),

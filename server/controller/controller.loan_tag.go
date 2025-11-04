@@ -231,7 +231,7 @@ func (c *Controller) loanTagController() {
 		loanTag.Icon = req.Icon
 		loanTag.UpdatedAt = time.Now().UTC()
 		loanTag.UpdatedByID = user.UserID
-		if err := c.core.LoanTagManager.UpdateFields(context, loanTag.ID, loanTag); err != nil {
+		if err := c.core.LoanTagManager.UpdateByID(context, loanTag.ID, loanTag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
@@ -272,7 +272,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan tag not found"})
 		}
-		if err := c.core.LoanTagManager.DeleteByID(context, *loanTagID); err != nil {
+		if err := c.core.LoanTagManager.Delete(context, *loanTagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan tag delete failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
@@ -346,7 +346,7 @@ func (c *Controller) loanTagController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan tag not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, loanTag.Name)
-			if err := c.core.LoanTagManager.DeleteByIDWithTx(context, tx, loanTagID); err != nil {
+			if err := c.core.LoanTagManager.DeleteWithTx(context, tx, loanTagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

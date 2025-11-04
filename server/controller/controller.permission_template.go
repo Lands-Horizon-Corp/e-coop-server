@@ -191,7 +191,7 @@ func (c *Controller) permissionTemplateController() {
 		template.Description = reqData.Description
 		template.Permissions = reqData.Permissions
 
-		if err := c.core.PermissionTemplateManager.UpdateFields(context, template.ID, template); err != nil {
+		if err := c.core.PermissionTemplateManager.UpdateByID(context, template.ID, template); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: update error: " + err.Error(),
@@ -237,7 +237,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		if err := c.core.PermissionTemplateManager.DeleteByID(context, *permissionTemplateID); err != nil {
+		if err := c.core.PermissionTemplateManager.Delete(context, *permissionTemplateID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete permission template failed: delete error: " + err.Error(),

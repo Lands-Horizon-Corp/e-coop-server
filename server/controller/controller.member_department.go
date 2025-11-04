@@ -206,7 +206,7 @@ func (c *Controller) memberDepartmentController() {
 		memberDepartment.Name = req.Name
 		memberDepartment.Description = req.Description
 		memberDepartment.Icon = req.Icon
-		if err := c.core.MemberDepartmentManager.UpdateFields(context, memberDepartment.ID, memberDepartment); err != nil {
+		if err := c.core.MemberDepartmentManager.UpdateByID(context, memberDepartment.ID, memberDepartment); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), db error: " + err.Error(),
@@ -247,7 +247,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member department not found: " + err.Error()})
 		}
-		if err := c.core.MemberDepartmentManager.DeleteByID(context, *memberDepartmentID); err != nil {
+		if err := c.core.MemberDepartmentManager.Delete(context, *memberDepartmentID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member department failed (/member-department/:member_department_id), db error: " + err.Error(),
@@ -327,7 +327,7 @@ func (c *Controller) memberDepartmentController() {
 			}
 
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberDepartmentManager.DeleteByIDWithTx(context, tx, memberDepartmentID); err != nil {
+			if err := c.core.MemberDepartmentManager.DeleteWithTx(context, tx, memberDepartmentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

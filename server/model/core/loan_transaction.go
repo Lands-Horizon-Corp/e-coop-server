@@ -501,14 +501,14 @@ type (
 		ComakerMemberProfiles                 []*ComakerMemberProfileRequest                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralRequest                     `json:"comaker_collaterals,omitempty"`
 
-		LoanTagsDeleted []uuid.UUID `json:"loan_tags_deleted,omitempty"`
+		LoanTagsDeleted uuid.UUIDs `json:"loan_tags_deleted,omitempty"`
 
-		LoanClearanceAnalysisDeleted                 []uuid.UUID `json:"loan_clearance_analysis_deleted,omitempty"`
-		LoanClearanceAnalysisInstitutionDeleted      []uuid.UUID `json:"loan_clearance_analysis_institution_deleted,omitempty"`
-		LoanTermsAndConditionSuggestedPaymentDeleted []uuid.UUID `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
-		LoanTermsAndConditionAmountReceiptDeleted    []uuid.UUID `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
-		ComakerMemberProfilesDeleted                 []uuid.UUID `json:"comaker_member_profiles_deleted,omitempty"`
-		ComakerCollateralsDeleted                    []uuid.UUID `json:"comaker_collaterals_deleted,omitempty"`
+		LoanClearanceAnalysisDeleted                 uuid.UUIDs `json:"loan_clearance_analysis_deleted,omitempty"`
+		LoanClearanceAnalysisInstitutionDeleted      uuid.UUIDs `json:"loan_clearance_analysis_institution_deleted,omitempty"`
+		LoanTermsAndConditionSuggestedPaymentDeleted uuid.UUIDs `json:"loan_terms_and_condition_suggested_payment_deleted,omitempty"`
+		LoanTermsAndConditionAmountReceiptDeleted    uuid.UUIDs `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
+		ComakerMemberProfilesDeleted                 uuid.UUIDs `json:"comaker_member_profiles_deleted,omitempty"`
+		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
 	// LoanComputationSheetCalculatorRequest represents the request structure for creating/updating loancomputationsheetcalculator

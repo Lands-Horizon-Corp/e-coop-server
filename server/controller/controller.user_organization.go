@@ -82,7 +82,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.UpdatedAt = time.Now().UTC()
 		userOrg.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: update error: " + err.Error(),
@@ -186,7 +186,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + err.Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.core.UserOrganizationManager.UpdateFieldsWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -536,7 +536,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
-		if err := c.core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: update error: " + err.Error(),
@@ -842,7 +842,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Owners and employees cannot leave an organization"})
 		}
 
-		if err := c.core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: delete error: " + err.Error(),
@@ -985,7 +985,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		userOrg.ApplicationStatus = "accepted"
-		if err := c.core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: update error: " + err.Error(),
@@ -1058,7 +1058,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot reject your own application"})
 		}
 
-		if err := c.core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: delete error: " + err.Error(),
@@ -1101,7 +1101,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if err := c.core.UserOrganizationManager.DeleteByID(context, userOrg.ID); err != nil {
+		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: delete error: " + err.Error(),
@@ -1178,7 +1178,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("User organization with ID %s not found: %v", rawID, err)})
 			}
 
-			if err := c.core.UserOrganizationManager.DeleteByIDWithTx(context, tx, userOrgID); err != nil {
+			if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrgID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -1300,7 +1300,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
-		if err := c.core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
@@ -1368,7 +1368,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
-		if err := c.core.UserOrganizationManager.UpdateFields(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),

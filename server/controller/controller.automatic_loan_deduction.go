@@ -248,7 +248,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		ald.UpdatedByID = user.UserID
 		ald.NumberOfMonths = request.NumberOfMonths
 
-		if err := c.core.AutomaticLoanDeductionManager.UpdateFields(context, ald.ID, ald); err != nil {
+		if err := c.core.AutomaticLoanDeductionManager.UpdateByID(context, ald.ID, ald); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
@@ -289,7 +289,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Automatic loan deduction not found"})
 		}
-		if err := c.core.AutomaticLoanDeductionManager.DeleteByID(context, *id); err != nil {
+		if err := c.core.AutomaticLoanDeductionManager.Delete(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Automatic loan deduction delete failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
@@ -364,7 +364,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			}
 			sb.WriteString(ald.Name)
 			sb.WriteByte(',')
-			if err := c.core.AutomaticLoanDeductionManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.AutomaticLoanDeductionManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

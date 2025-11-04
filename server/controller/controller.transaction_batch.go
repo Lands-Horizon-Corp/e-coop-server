@@ -154,7 +154,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: update error: " + err.Error(),
@@ -313,7 +313,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: update error: " + err.Error(),
@@ -544,7 +544,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: update error: " + err.Error(),
@@ -666,7 +666,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.CanView = false
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: update error: " + err.Error(),
@@ -789,7 +789,7 @@ func (c *Controller) transactionBatchController() {
 
 		transactionBatch.CanView = true
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: update error: " + err.Error(),

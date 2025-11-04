@@ -232,7 +232,7 @@ func (c *Controller) cashCountController() {
 		}
 		type CashCountBatchRequest struct {
 			CashCounts        []core.CashCountRequest `json:"cash_counts" validate:"required"`
-			DeletedCashCounts *[]uuid.UUID            `json:"deleted_cash_counts,omitempty"`
+			DeletedCashCounts *uuid.UUIDs             `json:"deleted_cash_counts,omitempty"`
 			DepositInBank     *float64                `json:"deposit_in_bank,omitempty"`
 			CashCountTotal    *float64                `json:"cash_count_total,omitempty"`
 			GrandTotal        *float64                `json:"grand_total,omitempty"`
@@ -271,7 +271,7 @@ func (c *Controller) cashCountController() {
 
 		if batchRequest.DeletedCashCounts != nil {
 			for _, deletedID := range *batchRequest.DeletedCashCounts {
-				if err := c.core.CashCountManager.DeleteByID(context, deletedID); err != nil {
+				if err := c.core.CashCountManager.Delete(context, deletedID); err != nil {
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count delete failed during update (/cash-count), db error: " + err.Error(),
@@ -313,7 +313,7 @@ func (c *Controller) cashCountController() {
 					OrganizationID:     userOrg.OrganizationID,
 					BranchID:           *userOrg.BranchID,
 				}
-				if err := c.core.CashCountManager.UpdateFields(context, *cashCountReq.ID, data); err != nil {
+				if err := c.core.CashCountManager.UpdateByID(context, *cashCountReq.ID, data); err != nil {
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count update failed during update (/cash-count), db error: " + err.Error(),
@@ -459,7 +459,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash count not found for the given ID"})
 		}
 
-		if err := c.core.CashCountManager.DeleteByID(context, *cashCountID); err != nil {
+		if err := c.core.CashCountManager.Delete(context, *cashCountID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), db error: " + err.Error(),

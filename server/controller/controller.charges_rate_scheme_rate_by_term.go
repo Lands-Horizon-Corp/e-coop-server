@@ -186,7 +186,7 @@ func (c *Controller) chargesRateByTermController() {
 		chargesRateByTerm.Rate22 = req.Rate22
 		chargesRateByTerm.UpdatedAt = time.Now().UTC()
 		chargesRateByTerm.UpdatedByID = user.UserID
-		if err := c.core.ChargesRateByTermManager.UpdateFields(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
+		if err := c.core.ChargesRateByTermManager.UpdateByID(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -227,7 +227,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by term not found"})
 		}
-		if err := c.core.ChargesRateByTermManager.DeleteByID(context, *chargesRateByTermID); err != nil {
+		if err := c.core.ChargesRateByTermManager.Delete(context, *chargesRateByTermID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -302,7 +302,7 @@ func (c *Controller) chargesRateByTermController() {
 			}
 			sb.WriteString(chargesRateByTerm.ID.String())
 			sb.WriteByte(',')
-			if err := c.core.ChargesRateByTermManager.DeleteByIDWithTx(context, tx, chargesRateByTermID); err != nil {
+			if err := c.core.ChargesRateByTermManager.DeleteWithTx(context, tx, chargesRateByTermID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

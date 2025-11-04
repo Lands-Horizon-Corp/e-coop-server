@@ -243,7 +243,7 @@ func (c *Controller) invitationCode() {
 		invitationCode.Permissions = req.Permissions
 		invitationCode.PermissionName = req.PermissionName
 
-		if err := c.core.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
+		if err := c.core.InvitationCodeManager.UpdateByID(context, invitationCode.ID, invitationCode); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
@@ -284,7 +284,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		if err := c.core.InvitationCodeManager.DeleteByID(context, *invitationCodeID); err != nil {
+		if err := c.core.InvitationCodeManager.Delete(context, *invitationCodeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
@@ -358,7 +358,7 @@ func (c *Controller) invitationCode() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
 			}
 			codesSlice = append(codesSlice, codeModel.Code)
-			if err := c.core.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeID); err != nil {
+			if err := c.core.InvitationCodeManager.DeleteWithTx(context, tx, invitationCodeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

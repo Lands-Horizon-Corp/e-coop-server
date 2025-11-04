@@ -122,7 +122,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		grouping.Debit = reqBody.Debit
 		grouping.Credit = reqBody.Credit
 
-		if err := c.core.GeneralLedgerAccountsGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+		if err := c.core.GeneralLedgerAccountsGroupingManager.UpdateByID(context, grouping.ID, grouping); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "General ledger account grouping update failed (/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id), db error: " + err.Error(),
@@ -297,7 +297,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
 
-		if err := c.core.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+		if err := c.core.GeneralLedgerDefinitionManager.UpdateByID(context, glDefinition.ID, glDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "General ledger definition update failed (/general-ledger-definition/:general_ledger_definition_id), db error: " + err.Error(),
@@ -393,7 +393,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		account.GeneralLedgerDefinitionID = glDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), account db error: " + err.Error(),
@@ -403,7 +403,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		}
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+		if err := c.core.GeneralLedgerDefinitionManager.UpdateByID(context, glDefinition.ID, glDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account connect to general ledger definition failed (/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect), GL def db error: " + err.Error(),
@@ -474,7 +474,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		glDefinition.Index = index
 		glDefinition.UpdatedAt = time.Now().UTC()
 		glDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+		if err := c.core.GeneralLedgerDefinitionManager.UpdateByID(context, glDefinition.ID, glDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "GL definition index update failed (/general-ledger-definition/:general_ledger_definition_id/index/:index), db error: " + err.Error(),
@@ -597,7 +597,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			acc.Index = idx
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
-			if err := c.core.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
+			if err := c.core.AccountManager.UpdateByID(context, acc.ID, acc); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), update account error: " + err.Error(),
@@ -610,7 +610,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			glDefinition.Index = reqBody.GeneralLedgerDefinitionIndex
 			glDefinition.UpdatedAt = time.Now().UTC()
 			glDefinition.UpdatedByID = userOrg.UserID
-			if err := c.core.GeneralLedgerDefinitionManager.UpdateFields(context, glDefinition.ID, glDefinition); err != nil {
+			if err := c.core.GeneralLedgerDefinitionManager.UpdateByID(context, glDefinition.ID, glDefinition); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "GL grouping/account index update failed (/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index), update GL definition error: " + err.Error(),
@@ -698,7 +698,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this general ledger definition"})
 		}
-		if err := c.core.GeneralLedgerDefinitionManager.DeleteByID(context, glDefinition.ID); err != nil {
+		if err := c.core.GeneralLedgerDefinitionManager.Delete(context, glDefinition.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "GL definition delete failed (/general-ledger-definition/:general_definition_id), db error: " + err.Error(),

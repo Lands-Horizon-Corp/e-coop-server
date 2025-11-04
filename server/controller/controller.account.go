@@ -899,7 +899,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		if err := c.core.AccountManager.DeleteByID(context, account.ID); err != nil {
+		if err := c.core.AccountManager.Delete(context, account.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), db error: " + err.Error(),
@@ -1006,7 +1006,7 @@ func (c *Controller) accountController() {
 				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
 			}
-			if err := c.core.AccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.AccountManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -1593,7 +1593,7 @@ func (c *Controller) accountController() {
 		account.LoanAccountID = &loanAccount.ID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to loan: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))

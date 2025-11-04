@@ -183,7 +183,7 @@ func (c *Controller) organizationMediaController() {
 		organizationMedia.MediaID = req.MediaID
 		organizationMedia.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.OrganizationMediaManager.UpdateFields(context, organizationMedia.ID, organizationMedia); err != nil {
+		if err := c.core.OrganizationMediaManager.UpdateByID(context, organizationMedia.ID, organizationMedia); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), db error: " + err.Error(),
@@ -226,7 +226,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
 
-		if err := c.core.OrganizationMediaManager.DeleteByID(context, *mediaID); err != nil {
+		if err := c.core.OrganizationMediaManager.Delete(context, *mediaID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:media_id), db error: " + err.Error(),
@@ -302,7 +302,7 @@ func (c *Controller) organizationMediaController() {
 			}
 
 			namesSlice = append(namesSlice, organizationMedia.Name)
-			if err := c.core.OrganizationMediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {
+			if err := c.core.OrganizationMediaManager.DeleteWithTx(context, tx, mediaID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

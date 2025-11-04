@@ -211,7 +211,7 @@ func (c *Controller) adjustmentEntryController() {
 		adjustmentEntry.Credit = req.Credit
 		adjustmentEntry.UpdatedAt = time.Now().UTC()
 		adjustmentEntry.UpdatedByID = user.UserID
-		if err := c.core.AdjustmentEntryManager.UpdateFields(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
+		if err := c.core.AdjustmentEntryManager.UpdateByID(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
@@ -252,7 +252,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
-		if err := c.core.AdjustmentEntryManager.DeleteByID(context, *adjustmentEntryID); err != nil {
+		if err := c.core.AdjustmentEntryManager.Delete(context, *adjustmentEntryID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
@@ -327,7 +327,7 @@ func (c *Controller) adjustmentEntryController() {
 			}
 			namesBuilder.WriteString(adjustmentEntry.ReferenceNumber)
 			namesBuilder.WriteByte(',')
-			if err := c.core.AdjustmentEntryManager.DeleteByIDWithTx(context, tx, adjustmentEntryID); err != nil {
+			if err := c.core.AdjustmentEntryManager.DeleteWithTx(context, tx, adjustmentEntryID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

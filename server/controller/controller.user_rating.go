@@ -164,7 +164,7 @@ func (c *Controller) userRatingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		if err := c.core.UserRatingManager.DeleteByID(context, *userRatingID); err != nil {
+		if err := c.core.UserRatingManager.Delete(context, *userRatingID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: delete error: " + err.Error(),

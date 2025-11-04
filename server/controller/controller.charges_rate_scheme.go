@@ -342,7 +342,7 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.UpdatedByID = user.UserID
 		chargesRateScheme.CurrencyID = req.CurrencyID
 
-		if err := c.core.ChargesRateSchemeManager.UpdateFieldsWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
+		if err := c.core.ChargesRateSchemeManager.UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -355,7 +355,7 @@ func (c *Controller) chargesRateSchemeController() {
 		// Handle deletions first
 		if req.ChargesRateSchemeAccountsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeAccountsDeleted {
-				if err := c.core.ChargesRateSchemeAccountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.ChargesRateSchemeAccountManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -369,7 +369,7 @@ func (c *Controller) chargesRateSchemeController() {
 
 		if req.ChargesRateByRangeOrMinimumAmountsDeleted != nil {
 			for _, id := range req.ChargesRateByRangeOrMinimumAmountsDeleted {
-				if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -383,7 +383,7 @@ func (c *Controller) chargesRateSchemeController() {
 
 		if req.ChargesRateSchemeModeOfPaymentsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeModeOfPaymentsDeleted {
-				if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -397,7 +397,7 @@ func (c *Controller) chargesRateSchemeController() {
 
 		if req.ChargesRateByTermsDeleted != nil {
 			for _, id := range req.ChargesRateByTermsDeleted {
-				if err := c.core.ChargesRateByTermManager.DeleteByIDWithTx(context, tx, id); err != nil {
+				if err := c.core.ChargesRateByTermManager.DeleteWithTx(context, tx, id); err != nil {
 					tx.Rollback()
 					c.event.Footstep(context, ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -422,7 +422,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingAccount.AccountID = accountReq.AccountID
 					existingAccount.UpdatedAt = time.Now().UTC()
 					existingAccount.UpdatedByID = user.UserID
-					if err := c.core.ChargesRateSchemeAccountManager.UpdateFieldsWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+					if err := c.core.ChargesRateSchemeAccountManager.UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
 					}
@@ -463,7 +463,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingRange.MinimumAmount = rangeReq.MinimumAmount
 					existingRange.UpdatedAt = time.Now().UTC()
 					existingRange.UpdatedByID = user.UserID
-					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateFieldsWithTx(context, tx, existingRange.ID, existingRange); err != nil {
+					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByIDWithTx(context, tx, existingRange.ID, existingRange); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + err.Error()})
 					}
@@ -527,7 +527,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingMode.Column22 = modeReq.Column22
 					existingMode.UpdatedAt = time.Now().UTC()
 					existingMode.UpdatedByID = user.UserID
-					if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateFieldsWithTx(context, tx, existingMode.ID, existingMode); err != nil {
+					if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateByIDWithTx(context, tx, existingMode.ID, existingMode); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + err.Error()})
 					}
@@ -611,7 +611,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingTerm.Rate22 = termReq.Rate22
 					existingTerm.UpdatedAt = time.Now().UTC()
 					existingTerm.UpdatedByID = user.UserID
-					if err := c.core.ChargesRateByTermManager.UpdateFieldsWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
+					if err := c.core.ChargesRateByTermManager.UpdateByIDWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + err.Error()})
 					}
@@ -707,7 +707,7 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
-		if err := c.core.ChargesRateSchemeManager.DeleteByID(context, *chargesRateSchemeID); err != nil {
+		if err := c.core.ChargesRateSchemeManager.Delete(context, *chargesRateSchemeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
@@ -782,7 +782,7 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 			sb.WriteString(chargesRateScheme.Name)
 			sb.WriteByte(',')
-			if err := c.core.ChargesRateSchemeManager.DeleteByIDWithTx(context, tx, chargesRateSchemeID); err != nil {
+			if err := c.core.ChargesRateSchemeManager.DeleteWithTx(context, tx, chargesRateSchemeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

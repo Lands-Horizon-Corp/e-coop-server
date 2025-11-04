@@ -63,7 +63,7 @@ type (
 	}
 	// MemberProfileBulkMediaRequest represents the request structure for creating/updating memberprofilebulkmedia
 	MemberProfileBulkMediaRequest struct {
-		MediaIDs []*uuid.UUID `json:"media_ids,omitempty"`
+		MediaIDs *uuid.UUIDs `json:"media_ids,omitempty"`
 	}
 	// MemberProfileMediaRequest represents the request structure for creating/updating memberprofilemedia
 	MemberProfileMediaRequest struct {

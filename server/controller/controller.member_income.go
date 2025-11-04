@@ -140,7 +140,7 @@ func (c *Controller) memberIncomeController() {
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
 
-		if err := c.core.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberIncomeManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member income failed (/member-income/:member_income_id), db error: " + err.Error(),
@@ -181,7 +181,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member income not found: " + err.Error()})
 		}
-		if err := c.core.MemberIncomeManager.DeleteByID(context, *memberIncomeID); err != nil {
+		if err := c.core.MemberIncomeManager.Delete(context, *memberIncomeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member income failed (/member-income/:member_income_id), db error: " + err.Error(),

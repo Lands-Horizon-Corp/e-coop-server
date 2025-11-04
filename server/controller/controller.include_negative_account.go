@@ -192,7 +192,7 @@ func (c *Controller) includeNegativeAccountController() {
 		record.UpdatedAt = time.Now().UTC()
 		record.UpdatedByID = user.UserID
 
-		if err := c.core.IncludeNegativeAccountManager.UpdateFields(context, record.ID, record); err != nil {
+		if err := c.core.IncludeNegativeAccountManager.UpdateByID(context, record.ID, record); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -233,7 +233,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Include negative account not found"})
 		}
-		if err := c.core.IncludeNegativeAccountManager.DeleteByID(context, record.ID); err != nil {
+		if err := c.core.IncludeNegativeAccountManager.Delete(context, record.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -305,7 +305,7 @@ func (c *Controller) includeNegativeAccountController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Include negative account not found with ID: %s", rawID)})
 			}
-			if err := c.core.IncludeNegativeAccountManager.DeleteByIDWithTx(context, tx, record.ID); err != nil {
+			if err := c.core.IncludeNegativeAccountManager.DeleteWithTx(context, tx, record.ID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -195,7 +195,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		cancelledVoucher.Description = req.Description
 		cancelledVoucher.UpdatedAt = time.Now().UTC()
 		cancelledVoucher.UpdatedByID = user.UserID
-		if err := c.core.CancelledCashCheckVoucherManager.UpdateFields(context, cancelledVoucher.ID, cancelledVoucher); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager.UpdateByID(context, cancelledVoucher.ID, cancelledVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cancelled cash check voucher update failed (/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id), db error: " + err.Error(),
@@ -236,7 +236,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cancelled cash check voucher not found"})
 		}
-		if err := c.core.CancelledCashCheckVoucherManager.DeleteByID(context, *cancelledVoucherID); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager.Delete(context, *cancelledVoucherID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cancelled cash check voucher delete failed (/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id), db error: " + err.Error(),
@@ -311,7 +311,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			}
 			sb.WriteString(cancelledVoucher.CheckNumber)
 			sb.WriteByte(',')
-			if err := c.core.CancelledCashCheckVoucherManager.DeleteByIDWithTx(context, tx, cancelledVoucherID); err != nil {
+			if err := c.core.CancelledCashCheckVoucherManager.DeleteWithTx(context, tx, cancelledVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

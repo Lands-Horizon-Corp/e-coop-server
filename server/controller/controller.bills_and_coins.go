@@ -214,7 +214,7 @@ func (c *Controller) billAndCoinsController() {
 
 		billAndCoins.UpdatedAt = time.Now().UTC()
 		billAndCoins.UpdatedByID = user.UserID
-		if err := c.core.BillAndCoinsManager.UpdateFields(context, billAndCoins.ID, billAndCoins); err != nil {
+		if err := c.core.BillAndCoinsManager.UpdateByID(context, billAndCoins.ID, billAndCoins); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
@@ -255,7 +255,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
-		if err := c.core.BillAndCoinsManager.DeleteByID(context, *billAndCoinsID); err != nil {
+		if err := c.core.BillAndCoinsManager.Delete(context, *billAndCoinsID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
@@ -330,7 +330,7 @@ func (c *Controller) billAndCoinsController() {
 			}
 			sb.WriteString(billAndCoins.Name)
 			sb.WriteByte(',')
-			if err := c.core.BillAndCoinsManager.DeleteByIDWithTx(context, tx, billAndCoinsID); err != nil {
+			if err := c.core.BillAndCoinsManager.DeleteWithTx(context, tx, billAndCoinsID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

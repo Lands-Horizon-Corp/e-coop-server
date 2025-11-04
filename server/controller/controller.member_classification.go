@@ -206,7 +206,7 @@ func (c *Controller) memberClassificationController() {
 		memberClassification.Name = req.Name
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
-		if err := c.core.MemberClassificationManager.UpdateFields(context, memberClassification.ID, memberClassification); err != nil {
+		if err := c.core.MemberClassificationManager.UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
@@ -247,7 +247,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member classification not found: " + err.Error()})
 		}
-		if err := c.core.MemberClassificationManager.DeleteByID(context, *memberClassificationID); err != nil {
+		if err := c.core.MemberClassificationManager.Delete(context, *memberClassificationID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
@@ -325,7 +325,7 @@ func (c *Controller) memberClassificationController() {
 			}
 			namesBuilder.WriteString(value.Name)
 			namesBuilder.WriteString(",")
-			if err := c.core.MemberClassificationManager.DeleteByIDWithTx(context, tx, memberClassificationID); err != nil {
+			if err := c.core.MemberClassificationManager.DeleteWithTx(context, tx, memberClassificationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

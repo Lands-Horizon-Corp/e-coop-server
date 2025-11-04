@@ -204,7 +204,7 @@ func (c *Controller) accountClassificationController() {
 		classification.Description = req.Description
 		classification.BranchID = *userOrg.BranchID
 		classification.OrganizationID = userOrg.OrganizationID
-		if err := c.core.AccountClassificationManager.UpdateFields(context, classification.ID, classification); err != nil {
+		if err := c.core.AccountClassificationManager.UpdateByID(context, classification.ID, classification); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -262,7 +262,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
-		if err := c.core.AccountClassificationManager.DeleteByID(context, classification.ID); err != nil {
+		if err := c.core.AccountClassificationManager.Delete(context, classification.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -333,7 +333,7 @@ func (c *Controller) accountClassificationController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification with ID " + rawID + " not found: " + err.Error()})
 			}
-			if err := c.core.AccountClassificationManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.AccountClassificationManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

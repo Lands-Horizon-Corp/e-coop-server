@@ -204,7 +204,7 @@ func (c *Controller) memberGenderController() {
 		memberGender.BranchID = *user.BranchID
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
-		if err := c.core.MemberGenderManager.UpdateFields(context, memberGender.ID, memberGender); err != nil {
+		if err := c.core.MemberGenderManager.UpdateByID(context, memberGender.ID, memberGender); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
@@ -245,7 +245,7 @@ func (c *Controller) memberGenderController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member gender not found: " + err.Error()})
 		}
-		if err := c.core.MemberGenderManager.DeleteByID(context, *memberGenderID); err != nil {
+		if err := c.core.MemberGenderManager.Delete(context, *memberGenderID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
@@ -325,7 +325,7 @@ func (c *Controller) memberGenderController() {
 			}
 
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberGenderManager.DeleteByIDWithTx(context, tx, memberGenderID); err != nil {
+			if err := c.core.MemberGenderManager.DeleteWithTx(context, tx, memberGenderID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

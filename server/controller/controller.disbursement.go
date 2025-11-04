@@ -208,7 +208,7 @@ func (c *Controller) disbursementController() {
 		disbursement.UpdatedAt = time.Now().UTC()
 		disbursement.UpdatedByID = user.UserID
 		disbursement.CurrencyID = req.CurrencyID
-		if err := c.core.DisbursementManager.UpdateFields(context, disbursement.ID, disbursement); err != nil {
+		if err := c.core.DisbursementManager.UpdateByID(context, disbursement.ID, disbursement); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Disbursement update failed (/disbursement/:disbursement_id), db error: " + err.Error(),
@@ -249,7 +249,7 @@ func (c *Controller) disbursementController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Disbursement not found"})
 		}
-		if err := c.core.DisbursementManager.DeleteByID(context, *disbursementID); err != nil {
+		if err := c.core.DisbursementManager.Delete(context, *disbursementID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Disbursement delete failed (/disbursement/:disbursement_id), db error: " + err.Error(),
@@ -323,7 +323,7 @@ func (c *Controller) disbursementController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Disbursement not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, disbursement.Name)
-			if err := c.core.DisbursementManager.DeleteByIDWithTx(context, tx, disbursementID); err != nil {
+			if err := c.core.DisbursementManager.DeleteWithTx(context, tx, disbursementID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -195,7 +195,7 @@ func (c *Controller) companyController() {
 		company.Description = req.Description
 		company.UpdatedAt = time.Now().UTC()
 		company.UpdatedByID = user.UserID
-		if err := c.core.CompanyManager.UpdateFields(context, company.ID, company); err != nil {
+		if err := c.core.CompanyManager.UpdateByID(context, company.ID, company); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), db error: " + err.Error(),
@@ -236,7 +236,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
-		if err := c.core.CompanyManager.DeleteByID(context, *companyID); err != nil {
+		if err := c.core.CompanyManager.Delete(context, *companyID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), db error: " + err.Error(),
@@ -311,7 +311,7 @@ func (c *Controller) companyController() {
 			}
 			sb.WriteString(company.Name)
 			sb.WriteByte(',')
-			if err := c.core.CompanyManager.DeleteByIDWithTx(context, tx, companyID); err != nil {
+			if err := c.core.CompanyManager.DeleteWithTx(context, tx, companyID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

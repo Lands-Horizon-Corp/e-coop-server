@@ -50,7 +50,7 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger.PrintNumber = maxNumber + 1
-		if err := c.core.GeneralLedgerManager.UpdateFields(context, generalLedger.ID, generalLedger); err != nil {
+		if err := c.core.GeneralLedgerManager.UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),

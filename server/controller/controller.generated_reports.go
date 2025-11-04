@@ -86,7 +86,7 @@ func (c *Controller) generatedReports() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete associated media file: " + err.Error()})
 			}
 		}
-		if err := c.core.GeneratedReportManager.DeleteByID(context, generatedReport.ID); err != nil {
+		if err := c.core.GeneratedReportManager.Delete(context, generatedReport.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated report delete failed (/generated-report/:generated_report_id), db error: " + err.Error(),

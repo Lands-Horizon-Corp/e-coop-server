@@ -136,7 +136,7 @@ func (c *Controller) mediaController() {
 			UpdatedAt:  time.Now().UTC(),
 			ID:         initial.ID,
 		}
-		if err := c.core.MediaManager.UpdateFields(context, completed.ID, completed); err != nil {
+		if err := c.core.MediaManager.UpdateByID(context, completed.ID, completed); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),
@@ -190,7 +190,7 @@ func (c *Controller) mediaController() {
 		}
 		media.FileName = req.FileName
 		media.UpdatedAt = time.Now().UTC()
-		if err := c.core.MediaManager.UpdateFields(context, *mediaID, media); err != nil {
+		if err := c.core.MediaManager.UpdateByID(context, *mediaID, media); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), db error: " + err.Error(),
@@ -324,7 +324,7 @@ func (c *Controller) mediaController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete file from storage: " + err.Error()})
 			}
-			if err := c.core.MediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {
+			if err := c.core.MediaManager.DeleteWithTx(context, tx, mediaID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

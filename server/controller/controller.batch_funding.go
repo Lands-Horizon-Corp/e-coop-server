@@ -95,7 +95,7 @@ func (c *Controller) batchFundingController() {
 		transactionBatch.CashCountTotal = totalCashCount
 		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
 
-		if err := c.core.TransactionBatchManager.UpdateFields(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),

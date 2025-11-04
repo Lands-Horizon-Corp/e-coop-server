@@ -166,7 +166,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.Amount = req.Amount
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionEntryManager.UpdateFields(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
+		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),
@@ -225,7 +225,7 @@ func (c *Controller) loanTransactionEntryController() {
 			loanTransactionEntry.IsAutomaticLoanDeductionDeleted = true
 			loanTransactionEntry.UpdatedAt = time.Now().UTC()
 			loanTransactionEntry.UpdatedByID = userOrg.UserID
-			if err := c.core.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
@@ -307,7 +307,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 
-		if err := c.core.LoanTransactionEntryManager.UpdateFields(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to restore loan transaction entry: " + err.Error()})
 		}
 

@@ -204,7 +204,7 @@ func (c *Controller) memberCenterController() {
 		memberCenter.BranchID = *user.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
-		if err := c.core.MemberCenterManager.UpdateFields(context, memberCenter.ID, memberCenter); err != nil {
+		if err := c.core.MemberCenterManager.UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), db error: " + err.Error(),
@@ -245,7 +245,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
-		if err := c.core.MemberCenterManager.DeleteByID(context, *memberCenterID); err != nil {
+		if err := c.core.MemberCenterManager.Delete(context, *memberCenterID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id), db error: " + err.Error(),
@@ -322,7 +322,7 @@ func (c *Controller) memberCenterController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Member center with ID '%s' not found: %s", rawID, err.Error())})
 			}
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberCenterManager.DeleteByIDWithTx(context, tx, memberCenterID); err != nil {
+			if err := c.core.MemberCenterManager.DeleteWithTx(context, tx, memberCenterID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

@@ -137,7 +137,7 @@ func (c *Controller) memberRelativeAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 		value.Description = req.Description
 
-		if err := c.core.MemberRelativeAccountManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberRelativeAccountManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member relative account failed: update error: " + err.Error(),
@@ -169,7 +169,7 @@ func (c *Controller) memberRelativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
-		if err := c.core.MemberRelativeAccountManager.DeleteByID(context, *memberRelativeAccountID); err != nil {
+		if err := c.core.MemberRelativeAccountManager.Delete(context, *memberRelativeAccountID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member relative account failed: " + err.Error(),

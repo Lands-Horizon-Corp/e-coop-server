@@ -107,7 +107,7 @@ func (c *Controller) timesheetController() {
 		timesheet.TimeOut = &now
 		timesheet.UpdatedAt = now
 
-		if err := c.core.TimesheetManager.UpdateFields(context, timesheet.ID, timesheet); err != nil {
+		if err := c.core.TimesheetManager.UpdateByID(context, timesheet.ID, timesheet); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time-out failed: update error: " + err.Error(),

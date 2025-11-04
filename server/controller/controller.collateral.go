@@ -196,7 +196,7 @@ func (c *Controller) collateralController() {
 		collateral.Description = req.Description
 		collateral.UpdatedAt = time.Now().UTC()
 		collateral.UpdatedByID = user.UserID
-		if err := c.core.CollateralManager.UpdateFields(context, collateral.ID, collateral); err != nil {
+		if err := c.core.CollateralManager.UpdateByID(context, collateral.ID, collateral); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), db error: " + err.Error(),
@@ -237,7 +237,7 @@ func (c *Controller) collateralController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Collateral record not found"})
 		}
-		if err := c.core.CollateralManager.DeleteByID(context, *collateralID); err != nil {
+		if err := c.core.CollateralManager.Delete(context, *collateralID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Collateral delete failed (/collateral/:collateral_id), db error: " + err.Error(),
@@ -312,7 +312,7 @@ func (c *Controller) collateralController() {
 			}
 			sb.WriteString(collateral.Name)
 			sb.WriteByte(',')
-			if err := c.core.CollateralManager.DeleteByIDWithTx(context, tx, collateralID); err != nil {
+			if err := c.core.CollateralManager.DeleteWithTx(context, tx, collateralID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

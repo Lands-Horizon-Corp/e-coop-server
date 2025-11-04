@@ -233,7 +233,7 @@ func (c *Controller) accountTagController() {
 		accountTag.UpdatedAt = time.Now().UTC()
 		accountTag.UpdatedByID = user.UserID
 
-		if err := c.core.AccountTagManager.UpdateFields(context, accountTag.ID, accountTag); err != nil {
+		if err := c.core.AccountTagManager.UpdateByID(context, accountTag.ID, accountTag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update account tag for PUT /account-tag/:account_tag_id: %v", err),
@@ -267,7 +267,7 @@ func (c *Controller) accountTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		if err := c.core.AccountTagManager.DeleteByID(context, *accountTagID); err != nil {
+		if err := c.core.AccountTagManager.Delete(context, *accountTagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete account tag for DELETE /account-tag/:account_tag_id: %v", err),
@@ -338,7 +338,7 @@ func (c *Controller) accountTagController() {
 				})
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Account tag not found with ID: %s", rawID)})
 			}
-			if err := c.core.AccountTagManager.DeleteByIDWithTx(context, tx, accountTagID); err != nil {
+			if err := c.core.AccountTagManager.DeleteWithTx(context, tx, accountTagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete error",

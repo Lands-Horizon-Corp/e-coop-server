@@ -204,7 +204,7 @@ func (c *Controller) memberOccupationController() {
 		memberOccupation.BranchID = *user.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
-		if err := c.core.MemberOccupationManager.UpdateFields(context, memberOccupation.ID, memberOccupation); err != nil {
+		if err := c.core.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -245,7 +245,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member occupation not found: " + err.Error()})
 		}
-		if err := c.core.MemberOccupationManager.DeleteByID(context, *memberOccupationID); err != nil {
+		if err := c.core.MemberOccupationManager.Delete(context, *memberOccupationID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -325,7 +325,7 @@ func (c *Controller) memberOccupationController() {
 			}
 
 			namesSlice = append(namesSlice, value.Name)
-			if err := c.core.MemberOccupationManager.DeleteByIDWithTx(context, tx, memberOccupationID); err != nil {
+			if err := c.core.MemberOccupationManager.DeleteWithTx(context, tx, memberOccupationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

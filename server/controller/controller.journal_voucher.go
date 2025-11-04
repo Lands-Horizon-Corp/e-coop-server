@@ -347,7 +347,7 @@ func (c *Controller) journalVoucherController() {
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = user.UserID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
-					if err := c.core.JournalVoucherEntryManager.UpdateFieldsWithTx(context, tx, entry.ID, entry); err != nil {
+					if err := c.core.JournalVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						tx.Rollback()
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + err.Error()})
 					}
@@ -378,7 +378,7 @@ func (c *Controller) journalVoucherController() {
 		}
 		journalVoucher.TotalCredit = totalCredit
 		journalVoucher.TotalDebit = totalDebit
-		if err := c.core.JournalVoucherManager.UpdateFieldsWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -430,7 +430,7 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
-		if err := c.core.JournalVoucherManager.DeleteByID(context, *journalVoucherID); err != nil {
+		if err := c.core.JournalVoucherManager.Delete(context, *journalVoucherID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher delete failed (/journal-voucher/:journal_voucher_id), db error: " + err.Error(),
@@ -504,7 +504,7 @@ func (c *Controller) journalVoucherController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Journal voucher not found with ID: %s", rawID)})
 			}
 			voucherNumbersSlice = append(voucherNumbersSlice, journalVoucher.CashVoucherNumber)
-			if err := c.core.JournalVoucherManager.DeleteByIDWithTx(context, tx, journalVoucherID); err != nil {
+			if err := c.core.JournalVoucherManager.DeleteWithTx(context, tx, journalVoucherID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
@@ -601,7 +601,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, db error: " + err.Error(),
@@ -675,7 +675,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, db error: " + err.Error(),
@@ -748,7 +748,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, db error: " + err.Error(),
@@ -818,7 +818,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, db error: " + err.Error(),
@@ -895,7 +895,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, db error: " + err.Error(),
@@ -972,7 +972,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
-		if err := c.core.JournalVoucherManager.UpdateFields(context, journalVoucher.ID, journalVoucher); err != nil {
+		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, db error: " + err.Error(),

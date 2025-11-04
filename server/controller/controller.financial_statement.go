@@ -123,7 +123,7 @@ func (c *Controller) financialStatementController() {
 		grouping.UpdatedAt = time.Now().UTC()
 		grouping.UpdatedByID = userOrg.UserID
 
-		if err := c.core.FinancialStatementGroupingManager.UpdateFields(context, grouping.ID, grouping); err != nil {
+		if err := c.core.FinancialStatementGroupingManager.UpdateByID(context, grouping.ID, grouping); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), db error: " + err.Error(),
@@ -298,7 +298,7 @@ func (c *Controller) financialStatementController() {
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
 
-		if err := c.core.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.core.FinancialStatementDefinitionManager.UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),
@@ -396,7 +396,7 @@ func (c *Controller) financialStatementController() {
 		account.FinancialStatementDefinitionID = fsDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.UpdateFields(context, account.ID, account); err != nil {
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
@@ -406,7 +406,7 @@ func (c *Controller) financialStatementController() {
 		}
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.core.FinancialStatementDefinitionManager.UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), FS definition db error: " + err.Error(),
@@ -477,7 +477,7 @@ func (c *Controller) financialStatementController() {
 		fsDefinition.Index = index
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+		if err := c.core.FinancialStatementDefinitionManager.UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), db error: " + err.Error(),
@@ -600,7 +600,7 @@ func (c *Controller) financialStatementController() {
 			acc.Index = idx
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
-			if err := c.core.AccountManager.UpdateFields(context, acc.ID, acc); err != nil {
+			if err := c.core.AccountManager.UpdateByID(context, acc.ID, acc); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update account error: " + err.Error(),
@@ -613,7 +613,7 @@ func (c *Controller) financialStatementController() {
 			fsDefinition.Index = reqBody.FinancialStatementDefinitionIndex
 			fsDefinition.UpdatedAt = time.Now().UTC()
 			fsDefinition.UpdatedByID = userOrg.UserID
-			if err := c.core.FinancialStatementDefinitionManager.UpdateFields(context, fsDefinition.ID, fsDefinition); err != nil {
+			if err := c.core.FinancialStatementDefinitionManager.UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update FS definition error: " + err.Error(),
@@ -701,7 +701,7 @@ func (c *Controller) financialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this financial statement definition"})
 		}
-		if err := c.core.FinancialStatementDefinitionManager.DeleteByID(context, fsDefinition.ID); err != nil {
+		if err := c.core.FinancialStatementDefinitionManager.Delete(context, fsDefinition.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),

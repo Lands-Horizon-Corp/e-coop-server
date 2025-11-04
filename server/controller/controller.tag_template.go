@@ -193,7 +193,7 @@ func (c *Controller) tagTemplateController() {
 		template.Icon = req.Icon
 		template.UpdatedAt = time.Now().UTC()
 		template.UpdatedByID = user.UserID
-		if err := c.core.TagTemplateManager.UpdateFields(context, template.ID, template); err != nil {
+		if err := c.core.TagTemplateManager.UpdateByID(context, template.ID, template); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: update error: " + err.Error(),
@@ -234,7 +234,7 @@ func (c *Controller) tagTemplateController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "TagTemplate not found: " + err.Error()})
 		}
-		if err := c.core.TagTemplateManager.DeleteByID(context, *id); err != nil {
+		if err := c.core.TagTemplateManager.Delete(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete tag template failed: delete error: " + err.Error(),
@@ -308,7 +308,7 @@ func (c *Controller) tagTemplateController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("TagTemplate with ID %s not found: %v", rawID, err)})
 			}
 			namesSlice = append(namesSlice, template.Name)
-			if err := c.core.TagTemplateManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.TagTemplateManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

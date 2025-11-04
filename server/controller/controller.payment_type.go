@@ -185,7 +185,7 @@ func (c *Controller) paymentTypeController() {
 		paymentType.Type = req.Type
 		paymentType.UpdatedAt = time.Now().UTC()
 		paymentType.UpdatedByID = user.UserID
-		if err := c.core.PaymentTypeManager.UpdateFields(context, paymentType.ID, paymentType); err != nil {
+		if err := c.core.PaymentTypeManager.UpdateByID(context, paymentType.ID, paymentType); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update payment type failed: update error: " + err.Error(),
@@ -226,7 +226,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "PaymentType not found: " + err.Error()})
 		}
-		if err := c.core.PaymentTypeManager.DeleteByID(context, *paymentTypeID); err != nil {
+		if err := c.core.PaymentTypeManager.Delete(context, *paymentTypeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete payment type failed: delete error: " + err.Error(),
@@ -300,7 +300,7 @@ func (c *Controller) paymentTypeController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("PaymentType with ID %s not found: %v", rawID, err)})
 			}
 			namesSlice = append(namesSlice, paymentType.Name)
-			if err := c.core.PaymentTypeManager.DeleteByIDWithTx(context, tx, paymentTypeID); err != nil {
+			if err := c.core.PaymentTypeManager.DeleteWithTx(context, tx, paymentTypeID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

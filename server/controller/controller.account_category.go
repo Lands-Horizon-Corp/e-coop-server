@@ -2,13 +2,11 @@ package v1
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -31,14 +29,15 @@ func (c *Controller) accountCategoryController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		categories, err := c.core.AccountCategoryManager.Find(context, &core.AccountCategory{
+
+		result, err := c.core.AccountCategoryManager.PaginationWithFields(context, ctx, &core.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.Pagination(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, result)
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -62,7 +61,7 @@ func (c *Controller) accountCategoryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account categories (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.Filtered(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModels(categories))
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -208,7 +207,7 @@ func (c *Controller) accountCategoryController() {
 		accountCategory.Description = req.Description
 		accountCategory.BranchID = *userOrg.BranchID
 		accountCategory.OrganizationID = userOrg.OrganizationID
-		if err := c.core.AccountCategoryManager.UpdateFields(context, accountCategory.ID, accountCategory); err != nil {
+		if err := c.core.AccountCategoryManager.UpdateByID(context, accountCategory.ID, accountCategory); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -267,7 +266,7 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
-		if err := c.core.AccountCategoryManager.DeleteByID(context, accountCategory.ID); err != nil {
+		if err := c.core.AccountCategoryManager.Delete(context, accountCategory.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -309,65 +308,18 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AccountCategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | error: " + err.Error(),
 				Module:      "AccountCategory",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + tx.Error.Error()})
-		}
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account categories (/account-category/bulk-delete) | invalid UUID: " + rawID + " - " + err.Error(),
-					Module:      "AccountCategory",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid UUID: " + rawID + " - " + err.Error()})
-			}
-			if _, err := c.core.AccountCategoryManager.GetByID(context, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account categories (/account-category/bulk-delete) | not found: " + rawID + " - " + err.Error(),
-					Module:      "AccountCategory",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category with ID " + rawID + " not found: " + err.Error()})
-			}
-			if err := c.core.AccountCategoryManager.DeleteByIDWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Failed bulk delete account categories (/account-category/bulk-delete) | delete error: " + rawID + " - " + err.Error(),
-					Module:      "AccountCategory",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account category with ID " + rawID + ": " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | commit error: " + err.Error(),
-				Module:      "AccountCategory",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
-			Activity: "bulk-delete-success",
-			Description: "Bulk deleted account categories (/account-category/bulk-delete): IDs=" + func() string {
-				var sb strings.Builder
-				for _, id := range reqBody.IDs {
-					sb.WriteString(id)
-					sb.WriteByte(',')
-				}
-				return sb.String()
-			}(),
-			Module: "AccountCategory",
+			Activity:    "bulk-delete-success",
+			Description: "Bulk deleted account categories (/account-category/bulk-delete)",
+			Module:      "AccountCategory",
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})

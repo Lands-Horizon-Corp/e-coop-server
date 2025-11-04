@@ -137,7 +137,7 @@ type (
 		CashOnHandAccountID          uuid.UUID `json:"cash_on_hand_account_id" validate:"required"`
 
 		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
-		UnbalancedAccountDeleteIDs []uuid.UUID                `json:"unbalanced_account_delete_ids,omitempty"`
+		UnbalancedAccountDeleteIDs uuid.UUIDs                 `json:"unbalanced_account_delete_ids,omitempty"`
 	}
 
 	// BranchSettingResponse represents the response structure for branchsetting data

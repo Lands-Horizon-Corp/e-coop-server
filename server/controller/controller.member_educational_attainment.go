@@ -144,7 +144,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
 
-		if err := c.core.MemberEducationalAttainmentManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -185,7 +185,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Educational attainment record not found: " + err.Error()})
 		}
-		if err := c.core.MemberEducationalAttainmentManager.DeleteByID(context, *memberEducationalAttainmentID); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager.Delete(context, *memberEducationalAttainmentID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -259,7 +259,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Educational attainment record with ID '%s' not found: %s", rawID, err.Error())})
 			}
 			namesSlice = append(namesSlice, value.SchoolName)
-			if err := c.core.MemberEducationalAttainmentManager.DeleteByIDWithTx(context, tx, attainmentID); err != nil {
+			if err := c.core.MemberEducationalAttainmentManager.DeleteWithTx(context, tx, attainmentID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

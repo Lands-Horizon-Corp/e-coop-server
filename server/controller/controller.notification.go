@@ -102,7 +102,7 @@ func (c *Controller) notificationController() {
 			}
 
 			notification.IsViewed = true
-			if err := c.core.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
+			if err := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -214,7 +214,7 @@ func (c *Controller) notificationController() {
 			}
 
 			notification.IsViewed = true
-			if err := c.core.NotificationManager.UpdateFields(context, notification.ID, notification); err != nil {
+			if err := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "update-error",
@@ -286,7 +286,7 @@ func (c *Controller) notificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", notification.ID, err)})
 		}
-		if err := c.core.NotificationManager.DeleteByID(context, notification.ID); err != nil {
+		if err := c.core.NotificationManager.Delete(context, notification.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: " + err.Error(),

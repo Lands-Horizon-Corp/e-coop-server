@@ -191,7 +191,7 @@ func (c *Controller) memberTypeReferenceController() {
 		ref.OtherInterestOnSavingComputationInterestRate = req.OtherInterestOnSavingComputationInterestRate
 		ref.UpdatedAt = time.Now().UTC()
 		ref.UpdatedByID = user.UserID
-		if err := c.core.MemberTypeReferenceManager.UpdateFields(context, ref.ID, ref); err != nil {
+		if err := c.core.MemberTypeReferenceManager.UpdateByID(context, ref.ID, ref); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: update error: " + err.Error(),
@@ -223,7 +223,7 @@ func (c *Controller) memberTypeReferenceController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
-		if err := c.core.MemberTypeReferenceManager.DeleteByID(context, *id); err != nil {
+		if err := c.core.MemberTypeReferenceManager.Delete(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type reference failed: " + err.Error(),
@@ -297,7 +297,7 @@ func (c *Controller) memberTypeReferenceController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberTypeReference with ID %s not found: %v", rawID, err)})
 			}
 			namesSlice = append(namesSlice, ref.Description)
-			if err := c.core.MemberTypeReferenceManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.MemberTypeReferenceManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

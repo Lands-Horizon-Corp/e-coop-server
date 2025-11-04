@@ -144,7 +144,7 @@ func (c *Controller) categoryController() {
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CategoryManager.UpdateFields(context, category.ID, category); err != nil {
+		if err := c.core.CategoryManager.UpdateByID(context, category.ID, category); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), db error: " + err.Error(),
@@ -189,7 +189,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Category not found"})
 		}
 
-		if err := c.core.CategoryManager.DeleteByID(context, *categoryID); err != nil {
+		if err := c.core.CategoryManager.Delete(context, *categoryID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), db error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) categoryController() {
 			sb.WriteString(category.Name)
 			sb.WriteByte(',')
 
-			if err := c.core.CategoryManager.DeleteByIDWithTx(context, tx, categoryID); err != nil {
+			if err := c.core.CategoryManager.DeleteWithTx(context, tx, categoryID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

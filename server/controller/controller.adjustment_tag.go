@@ -232,7 +232,7 @@ func (c *Controller) adjustmentTagController() {
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = user.UserID
-		if err := c.core.AdjustmentTagManager.UpdateFields(context, tag.ID, tag); err != nil {
+		if err := c.core.AdjustmentTagManager.UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "adjustment tag update failed (/adjustment-tag/:tag_id), db error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "adjustment tag not found"})
 		}
-		if err := c.core.AdjustmentTagManager.DeleteByID(context, *tagID); err != nil {
+		if err := c.core.AdjustmentTagManager.Delete(context, *tagID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "adjustment tag delete failed (/adjustment-tag/:tag_id), db error: " + err.Error(),
@@ -348,7 +348,7 @@ func (c *Controller) adjustmentTagController() {
 			}
 			sb.WriteString(tag.Name)
 			sb.WriteByte(',')
-			if err := c.core.AdjustmentTagManager.DeleteByIDWithTx(context, tx, tagID); err != nil {
+			if err := c.core.AdjustmentTagManager.DeleteWithTx(context, tx, tagID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

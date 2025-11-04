@@ -146,7 +146,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		chargesRateByRangeOrMinimumAmount.MinimumAmount = req.MinimumAmount
 		chargesRateByRangeOrMinimumAmount.UpdatedAt = time.Now().UTC()
 		chargesRateByRangeOrMinimumAmount.UpdatedByID = user.UserID
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateFields(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByID(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by range or minimum amount update failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -187,7 +187,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by range or minimum amount not found"})
 		}
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteByID(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Delete(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by range or minimum amount delete failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -262,7 +262,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			}
 			sb.WriteString(chargesRateByRangeOrMinimumAmount.ID.String())
 			sb.WriteByte(',')
-			if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteByIDWithTx(context, tx, chargesRateByRangeOrMinimumAmountID); err != nil {
+			if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteWithTx(context, tx, chargesRateByRangeOrMinimumAmountID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

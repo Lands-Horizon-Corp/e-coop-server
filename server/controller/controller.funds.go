@@ -168,7 +168,7 @@ func (c *Controller) fundsController() {
 		funds.Description = req.Description
 		funds.Icon = req.Icon
 		funds.GLBooks = req.GLBooks
-		if err := c.core.FundsManager.UpdateFields(context, funds.ID, funds); err != nil {
+		if err := c.core.FundsManager.UpdateByID(context, funds.ID, funds); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -209,7 +209,7 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Funds not found: " + err.Error()})
 		}
-		if err := c.core.FundsManager.DeleteByID(context, *fundsID); err != nil {
+		if err := c.core.FundsManager.Delete(context, *fundsID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -289,7 +289,7 @@ func (c *Controller) fundsController() {
 			}
 
 			typesSlice = append(typesSlice, value.Type)
-			if err := c.core.FundsManager.DeleteByIDWithTx(context, tx, fundsID); err != nil {
+			if err := c.core.FundsManager.DeleteWithTx(context, tx, fundsID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

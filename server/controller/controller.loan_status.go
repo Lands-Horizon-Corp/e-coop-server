@@ -202,7 +202,7 @@ func (c *Controller) loanStatusController() {
 		status.Description = req.Description
 		status.UpdatedAt = time.Now().UTC()
 		status.UpdatedByID = user.UserID
-		if err := c.core.LoanStatusManager.UpdateFields(context, status.ID, status); err != nil {
+		if err := c.core.LoanStatusManager.UpdateByID(context, status.ID, status); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), db error: " + err.Error(),
@@ -243,7 +243,7 @@ func (c *Controller) loanStatusController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan status record not found"})
 		}
-		if err := c.core.LoanStatusManager.DeleteByID(context, *id); err != nil {
+		if err := c.core.LoanStatusManager.Delete(context, *id); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan status delete failed (/loan-status/:loan_status_id), db error: " + err.Error(),
@@ -317,7 +317,7 @@ func (c *Controller) loanStatusController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Loan status record not found with ID: %s", rawID)})
 			}
 			namesSlice = append(namesSlice, status.Name)
-			if err := c.core.LoanStatusManager.DeleteByIDWithTx(context, tx, id); err != nil {
+			if err := c.core.LoanStatusManager.DeleteWithTx(context, tx, id); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

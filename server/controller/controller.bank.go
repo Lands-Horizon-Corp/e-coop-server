@@ -195,7 +195,7 @@ func (c *Controller) bankController() {
 		bank.Description = req.Description
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
-		if err := c.core.BankManager.UpdateFields(context, bank.ID, bank); err != nil {
+		if err := c.core.BankManager.UpdateByID(context, bank.ID, bank); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), db error: " + err.Error(),
@@ -236,7 +236,7 @@ func (c *Controller) bankController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
-		if err := c.core.BankManager.DeleteByID(context, *bankID); err != nil {
+		if err := c.core.BankManager.Delete(context, *bankID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bank delete failed (/bank/:bank_id), db error: " + err.Error(),
@@ -311,7 +311,7 @@ func (c *Controller) bankController() {
 			}
 			sb.WriteString(bank.Name)
 			sb.WriteByte(',')
-			if err := c.core.BankManager.DeleteByIDWithTx(context, tx, bankID); err != nil {
+			if err := c.core.BankManager.DeleteWithTx(context, tx, bankID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

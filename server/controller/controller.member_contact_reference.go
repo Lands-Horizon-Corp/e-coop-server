@@ -136,7 +136,7 @@ func (c *Controller) memberContactReferenceController() {
 		value.Description = req.Description
 		value.ContactNumber = req.ContactNumber
 
-		if err := c.core.MemberContactReferenceManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberContactReferenceManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), db error: " + err.Error(),
@@ -177,7 +177,7 @@ func (c *Controller) memberContactReferenceController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact reference not found: " + err.Error()})
 		}
-		if err := c.core.MemberContactReferenceManager.DeleteByID(context, *memberContactReferenceID); err != nil {
+		if err := c.core.MemberContactReferenceManager.Delete(context, *memberContactReferenceID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete contact reference failed (/member-contact-reference/:member_contact_reference_id), db error: " + err.Error(),

@@ -162,7 +162,7 @@ func (c *Controller) timeDepositComputationController() {
 		timeDepositComputation.Header11 = req.Header11
 		timeDepositComputation.UpdatedAt = time.Now().UTC()
 		timeDepositComputation.UpdatedByID = user.UserID
-		if err := c.core.TimeDepositComputationManager.UpdateFields(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
+		if err := c.core.TimeDepositComputationManager.UpdateByID(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
@@ -203,7 +203,7 @@ func (c *Controller) timeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation not found"})
 		}
-		if err := c.core.TimeDepositComputationManager.DeleteByID(context, *timeDepositComputationID); err != nil {
+		if err := c.core.TimeDepositComputationManager.Delete(context, *timeDepositComputationID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation delete failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
@@ -277,7 +277,7 @@ func (c *Controller) timeDepositComputationController() {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Time deposit computation not found with ID: %s", rawID)})
 			}
 			idsSlice = append(idsSlice, timeDepositComputation.ID.String())
-			if err := c.core.TimeDepositComputationManager.DeleteByIDWithTx(context, tx, timeDepositComputationID); err != nil {
+			if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, timeDepositComputationID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",

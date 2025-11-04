@@ -151,7 +151,7 @@ func (c *Controller) memberAssetController() {
 		value.Description = req.Description
 		value.Cost = req.Cost
 
-		if err := c.core.MemberAssetManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberAssetManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),
@@ -192,7 +192,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member asset record not found"})
 		}
-		if err := c.core.MemberAssetManager.DeleteByID(context, *memberAssetID); err != nil {
+		if err := c.core.MemberAssetManager.Delete(context, *memberAssetID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),

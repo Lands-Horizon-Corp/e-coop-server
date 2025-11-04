@@ -146,7 +146,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateFieldsWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			tx.Rollback()
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -265,7 +265,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.Status = "verified"
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Approve member profile failed: update error: " + err.Error(),
@@ -325,7 +325,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "not allowed"
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "reject-error",
 				Description: "Reject member profile failed: update error: " + err.Error(),
@@ -595,7 +595,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect member profile to user account failed: update error: " + err.Error(),
@@ -913,7 +913,7 @@ func (c *Controller) memberProfileController() {
 		profile.Description = req.Description
 		profile.MediaID = req.MediaID
 		profile.SignatureMediaID = req.SignatureMediaID
-		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile personal info failed: update error: " + err.Error(),
@@ -1100,7 +1100,7 @@ func (c *Controller) memberProfileController() {
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
-		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile membership info failed: update error: " + err.Error(),
@@ -1143,7 +1143,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.User = nil
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
@@ -1210,7 +1210,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "connect-error",
 				Description: "Connect member profile to user organization failed: update error: " + err.Error(),
@@ -1261,7 +1261,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.core.MemberProfileManager.UpdateFields(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
@@ -1325,7 +1325,7 @@ func (c *Controller) memberProfileController() {
 		profile.Latitude = &req.Latitude
 		profile.Longitude = &req.Longitude
 
-		if err := c.core.MemberProfileManager.UpdateFields(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile coordinates failed: update error: " + err.Error(),

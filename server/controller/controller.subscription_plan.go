@@ -167,7 +167,7 @@ func (c *Controller) subscriptionPlanController() {
 		subscriptionPlan.CurrencyID = req.CurrencyID
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.SubscriptionPlanManager.UpdateFields(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
+		if err := c.core.SubscriptionPlanManager.UpdateByID(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: update error: " + err.Error(),
@@ -212,7 +212,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "SubscriptionPlan not found: " + err.Error()})
 		}
 
-		if err := c.core.SubscriptionPlanManager.DeleteByID(context, *subscriptionPlanID); err != nil {
+		if err := c.core.SubscriptionPlanManager.Delete(context, *subscriptionPlanID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: delete error: " + err.Error(),
@@ -294,7 +294,7 @@ func (c *Controller) subscriptionPlanController() {
 			}
 
 			namesSlice = append(namesSlice, subscriptionPlan.Name)
-			if err := c.core.SubscriptionPlanManager.DeleteByIDWithTx(context, tx, subscriptionPlanID); err != nil {
+			if err := c.core.SubscriptionPlanManager.DeleteWithTx(context, tx, subscriptionPlanID); err != nil {
 				tx.Rollback()
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "bulk-delete-error",
