@@ -32,7 +32,7 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGenderHistoryManager.Filtered(context, ctx, memberGenderHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberGenderHistoryManager.ToModels(memberGenderHistory))
 	})
 
 	// Get member gender history by member profile ID
@@ -74,7 +74,7 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.Filtered(context, ctx, memberGender))
+		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.ToModels(memberGender))
 	})
 
 	// Get paginated member genders

@@ -47,7 +47,7 @@ func (c *Controller) disbursementController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No disbursements found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.DisbursementManager.Filtered(context, ctx, disbursements))
+		return ctx.JSON(http.StatusOK, c.core.DisbursementManager.ToModels(disbursements))
 	})
 
 	// GET /disbursement/search: Paginated search of disbursements for the current branch.

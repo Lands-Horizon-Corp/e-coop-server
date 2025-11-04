@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,7 +33,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cancelled cash check vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.Filtered(context, ctx, cancelledVouchers))
+		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.ToModels(cancelledVouchers))
 	})
 
 	// GET /cancelled-cash-check-voucher/search: Paginated search of cancelled cash check vouchers for the current branch. (NO footstep)
@@ -252,7 +249,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /cancelled-cash-check-voucher/bulk-delete: Bulk delete cancelled cash check vouchers by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/cancelled-cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
@@ -264,74 +260,32 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "CancelledCashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | no IDs provided",
 				Module:      "CancelledCashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No cancelled cash check voucher IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | error: " + err.Error(),
 				Module:      "CancelledCashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete cancelled cash check vouchers: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			cancelledVoucherID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), invalid UUID: " + rawID,
-					Module:      "CancelledCashCheckVoucher",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager.GetByID(context, cancelledVoucherID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), not found: " + rawID,
-					Module:      "CancelledCashCheckVoucher",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Cancelled cash check voucher not found with ID: %s", rawID)})
-			}
-			sb.WriteString(cancelledVoucher.CheckNumber)
-			sb.WriteByte(',')
-			if err := c.core.CancelledCashCheckVoucherManager.DeleteWithTx(context, tx, cancelledVoucherID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), db error: " + err.Error(),
-					Module:      "CancelledCashCheckVoucher",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cancelled cash check voucher: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/cancelled-cash-check-voucher/bulk-delete), commit error: " + err.Error(),
-				Module:      "CancelledCashCheckVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete)",
 			Module:      "CancelledCashCheckVoucher",
 		})
 		return ctx.NoContent(http.StatusNoContent)

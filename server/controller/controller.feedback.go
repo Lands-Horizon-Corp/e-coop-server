@@ -29,7 +29,7 @@ func (c *Controller) feedbackController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve feedback records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FeedbackManager.Filtered(context, ctx, feedback))
+		return ctx.JSON(http.StatusOK, c.core.FeedbackManager.ToModels(feedback))
 	})
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)

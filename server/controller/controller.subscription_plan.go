@@ -28,7 +28,7 @@ func (c *Controller) subscriptionPlanController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve subscription plans: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.Filtered(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModels(categories))
 	})
 
 	// Get a subscription plan by its ID

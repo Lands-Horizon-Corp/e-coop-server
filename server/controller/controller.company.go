@@ -36,7 +36,7 @@ func (c *Controller) companyController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No companies found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CompanyManager.Filtered(context, ctx, companies))
+		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModels(companies))
 	})
 
 	// GET /company/search: Paginated search of companies for the current branch. (NO footstep)

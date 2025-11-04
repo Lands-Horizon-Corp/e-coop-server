@@ -29,7 +29,7 @@ func (c *Controller) currencyController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.Filtered(context, ctx, currencies))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModels(currencies))
 	})
 
 	// Get all available currencies on unbalance accounts

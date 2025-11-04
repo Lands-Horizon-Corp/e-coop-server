@@ -33,7 +33,7 @@ func (c *Controller) organizationMediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No organization media found for the current organization"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.Filtered(context, ctx, organizationMedia))
+		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.ToModels(organizationMedia))
 	})
 
 	// GET /organization-media/search: Paginated search of organization media for the current organization. (NO footstep)

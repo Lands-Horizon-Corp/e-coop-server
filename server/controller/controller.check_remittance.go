@@ -51,7 +51,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve check remittances: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.Filtered(context, ctx, checkRemittance))
+		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModels(checkRemittance))
 	})
 
 	// POST /check-remittance: Create a new check remittance for the current transaction batch. (WITH footstep)

@@ -36,7 +36,7 @@ func (c *Controller) journalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.Filtered(context, ctx, journalVouchers))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
 	// GET /journal-voucher/search: Paginated search of journal vouchers for the current branch. (NO footstep)

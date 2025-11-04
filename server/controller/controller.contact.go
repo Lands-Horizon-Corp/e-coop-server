@@ -29,7 +29,7 @@ func (c *Controller) contactController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve contact records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.ContactUsManager.Filtered(context, ctx, contacts))
+		return ctx.JSON(http.StatusOK, c.core.ContactUsManager.ToModels(contacts))
 	})
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)

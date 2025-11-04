@@ -36,7 +36,7 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.Filtered(context, ctx, loanTags))
+		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
 	})
 
 	// GET /api/v1/loan-tag/loan-transaction/:loan_transaction_id: List loan tags by loan transaction ID for the current branch. (NO footstep)
@@ -66,7 +66,7 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the specified loan transaction ID in the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.Filtered(context, ctx, loanTags))
+		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
 	})
 
 	// GET /loan-tag/search: Paginated search of loan tags for the current branch. (NO footstep)

@@ -36,7 +36,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModels(tags))
 	})
 
 	// GET /cash-check-voucher-tag/search: Paginated search of cash check voucher tags for the current branch. (NO footstep)
@@ -362,6 +362,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the specified cash check voucher ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModels(tags))
 	})
 }

@@ -158,7 +158,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.Filtered(context, ctx, timesheets))
+		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModels(timesheets))
 	})
 
 	// Get paginated timesheets for current branch
@@ -196,7 +196,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.Filtered(context, ctx, timesheets))
+		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModels(timesheets))
 	})
 
 	// Get paginated list of the user's own timesheets in the current branch
@@ -238,7 +238,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.Filtered(context, ctx, timesheets))
+		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModels(timesheets))
 	})
 
 	// Paginated timesheets of a specific user in the current branch
@@ -308,6 +308,6 @@ func (c *Controller) timesheetController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve current timesheets: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.Filtered(context, ctx, timesheets))
+		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModels(timesheets))
 	})
 }

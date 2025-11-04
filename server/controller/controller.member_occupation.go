@@ -32,7 +32,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager.Filtered(context, ctx, memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager.ToModels(memberOccupationHistory))
 	})
 
 	// Get member occupation history by member profile ID
@@ -74,7 +74,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.Filtered(context, ctx, memberOccupation))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModels(memberOccupation))
 	})
 
 	// Get paginated member occupations

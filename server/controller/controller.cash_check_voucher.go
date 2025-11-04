@@ -36,7 +36,7 @@ func (c *Controller) cashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.Filtered(context, ctx, cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
 	// GET /cash-check-voucher/search: Paginated search of cash check vouchers for the current branch. (NO footstep)

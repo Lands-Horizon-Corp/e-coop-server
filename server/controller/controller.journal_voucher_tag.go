@@ -36,7 +36,7 @@ func (c *Controller) journalVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.ToModels(tags))
 	})
 
 	// GET /journal-voucher-tag/search: Paginated search of journal voucher tags for the current branch. (NO footstep)
@@ -245,7 +245,7 @@ func (c *Controller) journalVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the given journal voucher ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.Filtered(context, ctx, tags))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherTagManager.ToModels(tags))
 	})
 
 	// DELETE /journal-voucher-tag/:tag_id: Delete a journal voucher tag by ID. (WITH footstep)

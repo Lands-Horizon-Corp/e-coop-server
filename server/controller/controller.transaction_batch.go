@@ -35,7 +35,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
 	})
 
 	// Paginate transaction batches for current branch
@@ -708,7 +708,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.Filtered(context, ctx, transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
 	})
 
 	// List all ended (closed) batches for the current day
@@ -730,7 +730,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.Filtered(context, ctx, batches))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(batches))
 	})
 
 	// Accept a view (blotter) request for a transaction batch by ID

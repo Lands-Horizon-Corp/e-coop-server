@@ -29,7 +29,7 @@ func (c *Controller) categoryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CategoryManager.Filtered(context, ctx, categories))
+		return ctx.JSON(http.StatusOK, c.core.CategoryManager.ToModels(categories))
 	})
 
 	// GET /category/:category_id: Get a specific category by ID. (NO footstep)

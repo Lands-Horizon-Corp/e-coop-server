@@ -31,7 +31,7 @@ func (c *Controller) mediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve media records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MediaManager.Filtered(context, ctx, media))
+		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModels(media))
 	})
 
 	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)

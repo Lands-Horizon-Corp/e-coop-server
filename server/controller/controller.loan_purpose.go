@@ -36,7 +36,7 @@ func (c *Controller) loanPurposeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan purpose records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.Filtered(context, ctx, purposes))
+		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.ToModels(purposes))
 	})
 
 	// GET /loan-purpose/search: Paginated search of loan purposes for the current branch. (NO footstep)

@@ -32,7 +32,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FundsManager.Filtered(context, ctx, funds))
+		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModels(funds))
 	})
 
 	// Get paginated funds

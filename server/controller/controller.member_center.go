@@ -32,7 +32,7 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterHistoryManager.Filtered(context, ctx, memberCenterHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterHistoryManager.ToModels(memberCenterHistory))
 	})
 
 	// Get member center history by member profile ID
@@ -74,7 +74,7 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.Filtered(context, ctx, memberCenter))
+		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager.ToModels(memberCenter))
 	})
 
 	// Get paginated member centers

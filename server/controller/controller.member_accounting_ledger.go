@@ -211,7 +211,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.Filtered(context, ctx, entries))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.ToModels(entries))
 	})
 
 	req.RegisterRoute(handlers.Route{

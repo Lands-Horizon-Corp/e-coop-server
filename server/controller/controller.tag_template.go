@@ -35,7 +35,7 @@ func (c *Controller) tagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve tag templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.Filtered(context, ctx, templates))
+		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.ToModels(templates))
 	})
 
 	// Returns paginated tag templates for the current user's branch.

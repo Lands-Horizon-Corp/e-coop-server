@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -45,7 +42,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AutomaticLoanDeductionManager.Filtered(context, ctx, alds))
+		return ctx.JSON(http.StatusOK, c.core.AutomaticLoanDeductionManager.ToModels(alds))
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
@@ -68,7 +65,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		// Find all for this computation sheet, org, and branch
-		alds, err := c.core.AutomaticLoanDeductionManager.Find(context, &core.AutomaticLoanDeduction{
+		alds, err := c.core.AutomaticLoanDeductionManager.PaginationWithFields(context, ctx, &core.AutomaticLoanDeduction{
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			ComputationSheetID: sheetID,
@@ -76,7 +73,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No automatic loan deductions found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AutomaticLoanDeductionManager.Pagination(context, ctx, alds))
+		return ctx.JSON(http.StatusOK, alds)
 	})
 
 	// POST /automatic-loan-deduction
@@ -305,7 +302,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /automatic-loan-deduction/bulk-delete
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
@@ -317,74 +313,32 @@ func (c *Controller) automaticLoanDeductionController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | no IDs provided",
 				Module:      "AutomaticLoanDeduction",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.AutomaticLoanDeductionManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete automatic loan deductions: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			id, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), invalid UUID: " + rawID,
-					Module:      "AutomaticLoanDeduction",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			ald, err := c.core.AutomaticLoanDeductionManager.GetByID(context, id)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), not found: " + rawID,
-					Module:      "AutomaticLoanDeduction",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Automatic loan deduction not found with ID: %s", rawID)})
-			}
-			sb.WriteString(ald.Name)
-			sb.WriteByte(',')
-			if err := c.core.AutomaticLoanDeductionManager.DeleteWithTx(context, tx, id); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), db error: " + err.Error(),
-					Module:      "AutomaticLoanDeduction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete automatic loan deduction: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/automatic-loan-deduction/bulk-delete), commit error: " + err.Error(),
-				Module:      "AutomaticLoanDeduction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted automatic loan deductions (/automatic-loan-deduction/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted automatic loan deductions (/automatic-loan-deduction/bulk-delete)",
 			Module:      "AutomaticLoanDeduction",
 		})
 		return ctx.NoContent(http.StatusNoContent)

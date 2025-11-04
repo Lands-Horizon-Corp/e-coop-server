@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -271,7 +268,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /bills-and-coins/bulk-delete: Bulk delete bills and coins records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
@@ -283,74 +279,32 @@ func (c *Controller) billAndCoinsController() {
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | no IDs provided",
 				Module:      "BillAndCoins",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.BillAndCoinsManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | error: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete bills and coins records: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			billAndCoinsID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), invalid UUID: " + rawID,
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			billAndCoins, err := c.core.BillAndCoinsManager.GetByID(context, billAndCoinsID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), record not found: " + rawID,
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Bills and coins record not found with ID: %s", rawID)})
-			}
-			sb.WriteString(billAndCoins.Name)
-			sb.WriteByte(',')
-			if err := c.core.BillAndCoinsManager.DeleteWithTx(context, tx, billAndCoinsID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), db error: " + err.Error(),
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bills and coins record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), commit error: " + err.Error(),
-				Module:      "BillAndCoins",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete)",
 			Module:      "BillAndCoins",
 		})
 		return ctx.NoContent(http.StatusNoContent)

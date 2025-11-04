@@ -32,7 +32,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member department history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentHistoryManager.Filtered(context, ctx, memberDepartmentHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentHistoryManager.ToModels(memberDepartmentHistory))
 	})
 
 	// Get member department history by member profile ID
@@ -74,7 +74,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.Filtered(context, ctx, memberDepartment))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.ToModels(memberDepartment))
 	})
 
 	// Get paginated member departments

@@ -26,7 +26,7 @@ func (c *Controller) organizationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.Filtered(context, ctx, organization))
+		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.ToModels(organization))
 	})
 
 	// Get an organization by its ID

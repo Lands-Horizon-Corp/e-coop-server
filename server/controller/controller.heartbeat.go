@@ -148,7 +148,7 @@ func (c *Controller) heartbeat() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organization status"})
 		}
-		statuses := c.core.UserOrganizationManager.Filtered(context, ctx, userOrganizations)
+		statuses := c.core.UserOrganizationManager.ToModels(userOrganizations)
 
 		var (
 			offlineUsers   []*core.UserOrganizationResponse
@@ -198,7 +198,7 @@ func (c *Controller) heartbeat() {
 			OnlineEmployees:      onlineEmployees,
 			TotalEmployees:       totalEmployees,
 			TotalActiveEmployees: len(timesheets),
-			ActiveEmployees:      c.core.TimesheetManager.Filtered(context, ctx, timesheets),
+			ActiveEmployees:      c.core.TimesheetManager.ToModels(timesheets),
 		})
 	})
 
