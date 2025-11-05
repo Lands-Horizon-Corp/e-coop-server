@@ -220,7 +220,14 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
 // Returns nil if not found (without error), allowing for create-or-update patterns
 // MemberAccountingLedgerFindForUpdate returns MemberAccountingLedgerFindForUpdate for the current branch or organization where applicable.
-func (m *Core) MemberAccountingLedgerFindForUpdate(ctx context.Context, tx *gorm.DB, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*MemberAccountingLedger, error) {
+func (m *Core) MemberAccountingLedgerFindForUpdate(
+	ctx context.Context,
+	tx *gorm.DB,
+	memberProfileID,
+	accountID,
+	organizationID,
+	branchID uuid.UUID,
+) (*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},

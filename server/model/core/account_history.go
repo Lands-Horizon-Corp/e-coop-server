@@ -92,8 +92,7 @@ type (
 		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20)" json:"interest_saving_type_diminishing_straight"`
 		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `gorm:"type:varchar(50)" json:"other_information_of_an_account"`
 
-		FinancialStatementType FinancialStatementType `gorm:"type:varchar(50)" json:"financial_statement_type"`
-		GeneralLedgerType      GeneralLedgerType      `gorm:"type:varchar(50)" json:"general_ledger_type"`
+		GeneralLedgerType GeneralLedgerType `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
 		// Display configuration snapshot
 		HeaderRow int `gorm:"type:int" json:"header_row"`
@@ -206,8 +205,7 @@ type (
 		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight"`
 		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `json:"other_information_of_an_account"`
 
-		FinancialStatementType FinancialStatementType `json:"financial_statement_type"`
-		GeneralLedgerType      GeneralLedgerType      `json:"general_ledger_type"`
+		GeneralLedgerType GeneralLedgerType `json:"general_ledger_type"`
 
 		HeaderRow int `json:"header_row"`
 		CenterRow int `json:"center_row"`
@@ -335,7 +333,6 @@ func (m *Core) accountHistory() {
 				InterestSavingTypeDiminishingStraight:             InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
 				OtherInformationOfAnAccount:                       OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
 
-				FinancialStatementType:              FinancialStatementType(data.FinancialStatementType),
 				GeneralLedgerType:                   data.GeneralLedgerType,
 				HeaderRow:                           data.HeaderRow,
 				CenterRow:                           data.CenterRow,

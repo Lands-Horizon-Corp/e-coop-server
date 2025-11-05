@@ -332,7 +332,6 @@ func (m *Core) GeneralLedgerCurrentMemberAccountForUpdate(
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
 	}
 	sorts := []registry.FilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
 	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
