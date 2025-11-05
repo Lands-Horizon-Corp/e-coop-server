@@ -323,7 +323,7 @@ func (c *Controller) branchController() {
 		}
 
 		// Event notification
-		c.event.Notification(context, ctx, event.NotificationEvent{
+		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       fmt.Sprintf("Create: %s", branch.Name),
 			Description: fmt.Sprintf("Created a new branch: %s", branch.Name),
 		})
@@ -440,7 +440,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
-		c.event.Notification(context, ctx, event.NotificationEvent{
+		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       fmt.Sprintf("Update: %s", branch.Name),
 			Description: fmt.Sprintf("Updated branch: %s", branch.Name),
 		})
@@ -555,7 +555,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Notification(context, ctx, event.NotificationEvent{
+		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       fmt.Sprintf("Delete: %s", branch.Name),
 			Description: fmt.Sprintf("Deleted branch: %s", branch.Name),
 		})
@@ -758,7 +758,7 @@ func (c *Controller) branchController() {
 			Module:      "branch",
 		})
 
-		c.event.Notification(context, ctx, event.NotificationEvent{
+		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       "Branch Settings Updated",
 			Description: "Branch settings have been successfully updated",
 		})
@@ -901,7 +901,7 @@ func (c *Controller) branchController() {
 			Module:      "branch",
 		})
 
-		c.event.Notification(context, ctx, event.NotificationEvent{
+		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       "Branch Settings Currency Updated",
 			Description: "Branch settings currency have been successfully updated",
 		})

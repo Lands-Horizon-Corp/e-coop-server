@@ -18,10 +18,12 @@ type NotificationEvent struct {
 
 // Notification creates a notification record asynchronously for the
 // current user based on the supplied data.
-func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data NotificationEvent) {
+func (e *Event) Notification(echoCtx echo.Context, data NotificationEvent) {
 
 	go func() {
-		user, err := e.userToken.CurrentUser(ctx, echoCtx)
+		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		user, err := e.userToken.CurrentUser(context, echoCtx)
 		if err != nil {
 			return
 		}
@@ -41,7 +43,7 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 			NotificationType: data.NotificationType,
 		}
 
-		if err := e.core.NotificationManager.Create(ctx, notification); err != nil {
+		if err := e.core.NotificationManager.Create(context, notification); err != nil {
 			return
 		}
 	}()
