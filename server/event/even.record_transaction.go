@@ -335,7 +335,7 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 8B: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance for subsidiary account
-		debit, credit, balance := e.usecase.Adjustment(*generalLedger.Account, transaction.Debit, transaction.Credit, generalLedger.Balance)
+		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
 
 		// --- SUB-STEP 8C: SUBSIDIARY LEDGER ENTRY PREPARATION ---
 		// Prepare new subsidiary general ledger entry
