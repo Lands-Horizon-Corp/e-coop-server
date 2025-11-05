@@ -255,8 +255,6 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	// 3. Have a description (complete profile)
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: registry.OpEq, Value: false},
-		{Field: "cover_media_id", Op: registry.OpNotNull, Value: nil},
-		{Field: "description", Op: registry.OpNotNull, Value: nil},
 	}
 
 	// Get organizations with preloads to check branches
