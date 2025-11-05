@@ -247,6 +247,10 @@ func (e Event) RecordTransaction(
 		// --- SUB-STEP 7B: MEMBER LEDGER RETRIEVAL ---
 		// Get current member account ledger with row-level locking
 		fmt.Printf("DEBUG LINE 227: Retrieving member ledger for update\n")
+		fmt.Printf("DEBUG LINE 228: memberProfile.ID: %v\n", memberProfile.ID)
+		fmt.Printf("DEBUG LINE 229: account.ID: %v\n", account.ID)
+		fmt.Printf("DEBUG LINE 230: memberProfile.OrganizationID: %v\n", memberProfile.OrganizationID)
+		fmt.Printf("DEBUG LINE 231: memberProfile.BranchID: %v\n", memberProfile.BranchID)
 		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, memberProfile.ID, account.ID, memberProfile.OrganizationID, memberProfile.BranchID,
 		)
