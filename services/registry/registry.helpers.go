@@ -3,6 +3,7 @@ package registry
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,24 +16,48 @@ import (
 // parseFilters decodes and validates filter parameters
 func parseFilters(ctx echo.Context) (filter.Root, error) {
 	filterParam := ctx.QueryParam("filter")
+	fmt.Println("=== FILTER DEBUG ===")
+	fmt.Println("Raw filter param:", filterParam)
+
 	if filterParam == "" {
+		fmt.Println("Filter param is empty, returning default AND logic")
 		return filter.Root{Logic: filter.LogicAnd}, nil
 	}
+
 	filterDecodedRaw, err := url.QueryUnescape(filterParam)
 	if err != nil {
+		fmt.Println("Unescape failed:", err)
 		return filter.Root{}, eris.Wrap(err, "unescaping failed")
 	}
+	fmt.Println("After unescape:", filterDecodedRaw)
+
 	filterBytes, err := base64.StdEncoding.DecodeString(filterDecodedRaw)
 	if err != nil {
+		fmt.Println("Base64 decode failed:", err)
 		return filter.Root{}, eris.Wrap(err, "base64 decoding failed")
 	}
+	fmt.Println("After base64 decode:", string(filterBytes))
+
 	var filterRoot filter.Root
 	if err := json.Unmarshal(filterBytes, &filterRoot); err != nil {
+		fmt.Println("JSON unmarshal failed:", err)
 		return filter.Root{}, eris.Wrap(err, "JSON unmarshalling failed")
 	}
+
+	fmt.Println("Parsed filterRoot:", filterRoot)
+	fmt.Println("FieldFilters count:", len(filterRoot.FieldFilters))
+	fmt.Println("Logic:", filterRoot.Logic)
+	if len(filterRoot.FieldFilters) > 0 {
+		for i, f := range filterRoot.FieldFilters {
+			fmt.Printf("Filter[%d]: Field=%s, Mode=%s, DataType=%s, Value=%v\n",
+				i, f.Field, f.Mode, f.DataType, f.Value)
+		}
+	}
+
 	if filterRoot.Logic == "" {
 		filterRoot.Logic = filter.LogicAnd
 	}
+	fmt.Println("=== END FILTER DEBUG ===")
 	return filterRoot, nil
 }
 
@@ -105,4 +130,3 @@ func parseQuery(ctx echo.Context) (filter.Root, int, int, error) {
 
 	return filterRoot, pageIndex, pageSize, nil
 }
-
