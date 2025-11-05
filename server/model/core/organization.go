@@ -260,7 +260,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	}
 
 	// Get organizations with preloads to check branches
-	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, nil, "Media")
+	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, nil)
 	if err != nil {
 		return nil, err
 	}
