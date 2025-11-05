@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,14 +19,14 @@ func (c *Controller) feedbackController() {
 		Route:        "/api/v1/feedback",
 		Method:       "GET",
 		Note:         "Returns all feedback records in the system.",
-		ResponseType: modelcore.FeedbackResponse{},
+		ResponseType: core.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedback, err := c.modelcore.FeedbackManager.List(context)
+		feedback, err := c.core.FeedbackManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve feedback records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.FeedbackManager.Filtered(context, ctx, feedback))
+		return ctx.JSON(http.StatusOK, c.core.FeedbackManager.ToModels(feedback))
 	})
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
@@ -37,7 +34,7 @@ func (c *Controller) feedbackController() {
 		Route:        "/api/v1/feedback/:feedback_id",
 		Method:       "GET",
 		Note:         "Returns a single feedback record by its ID.",
-		ResponseType: modelcore.FeedbackResponse{},
+		ResponseType: core.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
@@ -45,7 +42,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.modelcore.FeedbackManager.GetByIDRaw(context, *feedbackID)
+		feedback, err := c.core.FeedbackManager.GetByIDRaw(context, *feedbackID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
@@ -58,11 +55,11 @@ func (c *Controller) feedbackController() {
 		Route:        "/api/v1/feedback",
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
-		ResponseType: modelcore.FeedbackResponse{},
-		RequestType:  modelcore.FeedbackRequest{},
+		ResponseType: core.FeedbackResponse{},
+		RequestType:  core.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.FeedbackManager.Validate(ctx)
+		req, err := c.core.FeedbackManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -72,7 +69,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback data: " + err.Error()})
 		}
 
-		feedback := &modelcore.Feedback{
+		feedback := &core.Feedback{
 			Email:        req.Email,
 			Description:  req.Description,
 			FeedbackType: req.FeedbackType,
@@ -81,7 +78,7 @@ func (c *Controller) feedbackController() {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.modelcore.FeedbackManager.Create(context, feedback); err != nil {
+		if err := c.core.FeedbackManager.Create(context, feedback); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), db error: " + err.Error(),
@@ -96,7 +93,7 @@ func (c *Controller) feedbackController() {
 			Module:      "Feedback",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.modelcore.FeedbackManager.ToModel(feedback))
+		return ctx.JSON(http.StatusCreated, c.core.FeedbackManager.ToModel(feedback))
 	})
 
 	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
@@ -116,7 +113,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.modelcore.FeedbackManager.GetByID(context, *feedbackID)
+		feedback, err := c.core.FeedbackManager.GetByID(context, *feedbackID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -126,7 +123,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
 
-		if err := c.modelcore.FeedbackManager.DeleteByID(context, *feedbackID); err != nil {
+		if err := c.core.FeedbackManager.Delete(context, *feedbackID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
@@ -144,95 +141,45 @@ func (c *Controller) feedbackController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /feedback/bulk-delete: Bulk delete feedback records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid request body.",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Feedback",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), no IDs provided.",
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | no IDs provided",
 				Module:      "Feedback",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.FeedbackManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),
 				Module:      "Feedback",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete feedback records: " + err.Error()})
 		}
 
-		var emailsSlice []string
-		for _, rawID := range reqBody.IDs {
-			feedbackID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-
-			feedback, err := c.modelcore.FeedbackManager.GetByID(context, feedbackID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), not found: " + rawID,
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Feedback record not found with ID: %s", rawID)})
-			}
-
-			emailsSlice = append(emailsSlice, feedback.Email)
-
-			if err := c.modelcore.FeedbackManager.DeleteByIDWithTx(context, tx, feedbackID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Feedback bulk delete failed (/feedback/bulk-delete), db error: " + err.Error(),
-					Module:      "Feedback",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Feedback bulk delete failed (/feedback/bulk-delete), commit error: " + err.Error(),
-				Module:      "Feedback",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-
-		emails := strings.Join(emailsSlice, ",")
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted feedbacks (/feedback/bulk-delete): " + emails,
+			Description: "Bulk deleted feedbacks (/feedback/bulk-delete)",
 			Module:      "Feedback",
 		})
 

@@ -1,17 +1,14 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,7 +20,7 @@ func (c *Controller) holidayController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Returns all holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -34,18 +31,18 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		holiday, err := c.core.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No holiday records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.ToModels(holiday))
+		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(holiday))
 	})
 
 	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/search",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Returns a paginated list of holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -56,19 +53,22 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.modelcore.HolidayCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		holidays, err := c.core.HolidayManager.PaginationWithFields(context, ctx, &core.Holiday{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.Pagination(context, ctx, holidays))
+		return ctx.JSON(http.StatusOK, holidays)
 	})
 
 	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
-		RequestType:  modelcore.HolidayRequest{},
+		ResponseType: core.HolidayResponse{},
+		RequestType:  core.HolidayRequest{},
 		Note:         "Returns a holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -76,7 +76,7 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid holiday ID"})
 		}
-		holiday, err := c.modelcore.HolidayManager.GetByIDRaw(context, *holidayID)
+		holiday, err := c.core.HolidayManager.GetByIDRaw(context, *holidayID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Holiday record not found"})
 		}
@@ -87,12 +87,12 @@ func (c *Controller) holidayController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
-		ResponseType: modelcore.HolidayResponse{},
-		RequestType:  modelcore.HolidayRequest{},
+		ResponseType: core.HolidayResponse{},
+		RequestType:  core.HolidayRequest{},
 		Note:         "Creates a new holiday record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.HolidayManager.Validate(ctx)
+		req, err := c.core.HolidayManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -118,7 +118,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday := &modelcore.Holiday{
+		holiday := &core.Holiday{
 			EntryDate:      req.EntryDate,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -130,7 +130,7 @@ func (c *Controller) holidayController() {
 			OrganizationID: user.OrganizationID,
 			CurrencyID:     req.CurrencyID,
 		}
-		if err := c.modelcore.HolidayManager.Create(context, holiday); err != nil {
+		if err := c.core.HolidayManager.Create(context, holiday); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Holiday creation failed (/holiday), db error: " + err.Error(),
@@ -143,15 +143,15 @@ func (c *Controller) holidayController() {
 			Description: "Created holiday (/holiday): " + holiday.Name,
 			Module:      "Holiday",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.HolidayManager.ToModel(holiday))
+		return ctx.JSON(http.StatusCreated, c.core.HolidayManager.ToModel(holiday))
 	})
 
 	// PUT /holiday/:holiday_id: Update a holiday record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
-		ResponseType: modelcore.HolidayResponse{},
-		RequestType:  modelcore.HolidayRequest{},
+		ResponseType: core.HolidayResponse{},
+		RequestType:  core.HolidayRequest{},
 		Note:         "Updates an existing holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -164,7 +164,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid holiday ID"})
 		}
-		req, err := c.modelcore.HolidayManager.Validate(ctx)
+		req, err := c.core.HolidayManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -190,7 +190,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayManager.GetByID(context, *holidayID)
+		holiday, err := c.core.HolidayManager.GetByID(context, *holidayID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -205,7 +205,7 @@ func (c *Controller) holidayController() {
 		holiday.Description = req.Description
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
-		if err := c.modelcore.HolidayManager.UpdateFields(context, holiday.ID, holiday); err != nil {
+		if err := c.core.HolidayManager.UpdateByID(context, holiday.ID, holiday); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), db error: " + err.Error(),
@@ -218,7 +218,7 @@ func (c *Controller) holidayController() {
 			Description: "Updated holiday (/holiday/:holiday_id): " + holiday.Name,
 			Module:      "Holiday",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.ToModel(holiday))
+		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModel(holiday))
 	})
 
 	// DELETE /holiday/:holiday_id: Delete a holiday record by ID. (WITH footstep)
@@ -237,7 +237,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid holiday ID"})
 		}
-		holiday, err := c.modelcore.HolidayManager.GetByID(context, *holidayID)
+		holiday, err := c.core.HolidayManager.GetByID(context, *holidayID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -246,7 +246,7 @@ func (c *Controller) holidayController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Holiday record not found"})
 		}
-		if err := c.modelcore.HolidayManager.DeleteByID(context, *holidayID); err != nil {
+		if err := c.core.HolidayManager.Delete(context, *holidayID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Holiday delete failed (/holiday/:holiday_id), db error: " + err.Error(),
@@ -262,88 +262,49 @@ func (c *Controller) holidayController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /holiday/bulk-delete: Bulk delete holiday records by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for holidays (mirrors the feedback bulk-delete pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), invalid request body.",
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Holiday",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), no IDs provided.",
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | no IDs provided",
 				Module:      "Holiday",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.HolidayManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | error: " + err.Error(),
 				Module:      "Holiday",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete holiday records: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			holidayID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			holiday, err := c.modelcore.HolidayManager.GetByID(context, holidayID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), not found: " + rawID,
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Holiday record not found with ID: %s", rawID)})
-			}
-			namesSlice = append(namesSlice, holiday.Name)
-			if err := c.modelcore.HolidayManager.DeleteByIDWithTx(context, tx, holidayID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Holiday bulk delete failed (/holiday/bulk-delete), db error: " + err.Error(),
-					Module:      "Holiday",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete holiday record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Holiday bulk delete failed (/holiday/bulk-delete), commit error: " + err.Error(),
-				Module:      "Holiday",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-		names := strings.Join(namesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted holidays (/holiday/bulk-delete): " + names,
+			Description: "Bulk deleted holidays (/holiday/bulk-delete)",
 			Module:      "Holiday",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -351,7 +312,7 @@ func (c *Controller) holidayController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year-available",
 		Method:       "GET",
-		ResponseType: modelcore.HoldayYearAvaiable{},
+		ResponseType: core.HoldayYearAvaiable{},
 		Note:         "Returns years with available holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -362,7 +323,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holidays, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
@@ -391,9 +352,9 @@ func (c *Controller) holidayController() {
 			yearCount[maxYear+1] = 0
 		}
 
-		var response []modelcore.HoldayYearAvaiable
+		var response []core.HoldayYearAvaiable
 		for year, count := range yearCount {
-			response = append(response, modelcore.HoldayYearAvaiable{
+			response = append(response, core.HoldayYearAvaiable{
 				Year:  year,
 				Count: count,
 			})
@@ -408,7 +369,7 @@ func (c *Controller) holidayController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
 		Method:       "GET",
-		ResponseType: modelcore.HoldayYearAvaiable{},
+		ResponseType: core.HoldayYearAvaiable{},
 		Note:         "Returns years with available holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -423,7 +384,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holidays, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			CurrencyID:     *currencyID,
@@ -453,9 +414,9 @@ func (c *Controller) holidayController() {
 			yearCount[maxYear+1] = 0
 		}
 
-		var response []modelcore.HoldayYearAvaiable
+		var response []core.HoldayYearAvaiable
 		for year, count := range yearCount {
-			response = append(response, modelcore.HoldayYearAvaiable{
+			response = append(response, core.HoldayYearAvaiable{
 				Year:  year,
 				Count: count,
 			})
@@ -470,7 +431,7 @@ func (c *Controller) holidayController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Returns holiday records for a specific year for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -486,11 +447,11 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holiday, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
-		result := []*modelcore.Holiday{}
+		result := []*core.Holiday{}
 		for _, h := range holiday {
 			if h.EntryDate.Year() == year {
 				result = append(result, h)
@@ -499,14 +460,14 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the year: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.ToModels(result))
+		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(result))
 	})
 
 	// GET api/v1/holiday/currency/:currency_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Returns holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -524,7 +485,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holiday, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			CurrencyID:     *currencyID,
@@ -532,14 +493,14 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.ToModels(holiday))
+		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(holiday))
 	})
 
 	// GET api/v1/holiday/year/:year/currency/:currency_id
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Returns holiday records for a specific year and currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -562,12 +523,12 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holiday, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			CurrencyID:     *currencyID,
 		})
-		result := []*modelcore.Holiday{}
+		result := []*core.Holiday{}
 		for _, h := range holiday {
 			if h.EntryDate.Year() == year {
 				result = append(result, h)
@@ -576,14 +537,14 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the year and currency: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.HolidayManager.ToModels(result))
+		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(result))
 	})
 
 	// POST /api/v1/holiday/year/:year/currency/:currency/copy/:year
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
 		Method:       "POST",
-		ResponseType: modelcore.HolidayResponse{},
+		ResponseType: core.HolidayResponse{},
 		Note:         "Copies holiday records from source year to target year for a specific currency in the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -611,7 +572,7 @@ func (c *Controller) holidayController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.modelcore.HolidayManager.Find(context, &modelcore.Holiday{
+		holidays, err := c.core.HolidayManager.Find(context, &core.Holiday{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 			CurrencyID:     *currencyID,
@@ -619,10 +580,10 @@ func (c *Controller) holidayController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})
 		}
-		var copiedHolidays []*modelcore.Holiday
+		var copiedHolidays []*core.Holiday
 		for _, h := range holidays {
 			if h.EntryDate.Year() == sourceYear {
-				newHoliday := &modelcore.Holiday{
+				newHoliday := &core.Holiday{
 					EntryDate:      time.Date(targetYear, h.EntryDate.Month(), h.EntryDate.Day(), 0, 0, 0, 0, time.UTC),
 					Name:           h.Name,
 					Description:    h.Description,
@@ -634,13 +595,13 @@ func (c *Controller) holidayController() {
 					OrganizationID: user.OrganizationID,
 					CurrencyID:     h.CurrencyID,
 				}
-				if err := c.modelcore.HolidayManager.Create(context, newHoliday); err != nil {
+				if err := c.core.HolidayManager.Create(context, newHoliday); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to copy holiday record: " + err.Error()})
 				}
 				copiedHolidays = append(copiedHolidays, newHoliday)
 			}
 		}
-		return ctx.JSON(http.StatusCreated, c.modelcore.HolidayManager.ToModels(copiedHolidays))
+		return ctx.JSON(http.StatusCreated, c.core.HolidayManager.ToModels(copiedHolidays))
 	})
 
 }

@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,18 +19,18 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media",
 		Method:       "GET",
 		Note:         "Returns all organization media for the current user's organization. Returns empty if not authenticated.",
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.modelcore.OrganizationMediaFindByOrganization(context, user.OrganizationID)
+		organizationMedia, err := c.core.OrganizationMediaFindByOrganization(context, user.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No organization media found for the current organization"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.OrganizationMediaManager.Filtered(context, ctx, organizationMedia))
+		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.ToModels(organizationMedia))
 	})
 
 	// GET /organization-media/search: Paginated search of organization media for the current organization. (NO footstep)
@@ -41,18 +38,20 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of organization media for the current user's organization.",
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.modelcore.OrganizationMediaFindByOrganization(context, user.OrganizationID)
+		organizationMedia, err := c.core.OrganizationMediaManager.PaginationWithFields(context, ctx, &core.OrganizationMedia{
+			OrganizationID: user.OrganizationID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch organization media for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.OrganizationMediaManager.Pagination(context, ctx, organizationMedia))
+		return ctx.JSON(http.StatusOK, organizationMedia)
 	})
 
 	// GET /organization-media/organization/:organization_id: Get all media for a specific organization by ID. (NO footstep)
@@ -60,14 +59,14 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all organization media for a specific organization by its ID.",
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID"})
 		}
-		organizationMedias, err := c.modelcore.OrganizationMediaManager.FindRaw(context, &modelcore.OrganizationMedia{
+		organizationMedias, err := c.core.OrganizationMediaManager.FindRaw(context, &core.OrganizationMedia{
 			OrganizationID: *organizationID,
 		})
 		if err != nil {
@@ -81,14 +80,14 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a single organization media by its ID.",
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		mediaID, err := handlers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
-		organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByIDRaw(context, *mediaID)
+		organizationMedia, err := c.core.OrganizationMediaManager.GetByIDRaw(context, *mediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
@@ -100,11 +99,11 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media",
 		Method:       "POST",
 		Note:         "Creates a new organization media for the current user's organization.",
-		RequestType:  modelcore.OrganizationMediaRequest{},
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		RequestType:  core.OrganizationMediaRequest{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.OrganizationMediaManager.Validate(ctx)
+		req, err := c.core.OrganizationMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -114,7 +113,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media data: " + err.Error()})
 		}
 
-		organizationMedia := &modelcore.OrganizationMedia{
+		organizationMedia := &core.OrganizationMedia{
 			Name:           req.Name,
 			Description:    req.Description,
 			OrganizationID: req.OrganizationID,
@@ -123,7 +122,7 @@ func (c *Controller) organizationMediaController() {
 			UpdatedAt:      time.Now().UTC(),
 		}
 
-		if err := c.modelcore.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
+		if err := c.core.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Organization media creation failed (/organization-media), db error: " + err.Error(),
@@ -136,7 +135,7 @@ func (c *Controller) organizationMediaController() {
 			Description: "Created organization media (/organization-media): " + organizationMedia.Name,
 			Module:      "OrganizationMedia",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.OrganizationMediaManager.ToModel(organizationMedia))
+		return ctx.JSON(http.StatusCreated, c.core.OrganizationMediaManager.ToModel(organizationMedia))
 	})
 
 	// PUT /organization-media/: Update organization media by ID. (WITH footstep)
@@ -144,8 +143,8 @@ func (c *Controller) organizationMediaController() {
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "PUT",
 		Note:         "Updates an existing organization media by its ID.",
-		RequestType:  modelcore.OrganizationMediaRequest{},
-		ResponseType: modelcore.OrganizationMediaResponse{},
+		RequestType:  core.OrganizationMediaRequest{},
+		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationMeiaID, err := handlers.EngineUUIDParam(ctx, "organization_media_id")
@@ -158,7 +157,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		req, err := c.modelcore.OrganizationMediaManager.Validate(ctx)
+		req, err := c.core.OrganizationMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -168,7 +167,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media data: " + err.Error()})
 		}
 
-		organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByID(context, *organizationMeiaID)
+		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMeiaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -183,7 +182,7 @@ func (c *Controller) organizationMediaController() {
 		organizationMedia.MediaID = req.MediaID
 		organizationMedia.UpdatedAt = time.Now().UTC()
 
-		if err := c.modelcore.OrganizationMediaManager.UpdateFields(context, organizationMedia.ID, organizationMedia); err != nil {
+		if err := c.core.OrganizationMediaManager.UpdateByID(context, organizationMedia.ID, organizationMedia); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), db error: " + err.Error(),
@@ -196,7 +195,7 @@ func (c *Controller) organizationMediaController() {
 			Description: "Updated organization media (/organization-media/:media_id): " + organizationMedia.Name,
 			Module:      "OrganizationMedia",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.OrganizationMediaManager.ToModel(organizationMedia))
+		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.ToModel(organizationMedia))
 	})
 
 	// DELETE /organization-media/:media_id: Delete an organization media by ID. (WITH footstep)
@@ -216,7 +215,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByID(context, *mediaID)
+		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *mediaID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -226,7 +225,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
 
-		if err := c.modelcore.OrganizationMediaManager.DeleteByID(context, *mediaID); err != nil {
+		if err := c.core.OrganizationMediaManager.Delete(context, *mediaID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:media_id), db error: " + err.Error(),
@@ -242,91 +241,51 @@ func (c *Controller) organizationMediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /organization-media/bulk-delete: Bulk delete organization media by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for organization media (mirrors feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/organization-media/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple organization media by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), invalid request body.",
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), no IDs provided.",
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | no IDs provided",
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No organization media IDs provided for bulk delete"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		// Delegate the heavy lifting (DB transaction, validations, DeletedBy, storage cleanup if any)
+		// to the manager layer.
+		if err := c.core.OrganizationMediaManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | error: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete organization media: " + err.Error()})
 		}
-		var namesSlice []string
-		for _, rawID := range reqBody.IDs {
-			mediaID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), invalid UUID: " + rawID,
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			organizationMedia, err := c.modelcore.OrganizationMediaManager.GetByID(context, mediaID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), not found: " + rawID,
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Organization media not found with ID: %s", rawID)})
-			}
 
-			namesSlice = append(namesSlice, organizationMedia.Name)
-			if err := c.modelcore.OrganizationMediaManager.DeleteByIDWithTx(context, tx, mediaID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/organization-media/bulk-delete), db error: " + err.Error(),
-					Module:      "OrganizationMedia",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization media: " + err.Error()})
-			}
-		}
-		names := strings.Join(namesSlice, ",")
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/organization-media/bulk-delete), commit error: " + err.Error(),
-				Module:      "OrganizationMedia",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted organization media (/organization-media/bulk-delete): " + names,
+			Description: "Bulk deleted organization media (/organization-media/bulk-delete)",
 			Module:      "OrganizationMedia",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,14 +19,14 @@ func (c *Controller) contactController() {
 		Route:        "/api/v1/contact",
 		Method:       "GET",
 		Note:         "Returns all contact records in the system.",
-		ResponseType: modelcore.ContactUsResponse{},
+		ResponseType: core.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		contacts, err := c.modelcore.ContactUsManager.List(context)
+		contacts, err := c.core.ContactUsManager.List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve contact records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.ContactUsManager.Filtered(context, ctx, contacts))
+		return ctx.JSON(http.StatusOK, c.core.ContactUsManager.ToModels(contacts))
 	})
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)
@@ -37,14 +34,14 @@ func (c *Controller) contactController() {
 		Route:        "/api/v1/contact/:contact_id",
 		Method:       "GET",
 		Note:         "Returns a single contact record by its ID.",
-		ResponseType: modelcore.ContactUsResponse{},
+		ResponseType: core.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		contactID, err := handlers.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact ID"})
 		}
-		contact, err := c.modelcore.ContactUsManager.GetByIDRaw(context, *contactID)
+		contact, err := c.core.ContactUsManager.GetByIDRaw(context, *contactID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
@@ -55,12 +52,12 @@ func (c *Controller) contactController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/contact",
 		Method:       "POST",
-		ResponseType: modelcore.ContactUsResponse{},
-		RequestType:  modelcore.ContactUsRequest{},
+		ResponseType: core.ContactUsResponse{},
+		RequestType:  core.ContactUsRequest{},
 		Note:         "Creates a new contact record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.ContactUsManager.Validate(ctx)
+		req, err := c.core.ContactUsManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -70,7 +67,7 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact data: " + err.Error()})
 		}
 
-		contact := &modelcore.ContactUs{
+		contact := &core.ContactUs{
 			FirstName:     req.FirstName,
 			LastName:      req.LastName,
 			Email:         req.Email,
@@ -80,7 +77,7 @@ func (c *Controller) contactController() {
 			UpdatedAt:     time.Now().UTC(),
 		}
 
-		if err := c.modelcore.ContactUsManager.Create(context, contact); err != nil {
+		if err := c.core.ContactUsManager.Create(context, contact); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Contact creation failed (/contact), db error: " + err.Error(),
@@ -95,7 +92,7 @@ func (c *Controller) contactController() {
 			Module:      "Contact",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.modelcore.ContactUsManager.ToModel(contact))
+		return ctx.JSON(http.StatusCreated, c.core.ContactUsManager.ToModel(contact))
 	})
 
 	// DELETE /contact/:contact_id: Delete a contact record by ID. (WITH footstep)
@@ -114,7 +111,7 @@ func (c *Controller) contactController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact ID"})
 		}
-		contact, err := c.modelcore.ContactUsManager.GetByID(context, *contactID)
+		contact, err := c.core.ContactUsManager.GetByID(context, *contactID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -123,7 +120,7 @@ func (c *Controller) contactController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
-		if err := c.modelcore.ContactUsManager.DeleteByID(context, *contactID); err != nil {
+		if err := c.core.ContactUsManager.Delete(context, *contactID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), db error: " + err.Error(),
@@ -139,92 +136,44 @@ func (c *Controller) contactController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /contact/bulk-delete: Bulk delete contact records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), invalid request body.",
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Contact",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), no IDs provided.",
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | no IDs provided",
 				Module:      "Contact",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+		if err := c.core.ContactUsManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Contact bulk delete failed (/contact/bulk-delete) | error: " + err.Error(),
 				Module:      "Contact",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
-		}
-
-		var emailsBuilder strings.Builder
-		for _, rawID := range reqBody.IDs {
-			contactID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			contact, err := c.modelcore.ContactUsManager.GetByID(context, contactID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), not found: " + rawID,
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Contact record not found with ID: %s", rawID)})
-			}
-			emailsBuilder.WriteString(contact.Email)
-			emailsBuilder.WriteString(",")
-			if err := c.modelcore.ContactUsManager.DeleteByIDWithTx(context, tx, contactID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Contact bulk delete failed (/contact/bulk-delete), db error: " + err.Error(),
-					Module:      "Contact",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete contact record: " + err.Error()})
-			}
-		}
-
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Contact bulk delete failed (/contact/bulk-delete), commit error: " + err.Error(),
-				Module:      "Contact",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete contact records: " + err.Error()})
 		}
 
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted contacts (/contact/bulk-delete): " + emailsBuilder.String(),
+			Description: "Bulk deleted contacts (/contact/bulk-delete)",
 			Module:      "Contact",
 		})
 

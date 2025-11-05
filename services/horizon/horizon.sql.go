@@ -38,6 +38,14 @@ type SQLDatabaseService interface {
 
 	// Ping checks if the database is reachable
 	Ping(ctx context.Context) error
+
+	// StartTransaction begins a new database transaction and returns the transaction and an end function.
+	// The end function will commit if no error occurred, or rollback if an error is provided.
+	StartTransaction(ctx context.Context) (*gorm.DB, func(error) error)
+
+	// StartTransactionWithContext is a convenience wrapper that handles transaction lifecycle.
+	// It executes the provided function within a transaction and automatically commits/rollbacks.
+	StartTransactionWithContext(ctx context.Context, fn func(*gorm.DB) error) error
 }
 
 // GormDatabase provides a GORM-based implementation of SQLDatabaseService.
@@ -117,4 +125,46 @@ func (g *GormDatabase) Stop(_ context.Context) error {
 		return eris.Wrap(err, "failed to get generic database object")
 	}
 	return eris.Wrap(sqlDB.Close(), "failed to close database")
+}
+
+// StartTransaction begins a new database transaction and returns the transaction and an end function.
+// The end function will commit if no error occurred, or rollback if an error is provided.
+func (g *GormDatabase) StartTransaction(ctx context.Context) (*gorm.DB, func(error) error) {
+	tx := g.db.WithContext(ctx).Begin()
+
+	end := func(err error) error {
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		if commitErr := tx.Commit().Error; commitErr != nil {
+			return commitErr
+		}
+		return nil
+	}
+
+	return tx, end
+}
+
+// StartTransactionWithContext is a convenience wrapper that handles transaction lifecycle.
+// It executes the provided function within a transaction and automatically commits/rollbacks.
+func (g *GormDatabase) StartTransactionWithContext(ctx context.Context, fn func(*gorm.DB) error) error {
+	tx := g.db.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r) // re-throw panic after rollback
+		}
+	}()
+
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }

@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +19,7 @@ func (c *Controller) companyController() {
 		Route:        "/api/v1/company",
 		Method:       "GET",
 		Note:         "Returns all companies for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: modelcore.CompanyResponse{},
+		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -32,11 +29,11 @@ func (c *Controller) companyController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.modelcore.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		companies, err := c.core.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No companies found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.CompanyManager.Filtered(context, ctx, companies))
+		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModels(companies))
 	})
 
 	// GET /company/search: Paginated search of companies for the current branch. (NO footstep)
@@ -44,7 +41,7 @@ func (c *Controller) companyController() {
 		Route:        "/api/v1/company/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of companies for the current user's organization and branch.",
-		ResponseType: modelcore.CompanyResponse{},
+		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -54,11 +51,14 @@ func (c *Controller) companyController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.modelcore.CompanyCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		companies, err := c.core.CompanyManager.PaginationWithFields(context, ctx, &core.Company{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch companies for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.CompanyManager.Pagination(context, ctx, companies))
+		return ctx.JSON(http.StatusOK, companies)
 	})
 
 	// GET /company/:company_id: Get specific company by ID. (NO footstep)
@@ -66,14 +66,14 @@ func (c *Controller) companyController() {
 		Route:        "/api/v1/company/:company_id",
 		Method:       "GET",
 		Note:         "Returns a single company by its ID.",
-		ResponseType: modelcore.CompanyResponse{},
+		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		companyID, err := handlers.EngineUUIDParam(ctx, "company_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
-		company, err := c.modelcore.CompanyManager.GetByIDRaw(context, *companyID)
+		company, err := c.core.CompanyManager.GetByIDRaw(context, *companyID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
@@ -85,11 +85,11 @@ func (c *Controller) companyController() {
 		Route:        "/api/v1/company",
 		Method:       "POST",
 		Note:         "Creates a new company for the current user's organization and branch.",
-		RequestType:  modelcore.CompanyRequest{},
-		ResponseType: modelcore.CompanyResponse{},
+		RequestType:  core.CompanyRequest{},
+		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.CompanyManager.Validate(ctx)
+		req, err := c.core.CompanyManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -116,7 +116,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		company := &modelcore.Company{
+		company := &core.Company{
 			MediaID:        req.MediaID,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -128,7 +128,7 @@ func (c *Controller) companyController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelcore.CompanyManager.Create(context, company); err != nil {
+		if err := c.core.CompanyManager.Create(context, company); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), db error: " + err.Error(),
@@ -141,7 +141,7 @@ func (c *Controller) companyController() {
 			Description: "Created company (/company): " + company.Name,
 			Module:      "Company",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.CompanyManager.ToModel(company))
+		return ctx.JSON(http.StatusCreated, c.core.CompanyManager.ToModel(company))
 	})
 
 	// PUT /company/:company_id: Update company by ID. (WITH footstep)
@@ -149,8 +149,8 @@ func (c *Controller) companyController() {
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
 		Note:         "Updates an existing company by its ID.",
-		RequestType:  modelcore.CompanyRequest{},
-		ResponseType: modelcore.CompanyResponse{},
+		RequestType:  core.CompanyRequest{},
+		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		companyID, err := handlers.EngineUUIDParam(ctx, "company_id")
@@ -163,7 +163,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
 
-		req, err := c.modelcore.CompanyManager.Validate(ctx)
+		req, err := c.core.CompanyManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -181,7 +181,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		company, err := c.modelcore.CompanyManager.GetByID(context, *companyID)
+		company, err := c.core.CompanyManager.GetByID(context, *companyID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -195,7 +195,7 @@ func (c *Controller) companyController() {
 		company.Description = req.Description
 		company.UpdatedAt = time.Now().UTC()
 		company.UpdatedByID = user.UserID
-		if err := c.modelcore.CompanyManager.UpdateFields(context, company.ID, company); err != nil {
+		if err := c.core.CompanyManager.UpdateByID(context, company.ID, company); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), db error: " + err.Error(),
@@ -208,7 +208,7 @@ func (c *Controller) companyController() {
 			Description: "Updated company (/company/:company_id): " + company.Name,
 			Module:      "Company",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.CompanyManager.ToModel(company))
+		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModel(company))
 	})
 
 	// DELETE /company/:company_id: Delete a company by ID. (WITH footstep)
@@ -227,7 +227,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
-		company, err := c.modelcore.CompanyManager.GetByID(context, *companyID)
+		company, err := c.core.CompanyManager.GetByID(context, *companyID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -236,7 +236,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
-		if err := c.modelcore.CompanyManager.DeleteByID(context, *companyID); err != nil {
+		if err := c.core.CompanyManager.Delete(context, *companyID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), db error: " + err.Error(),
@@ -252,86 +252,44 @@ func (c *Controller) companyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /company/bulk-delete: Bulk delete companies by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/company/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple companies by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/company/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Company",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/company/bulk-delete) | no IDs provided",
 				Module:      "Company",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No company IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.CompanyManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/company/bulk-delete) | error: " + err.Error(),
 				Module:      "Company",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete companies: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			companyID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), invalid UUID: " + rawID,
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			company, err := c.modelcore.CompanyManager.GetByID(context, companyID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), not found: " + rawID,
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Company not found with ID: %s", rawID)})
-			}
-			sb.WriteString(company.Name)
-			sb.WriteByte(',')
-			if err := c.modelcore.CompanyManager.DeleteByIDWithTx(context, tx, companyID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/company/bulk-delete), db error: " + err.Error(),
-					Module:      "Company",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete company: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/company/bulk-delete), commit error: " + err.Error(),
-				Module:      "Company",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted companies (/company/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted companies (/company/bulk-delete)",
 			Module:      "Company",
 		})
 		return ctx.NoContent(http.StatusNoContent)

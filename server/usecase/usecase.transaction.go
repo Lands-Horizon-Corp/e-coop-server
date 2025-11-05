@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 
 	"github.com/rotisserie/eris"
 )
@@ -12,20 +12,20 @@ import (
 // TransactionData holds the necessary data for processing financial transactions
 // including the account, general ledger entry, and reverse transaction flag.
 type TransactionData struct {
-	Account       *modelcore.Account
-	GeneralLedger *modelcore.GeneralLedger
+	Account       *core.Account
+	GeneralLedger *core.GeneralLedger
 	Reverse       bool
 }
 
 // TransactionService provides methods for handling financial transactions
 // and balance calculations in the cooperative system.
 type TransactionService struct {
-	model *modelcore.ModelCore
+	model *core.Core
 }
 
 // NewTransactionService creates a new instance of TransactionService
 // with the provided model core for database operations.
-func NewTransactionService(model *modelcore.ModelCore) (*TransactionService, error) {
+func NewTransactionService(model *core.Core) (*TransactionService, error) {
 	return &TransactionService{
 		model: model,
 	}, nil
@@ -33,7 +33,7 @@ func NewTransactionService(model *modelcore.ModelCore) (*TransactionService, err
 
 // ComputeTotalBalance calculates the total credit, debit, and balance
 // from a slice of general ledger entries.
-func (t *TransactionService) ComputeTotalBalance(_ context.Context, generalLedgers []*modelcore.GeneralLedger) (credit, debit, balance float64, err error) {
+func (t *TransactionService) ComputeTotalBalance(_ context.Context, generalLedgers []*core.GeneralLedger) (credit, debit, balance float64, err error) {
 	for _, gl := range generalLedgers {
 		if gl == nil {
 			return 0, 0, 0, eris.New("nil general ledger")

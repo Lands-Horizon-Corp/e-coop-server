@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +17,7 @@ func (c *Controller) generatedReports() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",
 		Method:       "GET",
-		ResponseType: modelcore.GeneratedReportResponse{},
+		ResponseType: core.GeneratedReportResponse{},
 		Note:         "Returns all generated reports for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -25,18 +25,18 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		generatedReports, err := c.modelcore.GetGenerationReportByUser(context, user.ID)
+		generatedReports, err := c.core.GetGenerationReportByUser(context, user.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated reports: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.GeneratedReportManager.Filtered(context, ctx, generatedReports))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModels(generatedReports))
 	})
 
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "GET",
-		ResponseType: modelcore.GeneratedReportResponse{},
+		ResponseType: core.GeneratedReportResponse{},
 		Note:         "Returns a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -44,11 +44,11 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
-		generatedReport, err := c.modelcore.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
 
 	// DELETE /generated-report/:generated_report_id: Delete a specific generated report by ID and its associated file. (WITH footstep)
@@ -67,7 +67,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
-		generatedReport, err := c.modelcore.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -77,7 +77,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
 		if generatedReport.MediaID != nil {
-			if err := c.modelcore.MediaDelete(context, *generatedReport.MediaID); err != nil {
+			if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
 				c.event.Footstep(context, ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Generated report delete failed (/generated-report/:generated_report_id), media delete error: " + err.Error(),
@@ -86,7 +86,7 @@ func (c *Controller) generatedReports() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete associated media file: " + err.Error()})
 			}
 		}
-		if err := c.modelcore.GeneratedReportManager.DeleteByID(context, generatedReport.ID); err != nil {
+		if err := c.core.GeneratedReportManager.Delete(context, generatedReport.ID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated report delete failed (/generated-report/:generated_report_id), db error: " + err.Error(),

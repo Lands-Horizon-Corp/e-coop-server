@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -29,7 +29,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 		userID := user.ID
 		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 
-		var userType modelcore.UserOrganizationType
+		var userType core.UserOrganizationType
 		var organizationID, branchID *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType
@@ -51,7 +51,7 @@ func (e *Event) Footstep(context context.Context, ctx echo.Context, data Footste
 			acceptLanguage = claim.AcceptLanguage
 		}
 
-		if err := e.modelcore.FootstepManager.Create(context, &modelcore.Footstep{
+		if err := e.core.FootstepManager.Create(context, &core.Footstep{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userID,
 			UpdatedAt:      time.Now().UTC(),

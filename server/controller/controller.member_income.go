@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -17,8 +17,8 @@ func (c *Controller) memberIncomeController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: modelcore.MemberIncomeResponse{},
-		RequestType:  modelcore.MemberIncomeRequest{},
+		ResponseType: core.MemberIncomeResponse{},
+		RequestType:  core.MemberIncomeRequest{},
 		Note:         "Creates a new income record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -31,7 +31,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.modelcore.MemberIncomeManager.Validate(ctx)
+		req, err := c.core.MemberIncomeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) memberIncomeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value := &modelcore.MemberIncome{
+		value := &core.MemberIncome{
 			MemberProfileID: *memberProfileID,
 			MediaID:         req.MediaID,
 			Name:            req.Name,
@@ -65,7 +65,7 @@ func (c *Controller) memberIncomeController() {
 			OrganizationID:  user.OrganizationID,
 		}
 
-		if err := c.modelcore.MemberIncomeManager.Create(context, value); err != nil {
+		if err := c.core.MemberIncomeManager.Create(context, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member income failed (/member-income/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -80,15 +80,15 @@ func (c *Controller) memberIncomeController() {
 			Module:      "MemberIncome",
 		})
 
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberIncomeManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberIncomeManager.ToModel(value))
 	})
 
 	// Update an existing income record by its ID
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
-		ResponseType: modelcore.MemberIncomeResponse{},
-		RequestType:  modelcore.MemberIncomeRequest{},
+		ResponseType: core.MemberIncomeResponse{},
+		RequestType:  core.MemberIncomeRequest{},
 		Note:         "Updates an existing income record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -101,7 +101,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_income_id: " + err.Error()})
 		}
-		req, err := c.modelcore.MemberIncomeManager.Validate(ctx)
+		req, err := c.core.MemberIncomeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -120,7 +120,7 @@ func (c *Controller) memberIncomeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.modelcore.MemberIncomeManager.GetByID(context, *memberIncomeID)
+		value, err := c.core.MemberIncomeManager.GetByID(context, *memberIncomeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -140,7 +140,7 @@ func (c *Controller) memberIncomeController() {
 		value.Amount = req.Amount
 		value.ReleaseDate = req.ReleaseDate
 
-		if err := c.modelcore.MemberIncomeManager.UpdateFields(context, value.ID, value); err != nil {
+		if err := c.core.MemberIncomeManager.UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member income failed (/member-income/:member_income_id), db error: " + err.Error(),
@@ -153,7 +153,7 @@ func (c *Controller) memberIncomeController() {
 			Description: "Updated member income (/member-income/:member_income_id): " + value.Name,
 			Module:      "MemberIncome",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.MemberIncomeManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberIncomeManager.ToModel(value))
 	})
 
 	// Delete a member's income record by its ID
@@ -172,7 +172,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_income_id: " + err.Error()})
 		}
-		value, err := c.modelcore.MemberIncomeManager.GetByID(context, *memberIncomeID)
+		value, err := c.core.MemberIncomeManager.GetByID(context, *memberIncomeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -181,7 +181,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member income not found: " + err.Error()})
 		}
-		if err := c.modelcore.MemberIncomeManager.DeleteByID(context, *memberIncomeID); err != nil {
+		if err := c.core.MemberIncomeManager.Delete(context, *memberIncomeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member income failed (/member-income/:member_income_id), db error: " + err.Error(),

@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +19,7 @@ func (c *Controller) billAndCoinsController() {
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "GET",
 		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
-		ResponseType: modelcore.BillAndCoinsResponse{},
+		ResponseType: core.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -34,7 +31,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.modelcore.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -43,7 +40,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current transaction batch: " + err.Error()})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsManager.FindRaw(context, &modelcore.BillAndCoins{
+		billAndCoins, err := c.core.BillAndCoinsManager.FindRaw(context, &core.BillAndCoins{
 			CurrencyID:     transactionBatch.CurrencyID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -59,7 +56,7 @@ func (c *Controller) billAndCoinsController() {
 		Route:        "/api/v1/bills-and-coins/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
-		ResponseType: modelcore.BillAndCoinsResponse{},
+		ResponseType: core.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
@@ -69,11 +66,14 @@ func (c *Controller) billAndCoinsController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		billAndCoins, err := c.core.BillAndCoinsManager.PaginationWithFields(context, ctx, &core.BillAndCoins{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch bills and coins: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.BillAndCoinsManager.Pagination(context, ctx, billAndCoins))
+		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
 	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)
@@ -81,14 +81,14 @@ func (c *Controller) billAndCoinsController() {
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
 		Note:         "Returns a bills and coins record by its ID.",
-		ResponseType: modelcore.BillAndCoinsResponse{},
+		ResponseType: core.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsManager.GetByIDRaw(context, *billAndCoinsID)
+		billAndCoins, err := c.core.BillAndCoinsManager.GetByIDRaw(context, *billAndCoinsID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
@@ -99,12 +99,12 @@ func (c *Controller) billAndCoinsController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
-		RequestType:  modelcore.BillAndCoinsRequest{},
-		ResponseType: modelcore.BillAndCoinsResponse{},
+		RequestType:  core.BillAndCoinsRequest{},
+		ResponseType: core.BillAndCoinsResponse{},
 		Note:         "Creates a new bills and coins record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.BillAndCoinsManager.Validate(ctx)
+		req, err := c.core.BillAndCoinsManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -131,7 +131,7 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		billAndCoins := &modelcore.BillAndCoins{
+		billAndCoins := &core.BillAndCoins{
 			MediaID:    req.MediaID,
 			Name:       req.Name,
 			Value:      req.Value,
@@ -145,7 +145,7 @@ func (c *Controller) billAndCoinsController() {
 			OrganizationID: user.OrganizationID,
 		}
 
-		if err := c.modelcore.BillAndCoinsManager.Create(context, billAndCoins); err != nil {
+		if err := c.core.BillAndCoinsManager.Create(context, billAndCoins); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bills and coins creation failed (/bills-and-coins), db error: " + err.Error(),
@@ -158,15 +158,15 @@ func (c *Controller) billAndCoinsController() {
 			Description: "Created bills and coins (/bills-and-coins): " + billAndCoins.Name,
 			Module:      "BillAndCoins",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.BillAndCoinsManager.ToModel(billAndCoins))
+		return ctx.JSON(http.StatusCreated, c.core.BillAndCoinsManager.ToModel(billAndCoins))
 	})
 
 	// PUT /bills-and-coins/:bills_and_coins_id: Update a bills and coins record by ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
-		RequestType:  modelcore.BillAndCoinsRequest{},
-		ResponseType: modelcore.BillAndCoinsResponse{},
+		RequestType:  core.BillAndCoinsRequest{},
+		ResponseType: core.BillAndCoinsResponse{},
 		Note:         "Updates an existing bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -180,7 +180,7 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
 
-		req, err := c.modelcore.BillAndCoinsManager.Validate(ctx)
+		req, err := c.core.BillAndCoinsManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -198,7 +198,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
+		billAndCoins, err := c.core.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -214,7 +214,7 @@ func (c *Controller) billAndCoinsController() {
 
 		billAndCoins.UpdatedAt = time.Now().UTC()
 		billAndCoins.UpdatedByID = user.UserID
-		if err := c.modelcore.BillAndCoinsManager.UpdateFields(context, billAndCoins.ID, billAndCoins); err != nil {
+		if err := c.core.BillAndCoinsManager.UpdateByID(context, billAndCoins.ID, billAndCoins); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
@@ -227,7 +227,7 @@ func (c *Controller) billAndCoinsController() {
 			Description: "Updated bills and coins (/bills-and-coins/:bills_and_coins_id): " + billAndCoins.Name,
 			Module:      "BillAndCoins",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.BillAndCoinsManager.ToModel(billAndCoins))
+		return ctx.JSON(http.StatusOK, c.core.BillAndCoinsManager.ToModel(billAndCoins))
 	})
 
 	// DELETE /bills-and-coins/:bills_and_coins_id: Delete a bills and coins record by ID. (WITH footstep)
@@ -246,7 +246,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := c.modelcore.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
+		billAndCoins, err := c.core.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -255,7 +255,7 @@ func (c *Controller) billAndCoinsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
-		if err := c.modelcore.BillAndCoinsManager.DeleteByID(context, *billAndCoinsID); err != nil {
+		if err := c.core.BillAndCoinsManager.Delete(context, *billAndCoinsID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
@@ -271,86 +271,43 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /bills-and-coins/bulk-delete: Bulk delete bills and coins records by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), invalid request body.",
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), no IDs provided.",
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | no IDs provided",
 				Module:      "BillAndCoins",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.BillAndCoinsManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | error: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete bills and coins records: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			billAndCoinsID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), invalid UUID: " + rawID,
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			billAndCoins, err := c.modelcore.BillAndCoinsManager.GetByID(context, billAndCoinsID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), record not found: " + rawID,
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Bills and coins record not found with ID: %s", rawID)})
-			}
-			sb.WriteString(billAndCoins.Name)
-			sb.WriteByte(',')
-			if err := c.modelcore.BillAndCoinsManager.DeleteByIDWithTx(context, tx, billAndCoinsID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), db error: " + err.Error(),
-					Module:      "BillAndCoins",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bills and coins record: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bills and coins bulk delete failed (/bills-and-coins/bulk-delete), commit error: " + err.Error(),
-				Module:      "BillAndCoins",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete)",
 			Module:      "BillAndCoins",
 		})
 		return ctx.NoContent(http.StatusNoContent)

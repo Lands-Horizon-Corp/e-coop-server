@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,7 +18,7 @@ func (c *Controller) invitationCode() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "GET",
-		ResponseType: modelcore.InvitationCodeResponse{},
+		ResponseType: core.InvitationCodeResponse{},
 		Note:         "Returns all invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -32,18 +29,18 @@ func (c *Controller) invitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.modelcore.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := c.core.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.InvitationCodeManager.Filtered(context, ctx, invitationCode))
+		return ctx.JSON(http.StatusOK, c.core.InvitationCodeManager.ToModels(invitationCode))
 	})
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/invitation-code/search",
 		Method:      "GET",
-		RequestType: modelcore.InvitationCodeRequest{},
+		RequestType: core.InvitationCodeRequest{},
 		Note:        "Returns a paginated list of invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -54,11 +51,14 @@ func (c *Controller) invitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.modelcore.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := c.core.InvitationCodeManager.PaginationWithFields(context, ctx, &core.InvitationCode{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.InvitationCodeManager.Pagination(context, ctx, invitationCode))
+		return ctx.JSON(http.StatusOK, invitationCode)
 	})
 
 	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization). (NO footstep)
@@ -66,15 +66,15 @@ func (c *Controller) invitationCode() {
 		Route:        "/api/v1/invitation-code/code/:code",
 		Method:       "GET",
 		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
-		ResponseType: modelcore.InvitationCodeResponse{},
+		ResponseType: core.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
-		invitationCode, err := c.modelcore.GetInvitationCodeByCode(context, code)
+		invitationCode, err := c.core.GetInvitationCodeByCode(context, code)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.InvitationCodeManager.ToModel(invitationCode))
+		return ctx.JSON(http.StatusOK, c.core.InvitationCodeManager.ToModel(invitationCode))
 	})
 
 	// GET /invitation-code/:invitation_code_id: Retrieve a specific invitation code by its ID. (NO footstep)
@@ -82,30 +82,30 @@ func (c *Controller) invitationCode() {
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "GET",
 		Note:         "Returns the details of a specific invitation code by its ID.",
-		ResponseType: modelcore.InvitationCodeResponse{},
+		ResponseType: core.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
-		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
+		invitationCode, err := c.core.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.modelcore.InvitationCodeManager.ToModel(invitationCode))
+		return ctx.JSON(http.StatusOK, c.core.InvitationCodeManager.ToModel(invitationCode))
 	})
 
 	// POST /invitation-code: Create a new invitation code for the current user's organization and branch. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "POST",
-		ResponseType: modelcore.InvitationCodeResponse{},
-		RequestType:  modelcore.InvitationCodeRequest{},
+		ResponseType: core.InvitationCodeResponse{},
+		RequestType:  core.InvitationCodeRequest{},
 		Note:         "Creates a new invitation code under the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.modelcore.InvitationCodeManager.Validate(ctx)
+		req, err := c.core.InvitationCodeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if userOrg.UserType != modelcore.UserOrganizationTypeOwner && userOrg.UserType != modelcore.UserOrganizationTypeEmployee {
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for invitation code (/invitation-code)",
@@ -131,7 +131,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
-		if modelcore.UserOrganizationType(req.UserType) == modelcore.UserOrganizationTypeOwner {
+		if core.UserOrganizationType(req.UserType) == core.UserOrganizationTypeOwner {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), attempted to create user type 'owner'",
@@ -147,21 +147,21 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		data := &modelcore.InvitationCode{
+		data := &core.InvitationCode{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			UserType:       modelcore.UserOrganizationType(req.UserType),
+			UserType:       core.UserOrganizationType(req.UserType),
 			Code:           req.Code,
 			ExpirationDate: req.ExpirationDate,
 			MaxUse:         req.MaxUse,
 			CurrentUse:     0,
 			Description:    req.Description,
 		}
-		if err := c.modelcore.InvitationCodeManager.Create(context, data); err != nil {
+		if err := c.core.InvitationCodeManager.Create(context, data); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), db error: " + err.Error(),
@@ -174,15 +174,15 @@ func (c *Controller) invitationCode() {
 			Description: "Created invitation code (/invitation-code): " + data.Code,
 			Module:      "InvitationCode",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.InvitationCodeManager.ToModel(data))
+		return ctx.JSON(http.StatusCreated, c.core.InvitationCodeManager.ToModel(data))
 	})
 
 	// PUT /invitation-code/:invitation_code_id: Update an existing invitation code by its ID. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "PUT",
-		ResponseType: modelcore.InvitationCodeResponse{},
-		RequestType:  modelcore.InvitationCodeRequest{},
+		ResponseType: core.InvitationCodeResponse{},
+		RequestType:  core.InvitationCodeRequest{},
 		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -195,7 +195,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
-		req, err := c.modelcore.InvitationCodeManager.Validate(ctx)
+		req, err := c.core.InvitationCodeManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code data: " + err.Error()})
 		}
-		invitationCode, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
+		invitationCode, err := c.core.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -234,7 +234,7 @@ func (c *Controller) invitationCode() {
 		invitationCode.UpdatedByID = userOrg.UserID
 		invitationCode.OrganizationID = userOrg.OrganizationID
 		invitationCode.BranchID = *userOrg.BranchID
-		invitationCode.UserType = modelcore.UserOrganizationType(req.UserType)
+		invitationCode.UserType = core.UserOrganizationType(req.UserType)
 		invitationCode.Code = req.Code
 		invitationCode.ExpirationDate = req.ExpirationDate
 		invitationCode.MaxUse = req.MaxUse
@@ -243,7 +243,7 @@ func (c *Controller) invitationCode() {
 		invitationCode.Permissions = req.Permissions
 		invitationCode.PermissionName = req.PermissionName
 
-		if err := c.modelcore.InvitationCodeManager.UpdateFields(context, invitationCode.ID, invitationCode); err != nil {
+		if err := c.core.InvitationCodeManager.UpdateByID(context, invitationCode.ID, invitationCode); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
@@ -256,7 +256,7 @@ func (c *Controller) invitationCode() {
 			Description: "Updated invitation code (/invitation-code/:invitation_code_id): " + invitationCode.Code,
 			Module:      "InvitationCode",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.InvitationCodeManager.ToModel(invitationCode))
+		return ctx.JSON(http.StatusOK, c.core.InvitationCodeManager.ToModel(invitationCode))
 	})
 
 	// DELETE /invitation-code/:invitation_code_id: Delete a specific invitation code by its ID. (WITH footstep)
@@ -275,7 +275,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid invitation code ID"})
 		}
-		codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, *invitationCodeID)
+		codeModel, err := c.core.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -284,7 +284,7 @@ func (c *Controller) invitationCode() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
-		if err := c.modelcore.InvitationCodeManager.DeleteByID(context, *invitationCodeID); err != nil {
+		if err := c.core.InvitationCodeManager.Delete(context, *invitationCodeID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
@@ -300,88 +300,49 @@ func (c *Controller) invitationCode() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /invitation-code/bulk-delete: Bulk delete invitation codes by IDs. (WITH footstep)
+	// Simplified bulk-delete handler for invitation codes (mirrors the feedback/holiday pattern)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
-		RequestType: modelcore.IDSRequest{},
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
+
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), invalid request body.",
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "InvitationCode",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), no IDs provided.",
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | no IDs provided",
 				Module:      "InvitationCode",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.InvitationCodeManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | error: " + err.Error(),
 				Module:      "InvitationCode",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete invitation codes: " + err.Error()})
 		}
-		var codesSlice []string
-		for _, rawID := range reqBody.IDs {
-			invitationCodeID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), invalid UUID: " + rawID,
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			codeModel, err := c.modelcore.InvitationCodeManager.GetByID(context, invitationCodeID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), not found: " + rawID,
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Invitation code not found with ID: %s", rawID)})
-			}
-			codesSlice = append(codesSlice, codeModel.Code)
-			if err := c.modelcore.InvitationCodeManager.DeleteByIDWithTx(context, tx, invitationCodeID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), db error: " + err.Error(),
-					Module:      "InvitationCode",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete invitation code: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete), commit error: " + err.Error(),
-				Module:      "InvitationCode",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
-		codes := strings.Join(codesSlice, ",")
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete): " + codes,
+			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete)",
 			Module:      "InvitationCode",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 }

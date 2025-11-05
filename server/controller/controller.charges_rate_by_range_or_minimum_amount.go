@@ -1,15 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,8 +19,8 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by range or minimum amount for the current user's organization and branch.",
-		RequestType:  modelcore.ChargesRateByRangeOrMinimumAmountRequest{},
-		ResponseType: modelcore.ChargesRateByRangeOrMinimumAmountResponse{},
+		RequestType:  core.ChargesRateByRangeOrMinimumAmountRequest{},
+		ResponseType: core.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -35,7 +32,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		req, err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
+		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -62,7 +59,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		chargesRateByRangeOrMinimumAmount := &modelcore.ChargesRateByRangeOrMinimumAmount{
+		chargesRateByRangeOrMinimumAmount := &core.ChargesRateByRangeOrMinimumAmount{
 			ChargesRateSchemeID: *chargesRateSchemeID,
 			From:                req.From,
 			To:                  req.To,
@@ -77,7 +74,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			OrganizationID:      user.OrganizationID,
 		}
 
-		if err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.Create(context, chargesRateByRangeOrMinimumAmount); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Create(context, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by range or minimum amount creation failed (/charges-rate-by-range-or-minimum-amount), db error: " + err.Error(),
@@ -90,7 +87,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			Description: "Created charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount): " + chargesRateByRangeOrMinimumAmount.ID.String(),
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
-		return ctx.JSON(http.StatusCreated, c.modelcore.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
+		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
 	// PUT /charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id: Update charges rate by range or minimum amount by ID. (WITH footstep)
@@ -98,8 +95,8 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by range or minimum amount by its ID.",
-		RequestType:  modelcore.ChargesRateByRangeOrMinimumAmountRequest{},
-		ResponseType: modelcore.ChargesRateByRangeOrMinimumAmountResponse{},
+		RequestType:  core.ChargesRateByRangeOrMinimumAmountRequest{},
+		ResponseType: core.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateByRangeOrMinimumAmountID, err := handlers.EngineUUIDParam(ctx, "charges_rate_by_range_or_minimum_amount_id")
@@ -112,7 +109,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount ID"})
 		}
 
-		req, err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
+		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -130,7 +127,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateByRangeOrMinimumAmount, err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
+		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -146,7 +143,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		chargesRateByRangeOrMinimumAmount.MinimumAmount = req.MinimumAmount
 		chargesRateByRangeOrMinimumAmount.UpdatedAt = time.Now().UTC()
 		chargesRateByRangeOrMinimumAmount.UpdatedByID = user.UserID
-		if err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.UpdateFields(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByID(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by range or minimum amount update failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -159,7 +156,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			Description: "Updated charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id): " + chargesRateByRangeOrMinimumAmount.ID.String(),
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
-		return ctx.JSON(http.StatusOK, c.modelcore.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
+		return ctx.JSON(http.StatusOK, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
 	// DELETE /charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id: Delete a charges rate by range or minimum amount by ID. (WITH footstep)
@@ -178,7 +175,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount ID"})
 		}
-		chargesRateByRangeOrMinimumAmount, err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
+		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
 		if err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -187,7 +184,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by range or minimum amount not found"})
 		}
-		if err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.DeleteByID(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Delete(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by range or minimum amount delete failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -203,86 +200,43 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /charges-rate-by-range-or-minimum-amount/bulk-delete: Bulk delete charges rate by range or minimum amount by IDs. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-by-range-or-minimum-amount/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by range or minimum amount by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: modelcore.IDSRequest{},
+		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody modelcore.IDSRequest
+		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), invalid request body.",
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), no IDs provided.",
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate by range or minimum amount IDs provided for bulk delete"})
 		}
-		tx := c.provider.Service.Database.Client().Begin()
-		if tx.Error != nil {
-			tx.Rollback()
+
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(context, ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), begin tx error: " + tx.Error.Error(),
+				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateByRangeOrMinimumAmount",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + tx.Error.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate by range or minimum amount: " + err.Error()})
 		}
-		var sb strings.Builder
-		for _, rawID := range reqBody.IDs {
-			chargesRateByRangeOrMinimumAmountID, err := uuid.Parse(rawID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), invalid UUID: " + rawID,
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid UUID: %s", rawID)})
-			}
-			chargesRateByRangeOrMinimumAmount, err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, chargesRateByRangeOrMinimumAmountID)
-			if err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), not found: " + rawID,
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Charges rate by range or minimum amount not found with ID: %s", rawID)})
-			}
-			sb.WriteString(chargesRateByRangeOrMinimumAmount.ID.String())
-			sb.WriteByte(',')
-			if err := c.modelcore.ChargesRateByRangeOrMinimumAmountManager.DeleteByIDWithTx(context, tx, chargesRateByRangeOrMinimumAmountID); err != nil {
-				tx.Rollback()
-				c.event.Footstep(context, ctx, event.FootstepEvent{
-					Activity:    "bulk-delete-error",
-					Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), db error: " + err.Error(),
-					Module:      "ChargesRateByRangeOrMinimumAmount",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by range or minimum amount: " + err.Error()})
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
-				Activity:    "bulk-delete-error",
-				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete), commit error: " + err.Error(),
-				Module:      "ChargesRateByRangeOrMinimumAmount",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit bulk delete: " + err.Error()})
-		}
+
 		c.event.Footstep(context, ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete): " + sb.String(),
+			Description: "Bulk deleted charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/bulk-delete)",
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
 		return ctx.NoContent(http.StatusNoContent)

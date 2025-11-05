@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/modelcore"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -31,7 +31,7 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 		if data.Description == "" || data.NotificationType == "" {
 			return
 		}
-		notification := &modelcore.Notification{
+		notification := &core.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
 			UserID:           user.ID,
@@ -41,7 +41,7 @@ func (e *Event) Notification(ctx context.Context, echoCtx echo.Context, data Not
 			NotificationType: data.NotificationType,
 		}
 
-		if err := e.modelcore.NotificationManager.Create(ctx, notification); err != nil {
+		if err := e.core.NotificationManager.Create(ctx, notification); err != nil {
 			return
 		}
 	}()
