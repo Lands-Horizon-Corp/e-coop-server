@@ -13,6 +13,8 @@ import (
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
+	// Post
+
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",

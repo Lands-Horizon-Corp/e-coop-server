@@ -84,8 +84,6 @@ type (
 		PrintNumber                int                 `gorm:"default:0"`
 	}
 
-	// GeneralLedgerResponse represents the response structure for generalledger data
-
 	// GeneralLedgerResponse represents the response structure for GeneralLedger.
 	GeneralLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
