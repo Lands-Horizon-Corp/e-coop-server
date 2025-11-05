@@ -275,23 +275,37 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
 		}
-		fmt.Printf("DEBUG LINE 252: Member ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
+
+		// Handle the case where no previous general ledger exists (first transaction)
+		var currentBalance float64 = 0
+		if generalLedger == nil {
+			fmt.Printf("DEBUG LINE 252: No previous general ledger found - starting with balance 0 (first transaction)\n")
+			currentBalance = 0
+			e.Footstep(echoCtx, FootstepEvent{
+				Activity:    "member-ledger-first-transaction",
+				Description: "No previous general ledger found for account " + account.ID.String() + " and member " + memberProfile.ID.String() + " - starting with balance 0",
+				Module:      "Transaction Recording",
+			})
+		} else {
+			fmt.Printf("DEBUG LINE 260: Member ledger retrieved successfully - Current Balance: %f\n", generalLedger.Balance)
+			currentBalance = generalLedger.Balance
+		}
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance
-		fmt.Printf("DEBUG LINE 243: Calculating member balance adjustment\n")
-		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
-		fmt.Printf("DEBUG LINE 245: Balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
+		fmt.Printf("DEBUG LINE 263: Calculating member balance adjustment with current balance: %f\n", currentBalance)
+		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, currentBalance)
+		fmt.Printf("DEBUG LINE 265: Balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
 
 		// --- SUB-STEP 7D: GENERAL LEDGER ENTRY PREPARATION ---
 		// Prepare new general ledger entry with all transaction details
-		fmt.Printf("DEBUG LINE 249: Preparing member general ledger entry\n")
+		fmt.Printf("DEBUG LINE 268: Preparing member general ledger entry\n")
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
-			fmt.Printf("DEBUG LINE 252: Using payment type: %v\n", paymentType.Type)
+			fmt.Printf("DEBUG LINE 271: Using payment type: %v\n", paymentType.Type)
 			paymentTypeValue = paymentType.Type
 		} else {
-			fmt.Printf("DEBUG LINE 255: No payment type provided\n")
+			fmt.Printf("DEBUG LINE 274: No payment type provided\n")
 		}
 
 		fmt.Printf("DEBUG LINE 258: Creating member general ledger struct\n")
@@ -390,26 +404,40 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve subsidiary general ledger"))
 		}
-		fmt.Printf("DEBUG LINE 349: Subsidiary ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
+
+		// Handle the case where no previous subsidiary general ledger exists (first transaction)
+		var currentBalance float64 = 0
+		if generalLedger == nil {
+			fmt.Printf("DEBUG LINE 349: No previous subsidiary general ledger found - starting with balance 0 (first transaction)\n")
+			currentBalance = 0
+			e.Footstep(echoCtx, FootstepEvent{
+				Activity:    "subsidiary-ledger-first-transaction",
+				Description: "No previous subsidiary general ledger found for account " + account.ID.String() + " - starting with balance 0",
+				Module:      "Transaction Recording",
+			})
+		} else {
+			fmt.Printf("DEBUG LINE 355: Subsidiary ledger retrieved successfully - Current Balance: %f\n", generalLedger.Balance)
+			currentBalance = generalLedger.Balance
+		}
 
 		// --- SUB-STEP 8B: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance for subsidiary account
-		fmt.Printf("DEBUG LINE 352: Calculating subsidiary balance adjustment\n")
-		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
-		fmt.Printf("DEBUG LINE 354: Subsidiary balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
+		fmt.Printf("DEBUG LINE 361: Calculating subsidiary balance adjustment with current balance: %f\n", currentBalance)
+		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, currentBalance)
+		fmt.Printf("DEBUG LINE 363: Subsidiary balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
 
 		// --- SUB-STEP 8C: SUBSIDIARY LEDGER ENTRY PREPARATION ---
 		// Prepare new subsidiary general ledger entry
-		fmt.Printf("DEBUG LINE 358: Preparing subsidiary general ledger entry\n")
+		fmt.Printf("DEBUG LINE 366: Preparing subsidiary general ledger entry\n")
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
-			fmt.Printf("DEBUG LINE 361: Using payment type for subsidiary: %v\n", paymentType.Type)
+			fmt.Printf("DEBUG LINE 369: Using payment type for subsidiary: %v\n", paymentType.Type)
 			paymentTypeValue = paymentType.Type
 		} else {
-			fmt.Printf("DEBUG LINE 364: No payment type for subsidiary\n")
+			fmt.Printf("DEBUG LINE 372: No payment type for subsidiary\n")
 		}
 
-		fmt.Printf("DEBUG LINE 367: Creating subsidiary general ledger struct\n")
+		fmt.Printf("DEBUG LINE 375: Creating subsidiary general ledger struct\n")
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:             now,
 			CreatedByID:           userOrg.UserID,
@@ -437,13 +465,13 @@ func (e Event) RecordTransaction(
 			Balance:                    balance,
 			CurrencyID:                 account.CurrencyID,
 		}
-		fmt.Printf("DEBUG LINE 390: Subsidiary general ledger struct created successfully\n")
+		fmt.Printf("DEBUG LINE 398: Subsidiary general ledger struct created successfully\n")
 
 		// --- SUB-STEP 8D: SUBSIDIARY LEDGER ENTRY CREATION ---
 		// Create the subsidiary general ledger entry in the database
-		fmt.Printf("DEBUG LINE 393: Creating subsidiary general ledger entry in database\n")
+		fmt.Printf("DEBUG LINE 401: Creating subsidiary general ledger entry in database\n")
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
-			fmt.Printf("DEBUG LINE 395: Failed to create subsidiary general ledger entry: %v\n", err)
+			fmt.Printf("DEBUG LINE 403: Failed to create subsidiary general ledger entry: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "subsidiary-ledger-creation-failed",
 				Description: "Failed to create subsidiary general ledger entry for account " + account.ID.String() + " in organization " + userOrg.OrganizationID.String() + ": " + err.Error(),
@@ -451,32 +479,32 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
-		fmt.Printf("DEBUG LINE 403: Subsidiary general ledger entry created successfully\n")
+		fmt.Printf("DEBUG LINE 411: Subsidiary general ledger entry created successfully\n")
 
 		// Log successful subsidiary transaction completion
-		fmt.Printf("DEBUG LINE 406: Subsidiary transaction path completed successfully\n")
+		fmt.Printf("DEBUG LINE 414: Subsidiary transaction path completed successfully\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "subsidiary-transaction-completed",
 			Description: "Successfully recorded subsidiary transaction for account " + account.ID.String() + " with balance: " + fmt.Sprintf("%.2f", balance),
 			Module:      "Transaction Recording",
 		})
 	}
-	fmt.Printf("DEBUG LINE 413: Transaction processing completed, proceeding to finalization\n")
+	fmt.Printf("DEBUG LINE 421: Transaction processing completed, proceeding to finalization\n")
 
 	// ================================================================================
 	// STEP 9: TRANSACTION COMPLETION
 	// ================================================================================
 	// Log overall transaction success
-	fmt.Printf("DEBUG LINE 418: Recording final footstep\n")
+	fmt.Printf("DEBUG LINE 426: Recording final footstep\n")
 	e.Footstep(echoCtx, FootstepEvent{
 		Activity:    "transaction-recording-completed",
 		Description: "Transaction recording completed successfully for reference: " + transaction.ReferenceNumber + " with source: " + string(source),
 		Module:      "Transaction Recording",
 	})
-	fmt.Printf("DEBUG LINE 425: Final footstep recorded\n")
+	fmt.Printf("DEBUG LINE 433: Final footstep recorded\n")
 
 	// Commit the database transaction
-	fmt.Printf("DEBUG LINE 428: Committing transaction\n")
+	fmt.Printf("DEBUG LINE 436: Committing transaction\n")
 	return endTx(nil)
 
 }
