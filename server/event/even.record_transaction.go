@@ -247,15 +247,27 @@ func (e Event) RecordTransaction(
 		// --- SUB-STEP 7B: MEMBER LEDGER RETRIEVAL ---
 		// Get current member account ledger with row-level locking
 		fmt.Printf("DEBUG LINE 227: Retrieving member ledger for update\n")
-		fmt.Printf("DEBUG LINE 228: memberProfile.ID: %v\n", memberProfile.ID)
-		fmt.Printf("DEBUG LINE 229: account.ID: %v\n", account.ID)
-		fmt.Printf("DEBUG LINE 230: memberProfile.OrganizationID: %v\n", memberProfile.OrganizationID)
-		fmt.Printf("DEBUG LINE 231: memberProfile.BranchID: %v\n", memberProfile.BranchID)
+
+		// Additional safety check for memberProfile
+		if memberProfile == nil {
+			fmt.Printf("DEBUG LINE 228: CRITICAL: memberProfile is unexpectedly nil after validation\n")
+			return endTx(eris.New("memberProfile became nil after validation"))
+		}
+
+		fmt.Printf("DEBUG LINE 231: memberProfile is valid, checking fields\n")
+		fmt.Printf("DEBUG LINE 232: memberProfile pointer: %p\n", memberProfile)
+		fmt.Printf("DEBUG LINE 233: memberProfile.ID: %v\n", memberProfile.ID)
+		fmt.Printf("DEBUG LINE 234: account.ID: %v\n", account.ID)
+		fmt.Printf("DEBUG LINE 235: memberProfile.OrganizationID: %v\n", memberProfile.OrganizationID)
+		fmt.Printf("DEBUG LINE 236: memberProfile.BranchID: %v\n", memberProfile.BranchID)
+
+		fmt.Printf("DEBUG LINE 238: About to call GeneralLedgerCurrentMemberAccountForUpdate\n")
 		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, memberProfile.ID, account.ID, memberProfile.OrganizationID, memberProfile.BranchID,
 		)
+		fmt.Printf("DEBUG LINE 242: GeneralLedgerCurrentMemberAccountForUpdate call completed\n")
 		if err != nil {
-			fmt.Printf("DEBUG LINE 232: Failed to retrieve member ledger: %v\n", err)
+			fmt.Printf("DEBUG LINE 244: Failed to retrieve member ledger: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-lock-failed",
 				Description: "Failed to lock member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
@@ -263,7 +275,7 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
 		}
-		fmt.Printf("DEBUG LINE 240: Member ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
+		fmt.Printf("DEBUG LINE 252: Member ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance
