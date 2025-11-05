@@ -148,8 +148,10 @@ func (e Event) RecordTransaction(
 	// STEP 4: TRANSACTION BATCH VALIDATION
 	// ================================================================================
 	// Get the current active transaction batch for grouping related transactions
+	fmt.Printf("DEBUG LINE 132: Retrieving transaction batch for user: %v, org: %v, branch: %v\n", userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	transactionBatch, err := e.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
+		fmt.Printf("DEBUG LINE 135: Failed to retrieve transaction batch: %v\n", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "batch-retrieval-failed",
 			Description: "Cannot retrieve current transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
@@ -157,9 +159,11 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.Wrap(err, "failed to retrieve transaction batch"))
 	}
+	fmt.Printf("DEBUG LINE 143: Transaction batch retrieved successfully\n")
 
 	// Ensure a valid transaction batch exists
 	if transactionBatch == nil {
+		fmt.Printf("DEBUG LINE 147: Transaction batch is nil\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "batch-missing",
 			Description: "No active transaction batch found for current user session - batch is required for transaction recording",
@@ -167,13 +171,16 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("transaction batch is nil"))
 	}
+	fmt.Printf("DEBUG LINE 155: Transaction batch is valid - ID: %v\n", transactionBatch.ID)
 
 	// ================================================================================
 	// STEP 5: ACCOUNT RESOLUTION AND LOCKING
 	// ================================================================================
 	// Lock the target account for update to prevent concurrent modifications
+	fmt.Printf("DEBUG LINE 160: Attempting to lock account: %v\n", transaction.AccountID)
 	account, err := e.core.AccountLockForUpdate(context, tx, transaction.AccountID)
 	if err != nil {
+		fmt.Printf("DEBUG LINE 163: Failed to lock account: %v\n", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "account-lock-failed",
 			Description: "Failed to lock account " + transaction.AccountID.String() + " for transaction update: " + err.Error(),
@@ -181,15 +188,19 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.Wrap(err, "failed to lock account for update"))
 	}
+	fmt.Printf("DEBUG LINE 171: Account locked successfully - Account ID: %v\n", account.ID)
 
 	// ================================================================================
 	// STEP 6: PAYMENT TYPE RESOLUTION
 	// ================================================================================
 	// Resolve payment type details if specified
+	fmt.Printf("DEBUG LINE 176: Starting payment type resolution\n")
 	var paymentType *core.PaymentType
 	if transaction.PaymentTypeID != nil {
+		fmt.Printf("DEBUG LINE 179: Payment type ID provided: %v\n", *transaction.PaymentTypeID)
 		paymentType, err = e.core.PaymentTypeManager.GetByID(context, *transaction.PaymentTypeID)
 		if err != nil {
+			fmt.Printf("DEBUG LINE 182: Failed to resolve payment type: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "payment-type-resolution-failed",
 				Description: "Failed to resolve payment type " + transaction.PaymentTypeID.String() + ": " + err.Error(),
@@ -197,15 +208,22 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to resolve payment type"))
 		}
+		fmt.Printf("DEBUG LINE 190: Payment type resolved successfully\n")
+	} else {
+		fmt.Printf("DEBUG LINE 192: No payment type ID provided\n")
 	}
 	// ================================================================================
 	// STEP 7: TRANSACTION PROCESSING - MEMBER ACCOUNT PATH
 	// ================================================================================
+	fmt.Printf("DEBUG LINE 197: Checking member profile ID\n")
 	if transaction.MemberProfileID != nil {
+		fmt.Printf("DEBUG LINE 199: Member profile ID provided: %v\n", *transaction.MemberProfileID)
 		// --- SUB-STEP 7A: MEMBER PROFILE VALIDATION ---
 		// Retrieve and validate member profile for member-specific transactions
+		fmt.Printf("DEBUG LINE 202: Retrieving member profile\n")
 		memberProfile, err := e.core.MemberProfileManager.GetByID(context, *transaction.MemberProfileID)
 		if err != nil {
+			fmt.Printf("DEBUG LINE 205: Failed to retrieve member profile: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-profile-retrieval-failed",
 				Description: "Failed to retrieve member profile " + transaction.MemberProfileID.String() + ": " + err.Error(),
@@ -213,8 +231,10 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve member profile"))
 		}
+		fmt.Printf("DEBUG LINE 213: Member profile retrieved successfully\n")
 
 		if memberProfile == nil {
+			fmt.Printf("DEBUG LINE 216: Member profile is nil\n")
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-profile-not-found",
 				Description: "Member profile not found for ID: " + transaction.MemberProfileID.String(),
@@ -222,13 +242,16 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.New("member profile not found"))
 		}
+		fmt.Printf("DEBUG LINE 224: Member profile validation completed - ID: %v\n", memberProfile.ID)
 
 		// --- SUB-STEP 7B: MEMBER LEDGER RETRIEVAL ---
 		// Get current member account ledger with row-level locking
+		fmt.Printf("DEBUG LINE 227: Retrieving member ledger for update\n")
 		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, memberProfile.ID, account.ID, memberProfile.OrganizationID, memberProfile.BranchID,
 		)
 		if err != nil {
+			fmt.Printf("DEBUG LINE 232: Failed to retrieve member ledger: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-lock-failed",
 				Description: "Failed to lock member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
@@ -236,18 +259,26 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
 		}
+		fmt.Printf("DEBUG LINE 240: Member ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance
+		fmt.Printf("DEBUG LINE 243: Calculating member balance adjustment\n")
 		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
+		fmt.Printf("DEBUG LINE 245: Balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
 
 		// --- SUB-STEP 7D: GENERAL LEDGER ENTRY PREPARATION ---
 		// Prepare new general ledger entry with all transaction details
+		fmt.Printf("DEBUG LINE 249: Preparing member general ledger entry\n")
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
+			fmt.Printf("DEBUG LINE 252: Using payment type: %v\n", paymentType.Type)
 			paymentTypeValue = paymentType.Type
+		} else {
+			fmt.Printf("DEBUG LINE 255: No payment type provided\n")
 		}
 
+		fmt.Printf("DEBUG LINE 258: Creating member general ledger struct\n")
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
@@ -275,10 +306,13 @@ func (e Event) RecordTransaction(
 			Balance:                    balance,
 			CurrencyID:                 account.CurrencyID,
 		}
+		fmt.Printf("DEBUG LINE 283: Member general ledger struct created successfully\n")
 
 		// --- SUB-STEP 7E: GENERAL LEDGER ENTRY CREATION ---
 		// Create the general ledger entry in the database
+		fmt.Printf("DEBUG LINE 286: Creating member general ledger entry in database\n")
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
+			fmt.Printf("DEBUG LINE 288: Failed to create member general ledger entry: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-creation-failed",
 				Description: "Failed to create member general ledger entry for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
@@ -286,9 +320,11 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
+		fmt.Printf("DEBUG LINE 296: Member general ledger entry created successfully\n")
 
 		// --- SUB-STEP 7F: MEMBER ACCOUNTING LEDGER UPDATE ---
 		// Update or create member accounting ledger with new balance
+		fmt.Printf("DEBUG LINE 299: Updating member accounting ledger\n")
 		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
@@ -301,6 +337,7 @@ func (e Event) RecordTransaction(
 			now,
 		)
 		if err != nil {
+			fmt.Printf("DEBUG LINE 312: Failed to update member accounting ledger: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-accounting-ledger-update-failed",
 				Description: "Failed to update member accounting ledger for member " + transaction.MemberProfileID.String() + " on account " + transaction.AccountID.String() + ": " + err.Error(),
@@ -308,8 +345,10 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 		}
+		fmt.Printf("DEBUG LINE 320: Member accounting ledger updated successfully\n")
 
 		// Log successful member transaction completion
+		fmt.Printf("DEBUG LINE 323: Member transaction path completed successfully\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "member-transaction-completed",
 			Description: "Successfully recorded member transaction for " + memberProfile.ID.String() + " with balance: " + fmt.Sprintf("%.2f", balance),
@@ -317,14 +356,17 @@ func (e Event) RecordTransaction(
 		})
 
 	} else {
+		fmt.Printf("DEBUG LINE 331: No member profile ID - processing subsidiary account\n")
 		// ================================================================================
 		// STEP 8: TRANSACTION PROCESSING - SUBSIDIARY ACCOUNT PATH
 		// ================================================================================
 		// --- SUB-STEP 8A: SUBSIDIARY LEDGER RETRIEVAL ---
 		// For organization/subsidiary accounts (non-member transactions)
+		fmt.Printf("DEBUG LINE 337: Retrieving subsidiary ledger for update\n")
 		generalLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			context, tx, account.ID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
+			fmt.Printf("DEBUG LINE 341: Failed to retrieve subsidiary ledger: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "subsidiary-ledger-lock-failed",
 				Description: "Failed to lock subsidiary ledger for account " + account.ID.String() + " in organization " + userOrg.OrganizationID.String() + ": " + err.Error(),
@@ -332,18 +374,26 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to retrieve subsidiary general ledger"))
 		}
+		fmt.Printf("DEBUG LINE 349: Subsidiary ledger retrieved successfully - Balance: %f\n", generalLedger.Balance)
 
 		// --- SUB-STEP 8B: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance for subsidiary account
+		fmt.Printf("DEBUG LINE 352: Calculating subsidiary balance adjustment\n")
 		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
+		fmt.Printf("DEBUG LINE 354: Subsidiary balance calculated - Debit: %f, Credit: %f, Balance: %f\n", debit, credit, balance)
 
 		// --- SUB-STEP 8C: SUBSIDIARY LEDGER ENTRY PREPARATION ---
 		// Prepare new subsidiary general ledger entry
+		fmt.Printf("DEBUG LINE 358: Preparing subsidiary general ledger entry\n")
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
+			fmt.Printf("DEBUG LINE 361: Using payment type for subsidiary: %v\n", paymentType.Type)
 			paymentTypeValue = paymentType.Type
+		} else {
+			fmt.Printf("DEBUG LINE 364: No payment type for subsidiary\n")
 		}
 
+		fmt.Printf("DEBUG LINE 367: Creating subsidiary general ledger struct\n")
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:             now,
 			CreatedByID:           userOrg.UserID,
@@ -371,10 +421,13 @@ func (e Event) RecordTransaction(
 			Balance:                    balance,
 			CurrencyID:                 account.CurrencyID,
 		}
+		fmt.Printf("DEBUG LINE 390: Subsidiary general ledger struct created successfully\n")
 
 		// --- SUB-STEP 8D: SUBSIDIARY LEDGER ENTRY CREATION ---
 		// Create the subsidiary general ledger entry in the database
+		fmt.Printf("DEBUG LINE 393: Creating subsidiary general ledger entry in database\n")
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
+			fmt.Printf("DEBUG LINE 395: Failed to create subsidiary general ledger entry: %v\n", err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "subsidiary-ledger-creation-failed",
 				Description: "Failed to create subsidiary general ledger entry for account " + account.ID.String() + " in organization " + userOrg.OrganizationID.String() + ": " + err.Error(),
@@ -382,26 +435,32 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
+		fmt.Printf("DEBUG LINE 403: Subsidiary general ledger entry created successfully\n")
 
 		// Log successful subsidiary transaction completion
+		fmt.Printf("DEBUG LINE 406: Subsidiary transaction path completed successfully\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "subsidiary-transaction-completed",
 			Description: "Successfully recorded subsidiary transaction for account " + account.ID.String() + " with balance: " + fmt.Sprintf("%.2f", balance),
 			Module:      "Transaction Recording",
 		})
 	}
+	fmt.Printf("DEBUG LINE 413: Transaction processing completed, proceeding to finalization\n")
 
 	// ================================================================================
 	// STEP 9: TRANSACTION COMPLETION
 	// ================================================================================
 	// Log overall transaction success
+	fmt.Printf("DEBUG LINE 418: Recording final footstep\n")
 	e.Footstep(echoCtx, FootstepEvent{
 		Activity:    "transaction-recording-completed",
 		Description: "Transaction recording completed successfully for reference: " + transaction.ReferenceNumber + " with source: " + string(source),
 		Module:      "Transaction Recording",
 	})
+	fmt.Printf("DEBUG LINE 425: Final footstep recorded\n")
 
 	// Commit the database transaction
+	fmt.Printf("DEBUG LINE 428: Committing transaction\n")
 	return endTx(nil)
 
 }
