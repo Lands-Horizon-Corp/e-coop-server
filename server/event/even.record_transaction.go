@@ -52,19 +52,25 @@ func (e Event) RecordTransaction(
 	transaction RecordTransactionRequest,
 	source core.GeneralLedgerSource,
 ) error {
+	fmt.Printf("DEBUG LINE 42: RecordTransaction started with source: %v\n", source)
 	now := time.Now().UTC()
+	fmt.Printf("DEBUG LINE 44: Time initialized: %v\n", now)
 
 	// ================================================================================
 	// STEP 1: DATABASE TRANSACTION INITIALIZATION
 	// ================================================================================
 	// Start database transaction to ensure atomicity of all operations
+	fmt.Printf("DEBUG LINE 49: Starting database transaction\n")
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
+	fmt.Printf("DEBUG LINE 51: Database transaction started successfully\n")
 
 	// ================================================================================
 	// STEP 2: INPUT VALIDATION
 	// ================================================================================
 	// Validate that at least one amount (credit or debit) is provided
+	fmt.Printf("DEBUG LINE 56: Validating transaction amounts - Debit: %f, Credit: %f\n", transaction.Debit, transaction.Credit)
 	if transaction.Credit == 0 && transaction.Debit == 0 {
+		fmt.Printf("DEBUG LINE 58: Both amounts are zero - returning error\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
 			Description: "Transaction validation failed: Both credit and debit amounts are zero",
@@ -74,7 +80,9 @@ func (e Event) RecordTransaction(
 	}
 
 	// Validate required account ID
+	fmt.Printf("DEBUG LINE 67: Validating account ID: %v\n", transaction.AccountID)
 	if transaction.AccountID == uuid.Nil {
+		fmt.Printf("DEBUG LINE 69: Account ID is nil - returning error\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
 			Description: "Transaction validation failed: Account ID is missing or invalid",
@@ -84,7 +92,9 @@ func (e Event) RecordTransaction(
 	}
 
 	// Validate required reference number
+	fmt.Printf("DEBUG LINE 78: Validating reference number: %s\n", transaction.ReferenceNumber)
 	if transaction.ReferenceNumber == "" {
+		fmt.Printf("DEBUG LINE 80: Reference number is empty - returning error\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
 			Description: "Transaction validation failed: Reference number is missing",
@@ -92,13 +102,16 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("reference number is required"))
 	}
+	fmt.Printf("DEBUG LINE 87: Input validation completed successfully\n")
 
 	// ================================================================================
 	// STEP 3: USER AUTHENTICATION & ORGANIZATION CONTEXT
 	// ================================================================================
 	// Retrieve the current user's organization context for transaction authorization
+	fmt.Printf("DEBUG LINE 92: Retrieving user organization context\n")
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, echoCtx)
 	if err != nil {
+		fmt.Printf("DEBUG LINE 95: Failed to get user organization: %v\n", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "authentication-failed",
 			Description: "Unable to retrieve user organization context for transaction recording: " + err.Error(),
@@ -106,9 +119,11 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.Wrap(err, "failed to get user organization"))
 	}
+	fmt.Printf("DEBUG LINE 103: User organization retrieved successfully\n")
 
 	// Ensure user organization context exists
 	if userOrg == nil {
+		fmt.Printf("DEBUG LINE 107: User organization is nil\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "authentication-failed",
 			Description: "User organization context is missing - cannot proceed with transaction recording",
@@ -116,9 +131,11 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("user organization is nil"))
 	}
+	fmt.Printf("DEBUG LINE 115: User organization is valid - UserID: %v, OrganizationID: %v\n", userOrg.UserID, userOrg.OrganizationID)
 
 	// Validate branch assignment for transaction context
 	if userOrg.BranchID == nil {
+		fmt.Printf("DEBUG LINE 119: User branch ID is nil\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "branch-context-error",
 			Description: "User is not assigned to any branch - branch context required for transaction recording",
@@ -126,6 +143,7 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("user organization branch ID is nil"))
 	}
+	fmt.Printf("DEBUG LINE 127: User branch ID is valid: %v\n", *userOrg.BranchID)
 	// ================================================================================
 	// STEP 4: TRANSACTION BATCH VALIDATION
 	// ================================================================================
@@ -221,7 +239,7 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance
-		debit, credit, balance := e.usecase.Adjustment(*generalLedger.Account, transaction.Debit, transaction.Credit, generalLedger.Balance)
+		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, generalLedger.Balance)
 
 		// --- SUB-STEP 7D: GENERAL LEDGER ENTRY PREPARATION ---
 		// Prepare new general ledger entry with all transaction details
