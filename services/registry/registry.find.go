@@ -138,6 +138,9 @@ func (r *Registry[TData, TResponse, TRequest]) FindFilterQuery(
 	ctx echo.Context,
 	preloads ...string,
 ) (*filter.PaginationResult[TData], error) {
+	if preloads == nil {
+		preloads = r.preloads
+	}
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
 		return &filter.PaginationResult[TData]{}, eris.Wrap(err, "failed to parse query")

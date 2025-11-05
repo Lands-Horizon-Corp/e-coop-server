@@ -106,6 +106,9 @@ func (r *Registry[TData, TResponse, TRequest]) FindWithSQL(
 			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
 		}
 	}
+	if preloads == nil {
+		preloads = r.preloads
+	}
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -179,6 +182,10 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneWithSQL(
 		default:
 			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
 		}
+	}
+
+	if preloads == nil {
+		preloads = r.preloads
 	}
 
 	for _, preload := range preloads {
