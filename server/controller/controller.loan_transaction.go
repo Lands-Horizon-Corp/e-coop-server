@@ -175,7 +175,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "draft-error",
 				Description: "Loan transaction draft failed, user org error.",
 				Module:      "LoanTransaction",
@@ -202,7 +202,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Loan transaction printed fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -229,7 +229,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Loan transaction approved fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -256,7 +256,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -282,7 +282,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -457,7 +457,7 @@ func (c *Controller) loanTransactionController() {
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -684,7 +684,7 @@ func (c *Controller) loanTransactionController() {
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -745,7 +745,7 @@ func (c *Controller) loanTransactionController() {
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -1243,7 +1243,7 @@ func (c *Controller) loanTransactionController() {
 		} else {
 			loanTransactionEntry, err := c.core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1254,7 +1254,7 @@ func (c *Controller) loanTransactionController() {
 			loanTransactionEntry.Name = account.Name
 			loanTransactionEntry.Description = account.Description
 			if err := c.core.LoanTransactionEntryManager.UpdateByIDWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1268,7 +1268,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -1432,7 +1432,7 @@ func (c *Controller) loanTransactionController() {
 
 		// Commit the transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "commit-error",
 				Description: "Failed to commit transaction: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1440,7 +1440,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: fmt.Sprintf("Successfully deleted loan transaction %s and all related records", loanTransaction.ID),
 			Module:      "LoanTransaction",
@@ -1462,7 +1462,7 @@ func (c *Controller) loanTransactionController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1471,7 +1471,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | no IDs provided",
 				Module:      "LoanTransaction",
@@ -1482,7 +1482,7 @@ func (c *Controller) loanTransactionController() {
 		// Authorization / org+branch resolution stays in the handler
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | auth/organization error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1490,7 +1490,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | unauthorized user type",
 				Module:      "LoanTransaction",
@@ -1501,7 +1501,7 @@ func (c *Controller) loanTransactionController() {
 		// Delegate complex deletion (transaction, related records, ownership checks) to the manager.
 		// Manager signature assumed: BulkDeleteWithOrg(ctx context.Context, ids []string, userOrg core.UserOrganization) error
 		if err := c.core.LoanTransactionManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1511,7 +1511,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan transactions: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan transactions (/loan-transaction/bulk-delete)",
 			Module:      "LoanTransaction",
@@ -1909,7 +1909,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		loanTransactionEntry, err := c.core.GetCashOnCashEquivalence(context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1920,7 +1920,7 @@ func (c *Controller) loanTransactionController() {
 		loanTransactionEntry.Name = account.Name
 		loanTransactionEntry.Description = account.Description
 		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1929,7 +1929,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		loanTransaction, err := c.core.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction not found after entry update (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",

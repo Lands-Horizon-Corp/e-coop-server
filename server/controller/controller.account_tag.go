@@ -123,7 +123,7 @@ func (c *Controller) accountTagController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to validate data for POST /account-tag: %v", err),
 				Module:      "account-tag",
@@ -132,7 +132,7 @@ func (c *Controller) accountTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "User organization not found or authentication failed for POST /account-tag",
 				Module:      "account-tag",
@@ -140,7 +140,7 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "User is not assigned to a branch for POST /account-tag",
 				Module:      "account-tag",
@@ -164,7 +164,7 @@ func (c *Controller) accountTagController() {
 		}
 
 		if err := c.core.AccountTagManager.Create(context, accountTag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create account tag on POST /account-tag: %v", err),
 				Module:      "account-tag",
@@ -172,7 +172,7 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tag: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create success",
 			Description: fmt.Sprintf("Created account tag: %s (ID: %s)", accountTag.Name, accountTag.ID),
 			Module:      "account-tag",
@@ -192,7 +192,7 @@ func (c *Controller) accountTagController() {
 		context := ctx.Request().Context()
 		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Invalid account tag ID for PUT /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
@@ -201,7 +201,7 @@ func (c *Controller) accountTagController() {
 		}
 		req, err := c.core.AccountTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate data for PUT /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
@@ -210,7 +210,7 @@ func (c *Controller) accountTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User organization not found or authentication failed for PUT /account-tag/:account_tag_id",
 				Module:      "account-tag",
@@ -219,7 +219,7 @@ func (c *Controller) accountTagController() {
 		}
 		accountTag, err := c.core.AccountTagManager.GetByID(context, *accountTagID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Account tag not found for PUT /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
@@ -236,7 +236,7 @@ func (c *Controller) accountTagController() {
 		accountTag.UpdatedByID = user.UserID
 
 		if err := c.core.AccountTagManager.UpdateByID(context, accountTag.ID, accountTag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update account tag for PUT /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
@@ -244,7 +244,7 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account tag: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated account tag: %s (ID: %s)", accountTag.Name, accountTag.ID),
 			Module:      "account-tag",
@@ -262,7 +262,7 @@ func (c *Controller) accountTagController() {
 		context := ctx.Request().Context()
 		accountTagID, err := handlers.EngineUUIDParam(ctx, "account_tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Invalid account tag ID for DELETE /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
@@ -270,14 +270,14 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
 		if err := c.core.AccountTagManager.Delete(context, *accountTagID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete account tag for DELETE /account-tag/:account_tag_id: %v", err),
 				Module:      "account-tag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete success",
 			Description: fmt.Sprintf("Deleted account tag ID: %s", accountTagID.String()),
 			Module:      "account-tag",
@@ -295,7 +295,7 @@ func (c *Controller) accountTagController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AccountTag",
@@ -303,7 +303,7 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | no IDs provided",
 				Module:      "AccountTag",
@@ -312,14 +312,14 @@ func (c *Controller) accountTagController() {
 		}
 
 		if err := c.core.AccountTagManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | error: " + err.Error(),
 				Module:      "AccountTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete account tags: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted account tags (/account-tag/bulk-delete)",
 			Module:      "AccountTag",

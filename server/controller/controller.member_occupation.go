@@ -111,7 +111,7 @@ func (c *Controller) memberOccupationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberOccupationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member occupation failed (/member-occupation), validation error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -120,7 +120,7 @@ func (c *Controller) memberOccupationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member occupation failed (/member-occupation), user org error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -140,7 +140,7 @@ func (c *Controller) memberOccupationController() {
 		}
 
 		if err := c.core.MemberOccupationManager.Create(context, memberOccupation); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member occupation failed (/member-occupation), db error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -148,7 +148,7 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member occupation: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member occupation (/member-occupation): " + memberOccupation.Name,
 			Module:      "MemberOccupation",
@@ -168,7 +168,7 @@ func (c *Controller) memberOccupationController() {
 		context := ctx.Request().Context()
 		memberOccupationID, err := handlers.EngineUUIDParam(ctx, "member_occupation_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), invalid member_occupation_id: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -177,7 +177,7 @@ func (c *Controller) memberOccupationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), user org error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -186,7 +186,7 @@ func (c *Controller) memberOccupationController() {
 		}
 		req, err := c.core.MemberOccupationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), validation error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -195,7 +195,7 @@ func (c *Controller) memberOccupationController() {
 		}
 		memberOccupation, err := c.core.MemberOccupationManager.GetByID(context, *memberOccupationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), not found: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -209,14 +209,14 @@ func (c *Controller) memberOccupationController() {
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
 		if err := c.core.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
 				Module:      "MemberOccupation",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member occupation: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member occupation (/member-occupation/:member_occupation_id): " + memberOccupation.Name,
 			Module:      "MemberOccupation",
@@ -233,7 +233,7 @@ func (c *Controller) memberOccupationController() {
 		context := ctx.Request().Context()
 		memberOccupationID, err := handlers.EngineUUIDParam(ctx, "member_occupation_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), invalid member_occupation_id: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -242,7 +242,7 @@ func (c *Controller) memberOccupationController() {
 		}
 		value, err := c.core.MemberOccupationManager.GetByID(context, *memberOccupationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), record not found: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -250,14 +250,14 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member occupation not found: " + err.Error()})
 		}
 		if err := c.core.MemberOccupationManager.Delete(context, *memberOccupationID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
 				Module:      "MemberOccupation",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member occupation: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member occupation (/member-occupation/:member_occupation_id): " + value.Name,
 			Module:      "MemberOccupation",
@@ -276,7 +276,7 @@ func (c *Controller) memberOccupationController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -285,7 +285,7 @@ func (c *Controller) memberOccupationController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | no IDs provided",
 				Module:      "MemberOccupation",
@@ -294,7 +294,7 @@ func (c *Controller) memberOccupationController() {
 		}
 
 		if err := c.core.MemberOccupationManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberOccupation",
@@ -302,7 +302,7 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member occupations: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member occupations (/member-occupation/bulk-delete)",
 			Module:      "MemberOccupation",

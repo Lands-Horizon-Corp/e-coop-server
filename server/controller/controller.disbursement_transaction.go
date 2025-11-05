@@ -23,7 +23,7 @@ func (c *Controller) disbursementTransactionController() {
 		context := ctx.Request().Context()
 		req, err := c.core.DisbursementTransactionManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement transaction creation failed (/disbursement-transaction), validation error: " + err.Error(),
 				Module:      "DisbursementTransaction",
@@ -59,7 +59,7 @@ func (c *Controller) disbursementTransactionController() {
 			Amount:             req.Amount,
 		}
 		if err := c.core.DisbursementTransactionManager.Create(context, data); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement transaction creation failed (/disbursement-transaction), db error: " + err.Error(),
 				Module:      "DisbursementTransaction",
@@ -69,7 +69,7 @@ func (c *Controller) disbursementTransactionController() {
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR++
 			if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Disbursement transaction reference number update failed (/disbursement-transaction), db error: " + err.Error(),
 					Module:      "DisbursementTransaction",
@@ -77,7 +77,7 @@ func (c *Controller) disbursementTransactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update reference number: " + err.Error()})
 			}
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created disbursement transaction (/disbursement-transaction): " + data.ID.String(),
 			Module:      "DisbursementTransaction",

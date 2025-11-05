@@ -24,7 +24,7 @@ func (c *Controller) memberJointAccountController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), invalid member_profile_id: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -33,7 +33,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 		req, err := c.core.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), validation error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -42,7 +42,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), user org error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -71,7 +71,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 
 		if err := c.core.MemberJointAccountManager.Create(context, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create joint account failed (/member-joint-account/member-profile/:member_profile_id), db error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -79,7 +79,7 @@ func (c *Controller) memberJointAccountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create joint account record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created joint account (/member-joint-account/member-profile/:member_profile_id): " + value.FullName,
 			Module:      "MemberJointAccount",
@@ -99,7 +99,7 @@ func (c *Controller) memberJointAccountController() {
 		context := ctx.Request().Context()
 		memberJointAccountID, err := handlers.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), invalid member_joint_account_id: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -108,7 +108,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 		req, err := c.core.MemberJointAccountManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), validation error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -117,7 +117,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), user org error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -127,7 +127,7 @@ func (c *Controller) memberJointAccountController() {
 
 		value, err := c.core.MemberJointAccountManager.GetByID(context, *memberJointAccountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), record not found: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -151,7 +151,7 @@ func (c *Controller) memberJointAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 
 		if err := c.core.MemberJointAccountManager.UpdateByID(context, value.ID, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -159,7 +159,7 @@ func (c *Controller) memberJointAccountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update joint account record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated joint account (/member-joint-account/:member_joint_account_id): " + value.FullName,
 			Module:      "MemberJointAccount",
@@ -177,7 +177,7 @@ func (c *Controller) memberJointAccountController() {
 		context := ctx.Request().Context()
 		memberJointAccountID, err := handlers.EngineUUIDParam(ctx, "member_joint_account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), invalid member_joint_account_id: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -186,7 +186,7 @@ func (c *Controller) memberJointAccountController() {
 		}
 		value, err := c.core.MemberJointAccountManager.GetByID(context, *memberJointAccountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), record not found: " + err.Error(),
 				Module:      "MemberJointAccount",
@@ -194,14 +194,14 @@ func (c *Controller) memberJointAccountController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Joint account record not found: " + err.Error()})
 		}
 		if err := c.core.MemberJointAccountManager.Delete(context, *memberJointAccountID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete joint account failed (/member-joint-account/:member_joint_account_id), db error: " + err.Error(),
 				Module:      "MemberJointAccount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete joint account record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted joint account (/member-joint-account/:member_joint_account_id): " + value.FullName,
 			Module:      "MemberJointAccount",

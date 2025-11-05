@@ -27,7 +27,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "Failed to get user organization (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -39,7 +39,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -50,7 +50,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Get the account associated with the loan transaction
 	account, err := e.core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get cash on cash equivalence parent account (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -65,7 +65,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		BranchID:          *userOrg.BranchID,
 	})
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get loan transaction entries (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -112,7 +112,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if len(static) < 2 {
 		cashOnCashEquivalenceAccount, err := e.core.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 		if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to get cash on cash equivalence account (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -160,7 +160,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Delete existing add-on entries (they will be recalculated)
 	for _, entry := range addOn {
 		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to delete existing add on interest entries (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -334,7 +334,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
 		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to delete existing automatic loan deduction entries (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -391,7 +391,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 
 		if err := e.core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to create loan transaction entry (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -402,7 +402,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Amortization
 	amort, err := e.usecase.LoanModeOfPayment(ctx, loanTransaction)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to calculate loan amortization (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -422,7 +422,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
 	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to update loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -433,7 +433,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Commit all database changes
 
 	if err := endTx(nil); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -449,7 +449,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	newLoanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
 
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get updated loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -489,7 +489,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// ================================================================================
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "Failed to get user organization (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -497,7 +497,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 	if userOrg.BranchID == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "Invalid user organization data (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -505,7 +505,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		return nil, endTx(eris.New("invalid user organization data"))
 	}
 	if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "Unauthorized user role (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -518,7 +518,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// Get the main loan transaction
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -535,7 +535,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 
 	// ================================================================================
 	if err := endTx(nil); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -544,7 +544,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	}
 	newLoanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get updated loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",

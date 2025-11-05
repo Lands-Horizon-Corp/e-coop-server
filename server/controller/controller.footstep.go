@@ -24,7 +24,7 @@ func (c *Controller) footstepController() {
 		context := ctx.Request().Context()
 		req, err := c.core.FootstepManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), validation error: " + err.Error(),
 				Module:      "Footstep",
@@ -33,7 +33,7 @@ func (c *Controller) footstepController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), user org error: " + err.Error(),
 				Module:      "Footstep",
@@ -41,7 +41,7 @@ func (c *Controller) footstepController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), user not assigned to branch.",
 				Module:      "Footstep",
@@ -74,14 +74,14 @@ func (c *Controller) footstepController() {
 		}
 
 		if err := c.core.FootstepManager.Create(context, footstep); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), db error: " + err.Error(),
 				Module:      "Footstep",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create footstep: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created footstep (/footstep): " + footstep.Activity,
 			Module:      "Footstep",

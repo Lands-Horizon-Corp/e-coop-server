@@ -26,7 +26,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile media member profile search failed (/member-profile-media/member-profile/:member_profile_id/search), user org error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -36,7 +36,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile media member profile search failed (/member-profile-media/member-profile/:member_profile_id/search), invalid member profile ID.",
 				Module:      "MemberProfileMedia",
@@ -47,7 +47,7 @@ func (c *Controller) memberProfileMediaController() {
 		// Verify member profile belongs to user's organization
 		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile media member profile search failed (/member-profile-media/member-profile/:member_profile_id/search), member profile not found.",
 				Module:      "MemberProfileMedia",
@@ -61,7 +61,7 @@ func (c *Controller) memberProfileMediaController() {
 			MemberProfileID: &memberProfile.ID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile media member profile search failed (/member-profile-media/member-profile/:member_profile_id/search), db error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -69,7 +69,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search member profile media: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "member-profile-search-success",
 			Description: "Member profile media member profile search successful (/member-profile-media/member-profile/:member_profile_id/search), found " + strconv.Itoa(len(memberProfileMediaList)) + " media items.",
 			Module:      "MemberProfileMedia",
@@ -90,7 +90,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		reqData, err := c.core.MemberProfileMediaManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile media creation failed (/member-profile-media), validation error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -100,7 +100,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile media creation failed (/member-profile-media), user org error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -109,7 +109,7 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile media creation failed (/member-profile-media), user not assigned to branch.",
 				Module:      "MemberProfileMedia",
@@ -130,7 +130,7 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		if err := c.core.MemberProfileMediaManager.Create(context, memberProfileMedia); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile media creation failed (/member-profile-media), db error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -138,7 +138,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile media: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Member profile media created successfully (/member-profile-media), ID: " + memberProfileMedia.ID.String(),
 			Module:      "MemberProfileMedia",
@@ -164,7 +164,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		memberProfileMediaID, err := handlers.EngineUUIDParam(ctx, "member_profile_media_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), invalid member profile media ID.",
 				Module:      "MemberProfileMedia",
@@ -174,7 +174,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		reqData, err := c.core.MemberProfileMediaManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), validation error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -184,7 +184,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), user org error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -194,7 +194,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		memberProfileMedia, err := c.core.MemberProfileMediaManager.GetByID(context, *memberProfileMediaID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), member profile media not found.",
 				Module:      "MemberProfileMedia",
@@ -203,7 +203,7 @@ func (c *Controller) memberProfileMediaController() {
 		}
 		if memberProfileMedia.MediaID != reqData.MediaID {
 			if err := c.core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
 					Module:      "Media",
@@ -221,7 +221,7 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		if err := c.core.MemberProfileMediaManager.UpdateByID(context, *memberProfileMediaID, updateData); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), db error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -229,7 +229,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile media: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Member profile media updated successfully (/member-profile-media/:member_profile_media_id), ID: " + memberProfileMediaID.String(),
 			Module:      "MemberProfileMedia",
@@ -253,7 +253,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		memberProfileMediaID, err := handlers.EngineUUIDParam(ctx, "member_profile_media_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile media delete failed (/member-profile-media/:member_profile_media_id), invalid member profile media ID.",
 				Module:      "MemberProfileMedia",
@@ -263,7 +263,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		_, err = c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile media delete failed (/member-profile-media/:member_profile_media_id), user org error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -273,7 +273,7 @@ func (c *Controller) memberProfileMediaController() {
 
 		memberProfileMedia, err := c.core.MemberProfileMediaManager.GetByID(context, *memberProfileMediaID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile media delete failed (/member-profile-media/:member_profile_media_id), not found.",
 				Module:      "MemberProfileMedia",
@@ -281,7 +281,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile media not found"})
 		}
 		if err := c.core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
 				Module:      "Media",
@@ -290,7 +290,7 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		if err := c.core.MemberProfileMediaManager.Delete(context, memberProfileMedia.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile media delete failed (/member-profile-media/:member_profile_media_id), db error: " + err.Error(),
 				Module:      "MemberProfileMedia",
@@ -298,7 +298,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member profile media: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Member profile media deleted successfully (/member-profile-media/:member_profile_media_id), ID: " + memberProfileMediaID.String(),
 			Module:      "MemberProfileMedia",

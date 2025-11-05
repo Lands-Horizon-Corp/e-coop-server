@@ -61,7 +61,7 @@ func (c *Controller) feedbackController() {
 		context := ctx.Request().Context()
 		req, err := c.core.FeedbackManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), validation error: " + err.Error(),
 				Module:      "Feedback",
@@ -79,7 +79,7 @@ func (c *Controller) feedbackController() {
 		}
 
 		if err := c.core.FeedbackManager.Create(context, feedback); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), db error: " + err.Error(),
 				Module:      "Feedback",
@@ -87,7 +87,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create feedback record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created feedback (/feedback): " + feedback.Email,
 			Module:      "Feedback",
@@ -105,7 +105,7 @@ func (c *Controller) feedbackController() {
 		context := ctx.Request().Context()
 		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), invalid feedback ID.",
 				Module:      "Feedback",
@@ -115,7 +115,7 @@ func (c *Controller) feedbackController() {
 
 		feedback, err := c.core.FeedbackManager.GetByID(context, *feedbackID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), record not found.",
 				Module:      "Feedback",
@@ -124,7 +124,7 @@ func (c *Controller) feedbackController() {
 		}
 
 		if err := c.core.FeedbackManager.Delete(context, *feedbackID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
 				Module:      "Feedback",
@@ -132,7 +132,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted feedback (/feedback/:feedback_id): " + feedback.Email,
 			Module:      "Feedback",
@@ -151,7 +151,7 @@ func (c *Controller) feedbackController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Feedback",
@@ -160,7 +160,7 @@ func (c *Controller) feedbackController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | no IDs provided",
 				Module:      "Feedback",
@@ -169,7 +169,7 @@ func (c *Controller) feedbackController() {
 		}
 
 		if err := c.core.FeedbackManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),
 				Module:      "Feedback",
@@ -177,7 +177,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete feedback records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted feedbacks (/feedback/bulk-delete)",
 			Module:      "Feedback",

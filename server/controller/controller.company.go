@@ -91,7 +91,7 @@ func (c *Controller) companyController() {
 		context := ctx.Request().Context()
 		req, err := c.core.CompanyManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), validation error: " + err.Error(),
 				Module:      "Company",
@@ -100,7 +100,7 @@ func (c *Controller) companyController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), user org error: " + err.Error(),
 				Module:      "Company",
@@ -108,7 +108,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), user not assigned to branch.",
 				Module:      "Company",
@@ -129,14 +129,14 @@ func (c *Controller) companyController() {
 		}
 
 		if err := c.core.CompanyManager.Create(context, company); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), db error: " + err.Error(),
 				Module:      "Company",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create company: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created company (/company): " + company.Name,
 			Module:      "Company",
@@ -155,7 +155,7 @@ func (c *Controller) companyController() {
 		context := ctx.Request().Context()
 		companyID, err := handlers.EngineUUIDParam(ctx, "company_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), invalid company ID.",
 				Module:      "Company",
@@ -165,7 +165,7 @@ func (c *Controller) companyController() {
 
 		req, err := c.core.CompanyManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), validation error: " + err.Error(),
 				Module:      "Company",
@@ -174,7 +174,7 @@ func (c *Controller) companyController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), user org error: " + err.Error(),
 				Module:      "Company",
@@ -183,7 +183,7 @@ func (c *Controller) companyController() {
 		}
 		company, err := c.core.CompanyManager.GetByID(context, *companyID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), company not found.",
 				Module:      "Company",
@@ -196,14 +196,14 @@ func (c *Controller) companyController() {
 		company.UpdatedAt = time.Now().UTC()
 		company.UpdatedByID = user.UserID
 		if err := c.core.CompanyManager.UpdateByID(context, company.ID, company); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), db error: " + err.Error(),
 				Module:      "Company",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update company: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated company (/company/:company_id): " + company.Name,
 			Module:      "Company",
@@ -220,7 +220,7 @@ func (c *Controller) companyController() {
 		context := ctx.Request().Context()
 		companyID, err := handlers.EngineUUIDParam(ctx, "company_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), invalid company ID.",
 				Module:      "Company",
@@ -229,7 +229,7 @@ func (c *Controller) companyController() {
 		}
 		company, err := c.core.CompanyManager.GetByID(context, *companyID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), not found.",
 				Module:      "Company",
@@ -237,14 +237,14 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
 		if err := c.core.CompanyManager.Delete(context, *companyID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), db error: " + err.Error(),
 				Module:      "Company",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete company: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted company (/company/:company_id): " + company.Name,
 			Module:      "Company",
@@ -262,7 +262,7 @@ func (c *Controller) companyController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/company/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Company",
@@ -270,7 +270,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/company/bulk-delete) | no IDs provided",
 				Module:      "Company",
@@ -279,7 +279,7 @@ func (c *Controller) companyController() {
 		}
 
 		if err := c.core.CompanyManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/company/bulk-delete) | error: " + err.Error(),
 				Module:      "Company",
@@ -287,7 +287,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete companies: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted companies (/company/bulk-delete)",
 			Module:      "Company",

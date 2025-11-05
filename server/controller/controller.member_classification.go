@@ -111,7 +111,7 @@ func (c *Controller) memberClassificationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberClassificationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member classification failed (/member-classification), validation error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -120,7 +120,7 @@ func (c *Controller) memberClassificationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member classification failed (/member-classification), user org error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -141,7 +141,7 @@ func (c *Controller) memberClassificationController() {
 		}
 
 		if err := c.core.MemberClassificationManager.Create(context, memberClassification); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member classification failed (/member-classification), db error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -149,7 +149,7 @@ func (c *Controller) memberClassificationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member classification: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member classification (/member-classification): " + memberClassification.Name,
 			Module:      "MemberClassification",
@@ -169,7 +169,7 @@ func (c *Controller) memberClassificationController() {
 		context := ctx.Request().Context()
 		memberClassificationID, err := handlers.EngineUUIDParam(ctx, "member_classification_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), invalid member_classification_id: " + err.Error(),
 				Module:      "MemberClassification",
@@ -178,7 +178,7 @@ func (c *Controller) memberClassificationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), user org error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -187,7 +187,7 @@ func (c *Controller) memberClassificationController() {
 		}
 		req, err := c.core.MemberClassificationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), validation error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -196,7 +196,7 @@ func (c *Controller) memberClassificationController() {
 		}
 		memberClassification, err := c.core.MemberClassificationManager.GetByID(context, *memberClassificationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), not found: " + err.Error(),
 				Module:      "MemberClassification",
@@ -211,14 +211,14 @@ func (c *Controller) memberClassificationController() {
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
 		if err := c.core.MemberClassificationManager.UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
 				Module:      "MemberClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member classification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member classification (/member-classification/:member_classification_id): " + memberClassification.Name,
 			Module:      "MemberClassification",
@@ -235,7 +235,7 @@ func (c *Controller) memberClassificationController() {
 		context := ctx.Request().Context()
 		memberClassificationID, err := handlers.EngineUUIDParam(ctx, "member_classification_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member classification failed (/member-classification/:member_classification_id), invalid member_classification_id: " + err.Error(),
 				Module:      "MemberClassification",
@@ -244,7 +244,7 @@ func (c *Controller) memberClassificationController() {
 		}
 		value, err := c.core.MemberClassificationManager.GetByID(context, *memberClassificationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member classification failed (/member-classification/:member_classification_id), not found: " + err.Error(),
 				Module:      "MemberClassification",
@@ -252,14 +252,14 @@ func (c *Controller) memberClassificationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member classification not found: " + err.Error()})
 		}
 		if err := c.core.MemberClassificationManager.Delete(context, *memberClassificationID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
 				Module:      "MemberClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member classification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member classification (/member-classification/:member_classification_id): " + value.Name,
 			Module:      "MemberClassification",
@@ -277,7 +277,7 @@ func (c *Controller) memberClassificationController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberClassification",
@@ -285,7 +285,7 @@ func (c *Controller) memberClassificationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | no IDs provided",
 				Module:      "MemberClassification",
@@ -294,7 +294,7 @@ func (c *Controller) memberClassificationController() {
 		}
 
 		if err := c.core.MemberClassificationManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberClassification",
@@ -302,7 +302,7 @@ func (c *Controller) memberClassificationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member classifications: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member classifications (/member-classification/bulk-delete)",
 			Module:      "MemberClassification",

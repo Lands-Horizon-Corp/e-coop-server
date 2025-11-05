@@ -209,7 +209,7 @@ func (c *Controller) computationSheetController() {
 		context := ctx.Request().Context()
 		req, err := c.core.ComputationSheetManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), validation error: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -218,7 +218,7 @@ func (c *Controller) computationSheetController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), user org error: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -226,7 +226,7 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), user not assigned to branch.",
 				Module:      "ComputationSheet",
@@ -252,14 +252,14 @@ func (c *Controller) computationSheetController() {
 		}
 
 		if err := c.core.ComputationSheetManager.Create(context, sheet); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), db error: " + err.Error(),
 				Module:      "ComputationSheet",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create computation sheet: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created computation sheet (/computation-sheet): " + sheet.Name,
 			Module:      "ComputationSheet",
@@ -278,7 +278,7 @@ func (c *Controller) computationSheetController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), invalid ID.",
 				Module:      "ComputationSheet",
@@ -288,7 +288,7 @@ func (c *Controller) computationSheetController() {
 
 		req, err := c.core.ComputationSheetManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), validation error: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -297,7 +297,7 @@ func (c *Controller) computationSheetController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), user org error: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -306,7 +306,7 @@ func (c *Controller) computationSheetController() {
 		}
 		sheet, err := c.core.ComputationSheetManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), not found.",
 				Module:      "ComputationSheet",
@@ -324,14 +324,14 @@ func (c *Controller) computationSheetController() {
 		sheet.UpdatedByID = user.UserID
 
 		if err := c.core.ComputationSheetManager.UpdateByID(context, sheet.ID, sheet); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Computation sheet update failed (/computation-sheet/:id), db error: " + err.Error(),
 				Module:      "ComputationSheet",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update computation sheet: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated computation sheet (/computation-sheet/:id): " + sheet.Name,
 			Module:      "ComputationSheet",
@@ -348,7 +348,7 @@ func (c *Controller) computationSheetController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Computation sheet delete failed (/computation-sheet/:id), invalid ID.",
 				Module:      "ComputationSheet",
@@ -357,7 +357,7 @@ func (c *Controller) computationSheetController() {
 		}
 		sheet, err := c.core.ComputationSheetManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Computation sheet delete failed (/computation-sheet/:id), not found.",
 				Module:      "ComputationSheet",
@@ -365,14 +365,14 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
 		}
 		if err := c.core.ComputationSheetManager.Delete(context, *id); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Computation sheet delete failed (/computation-sheet/:id), db error: " + err.Error(),
 				Module:      "ComputationSheet",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete computation sheet: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted computation sheet (/computation-sheet/:id): " + sheet.Name,
 			Module:      "ComputationSheet",
@@ -390,7 +390,7 @@ func (c *Controller) computationSheetController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -398,7 +398,7 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | no IDs provided",
 				Module:      "ComputationSheet",
@@ -407,7 +407,7 @@ func (c *Controller) computationSheetController() {
 		}
 
 		if err := c.core.ComputationSheetManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | error: " + err.Error(),
 				Module:      "ComputationSheet",
@@ -415,7 +415,7 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete computation sheets: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted computation sheets (/computation-sheet/bulk-delete)",
 			Module:      "ComputationSheet",

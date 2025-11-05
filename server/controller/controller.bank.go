@@ -91,7 +91,7 @@ func (c *Controller) bankController() {
 		context := ctx.Request().Context()
 		req, err := c.core.BankManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bank creation failed (/bank), validation error: " + err.Error(),
 				Module:      "Bank",
@@ -100,7 +100,7 @@ func (c *Controller) bankController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bank creation failed (/bank), user org error: " + err.Error(),
 				Module:      "Bank",
@@ -108,7 +108,7 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bank creation failed (/bank), user not assigned to branch.",
 				Module:      "Bank",
@@ -129,14 +129,14 @@ func (c *Controller) bankController() {
 		}
 
 		if err := c.core.BankManager.Create(context, bank); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bank creation failed (/bank), db error: " + err.Error(),
 				Module:      "Bank",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create bank: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created bank (/bank): " + bank.Name,
 			Module:      "Bank",
@@ -155,7 +155,7 @@ func (c *Controller) bankController() {
 		context := ctx.Request().Context()
 		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), invalid bank ID.",
 				Module:      "Bank",
@@ -165,7 +165,7 @@ func (c *Controller) bankController() {
 
 		req, err := c.core.BankManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), validation error: " + err.Error(),
 				Module:      "Bank",
@@ -174,7 +174,7 @@ func (c *Controller) bankController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
 				Module:      "Bank",
@@ -183,7 +183,7 @@ func (c *Controller) bankController() {
 		}
 		bank, err := c.core.BankManager.GetByID(context, *bankID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), bank not found.",
 				Module:      "Bank",
@@ -196,14 +196,14 @@ func (c *Controller) bankController() {
 		bank.UpdatedAt = time.Now().UTC()
 		bank.UpdatedByID = user.UserID
 		if err := c.core.BankManager.UpdateByID(context, bank.ID, bank); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), db error: " + err.Error(),
 				Module:      "Bank",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update bank: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated bank (/bank/:bank_id): " + bank.Name,
 			Module:      "Bank",
@@ -220,7 +220,7 @@ func (c *Controller) bankController() {
 		context := ctx.Request().Context()
 		bankID, err := handlers.EngineUUIDParam(ctx, "bank_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bank delete failed (/bank/:bank_id), invalid bank ID.",
 				Module:      "Bank",
@@ -229,7 +229,7 @@ func (c *Controller) bankController() {
 		}
 		bank, err := c.core.BankManager.GetByID(context, *bankID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bank delete failed (/bank/:bank_id), not found.",
 				Module:      "Bank",
@@ -237,14 +237,14 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bank not found"})
 		}
 		if err := c.core.BankManager.Delete(context, *bankID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bank delete failed (/bank/:bank_id), db error: " + err.Error(),
 				Module:      "Bank",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bank: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted bank (/bank/:bank_id): " + bank.Name,
 			Module:      "Bank",
@@ -261,7 +261,7 @@ func (c *Controller) bankController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Bank",
@@ -269,7 +269,7 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | no IDs provided",
 				Module:      "Bank",
@@ -278,7 +278,7 @@ func (c *Controller) bankController() {
 		}
 
 		if err := c.core.BankManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | error: " + err.Error(),
 				Module:      "Bank",
@@ -286,7 +286,7 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete banks: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted banks (/bank/bulk-delete)",
 			Module:      "Bank",

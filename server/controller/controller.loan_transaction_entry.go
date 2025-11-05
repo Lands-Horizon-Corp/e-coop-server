@@ -29,7 +29,7 @@ func (c *Controller) loanTransactionEntryController() {
 		}
 		var req core.LoanTransactionDeductionRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: invalid payload: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -37,7 +37,7 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -50,7 +50,7 @@ func (c *Controller) loanTransactionEntryController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, req.AccountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Account not found for loan transaction deduction: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -75,7 +75,7 @@ func (c *Controller) loanTransactionEntryController() {
 			Description:       account.Description,
 		}
 		if err := c.core.LoanTransactionEntryManager.Create(context, loanTransaction); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -85,7 +85,7 @@ func (c *Controller) loanTransactionEntryController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + endTx(tx.Error).Error(),
 				Module:      "LoanTransaction",
@@ -116,7 +116,7 @@ func (c *Controller) loanTransactionEntryController() {
 		}
 		var req core.LoanTransactionDeductionRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: invalid payload: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -124,7 +124,7 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -137,7 +137,7 @@ func (c *Controller) loanTransactionEntryController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, req.AccountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Account not found for loan transaction deduction: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -146,7 +146,7 @@ func (c *Controller) loanTransactionEntryController() {
 		}
 		loanTransactionEntry, err := c.core.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction entry not found for deduction update: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -166,7 +166,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -179,7 +179,7 @@ func (c *Controller) loanTransactionEntryController() {
 		fmt.Println()
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + endTx(tx.Error).Error(),
 				Module:      "LoanTransaction",
@@ -243,7 +243,7 @@ func (c *Controller) loanTransactionEntryController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + endTx(tx.Error).Error(),
 				Module:      "LoanTransaction",
@@ -310,7 +310,7 @@ func (c *Controller) loanTransactionEntryController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + endTx(tx.Error).Error(),
 				Module:      "LoanTransaction",

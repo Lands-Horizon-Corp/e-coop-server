@@ -91,7 +91,7 @@ func (c *Controller) adjustmentEntryController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AdjustmentEntryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), validation error: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -100,7 +100,7 @@ func (c *Controller) adjustmentEntryController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), user org error: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -108,7 +108,7 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), user not assigned to branch.",
 				Module:      "AdjustmentEntry",
@@ -137,14 +137,14 @@ func (c *Controller) adjustmentEntryController() {
 		}
 
 		if err := c.core.AdjustmentEntryManager.Create(context, adjustmentEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), db error: " + err.Error(),
 				Module:      "AdjustmentEntry",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create adjustment entry: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created adjustment entry (/adjustment-entry): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
@@ -163,7 +163,7 @@ func (c *Controller) adjustmentEntryController() {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), invalid adjustment entry ID.",
 				Module:      "AdjustmentEntry",
@@ -173,7 +173,7 @@ func (c *Controller) adjustmentEntryController() {
 
 		req, err := c.core.AdjustmentEntryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), validation error: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -182,7 +182,7 @@ func (c *Controller) adjustmentEntryController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), user org error: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -191,7 +191,7 @@ func (c *Controller) adjustmentEntryController() {
 		}
 		adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), adjustment entry not found.",
 				Module:      "AdjustmentEntry",
@@ -212,14 +212,14 @@ func (c *Controller) adjustmentEntryController() {
 		adjustmentEntry.UpdatedAt = time.Now().UTC()
 		adjustmentEntry.UpdatedByID = user.UserID
 		if err := c.core.AdjustmentEntryManager.UpdateByID(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
 				Module:      "AdjustmentEntry",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update adjustment entry: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated adjustment entry (/adjustment-entry/:adjustment_entry_id): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
@@ -236,7 +236,7 @@ func (c *Controller) adjustmentEntryController() {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), invalid adjustment entry ID.",
 				Module:      "AdjustmentEntry",
@@ -245,7 +245,7 @@ func (c *Controller) adjustmentEntryController() {
 		}
 		adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), not found.",
 				Module:      "AdjustmentEntry",
@@ -253,14 +253,14 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
 		if err := c.core.AdjustmentEntryManager.Delete(context, *adjustmentEntryID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
 				Module:      "AdjustmentEntry",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete adjustment entry: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted adjustment entry (/adjustment-entry/:adjustment_entry_id): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
@@ -278,7 +278,7 @@ func (c *Controller) adjustmentEntryController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -286,7 +286,7 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | no IDs provided",
 				Module:      "AdjustmentEntry",
@@ -295,7 +295,7 @@ func (c *Controller) adjustmentEntryController() {
 		}
 
 		if err := c.core.AdjustmentEntryManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | error: " + err.Error(),
 				Module:      "AdjustmentEntry",
@@ -303,7 +303,7 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete adjustment entries: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted adjustment entries (/adjustment-entry/bulk-delete)",
 			Module:      "AdjustmentEntry",

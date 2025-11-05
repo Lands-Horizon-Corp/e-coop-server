@@ -62,7 +62,7 @@ func (e *Event) TransactionPayment(
 	defer func() {
 		duration := time.Since(startTime)
 		if duration > 5*time.Second {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "performance-warning",
 				Description: fmt.Sprintf("Payment operation took %.2fs - potential performance issue (/transaction/payment/:transaction_id)", duration.Seconds()),
 				Module:      "Transaction",
@@ -75,7 +75,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	block, blocked, err := e.HandleIPBlocker(ctx, echoCtx)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "ip-block-check-error",
 			Description: "IP blocker check failed (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -89,7 +89,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	if blocked {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "ip-blocked",
 			Description: "IP is temporarily blocked due to repeated errors (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -102,7 +102,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "Failed to get user organization (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -111,7 +111,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 	if userOrg == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
 			Description: "User organization is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -120,7 +120,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("user organization is nil"))
 	}
 	if userOrg.BranchID == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "branch-error",
 			Description: "User organization branch ID is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -134,7 +134,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// Validate Payment Amount
 	if data.Amount == 0 {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "payment-error",
 			Description: "Payment amount cannot be zero (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -143,7 +143,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("payment amount cannot be zero"))
 	}
 	if data.AccountID == nil || data.PaymentTypeID == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
 			Description: "Missing required fields (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -153,7 +153,7 @@ func (e *Event) TransactionPayment(
 	}
 	cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 	if cashOnHandAccountID == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "cash-on-hand-error",
 			Description: "Cash on hand account ID is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -162,7 +162,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("cash on hand account ID is nil"))
 	}
 	if cashOnHandAccountID == data.AccountID {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "cash-on-hand-mismatch",
 			Description: "Cash on hand account ID does not match (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -181,7 +181,7 @@ func (e *Event) TransactionPayment(
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			transaction = nil
 		} else if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "transaction-error",
 				Description: "Failed to retrieve transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -199,7 +199,7 @@ func (e *Event) TransactionPayment(
 	if data.MemberProfileID != nil {
 		memberProfile, err := e.core.MemberProfileManager.GetByID(ctx, *data.MemberProfileID)
 		if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-error",
 				Description: "Failed to retrieve member profile (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -208,7 +208,7 @@ func (e *Event) TransactionPayment(
 			return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 		}
 		if memberProfile == nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-error",
 				Description: "Member profile is nil (/transaction/payment/:transaction_id)",
 				Module:      "Transaction",
@@ -217,7 +217,7 @@ func (e *Event) TransactionPayment(
 			return nil, endTx(eris.New("member profile is nil"))
 		}
 		if memberProfile.BranchID != *userOrg.BranchID {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "branch-mismatch",
 				Description: "Member does not belong to the current branch (/transaction/payment/:transaction_id)",
 				Module:      "Transaction",
@@ -226,7 +226,7 @@ func (e *Event) TransactionPayment(
 			return nil, endTx(eris.New("member does not belong to the current branch"))
 		}
 		if memberProfile.OrganizationID != userOrg.OrganizationID {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "organization-mismatch",
 				Description: "Member does not belong to the current organization (/transaction/payment/:transaction_id)",
 				Module:      "Transaction",
@@ -240,7 +240,7 @@ func (e *Event) TransactionPayment(
 	// GET transaction batch
 	transactionBatch, err := e.core.TransactionBatchCurrent(ctx, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "batch-error",
 			Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -249,7 +249,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch"))
 	}
 	if transactionBatch == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "batch-error",
 			Description: "Transaction batch is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -261,7 +261,7 @@ func (e *Event) TransactionPayment(
 	// GET account (with lock)
 	account, err := e.core.AccountLockForUpdate(ctx, tx, *data.AccountID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "account-lock-error",
 			Description: "Failed to acquire account lock for concurrent protection (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -271,7 +271,7 @@ func (e *Event) TransactionPayment(
 	}
 
 	if account == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "account-error",
 			Description: "Account is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -280,7 +280,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("account is nil"))
 	}
 	if account.BranchID != *userOrg.BranchID {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "branch-mismatch",
 			Description: "Account does not belong to the current branch (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -289,7 +289,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("account does not belong to the current branch"))
 	}
 	if account.OrganizationID != userOrg.OrganizationID {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "organization-mismatch",
 			Description: "Account does not belong to the current organization (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -300,7 +300,7 @@ func (e *Event) TransactionPayment(
 
 	cashOnHandAccount, err := e.core.AccountLockForUpdate(ctx, tx, *cashOnHandAccountID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "account-lock-error",
 			Description: "Failed to acquire account lock for concurrent protection (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -309,7 +309,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to acquire account lock for concurrent protection for cash on hand account"))
 	}
 	if cashOnHandAccount == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "account-error",
 			Description: "Cash on hand account is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -325,7 +325,7 @@ func (e *Event) TransactionPayment(
 		generalLedger, err = e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			ctx, tx, *memberProfileID, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "ledger-error",
 				Description: "Failed to retrieve member general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -337,7 +337,7 @@ func (e *Event) TransactionPayment(
 		generalLedger, err = e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			ctx, tx, *data.AccountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "ledger-error",
 				Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -350,7 +350,7 @@ func (e *Event) TransactionPayment(
 	cohGeneralLedger, err := e.core.GeneralLedgerCashOnHandOnUpdate(
 		ctx, tx, *cashOnHandAccountID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "ledger-error",
 			Description: "Failed to retrieve subsidiary general ledger (FOR UPDATE) (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -362,7 +362,7 @@ func (e *Event) TransactionPayment(
 	// GET payment type
 	paymentType, err := e.core.PaymentTypeManager.GetByID(ctx, *data.PaymentTypeID)
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "payment-type-error",
 			Description: "Failed to retrieve payment type (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -371,7 +371,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to retrieve payment type"))
 	}
 	if paymentType == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "payment-type-error",
 			Description: "Payment type is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -380,7 +380,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("payment type is nil"))
 	}
 	if paymentType.OrganizationID != userOrg.OrganizationID {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "organization-mismatch",
 			Description: "Payment type does not belong to the current organization (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -414,7 +414,7 @@ func (e *Event) TransactionPayment(
 			CurrencyID:           *account.CurrencyID,
 		}
 		if err := e.core.TransactionManager.CreateWithTx(ctx, tx, transaction); err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "transaction-create-error",
 				Description: "Failed to create transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -438,7 +438,7 @@ func (e *Event) TransactionPayment(
 
 	// Add nil checks for service operations
 	if e.usecase == nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "service-error",
 			Description: "Service is nil (/transaction/payment/:transaction_id)",
 			Module:      "Transaction",
@@ -489,7 +489,7 @@ func (e *Event) TransactionPayment(
 		err = eris.New("unsupported source type - Account")
 	}
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "transaction-process-error",
 			Description: "Failed to process transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -528,7 +528,7 @@ func (e *Event) TransactionPayment(
 		CurrencyID:                 account.CurrencyID,
 	}
 	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, newGeneralLedger); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "ledger-create-error",
 			Description: "Failed to create general ledger entry (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -574,7 +574,7 @@ func (e *Event) TransactionPayment(
 	transaction.UpdatedAt = now
 	transaction.UpdatedByID = userOrg.UserID
 	if err := e.core.TransactionManager.UpdateByIDWithTx(ctx, tx, transaction.ID, transaction); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "transaction-update-error",
 			Description: "Failed to update transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -602,7 +602,7 @@ func (e *Event) TransactionPayment(
 			lastPayTime,
 		)
 		if err != nil {
-			e.Footstep(ctx, echoCtx, FootstepEvent{
+			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-accounting-ledger-error",
 				Description: "Failed to update member accounting ledger (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -658,7 +658,7 @@ func (e *Event) TransactionPayment(
 		err = eris.New("unsupported source type - Cash on Hand Account")
 	}
 	if err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "transaction-process-error",
 			Description: "Failed to process transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -696,7 +696,7 @@ func (e *Event) TransactionPayment(
 		Balance:                    cohBalance,
 	}
 	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, cashOnHandGeneralLedger); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "ledger-create-error",
 			Description: "Failed to create general ledger entry (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -716,7 +716,7 @@ func (e *Event) TransactionPayment(
 	// STEP 10: TRANSACTION COMMIT & SUCCESS LOGGING
 	// ================================================================================
 	if err := endTx(nil); err != nil {
-		e.Footstep(ctx, echoCtx, FootstepEvent{
+		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 			Module:      "Transaction",
@@ -726,7 +726,7 @@ func (e *Event) TransactionPayment(
 
 	// Success - log completion with performance metrics
 	duration := time.Since(startTime)
-	e.Footstep(ctx, echoCtx, FootstepEvent{
+	e.Footstep(echoCtx, FootstepEvent{
 		Activity: "payment-success",
 		Description: fmt.Sprintf("Payment completed successfully. Amount: %.2f, Account: %s, Balance: %.2f, Duration: %.3fs (/transaction/payment/:transaction_id)",
 			data.Amount, data.AccountID.String(), balance, duration.Seconds()),

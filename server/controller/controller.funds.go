@@ -65,7 +65,7 @@ func (c *Controller) fundsController() {
 		context := ctx.Request().Context()
 		req, err := c.core.FundsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create funds failed (/funds), validation error: " + err.Error(),
 				Module:      "Funds",
@@ -74,7 +74,7 @@ func (c *Controller) fundsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create funds failed (/funds), user org error: " + err.Error(),
 				Module:      "Funds",
@@ -97,7 +97,7 @@ func (c *Controller) fundsController() {
 		}
 
 		if err := c.core.FundsManager.Create(context, funds); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create funds failed (/funds), db error: " + err.Error(),
 				Module:      "Funds",
@@ -105,7 +105,7 @@ func (c *Controller) fundsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create funds: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created funds (/funds): " + funds.Type,
 			Module:      "Funds",
@@ -125,7 +125,7 @@ func (c *Controller) fundsController() {
 		context := ctx.Request().Context()
 		fundsID, err := handlers.EngineUUIDParam(ctx, "funds_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), invalid funds_id: " + err.Error(),
 				Module:      "Funds",
@@ -134,7 +134,7 @@ func (c *Controller) fundsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), user org error: " + err.Error(),
 				Module:      "Funds",
@@ -143,7 +143,7 @@ func (c *Controller) fundsController() {
 		}
 		req, err := c.core.FundsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), validation error: " + err.Error(),
 				Module:      "Funds",
@@ -152,7 +152,7 @@ func (c *Controller) fundsController() {
 		}
 		funds, err := c.core.FundsManager.GetByID(context, *fundsID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), not found: " + err.Error(),
 				Module:      "Funds",
@@ -169,14 +169,14 @@ func (c *Controller) fundsController() {
 		funds.Icon = req.Icon
 		funds.GLBooks = req.GLBooks
 		if err := c.core.FundsManager.UpdateByID(context, funds.ID, funds); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), db error: " + err.Error(),
 				Module:      "Funds",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update funds: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated funds (/funds/:funds_id): " + funds.Type,
 			Module:      "Funds",
@@ -193,7 +193,7 @@ func (c *Controller) fundsController() {
 		context := ctx.Request().Context()
 		fundsID, err := handlers.EngineUUIDParam(ctx, "funds_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), invalid funds_id: " + err.Error(),
 				Module:      "Funds",
@@ -202,7 +202,7 @@ func (c *Controller) fundsController() {
 		}
 		value, err := c.core.FundsManager.GetByID(context, *fundsID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), record not found: " + err.Error(),
 				Module:      "Funds",
@@ -210,14 +210,14 @@ func (c *Controller) fundsController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Funds not found: " + err.Error()})
 		}
 		if err := c.core.FundsManager.Delete(context, *fundsID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), db error: " + err.Error(),
 				Module:      "Funds",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete funds: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted funds (/funds/:funds_id): " + value.Type,
 			Module:      "Funds",
@@ -235,7 +235,7 @@ func (c *Controller) fundsController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Funds",
@@ -244,7 +244,7 @@ func (c *Controller) fundsController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | no IDs provided",
 				Module:      "Funds",
@@ -253,7 +253,7 @@ func (c *Controller) fundsController() {
 		}
 
 		if err := c.core.FundsManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | error: " + err.Error(),
 				Module:      "Funds",
@@ -261,7 +261,7 @@ func (c *Controller) fundsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete funds: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted funds (/funds/bulk-delete)",
 			Module:      "Funds",

@@ -59,7 +59,7 @@ func (c *Controller) contactController() {
 		context := ctx.Request().Context()
 		req, err := c.core.ContactUsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Contact creation failed (/contact), validation error: " + err.Error(),
 				Module:      "Contact",
@@ -78,7 +78,7 @@ func (c *Controller) contactController() {
 		}
 
 		if err := c.core.ContactUsManager.Create(context, contact); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Contact creation failed (/contact), db error: " + err.Error(),
 				Module:      "Contact",
@@ -86,7 +86,7 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create contact record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created contact (/contact): " + contact.Email,
 			Module:      "Contact",
@@ -104,7 +104,7 @@ func (c *Controller) contactController() {
 		context := ctx.Request().Context()
 		contactID, err := handlers.EngineUUIDParam(ctx, "contact_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), invalid contact ID.",
 				Module:      "Contact",
@@ -113,7 +113,7 @@ func (c *Controller) contactController() {
 		}
 		contact, err := c.core.ContactUsManager.GetByID(context, *contactID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), record not found.",
 				Module:      "Contact",
@@ -121,14 +121,14 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
 		if err := c.core.ContactUsManager.Delete(context, *contactID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), db error: " + err.Error(),
 				Module:      "Contact",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete contact record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted contact (/contact/:contact_id): " + contact.Email,
 			Module:      "Contact",
@@ -146,7 +146,7 @@ func (c *Controller) contactController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Contact bulk delete failed (/contact/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Contact",
@@ -154,7 +154,7 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Contact bulk delete failed (/contact/bulk-delete) | no IDs provided",
 				Module:      "Contact",
@@ -163,7 +163,7 @@ func (c *Controller) contactController() {
 		}
 
 		if err := c.core.ContactUsManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Contact bulk delete failed (/contact/bulk-delete) | error: " + err.Error(),
 				Module:      "Contact",
@@ -171,7 +171,7 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete contact records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted contacts (/contact/bulk-delete)",
 			Module:      "Contact",

@@ -72,7 +72,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "draft-error",
 				Description: "Cash check voucher draft failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -99,7 +99,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Cash check voucher printed fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -126,7 +126,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Cash check voucher approved fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -153,7 +153,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Cash check voucher released fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -200,7 +200,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		request, err := c.core.CashCheckVoucherManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), validation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -209,7 +209,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), user org error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -217,7 +217,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), user not assigned to branch.",
 				Module:      "CashCheckVoucher",
@@ -239,7 +239,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Validate balance (optional - some vouchers might not require balanced entries)
 		if totalDebit != totalCredit && totalDebit > 0 && totalCredit > 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), unbalanced entries.",
 				Module:      "CashCheckVoucher",
@@ -303,7 +303,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Save cash check voucher first
 		if err := c.core.CashCheckVoucherManager.CreateWithTx(context, tx, cashCheckVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -313,7 +313,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: retrieve error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -341,7 +341,7 @@ func (c *Controller) cashCheckVoucherController() {
 				}
 
 				if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Cash check voucher creation failed (/cash-check-voucher), entry save error: " + err.Error(),
 						Module:      "CashCheckVoucher",
@@ -353,7 +353,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Commit transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), commit error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -364,7 +364,7 @@ func (c *Controller) cashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created cash check voucher (/cash-check-voucher): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -388,7 +388,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		request, err := c.core.CashCheckVoucherManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), validation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -398,7 +398,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), user org error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -408,7 +408,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		cashCheckVoucher, err := c.core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), voucher not found: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -427,7 +427,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Validate balance (optional)
 		if totalDebit != totalCredit && totalDebit > 0 && totalCredit > 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), unbalanced entries.",
 				Module:      "CashCheckVoucher",
@@ -498,7 +498,7 @@ func (c *Controller) cashCheckVoucherController() {
 				}
 				entry.DeletedByID = &user.UserID
 				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), delete entry error: " + err.Error(),
 						Module:      "CashCheckVoucher",
@@ -509,7 +509,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: retrieve error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -523,7 +523,7 @@ func (c *Controller) cashCheckVoucherController() {
 					// Update existing entry
 					entry, err := c.core.CashCheckVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
-						c.event.Footstep(context, ctx, event.FootstepEvent{
+						c.event.Footstep(ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), get entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -541,7 +541,7 @@ func (c *Controller) cashCheckVoucherController() {
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.core.CashCheckVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
-						c.event.Footstep(context, ctx, event.FootstepEvent{
+						c.event.Footstep(ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), update entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -568,7 +568,7 @@ func (c *Controller) cashCheckVoucherController() {
 					}
 
 					if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-						c.event.Footstep(context, ctx, event.FootstepEvent{
+						c.event.Footstep(ctx, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), entry save error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -581,7 +581,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Save updated cash check voucher
 		if err := c.core.CashCheckVoucherManager.UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -591,7 +591,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Commit transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), commit error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -602,7 +602,7 @@ func (c *Controller) cashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated cash check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -623,7 +623,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 		cashCheckVoucher, err := c.core.CashCheckVoucherManager.GetByID(context, *cashCheckVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), voucher not found: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -631,14 +631,14 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
 		if err := c.core.CashCheckVoucherManager.Delete(context, *cashCheckVoucherID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), delete error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted cash check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -655,7 +655,7 @@ func (c *Controller) cashCheckVoucherController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -663,7 +663,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | no IDs provided",
 				Module:      "CashCheckVoucher",
@@ -672,7 +672,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		if err := c.core.CashCheckVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -680,7 +680,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete cash check vouchers: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted cash check vouchers (/cash-check-voucher/bulk-delete)",
 			Module:      "CashCheckVoucher",
@@ -712,7 +712,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		var req core.CashCheckVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Cash check voucher print failed, invalid request body.",
 				Module:      "CashCheckVoucher",
@@ -743,7 +743,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-success",
 			Description: "Successfully printed cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -797,7 +797,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Successfully approved cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -855,7 +855,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "release-success",
 			Description: "Successfully released cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -910,7 +910,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print for cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-undo-success",
 			Description: "Successfully undid print for cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -961,7 +961,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-only-success",
 			Description: "Successfully printed cash check voucher (print-only): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -1022,7 +1022,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-undo-success",
 			Description: "Successfully undid approval for cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",

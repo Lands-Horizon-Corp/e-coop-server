@@ -91,7 +91,7 @@ func (c *Controller) loanStatusController() {
 		context := ctx.Request().Context()
 		req, err := c.core.LoanStatusManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan status creation failed (/loan-status), validation error: " + err.Error(),
 				Module:      "LoanStatus",
@@ -100,7 +100,7 @@ func (c *Controller) loanStatusController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan status creation failed (/loan-status), user org error: " + err.Error(),
 				Module:      "LoanStatus",
@@ -108,7 +108,7 @@ func (c *Controller) loanStatusController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan status creation failed (/loan-status), user not assigned to branch.",
 				Module:      "LoanStatus",
@@ -128,14 +128,14 @@ func (c *Controller) loanStatusController() {
 			OrganizationID: user.OrganizationID,
 		}
 		if err := c.core.LoanStatusManager.Create(context, status); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan status creation failed (/loan-status), db error: " + err.Error(),
 				Module:      "LoanStatus",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan status record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created loan status (/loan-status): " + status.Name,
 			Module:      "LoanStatus",
@@ -154,7 +154,7 @@ func (c *Controller) loanStatusController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "loan_status_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), invalid loan status ID.",
 				Module:      "LoanStatus",
@@ -163,7 +163,7 @@ func (c *Controller) loanStatusController() {
 		}
 		req, err := c.core.LoanStatusManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), validation error: " + err.Error(),
 				Module:      "LoanStatus",
@@ -172,7 +172,7 @@ func (c *Controller) loanStatusController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), user org error: " + err.Error(),
 				Module:      "LoanStatus",
@@ -180,7 +180,7 @@ func (c *Controller) loanStatusController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), user not assigned to branch.",
 				Module:      "LoanStatus",
@@ -189,7 +189,7 @@ func (c *Controller) loanStatusController() {
 		}
 		status, err := c.core.LoanStatusManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), not found.",
 				Module:      "LoanStatus",
@@ -203,14 +203,14 @@ func (c *Controller) loanStatusController() {
 		status.UpdatedAt = time.Now().UTC()
 		status.UpdatedByID = user.UserID
 		if err := c.core.LoanStatusManager.UpdateByID(context, status.ID, status); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan status update failed (/loan-status/:loan_status_id), db error: " + err.Error(),
 				Module:      "LoanStatus",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan status record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated loan status (/loan-status/:loan_status_id): " + status.Name,
 			Module:      "LoanStatus",
@@ -227,7 +227,7 @@ func (c *Controller) loanStatusController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "loan_status_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan status delete failed (/loan-status/:loan_status_id), invalid loan status ID.",
 				Module:      "LoanStatus",
@@ -236,7 +236,7 @@ func (c *Controller) loanStatusController() {
 		}
 		status, err := c.core.LoanStatusManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan status delete failed (/loan-status/:loan_status_id), not found.",
 				Module:      "LoanStatus",
@@ -244,14 +244,14 @@ func (c *Controller) loanStatusController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan status record not found"})
 		}
 		if err := c.core.LoanStatusManager.Delete(context, *id); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan status delete failed (/loan-status/:loan_status_id), db error: " + err.Error(),
 				Module:      "LoanStatus",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan status record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted loan status (/loan-status/:loan_status_id): " + status.Name,
 			Module:      "LoanStatus",
@@ -270,7 +270,7 @@ func (c *Controller) loanStatusController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanStatus",
@@ -279,7 +279,7 @@ func (c *Controller) loanStatusController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | no IDs provided",
 				Module:      "LoanStatus",
@@ -288,7 +288,7 @@ func (c *Controller) loanStatusController() {
 		}
 
 		if err := c.core.LoanStatusManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanStatus",
@@ -296,7 +296,7 @@ func (c *Controller) loanStatusController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan status records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan statuses (/loan-status/bulk-delete)",
 			Module:      "LoanStatus",

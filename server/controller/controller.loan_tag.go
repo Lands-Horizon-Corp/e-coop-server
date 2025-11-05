@@ -121,7 +121,7 @@ func (c *Controller) loanTagController() {
 		context := ctx.Request().Context()
 		req, err := c.core.LoanTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), validation error: " + err.Error(),
 				Module:      "LoanTag",
@@ -130,7 +130,7 @@ func (c *Controller) loanTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), user org error: " + err.Error(),
 				Module:      "LoanTag",
@@ -138,7 +138,7 @@ func (c *Controller) loanTagController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed " + err.Error()})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), user not assigned to branch.",
 				Module:      "LoanTag",
@@ -162,14 +162,14 @@ func (c *Controller) loanTagController() {
 		}
 
 		if err := c.core.LoanTagManager.Create(context, loanTag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), db error: " + err.Error(),
 				Module:      "LoanTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created loan tag (/loan-tag): " + loanTag.Name,
 			Module:      "LoanTag",
@@ -188,7 +188,7 @@ func (c *Controller) loanTagController() {
 		context := ctx.Request().Context()
 		loanTagID, err := handlers.EngineUUIDParam(ctx, "loan_tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), invalid loan tag ID.",
 				Module:      "LoanTag",
@@ -198,7 +198,7 @@ func (c *Controller) loanTagController() {
 
 		req, err := c.core.LoanTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), validation error: " + err.Error(),
 				Module:      "LoanTag",
@@ -207,7 +207,7 @@ func (c *Controller) loanTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), user org error: " + err.Error(),
 				Module:      "LoanTag",
@@ -216,7 +216,7 @@ func (c *Controller) loanTagController() {
 		}
 		loanTag, err := c.core.LoanTagManager.GetByID(context, *loanTagID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), loan tag not found.",
 				Module:      "LoanTag",
@@ -232,14 +232,14 @@ func (c *Controller) loanTagController() {
 		loanTag.UpdatedAt = time.Now().UTC()
 		loanTag.UpdatedByID = user.UserID
 		if err := c.core.LoanTagManager.UpdateByID(context, loanTag.ID, loanTag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
 				Module:      "LoanTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated loan tag (/loan-tag/:loan_tag_id): " + loanTag.Name,
 			Module:      "LoanTag",
@@ -256,7 +256,7 @@ func (c *Controller) loanTagController() {
 		context := ctx.Request().Context()
 		loanTagID, err := handlers.EngineUUIDParam(ctx, "loan_tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan tag delete failed (/loan-tag/:loan_tag_id), invalid loan tag ID.",
 				Module:      "LoanTag",
@@ -265,7 +265,7 @@ func (c *Controller) loanTagController() {
 		}
 		loanTag, err := c.core.LoanTagManager.GetByID(context, *loanTagID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan tag delete failed (/loan-tag/:loan_tag_id), not found.",
 				Module:      "LoanTag",
@@ -273,14 +273,14 @@ func (c *Controller) loanTagController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan tag not found"})
 		}
 		if err := c.core.LoanTagManager.Delete(context, *loanTagID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan tag delete failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
 				Module:      "LoanTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted loan tag (/loan-tag/:loan_tag_id): " + loanTag.Name,
 			Module:      "LoanTag",
@@ -299,7 +299,7 @@ func (c *Controller) loanTagController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-tag/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanTag",
@@ -308,7 +308,7 @@ func (c *Controller) loanTagController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-tag/bulk-delete) | no IDs provided",
 				Module:      "LoanTag",
@@ -317,7 +317,7 @@ func (c *Controller) loanTagController() {
 		}
 
 		if err := c.core.LoanTagManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-tag/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTag",
@@ -325,7 +325,7 @@ func (c *Controller) loanTagController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan tags: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan tags (/loan-tag/bulk-delete)",
 			Module:      "LoanTag",

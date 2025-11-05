@@ -25,7 +25,7 @@ func (c *Controller) timeDepositComputationController() {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation/time-deposit-type/:time_deposit_type_id), invalid time deposit type ID.",
 				Module:      "TimeDepositComputation",
@@ -34,7 +34,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 		req, err := c.core.TimeDepositComputationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), validation error: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -43,7 +43,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), user org error: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -51,7 +51,7 @@ func (c *Controller) timeDepositComputationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), user not assigned to branch.",
 				Module:      "TimeDepositComputation",
@@ -83,14 +83,14 @@ func (c *Controller) timeDepositComputationController() {
 		}
 
 		if err := c.core.TimeDepositComputationManager.Create(context, timeDepositComputation); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), db error: " + err.Error(),
 				Module:      "TimeDepositComputation",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created time deposit computation (/time-deposit-computation): " + timeDepositComputation.ID.String(),
 			Module:      "TimeDepositComputation",
@@ -109,7 +109,7 @@ func (c *Controller) timeDepositComputationController() {
 		context := ctx.Request().Context()
 		timeDepositComputationID, err := handlers.EngineUUIDParam(ctx, "time_deposit_computation_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), invalid time deposit computation ID.",
 				Module:      "TimeDepositComputation",
@@ -119,7 +119,7 @@ func (c *Controller) timeDepositComputationController() {
 
 		req, err := c.core.TimeDepositComputationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), validation error: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -128,7 +128,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), user org error: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -137,7 +137,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 		timeDepositComputation, err := c.core.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), time deposit computation not found.",
 				Module:      "TimeDepositComputation",
@@ -160,14 +160,14 @@ func (c *Controller) timeDepositComputationController() {
 		timeDepositComputation.UpdatedAt = time.Now().UTC()
 		timeDepositComputation.UpdatedByID = user.UserID
 		if err := c.core.TimeDepositComputationManager.UpdateByID(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit computation update failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
 				Module:      "TimeDepositComputation",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated time deposit computation (/time-deposit-computation/:time_deposit_computation_id): " + timeDepositComputation.ID.String(),
 			Module:      "TimeDepositComputation",
@@ -184,7 +184,7 @@ func (c *Controller) timeDepositComputationController() {
 		context := ctx.Request().Context()
 		timeDepositComputationID, err := handlers.EngineUUIDParam(ctx, "time_deposit_computation_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation delete failed (/time-deposit-computation/:time_deposit_computation_id), invalid time deposit computation ID.",
 				Module:      "TimeDepositComputation",
@@ -193,7 +193,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 		timeDepositComputation, err := c.core.TimeDepositComputationManager.GetByID(context, *timeDepositComputationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation delete failed (/time-deposit-computation/:time_deposit_computation_id), not found.",
 				Module:      "TimeDepositComputation",
@@ -201,14 +201,14 @@ func (c *Controller) timeDepositComputationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit computation not found"})
 		}
 		if err := c.core.TimeDepositComputationManager.Delete(context, *timeDepositComputationID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit computation delete failed (/time-deposit-computation/:time_deposit_computation_id), db error: " + err.Error(),
 				Module:      "TimeDepositComputation",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit computation: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted time deposit computation (/time-deposit-computation/:time_deposit_computation_id): " + timeDepositComputation.ID.String(),
 			Module:      "TimeDepositComputation",
@@ -227,7 +227,7 @@ func (c *Controller) timeDepositComputationController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -236,7 +236,7 @@ func (c *Controller) timeDepositComputationController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | no IDs provided",
 				Module:      "TimeDepositComputation",
@@ -246,7 +246,7 @@ func (c *Controller) timeDepositComputationController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
 		if err := c.core.TimeDepositComputationManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | error: " + err.Error(),
 				Module:      "TimeDepositComputation",
@@ -254,7 +254,7 @@ func (c *Controller) timeDepositComputationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete time deposit computations: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted time deposit computations (/time-deposit-computation/bulk-delete)",
 			Module:      "TimeDepositComputation",

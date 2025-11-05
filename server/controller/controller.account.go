@@ -497,7 +497,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), validation error: " + err.Error(),
 				Module:      "Account",
@@ -506,7 +506,7 @@ func (c *Controller) accountController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), user org error: " + err.Error(),
 				Module:      "Account",
@@ -514,7 +514,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for account (/account)",
 				Module:      "Account",
@@ -605,7 +605,7 @@ func (c *Controller) accountController() {
 		}
 
 		if err := c.core.AccountManager.Create(context, account); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), db error: " + err.Error(),
 				Module:      "Account",
@@ -632,7 +632,7 @@ func (c *Controller) accountController() {
 			}
 			db := c.provider.Service.Database.Client()
 			if err := db.Create(&tags).Error; err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Account tag creation failed (/account), db error: " + err.Error(),
 					Module:      "Account",
@@ -640,7 +640,7 @@ func (c *Controller) accountController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tags: " + err.Error()})
 			}
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created account (/account): " + account.Name,
 			Module:      "Account",
@@ -678,7 +678,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), validation error: " + err.Error(),
 				Module:      "Account",
@@ -687,7 +687,7 @@ func (c *Controller) accountController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), user org error: " + err.Error(),
 				Module:      "Account",
@@ -695,7 +695,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for account (/account/:account_id)",
 				Module:      "Account",
@@ -704,7 +704,7 @@ func (c *Controller) accountController() {
 		}
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -713,7 +713,7 @@ func (c *Controller) accountController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), not found: " + err.Error(),
 				Module:      "Account",
@@ -800,7 +800,7 @@ func (c *Controller) accountController() {
 		account.CurrencyID = req.CurrencyID
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
 				Module:      "Account",
@@ -824,7 +824,7 @@ func (c *Controller) accountController() {
 					UpdatedByID:    userOrg.UserID,
 				}
 				if err := c.core.AccountTagManager.Create(context, tag); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Account tag update failed (/account/:account_id), db error: " + err.Error(),
 						Module:      "Account",
@@ -833,7 +833,7 @@ func (c *Controller) accountController() {
 				}
 			}
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated account (/account/:account_id): " + account.Name,
 			Module:      "Account",
@@ -857,7 +857,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -867,7 +867,7 @@ func (c *Controller) accountController() {
 
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), not found: " + err.Error(),
 				Module:      "Account",
@@ -876,7 +876,7 @@ func (c *Controller) accountController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), user org error: " + err.Error(),
 				Module:      "Account",
@@ -884,7 +884,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.Branch.BranchSetting.CashOnHandAccountID != nil && *userOrg.Branch.BranchSetting.CashOnHandAccountID == *accountID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), cannot delete cash on hand account: " + account.Name,
 				Module:      "Account",
@@ -892,7 +892,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete cash on hand account: " + account.Name})
 		}
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID != nil && *userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == *accountID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), cannot delete paid up share capital account: " + account.Name,
 				Module:      "Account",
@@ -900,7 +900,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for account (/account/:account_id)",
 				Module:      "Account",
@@ -908,14 +908,14 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		if err := c.core.AccountManager.Delete(context, account.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted account (/account/:account_id): " + account.Name,
 			Module:      "Account",
@@ -934,7 +934,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Account",
@@ -942,7 +942,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | no IDs provided",
 				Module:      "Account",
@@ -951,14 +951,14 @@ func (c *Controller) accountController() {
 		}
 
 		if err := c.core.AccountManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete accounts: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted accounts (/account/bulk-delete)",
 			Module:      "Account",
@@ -976,7 +976,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), user org error: " + err.Error(),
 				Module:      "Account",
@@ -984,7 +984,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized index update attempt for account (/account/:account_id/index/:index)",
 				Module:      "Account",
@@ -993,7 +993,7 @@ func (c *Controller) accountController() {
 		}
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -1004,7 +1004,7 @@ func (c *Controller) accountController() {
 		var newIndex int
 		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), invalid index: " + err.Error(),
 				Module:      "Account",
@@ -1013,7 +1013,7 @@ func (c *Controller) accountController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), not found: " + err.Error(),
 				Module:      "Account",
@@ -1024,14 +1024,14 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %d", account.Name, newIndex),
 			Module:      "Account",
@@ -1049,7 +1049,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1057,7 +1057,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove GL def attempt for account (/account/:account_id/general-ledger-definition/remove)",
 				Module:      "Account",
@@ -1066,7 +1066,7 @@ func (c *Controller) accountController() {
 		}
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -1075,7 +1075,7 @@ func (c *Controller) accountController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), not found: " + err.Error(),
 				Module:      "Account",
@@ -1086,14 +1086,14 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove GeneralLedgerDefinitionID: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Removed GL def from account (/account/:account_id/general-ledger-definition/remove): %s", account.Name),
 			Module:      "Account",
@@ -1110,7 +1110,7 @@ func (c *Controller) accountController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1118,7 +1118,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove FS def attempt for account (/account/:account_id/financial-statement-definition/remove)",
 				Module:      "Account",
@@ -1127,7 +1127,7 @@ func (c *Controller) accountController() {
 		}
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -1136,7 +1136,7 @@ func (c *Controller) accountController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), not found: " + err.Error(),
 				Module:      "Account",
@@ -1147,14 +1147,14 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove FinancialStatementDefinitionID: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Removed FS def from account (/account/:account_id/financial-statement-definition/remove): %s", account.Name),
 			Module:      "Account",

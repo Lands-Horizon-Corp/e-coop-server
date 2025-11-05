@@ -91,7 +91,7 @@ func (c *Controller) accountClassificationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountClassificationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed to create account classification (/account-classification): validation error: " + err.Error(),
 				Module:      "AccountClassification",
@@ -100,7 +100,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed to create account classification (/account-classification): user org error: " + err.Error(),
 				Module:      "AccountClassification",
@@ -108,7 +108,7 @@ func (c *Controller) accountClassificationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for account classification (/account-classification)",
 				Module:      "AccountClassification",
@@ -128,14 +128,14 @@ func (c *Controller) accountClassificationController() {
 		}
 
 		if err := c.core.AccountClassificationManager.Create(context, accountClassification); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed to create account classification (/account-classification): db error: " + err.Error(),
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account classification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created account classification (/account-classification): " + accountClassification.Name,
 			Module:      "AccountClassification",
@@ -154,7 +154,7 @@ func (c *Controller) accountClassificationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountClassificationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): validation error: " + err.Error(),
 				Module:      "AccountClassification",
@@ -163,7 +163,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): user org error: " + err.Error(),
 				Module:      "AccountClassification",
@@ -171,7 +171,7 @@ func (c *Controller) accountClassificationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for account classification (/account-classification/:account_classification_id)",
 				Module:      "AccountClassification",
@@ -180,7 +180,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		classificationID, err := handlers.EngineUUIDParam(ctx, "account_classification_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): invalid UUID: " + err.Error(),
 				Module:      "AccountClassification",
@@ -189,7 +189,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		classification, err := c.core.AccountClassificationManager.GetByID(context, *classificationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): not found: " + err.Error(),
 				Module:      "AccountClassification",
@@ -203,14 +203,14 @@ func (c *Controller) accountClassificationController() {
 		classification.BranchID = *userOrg.BranchID
 		classification.OrganizationID = userOrg.OrganizationID
 		if err := c.core.AccountClassificationManager.UpdateByID(context, classification.ID, classification); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account classification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
@@ -227,7 +227,7 @@ func (c *Controller) accountClassificationController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): user org error: " + err.Error(),
 				Module:      "AccountClassification",
@@ -235,7 +235,7 @@ func (c *Controller) accountClassificationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for account classification (/account-classification/:account_classification_id)",
 				Module:      "AccountClassification",
@@ -244,7 +244,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		classificationID, err := handlers.EngineUUIDParam(ctx, "account_classification_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): invalid UUID: " + err.Error(),
 				Module:      "AccountClassification",
@@ -253,7 +253,7 @@ func (c *Controller) accountClassificationController() {
 		}
 		classification, err := c.core.AccountClassificationManager.GetByID(context, *classificationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): not found: " + err.Error(),
 				Module:      "AccountClassification",
@@ -261,14 +261,14 @@ func (c *Controller) accountClassificationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
 		if err := c.core.AccountClassificationManager.Delete(context, classification.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account classification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
@@ -286,7 +286,7 @@ func (c *Controller) accountClassificationController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AccountClassification",
@@ -294,7 +294,7 @@ func (c *Controller) accountClassificationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | no IDs provided",
 				Module:      "AccountClassification",
@@ -303,14 +303,14 @@ func (c *Controller) accountClassificationController() {
 		}
 
 		if err := c.core.AccountClassificationManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | error: " + err.Error(),
 				Module:      "AccountClassification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete account classifications: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted account classifications (/account-classification/bulk-delete)",
 			Module:      "AccountClassification",

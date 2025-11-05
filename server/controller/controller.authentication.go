@@ -109,7 +109,7 @@ func (c *Controller) authenticationController() {
 		if err := c.userToken.SetUser(context, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "User logged in successfully: " + user.ID.String(),
 			Module:      "User",
@@ -127,7 +127,7 @@ func (c *Controller) authenticationController() {
 		Note:   "Logs out the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "User logged out successfully",
 			Module:      "User",
@@ -147,7 +147,7 @@ func (c *Controller) authenticationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.UserManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -156,7 +156,7 @@ func (c *Controller) authenticationController() {
 		}
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: hash password error: " + err.Error(),
 				Module:      "User",
@@ -181,7 +181,7 @@ func (c *Controller) authenticationController() {
 			UpdatedAt:         time.Now().UTC(),
 		}
 		if err := c.core.UserManager.Create(context, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: create user error: " + err.Error(),
 				Module:      "User",
@@ -189,14 +189,14 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not register user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: failed to set user token: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "User registered successfully: " + user.ID.String(),
 			Module:      "User",
@@ -217,7 +217,7 @@ func (c *Controller) authenticationController() {
 		context := ctx.Request().Context()
 		var req core.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: invalid payload: " + err.Error(),
 				Module:      "User",
@@ -225,7 +225,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid forgot password payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -234,7 +234,7 @@ func (c *Controller) authenticationController() {
 		}
 		user, err := c.core.GetUserByIdentifier(context, req.Key)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: user not found: " + err.Error(),
 				Module:      "User",
@@ -243,7 +243,7 @@ func (c *Controller) authenticationController() {
 		}
 		token, err := c.provider.Service.Security.GenerateUUIDv5(context, user.Password)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: generate token error: " + err.Error(),
 				Module:      "User",
@@ -261,7 +261,7 @@ func (c *Controller) authenticationController() {
 				"eventLink": fallbackStr + "/auth/password-reset/" + token,
 			},
 		}); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: send email error: " + err.Error(),
 				Module:      "User",
@@ -269,14 +269,14 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed sending email: " + err.Error()})
 		}
 		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: cache set error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed storing token: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Forgot password initiated for user: " + user.ID.String(),
 			Module:      "User",
@@ -319,7 +319,7 @@ func (c *Controller) authenticationController() {
 		context := ctx.Request().Context()
 		var req core.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: invalid payload: " + err.Error(),
 				Module:      "User",
@@ -327,7 +327,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change password payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -352,7 +352,7 @@ func (c *Controller) authenticationController() {
 		}
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: hash password error: " + err.Error(),
 				Module:      "User",
@@ -361,7 +361,7 @@ func (c *Controller) authenticationController() {
 		}
 		user.Password = hashedPwd
 		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: update user error: " + err.Error(),
 				Module:      "User",
@@ -369,14 +369,14 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user password: " + err.Error()})
 		}
 		if err := c.provider.Service.Cache.Delete(context, resetID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: delete cache error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete token from cache: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Password changed successfully for user: " + user.ID.String(),
 			Module:      "User",
@@ -398,7 +398,7 @@ func (c *Controller) authenticationController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
 		otp, err := c.provider.Service.OTP.Generate(context, key)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Apply contact number failed: generate OTP error: " + err.Error(),
 				Module:      "User",
@@ -413,14 +413,14 @@ func (c *Controller) authenticationController() {
 				"name": *user.FirstName,
 			},
 		}); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Apply contact number failed: send SMS error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP SMS: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "OTP sent for contact number verification: " + user.ContactNumber,
 			Module:      "User",
@@ -439,7 +439,7 @@ func (c *Controller) authenticationController() {
 		context := ctx.Request().Context()
 		var req core.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: invalid payload: " + err.Error(),
 				Module:      "User",
@@ -447,7 +447,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify contact number payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -461,7 +461,7 @@ func (c *Controller) authenticationController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
 		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: verify OTP error: " + err.Error(),
 				Module:      "User",
@@ -469,7 +469,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: invalid OTP",
 				Module:      "User",
@@ -477,7 +477,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
 		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: revoke OTP error: " + err.Error(),
 				Module:      "User",
@@ -486,7 +486,7 @@ func (c *Controller) authenticationController() {
 		}
 		user.IsContactVerified = true
 		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: update user error: " + err.Error(),
 				Module:      "User",
@@ -495,7 +495,7 @@ func (c *Controller) authenticationController() {
 		}
 		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: get updated user error: " + err.Error(),
 				Module:      "User",
@@ -503,14 +503,14 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: set user token error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Contact number verified for user: " + user.ID.String(),
 			Module:      "User",
@@ -532,7 +532,7 @@ func (c *Controller) authenticationController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
 		otp, err := c.provider.Service.OTP.Generate(context, key)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Apply email failed: generate OTP error: " + err.Error(),
 				Module:      "User",
@@ -547,14 +547,14 @@ func (c *Controller) authenticationController() {
 				"otp": otp,
 			},
 		}); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Apply email failed: send email error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP email: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "OTP sent for email verification: " + user.Email,
 			Module:      "User",
@@ -618,7 +618,7 @@ func (c *Controller) authenticationController() {
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Owner password verification successful for user organization: " + userOrg.ID.String(),
 			Module:      "User",
@@ -637,7 +637,7 @@ func (c *Controller) authenticationController() {
 		context := ctx.Request().Context()
 		var req core.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: invalid payload: " + err.Error(),
 				Module:      "User",
@@ -645,7 +645,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify email payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -659,7 +659,7 @@ func (c *Controller) authenticationController() {
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
 		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: verify OTP error: " + err.Error(),
 				Module:      "User",
@@ -667,7 +667,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: invalid OTP",
 				Module:      "User",
@@ -675,7 +675,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
 		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: revoke OTP error: " + err.Error(),
 				Module:      "User",
@@ -684,7 +684,7 @@ func (c *Controller) authenticationController() {
 		}
 		user.IsEmailVerified = true
 		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: update user error: " + err.Error(),
 				Module:      "User",
@@ -693,7 +693,7 @@ func (c *Controller) authenticationController() {
 		}
 		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: get updated user error: " + err.Error(),
 				Module:      "User",
@@ -701,14 +701,14 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
 		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: set user token error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Email verified for user: " + user.ID.String(),
 			Module:      "User",

@@ -48,7 +48,7 @@ func (c *Controller) timesheetController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time-in/out failed: user org error: " + err.Error(),
 				Module:      "Timesheet",
@@ -58,7 +58,7 @@ func (c *Controller) timesheetController() {
 
 		req, err := c.core.TimesheetManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time-in/out failed: validation error: " + err.Error(),
 				Module:      "Timesheet",
@@ -88,14 +88,14 @@ func (c *Controller) timesheetController() {
 			}
 
 			if err := c.core.TimesheetManager.Create(context, newTimesheet); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Time-in failed: create error: " + err.Error(),
 					Module:      "Timesheet",
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create timesheet: " + err.Error()})
 			}
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-success",
 				Description: "Time-in: new timesheet created for user " + user.UserID.String(),
 				Module:      "Timesheet",
@@ -108,14 +108,14 @@ func (c *Controller) timesheetController() {
 		timesheet.UpdatedAt = now
 
 		if err := c.core.TimesheetManager.UpdateByID(context, timesheet.ID, timesheet); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time-out failed: update error: " + err.Error(),
 				Module:      "Timesheet",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update timesheet: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Time-out: timesheet updated for user " + user.UserID.String(),
 			Module:      "Timesheet",

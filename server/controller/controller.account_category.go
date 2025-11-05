@@ -94,7 +94,7 @@ func (c *Controller) accountCategoryController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountCategoryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed create account category (/account-category) | validation error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -103,7 +103,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed create account category (/account-category) | user org error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -111,7 +111,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create account category attempt (/account-category)",
 				Module:      "AccountCategory",
@@ -131,7 +131,7 @@ func (c *Controller) accountCategoryController() {
 		}
 
 		if err := c.core.AccountCategoryManager.Create(context, accountCategory); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed create account category (/account-category) | db error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -139,7 +139,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account category: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created account category (/account-category): " + accountCategory.Name,
 			Module:      "AccountCategory",
@@ -159,7 +159,7 @@ func (c *Controller) accountCategoryController() {
 		context := ctx.Request().Context()
 		req, err := c.core.AccountCategoryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | validation error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -168,7 +168,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | user org error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -176,7 +176,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update account category attempt (/account-category/:account_category_id)",
 				Module:      "AccountCategory",
@@ -185,7 +185,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		accountCategoryID, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | invalid UUID: " + err.Error(),
 				Module:      "AccountCategory",
@@ -194,7 +194,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		accountCategory, err := c.core.AccountCategoryManager.GetByID(context, *accountCategoryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | not found: " + err.Error(),
 				Module:      "AccountCategory",
@@ -208,14 +208,14 @@ func (c *Controller) accountCategoryController() {
 		accountCategory.BranchID = *userOrg.BranchID
 		accountCategory.OrganizationID = userOrg.OrganizationID
 		if err := c.core.AccountCategoryManager.UpdateByID(context, accountCategory.ID, accountCategory); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | db error: " + err.Error(),
 				Module:      "AccountCategory",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account category: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
@@ -233,7 +233,7 @@ func (c *Controller) accountCategoryController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | user org error: " + err.Error(),
 				Module:      "AccountCategory",
@@ -241,7 +241,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete account category attempt (/account-category/:account_category_id)",
 				Module:      "AccountCategory",
@@ -250,7 +250,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		accountCategoryID, err := handlers.EngineUUIDParam(ctx, "account_category_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | invalid UUID: " + err.Error(),
 				Module:      "AccountCategory",
@@ -259,7 +259,7 @@ func (c *Controller) accountCategoryController() {
 		}
 		accountCategory, err := c.core.AccountCategoryManager.GetByID(context, *accountCategoryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | not found: " + err.Error(),
 				Module:      "AccountCategory",
@@ -267,14 +267,14 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
 		if err := c.core.AccountCategoryManager.Delete(context, accountCategory.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | db error: " + err.Error(),
 				Module:      "AccountCategory",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account category: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
@@ -292,7 +292,7 @@ func (c *Controller) accountCategoryController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AccountCategory",
@@ -300,13 +300,13 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.core.AccountCategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | error: " + err.Error(),
 				Module:      "AccountCategory",
 			})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted account categories (/account-category/bulk-delete)",
 			Module:      "AccountCategory",

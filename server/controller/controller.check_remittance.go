@@ -66,7 +66,7 @@ func (c *Controller) checkRemittanceController() {
 		context := ctx.Request().Context()
 		req, err := c.core.CheckRemittanceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), validation error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -76,7 +76,7 @@ func (c *Controller) checkRemittanceController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -84,7 +84,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for check remittance (/check-remittance)",
 				Module:      "CheckRemittance",
@@ -99,7 +99,7 @@ func (c *Controller) checkRemittanceController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), transaction batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -107,7 +107,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -140,7 +140,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if err := c.core.CheckRemittanceManager.Create(context, checkRemittance); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -154,7 +154,7 @@ func (c *Controller) checkRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), recalc error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -173,7 +173,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), batch totals update error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -181,7 +181,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created check remittance (/check-remittance): " + checkRemittance.AccountName,
 			Module:      "CheckRemittance",
@@ -201,7 +201,7 @@ func (c *Controller) checkRemittanceController() {
 		context := ctx.Request().Context()
 		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), invalid ID.",
 				Module:      "CheckRemittance",
@@ -211,7 +211,7 @@ func (c *Controller) checkRemittanceController() {
 
 		req, err := c.core.CheckRemittanceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), validation error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -221,7 +221,7 @@ func (c *Controller) checkRemittanceController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -229,7 +229,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for check remittance (/check-remittance/:check_remittance_id)",
 				Module:      "CheckRemittance",
@@ -239,7 +239,7 @@ func (c *Controller) checkRemittanceController() {
 
 		existingCheckRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), not found.",
 				Module:      "CheckRemittance",
@@ -248,7 +248,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if existingCheckRemittance.OrganizationID != userOrg.OrganizationID || existingCheckRemittance.BranchID != *userOrg.BranchID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), wrong org/branch.",
 				Module:      "CheckRemittance",
@@ -263,7 +263,7 @@ func (c *Controller) checkRemittanceController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -271,7 +271,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -302,7 +302,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if err := c.core.CheckRemittanceManager.UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -316,7 +316,7 @@ func (c *Controller) checkRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -334,7 +334,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -342,7 +342,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated check remittance (/check-remittance/:check_remittance_id): " + updatedCheckRemittance.AccountName,
 			Module:      "CheckRemittance",
@@ -365,7 +365,7 @@ func (c *Controller) checkRemittanceController() {
 		context := ctx.Request().Context()
 		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), invalid ID.",
 				Module:      "CheckRemittance",
@@ -375,7 +375,7 @@ func (c *Controller) checkRemittanceController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -383,7 +383,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for check remittance (/check-remittance/:check_remittance_id)",
 				Module:      "CheckRemittance",
@@ -393,7 +393,7 @@ func (c *Controller) checkRemittanceController() {
 
 		existingCheckRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), not found.",
 				Module:      "CheckRemittance",
@@ -402,7 +402,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if existingCheckRemittance.OrganizationID != userOrg.OrganizationID || existingCheckRemittance.BranchID != *userOrg.BranchID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), wrong org/branch.",
 				Module:      "CheckRemittance",
@@ -417,7 +417,7 @@ func (c *Controller) checkRemittanceController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -425,7 +425,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -434,7 +434,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if existingCheckRemittance.TransactionBatchID == nil || *existingCheckRemittance.TransactionBatchID != transactionBatch.ID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), wrong batch.",
 				Module:      "CheckRemittance",
@@ -443,7 +443,7 @@ func (c *Controller) checkRemittanceController() {
 		}
 
 		if err := c.core.CheckRemittanceManager.Delete(context, *checkRemittanceID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -457,7 +457,7 @@ func (c *Controller) checkRemittanceController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -475,7 +475,7 @@ func (c *Controller) checkRemittanceController() {
 		transactionBatch.UpdatedByID = userOrg.UserID
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -483,7 +483,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted check remittance (/check-remittance/:check_remittance_id): " + existingCheckRemittance.AccountName,
 			Module:      "CheckRemittance",

@@ -85,7 +85,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		context := ctx.Request().Context()
 		req, err := c.core.BrowseExcludeIncludeAccountsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Browse exclude include account creation failed (/browse-exclude-include-accounts), validation error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -94,7 +94,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Browse exclude include account creation failed (/browse-exclude-include-accounts), user org error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -102,7 +102,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Browse exclude include account creation failed (/browse-exclude-include-accounts), user not assigned to branch.",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -126,14 +126,14 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 
 		if err := c.core.BrowseExcludeIncludeAccountsManager.Create(context, record); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Browse exclude include account creation failed (/browse-exclude-include-accounts), db error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create browse exclude include account: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created browse exclude include account (/browse-exclude-include-accounts)",
 			Module:      "BrowseExcludeIncludeAccounts",
@@ -152,7 +152,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "browse_exclude_include_accounts_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), invalid ID.",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -162,7 +162,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 
 		req, err := c.core.BrowseExcludeIncludeAccountsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), validation error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -171,7 +171,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), user org error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -180,7 +180,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 		record, err := c.core.BrowseExcludeIncludeAccountsManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), not found.",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -197,14 +197,14 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		record.UpdatedByID = user.UserID
 
 		if err := c.core.BrowseExcludeIncludeAccountsManager.UpdateByID(context, record.ID, record); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Browse exclude include account update failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), db error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update browse exclude include account: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated browse exclude include account (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id)",
 			Module:      "BrowseExcludeIncludeAccounts",
@@ -221,7 +221,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "browse_exclude_include_accounts_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Browse exclude include account delete failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), invalid ID.",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -230,7 +230,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 		record, err := c.core.BrowseExcludeIncludeAccountsManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Browse exclude include account delete failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), not found.",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -238,14 +238,14 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse exclude include account not found"})
 		}
 		if err := c.core.BrowseExcludeIncludeAccountsManager.Delete(context, record.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Browse exclude include account delete failed (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id), db error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete browse exclude include account: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted browse exclude include account (/browse-exclude-include-accounts/:browse_exclude_include_accounts_id)",
 			Module:      "BrowseExcludeIncludeAccounts",
@@ -262,7 +262,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete browse exclude include accounts (/browse-exclude-include-accounts/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -270,7 +270,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete browse exclude include accounts (/browse-exclude-include-accounts/bulk-delete) | no IDs provided",
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -279,7 +279,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		}
 
 		if err := c.core.BrowseExcludeIncludeAccountsManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete browse exclude include accounts (/browse-exclude-include-accounts/bulk-delete) | error: " + err.Error(),
 				Module:      "BrowseExcludeIncludeAccounts",
@@ -287,7 +287,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete browse exclude include accounts: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted browse exclude include accounts (/browse-exclude-include-accounts/bulk-delete)",
 			Module:      "BrowseExcludeIncludeAccounts",

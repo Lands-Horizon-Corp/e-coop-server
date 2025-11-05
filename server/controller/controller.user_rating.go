@@ -100,7 +100,7 @@ func (c *Controller) userRatingController() {
 		context := ctx.Request().Context()
 		req, err := c.core.UserRatingManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user rating failed: validation error: " + err.Error(),
 				Module:      "UserRating",
@@ -109,7 +109,7 @@ func (c *Controller) userRatingController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user rating failed: get user org error: " + err.Error(),
 				Module:      "UserRating",
@@ -131,7 +131,7 @@ func (c *Controller) userRatingController() {
 		}
 
 		if err := c.core.UserRatingManager.Create(context, userRating); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user rating failed: create error: " + err.Error(),
 				Module:      "UserRating",
@@ -139,7 +139,7 @@ func (c *Controller) userRatingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user rating: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created user rating for ratee " + req.RateeUserID.String() + " by rater " + req.RaterUserID.String(),
 			Module:      "UserRating",
@@ -157,7 +157,7 @@ func (c *Controller) userRatingController() {
 		context := ctx.Request().Context()
 		userRatingID, err := handlers.EngineUUIDParam(ctx, "user_rating_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: invalid user_rating_id: " + err.Error(),
 				Module:      "UserRating",
@@ -165,14 +165,14 @@ func (c *Controller) userRatingController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
 		if err := c.core.UserRatingManager.Delete(context, *userRatingID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: delete error: " + err.Error(),
 				Module:      "UserRating",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user rating: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted user rating with ID " + userRatingID.String(),
 			Module:      "UserRating",

@@ -45,7 +45,7 @@ func (c *Controller) notificationController() {
 
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View notifications failed: invalid request body: " + err.Error(),
 				Module:      "Notification",
@@ -55,7 +55,7 @@ func (c *Controller) notificationController() {
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View notifications failed: user error: " + err.Error(),
 				Module:      "Notification",
@@ -68,7 +68,7 @@ func (c *Controller) notificationController() {
 			for _, notificationID := range reqBody.IDs {
 				notification, getErr := c.core.NotificationManager.GetByID(context, notificationID)
 				if getErr != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("View notifications failed: notification not found: %s", notificationID.String()),
 						Module:      "Notification",
@@ -82,7 +82,7 @@ func (c *Controller) notificationController() {
 
 				notification.IsViewed = true
 				if updateErr := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); updateErr != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "View notifications failed: update error: " + updateErr.Error(),
 						Module:      "Notification",
@@ -94,7 +94,7 @@ func (c *Controller) notificationController() {
 			var getUserErr error
 			notifications, getUserErr = c.core.GetNotificationByUser(context, user.ID)
 			if getUserErr != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "View notifications failed: get notifications error: " + getUserErr.Error(),
 					Module:      "Notification",
@@ -109,7 +109,7 @@ func (c *Controller) notificationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Marked notifications as viewed for user ID: %s", user.ID),
 			Module:      "Notification",
@@ -129,7 +129,7 @@ func (c *Controller) notificationController() {
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to view notifications: unable to get current user - " + err.Error(),
 				Module:      "Notification",
@@ -144,7 +144,7 @@ func (c *Controller) notificationController() {
 			UserID: user.ID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to view notifications: unable to retrieve user notifications - " + err.Error(),
 				Module:      "Notification",
@@ -161,7 +161,7 @@ func (c *Controller) notificationController() {
 			for _, notif := range notifications {
 				notification, getErr := c.core.NotificationManager.GetByID(context, notif.ID)
 				if getErr != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, getErr),
 						Module:      "Notification",
@@ -175,7 +175,7 @@ func (c *Controller) notificationController() {
 
 				notification.IsViewed = true
 				if updateErr := c.core.NotificationManager.UpdateByID(context, notification.ID, notification); updateErr != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, updateErr),
 						Module:      "Notification",
@@ -205,7 +205,7 @@ func (c *Controller) notificationController() {
 		}
 
 		// Success log and response
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
 			Module:      "Notification",
@@ -222,7 +222,7 @@ func (c *Controller) notificationController() {
 		context := ctx.Request().Context()
 		notificationID, err := handlers.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: invalid notification_id: " + err.Error(),
 				Module:      "Notification",
@@ -231,7 +231,7 @@ func (c *Controller) notificationController() {
 		}
 		notification, err := c.core.NotificationManager.GetByID(context, *notificationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: fmt.Sprintf("Delete notification failed: not found (ID: %s): %v", notification.ID, err),
 				Module:      "Notification",
@@ -239,14 +239,14 @@ func (c *Controller) notificationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", notification.ID, err)})
 		}
 		if err := c.core.NotificationManager.Delete(context, notification.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: " + err.Error(),
 				Module:      "Notification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete notification: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: fmt.Sprintf("Deleted notification ID: %s", notificationID),
 			Module:      "Notification",

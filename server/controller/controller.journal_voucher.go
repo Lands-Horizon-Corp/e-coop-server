@@ -92,7 +92,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		request, err := c.core.JournalVoucherManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), validation error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -101,7 +101,7 @@ func (c *Controller) journalVoucherController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), user org error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -109,7 +109,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), user not assigned to branch.",
 				Module:      "JournalVoucher",
@@ -128,7 +128,7 @@ func (c *Controller) journalVoucherController() {
 			}
 		}
 		if totalDebit != totalCredit {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
 				Module:      "JournalVoucher",
@@ -155,7 +155,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if err := c.core.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -184,7 +184,7 @@ func (c *Controller) journalVoucherController() {
 				}
 
 				if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Journal voucher entry creation failed (/journal-voucher), db error: " + err.Error(),
 						Module:      "JournalVoucher",
@@ -195,7 +195,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), commit error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -203,7 +203,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -222,7 +222,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), invalid ID.",
 				Module:      "JournalVoucher",
@@ -232,7 +232,7 @@ func (c *Controller) journalVoucherController() {
 
 		request, err := c.core.JournalVoucherManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), validation error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -242,7 +242,7 @@ func (c *Controller) journalVoucherController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), user org error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -252,7 +252,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), not found.",
 				Module:      "JournalVoucher",
@@ -268,7 +268,7 @@ func (c *Controller) journalVoucherController() {
 			}
 		}
 		if totalDebit != totalCredit {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), debit and credit totals do not match.",
 				Module:      "JournalVoucher",
@@ -354,7 +354,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.TotalCredit = totalCredit
 		journalVoucher.TotalDebit = totalDebit
 		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -363,7 +363,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), commit error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -371,7 +371,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -388,7 +388,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher delete failed (/journal-voucher/:journal_voucher_id), invalid ID.",
 				Module:      "JournalVoucher",
@@ -397,7 +397,7 @@ func (c *Controller) journalVoucherController() {
 		}
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher delete failed (/journal-voucher/:journal_voucher_id), not found.",
 				Module:      "JournalVoucher",
@@ -405,14 +405,14 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 		if err := c.core.JournalVoucherManager.Delete(context, *journalVoucherID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher delete failed (/journal-voucher/:journal_voucher_id), db error: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -431,7 +431,7 @@ func (c *Controller) journalVoucherController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -440,7 +440,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | no IDs provided",
 				Module:      "JournalVoucher",
@@ -449,7 +449,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		if err := c.core.JournalVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -457,7 +457,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete journal vouchers: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted journal vouchers (/journal-voucher/bulk-delete)",
 			Module:      "JournalVoucher",
@@ -476,7 +476,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -486,7 +486,7 @@ func (c *Controller) journalVoucherController() {
 
 		var req core.JournalVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, invalid request body.",
 				Module:      "JournalVoucher",
@@ -498,7 +498,7 @@ func (c *Controller) journalVoucherController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, user org error.",
 				Module:      "JournalVoucher",
@@ -511,7 +511,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, not found.",
 				Module:      "JournalVoucher",
@@ -536,7 +536,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Journal voucher print failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -544,7 +544,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-success",
 			Description: "Successfully printed journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -563,7 +563,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -573,7 +573,7 @@ func (c *Controller) journalVoucherController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, user org error.",
 				Module:      "JournalVoucher",
@@ -586,7 +586,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, not found.",
 				Module:      "JournalVoucher",
@@ -610,7 +610,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-undo-error",
 				Description: "Journal voucher print undo failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -618,7 +618,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-undo-success",
 			Description: "Successfully undid print for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -637,7 +637,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -647,7 +647,7 @@ func (c *Controller) journalVoucherController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, user org error.",
 				Module:      "JournalVoucher",
@@ -660,7 +660,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, not found.",
 				Module:      "JournalVoucher",
@@ -683,7 +683,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Journal voucher approve failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -691,7 +691,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Successfully approved journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -710,7 +710,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -720,7 +720,7 @@ func (c *Controller) journalVoucherController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, user org error.",
 				Module:      "JournalVoucher",
@@ -733,7 +733,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, not found.",
 				Module:      "JournalVoucher",
@@ -753,7 +753,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "print-only-error",
 				Description: "Journal voucher print-only failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -761,7 +761,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "print-only-success",
 			Description: "Successfully printed journal voucher (print-only): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -780,7 +780,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -790,7 +790,7 @@ func (c *Controller) journalVoucherController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, user org error.",
 				Module:      "JournalVoucher",
@@ -803,7 +803,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, not found.",
 				Module:      "JournalVoucher",
@@ -830,7 +830,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-undo-error",
 				Description: "Journal voucher approve undo failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -838,7 +838,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-undo-success",
 			Description: "Successfully undid approval for journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -857,7 +857,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		journalVoucherID, err := handlers.EngineUUIDParam(ctx, "journal_voucher_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, invalid ID.",
 				Module:      "JournalVoucher",
@@ -867,7 +867,7 @@ func (c *Controller) journalVoucherController() {
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, user org error.",
 				Module:      "JournalVoucher",
@@ -880,7 +880,7 @@ func (c *Controller) journalVoucherController() {
 
 		journalVoucher, err := c.core.JournalVoucherManager.GetByID(context, *journalVoucherID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, not found.",
 				Module:      "JournalVoucher",
@@ -907,7 +907,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, db error: " + err.Error(),
 				Module:      "JournalVoucher",
@@ -915,7 +915,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release journal voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "release-success",
 			Description: "Successfully released journal voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
@@ -934,7 +934,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
 				Description: "Journal voucher release failed, user org error.",
 				Module:      "JournalVoucher",
@@ -958,7 +958,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Journal voucher printed fetch failed, user org error.",
 				Module:      "JournalVoucher",
@@ -982,7 +982,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Journal voucher approved fetch failed, user org error.",
 				Module:      "JournalVoucher",
@@ -1006,7 +1006,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Journal voucher released fetch failed, user org error.",
 				Module:      "JournalVoucher",
@@ -1030,7 +1030,7 @@ func (c *Controller) journalVoucherController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-today-error",
 				Description: "Journal voucher released today fetch failed, user org error.",
 				Module:      "JournalVoucher",

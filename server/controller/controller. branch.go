@@ -73,7 +73,7 @@ func (c *Controller) branchController() {
 		req, err := c.core.BranchManager.Validate(ctx)
 		if err != nil {
 			// Footstep for create branch error
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to validate branch data for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -83,7 +83,7 @@ func (c *Controller) branchController() {
 
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Invalid organization ID for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -93,7 +93,7 @@ func (c *Controller) branchController() {
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "User authentication required for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -106,7 +106,7 @@ func (c *Controller) branchController() {
 			OrganizationID: *organizationID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("User organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -114,7 +114,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found " + err.Error()})
 		}
 		if userOrganization.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -124,7 +124,7 @@ func (c *Controller) branchController() {
 
 		organization, err := c.core.OrganizationManager.GetByID(context, userOrganization.OrganizationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -134,7 +134,7 @@ func (c *Controller) branchController() {
 
 		branchCount, err := c.core.GetBranchesByOrganizationCount(context, organization.ID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed branch count for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -143,7 +143,7 @@ func (c *Controller) branchController() {
 		}
 
 		if branchCount >= int64(organization.SubscriptionPlanMaxBranches) {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Branch limit reached for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -178,7 +178,7 @@ func (c *Controller) branchController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		if err := c.core.BranchManager.CreateWithTx(context, tx, branch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -187,7 +187,7 @@ func (c *Controller) branchController() {
 		}
 		currency, err := c.core.CurrencyFindByAlpha2(context, branch.CountryCode)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to find currency for branch country code for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -247,7 +247,7 @@ func (c *Controller) branchController() {
 		}
 
 		if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch settings for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -262,7 +262,7 @@ func (c *Controller) branchController() {
 			userOrganization.UpdatedByID = user.ID
 
 			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to update user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -273,7 +273,7 @@ func (c *Controller) branchController() {
 			// Create new user organization for this branch
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to generate developer key for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -304,7 +304,7 @@ func (c *Controller) branchController() {
 			}
 
 			if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to create new user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -314,7 +314,7 @@ func (c *Controller) branchController() {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to commit transaction for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -329,7 +329,7 @@ func (c *Controller) branchController() {
 		})
 
 		// Footstep for create branch success
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create success",
 			Description: fmt.Sprintf("Created branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
@@ -352,7 +352,7 @@ func (c *Controller) branchController() {
 		req, err := c.core.BranchManager.Validate(ctx)
 		if err != nil {
 			// Footstep for update error
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch data for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -362,7 +362,7 @@ func (c *Controller) branchController() {
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User authentication required for PUT /branch/:branch_id",
 				Module:      "branch",
@@ -372,7 +372,7 @@ func (c *Controller) branchController() {
 
 		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Invalid branch id for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -385,7 +385,7 @@ func (c *Controller) branchController() {
 			BranchID: branchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("User organization not found for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -393,7 +393,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
 				Module:      "branch",
@@ -403,7 +403,7 @@ func (c *Controller) branchController() {
 
 		branch, err := c.core.BranchManager.GetByID(context, *branchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Branch not found for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -432,7 +432,7 @@ func (c *Controller) branchController() {
 		branch.IsMainBranch = req.IsMainBranch
 
 		if err := c.core.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -446,7 +446,7 @@ func (c *Controller) branchController() {
 		})
 
 		// Footstep for update branch success
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
@@ -465,7 +465,7 @@ func (c *Controller) branchController() {
 		context := ctx.Request().Context()
 		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Invalid branch ID for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -474,7 +474,7 @@ func (c *Controller) branchController() {
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "User authentication required for DELETE /branch/:branch_id",
 				Module:      "branch",
@@ -483,7 +483,7 @@ func (c *Controller) branchController() {
 		}
 		branch, err := c.core.BranchManager.GetByID(context, *branchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Branch not found for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -497,7 +497,7 @@ func (c *Controller) branchController() {
 			OrganizationID: branch.OrganizationID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("User organization not found for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -505,7 +505,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Only the branch owner can delete this branch for DELETE /branch/:branch_id",
 				Module:      "branch",
@@ -514,7 +514,7 @@ func (c *Controller) branchController() {
 		}
 		count, err := c.core.CountUserOrganizationPerbranch(context, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Could not check branch membership for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -522,7 +522,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not check branch membership: " + err.Error()})
 		}
 		if count > 2 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Cannot delete branch with more than 2 members for DELETE /branch/:branch_id",
 				Module:      "branch",
@@ -532,7 +532,7 @@ func (c *Controller) branchController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete branch for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -540,7 +540,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + endTx(err).Error()})
 		}
 		if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete user organization for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -548,7 +548,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to commit transaction for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -559,7 +559,7 @@ func (c *Controller) branchController() {
 			Title:       fmt.Sprintf("Delete: %s", branch.Name),
 			Description: fmt.Sprintf("Deleted branch: %s", branch.Name),
 		})
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete success",
 			Description: fmt.Sprintf("Deleted branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
@@ -579,7 +579,7 @@ func (c *Controller) branchController() {
 		// Validate the branch settings request
 		var settingsReq core.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to bind branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -588,7 +588,7 @@ func (c *Controller) branchController() {
 		}
 
 		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -599,7 +599,7 @@ func (c *Controller) branchController() {
 		// Get user's current branch
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User not assigned to a branch for PUT /branch-settings",
 				Module:      "branch",
@@ -609,7 +609,7 @@ func (c *Controller) branchController() {
 
 		// Check if user has permission to update branch settings
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",
 				Module:      "branch",
@@ -677,7 +677,7 @@ func (c *Controller) branchController() {
 			}
 
 			if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to create branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
@@ -733,7 +733,7 @@ func (c *Controller) branchController() {
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 
 			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
@@ -743,7 +743,7 @@ func (c *Controller) branchController() {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to commit transaction for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -752,7 +752,7 @@ func (c *Controller) branchController() {
 		}
 
 		// Log success
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings for branch ID: %s", userOrg.BranchID),
 			Module:      "branch",
@@ -778,7 +778,7 @@ func (c *Controller) branchController() {
 		// Validate the branch settings currency request
 		var settingsReq core.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to bind branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -787,7 +787,7 @@ func (c *Controller) branchController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User not assigned to a branch for PUT /branch-settings/currency",
 				Module:      "branch",
@@ -795,7 +795,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
 		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -807,7 +807,7 @@ func (c *Controller) branchController() {
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Branch settings not found for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -823,7 +823,7 @@ func (c *Controller) branchController() {
 		branchSetting.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -834,7 +834,7 @@ func (c *Controller) branchController() {
 		// Handle deletions first
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
 			if err := c.core.UnbalancedAccountManager.DeleteWithTx(context, tx, id); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete unbalanced account: " + err.Error(),
 					Module:      "UnbalancedAccount",
@@ -887,7 +887,7 @@ func (c *Controller) branchController() {
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit unbalanced account update transaction: " + err.Error(),
 				Module:      "UnbalancedAccount",
@@ -895,7 +895,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit unbalanced account update: " + err.Error()})
 		}
 		// Log success
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings currency for branch settings ID: %s", branchSetting.ID),
 			Module:      "branch",

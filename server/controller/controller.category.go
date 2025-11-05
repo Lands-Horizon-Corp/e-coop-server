@@ -61,7 +61,7 @@ func (c *Controller) categoryController() {
 		context := ctx.Request().Context()
 		req, err := c.core.CategoryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Category creation failed (/category), validation error: " + err.Error(),
 				Module:      "Category",
@@ -79,7 +79,7 @@ func (c *Controller) categoryController() {
 		}
 
 		if err := c.core.CategoryManager.Create(context, category); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Category creation failed (/category), db error: " + err.Error(),
 				Module:      "Category",
@@ -87,7 +87,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create category: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created category (/category): " + category.Name,
 			Module:      "Category",
@@ -107,7 +107,7 @@ func (c *Controller) categoryController() {
 		context := ctx.Request().Context()
 		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), invalid category ID.",
 				Module:      "Category",
@@ -117,7 +117,7 @@ func (c *Controller) categoryController() {
 
 		req, err := c.core.CategoryManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), validation error: " + err.Error(),
 				Module:      "Category",
@@ -127,7 +127,7 @@ func (c *Controller) categoryController() {
 
 		category, err := c.core.CategoryManager.GetByID(context, *categoryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), not found.",
 				Module:      "Category",
@@ -142,7 +142,7 @@ func (c *Controller) categoryController() {
 		category.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.CategoryManager.UpdateByID(context, category.ID, category); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), db error: " + err.Error(),
 				Module:      "Category",
@@ -150,7 +150,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update category: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated category (/category/:category_id): " + category.Name,
 			Module:      "Category",
@@ -168,7 +168,7 @@ func (c *Controller) categoryController() {
 		context := ctx.Request().Context()
 		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), invalid category ID.",
 				Module:      "Category",
@@ -178,7 +178,7 @@ func (c *Controller) categoryController() {
 
 		category, err := c.core.CategoryManager.GetByID(context, *categoryID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), not found.",
 				Module:      "Category",
@@ -187,7 +187,7 @@ func (c *Controller) categoryController() {
 		}
 
 		if err := c.core.CategoryManager.Delete(context, *categoryID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), db error: " + err.Error(),
 				Module:      "Category",
@@ -195,7 +195,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete category: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted category (/category/:category_id): " + category.Name,
 			Module:      "Category",
@@ -214,7 +214,7 @@ func (c *Controller) categoryController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Category",
@@ -223,7 +223,7 @@ func (c *Controller) categoryController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | no IDs provided",
 				Module:      "Category",
@@ -232,7 +232,7 @@ func (c *Controller) categoryController() {
 		}
 
 		if err := c.core.CategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | error: " + err.Error(),
 				Module:      "Category",
@@ -240,7 +240,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete categories: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted categories (/category/bulk-delete)",
 			Module:      "Category",

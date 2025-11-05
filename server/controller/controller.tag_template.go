@@ -87,7 +87,7 @@ func (c *Controller) tagTemplateController() {
 		context := ctx.Request().Context()
 		req, err := c.core.TagTemplateManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create tag template failed: validation error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -96,7 +96,7 @@ func (c *Controller) tagTemplateController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create tag template failed: user org error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -119,7 +119,7 @@ func (c *Controller) tagTemplateController() {
 		}
 
 		if err := c.core.TagTemplateManager.Create(context, template); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create tag template failed: create error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -127,7 +127,7 @@ func (c *Controller) tagTemplateController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create tag template: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created tag template: " + template.Name,
 			Module:      "TagTemplate",
@@ -147,7 +147,7 @@ func (c *Controller) tagTemplateController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "tag_template_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: invalid tag_template_id: " + err.Error(),
 				Module:      "TagTemplate",
@@ -157,7 +157,7 @@ func (c *Controller) tagTemplateController() {
 
 		req, err := c.core.TagTemplateManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: validation error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -166,7 +166,7 @@ func (c *Controller) tagTemplateController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: user org error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -176,7 +176,7 @@ func (c *Controller) tagTemplateController() {
 
 		template, err := c.core.TagTemplateManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: not found: " + err.Error(),
 				Module:      "TagTemplate",
@@ -191,14 +191,14 @@ func (c *Controller) tagTemplateController() {
 		template.UpdatedAt = time.Now().UTC()
 		template.UpdatedByID = user.UserID
 		if err := c.core.TagTemplateManager.UpdateByID(context, template.ID, template); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update tag template failed: update error: " + err.Error(),
 				Module:      "TagTemplate",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update tag template: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated tag template: " + template.Name,
 			Module:      "TagTemplate",
@@ -215,7 +215,7 @@ func (c *Controller) tagTemplateController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "tag_template_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete tag template failed: invalid tag_template_id: " + err.Error(),
 				Module:      "TagTemplate",
@@ -224,7 +224,7 @@ func (c *Controller) tagTemplateController() {
 		}
 		template, err := c.core.TagTemplateManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete tag template failed: not found: " + err.Error(),
 				Module:      "TagTemplate",
@@ -232,14 +232,14 @@ func (c *Controller) tagTemplateController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "TagTemplate not found: " + err.Error()})
 		}
 		if err := c.core.TagTemplateManager.Delete(context, *id); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete tag template failed: delete error: " + err.Error(),
 				Module:      "TagTemplate",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete tag template: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted tag template: " + template.Name,
 			Module:      "TagTemplate",
@@ -258,7 +258,7 @@ func (c *Controller) tagTemplateController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TagTemplate",
@@ -267,7 +267,7 @@ func (c *Controller) tagTemplateController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | no IDs provided",
 				Module:      "TagTemplate",
@@ -277,7 +277,7 @@ func (c *Controller) tagTemplateController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
 		if err := c.core.TagTemplateManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | error: " + err.Error(),
 				Module:      "TagTemplate",
@@ -285,7 +285,7 @@ func (c *Controller) tagTemplateController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete tag templates: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted tag templates (/tag-template/bulk-delete)",
 			Module:      "TagTemplate",
