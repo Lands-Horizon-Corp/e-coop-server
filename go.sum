@@ -1,5 +1,7 @@
 github.com/Lands-Horizon-Corp/golang-filtering v1.0.6 h1:YZRQtm6bqyFE8AXVwfVEJ4GwU/uepnGmKKM80lOajGM=
 github.com/Lands-Horizon-Corp/golang-filtering v1.0.6/go.mod h1:aTBCcQW+3HP4ysWcxlx3h8NwWZPZkd3IgygoawdGBvk=
+github.com/Lands-Horizon-Corp/golang-filtering v1.0.7 h1:PJxC+DrW+cx3asvtwqiLF9NhfE/kFUolN0ZTb87De+E=
+github.com/Lands-Horizon-Corp/golang-filtering v1.0.7/go.mod h1:aTBCcQW+3HP4ysWcxlx3h8NwWZPZkd3IgygoawdGBvk=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
