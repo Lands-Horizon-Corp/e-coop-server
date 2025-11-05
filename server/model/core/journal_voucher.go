@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -303,7 +304,9 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, nil)
+	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // JournalVoucherPrinted retrieves all journal vouchers that have been printed for the specified organization and branch
@@ -316,7 +319,9 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, nil)
+	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
@@ -329,7 +334,9 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, nil)
+	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // JournalVoucherReleased retrieves all journal vouchers that have been released for the specified organization and branch
@@ -342,7 +349,9 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, nil)
+	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // JournalVoucherReleasedCurrentDay retrieves all journal vouchers that were released today for the specified organization and branch
@@ -361,5 +370,7 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, nil)
+	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }

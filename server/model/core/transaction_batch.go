@@ -538,27 +538,28 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 
 // TransactionBatchCurrent retrieves the current active transaction batch for a user
 func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
-	filters := []registry.FilterSQL{
+
+	return m.TransactionBatchManager.FindOneWithSQL(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "employee_user_id", Op: registry.OpEq, Value: userID},
 		{Field: "is_closed", Op: registry.OpEq, Value: false},
-	}
-
-	return m.TransactionBatchManager.FindOneWithSQL(context, filters, nil)
+	}, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // TransactionBatchViewRequests retrieves transaction batches with pending view requests
 func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	filters := []registry.FilterSQL{
+	return m.TransactionBatchManager.FindWithSQL(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "request_view", Op: registry.OpEq, Value: true},
 		{Field: "can_view", Op: registry.OpEq, Value: false},
 		{Field: "is_closed", Op: registry.OpEq, Value: false},
-	}
-
-	return m.TransactionBatchManager.FindWithSQL(context, filters, nil)
+	}, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // TransactionBatchCurrentBranch retrieves all transaction batches for the current branch.
@@ -575,15 +576,15 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	filters := []registry.FilterSQL{
+	return m.TransactionBatchManager.FindWithSQL(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "is_closed", Op: registry.OpEq, Value: true},
 		{Field: "created_at", Op: registry.OpGte, Value: startOfDay},
 		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
-	}
-
-	return m.TransactionBatchManager.FindWithSQL(ctx, filters, nil)
+	}, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 func (m *Core) CurrentOpenTransactionBatch(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {

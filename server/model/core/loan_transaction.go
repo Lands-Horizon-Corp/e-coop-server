@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -860,7 +861,9 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionsMemberAccount returns loan transactions for a member filtered by account and branch/org.
@@ -875,7 +878,9 @@ func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, acco
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionDraft returns loan transactions that are in draft state (not printed/approved/released)
@@ -888,7 +893,9 @@ func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationI
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionPrinted returns loan transactions that have been printed but not approved or released
@@ -901,7 +908,9 @@ func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionApproved returns loan transactions that have been approved but not yet released
@@ -914,7 +923,9 @@ func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionReleased returns loan transactions that have been released
@@ -927,7 +938,9 @@ func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // LoanTransactionReleasedCurrentDay returns loan transactions released during the current UTC day
@@ -946,7 +959,9 @@ func (m *Core) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, 
 		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, nil)
+	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // GenerateLoanAmortizationSchedule generates an amortization schedule for the provided loan transaction

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -423,7 +424,9 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 	}
 
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // GetAccountAtTime returns GetAccountAtTime for the current branch or organization where applicable.
@@ -434,7 +437,9 @@ func (m *Core) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDa
 		{Field: "valid_to", Op: registry.OpGt, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +454,9 @@ func (m *Core) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDa
 		{Field: "valid_from", Op: registry.OpLte, Value: asOfDate},
 	}
 
-	histories, err = m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	histories, err = m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +477,9 @@ func (m *Core) GetAccountsChangedInRange(ctx context.Context, organizationID, br
 		{Field: "valid_from", Op: registry.OpLte, Value: endDate},
 	}
 
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // CloseAccountHistory closes open history records by updating their valid_to timestamp
@@ -481,7 +490,9 @@ func (m *Core) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, clo
 		{Field: "valid_to", Op: registry.OpIsNull, Value: nil},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 	if err != nil {
 		return err
 	}

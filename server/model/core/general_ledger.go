@@ -649,7 +649,9 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{}
+	sorts := []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
 }
 
@@ -664,7 +666,9 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{}
+	sorts := []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
 }
 
@@ -681,7 +685,9 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 		{Field: "type_of_payment_type", Op: registry.OpEq, Value: paymentType},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{}
+	sorts := []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
 }
 
@@ -698,6 +704,8 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 		{Field: "source", Op: registry.OpEq, Value: source},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{}
+	sorts := []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
 }

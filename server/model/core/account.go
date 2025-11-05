@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -2613,7 +2614,9 @@ func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branc
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // FindAccountsByTypesAndBranch finds all accounts with specified branch, organization and account types (Fines, Interest, or SVFLedger)
@@ -2627,7 +2630,9 @@ func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID 
 			AccountTypeSVFLedger,
 		}},
 	}
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // FindAccountsBySpecificType finds all accounts with specified branch, organization and a single account type
@@ -2638,7 +2643,9 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 		{Field: "type", Op: registry.OpEq, Value: accountType},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 }
 
 // FindAccountsBySpecificTypeByAccountID finds all accounts with specified branch, organization and a single account ID
@@ -2650,7 +2657,9 @@ func (m *Core) FindAccountsBySpecificTypeByAccountID(ctx context.Context,
 		{Field: "id", Op: registry.OpEq, Value: accountID},
 	}
 
-	accounts, err := m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{})
+	accounts, err := m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "updated_at", Order: filter.SortOrderDesc},
+	})
 	if err != nil {
 		return nil, err
 	}
