@@ -76,7 +76,6 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 		FileType:   storage.FileType,
 		FileSize:   storage.FileSize,
 		StorageKey: storage.StorageKey,
-		URL:        storage.URL,
 		BucketName: storage.BucketName,
 		Status:     "completed",
 		Progress:   100,

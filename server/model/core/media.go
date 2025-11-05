@@ -23,7 +23,7 @@ type (
 		FileSize   int64  `gorm:"unsigned" json:"file_size"`
 		FileType   string `gorm:"type:varchar(50);unsigned" json:"file_type"`
 		StorageKey string `gorm:"type:varchar(2048)" json:"storage_key"`
-		URL        string `gorm:"type:varchar(2048);unsigned" json:"url"`
+
 		Key        string `gorm:"type:varchar(2048)" json:"key"`
 		BucketName string `gorm:"type:varchar(2048)" json:"bucket_name"`
 		Status     string `gorm:"type:varchar(50);default:'pending'" json:"status"`
@@ -39,7 +39,6 @@ type (
 		FileSize    int64     `json:"file_size"`
 		FileType    string    `json:"file_type"`
 		StorageKey  string    `json:"storage_key"`
-		URL         string    `json:"url"`
 		Key         string    `json:"key"`
 		DownloadURL string    `json:"download_url"`
 		BucketName  string    `json:"bucket_name"`
@@ -81,7 +80,6 @@ func (m *Core) media() {
 				FileSize:    data.FileSize,
 				FileType:    data.FileType,
 				StorageKey:  data.StorageKey,
-				URL:         data.URL,
 				Key:         data.Key,
 				BucketName:  data.BucketName,
 				Status:      data.Status,
@@ -130,7 +128,6 @@ func (m *Core) MediaDelete(context context.Context, mediaID uuid.UUID) error {
 		FileSize:   media.FileSize,
 		FileType:   media.FileType,
 		StorageKey: media.StorageKey,
-		URL:        media.URL,
 		BucketName: media.BucketName,
 		Status:     "delete",
 	}); err != nil {
