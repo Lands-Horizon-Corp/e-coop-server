@@ -16,11 +16,21 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	fields *TData,
 	preloads ...string,
 ) error {
+	t := reflect.TypeOf(new(TData)).Elem()
+	fieldNames := make([]string, 0)
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Name == "ID" {
+			continue
+		}
+		fieldNames = append(fieldNames, field.Name)
+	}
+
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	// Perform update - GORM will automatically detect non-zero fields
-	db := r.Client(context).Model(new(TData)).Where("id = ?", id).Updates(fields)
+	// Perform update with explicit field selection
+	db := r.Client(context).Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
 	if err := db.Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
@@ -47,7 +57,6 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	// Get field names using reflection
 	t := reflect.TypeOf(new(TData)).Elem()
 	fieldNames := make([]string, 0)
 	for i := 0; i < t.NumField(); i++ {
@@ -58,9 +67,16 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 		fieldNames = append(fieldNames, field.Name)
 	}
 	// Perform update with explicit field selection
-	db := tx.Where("id = ?", id).Select(fieldNames).Updates(fields)
+	db := tx.Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
 	if err := db.Error; err != nil {
-		return eris.Wrapf(err, "failed to update fields for entity %s with transaction", id)
+		return eris.Wrapf(err, "failed to update fields for entity %s in transaction", id)
+	}
+	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
+	for _, preload := range preloads {
+		reloadDb = reloadDb.Preload(preload)
+	}
+	if err := reloadDb.First(fields).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s after field update in transaction", id)
 	}
 	r.OnUpdate(context, fields)
 	return nil
