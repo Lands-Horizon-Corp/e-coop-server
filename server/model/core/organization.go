@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -244,7 +246,7 @@ func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, erro
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: registry.OpEq, Value: false},
 	}
-	return m.OrganizationManager.FindWithSQL(ctx, filters, nil, "OrganizationCategories", "OrganizationCategories.Category")
+	return m.OrganizationManager.FindWithSQL(ctx, filters, nil)
 }
 
 // GetFeaturedOrganization retrieves organizations marked as featured for promotional display
@@ -334,4 +336,36 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 	}
 
 	return organizations, nil
+}
+
+func (m *Core) GetOrganizationPerCategory(context context.Context) ([]OrganizationPerCategoryResponse, error) {
+	categories, err := m.CategoryManager.List(context)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get categories")
+	}
+	organizations, err := m.GetPublicOrganization(context)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to retrieve organizations")
+	}
+	result := []OrganizationPerCategoryResponse{}
+	for _, category := range categories {
+		orgs := []*Organization{}
+		for _, org := range organizations {
+			hasCategory := false
+			for _, orgCategory := range org.OrganizationCategories {
+				if handlers.UUIDPtrEqual(orgCategory.CategoryID, &category.ID) {
+					hasCategory = true
+					break
+				}
+			}
+			if hasCategory {
+				orgs = append(orgs, org)
+			}
+		}
+		result = append(result, OrganizationPerCategoryResponse{
+			Category:      m.CategoryManager.ToModel(category),
+			Organizations: m.OrganizationManager.ToModels(orgs),
+		})
+	}
+	return result, nil
 }
