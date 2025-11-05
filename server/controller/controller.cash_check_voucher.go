@@ -851,6 +851,46 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 
+		cashCheckVoucherEntries, err := c.core.CashCheckVoucherEntryManager.Find(context, &core.CashCheckVoucherEntry{
+			CashCheckVoucherID: cashCheckVoucher.ID,
+			BranchID:           *userOrg.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+		})
+		for _, entry := range cashCheckVoucherEntries {
+			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
+			// Prepare transaction request with journal voucher entry details
+			transactionRequest := event.RecordTransactionRequest{
+				// Financial amounts from journal entry
+				Debit:  entry.Debit,
+				Credit: entry.Credit,
+
+				// Account and member information
+				AccountID:       entry.AccountID,
+				MemberProfileID: entry.MemberProfileID,
+
+				// Transaction metadata
+				ReferenceNumber:       cashCheckVoucher.CashVoucherNumber,
+				Description:           entry.Description,
+				EntryDate:             handlers.Ptr(time.Now().UTC()),
+				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
+				BankID:                nil, // Not applicable for journal voucher entries
+				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries
+			}
+
+			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---
+			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
+
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "cash-check-voucher-transaction-recording-failed",
+					Description: "Failed to record cash check voucher entry transaction in general ledger for voucher " + cashCheckVoucher.CashVoucherNumber + ": " + err.Error(),
+					Module:      "CashCheckVoucher",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Cash check voucher release initiated but failed to record transaction: " + err.Error(),
+				})
+			}
+		}
+
 		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
