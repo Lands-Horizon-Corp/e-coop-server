@@ -97,7 +97,6 @@ type (
 		SignatureMediaID  *uuid.UUID `json:"signature_media_id,omitempty"`
 		AccountID         uuid.UUID  `json:"account_id" validate:"required"`
 		MemberProfileID   *uuid.UUID `json:"member_profile_id,omitempty"`
-		EmployeeUserID    *uuid.UUID `json:"employee_user_id,omitempty"`
 		PaymentTypeID     *uuid.UUID `json:"payment_type_id,omitempty"`
 		TypeOfPaymentType string     `json:"type_of_payment_type,omitempty"`
 		Description       string     `json:"description,omitempty"`

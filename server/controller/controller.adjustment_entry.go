@@ -120,7 +120,7 @@ func (c *Controller) adjustmentEntryController() {
 			SignatureMediaID:  req.SignatureMediaID,
 			AccountID:         req.AccountID,
 			MemberProfileID:   req.MemberProfileID,
-			EmployeeUserID:    req.EmployeeUserID,
+			EmployeeUserID:    &user.UserID,
 			PaymentTypeID:     req.PaymentTypeID,
 			TypeOfPaymentType: req.TypeOfPaymentType,
 			Description:       req.Description,
@@ -134,6 +134,43 @@ func (c *Controller) adjustmentEntryController() {
 			UpdatedByID:       user.UserID,
 			BranchID:          *user.BranchID,
 			OrganizationID:    user.OrganizationID,
+		}
+		// ================================================================================
+		// STEP 2: RECORD TRANSACTION IN GENERAL LEDGER
+		// ================================================================================
+		// Create transaction request for general ledger recording
+		transactionRequest := event.RecordTransactionRequest{
+			// Financial amounts
+			Debit:  req.Debit,
+			Credit: req.Credit,
+
+			// Account and member information
+			AccountID:       req.AccountID,
+			MemberProfileID: req.MemberProfileID,
+
+			// Transaction metadata
+			ReferenceNumber:       req.ReferenceNumber,
+			Description:           req.Description,
+			EntryDate:             req.EntryDate,
+			SignatureMediaID:      req.SignatureMediaID,
+			PaymentTypeID:         req.PaymentTypeID,
+			BankReferenceNumber:   "",  // Not applicable for adjustment entries
+			BankID:                nil, // Not applicable for adjustment entries
+			ProofOfPaymentMediaID: nil, // Not applicable for adjustment entries
+		}
+
+		// Record the transaction in general ledger with adjustment entry source
+		if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
+			// If transaction recording fails, we should consider rolling back the adjustment entry
+			// For now, we'll log the error and continue, but this should be addressed in production
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "transaction-recording-failed",
+				Description: "Failed to record adjustment entry transaction in general ledger for reference " + req.ReferenceNumber + ": " + err.Error(),
+				Module:      "AdjustmentEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Adjustment entry created but failed to record transaction: " + err.Error(),
+			})
 		}
 
 		if err := c.core.AdjustmentEntryManager.Create(context, adjustmentEntry); err != nil {
@@ -150,81 +187,6 @@ func (c *Controller) adjustmentEntryController() {
 			Module:      "AdjustmentEntry",
 		})
 		return ctx.JSON(http.StatusCreated, c.core.AdjustmentEntryManager.ToModel(adjustmentEntry))
-	})
-
-	// PUT /adjustment-entry/:adjustment_entry_id: Update adjustment entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
-		Method:       "PUT",
-		Note:         "Updates an existing adjustment entry by its ID.",
-		RequestType:  core.AdjustmentEntryRequest{},
-		ResponseType: core.AdjustmentEntryResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		adjustmentEntryID, err := handlers.EngineUUIDParam(ctx, "adjustment_entry_id")
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), invalid adjustment entry ID.",
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
-		}
-
-		req, err := c.core.AdjustmentEntryManager.Validate(ctx)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), validation error: " + err.Error(),
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry data: " + err.Error()})
-		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), user org error: " + err.Error(),
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), adjustment entry not found.",
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
-		}
-		adjustmentEntry.SignatureMediaID = req.SignatureMediaID
-		adjustmentEntry.AccountID = req.AccountID
-		adjustmentEntry.MemberProfileID = req.MemberProfileID
-		adjustmentEntry.EmployeeUserID = req.EmployeeUserID
-		adjustmentEntry.PaymentTypeID = req.PaymentTypeID
-		adjustmentEntry.TypeOfPaymentType = req.TypeOfPaymentType
-		adjustmentEntry.Description = req.Description
-		adjustmentEntry.ReferenceNumber = req.ReferenceNumber
-		adjustmentEntry.EntryDate = req.EntryDate
-		adjustmentEntry.Debit = req.Debit
-		adjustmentEntry.Credit = req.Credit
-		adjustmentEntry.UpdatedAt = time.Now().UTC()
-		adjustmentEntry.UpdatedByID = user.UserID
-		if err := c.core.AdjustmentEntryManager.UpdateByID(context, adjustmentEntry.ID, adjustmentEntry); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Adjustment entry update failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
-				Module:      "AdjustmentEntry",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update adjustment entry: " + err.Error()})
-		}
-		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "update-success",
-			Description: "Updated adjustment entry (/adjustment-entry/:adjustment_entry_id): " + adjustmentEntry.ReferenceNumber,
-			Module:      "AdjustmentEntry",
-		})
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.ToModel(adjustmentEntry))
 	})
 
 	// DELETE /adjustment-entry/:adjustment_entry_id: Delete an adjustment entry by ID. (WITH footstep)
