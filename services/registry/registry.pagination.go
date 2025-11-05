@@ -15,7 +15,6 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithFields(
 	fields *TData,
 	preloads ...string,
 ) (*filter.PaginationResult[TResponse], error) {
-	var entities []*TData
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
 		return &filter.PaginationResult[TResponse]{}, eris.Wrap(err, "failed to parse query")
@@ -24,8 +23,9 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithFields(
 		preloads = r.preloads
 	}
 	filterRoot.Preload = preloads
+	db := filter.ApplyPresetConditions(r.Client(context), fields)
 	data, err := r.filtering.DataGorm(
-		r.Client(context).Where(fields).Find(&entities),
+		db,
 		filterRoot,
 		pageIndex, pageSize,
 	)
