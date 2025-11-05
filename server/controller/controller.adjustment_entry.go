@@ -161,8 +161,6 @@ func (c *Controller) adjustmentEntryController() {
 
 		// Record the transaction in general ledger with adjustment entry source
 		if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
-			// If transaction recording fails, we should consider rolling back the adjustment entry
-			// For now, we'll log the error and continue, but this should be addressed in production
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-recording-failed",
 				Description: "Failed to record adjustment entry transaction in general ledger for reference " + req.ReferenceNumber + ": " + err.Error(),

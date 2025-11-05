@@ -225,6 +225,11 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 7D: GENERAL LEDGER ENTRY PREPARATION ---
 		// Prepare new general ledger entry with all transaction details
+		var paymentTypeValue core.TypeOfPaymentType
+		if paymentType != nil {
+			paymentTypeValue = paymentType.Type
+		}
+
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
@@ -246,7 +251,7 @@ func (e Event) RecordTransaction(
 			BankReferenceNumber:        transaction.BankReferenceNumber,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
-			TypeOfPaymentType:          paymentType.Type,
+			TypeOfPaymentType:          paymentTypeValue,
 			Credit:                     credit,
 			Debit:                      debit,
 			Balance:                    balance,
@@ -316,6 +321,11 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 8C: SUBSIDIARY LEDGER ENTRY PREPARATION ---
 		// Prepare new subsidiary general ledger entry
+		var paymentTypeValue core.TypeOfPaymentType
+		if paymentType != nil {
+			paymentTypeValue = paymentType.Type
+		}
+
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:             now,
 			CreatedByID:           userOrg.UserID,
@@ -337,7 +347,7 @@ func (e Event) RecordTransaction(
 			BankReferenceNumber:        transaction.BankReferenceNumber,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
-			TypeOfPaymentType:          paymentType.Type,
+			TypeOfPaymentType:          paymentTypeValue,
 			Credit:                     credit,
 			Debit:                      debit,
 			Balance:                    balance,

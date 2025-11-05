@@ -900,12 +900,79 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been released"})
 		}
 
-		// Update release details
+		// ================================================================================
+		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
+		// ================================================================================
 		journalVoucher.ReleasedDate = handlers.Ptr(time.Now().UTC())
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
 
+		// ================================================================================
+		// STEP 2: RETRIEVE ALL JOURNAL VOUCHER ENTRIES FOR TRANSACTION RECORDING
+		// ================================================================================
+		journalVoucherEntries, err := c.core.JournalVoucherEntryManager.Find(context, &core.JournalVoucherEntry{
+			JournalVoucherID: journalVoucher.ID,
+			OrganizationID:   userOrg.OrganizationID,
+			BranchID:         *userOrg.BranchID,
+		})
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "journal-voucher-entries-retrieval-failed",
+				Description: "Failed to retrieve journal voucher entries for release: " + err.Error(),
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve journal voucher entries: " + err.Error()})
+		}
+
+		// ================================================================================
+		// STEP 3: RECORD TRANSACTIONS FOR EACH JOURNAL VOUCHER ENTRY
+		// ================================================================================
+		for _, entry := range journalVoucherEntries {
+			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
+			// Prepare transaction request with journal voucher entry details
+			transactionRequest := event.RecordTransactionRequest{
+				// Financial amounts from journal entry
+				Debit:  entry.Debit,
+				Credit: entry.Credit,
+
+				// Account and member information
+				AccountID:       entry.AccountID,
+				MemberProfileID: entry.MemberProfileID,
+
+				// Transaction metadata
+				ReferenceNumber:       journalVoucher.CashVoucherNumber,
+				Description:           entry.Description,
+				EntryDate:             handlers.Ptr(time.Now().UTC()),
+				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
+				BankID:                nil, // Not applicable for journal voucher entries
+				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries
+			}
+
+			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---
+			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
+
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "journal-voucher-transaction-recording-failed",
+					Description: "Failed to record journal voucher entry transaction in general ledger for voucher " + journalVoucher.CashVoucherNumber + ": " + err.Error(),
+					Module:      "JournalVoucher",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Journal voucher release initiated but failed to record transaction: " + err.Error(),
+				})
+			}
+		}
+
+		// Log successful completion of all transaction recordings
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "journal-voucher-transactions-recorded",
+			Description: "Successfully recorded all journal voucher entry transactions in general ledger for voucher: " + journalVoucher.CashVoucherNumber,
+			Module:      "JournalVoucher",
+		})
+
+		// ================================================================================
+		// STEP 4: FINALIZE JOURNAL VOUCHER RELEASE
+		// ================================================================================
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
