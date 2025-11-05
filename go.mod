@@ -3,7 +3,7 @@ module github.com/Lands-Horizon-Corp/e-coop-server
 go 1.25.3
 
 require (
-	github.com/Lands-Horizon-Corp/golang-filtering v1.0.7
+	github.com/Lands-Horizon-Corp/golang-filtering v1.0.8
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/robfig/cron/v3 v3.0.1
