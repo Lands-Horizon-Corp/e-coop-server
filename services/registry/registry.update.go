@@ -31,7 +31,6 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	}
 	// Perform update with explicit field selection
 	db := r.Client(context).
-		Model(new(TData)).
 		Where("id = ?", id).
 		Select(fieldNames).
 		Updates(fields)
