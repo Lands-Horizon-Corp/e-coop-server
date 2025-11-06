@@ -17,118 +17,120 @@ type NotificationEvent struct {
 	NotificationType core.NotificationType
 }
 
-// Notification creates a notification record asynchronously for the
-// current user based on the supplied data.
-func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
+// createNotificationForUsers is a helper function that creates notifications for a list of users
+func (e *Event) createNotificationForUsers(context context.Context, users []*core.UserOrganization, data NotificationEvent, senderUserID *uuid.UUID) {
+	data.Title = handlers.Sanitize(data.Title)
+	data.Description = handlers.Sanitize(data.Description)
 
-	go func() {
-		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		user, err := e.userToken.CurrentUser(context, ctx)
-		if err != nil {
-			return
-		}
-		data.Title = handlers.Sanitize(data.Title)
-		data.Description = handlers.Sanitize(data.Description)
+	if data.Description == "" || data.NotificationType == "" {
+		return
+	}
 
-		if data.Description == "" || data.NotificationType == "" {
-			return
+	for _, org := range users {
+		// Skip sending notification to sender (if provided)
+		if senderUserID != nil && (org.UserID == *senderUserID || handlers.UUIDPtrEqual(&org.UserID, senderUserID)) {
+			continue
 		}
+
 		notification := &core.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
-			UserID:           user.ID,
 			Title:            data.Title,
 			Description:      data.Description,
 			IsViewed:         false,
 			NotificationType: data.NotificationType,
-			UserType:         "",
+			RecipientID:      &org.UserID,
+			UserID:           org.UserID,
+			UserType:         org.UserType,
+		}
+
+		if senderUserID != nil {
+			notification.UserID = *senderUserID
+			notification.RecipientID = &org.UserID
 		}
 
 		if err := e.core.NotificationManager.Create(context, notification); err != nil {
+			continue // Continue with other notifications if one fails
+		}
+	}
+}
+
+// filterAdminUsers filters users to only include employees and owners
+func (e *Event) filterAdminUsers(users []*core.UserOrganization) []*core.UserOrganization {
+	var adminUsers []*core.UserOrganization
+	for _, user := range users {
+		if user.UserType == core.UserOrganizationTypeEmployee || user.UserType == core.UserOrganizationTypeOwner {
+			adminUsers = append(adminUsers, user)
+		}
+	}
+	return adminUsers
+}
+
+// Notification creates a notification record asynchronously for the current user
+func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
+	go func() {
+		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		user, err := e.userToken.CurrentUser(context, ctx)
+		if err != nil {
 			return
 		}
+
+		// Create a fake user org for the single user notification
+		users := []*core.UserOrganization{{UserID: user.ID, UserType: ""}}
+		e.createNotificationForUsers(context, users, data, nil)
 	}()
 }
 
+// OrganizationAdminsNotification notifies admin users in the current user's organization and branch
 func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}
+
 		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
+			BranchID:       user.BranchID,
 		})
-		data.Title = handlers.Sanitize(data.Title)
-		data.Description = handlers.Sanitize(data.Description)
-
-		if data.Description == "" || data.NotificationType == "" {
+		if err != nil {
 			return
 		}
-		for _, orgs := range useOrganizations {
-			if orgs.UserType != core.UserOrganizationTypeEmployee && orgs.UserType != core.UserOrganizationTypeOwner {
-				continue
-			}
-			notification := &core.Notification{
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
 
-				Title:            data.Title,
-				Description:      data.Description,
-				IsViewed:         false,
-				NotificationType: data.NotificationType,
-				RecipientID:      &user.UserID,
-				UserID:           orgs.UserID,
-				UserType:         orgs.UserType,
-			}
-			if err := e.core.NotificationManager.Create(context, notification); err != nil {
-				return
-			}
-		}
+		adminUsers := e.filterAdminUsers(useOrganizations)
+		e.createNotificationForUsers(context, adminUsers, data, &user.UserID)
 	}()
 }
 
+// OrganizationNotification notifies all users in the current user's organization
 func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+
 		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}
+
 		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 		})
-		data.Title = handlers.Sanitize(data.Title)
-		data.Description = handlers.Sanitize(data.Description)
-
-		if data.Description == "" || data.NotificationType == "" {
+		if err != nil {
 			return
 		}
-		for _, orgs := range useOrganizations {
-			notification := &core.Notification{
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
 
-				Title:            data.Title,
-				Description:      data.Description,
-				IsViewed:         false,
-				NotificationType: data.NotificationType,
-				RecipientID:      &orgs.UserID,
-				UserID:           user.UserID,
-				UserType:         orgs.UserType,
-			}
-			if err := e.core.NotificationManager.Create(context, notification); err != nil {
-				return
-			}
-		}
+		e.createNotificationForUsers(context, useOrganizations, data, &user.UserID)
 	}()
 }
 
-func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, ctx echo.Context, data NotificationEvent) {
+// OrganizationDirectNotification creates notifications for all users in an organization by ID
+func (e *Event) OrganizationDirectNotification(ctx echo.Context, organizationID uuid.UUID, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -140,41 +142,12 @@ func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, ctx ech
 			return
 		}
 
-		user, err := e.userToken.CurrentUser(context, ctx)
-		if err != nil {
-			return
-		}
-
-		data.Title = handlers.Sanitize(data.Title)
-		data.Description = handlers.Sanitize(data.Description)
-
-		if data.Description == "" || data.NotificationType == "" {
-			return
-		}
-
-		for _, orgs := range useOrganizations {
-			notification := &core.Notification{
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
-
-				Title:            data.Title,
-				Description:      data.Description,
-				IsViewed:         false,
-				NotificationType: data.NotificationType,
-				RecipientID:      &user.ID,
-				UserID:           orgs.UserID, // Set as self-notification since no context user
-				UserType:         orgs.UserType,
-			}
-			if err := e.core.NotificationManager.Create(context, notification); err != nil {
-				continue // Continue with other notifications if one fails
-			}
-		}
+		e.createNotificationForUsers(context, useOrganizations, data, nil)
 	}()
 }
 
-// OrganizationAdminsDirectNotification creates notifications for admin users only
-// in an organization by organization ID, without requiring a context user
-func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, ctx echo.Context, data NotificationEvent) {
+// OrganizationAdminsDirectNotification creates notifications for admin users only in an organization by ID
+func (e *Event) OrganizationAdminsDirectNotification(ctx echo.Context, organizationID uuid.UUID, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -186,37 +159,7 @@ func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, c
 			return
 		}
 
-		user, err := e.userToken.CurrentUser(context, ctx)
-		if err != nil {
-			return
-		}
-
-		data.Title = handlers.Sanitize(data.Title)
-		data.Description = handlers.Sanitize(data.Description)
-
-		if data.Description == "" || data.NotificationType == "" {
-			return
-		}
-
-		for _, orgs := range useOrganizations {
-			if orgs.UserType != core.UserOrganizationTypeEmployee && orgs.UserType != core.UserOrganizationTypeOwner {
-				continue
-			}
-			notification := &core.Notification{
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
-
-				Title:            data.Title,
-				Description:      data.Description,
-				IsViewed:         false,
-				NotificationType: data.NotificationType,
-				RecipientID:      &user.ID,
-				UserID:           orgs.UserID, // Set as self-notification since no context user
-				UserType:         orgs.UserType,
-			}
-			if err := e.core.NotificationManager.Create(context, notification); err != nil {
-				continue // Continue with other notifications if one fails
-			}
-		}
+		adminUsers := e.filterAdminUsers(useOrganizations)
+		e.createNotificationForUsers(context, adminUsers, data, nil)
 	}()
 }

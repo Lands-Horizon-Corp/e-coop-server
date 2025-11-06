@@ -678,7 +678,7 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 		// Notify organization admins about new member joining via invitation
-		c.event.OrganizationAdminsDirectNotification(invitationCode.OrganizationID, ctx, event.NotificationEvent{
+		c.event.OrganizationAdminsDirectNotification(ctx, invitationCode.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New %s joined using invitation code: %s %s", string(userOrg.UserType), *user.FirstName, *user.LastName),
 			Title:            "New Member Joined via Invitation",
 			NotificationType: core.NotificationInfo,
@@ -802,7 +802,7 @@ func (c *Controller) userOrganinzationController() {
 			Description: "Joined organization and branch " + organizationID.String() + " - " + branchID.String() + " as member",
 			Module:      "UserOrganization",
 		})
-		c.event.OrganizationAdminsDirectNotification(*organizationID, ctx, event.NotificationEvent{
+		c.event.OrganizationAdminsDirectNotification(ctx, *organizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New member application received from %s %s", *user.FirstName, *user.LastName),
 			Title:            "New Member Application",
 			NotificationType: core.NotificationInfo,
@@ -994,7 +994,7 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		c.event.OrganizationDirectNotification(userOrg.OrganizationID, ctx, event.NotificationEvent{
+		c.event.OrganizationDirectNotification(ctx, userOrg.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrg.UserType)),
 			Title:            "Application Accepted",
 			NotificationType: core.NotificationSuccess,

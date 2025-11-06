@@ -329,7 +329,7 @@ func (c *Controller) branchController() {
 		})
 
 		// Notify all organization members about new branch
-		c.event.OrganizationDirectNotification(userOrganization.OrganizationID, ctx, event.NotificationEvent{
+		c.event.OrganizationDirectNotification(ctx, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New branch '%s' has been created by %s %s", branch.Name, *user.FirstName, *user.LastName),
 			Title:            "New Branch Created",
 			NotificationType: core.NotificationInfo,
