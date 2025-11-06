@@ -219,7 +219,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 
 			if entry.Credit <= 0 {
-				entry.Credit = e.usecase.LoanComputation(ctx, *entry.AutomaticLoanDeduction, *loanTransaction)
+				entry.Credit = e.usecase.LoanComputation(*entry.AutomaticLoanDeduction, *loanTransaction)
 			}
 		}
 
@@ -276,7 +276,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 
 			if entry.Credit <= 0 {
-				entry.Credit = e.usecase.LoanComputation(ctx, *ald, *loanTransaction)
+				entry.Credit = e.usecase.LoanComputation(*ald, *loanTransaction)
 			}
 
 			if !entry.IsAddOn {

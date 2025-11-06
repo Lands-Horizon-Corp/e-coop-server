@@ -40,6 +40,26 @@ func (c *Controller) accountHistory() {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
+	// GET api/v1/account-history/:account_history_id
+	req.RegisterRoute(handlers.Route{
+		Method:       "GET",
+		Route:        "/api/v1/account-history/:account_history_id",
+		ResponseType: core.AccountHistory{},
+		Note:         "Get account history by account history ID",
+	},
+		func(ctx echo.Context) error {
+			context := ctx.Request().Context()
+			accountHistoryID, err := handlers.EngineUUIDParam(ctx, "account_history_id")
+			if err != nil {
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_history_id: " + err.Error()})
+			}
+			accountHistory, err := c.core.AccountHistoryManager.GetByID(context, *accountHistoryID)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, accountHistory)
+		})
+
 	// POST /api/v1/account-history/account/:account_id/restore
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",

@@ -121,7 +121,7 @@ func (c *Controller) computationSheetController() {
 
 			}
 			if entry.Credit <= 0 {
-				entry.Credit = c.usecase.LoanComputation(context, *ald, core.LoanTransaction{
+				entry.Credit = c.usecase.LoanComputation(*ald, core.LoanTransaction{
 					Terms:    request.Terms,
 					Applied1: request.Applied1,
 				})
