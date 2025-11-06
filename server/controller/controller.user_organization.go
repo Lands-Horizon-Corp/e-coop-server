@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -676,6 +677,13 @@ func (c *Controller) userOrganinzationController() {
 			Description: "Joined organization and branch using invitation code " + code,
 			Module:      "UserOrganization",
 		})
+		// Notify organization admins about new member joining via invitation
+		c.event.OrganizationAdminsDirectNotification(invitationCode.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("New %s joined using invitation code: %s %s", string(userOrg.UserType), *user.FirstName, *user.LastName),
+			Title:            "New Member Joined via Invitation",
+			NotificationType: core.NotificationInfo,
+		})
+
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -794,7 +802,11 @@ func (c *Controller) userOrganinzationController() {
 			Description: "Joined organization and branch " + organizationID.String() + " - " + branchID.String() + " as member",
 			Module:      "UserOrganization",
 		})
-
+		c.event.OrganizationAdminsDirectNotification(*organizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("New member application received from %s %s", *user.FirstName, *user.LastName),
+			Title:            "New Member Application",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -980,6 +992,12 @@ func (c *Controller) userOrganinzationController() {
 			Activity:    "approve-success",
 			Description: "Accepted user organization application for user " + userOrg.UserID.String(),
 			Module:      "UserOrganization",
+		})
+
+		c.event.OrganizationDirectNotification(userOrg.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrg.UserType)),
+			Title:            "Application Accepted",
+			NotificationType: core.NotificationSuccess,
 		})
 
 		return ctx.NoContent(http.StatusNoContent)

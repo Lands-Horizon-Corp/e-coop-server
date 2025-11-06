@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -143,6 +144,12 @@ func (c *Controller) adjustmentTagController() {
 			Activity:    "create-success",
 			Description: "Created adjustment tag (/adjustment-tag): " + tag.Name,
 			Module:      "AdjustmentTag",
+		})
+
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", user.User.FullName),
+			Title:            "Journal Vouchers - Approved List Accessed",
+			NotificationType: core.NotificationSystem,
 		})
 		return ctx.JSON(http.StatusCreated, c.core.AdjustmentTagManager.ToModel(tag))
 	})

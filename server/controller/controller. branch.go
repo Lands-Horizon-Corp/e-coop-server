@@ -328,6 +328,13 @@ func (c *Controller) branchController() {
 			Description: fmt.Sprintf("Created a new branch: %s", branch.Name),
 		})
 
+		// Notify all organization members about new branch
+		c.event.OrganizationDirectNotification(userOrganization.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("New branch '%s' has been created by %s %s", branch.Name, *user.FirstName, *user.LastName),
+			Title:            "New Branch Created",
+			NotificationType: core.NotificationInfo,
+		})
+
 		// Footstep for create branch success
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create success",
@@ -758,7 +765,7 @@ func (c *Controller) branchController() {
 			Module:      "branch",
 		})
 
-		c.event.Notification(ctx, event.NotificationEvent{
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
 			Title:       "Branch Settings Updated",
 			Description: "Branch settings have been successfully updated",
 		})
@@ -901,11 +908,11 @@ func (c *Controller) branchController() {
 			Module:      "branch",
 		})
 
-		c.event.Notification(ctx, event.NotificationEvent{
-			Title:       "Branch Settings Currency Updated",
-			Description: "Branch settings currency have been successfully updated",
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Title:            "Branch Settings Updated",
+			Description:      "Branch settings have been successfully updated",
+			NotificationType: core.NotificationAlert,
 		})
-
 		return ctx.JSON(http.StatusOK, c.core.BranchSettingManager.ToModel(branchSetting))
 	})
 }

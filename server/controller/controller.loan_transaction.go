@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // LoanTransactionTotalResponse represents the total calculations for a loan transaction
@@ -1094,7 +1095,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update loan terms amount receipt that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot update loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(eris.New("cannot update loan terms amount receipt that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1705,6 +1706,11 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Loan transaction has been approved by %s and is waiting to be released", *userOrg.User.FirstName),
+			Title:            "Loan Transaction Approved - Pending Release",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
@@ -1804,6 +1810,12 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + endTx(err).Error()})
 		}
+
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Loan transaction has been released by %s", *userOrg.User.FirstName),
+			Title:            "Loan Transaction Released",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 

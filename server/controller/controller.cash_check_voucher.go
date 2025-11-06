@@ -803,6 +803,12 @@ func (c *Controller) cashCheckVoucherController() {
 			Module:      "CashCheckVoucher",
 		})
 
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "approve-success",
+			Description: "Successfully approved cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
+			Module:      "CashCheckVoucher",
+		})
+
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
@@ -856,6 +862,9 @@ func (c *Controller) cashCheckVoucherController() {
 			BranchID:           *userOrg.BranchID,
 			OrganizationID:     userOrg.OrganizationID,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash check voucher entries: " + err.Error()})
+		}
 		for _, entry := range cashCheckVoucherEntries {
 			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
 			// Prepare transaction request with journal voucher entry details
@@ -895,6 +904,11 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "release-success",
+			Description: "Successfully released cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
+			Module:      "CashCheckVoucher",
+		})
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "release-success",
 			Description: "Successfully released cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
