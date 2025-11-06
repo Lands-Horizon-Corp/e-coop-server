@@ -1522,6 +1522,35 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
+	// POST api/v1/account/:account_id/disconnect-account/:loan_account_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/disconnect-account",
+		Method:       "POST",
+		Note:         "Disconnect an account from a loan account.",
+		ResponseType: core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		account, err := c.core.AccountManager.GetByID(context, *accountID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
+		}
+		account.LoanAccountID = nil
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to disconnect account from loan account: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
+	})
+
 	// GET api/v1/account/loan-accounts
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/loan-accounts",
