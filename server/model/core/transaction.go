@@ -250,7 +250,7 @@ func (m *Core) TransactionsByUserType(
 			UserID: &userID,
 		})
 		if err != nil {
-			return nil, eris.Errorf("failed to retrieve member profile: %w", err)
+			return nil, eris.Wrap(err, "failed to retrieve member profile")
 		}
 		filter.MemberProfileID = &memberProfile.ID
 	} else {
