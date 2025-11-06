@@ -16,45 +16,44 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	fields *TData,
 	preloads ...string,
 ) error {
-	if preloads == nil {
-		preloads = r.preloads
-	}
-
-	// First, get the existing record
+	// First, fetch the existing record
 	existing := new(TData)
 	if err := r.Client(context).Where("id = ?", id).First(existing).Error; err != nil {
 		return eris.Wrapf(err, "failed to find entity %s", id)
 	}
 
-	// Use reflection to copy fields from input to existing record
-	existingValue := reflect.ValueOf(existing).Elem()
-	fieldsValue := reflect.ValueOf(fields).Elem()
-	fieldsType := reflect.TypeOf(fields).Elem()
-
-	for i := 0; i < fieldsType.NumField(); i++ {
-		field := fieldsType.Field(i)
-		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "CreatedByID" {
-			continue // Skip immutable fields
+	// Copy non-zero fields from fields to existing
+	// This ensures hooks will fire when using Save()
+	val := reflect.ValueOf(fields).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Type().Field(i)
+		if field.Name == "ID" {
+			continue
 		}
-
-		fieldValue := fieldsValue.Field(i)
-		existingField := existingValue.Field(i)
-
-		if existingField.CanSet() && fieldValue.IsValid() {
-			existingField.Set(fieldValue)
+		existingField := reflect.ValueOf(existing).Elem().FieldByName(field.Name)
+		if !existingField.CanSet() {
+			continue
+		}
+		newValue := val.Field(i)
+		if !newValue.IsZero() {
+			existingField.Set(newValue)
 		}
 	}
 
-	// Use Save() instead of Updates() to trigger hooks
+	// Use Save() instead of Updates() to ensure hooks fire
 	if err := r.Client(context).Save(existing).Error; err != nil {
 		return eris.Wrapf(err, "failed to update entity %s", id)
 	}
 
 	// Reload with preloads
+	if preloads == nil {
+		preloads = r.preloads
+	}
 	reloadDb := r.Client(context).Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
 	}
+
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after update", id)
 	}
