@@ -16,7 +16,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	fields *TData,
 	preloads ...string,
 ) error {
-	t := reflect.TypeOf(new(*TData)).Elem()
+	t := reflect.TypeOf(new(TData)).Elem()
 	fieldNames := make([]string, 0)
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -31,7 +31,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	}
 	// Perform update with explicit field selection
 	db := r.Client(context).
-		Model(new(*TData)).
+		Model(new(TData)).
 		Where("id = ?", id).
 		Select(fieldNames).
 		Updates(fields)
