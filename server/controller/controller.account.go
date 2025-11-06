@@ -1553,7 +1553,7 @@ func (c *Controller) accountController() {
 
 	// GET api/v1/account/loan-accounts
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/loan-accounts-currency/:currency_id",
+		Route:        "/api/v1/account/loan-accounts-currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
 		ResponseType: core.AccountResponse{},
@@ -1567,13 +1567,18 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
+
 		accounts, err := c.core.FindAccountsByTypesAndBranch(
 			context,
 			userOrg.OrganizationID, *userOrg.BranchID, *currencyID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModels(accounts))
+		pagination, err := c.core.AccountManager.PaginationData(context, ctx, accounts)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate loan accounts: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, pagination)
 	})
 
 	// GET api/v1/account/:account_id/loan-accounts
