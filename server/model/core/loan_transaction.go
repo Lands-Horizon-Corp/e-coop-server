@@ -512,17 +512,6 @@ type (
 		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
-	// LoanComputationSheetCalculatorRequest represents the request structure for creating/updating loancomputationsheetcalculator
-
-	// LoanComputationSheetCalculatorRequest represents the request structure for LoanComputationSheetCalculator.
-	LoanComputationSheetCalculatorRequest struct {
-		AccountID    *uuid.UUID `json:"account_id,omitempty"`
-		Applied1     float64    `json:"applied_1"`
-		Terms        int        `json:"terms"`
-		MemberTypeID *uuid.UUID `json:"member_type_id,omitempty"`
-		IsAddOn      bool       `json:"is_add_on,omitempty"`
-	}
-
 	// AmortizationPayment represents a single amortization schedule payment.
 	AmortizationPayment struct {
 		Date       string  `json:"date"`

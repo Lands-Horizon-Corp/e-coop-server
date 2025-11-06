@@ -39,14 +39,9 @@ func (e *Event) createNotificationForUsers(context context.Context, users []*cor
 			Description:      data.Description,
 			IsViewed:         false,
 			NotificationType: data.NotificationType,
-			RecipientID:      &org.UserID,
-			UserID:           org.UserID,
+			UserID:           org.UserID,   // Recipient (who receives the notification)
+			RecipientID:      senderUserID, // Sender (who sent the notification)
 			UserType:         org.UserType,
-		}
-
-		if senderUserID != nil {
-			notification.UserID = *senderUserID
-			notification.RecipientID = &org.UserID
 		}
 
 		if err := e.core.NotificationManager.Create(context, notification); err != nil {

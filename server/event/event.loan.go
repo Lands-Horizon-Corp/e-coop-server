@@ -18,6 +18,15 @@ type LoanBalanceEvent struct {
 	LoanTransactionID              uuid.UUID
 }
 
+// LoanComputationSheetCalculatorRequest represents the request structure for creating/updating loancomputationsheetcalculator
+type LoanComputationSheetCalculatorRequest struct {
+	AccountID    *uuid.UUID `json:"account_id,omitempty"`
+	Applied1     float64    `json:"applied_1"`
+	Terms        int        `json:"terms"`
+	MemberTypeID *uuid.UUID `json:"member_type_id,omitempty"`
+	IsAddOn      bool       `json:"is_add_on,omitempty"`
+}
+
 // LoanBalancing computes and persists loan transaction entries to ensure
 // the loan is correctly balanced after a payment.
 func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, endTx func(error) error, data LoanBalanceEvent) (*core.LoanTransaction, error) {
