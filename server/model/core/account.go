@@ -2640,12 +2640,12 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 }
 
 // FindAccountsBySpecificTypeByAccountID finds all accounts with specified branch, organization and a single account ID
-func (m *Core) FindAccountsBySpecificTypeByAccountID(ctx context.Context,
+func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "id", Op: registry.OpEq, Value: accountID},
+		{Field: "loan_account", Op: registry.OpEq, Value: accountID},
 	}
 
 	accounts, err := m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{

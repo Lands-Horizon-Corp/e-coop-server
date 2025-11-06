@@ -1563,7 +1563,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-		loanAccounts, err := c.core.FindAccountsBySpecificTypeByAccountID(context,
+		loanAccounts, err := c.core.FindLoanAccountsByID(context,
 			userOrg.OrganizationID, *userOrg.BranchID, account.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Connected loan account not found"})
