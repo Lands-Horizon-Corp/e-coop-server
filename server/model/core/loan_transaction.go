@@ -630,6 +630,27 @@ type (
 	}
 )
 
+func (m *Core) LoanWeeklyIota(weekday Weekdays) int {
+	switch weekday {
+	case WeekdaySunday:
+		return 0
+	case WeekdayMonday:
+		return 1
+	case WeekdayTuesday:
+		return 2
+	case WeekdayWednesday:
+		return 3
+	case WeekdayThursday:
+		return 4
+	case WeekdayFriday:
+		return 5
+	case WeekdaySaturday:
+		return 6
+	default:
+		return -1
+	}
+}
+
 func (m *Core) loanTransaction() {
 	m.Migration = append(m.Migration, &LoanTransaction{})
 	m.LoanTransactionManager = *registry.NewRegistry(registry.RegistryParams[
