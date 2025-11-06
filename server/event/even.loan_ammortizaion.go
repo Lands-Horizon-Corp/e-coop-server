@@ -10,11 +10,22 @@ package event
 // 		BranchID:       loanTransaction.BranchID,
 // 	})
 
-// 	for {
-
+// 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction)
+// 	if err != nil {
+// 		return err
 // 	}
-
-// 	// return err
+// 	for i := 0; i < numberOfPayments; i++ {
+// 		switch loanTransaction.ModeOfPayment {
+// 		case core.LoanModeOfPaymentDaily:
+// 		case core.LoanModeOfPaymentWeekly:
+// 		case core.LoanModeOfPaymentSemiMonthly:
+// 		case core.LoanModeOfPaymentMonthly:
+// 		case core.LoanModeOfPaymentQuarterly:
+// 		case core.LoanModeOfPaymentSemiAnnual:
+// 		case core.LoanModeOfPaymentLumpsum:
+// 		case core.LoanModeOfPaymentFixedDays:
+// 		}
+// 	}
 // 	return nil
 // }
 // func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {

@@ -1551,9 +1551,9 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// GET api/v1/account/loan-accounts
+	// GET /api/v1/account/loan-connectable-account-currency/:currency_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/loan-accounts-currency/:currency_id/search",
+		Route:        "/api/v1/account/loan-connectable-account-currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
 		ResponseType: core.AccountResponse{},

@@ -216,7 +216,7 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(_ context.Context, lt *core.LoanTransaction) (int, error) {
+func (t *TransactionService) LoanNumberOfPayments(lt *core.LoanTransaction) (int, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
 		return lt.Terms * 30, nil
