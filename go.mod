@@ -1,6 +1,6 @@
 module github.com/Lands-Horizon-Corp/e-coop-server
 
-go 1.25.3
+go 1.25.4
 
 require (
 	github.com/Lands-Horizon-Corp/golang-filtering v1.0.9

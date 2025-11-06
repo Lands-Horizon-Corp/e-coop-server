@@ -774,7 +774,6 @@ func (c *Controller) loanTransactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion: " + endTx(fmt.Errorf("no account found")).Error()})
 			}
 			cashOnCashEquivalenceAccountID = accounts[0].ID
-			fmt.Println("Converted Cash on Cash Equivalence Account ID:", cashOnCashEquivalenceAccountID)
 		}
 
 		// Update fields
@@ -1239,7 +1238,6 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + endTx(err).Error()})
 				}
 			}
-			fmt.Println("Converted loan transaction entries due to currency change.")
 		} else {
 			loanTransactionEntry, err := c.core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 			if err != nil {

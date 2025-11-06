@@ -210,8 +210,6 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
 		}
-		fmt.Println(len(result))
-		fmt.Println("----------------------")
 		paginated, err := c.core.AccountManager.PaginationData(context, ctx, result)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated data: " + err.Error()})

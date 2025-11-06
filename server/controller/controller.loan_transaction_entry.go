@@ -173,10 +173,6 @@ func (c *Controller) loanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
-		fmt.Println()
-
-		fmt.Println("Updated loan transaction entry:", loanTransactionEntry)
-		fmt.Println()
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
