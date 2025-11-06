@@ -87,7 +87,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		context := ctx.Request().Context()
 		request, err := c.core.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), validation error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -96,7 +96,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), user org error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -104,7 +104,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), user not assigned to branch.",
 				Module:      "AutomaticLoanDeduction",
@@ -115,7 +115,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		if name == "" {
 			account, err := c.core.AccountManager.GetByID(context, *request.AccountID)
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
 					Module:      "AutomaticLoanDeduction",
@@ -151,14 +151,14 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 
 		if err := c.core.AutomaticLoanDeductionManager.Create(context, ald); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), db error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create automatic loan deduction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created automatic loan deduction (/automatic-loan-deduction): " + ald.Name,
 			Module:      "AutomaticLoanDeduction",
@@ -177,7 +177,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "automatic_loan_deduction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), invalid ID.",
 				Module:      "AutomaticLoanDeduction",
@@ -187,7 +187,7 @@ func (c *Controller) automaticLoanDeductionController() {
 
 		request, err := c.core.AutomaticLoanDeductionManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), validation error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -196,7 +196,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), user org error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -205,7 +205,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		ald, err := c.core.AutomaticLoanDeductionManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), not found.",
 				Module:      "AutomaticLoanDeduction",
@@ -216,7 +216,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		if name == "" {
 			account, err := c.core.AccountManager.GetByID(context, *request.AccountID)
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), account fetch error: " + err.Error(),
 					Module:      "AutomaticLoanDeduction",
@@ -246,14 +246,14 @@ func (c *Controller) automaticLoanDeductionController() {
 		ald.NumberOfMonths = request.NumberOfMonths
 
 		if err := c.core.AutomaticLoanDeductionManager.UpdateByID(context, ald.ID, ald); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Automatic loan deduction update failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update automatic loan deduction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated automatic loan deduction (/automatic-loan-deduction/:automatic_loan_deduction_id): " + ald.Name,
 			Module:      "AutomaticLoanDeduction",
@@ -270,7 +270,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "automatic_loan_deduction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Automatic loan deduction delete failed (/automatic-loan-deduction/:automatic_loan_deduction_id), invalid ID.",
 				Module:      "AutomaticLoanDeduction",
@@ -279,7 +279,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		ald, err := c.core.AutomaticLoanDeductionManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Automatic loan deduction delete failed (/automatic-loan-deduction/:automatic_loan_deduction_id), not found.",
 				Module:      "AutomaticLoanDeduction",
@@ -287,14 +287,14 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Automatic loan deduction not found"})
 		}
 		if err := c.core.AutomaticLoanDeductionManager.Delete(context, *id); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Automatic loan deduction delete failed (/automatic-loan-deduction/:automatic_loan_deduction_id), db error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete automatic loan deduction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted automatic loan deduction (/automatic-loan-deduction/:automatic_loan_deduction_id): " + ald.Name,
 			Module:      "AutomaticLoanDeduction",
@@ -311,7 +311,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -319,7 +319,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | no IDs provided",
 				Module:      "AutomaticLoanDeduction",
@@ -328,7 +328,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 
 		if err := c.core.AutomaticLoanDeductionManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | error: " + err.Error(),
 				Module:      "AutomaticLoanDeduction",
@@ -336,7 +336,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete automatic loan deductions: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted automatic loan deductions (/automatic-loan-deduction/bulk-delete)",
 			Module:      "AutomaticLoanDeduction",

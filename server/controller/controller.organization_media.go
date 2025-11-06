@@ -105,7 +105,7 @@ func (c *Controller) organizationMediaController() {
 		context := ctx.Request().Context()
 		req, err := c.core.OrganizationMediaManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Organization media creation failed (/organization-media), validation error: " + err.Error(),
 				Module:      "OrganizationMedia",
@@ -123,14 +123,14 @@ func (c *Controller) organizationMediaController() {
 		}
 
 		if err := c.core.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Organization media creation failed (/organization-media), db error: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization media: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created organization media (/organization-media): " + organizationMedia.Name,
 			Module:      "OrganizationMedia",
@@ -149,7 +149,7 @@ func (c *Controller) organizationMediaController() {
 		context := ctx.Request().Context()
 		organizationMeiaID, err := handlers.EngineUUIDParam(ctx, "organization_media_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), invalid media ID.",
 				Module:      "OrganizationMedia",
@@ -159,7 +159,7 @@ func (c *Controller) organizationMediaController() {
 
 		req, err := c.core.OrganizationMediaManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), validation error: " + err.Error(),
 				Module:      "OrganizationMedia",
@@ -169,7 +169,7 @@ func (c *Controller) organizationMediaController() {
 
 		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMeiaID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), media not found.",
 				Module:      "OrganizationMedia",
@@ -183,14 +183,14 @@ func (c *Controller) organizationMediaController() {
 		organizationMedia.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.OrganizationMediaManager.UpdateByID(context, organizationMedia.ID, organizationMedia); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:media_id), db error: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update organization media: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated organization media (/organization-media/:media_id): " + organizationMedia.Name,
 			Module:      "OrganizationMedia",
@@ -207,7 +207,7 @@ func (c *Controller) organizationMediaController() {
 		context := ctx.Request().Context()
 		mediaID, err := handlers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:media_id), invalid media ID.",
 				Module:      "OrganizationMedia",
@@ -217,7 +217,7 @@ func (c *Controller) organizationMediaController() {
 
 		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *mediaID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:media_id), not found.",
 				Module:      "OrganizationMedia",
@@ -226,14 +226,14 @@ func (c *Controller) organizationMediaController() {
 		}
 
 		if err := c.core.OrganizationMediaManager.Delete(context, *mediaID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:media_id), db error: " + err.Error(),
 				Module:      "OrganizationMedia",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization media: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted organization media (/organization-media/:media_id): " + organizationMedia.Name,
 			Module:      "OrganizationMedia",
@@ -252,7 +252,7 @@ func (c *Controller) organizationMediaController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "OrganizationMedia",
@@ -261,7 +261,7 @@ func (c *Controller) organizationMediaController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | no IDs provided",
 				Module:      "OrganizationMedia",
@@ -272,7 +272,7 @@ func (c *Controller) organizationMediaController() {
 		// Delegate the heavy lifting (DB transaction, validations, DeletedBy, storage cleanup if any)
 		// to the manager layer.
 		if err := c.core.OrganizationMediaManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | error: " + err.Error(),
 				Module:      "OrganizationMedia",
@@ -280,7 +280,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete organization media: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted organization media (/organization-media/bulk-delete)",
 			Module:      "OrganizationMedia",

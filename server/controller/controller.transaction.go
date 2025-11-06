@@ -24,7 +24,7 @@ func (c *Controller) transactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "auth-error",
 				Description: "Failed to get user organization (/transaction): " + err.Error(),
 				Module:      "Transaction",
@@ -33,7 +33,7 @@ func (c *Controller) transactionController() {
 		}
 		var req core.TransactionRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bind-error",
 				Description: "Invalid request body (/transaction): " + err.Error(),
 				Module:      "Transaction",
@@ -41,7 +41,7 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change request failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -50,7 +50,7 @@ func (c *Controller) transactionController() {
 		}
 		account, err := c.core.AccountManager.GetByID(context, *req.AccountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "account-error",
 				Description: "Failed to retrieve member joint account (/transaction): " + err.Error(),
 				Module:      "Transaction",
@@ -59,7 +59,7 @@ func (c *Controller) transactionController() {
 		}
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction): " + err.Error(),
 				Module:      "Transaction",
@@ -97,7 +97,7 @@ func (c *Controller) transactionController() {
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR++
 			if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to update user organization (/transaction): " + err.Error(),
 					Module:      "Transaction",
@@ -106,14 +106,14 @@ func (c *Controller) transactionController() {
 			}
 		}
 		if err := c.core.TransactionManager.Create(context, transaction); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Transaction creation failed (/transaction), db error: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Transaction created successfully (/transaction), transaction_id: " + transaction.ID.String(),
 			Module:      "Transaction",
@@ -131,7 +131,7 @@ func (c *Controller) transactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "auth-error",
 				Description: "Failed to get user organization (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -140,7 +140,7 @@ func (c *Controller) transactionController() {
 		}
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "param-error",
 				Description: "Invalid transaction ID (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -149,7 +149,7 @@ func (c *Controller) transactionController() {
 		}
 		var req core.TransactionRequestEdit
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bind-error",
 				Description: "Invalid request body (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -157,7 +157,7 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change request failed: validation error: " + err.Error(),
 				Module:      "User",
@@ -168,7 +168,7 @@ func (c *Controller) transactionController() {
 		// Begin transaction for row-level locking
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "db-error",
 				Description: "Failed to start transaction (/transaction/:transaction_id): " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -182,7 +182,7 @@ func (c *Controller) transactionController() {
 
 		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found-error",
 				Description: "Transaction not found or lock failed (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -194,7 +194,7 @@ func (c *Controller) transactionController() {
 		transaction.UpdatedAt = time.Now().UTC()
 		transaction.UpdatedByID = userOrg.UserID
 		if err := c.core.TransactionManager.UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update transaction (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -202,14 +202,14 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "commit-error",
 				Description: "Failed to commit transaction (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Transaction description updated successfully (/transaction/:transaction_id), transaction_id: " + transaction.ID.String(),
 			Module:      "Transaction",

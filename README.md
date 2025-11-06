@@ -6,7 +6,7 @@ E-Coop Server is a server for multipurpose cooperatives. A comprehensive financi
 
 ## Prerequisites
 
-- **Go** 1.25.3 or later
+- **Go** 1.25.4 or later
 - **Docker** and **Docker Compose**
 - **PostgreSQL** 13+
 - **Redis** 6+

@@ -164,8 +164,8 @@ func (m *Core) journalVoucher() {
 			totalDebit := 0.0
 			totalCredit := 0.0
 			for _, entry := range data.JournalVoucherEntries {
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
+				totalDebit = m.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+				totalCredit = m.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 
 			var postedAt *string
@@ -283,11 +283,11 @@ func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) err
 	totalCredit := 0.0
 
 	for _, entry := range entries {
-		totalDebit += entry.Debit
-		totalCredit += entry.Credit
+		totalDebit = m.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+		totalCredit = m.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 	}
 
-	if totalDebit != totalCredit {
+	if !m.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
 		return eris.Errorf("journal voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)
 	}
 

@@ -25,7 +25,7 @@ func (c *Controller) memberAddressController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), invalid member profile ID.",
 				Module:      "MemberAddress",
@@ -34,7 +34,7 @@ func (c *Controller) memberAddressController() {
 		}
 		req, err := c.core.MemberAddressManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), validation error: " + err.Error(),
 				Module:      "MemberAddress",
@@ -43,7 +43,7 @@ func (c *Controller) memberAddressController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), user org error: " + err.Error(),
 				Module:      "MemberAddress",
@@ -51,7 +51,7 @@ func (c *Controller) memberAddressController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), user not assigned to branch.",
 				Module:      "MemberAddress",
@@ -78,14 +78,14 @@ func (c *Controller) memberAddressController() {
 			Latitude:        req.Latitude,
 		}
 		if err := c.core.MemberAddressManager.Create(context, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), db error: " + err.Error(),
 				Module:      "MemberAddress",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member address (/member-address/member-profile/:member_profile_id): " + value.Label,
 			Module:      "MemberAddress",
@@ -104,7 +104,7 @@ func (c *Controller) memberAddressController() {
 		context := ctx.Request().Context()
 		memberAddressID, err := handlers.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), invalid member address ID.",
 				Module:      "MemberAddress",
@@ -113,7 +113,7 @@ func (c *Controller) memberAddressController() {
 		}
 		req, err := c.core.MemberAddressManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), validation error: " + err.Error(),
 				Module:      "MemberAddress",
@@ -122,7 +122,7 @@ func (c *Controller) memberAddressController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), user org error: " + err.Error(),
 				Module:      "MemberAddress",
@@ -130,7 +130,7 @@ func (c *Controller) memberAddressController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), user not assigned to branch.",
 				Module:      "MemberAddress",
@@ -139,7 +139,7 @@ func (c *Controller) memberAddressController() {
 		}
 		value, err := c.core.MemberAddressManager.GetByID(context, *memberAddressID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), record not found.",
 				Module:      "MemberAddress",
@@ -163,14 +163,14 @@ func (c *Controller) memberAddressController() {
 		value.Longitude = req.Longitude
 		value.Latitude = req.Latitude
 		if err := c.core.MemberAddressManager.UpdateByID(context, value.ID, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), db error: " + err.Error(),
 				Module:      "MemberAddress",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member address record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member address (/member-address/:member_address_id): " + value.Label,
 			Module:      "MemberAddress",
@@ -187,7 +187,7 @@ func (c *Controller) memberAddressController() {
 		context := ctx.Request().Context()
 		memberAddressID, err := handlers.EngineUUIDParam(ctx, "member_address_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), invalid member address ID.",
 				Module:      "MemberAddress",
@@ -196,7 +196,7 @@ func (c *Controller) memberAddressController() {
 		}
 		value, err := c.core.MemberAddressManager.GetByID(context, *memberAddressID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), record not found.",
 				Module:      "MemberAddress",
@@ -204,14 +204,14 @@ func (c *Controller) memberAddressController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
 		if err := c.core.MemberAddressManager.Delete(context, *memberAddressID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), db error: " + err.Error(),
 				Module:      "MemberAddress",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member address record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member address (/member-address/:member_address_id): " + value.Label,
 			Module:      "MemberAddress",

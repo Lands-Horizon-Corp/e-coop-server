@@ -60,7 +60,7 @@ func (c *Controller) organizationController() {
 		context := ctx.Request().Context()
 		req, err := c.core.OrganizationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: validation error: " + err.Error(),
 				Module:      "Organization",
@@ -69,7 +69,7 @@ func (c *Controller) organizationController() {
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: user error: " + err.Error(),
 				Module:      "Organization",
@@ -78,7 +78,7 @@ func (c *Controller) organizationController() {
 		}
 		subscription, err := c.core.SubscriptionPlanManager.GetByID(context, *req.SubscriptionPlanID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: subscription plan error: " + err.Error(),
 				Module:      "Organization",
@@ -87,7 +87,7 @@ func (c *Controller) organizationController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
@@ -129,7 +129,7 @@ func (c *Controller) organizationController() {
 		}
 
 		if err := c.core.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create org error: " + err.Error(),
 				Module:      "Organization",
@@ -156,7 +156,7 @@ func (c *Controller) organizationController() {
 			Longitude:      &longitude,
 		}
 		if err := c.core.BranchManager.CreateWithTx(context, tx, branch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create branch error: " + err.Error(),
 				Module:      "Organization",
@@ -218,7 +218,7 @@ func (c *Controller) organizationController() {
 		}
 
 		if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create branch settings error: " + err.Error(),
 				Module:      "Organization",
@@ -228,7 +228,7 @@ func (c *Controller) organizationController() {
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: generate dev key error: " + err.Error(),
 				Module:      "Organization",
@@ -260,7 +260,7 @@ func (c *Controller) organizationController() {
 			UserSettingNumberPadding: 7,
 		}
 		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrganization); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: create user org error: " + err.Error(),
 				Module:      "Organization",
@@ -274,7 +274,7 @@ func (c *Controller) organizationController() {
 				OrganizationID: &organization.ID,
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Create organization failed: create org category error: " + err.Error(),
 					Module:      "Organization",
@@ -301,7 +301,7 @@ func (c *Controller) organizationController() {
 		}
 		for _, orgMedia := range *organizationMedia {
 			if err := c.core.OrganizationMediaManager.CreateWithTx(context, tx, &orgMedia); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Create organization failed: create org media error: " + err.Error(),
 					Module:      "Organization",
@@ -310,14 +310,14 @@ func (c *Controller) organizationController() {
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create organization failed: commit tx error: " + err.Error(),
 				Module:      "Organization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created organization: " + organization.Name,
 			Module:      "Organization",
@@ -339,7 +339,7 @@ func (c *Controller) organizationController() {
 		context := ctx.Request().Context()
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: invalid organization_id: " + err.Error(),
 				Module:      "Organization",
@@ -348,7 +348,7 @@ func (c *Controller) organizationController() {
 		}
 		req, err := c.core.OrganizationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: validation error: " + err.Error(),
 				Module:      "Organization",
@@ -358,7 +358,7 @@ func (c *Controller) organizationController() {
 
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: user error: " + err.Error(),
 				Module:      "Organization",
@@ -368,7 +368,7 @@ func (c *Controller) organizationController() {
 
 		organization, err := c.core.OrganizationManager.GetByID(context, *organizationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: not found: " + err.Error(),
 				Module:      "Organization",
@@ -376,7 +376,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
 		if organization.CreatedByID != user.ID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: not authorized",
 				Module:      "Organization",
@@ -385,7 +385,7 @@ func (c *Controller) organizationController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
@@ -410,7 +410,7 @@ func (c *Controller) organizationController() {
 		organization.UpdatedByID = user.ID
 		organization.IsPrivate = req.IsPrivate
 		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: update org error: " + err.Error(),
 				Module:      "Organization",
@@ -419,7 +419,7 @@ func (c *Controller) organizationController() {
 		}
 		organizationsFromCategory, err := c.core.GetOrganizationCategoryByOrganization(context, organization.ID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: get org categories error: " + err.Error(),
 				Module:      "Organization",
@@ -429,7 +429,7 @@ func (c *Controller) organizationController() {
 
 		for _, category := range organizationsFromCategory {
 			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update organization failed: delete org category error: " + err.Error(),
 					Module:      "Organization",
@@ -446,7 +446,7 @@ func (c *Controller) organizationController() {
 				OrganizationID: &organization.ID,
 				CategoryID:     &category.CategoryID,
 			}); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update organization failed: create org category error: " + err.Error(),
 					Module:      "Organization",
@@ -456,14 +456,14 @@ func (c *Controller) organizationController() {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update organization failed: commit tx error: " + err.Error(),
 				Module:      "Organization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated organization: " + organization.Name,
 			Module:      "Organization",
@@ -480,7 +480,7 @@ func (c *Controller) organizationController() {
 		context := ctx.Request().Context()
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: invalid organization_id: " + err.Error(),
 				Module:      "Organization",
@@ -489,7 +489,7 @@ func (c *Controller) organizationController() {
 		}
 		organization, err := c.core.OrganizationManager.GetByID(context, *organizationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: not found: " + err.Error(),
 				Module:      "Organization",
@@ -498,7 +498,7 @@ func (c *Controller) organizationController() {
 		}
 		currentTime := time.Now().UTC()
 		if organization.SubscriptionEndDate.After(currentTime) {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: subscription still active",
 				Module:      "Organization",
@@ -507,7 +507,7 @@ func (c *Controller) organizationController() {
 		}
 		userOrganizations, err := c.core.GetUserOrganizationByOrganization(context, organization.ID, nil)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: get user org error: " + err.Error(),
 				Module:      "Organization",
@@ -515,7 +515,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organizations: " + err.Error()})
 		}
 		if len(userOrganizations) >= 3 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: more than 2 user orgs",
 				Module:      "Organization",
@@ -525,7 +525,7 @@ func (c *Controller) organizationController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "Organization",
@@ -534,7 +534,7 @@ func (c *Controller) organizationController() {
 		}
 		for _, category := range organization.OrganizationCategories {
 			if err := c.core.OrganizationCategoryManager.DeleteWithTx(context, tx, category.ID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete org category error: " + err.Error(),
 					Module:      "Organization",
@@ -544,7 +544,7 @@ func (c *Controller) organizationController() {
 		}
 		branches, err := c.core.GetBranchesByOrganization(context, organization.ID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: get branches error: " + err.Error(),
 				Module:      "Organization",
@@ -553,7 +553,7 @@ func (c *Controller) organizationController() {
 		}
 		for _, branch := range branches {
 			if err := c.core.OrganizationDestroyer(context, tx, *organizationID, branch.ID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: destroy branch error: " + err.Error(),
 					Module:      "Organization",
@@ -561,7 +561,7 @@ func (c *Controller) organizationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to destroy organization branch: " + endTx(err).Error()})
 			}
 			if err := c.core.BranchManager.DeleteWithTx(context, tx, branch.ID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete branch error: " + err.Error(),
 					Module:      "Organization",
@@ -570,7 +570,7 @@ func (c *Controller) organizationController() {
 			}
 		}
 		if err := c.core.OrganizationManager.DeleteWithTx(context, tx, *organizationID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: delete org error: " + err.Error(),
 				Module:      "Organization",
@@ -579,7 +579,7 @@ func (c *Controller) organizationController() {
 		}
 		for _, userOrganization := range userOrganizations {
 			if err := c.core.UserOrganizationManager.DeleteWithTx(context, tx, userOrganization.ID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: delete user org error: " + err.Error(),
 					Module:      "Organization",
@@ -588,14 +588,14 @@ func (c *Controller) organizationController() {
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete organization failed: commit tx error: " + err.Error(),
 				Module:      "Organization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted organization: " + organization.Name,
 			Module:      "Organization",

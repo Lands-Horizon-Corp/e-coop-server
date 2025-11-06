@@ -111,7 +111,7 @@ func (c *Controller) memberDepartmentController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberDepartmentManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member department failed (/member-department), validation error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -120,7 +120,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member department failed (/member-department), user org error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -141,7 +141,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 
 		if err := c.core.MemberDepartmentManager.Create(context, memberDepartment); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member department failed (/member-department), db error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -149,7 +149,7 @@ func (c *Controller) memberDepartmentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member department: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member department (/member-department): " + memberDepartment.Name,
 			Module:      "MemberDepartment",
@@ -169,7 +169,7 @@ func (c *Controller) memberDepartmentController() {
 		context := ctx.Request().Context()
 		memberDepartmentID, err := handlers.EngineUUIDParam(ctx, "member_department_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), invalid member_department_id: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -178,7 +178,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), user org error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -187,7 +187,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 		req, err := c.core.MemberDepartmentManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), validation error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -196,7 +196,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 		memberDepartment, err := c.core.MemberDepartmentManager.GetByID(context, *memberDepartmentID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), not found: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -211,14 +211,14 @@ func (c *Controller) memberDepartmentController() {
 		memberDepartment.Description = req.Description
 		memberDepartment.Icon = req.Icon
 		if err := c.core.MemberDepartmentManager.UpdateByID(context, memberDepartment.ID, memberDepartment); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), db error: " + err.Error(),
 				Module:      "MemberDepartment",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member department: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member department (/member-department/:member_department_id): " + memberDepartment.Name,
 			Module:      "MemberDepartment",
@@ -235,7 +235,7 @@ func (c *Controller) memberDepartmentController() {
 		context := ctx.Request().Context()
 		memberDepartmentID, err := handlers.EngineUUIDParam(ctx, "member_department_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member department failed (/member-department/:member_department_id), invalid member_department_id: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -244,7 +244,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 		value, err := c.core.MemberDepartmentManager.GetByID(context, *memberDepartmentID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member department failed (/member-department/:member_department_id), record not found: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -252,14 +252,14 @@ func (c *Controller) memberDepartmentController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member department not found: " + err.Error()})
 		}
 		if err := c.core.MemberDepartmentManager.Delete(context, *memberDepartmentID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member department failed (/member-department/:member_department_id), db error: " + err.Error(),
 				Module:      "MemberDepartment",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member department: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member department (/member-department/:member_department_id): " + value.Name,
 			Module:      "MemberDepartment",
@@ -278,7 +278,7 @@ func (c *Controller) memberDepartmentController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -287,7 +287,7 @@ func (c *Controller) memberDepartmentController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | no IDs provided",
 				Module:      "MemberDepartment",
@@ -297,7 +297,7 @@ func (c *Controller) memberDepartmentController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberDepartmentManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberDepartment",
@@ -305,7 +305,7 @@ func (c *Controller) memberDepartmentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member departments: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member departments (/member-department/bulk-delete)",
 			Module:      "MemberDepartment",

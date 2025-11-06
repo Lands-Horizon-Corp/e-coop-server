@@ -111,7 +111,7 @@ func (c *Controller) memberGenderController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberGenderManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member gender failed (/member-gender), validation error: " + err.Error(),
 				Module:      "MemberGender",
@@ -120,7 +120,7 @@ func (c *Controller) memberGenderController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member gender failed (/member-gender), user org error: " + err.Error(),
 				Module:      "MemberGender",
@@ -140,7 +140,7 @@ func (c *Controller) memberGenderController() {
 		}
 
 		if err := c.core.MemberGenderManager.Create(context, memberGender); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member gender failed (/member-gender), db error: " + err.Error(),
 				Module:      "MemberGender",
@@ -148,7 +148,7 @@ func (c *Controller) memberGenderController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member gender: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member gender (/member-gender): " + memberGender.Name,
 			Module:      "MemberGender",
@@ -168,7 +168,7 @@ func (c *Controller) memberGenderController() {
 		context := ctx.Request().Context()
 		memberGenderID, err := handlers.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), invalid member_gender_id: " + err.Error(),
 				Module:      "MemberGender",
@@ -177,7 +177,7 @@ func (c *Controller) memberGenderController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), user org error: " + err.Error(),
 				Module:      "MemberGender",
@@ -186,7 +186,7 @@ func (c *Controller) memberGenderController() {
 		}
 		req, err := c.core.MemberGenderManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), validation error: " + err.Error(),
 				Module:      "MemberGender",
@@ -195,7 +195,7 @@ func (c *Controller) memberGenderController() {
 		}
 		memberGender, err := c.core.MemberGenderManager.GetByID(context, *memberGenderID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), not found: " + err.Error(),
 				Module:      "MemberGender",
@@ -209,14 +209,14 @@ func (c *Controller) memberGenderController() {
 		memberGender.Name = req.Name
 		memberGender.Description = req.Description
 		if err := c.core.MemberGenderManager.UpdateByID(context, memberGender.ID, memberGender); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
 				Module:      "MemberGender",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member gender: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member gender (/member-gender/:member_gender_id): " + memberGender.Name,
 			Module:      "MemberGender",
@@ -233,7 +233,7 @@ func (c *Controller) memberGenderController() {
 		context := ctx.Request().Context()
 		memberGenderID, err := handlers.EngineUUIDParam(ctx, "member_gender_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member gender failed (/member-gender/:member_gender_id), invalid member_gender_id: " + err.Error(),
 				Module:      "MemberGender",
@@ -242,7 +242,7 @@ func (c *Controller) memberGenderController() {
 		}
 		value, err := c.core.MemberGenderManager.GetByID(context, *memberGenderID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member gender failed (/member-gender/:member_gender_id), record not found: " + err.Error(),
 				Module:      "MemberGender",
@@ -250,14 +250,14 @@ func (c *Controller) memberGenderController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member gender not found: " + err.Error()})
 		}
 		if err := c.core.MemberGenderManager.Delete(context, *memberGenderID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member gender failed (/member-gender/:member_gender_id), db error: " + err.Error(),
 				Module:      "MemberGender",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member gender: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member gender (/member-gender/:member_gender_id): " + value.Name,
 			Module:      "MemberGender",
@@ -276,7 +276,7 @@ func (c *Controller) memberGenderController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberGender",
@@ -285,7 +285,7 @@ func (c *Controller) memberGenderController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | no IDs provided",
 				Module:      "MemberGender",
@@ -295,7 +295,7 @@ func (c *Controller) memberGenderController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberGenderManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberGender",
@@ -303,7 +303,7 @@ func (c *Controller) memberGenderController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member genders: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member genders (/member-gender/bulk-delete)",
 			Module:      "MemberGender",

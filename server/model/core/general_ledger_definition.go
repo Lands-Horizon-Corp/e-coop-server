@@ -11,9 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// GeneralLedgerType define this type according to your domain (e.g. as string or int)
-type GeneralLedgerType string // adjust as needed
-
 type (
 	// GeneralLedgerDefinition represents the GeneralLedgerDefinition model.
 	GeneralLedgerDefinition struct {

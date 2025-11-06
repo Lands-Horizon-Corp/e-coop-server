@@ -94,7 +94,7 @@ func (c *Controller) holidayController() {
 		context := ctx.Request().Context()
 		req, err := c.core.HolidayManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Holiday creation failed (/holiday), validation error: " + err.Error(),
 				Module:      "Holiday",
@@ -103,7 +103,7 @@ func (c *Controller) holidayController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Holiday creation failed (/holiday), user org error: " + err.Error(),
 				Module:      "Holiday",
@@ -111,7 +111,7 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Holiday creation failed (/holiday), user not assigned to branch.",
 				Module:      "Holiday",
@@ -131,14 +131,14 @@ func (c *Controller) holidayController() {
 			CurrencyID:     req.CurrencyID,
 		}
 		if err := c.core.HolidayManager.Create(context, holiday); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Holiday creation failed (/holiday), db error: " + err.Error(),
 				Module:      "Holiday",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create holiday record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created holiday (/holiday): " + holiday.Name,
 			Module:      "Holiday",
@@ -157,7 +157,7 @@ func (c *Controller) holidayController() {
 		context := ctx.Request().Context()
 		holidayID, err := handlers.EngineUUIDParam(ctx, "holiday_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), invalid holiday ID.",
 				Module:      "Holiday",
@@ -166,7 +166,7 @@ func (c *Controller) holidayController() {
 		}
 		req, err := c.core.HolidayManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), validation error: " + err.Error(),
 				Module:      "Holiday",
@@ -175,7 +175,7 @@ func (c *Controller) holidayController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), user org error: " + err.Error(),
 				Module:      "Holiday",
@@ -183,7 +183,7 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), user not assigned to branch.",
 				Module:      "Holiday",
@@ -192,7 +192,7 @@ func (c *Controller) holidayController() {
 		}
 		holiday, err := c.core.HolidayManager.GetByID(context, *holidayID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), not found.",
 				Module:      "Holiday",
@@ -206,14 +206,14 @@ func (c *Controller) holidayController() {
 		holiday.UpdatedAt = time.Now().UTC()
 		holiday.UpdatedByID = user.UserID
 		if err := c.core.HolidayManager.UpdateByID(context, holiday.ID, holiday); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Holiday update failed (/holiday/:holiday_id), db error: " + err.Error(),
 				Module:      "Holiday",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update holiday record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated holiday (/holiday/:holiday_id): " + holiday.Name,
 			Module:      "Holiday",
@@ -230,7 +230,7 @@ func (c *Controller) holidayController() {
 		context := ctx.Request().Context()
 		holidayID, err := handlers.EngineUUIDParam(ctx, "holiday_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Holiday delete failed (/holiday/:holiday_id), invalid holiday ID.",
 				Module:      "Holiday",
@@ -239,7 +239,7 @@ func (c *Controller) holidayController() {
 		}
 		holiday, err := c.core.HolidayManager.GetByID(context, *holidayID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Holiday delete failed (/holiday/:holiday_id), not found.",
 				Module:      "Holiday",
@@ -247,14 +247,14 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Holiday record not found"})
 		}
 		if err := c.core.HolidayManager.Delete(context, *holidayID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Holiday delete failed (/holiday/:holiday_id), db error: " + err.Error(),
 				Module:      "Holiday",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete holiday record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted holiday (/holiday/:holiday_id): " + holiday.Name,
 			Module:      "Holiday",
@@ -273,7 +273,7 @@ func (c *Controller) holidayController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Holiday",
@@ -282,7 +282,7 @@ func (c *Controller) holidayController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | no IDs provided",
 				Module:      "Holiday",
@@ -291,7 +291,7 @@ func (c *Controller) holidayController() {
 		}
 
 		if err := c.core.HolidayManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Holiday bulk delete failed (/holiday/bulk-delete) | error: " + err.Error(),
 				Module:      "Holiday",
@@ -299,7 +299,7 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete holiday records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted holidays (/holiday/bulk-delete)",
 			Module:      "Holiday",

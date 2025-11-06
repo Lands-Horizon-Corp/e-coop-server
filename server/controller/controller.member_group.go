@@ -115,7 +115,7 @@ func (c *Controller) memberGroupController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberGroupManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member group failed (/member-group), validation error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -124,7 +124,7 @@ func (c *Controller) memberGroupController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member group failed (/member-group), user org error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -144,7 +144,7 @@ func (c *Controller) memberGroupController() {
 		}
 
 		if err := c.core.MemberGroupManager.Create(context, memberGroup); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member group failed (/member-group), db error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -152,7 +152,7 @@ func (c *Controller) memberGroupController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member group: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member group (/member-group): " + memberGroup.Name,
 			Module:      "MemberGroup",
@@ -172,7 +172,7 @@ func (c *Controller) memberGroupController() {
 		context := ctx.Request().Context()
 		memberGroupID, err := handlers.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), invalid member_group_id: " + err.Error(),
 				Module:      "MemberGroup",
@@ -181,7 +181,7 @@ func (c *Controller) memberGroupController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), user org error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -190,7 +190,7 @@ func (c *Controller) memberGroupController() {
 		}
 		req, err := c.core.MemberGroupManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), validation error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -199,7 +199,7 @@ func (c *Controller) memberGroupController() {
 		}
 		memberGroup, err := c.core.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), not found: " + err.Error(),
 				Module:      "MemberGroup",
@@ -213,14 +213,14 @@ func (c *Controller) memberGroupController() {
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
 		if err := c.core.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), db error: " + err.Error(),
 				Module:      "MemberGroup",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member group: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member group (/member-group/:member_group_id): " + memberGroup.Name,
 			Module:      "MemberGroup",
@@ -237,7 +237,7 @@ func (c *Controller) memberGroupController() {
 		context := ctx.Request().Context()
 		memberGroupID, err := handlers.EngineUUIDParam(ctx, "member_group_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), invalid member_group_id: " + err.Error(),
 				Module:      "MemberGroup",
@@ -246,7 +246,7 @@ func (c *Controller) memberGroupController() {
 		}
 		value, err := c.core.MemberGroupManager.GetByID(context, *memberGroupID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), record not found: " + err.Error(),
 				Module:      "MemberGroup",
@@ -254,14 +254,14 @@ func (c *Controller) memberGroupController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
 		if err := c.core.MemberGroupManager.Delete(context, *memberGroupID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), db error: " + err.Error(),
 				Module:      "MemberGroup",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member group: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member group (/member-group/:member_group_id): " + value.Name,
 			Module:      "MemberGroup",
@@ -280,7 +280,7 @@ func (c *Controller) memberGroupController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberGroup",
@@ -289,7 +289,7 @@ func (c *Controller) memberGroupController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | no IDs provided",
 				Module:      "MemberGroup",
@@ -299,7 +299,7 @@ func (c *Controller) memberGroupController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberGroupManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberGroup",
@@ -307,7 +307,7 @@ func (c *Controller) memberGroupController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member groups: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member groups (/member-group/bulk-delete)",
 			Module:      "MemberGroup",

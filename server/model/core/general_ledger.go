@@ -84,8 +84,6 @@ type (
 		PrintNumber                int                 `gorm:"default:0"`
 	}
 
-	// GeneralLedgerResponse represents the response structure for generalledger data
-
 	// GeneralLedgerResponse represents the response structure for GeneralLedger.
 	GeneralLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
@@ -334,7 +332,6 @@ func (m *Core) GeneralLedgerCurrentMemberAccountForUpdate(
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
 	}
 	sorts := []registry.FilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
 	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)

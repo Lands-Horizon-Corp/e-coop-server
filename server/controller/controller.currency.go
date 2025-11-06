@@ -63,7 +63,7 @@ func (c *Controller) currencyController() {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
 				Module:      "Bank",
@@ -143,7 +143,7 @@ func (c *Controller) currencyController() {
 		context := ctx.Request().Context()
 		req, err := c.core.CurrencyManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create currency failed: validation error: " + err.Error(),
 				Module:      "Currency",
@@ -163,7 +163,7 @@ func (c *Controller) currencyController() {
 		}
 
 		if err := c.core.CurrencyManager.Create(context, currency); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create currency failed: create error: " + err.Error(),
 				Module:      "Currency",
@@ -171,7 +171,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create currency: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
@@ -191,7 +191,7 @@ func (c *Controller) currencyController() {
 		context := ctx.Request().Context()
 		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: invalid currency_id: " + err.Error(),
 				Module:      "Currency",
@@ -201,7 +201,7 @@ func (c *Controller) currencyController() {
 
 		req, err := c.core.CurrencyManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: validation error: " + err.Error(),
 				Module:      "Currency",
@@ -211,7 +211,7 @@ func (c *Controller) currencyController() {
 
 		currency, err := c.core.CurrencyManager.GetByID(context, *currencyID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: not found: " + err.Error(),
 				Module:      "Currency",
@@ -228,7 +228,7 @@ func (c *Controller) currencyController() {
 		currency.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.CurrencyManager.UpdateByID(context, currency.ID, currency); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: update error: " + err.Error(),
 				Module:      "Currency",
@@ -236,7 +236,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update currency: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
@@ -254,7 +254,7 @@ func (c *Controller) currencyController() {
 		context := ctx.Request().Context()
 		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: invalid currency_id: " + err.Error(),
 				Module:      "Currency",
@@ -264,7 +264,7 @@ func (c *Controller) currencyController() {
 
 		currency, err := c.core.CurrencyManager.GetByID(context, *currencyID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: not found: " + err.Error(),
 				Module:      "Currency",
@@ -273,7 +273,7 @@ func (c *Controller) currencyController() {
 		}
 
 		if err := c.core.CurrencyManager.Delete(context, *currencyID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: delete error: " + err.Error(),
 				Module:      "Currency",
@@ -281,7 +281,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete currency: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
@@ -300,7 +300,7 @@ func (c *Controller) currencyController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: invalid request body. " + err.Error(),
 				Module:      "Currency",
@@ -309,7 +309,7 @@ func (c *Controller) currencyController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: no IDs provided.",
 				Module:      "Currency",
@@ -318,7 +318,7 @@ func (c *Controller) currencyController() {
 		}
 
 		if err := c.core.CurrencyManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: " + err.Error(),
 				Module:      "Currency",
@@ -326,7 +326,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete currencies: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted currencies.",
 			Module:      "Currency",

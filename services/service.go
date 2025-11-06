@@ -125,8 +125,10 @@ type HorizonService struct {
 	SMTP      horizon.SMTPService
 	Request   horizon.APIService
 	QR        horizon.QRService
+	Decimal   horizon.DecimalOperations
 	Validator *validator.Validate
-	Logger    *zap.Logger
+
+	Logger *zap.Logger
 }
 
 // HorizonServiceConfig contains configuration options for initializing HorizonService.
@@ -151,6 +153,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service.Validator = validator.New()
 
 	logger, err := zap.NewProduction()
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)
 		service.Logger = zap.NewNop()
@@ -328,6 +331,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 
 	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
+	service.Decimal = *horizon.NewDecimalHelper()
 	return service
 }
 

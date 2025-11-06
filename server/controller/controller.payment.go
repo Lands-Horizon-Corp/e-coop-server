@@ -22,7 +22,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		generalLedgerID, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-param-error",
 				Description: fmt.Sprintf("Invalid general ledger id for POST /transaction/general-ledger/:general_ledger_id/payment: %v", err),
 			})
@@ -34,7 +34,7 @@ func (c *Controller) paymentController() {
 		}
 		generalLedger, err := c.core.GeneralLedgerManager.GetByID(context, *generalLedgerID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-not-found",
 				Description: fmt.Sprintf("General ledger not found for ID %v: %v", generalLedgerID, err),
 			})
@@ -42,7 +42,7 @@ func (c *Controller) paymentController() {
 		}
 		maxNumber, err := c.core.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
 				Description: fmt.Sprintf("Failed to get max print number for general ledger ID %v: %v", generalLedgerID, err),
 			})
@@ -51,7 +51,7 @@ func (c *Controller) paymentController() {
 
 		generalLedger.PrintNumber = maxNumber + 1
 		if err := c.core.GeneralLedgerManager.UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -71,7 +71,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-bind-error",
 				Description: "Payment failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -79,7 +79,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-validation-error",
 				Description: "Payment failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -89,7 +89,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-db-error",
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -99,7 +99,7 @@ func (c *Controller) paymentController() {
 
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/payment: %v", err),
 				Module:      "Transaction",
@@ -127,7 +127,7 @@ func (c *Controller) paymentController() {
 			BankReferenceNumber:   req.BankReferenceNumber,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-error",
 				Description: "Payment processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -147,7 +147,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "withdraw-bind-error",
 				Description: "Withdrawal failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -155,7 +155,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid withdrawal payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "withdraw-validation-error",
 				Description: "Withdrawal failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -165,7 +165,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "withdraw-db-error",
 				Description: "Withdrawal failed (/transaction/:transaction_id/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -175,7 +175,7 @@ func (c *Controller) paymentController() {
 
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "withdraw-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/withdraw: %v", err),
 				Module:      "Transaction",
@@ -203,7 +203,7 @@ func (c *Controller) paymentController() {
 			BankReferenceNumber:   req.BankReferenceNumber,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "withdraw-error",
 				Description: "Withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -223,7 +223,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "deposit-bind-error",
 				Description: "Deposit failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -231,7 +231,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid deposit payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "deposit-validation-error",
 				Description: "Deposit failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -241,7 +241,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "deposit-db-error",
 				Description: "Deposit failed (/transaction/:transaction_id/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -251,7 +251,7 @@ func (c *Controller) paymentController() {
 
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "deposit-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/deposit: %v", err),
 				Module:      "Transaction",
@@ -279,7 +279,7 @@ func (c *Controller) paymentController() {
 			BankReferenceNumber:   req.BankReferenceNumber,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "deposit-error",
 				Description: "Deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -299,7 +299,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-payment-bind-error",
 				Description: "General payment failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -307,7 +307,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-payment-validation-error",
 				Description: "General payment failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -317,7 +317,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-payment-db-error",
 				Description: "General payment failed (/transaction/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -346,7 +346,7 @@ func (c *Controller) paymentController() {
 			ORAutoGenerated:       req.ORAutoGenerated,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-payment-error",
 				Description: "General payment processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -366,7 +366,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-withdraw-bind-error",
 				Description: "General withdrawal failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -374,7 +374,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid withdrawal payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-withdraw-validation-error",
 				Description: "General withdrawal failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -384,7 +384,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-withdraw-db-error",
 				Description: "General withdrawal failed (/transaction/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -413,7 +413,7 @@ func (c *Controller) paymentController() {
 			ORAutoGenerated:       req.ORAutoGenerated,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-withdraw-error",
 				Description: "General withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -433,7 +433,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-deposit-bind-error",
 				Description: "General deposit failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -441,7 +441,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid deposit payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-deposit-validation-error",
 				Description: "General deposit failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -451,7 +451,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-deposit-db-error",
 				Description: "General deposit failed (/transaction/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -480,7 +480,7 @@ func (c *Controller) paymentController() {
 			ORAutoGenerated:       req.ORAutoGenerated,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "general-deposit-error",
 				Description: "General deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -506,7 +506,7 @@ func (c *Controller) paymentController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-db-error",
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -541,7 +541,7 @@ func (c *Controller) paymentController() {
 			Reverse:               true,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-error",
 				Description: "Payment processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -560,7 +560,7 @@ func (c *Controller) paymentController() {
 		context := ctx.Request().Context()
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /general-ledger/transaction/:transaction_id/reverse: %v", err),
 				Module:      "Transaction",
@@ -573,7 +573,7 @@ func (c *Controller) paymentController() {
 			TransactionID: transactionID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-ledger-error",
 				Description: fmt.Sprintf("Failed to get general ledger entries for transaction ID %v: %v", transactionID, err),
 				Module:      "Transaction",
@@ -586,7 +586,7 @@ func (c *Controller) paymentController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-db-error",
 				Description: "Transaction reverse failed, begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -627,7 +627,7 @@ func (c *Controller) paymentController() {
 				Reverse:               true,
 			})
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "transaction-reverse-error",
 					Description: fmt.Sprintf("Transaction reversal failed for ledger %v: %v", generalLedger.ID, err),
 					Module:      "Transaction",
@@ -638,14 +638,14 @@ func (c *Controller) paymentController() {
 		}
 		transaction, err := c.core.TransactionManager.GetByIDRaw(context, *transactionID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",
 				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionID, err),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch transaction after reversal: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "transaction-reverse-success",
 			Description: fmt.Sprintf("Successfully reversed transaction %v with %d general ledger entries", transactionID, len(reversedLedgers)),
 			Module:      "Transaction",

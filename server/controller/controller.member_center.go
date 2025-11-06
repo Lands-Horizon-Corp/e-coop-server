@@ -111,7 +111,7 @@ func (c *Controller) memberCenterController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberCenterManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), validation error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -120,7 +120,7 @@ func (c *Controller) memberCenterController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), user org error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -140,7 +140,7 @@ func (c *Controller) memberCenterController() {
 		}
 
 		if err := c.core.MemberCenterManager.Create(context, memberCenter); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), db error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -148,7 +148,7 @@ func (c *Controller) memberCenterController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member center: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member center (/member-center): " + memberCenter.Name,
 			Module:      "MemberCenter",
@@ -168,7 +168,7 @@ func (c *Controller) memberCenterController() {
 		context := ctx.Request().Context()
 		memberCenterID, err := handlers.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), invalid member_center_id: " + err.Error(),
 				Module:      "MemberCenter",
@@ -177,7 +177,7 @@ func (c *Controller) memberCenterController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), user org error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -186,7 +186,7 @@ func (c *Controller) memberCenterController() {
 		}
 		req, err := c.core.MemberCenterManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), validation error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -195,7 +195,7 @@ func (c *Controller) memberCenterController() {
 		}
 		memberCenter, err := c.core.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), not found: " + err.Error(),
 				Module:      "MemberCenter",
@@ -209,14 +209,14 @@ func (c *Controller) memberCenterController() {
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
 		if err := c.core.MemberCenterManager.UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), db error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member center: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member center (/member-center/:member_center_id): " + memberCenter.Name,
 			Module:      "MemberCenter",
@@ -234,7 +234,7 @@ func (c *Controller) memberCenterController() {
 
 		memberCenterID, err := handlers.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | invalid member_center_id: " + err.Error(),
 				Module:      "MemberCenter",
@@ -244,7 +244,7 @@ func (c *Controller) memberCenterController() {
 
 		value, err := c.core.MemberCenterManager.GetByID(context, *memberCenterID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | not found: " + err.Error(),
 				Module:      "MemberCenter",
@@ -253,7 +253,7 @@ func (c *Controller) memberCenterController() {
 		}
 
 		if err := c.core.MemberCenterManager.Delete(context, *memberCenterID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | db error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -261,7 +261,7 @@ func (c *Controller) memberCenterController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member center: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member center (/member-center/:member_center_id): " + value.Name,
 			Module:      "MemberCenter",
@@ -281,7 +281,7 @@ func (c *Controller) memberCenterController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberCenter",
@@ -290,7 +290,7 @@ func (c *Controller) memberCenterController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | no IDs provided",
 				Module:      "MemberCenter",
@@ -300,7 +300,7 @@ func (c *Controller) memberCenterController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberCenterManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -308,7 +308,7 @@ func (c *Controller) memberCenterController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member centers: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member centers (/member-center/bulk-delete)",
 			Module:      "MemberCenter",

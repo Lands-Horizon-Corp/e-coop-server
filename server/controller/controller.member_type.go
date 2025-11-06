@@ -112,7 +112,7 @@ func (c *Controller) memberTypeController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberTypeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type failed: validation error: " + err.Error(),
 				Module:      "MemberType",
@@ -121,7 +121,7 @@ func (c *Controller) memberTypeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type failed: user org error: " + err.Error(),
 				Module:      "MemberType",
@@ -142,7 +142,7 @@ func (c *Controller) memberTypeController() {
 		}
 
 		if err := c.core.MemberTypeManager.Create(context, memberType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type failed: " + err.Error(),
 				Module:      "MemberType",
@@ -150,7 +150,7 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member type: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member type: " + memberType.Name,
 			Module:      "MemberType",
@@ -170,7 +170,7 @@ func (c *Controller) memberTypeController() {
 		context := ctx.Request().Context()
 		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: invalid member_type_id: " + err.Error(),
 				Module:      "MemberType",
@@ -179,7 +179,7 @@ func (c *Controller) memberTypeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: user org error: " + err.Error(),
 				Module:      "MemberType",
@@ -189,7 +189,7 @@ func (c *Controller) memberTypeController() {
 
 		req, err := c.core.MemberTypeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: validation error: " + err.Error(),
 				Module:      "MemberType",
@@ -199,7 +199,7 @@ func (c *Controller) memberTypeController() {
 
 		memberType, err := c.core.MemberTypeManager.GetByID(context, *memberTypeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: fmt.Sprintf("Update member type failed: not found (ID: %s): %v", memberTypeID, err),
 				Module:      "MemberType",
@@ -215,14 +215,14 @@ func (c *Controller) memberTypeController() {
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
 		if err := c.core.MemberTypeManager.UpdateByID(context, memberType.ID, memberType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: update error: " + err.Error(),
 				Module:      "MemberType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member type: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member type: " + memberType.Name,
 			Module:      "MemberType",
@@ -239,7 +239,7 @@ func (c *Controller) memberTypeController() {
 		context := ctx.Request().Context()
 		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type failed: invalid member_type_id: " + err.Error(),
 				Module:      "MemberType",
@@ -248,7 +248,7 @@ func (c *Controller) memberTypeController() {
 		}
 		memberType, err := c.core.MemberTypeManager.GetByID(context, *memberTypeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: fmt.Sprintf("Delete member type failed: not found (ID: %s): %v", memberTypeID, err),
 				Module:      "MemberType",
@@ -256,14 +256,14 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", memberTypeID, err)})
 		}
 		if err := c.core.MemberTypeManager.Delete(context, *memberTypeID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type failed: " + err.Error(),
 				Module:      "MemberType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member type: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member type: " + memberType.Name,
 			Module:      "MemberType",
@@ -282,7 +282,7 @@ func (c *Controller) memberTypeController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberType",
@@ -291,7 +291,7 @@ func (c *Controller) memberTypeController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | no IDs provided",
 				Module:      "MemberType",
@@ -301,7 +301,7 @@ func (c *Controller) memberTypeController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberTypeManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberType",
@@ -309,7 +309,7 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member types: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member types (/member-type/bulk-delete)",
 			Module:      "MemberType",

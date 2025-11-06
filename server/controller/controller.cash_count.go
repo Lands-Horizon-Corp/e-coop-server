@@ -115,7 +115,7 @@ func (c *Controller) cashCountController() {
 		context := ctx.Request().Context()
 		var cashCountReq core.CashCountRequest
 		if err := ctx.Bind(&cashCountReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), invalid data: " + err.Error(),
 				Module:      "CashCount",
@@ -124,7 +124,7 @@ func (c *Controller) cashCountController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), user org error: " + err.Error(),
 				Module:      "CashCount",
@@ -132,7 +132,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for cash count (/cash-count)",
 				Module:      "CashCount",
@@ -147,7 +147,7 @@ func (c *Controller) cashCountController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), transaction batch lookup error: " + err.Error(),
 				Module:      "CashCount",
@@ -155,7 +155,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), no open transaction batch.",
 				Module:      "CashCount",
@@ -165,7 +165,7 @@ func (c *Controller) cashCountController() {
 
 		// Validate and set required fields
 		if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), validation error: " + err.Error(),
 				Module:      "CashCount",
@@ -174,7 +174,7 @@ func (c *Controller) cashCountController() {
 		}
 		cashCountReq.TransactionBatchID = transactionBatch.ID
 		cashCountReq.EmployeeUserID = userOrg.UserID
-		cashCountReq.Amount = cashCountReq.BillAmount * float64(cashCountReq.Quantity)
+		cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
 
 		newCashCount := &core.CashCount{
 			CreatedAt:          time.Now().UTC(),
@@ -193,14 +193,14 @@ func (c *Controller) cashCountController() {
 		}
 
 		if err := c.core.CashCountManager.Create(context, newCashCount); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), db error: " + err.Error(),
 				Module:      "CashCount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash count: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created cash count (/cash-count): " + newCashCount.Name,
 			Module:      "CashCount",
@@ -219,7 +219,7 @@ func (c *Controller) cashCountController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash counts update failed (/cash-count), user org error: " + err.Error(),
 				Module:      "CashCount",
@@ -227,7 +227,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for cash counts (/cash-count)",
 				Module:      "CashCount",
@@ -243,7 +243,7 @@ func (c *Controller) cashCountController() {
 		}
 		var batchRequest CashCountBatchRequest
 		if err := ctx.Bind(&batchRequest); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash counts update failed (/cash-count), invalid data: " + err.Error(),
 				Module:      "CashCount",
@@ -258,7 +258,7 @@ func (c *Controller) cashCountController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash counts update failed (/cash-count), transaction batch lookup error: " + err.Error(),
 				Module:      "CashCount",
@@ -266,7 +266,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash counts update failed (/cash-count), no open transaction batch.",
 				Module:      "CashCount",
@@ -277,7 +277,7 @@ func (c *Controller) cashCountController() {
 		if batchRequest.DeletedCashCounts != nil {
 			for _, deletedID := range *batchRequest.DeletedCashCounts {
 				if err := c.core.CashCountManager.Delete(context, deletedID); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count delete failed during update (/cash-count), db error: " + err.Error(),
 						Module:      "CashCount",
@@ -290,7 +290,7 @@ func (c *Controller) cashCountController() {
 		var updatedCashCounts []*core.CashCount
 		for _, cashCountReq := range batchRequest.CashCounts {
 			if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Cash count validation failed during update (/cash-count): " + err.Error(),
 					Module:      "CashCount",
@@ -299,7 +299,7 @@ func (c *Controller) cashCountController() {
 			}
 			cashCountReq.TransactionBatchID = transactionBatch.ID
 			cashCountReq.EmployeeUserID = userOrg.UserID
-			cashCountReq.Amount = cashCountReq.BillAmount * float64(cashCountReq.Quantity)
+			cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
 
 			if cashCountReq.ID != nil {
 				data := &core.CashCount{
@@ -319,7 +319,7 @@ func (c *Controller) cashCountController() {
 					BranchID:           *userOrg.BranchID,
 				}
 				if err := c.core.CashCountManager.UpdateByID(context, *cashCountReq.ID, data); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count update failed during update (/cash-count), db error: " + err.Error(),
 						Module:      "CashCount",
@@ -328,7 +328,7 @@ func (c *Controller) cashCountController() {
 				}
 				updatedCashCount, err := c.core.CashCountManager.GetByID(context, *cashCountReq.ID)
 				if err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count fetch failed after update (/cash-count): " + err.Error(),
 						Module:      "CashCount",
@@ -353,7 +353,7 @@ func (c *Controller) cashCountController() {
 					Name:               cashCountReq.Name,
 				}
 				if err := c.core.CashCountManager.Create(context, newCashCount); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count creation failed during update (/cash-count), db error: " + err.Error(),
 						Module:      "CashCount",
@@ -370,7 +370,7 @@ func (c *Controller) cashCountController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash count find failed after update (/cash-count): " + err.Error(),
 				Module:      "CashCount",
@@ -380,7 +380,7 @@ func (c *Controller) cashCountController() {
 
 		var totalCashCount float64
 		for _, cashCount := range allCashCounts {
-			totalCashCount += cashCount.Amount
+			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
 		}
 
 		depositInBank := transactionBatch.DepositInBank
@@ -388,7 +388,7 @@ func (c *Controller) cashCountController() {
 			depositInBank = *batchRequest.DepositInBank
 		}
 
-		grandTotal := totalCashCount + depositInBank
+		grandTotal := c.provider.Service.Decimal.Add(totalCashCount, depositInBank)
 
 		var responseRequests []core.CashCountRequest
 		for _, cashCount := range updatedCashCounts {
@@ -411,7 +411,7 @@ func (c *Controller) cashCountController() {
 			GrandTotal:     &grandTotal,
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated cash counts (/cash-count) for transaction batch",
 			Module:      "CashCount",
@@ -429,7 +429,7 @@ func (c *Controller) cashCountController() {
 		context := ctx.Request().Context()
 		cashCountID, err := handlers.EngineUUIDParam(ctx, "id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), invalid ID.",
 				Module:      "CashCount",
@@ -438,7 +438,7 @@ func (c *Controller) cashCountController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), user org error: " + err.Error(),
 				Module:      "CashCount",
@@ -446,7 +446,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for cash count (/cash-count/:id)",
 				Module:      "CashCount",
@@ -456,7 +456,7 @@ func (c *Controller) cashCountController() {
 
 		cashCount, err := c.core.CashCountManager.GetByID(context, *cashCountID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), record not found.",
 				Module:      "CashCount",
@@ -465,14 +465,14 @@ func (c *Controller) cashCountController() {
 		}
 
 		if err := c.core.CashCountManager.Delete(context, *cashCountID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), db error: " + err.Error(),
 				Module:      "CashCount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash count: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted cash count (/cash-count/:id): " + cashCount.Name,
 			Module:      "CashCount",

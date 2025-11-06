@@ -21,7 +21,7 @@ func (c *Controller) heartbeat() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "User authentication failed or organization not found: " + err.Error(),
 				Module:      "User",
@@ -34,14 +34,14 @@ func (c *Controller) heartbeat() {
 		userOrg.Status = core.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "Failed to update user organization status: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "online-success",
 			Description: "User set online status",
 			Module:      "User",
@@ -62,7 +62,7 @@ func (c *Controller) heartbeat() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "User authentication failed or organization not found: " + err.Error(),
 				Module:      "User",
@@ -75,14 +75,14 @@ func (c *Controller) heartbeat() {
 		userOrg.Status = core.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "Failed to update user organization status: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "offline-success",
 			Description: "User set offline status",
 			Module:      "User",

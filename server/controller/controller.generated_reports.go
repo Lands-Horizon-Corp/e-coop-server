@@ -13,6 +13,8 @@ import (
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
+	// Post
+
 	// GET /generated-report: Get all generated reports for the current user. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",
@@ -60,7 +62,7 @@ func (c *Controller) generatedReports() {
 		context := ctx.Request().Context()
 		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated report delete failed (/generated-report/:generated_report_id), invalid generated report ID.",
 				Module:      "GeneratedReport",
@@ -69,7 +71,7 @@ func (c *Controller) generatedReports() {
 		}
 		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated report delete failed (/generated-report/:generated_report_id), not found.",
 				Module:      "GeneratedReport",
@@ -78,7 +80,7 @@ func (c *Controller) generatedReports() {
 		}
 		if generatedReport.MediaID != nil {
 			if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Generated report delete failed (/generated-report/:generated_report_id), media delete error: " + err.Error(),
 					Module:      "GeneratedReport",
@@ -87,14 +89,14 @@ func (c *Controller) generatedReports() {
 			}
 		}
 		if err := c.core.GeneratedReportManager.Delete(context, generatedReport.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated report delete failed (/generated-report/:generated_report_id), db error: " + err.Error(),
 				Module:      "GeneratedReport",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted generated report (/generated-report/:generated_report_id): " + generatedReport.Name,
 			Module:      "GeneratedReport",

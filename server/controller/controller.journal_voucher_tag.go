@@ -91,7 +91,7 @@ func (c *Controller) journalVoucherTagController() {
 		context := ctx.Request().Context()
 		req, err := c.core.JournalVoucherTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), validation error: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -100,7 +100,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), user org error: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -108,7 +108,7 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), user not assigned to branch.",
 				Module:      "JournalVoucherTag",
@@ -132,14 +132,14 @@ func (c *Controller) journalVoucherTagController() {
 		}
 
 		if err := c.core.JournalVoucherTagManager.Create(context, tag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), db error: " + err.Error(),
 				Module:      "JournalVoucherTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created journal voucher tag (/journal-voucher-tag): " + tag.Name,
 			Module:      "JournalVoucherTag",
@@ -158,7 +158,7 @@ func (c *Controller) journalVoucherTagController() {
 		context := ctx.Request().Context()
 		tagID, err := handlers.EngineUUIDParam(ctx, "tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), invalid tag ID.",
 				Module:      "JournalVoucherTag",
@@ -168,7 +168,7 @@ func (c *Controller) journalVoucherTagController() {
 
 		req, err := c.core.JournalVoucherTagManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), validation error: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -177,7 +177,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), user org error: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -186,7 +186,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 		tag, err := c.core.JournalVoucherTagManager.GetByID(context, *tagID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), tag not found.",
 				Module:      "JournalVoucherTag",
@@ -202,14 +202,14 @@ func (c *Controller) journalVoucherTagController() {
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = user.UserID
 		if err := c.core.JournalVoucherTagManager.UpdateByID(context, tag.ID, tag); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher tag update failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
 				Module:      "JournalVoucherTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated journal voucher tag (/journal-voucher-tag/:tag_id): " + tag.Name,
 			Module:      "JournalVoucherTag",
@@ -257,7 +257,7 @@ func (c *Controller) journalVoucherTagController() {
 		context := ctx.Request().Context()
 		tagID, err := handlers.EngineUUIDParam(ctx, "tag_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher tag delete failed (/journal-voucher-tag/:tag_id), invalid tag ID.",
 				Module:      "JournalVoucherTag",
@@ -266,7 +266,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 		tag, err := c.core.JournalVoucherTagManager.GetByID(context, *tagID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher tag delete failed (/journal-voucher-tag/:tag_id), not found.",
 				Module:      "JournalVoucherTag",
@@ -274,14 +274,14 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher tag not found"})
 		}
 		if err := c.core.JournalVoucherTagManager.Delete(context, *tagID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Journal voucher tag delete failed (/journal-voucher-tag/:tag_id), db error: " + err.Error(),
 				Module:      "JournalVoucherTag",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher tag: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted journal voucher tag (/journal-voucher-tag/:tag_id): " + tag.Name,
 			Module:      "JournalVoucherTag",
@@ -300,7 +300,7 @@ func (c *Controller) journalVoucherTagController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -309,7 +309,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | no IDs provided",
 				Module:      "JournalVoucherTag",
@@ -318,7 +318,7 @@ func (c *Controller) journalVoucherTagController() {
 		}
 
 		if err := c.core.JournalVoucherTagManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher-tag/bulk-delete) | error: " + err.Error(),
 				Module:      "JournalVoucherTag",
@@ -326,7 +326,7 @@ func (c *Controller) journalVoucherTagController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete journal voucher tags: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted journal voucher tags (/journal-voucher-tag/bulk-delete)",
 			Module:      "JournalVoucherTag",

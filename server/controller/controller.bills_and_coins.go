@@ -24,7 +24,7 @@ func (c *Controller) billAndCoinsController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -33,7 +33,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: current batch error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -106,7 +106,7 @@ func (c *Controller) billAndCoinsController() {
 		context := ctx.Request().Context()
 		req, err := c.core.BillAndCoinsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bills and coins creation failed (/bills-and-coins), validation error: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -115,7 +115,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bills and coins creation failed (/bills-and-coins), user org error: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -123,7 +123,7 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bills and coins creation failed (/bills-and-coins), user not assigned to branch.",
 				Module:      "BillAndCoins",
@@ -146,14 +146,14 @@ func (c *Controller) billAndCoinsController() {
 		}
 
 		if err := c.core.BillAndCoinsManager.Create(context, billAndCoins); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Bills and coins creation failed (/bills-and-coins), db error: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create bills and coins record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created bills and coins (/bills-and-coins): " + billAndCoins.Name,
 			Module:      "BillAndCoins",
@@ -172,7 +172,7 @@ func (c *Controller) billAndCoinsController() {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), invalid ID.",
 				Module:      "BillAndCoins",
@@ -182,7 +182,7 @@ func (c *Controller) billAndCoinsController() {
 
 		req, err := c.core.BillAndCoinsManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), validation error: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -191,7 +191,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), user org error: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -200,7 +200,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		billAndCoins, err := c.core.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), record not found.",
 				Module:      "BillAndCoins",
@@ -215,14 +215,14 @@ func (c *Controller) billAndCoinsController() {
 		billAndCoins.UpdatedAt = time.Now().UTC()
 		billAndCoins.UpdatedByID = user.UserID
 		if err := c.core.BillAndCoinsManager.UpdateByID(context, billAndCoins.ID, billAndCoins); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bills and coins update failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Failed to update bills and coins record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated bills and coins (/bills-and-coins/:bills_and_coins_id): " + billAndCoins.Name,
 			Module:      "BillAndCoins",
@@ -239,7 +239,7 @@ func (c *Controller) billAndCoinsController() {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := handlers.EngineUUIDParam(ctx, "bills_and_coins_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), invalid ID.",
 				Module:      "BillAndCoins",
@@ -248,7 +248,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 		billAndCoins, err := c.core.BillAndCoinsManager.GetByID(context, *billAndCoinsID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), record not found.",
 				Module:      "BillAndCoins",
@@ -256,14 +256,14 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
 		if err := c.core.BillAndCoinsManager.Delete(context, *billAndCoinsID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),
 				Module:      "BillAndCoins",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete bills and coins record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted bills and coins (/bills-and-coins/:bills_and_coins_id): " + billAndCoins.Name,
 			Module:      "BillAndCoins",
@@ -280,7 +280,7 @@ func (c *Controller) billAndCoinsController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -288,7 +288,7 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | no IDs provided",
 				Module:      "BillAndCoins",
@@ -297,7 +297,7 @@ func (c *Controller) billAndCoinsController() {
 		}
 
 		if err := c.core.BillAndCoinsManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete bills and coins (/bills-and-coins/bulk-delete) | error: " + err.Error(),
 				Module:      "BillAndCoins",
@@ -305,7 +305,7 @@ func (c *Controller) billAndCoinsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete bills and coins records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted bills and coins (/bills-and-coins/bulk-delete)",
 			Module:      "BillAndCoins",

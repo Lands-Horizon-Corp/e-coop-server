@@ -66,7 +66,7 @@ func (c *Controller) timeDepositTypeController() {
 		context := ctx.Request().Context()
 		req, err := c.core.TimeDepositTypeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), validation error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -75,7 +75,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), user org error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -83,7 +83,7 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), user not assigned to branch.",
 				Module:      "TimeDepositType",
@@ -107,14 +107,14 @@ func (c *Controller) timeDepositTypeController() {
 		}
 
 		if err := c.core.TimeDepositTypeManager.Create(context, timeDepositType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), db error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit type: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created time deposit type (/time-deposit-type): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
@@ -133,7 +133,7 @@ func (c *Controller) timeDepositTypeController() {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), invalid time deposit type ID.",
 				Module:      "TimeDepositType",
@@ -143,7 +143,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		req, err := c.core.TimeDepositTypeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), validation error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -152,7 +152,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), user org error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -161,7 +161,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		timeDepositType, err := c.core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), time deposit type not found.",
 				Module:      "TimeDepositType",
@@ -172,7 +172,7 @@ func (c *Controller) timeDepositTypeController() {
 		// Start database transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + tx.Error.Error(),
 				Module:      "TimeDepositType",
@@ -203,7 +203,7 @@ func (c *Controller) timeDepositTypeController() {
 		timeDepositType.Header11 = req.Header11
 
 		if err := c.core.TimeDepositTypeManager.UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -215,7 +215,7 @@ func (c *Controller) timeDepositTypeController() {
 		if req.TimeDepositComputationsDeleted != nil {
 			for _, id := range req.TimeDepositComputationsDeleted {
 				if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation: " + err.Error(),
 						Module:      "TimeDepositType",
@@ -228,7 +228,7 @@ func (c *Controller) timeDepositTypeController() {
 		if req.TimeDepositComputationPreMaturesDeleted != nil {
 			for _, id := range req.TimeDepositComputationPreMaturesDeleted {
 				if err := c.core.TimeDepositComputationPreMatureManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation pre mature: " + err.Error(),
 						Module:      "TimeDepositType",
@@ -338,7 +338,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		// Commit the transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit time deposit type update transaction: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -346,7 +346,7 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit time deposit type update: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
@@ -367,7 +367,7 @@ func (c *Controller) timeDepositTypeController() {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), invalid time deposit type ID.",
 				Module:      "TimeDepositType",
@@ -376,7 +376,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		timeDepositType, err := c.core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), not found.",
 				Module:      "TimeDepositType",
@@ -384,14 +384,14 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
 		if err := c.core.TimeDepositTypeManager.Delete(context, *timeDepositTypeID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit type: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
@@ -410,7 +410,7 @@ func (c *Controller) timeDepositTypeController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -419,7 +419,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | no IDs provided",
 				Module:      "TimeDepositType",
@@ -429,7 +429,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
 		if err := c.core.TimeDepositTypeManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -437,7 +437,7 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete time deposit types: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted time deposit types (/time-deposit-type/bulk-delete)",
 			Module:      "TimeDepositType",
@@ -459,7 +459,7 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
 				Module:      "Bank",

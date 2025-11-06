@@ -25,7 +25,7 @@ func (c *Controller) batchFundingController() {
 		context := ctx.Request().Context()
 		batchFundingReq, err := c.core.BatchFundingManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), validation error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -34,7 +34,7 @@ func (c *Controller) batchFundingController() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), user org error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -42,7 +42,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for batch funding (/batch-funding)",
 				Module:      "BatchFunding",
@@ -56,7 +56,7 @@ func (c *Controller) batchFundingController() {
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), transaction batch lookup error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -64,7 +64,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not find an active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), no open transaction batch.",
 				Module:      "BatchFunding",
@@ -78,7 +78,7 @@ func (c *Controller) batchFundingController() {
 			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), cash count lookup error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -88,16 +88,16 @@ func (c *Controller) batchFundingController() {
 
 		var totalCashCount float64
 		for _, cashCount := range cashCounts {
-			totalCashCount += cashCount.Amount * float64(cashCount.Quantity)
+			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, c.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
 		}
 
-		transactionBatch.BeginningBalance += batchFundingReq.Amount
-		transactionBatch.TotalCashHandled = batchFundingReq.Amount + transactionBatch.DepositInBank + totalCashCount
+		transactionBatch.BeginningBalance = c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, batchFundingReq.Amount)
+		transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(batchFundingReq.Amount, transactionBatch.DepositInBank), totalCashCount)
 		transactionBatch.CashCountTotal = totalCashCount
-		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
+		transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, transactionBatch.DepositInBank)
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -121,14 +121,14 @@ func (c *Controller) batchFundingController() {
 		}
 
 		if err := c.core.BatchFundingManager.Create(context, batchFunding); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), db error: " + err.Error(),
 				Module:      "BatchFunding",
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Unable to create batch funding record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created batch funding (/batch-funding): " + batchFunding.Name,
 			Module:      "BatchFunding",

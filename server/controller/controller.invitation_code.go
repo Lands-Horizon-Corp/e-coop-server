@@ -107,7 +107,7 @@ func (c *Controller) invitationCode() {
 		context := ctx.Request().Context()
 		req, err := c.core.InvitationCodeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), validation error: " + err.Error(),
 				Module:      "InvitationCode",
@@ -116,7 +116,7 @@ func (c *Controller) invitationCode() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), user org error: " + err.Error(),
 				Module:      "InvitationCode",
@@ -124,7 +124,7 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for invitation code (/invitation-code)",
 				Module:      "InvitationCode",
@@ -132,7 +132,7 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
 		if core.UserOrganizationType(req.UserType) == core.UserOrganizationTypeOwner {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), attempted to create user type 'owner'",
 				Module:      "InvitationCode",
@@ -140,7 +140,7 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot create invitation code with user type 'owner'"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), user not assigned to branch.",
 				Module:      "InvitationCode",
@@ -162,14 +162,14 @@ func (c *Controller) invitationCode() {
 			Description:    req.Description,
 		}
 		if err := c.core.InvitationCodeManager.Create(context, data); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), db error: " + err.Error(),
 				Module:      "InvitationCode",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create invitation code: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created invitation code (/invitation-code): " + data.Code,
 			Module:      "InvitationCode",
@@ -188,7 +188,7 @@ func (c *Controller) invitationCode() {
 		context := ctx.Request().Context()
 		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), invalid invitation code ID.",
 				Module:      "InvitationCode",
@@ -197,7 +197,7 @@ func (c *Controller) invitationCode() {
 		}
 		req, err := c.core.InvitationCodeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), validation error: " + err.Error(),
 				Module:      "InvitationCode",
@@ -206,7 +206,7 @@ func (c *Controller) invitationCode() {
 		}
 		invitationCode, err := c.core.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), not found.",
 				Module:      "InvitationCode",
@@ -215,7 +215,7 @@ func (c *Controller) invitationCode() {
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), user org error: " + err.Error(),
 				Module:      "InvitationCode",
@@ -223,7 +223,7 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), user not assigned to branch.",
 				Module:      "InvitationCode",
@@ -244,14 +244,14 @@ func (c *Controller) invitationCode() {
 		invitationCode.PermissionName = req.PermissionName
 
 		if err := c.core.InvitationCodeManager.UpdateByID(context, invitationCode.ID, invitationCode); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Invitation code update failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
 				Module:      "InvitationCode",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update invitation code: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated invitation code (/invitation-code/:invitation_code_id): " + invitationCode.Code,
 			Module:      "InvitationCode",
@@ -268,7 +268,7 @@ func (c *Controller) invitationCode() {
 		context := ctx.Request().Context()
 		invitationCodeID, err := handlers.EngineUUIDParam(ctx, "invitation_code_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), invalid invitation code ID.",
 				Module:      "InvitationCode",
@@ -277,7 +277,7 @@ func (c *Controller) invitationCode() {
 		}
 		codeModel, err := c.core.InvitationCodeManager.GetByID(context, *invitationCodeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), not found.",
 				Module:      "InvitationCode",
@@ -285,14 +285,14 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		if err := c.core.InvitationCodeManager.Delete(context, *invitationCodeID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Invitation code delete failed (/invitation-code/:invitation_code_id), db error: " + err.Error(),
 				Module:      "InvitationCode",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete invitation code: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted invitation code (/invitation-code/:invitation_code_id): " + codeModel.Code,
 			Module:      "InvitationCode",
@@ -311,7 +311,7 @@ func (c *Controller) invitationCode() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "InvitationCode",
@@ -320,7 +320,7 @@ func (c *Controller) invitationCode() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | no IDs provided",
 				Module:      "InvitationCode",
@@ -329,7 +329,7 @@ func (c *Controller) invitationCode() {
 		}
 
 		if err := c.core.InvitationCodeManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | error: " + err.Error(),
 				Module:      "InvitationCode",
@@ -337,7 +337,7 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete invitation codes: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted invitation codes (/invitation-code/bulk-delete)",
 			Module:      "InvitationCode",

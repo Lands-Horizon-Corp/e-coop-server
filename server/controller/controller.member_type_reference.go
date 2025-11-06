@@ -73,7 +73,7 @@ func (c *Controller) memberTypeReferenceController() {
 		context := ctx.Request().Context()
 		req, err := c.core.MemberTypeReferenceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type reference failed: validation error: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -82,7 +82,7 @@ func (c *Controller) memberTypeReferenceController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type reference failed: user org error: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -111,7 +111,7 @@ func (c *Controller) memberTypeReferenceController() {
 		}
 
 		if err := c.core.MemberTypeReferenceManager.Create(context, ref); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type reference failed: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -119,7 +119,7 @@ func (c *Controller) memberTypeReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member type reference: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member type reference for member_type_id: " + ref.MemberTypeID.String(),
 			Module:      "MemberTypeReference",
@@ -139,7 +139,7 @@ func (c *Controller) memberTypeReferenceController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "member_type_reference_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: invalid member_type_reference_id: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -149,7 +149,7 @@ func (c *Controller) memberTypeReferenceController() {
 
 		req, err := c.core.MemberTypeReferenceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: validation error: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -158,7 +158,7 @@ func (c *Controller) memberTypeReferenceController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: user org error: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -168,7 +168,7 @@ func (c *Controller) memberTypeReferenceController() {
 
 		ref, err := c.core.MemberTypeReferenceManager.GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: record not found: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -189,14 +189,14 @@ func (c *Controller) memberTypeReferenceController() {
 		ref.UpdatedAt = time.Now().UTC()
 		ref.UpdatedByID = user.UserID
 		if err := c.core.MemberTypeReferenceManager.UpdateByID(context, ref.ID, ref); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type reference failed: update error: " + err.Error(),
 				Module:      "MemberTypeReference",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member type reference: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member type reference for member_type_reference_id: " + ref.ID.String(),
 			Module:      "MemberTypeReference",
@@ -213,7 +213,7 @@ func (c *Controller) memberTypeReferenceController() {
 		context := ctx.Request().Context()
 		id, err := handlers.EngineUUIDParam(ctx, "member_type_reference_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type reference failed: invalid member_type_reference_id: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -221,14 +221,14 @@ func (c *Controller) memberTypeReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_reference_id: " + err.Error()})
 		}
 		if err := c.core.MemberTypeReferenceManager.Delete(context, *id); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type reference failed: " + err.Error(),
 				Module:      "MemberTypeReference",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member type reference: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member type reference for member_type_reference_id: " + id.String(),
 			Module:      "MemberTypeReference",
@@ -246,7 +246,7 @@ func (c *Controller) memberTypeReferenceController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -255,7 +255,7 @@ func (c *Controller) memberTypeReferenceController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | no IDs provided",
 				Module:      "MemberTypeReference",
@@ -265,7 +265,7 @@ func (c *Controller) memberTypeReferenceController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberTypeReferenceManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member type references failed (/member-type-reference/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberTypeReference",
@@ -273,7 +273,7 @@ func (c *Controller) memberTypeReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member type references: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member type references (/member-type-reference/bulk-delete)",
 			Module:      "MemberTypeReference",

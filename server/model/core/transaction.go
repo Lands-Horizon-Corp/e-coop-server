@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -249,7 +250,7 @@ func (m *Core) TransactionsByUserType(
 			UserID: &userID,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve member profile: %w", err)
+			return nil, eris.Wrap(err, "failed to retrieve member profile")
 		}
 		filter.MemberProfileID = &memberProfile.ID
 	} else {

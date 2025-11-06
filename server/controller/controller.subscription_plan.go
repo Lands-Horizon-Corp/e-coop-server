@@ -60,7 +60,7 @@ func (c *Controller) subscriptionPlanController() {
 		context := ctx.Request().Context()
 		req, err := c.core.SubscriptionPlanManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create subscription plan failed: validation error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -90,7 +90,7 @@ func (c *Controller) subscriptionPlanController() {
 		}
 
 		if err := c.core.SubscriptionPlanManager.Create(context, subscriptionPlan); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create subscription plan failed: create error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -98,7 +98,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
@@ -118,7 +118,7 @@ func (c *Controller) subscriptionPlanController() {
 		context := ctx.Request().Context()
 		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: invalid subscription_plan_id: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -128,7 +128,7 @@ func (c *Controller) subscriptionPlanController() {
 
 		req, err := c.core.SubscriptionPlanManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: validation error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -138,7 +138,7 @@ func (c *Controller) subscriptionPlanController() {
 
 		subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: not found: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -165,7 +165,7 @@ func (c *Controller) subscriptionPlanController() {
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.SubscriptionPlanManager.UpdateByID(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: update error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -173,7 +173,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
@@ -191,7 +191,7 @@ func (c *Controller) subscriptionPlanController() {
 		context := ctx.Request().Context()
 		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: invalid subscription_plan_id: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -201,7 +201,7 @@ func (c *Controller) subscriptionPlanController() {
 
 		subscriptionPlan, err := c.core.SubscriptionPlanManager.GetByID(context, *subscriptionPlanID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: not found: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -210,7 +210,7 @@ func (c *Controller) subscriptionPlanController() {
 		}
 
 		if err := c.core.SubscriptionPlanManager.Delete(context, *subscriptionPlanID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: delete error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -218,7 +218,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
@@ -238,7 +238,7 @@ func (c *Controller) subscriptionPlanController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -247,7 +247,7 @@ func (c *Controller) subscriptionPlanController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | no IDs provided",
 				Module:      "SubscriptionPlan",
@@ -257,7 +257,7 @@ func (c *Controller) subscriptionPlanController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.SubscriptionPlanManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -265,7 +265,7 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete subscription plans: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted subscription plans (/subscription-plan/bulk-delete)",
 			Module:      "SubscriptionPlan",

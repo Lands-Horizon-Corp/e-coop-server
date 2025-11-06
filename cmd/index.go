@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -50,8 +49,7 @@ func init() {
 // It is intended to be called from main.main to start the CLI.
 func Execute() {
 	if err := command.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 }
 

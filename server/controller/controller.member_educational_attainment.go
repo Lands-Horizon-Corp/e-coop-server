@@ -24,7 +24,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), invalid member_profile_id: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -33,7 +33,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 		req, err := c.core.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), validation error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -42,7 +42,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), user org error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -66,7 +66,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 
 		if err := c.core.MemberEducationalAttainmentManager.Create(context, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), db error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -74,7 +74,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create educational attainment record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created educational attainment (/member-educational-attainment/member-profile/:member_profile_id): " + value.SchoolName,
 			Module:      "MemberEducationalAttainment",
@@ -94,7 +94,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		context := ctx.Request().Context()
 		memberEducationalAttainmentID, err := handlers.EngineUUIDParam(ctx, "member_educational_attainment_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), invalid member_educational_attainment_id: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -103,7 +103,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 		req, err := c.core.MemberEducationalAttainmentManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), validation error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -112,7 +112,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), user org error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -122,7 +122,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 
 		value, err := c.core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), record not found: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -142,14 +142,14 @@ func (c *Controller) memberEducationalAttainmentController() {
 		value.Description = req.Description
 
 		if err := c.core.MemberEducationalAttainmentManager.UpdateByID(context, value.ID, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update educational attainment record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated educational attainment (/member-educational-attainment/:member_educational_attainment_id): " + value.SchoolName,
 			Module:      "MemberEducationalAttainment",
@@ -166,7 +166,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		context := ctx.Request().Context()
 		memberEducationalAttainmentID, err := handlers.EngineUUIDParam(ctx, "member_educational_attainment_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), invalid member_educational_attainment_id: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -175,7 +175,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 		value, err := c.core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), record not found: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -183,14 +183,14 @@ func (c *Controller) memberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Educational attainment record not found: " + err.Error()})
 		}
 		if err := c.core.MemberEducationalAttainmentManager.Delete(context, *memberEducationalAttainmentID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete educational attainment record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted educational attainment (/member-educational-attainment/:member_educational_attainment_id): " + value.SchoolName,
 			Module:      "MemberEducationalAttainment",
@@ -209,7 +209,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -218,7 +218,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | no IDs provided",
 				Module:      "MemberEducationalAttainment",
@@ -228,7 +228,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 
 		// Delegate deletion to the manager. Manager should handle transactionality, validations and DeletedBy bookkeeping.
 		if err := c.core.MemberEducationalAttainmentManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberEducationalAttainment",
@@ -236,7 +236,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete educational attainment records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted educational attainments (/member-educational-attainment/bulk-delete)",
 			Module:      "MemberEducationalAttainment",

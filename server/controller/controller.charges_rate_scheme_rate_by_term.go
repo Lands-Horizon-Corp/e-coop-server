@@ -25,7 +25,7 @@ func (c *Controller) chargesRateByTermController() {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), invalid charges rate scheme ID.",
 				Module:      "ChargesRateByTerm",
@@ -34,7 +34,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 		req, err := c.core.ChargesRateByTermManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), validation error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -43,7 +43,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), user org error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -51,7 +51,7 @@ func (c *Controller) chargesRateByTermController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), user not assigned to branch.",
 				Module:      "ChargesRateByTerm",
@@ -95,14 +95,14 @@ func (c *Controller) chargesRateByTermController() {
 		}
 
 		if err := c.core.ChargesRateByTermManager.Create(context, chargesRateByTerm); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), db error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created charges rate by term (/charges-rate-by-term): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
@@ -121,7 +121,7 @@ func (c *Controller) chargesRateByTermController() {
 		context := ctx.Request().Context()
 		chargesRateByTermID, err := handlers.EngineUUIDParam(ctx, "charges_rate_by_term_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), invalid charges rate by term ID.",
 				Module:      "ChargesRateByTerm",
@@ -131,7 +131,7 @@ func (c *Controller) chargesRateByTermController() {
 
 		req, err := c.core.ChargesRateByTermManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), validation error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -140,7 +140,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), user org error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -149,7 +149,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 		chargesRateByTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), charges rate by term not found.",
 				Module:      "ChargesRateByTerm",
@@ -184,14 +184,14 @@ func (c *Controller) chargesRateByTermController() {
 		chargesRateByTerm.UpdatedAt = time.Now().UTC()
 		chargesRateByTerm.UpdatedByID = user.UserID
 		if err := c.core.ChargesRateByTermManager.UpdateByID(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated charges rate by term (/charges-rate-by-term/:charges_rate_by_term_id): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
@@ -208,7 +208,7 @@ func (c *Controller) chargesRateByTermController() {
 		context := ctx.Request().Context()
 		chargesRateByTermID, err := handlers.EngineUUIDParam(ctx, "charges_rate_by_term_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), invalid charges rate by term ID.",
 				Module:      "ChargesRateByTerm",
@@ -217,7 +217,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 		chargesRateByTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), not found.",
 				Module:      "ChargesRateByTerm",
@@ -225,14 +225,14 @@ func (c *Controller) chargesRateByTermController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by term not found"})
 		}
 		if err := c.core.ChargesRateByTermManager.Delete(context, *chargesRateByTermID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate by term: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted charges rate by term (/charges-rate-by-term/:charges_rate_by_term_id): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
@@ -250,7 +250,7 @@ func (c *Controller) chargesRateByTermController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-term/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -258,7 +258,7 @@ func (c *Controller) chargesRateByTermController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-term/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateByTerm",
@@ -267,7 +267,7 @@ func (c *Controller) chargesRateByTermController() {
 		}
 
 		if err := c.core.ChargesRateByTermManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-term/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateByTerm",
@@ -275,7 +275,7 @@ func (c *Controller) chargesRateByTermController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate by term: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted charges rate by term (/charges-rate-by-term/bulk-delete)",
 			Module:      "ChargesRateByTerm",

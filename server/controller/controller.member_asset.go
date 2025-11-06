@@ -25,7 +25,7 @@ func (c *Controller) memberAssetController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), invalid member profile ID.",
 				Module:      "MemberAsset",
@@ -34,7 +34,7 @@ func (c *Controller) memberAssetController() {
 		}
 		req, err := c.core.MemberAssetManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), validation error: " + err.Error(),
 				Module:      "MemberAsset",
@@ -43,7 +43,7 @@ func (c *Controller) memberAssetController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), user org error: " + err.Error(),
 				Module:      "MemberAsset",
@@ -51,7 +51,7 @@ func (c *Controller) memberAssetController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), user not assigned to branch.",
 				Module:      "MemberAsset",
@@ -73,14 +73,14 @@ func (c *Controller) memberAssetController() {
 			OrganizationID:  user.OrganizationID,
 		}
 		if err := c.core.MemberAssetManager.Create(context, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), db error: " + err.Error(),
 				Module:      "MemberAsset",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member asset record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member asset (/member-asset/member-profile/:member_profile_id): " + value.Name,
 			Module:      "MemberAsset",
@@ -99,7 +99,7 @@ func (c *Controller) memberAssetController() {
 		context := ctx.Request().Context()
 		memberAssetID, err := handlers.EngineUUIDParam(ctx, "member_asset_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), invalid member asset ID.",
 				Module:      "MemberAsset",
@@ -108,7 +108,7 @@ func (c *Controller) memberAssetController() {
 		}
 		req, err := c.core.MemberAssetManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), validation error: " + err.Error(),
 				Module:      "MemberAsset",
@@ -117,7 +117,7 @@ func (c *Controller) memberAssetController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), user org error: " + err.Error(),
 				Module:      "MemberAsset",
@@ -125,7 +125,7 @@ func (c *Controller) memberAssetController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), user not assigned to branch.",
 				Module:      "MemberAsset",
@@ -134,7 +134,7 @@ func (c *Controller) memberAssetController() {
 		}
 		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), record not found.",
 				Module:      "MemberAsset",
@@ -152,14 +152,14 @@ func (c *Controller) memberAssetController() {
 		value.Cost = req.Cost
 
 		if err := c.core.MemberAssetManager.UpdateByID(context, value.ID, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),
 				Module:      "MemberAsset",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member asset record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member asset (/member-asset/:member_asset_id): " + value.Name,
 			Module:      "MemberAsset",
@@ -176,7 +176,7 @@ func (c *Controller) memberAssetController() {
 		context := ctx.Request().Context()
 		memberAssetID, err := handlers.EngineUUIDParam(ctx, "member_asset_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), invalid member asset ID.",
 				Module:      "MemberAsset",
@@ -185,7 +185,7 @@ func (c *Controller) memberAssetController() {
 		}
 		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), record not found.",
 				Module:      "MemberAsset",
@@ -193,14 +193,14 @@ func (c *Controller) memberAssetController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member asset record not found"})
 		}
 		if err := c.core.MemberAssetManager.Delete(context, *memberAssetID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),
 				Module:      "MemberAsset",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member asset record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member asset (/member-asset/:member_asset_id): " + value.Name,
 			Module:      "MemberAsset",

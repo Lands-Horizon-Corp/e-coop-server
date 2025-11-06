@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // LoanTransactionTotalResponse represents the total calculations for a loan transaction
@@ -175,7 +176,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "draft-error",
 				Description: "Loan transaction draft failed, user org error.",
 				Module:      "LoanTransaction",
@@ -202,7 +203,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Loan transaction printed fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -229,7 +230,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Loan transaction approved fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -256,7 +257,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -282,7 +283,7 @@ func (c *Controller) loanTransactionController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -378,59 +379,18 @@ func (c *Controller) loanTransactionController() {
 		// Calculate totals
 		var totalCredit, totalDebit float64
 		for _, entry := range loanTransactionEntries {
-			totalCredit += entry.Credit
-			totalDebit += entry.Debit
+			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 		}
 
 		// Calculate total interest (assuming interest is the difference between debit and credit)
-		totalInterest := totalDebit - totalCredit
+		totalInterest := c.provider.Service.Decimal.Subtract(totalDebit, totalCredit)
 
 		return ctx.JSON(http.StatusOK, core.LoanTransactionTotalResponse{
 			TotalInterest: totalInterest,
 			TotalDebit:    totalDebit,
 			TotalCredit:   totalCredit,
 		})
-	})
-
-	// GET /api/v1/loan-transaction/:loan_transaction_id/amortization-schedule
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/:loan_transaction_id/amortization-schedule",
-		Method:       "GET",
-		ResponseType: core.AmortizationScheduleResponse{},
-		Note:         "Returns the amortization schedule for a specific loan transaction with payment details.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
-		}
-
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan amortization schedule"})
-		}
-
-		// Verify that the loan transaction exists and belongs to the user's organization and branch
-		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
-		}
-
-		// Check if the loan transaction belongs to the user's organization and branch
-		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
-		}
-
-		// Generate amortization schedule
-		schedule, err := c.core.GenerateLoanAmortizationSchedule(context, loanTransaction)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate amortization schedule: " + err.Error()})
-		}
-
-		return ctx.JSON(http.StatusOK, schedule)
 	})
 
 	// POST /api/v1/loan-transaction
@@ -457,7 +417,7 @@ func (c *Controller) loanTransactionController() {
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -550,7 +510,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 		if cashOnHandAccountID == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch: " + endTx(fmt.Errorf("cash on hand account not set")).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch: " + endTx(eris.New("cash on hand account not set")).Error()})
 		}
 		if err := c.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
@@ -684,7 +644,7 @@ func (c *Controller) loanTransactionController() {
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -745,7 +705,7 @@ func (c *Controller) loanTransactionController() {
 
 		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -771,10 +731,9 @@ func (c *Controller) loanTransactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts for currency conversion: " + endTx(err).Error()})
 			}
 			if len(accounts) == 0 {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion: " + endTx(fmt.Errorf("no account found")).Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion: " + endTx(eris.New("no account found")).Error()})
 			}
 			cashOnCashEquivalenceAccountID = accounts[0].ID
-			fmt.Println("Converted Cash on Cash Equivalence Account ID:", cashOnCashEquivalenceAccountID)
 		}
 
 		// Update fields
@@ -858,7 +817,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis for deletion: " + endTx(err).Error()})
 				}
 				if clearanceAnalysis.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				clearanceAnalysis.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
@@ -874,7 +833,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution for deletion: " + endTx(err).Error()})
 				}
 				if institution.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				institution.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution.ID); err != nil {
@@ -890,7 +849,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment for deletion: " + endTx(err).Error()})
 				}
 				if suggestedPayment.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				suggestedPayment.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
@@ -906,7 +865,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt for deletion: " + endTx(err).Error()})
 				}
 				if amountReceipt.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				amountReceipt.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
@@ -923,7 +882,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile for deletion: " + endTx(err).Error()})
 				}
 				if comakerMemberProfile.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerMemberProfile.DeletedByID = &userOrg.UserID
 				if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
@@ -940,7 +899,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker collateral for deletion: " + endTx(err).Error()})
 				}
 				if comakerCollateral.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerCollateral.DeletedByID = &userOrg.UserID
 				if err := c.core.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral.ID); err != nil {
@@ -960,7 +919,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1009,7 +968,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1052,7 +1011,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1095,7 +1054,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update loan terms amount receipt that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "cannot update loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(eris.New("cannot update loan terms amount receipt that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1138,7 +1097,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker member profile that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update comaker member profile that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker member profile that doesn't belong to this loan transaction: " + endTx(eris.New("Cannot update comaker member profile that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1187,7 +1146,8 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker collateral that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update comaker collateral that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden,
+							map[string]string{"error": "Cannot update comaker collateral that doesn't belong to this loan transaction: " + endTx(eris.New("Cannot update comaker collateral that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1239,11 +1199,10 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + endTx(err).Error()})
 				}
 			}
-			fmt.Println("Converted loan transaction entries due to currency change.")
 		} else {
 			loanTransactionEntry, err := c.core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 			if err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1254,7 +1213,7 @@ func (c *Controller) loanTransactionController() {
 			loanTransactionEntry.Name = account.Name
 			loanTransactionEntry.Description = account.Description
 			if err := c.core.LoanTransactionEntryManager.UpdateByIDWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1268,7 +1227,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -1432,7 +1391,7 @@ func (c *Controller) loanTransactionController() {
 
 		// Commit the transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "commit-error",
 				Description: "Failed to commit transaction: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1440,7 +1399,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: fmt.Sprintf("Successfully deleted loan transaction %s and all related records", loanTransaction.ID),
 			Module:      "LoanTransaction",
@@ -1462,7 +1421,7 @@ func (c *Controller) loanTransactionController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1471,7 +1430,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | no IDs provided",
 				Module:      "LoanTransaction",
@@ -1482,7 +1441,7 @@ func (c *Controller) loanTransactionController() {
 		// Authorization / org+branch resolution stays in the handler
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | auth/organization error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1490,7 +1449,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | unauthorized user type",
 				Module:      "LoanTransaction",
@@ -1501,7 +1460,7 @@ func (c *Controller) loanTransactionController() {
 		// Delegate complex deletion (transaction, related records, ownership checks) to the manager.
 		// Manager signature assumed: BulkDeleteWithOrg(ctx context.Context, ids []string, userOrg core.UserOrganization) error
 		if err := c.core.LoanTransactionManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1511,7 +1470,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan transactions: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan transactions (/loan-transaction/bulk-delete)",
 			Module:      "LoanTransaction",
@@ -1707,6 +1666,11 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Loan transaction has been approved by %s and is waiting to be released", *userOrg.User.FirstName),
+			Title:            "Loan Transaction Approved - Pending Release",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
@@ -1806,6 +1770,12 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + endTx(err).Error()})
 		}
+
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Loan transaction has been released by %s", *userOrg.User.FirstName),
+			Title:            "Loan Transaction Released",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
@@ -1909,7 +1879,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		loanTransactionEntry, err := c.core.GetCashOnCashEquivalence(context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1920,7 +1890,7 @@ func (c *Controller) loanTransactionController() {
 		loanTransactionEntry.Name = account.Name
 		loanTransactionEntry.Description = account.Description
 		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1929,7 +1899,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		loanTransaction, err := c.core.LoanTransactionManager.GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction not found after entry update (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1965,6 +1935,25 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSuggestedResponse{
 			Terms: suggestedTerms,
 		})
+	})
+
+	// GET /api/v1/loan-transaction/:loan_transaction_id/schedule
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/schedule",
+		Method:       "GET",
+		ResponseType: event.LoanAmortizationScheduleResponse{},
+		Note:         "Retrieves the payment schedule for a loan transaction by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, schedule)
 	})
 
 }

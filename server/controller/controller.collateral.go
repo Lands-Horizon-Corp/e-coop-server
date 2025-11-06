@@ -91,7 +91,7 @@ func (c *Controller) collateralController() {
 		context := ctx.Request().Context()
 		req, err := c.core.CollateralManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Collateral creation failed (/collateral), validation error: " + err.Error(),
 				Module:      "Collateral",
@@ -100,7 +100,7 @@ func (c *Controller) collateralController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Collateral creation failed (/collateral), user org error: " + err.Error(),
 				Module:      "Collateral",
@@ -108,7 +108,7 @@ func (c *Controller) collateralController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Collateral creation failed (/collateral), user not assigned to branch.",
 				Module:      "Collateral",
@@ -129,7 +129,7 @@ func (c *Controller) collateralController() {
 		}
 
 		if err := c.core.CollateralManager.Create(context, collateral); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Collateral creation failed (/collateral), db error: " + err.Error(),
 				Module:      "Collateral",
@@ -137,7 +137,7 @@ func (c *Controller) collateralController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create collateral record: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created collateral (/collateral): " + collateral.Name,
 			Module:      "Collateral",
@@ -156,7 +156,7 @@ func (c *Controller) collateralController() {
 		context := ctx.Request().Context()
 		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), invalid collateral ID.",
 				Module:      "Collateral",
@@ -166,7 +166,7 @@ func (c *Controller) collateralController() {
 
 		req, err := c.core.CollateralManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), validation error: " + err.Error(),
 				Module:      "Collateral",
@@ -175,7 +175,7 @@ func (c *Controller) collateralController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), user org error: " + err.Error(),
 				Module:      "Collateral",
@@ -184,7 +184,7 @@ func (c *Controller) collateralController() {
 		}
 		collateral, err := c.core.CollateralManager.GetByID(context, *collateralID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), record not found.",
 				Module:      "Collateral",
@@ -197,14 +197,14 @@ func (c *Controller) collateralController() {
 		collateral.UpdatedAt = time.Now().UTC()
 		collateral.UpdatedByID = user.UserID
 		if err := c.core.CollateralManager.UpdateByID(context, collateral.ID, collateral); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Collateral update failed (/collateral/:collateral_id), db error: " + err.Error(),
 				Module:      "Collateral",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update collateral record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated collateral (/collateral/:collateral_id): " + collateral.Name,
 			Module:      "Collateral",
@@ -221,7 +221,7 @@ func (c *Controller) collateralController() {
 		context := ctx.Request().Context()
 		collateralID, err := handlers.EngineUUIDParam(ctx, "collateral_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Collateral delete failed (/collateral/:collateral_id), invalid collateral ID.",
 				Module:      "Collateral",
@@ -230,7 +230,7 @@ func (c *Controller) collateralController() {
 		}
 		collateral, err := c.core.CollateralManager.GetByID(context, *collateralID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Collateral delete failed (/collateral/:collateral_id), record not found.",
 				Module:      "Collateral",
@@ -238,14 +238,14 @@ func (c *Controller) collateralController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Collateral record not found"})
 		}
 		if err := c.core.CollateralManager.Delete(context, *collateralID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Collateral delete failed (/collateral/:collateral_id), db error: " + err.Error(),
 				Module:      "Collateral",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete collateral record: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted collateral (/collateral/:collateral_id): " + collateral.Name,
 			Module:      "Collateral",
@@ -263,7 +263,7 @@ func (c *Controller) collateralController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Collateral",
@@ -271,7 +271,7 @@ func (c *Controller) collateralController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | no IDs provided",
 				Module:      "Collateral",
@@ -280,7 +280,7 @@ func (c *Controller) collateralController() {
 		}
 
 		if err := c.core.CollateralManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | error: " + err.Error(),
 				Module:      "Collateral",
@@ -288,7 +288,7 @@ func (c *Controller) collateralController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete collateral records: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted collaterals (/collateral/bulk-delete)",
 			Module:      "Collateral",

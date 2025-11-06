@@ -1,13 +1,14 @@
 module github.com/Lands-Horizon-Corp/e-coop-server
 
-go 1.25.3
+go 1.25.4
 
 require (
-	github.com/Lands-Horizon-Corp/golang-filtering v1.0.8
+	github.com/Lands-Horizon-Corp/golang-filtering v1.0.9
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.1
 )
 

@@ -56,11 +56,11 @@ func (c *Controller) memberAccountingLedgerController() {
 
 		var TotalShareCapitalPlusFixedSavings float64
 		for _, entry := range paidUpShareCapital {
-			TotalShareCapitalPlusFixedSavings += entry.Balance
+			TotalShareCapitalPlusFixedSavings = c.provider.Service.Decimal.Add(TotalShareCapitalPlusFixedSavings, entry.Balance)
 		}
 		var totalDeposits float64
 		for _, entry := range entries {
-			totalDeposits += entry.Balance
+			totalDeposits = c.provider.Service.Decimal.Add(totalDeposits, entry.Balance)
 		}
 
 		summary := core.MemberAccountingLedgerSummary{
@@ -120,8 +120,8 @@ func (c *Controller) memberAccountingLedgerController() {
 		var totalCredit float64
 
 		for _, entry := range entries {
-			totalCredit += entry.Credit
-			totalDebit += entry.Debit
+			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 		}
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
 			Balance:     memberAccountingLedger.Balance,

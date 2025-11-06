@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,7 +28,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: invalid user_organization_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -37,7 +38,7 @@ func (c *Controller) userOrganinzationController() {
 
 		var payload core.UserOrganizationPermissionPayload
 		if err := ctx.Bind(&payload); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: invalid payload: " + err.Error(),
 				Module:      "UserOrganization",
@@ -47,7 +48,7 @@ func (c *Controller) userOrganinzationController() {
 
 		validate := validator.New()
 		if err := validate.Struct(payload); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: validation error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -57,7 +58,7 @@ func (c *Controller) userOrganinzationController() {
 
 		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: not found: " + err.Error(),
 				Module:      "UserOrganization",
@@ -67,7 +68,7 @@ func (c *Controller) userOrganinzationController() {
 
 		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -82,7 +83,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.UpdatedByID = currentUserOrg.UserID
 
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: update error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -90,7 +91,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update permissions: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated permission for user organization " + userOrg.ID.String(),
 			Module:      "UserOrganization",
@@ -108,7 +109,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: invalid organization ID: " + err.Error(),
 				Module:      "UserOrganization",
@@ -117,7 +118,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -126,7 +127,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		userOrganizations, err := c.core.GetUserOrganizationByOrganization(context, *organizationID, nil)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: get user org error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -134,7 +135,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
 		if len(userOrganizations) == 0 || userOrganizations == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: user org not found",
 				Module:      "UserOrganization",
@@ -143,7 +144,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "UserOrganization",
@@ -156,7 +157,7 @@ func (c *Controller) userOrganinzationController() {
 				continue
 			}
 			if userOrganization.UserType != core.UserOrganizationTypeOwner {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: not owner",
 					Module:      "UserOrganization",
@@ -164,7 +165,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners can seed the organization"})
 			}
 			if userOrganization.BranchID == nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: branch missing",
 					Module:      "UserOrganization",
@@ -175,7 +176,7 @@ func (c *Controller) userOrganinzationController() {
 				continue
 			}
 			if err := c.core.OrganizationSeeder(context, tx, user.ID, userOrganization.OrganizationID, *userOrganization.BranchID); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: seeder error: " + err.Error(),
 					Module:      "UserOrganization",
@@ -184,7 +185,7 @@ func (c *Controller) userOrganinzationController() {
 			}
 			userOrganization.IsSeeded = true
 			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: update seed status error: " + err.Error(),
 					Module:      "UserOrganization",
@@ -194,7 +195,7 @@ func (c *Controller) userOrganinzationController() {
 			seededAny = true
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Seed organization failed: commit tx error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -202,7 +203,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		if seededAny {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-success",
 				Description: "Seeded all branches for organization " + organizationID.String(),
 				Module:      "UserOrganization",
@@ -486,7 +487,7 @@ func (c *Controller) userOrganinzationController() {
 		c.userOrganizationToken.ClearCurrentToken(context, ctx)
 
 		// Log the footstep event
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "User organization and branch removed from JWT (unswitch)",
 			Module:      "UserOrganization",
@@ -505,7 +506,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -514,7 +515,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userOrg.UserID.String())
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: generate key error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -523,14 +524,14 @@ func (c *Controller) userOrganinzationController() {
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: update error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update developer key: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Refreshed developer key for user organization " + userOrg.ID.String(),
 			Module:      "UserOrganization",
@@ -551,7 +552,7 @@ func (c *Controller) userOrganinzationController() {
 		code := ctx.Param("code")
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -560,7 +561,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		invitationCode, err := c.core.VerifyInvitationCodeByCode(context, code)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: verify invitation code error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -568,7 +569,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to verify invitation code: " + err.Error()})
 		}
 		if invitationCode == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: invitation code not found",
 				Module:      "UserOrganization",
@@ -578,7 +579,7 @@ func (c *Controller) userOrganinzationController() {
 		switch invitationCode.UserType {
 		case core.UserOrganizationTypeMember:
 			if !c.core.UserOrganizationMemberCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as member",
 					Module:      "UserOrganization",
@@ -587,7 +588,7 @@ func (c *Controller) userOrganinzationController() {
 			}
 		case core.UserOrganizationTypeEmployee:
 			if !c.core.UserOrganizationEmployeeCanJoin(context, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as employee",
 					Module:      "UserOrganization",
@@ -595,7 +596,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 			}
 		default:
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: cannot join as employee (default)",
 				Module:      "UserOrganization",
@@ -605,7 +606,7 @@ func (c *Controller) userOrganinzationController() {
 
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: generate developer key error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -640,7 +641,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: begin tx error: " + tx.Error.Error(),
 				Module:      "UserOrganization",
@@ -648,7 +649,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
 		if err := c.core.RedeemInvitationCode(context, tx, invitationCode.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: redeem invitation code error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -656,7 +657,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + endTx(err).Error()})
 		}
 		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -664,18 +665,25 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create user organization: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: commit tx error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Joined organization and branch using invitation code " + code,
 			Module:      "UserOrganization",
 		})
+		// Notify organization admins about new member joining via invitation
+		c.event.OrganizationAdminsDirectNotification(ctx, invitationCode.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("New %s joined using invitation code: %s %s", string(userOrg.UserType), *user.FirstName, *user.LastName),
+			Title:            "New Member Joined via Invitation",
+			NotificationType: core.NotificationInfo,
+		})
+
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -690,7 +698,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: invalid organization_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -699,7 +707,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: invalid branch_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -708,7 +716,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		req, err := c.core.UserOrganizationManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: validation error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -717,7 +725,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		user, err := c.userToken.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -726,7 +734,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		if req.UserType == core.UserOrganizationTypeMember {
 			if !c.core.UserOrganizationMemberCanJoin(context, user.ID, *organizationID, *branchID) {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as member",
 					Module:      "UserOrganization",
@@ -736,7 +744,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		if req.UserType == core.UserOrganizationTypeEmployee {
 			if !c.core.UserOrganizationEmployeeCanJoin(context, user.ID, *organizationID, *branchID) {
-				c.event.Footstep(context, ctx, event.FootstepEvent{
+				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Join organization failed: cannot join as employee",
 					Module:      "UserOrganization",
@@ -746,7 +754,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: generate developer key error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -781,7 +789,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if err := c.core.UserOrganizationManager.Create(context, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -789,12 +797,16 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "Failed to create user organization: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Joined organization and branch " + organizationID.String() + " - " + branchID.String() + " as member",
 			Module:      "UserOrganization",
 		})
-
+		c.event.OrganizationAdminsDirectNotification(ctx, *organizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("New member application received from %s %s", *user.FirstName, *user.LastName),
+			Title:            "New Member Application",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
 	})
 
@@ -807,7 +819,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -816,7 +828,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: forbidden for owner or employee",
 				Module:      "UserOrganization",
@@ -825,7 +837,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: delete error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -833,7 +845,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusNotAcceptable, map[string]string{"error": "Failed to leave organization: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "User left organization and branch: " + userOrg.OrganizationID.String(),
 			Module:      "UserOrganization",
@@ -920,7 +932,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: invalid user_organization_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -930,7 +942,7 @@ func (c *Controller) userOrganinzationController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -940,7 +952,7 @@ func (c *Controller) userOrganinzationController() {
 
 		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: user organization not found: " + err.Error(),
 				Module:      "UserOrganization",
@@ -949,7 +961,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if user.UserType != core.UserOrganizationTypeOwner && user.UserType != "admin" {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: not owner or admin",
 				Module:      "UserOrganization",
@@ -958,7 +970,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if user.UserID == userOrg.UserID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: cannot accept own application",
 				Module:      "UserOrganization",
@@ -968,7 +980,7 @@ func (c *Controller) userOrganinzationController() {
 
 		userOrg.ApplicationStatus = "accepted"
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: update error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -976,10 +988,16 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to accept user organization application: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Accepted user organization application for user " + userOrg.UserID.String(),
 			Module:      "UserOrganization",
+		})
+
+		c.event.OrganizationDirectNotification(ctx, userOrg.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrg.UserType)),
+			Title:            "Application Accepted",
+			NotificationType: core.NotificationSuccess,
 		})
 
 		return ctx.NoContent(http.StatusNoContent)
@@ -994,7 +1012,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: invalid user_organization_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1004,7 +1022,7 @@ func (c *Controller) userOrganinzationController() {
 
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: unauthorized: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1014,7 +1032,7 @@ func (c *Controller) userOrganinzationController() {
 
 		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: user organization not found: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1023,7 +1041,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if user.UserType != core.UserOrganizationTypeOwner && user.UserType != "admin" && user.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: not allowed for user type " + string(user.UserType),
 				Module:      "UserOrganization",
@@ -1032,7 +1050,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if user.UserID == userOrg.UserID {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: cannot reject own application",
 				Module:      "UserOrganization",
@@ -1041,7 +1059,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: delete error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1049,7 +1067,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to reject user organization application: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Rejected user organization application for user " + userOrg.UserID.String(),
 			Module:      "UserOrganization",
@@ -1067,7 +1085,7 @@ func (c *Controller) userOrganinzationController() {
 		context := ctx.Request().Context()
 		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: invalid user_organization_id: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1076,7 +1094,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: not found: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1084,14 +1102,14 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: delete error: " + err.Error(),
 				Module:      "UserOrganization",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted user organization: " + userOrg.ID.String(),
 			Module:      "UserOrganization",
@@ -1110,7 +1128,7 @@ func (c *Controller) userOrganinzationController() {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1119,7 +1137,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | no IDs provided",
 				Module:      "UserOrganization",
@@ -1129,7 +1147,7 @@ func (c *Controller) userOrganinzationController() {
 
 		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
 		if err := c.core.UserOrganizationManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1137,7 +1155,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete user organizations: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted user organizations (/user-organization/bulk-delete)",
 			Module:      "UserOrganization",
@@ -1199,7 +1217,7 @@ func (c *Controller) userOrganinzationController() {
 
 		var req core.UserOrganizationSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: invalid payload: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1208,7 +1226,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: validation error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1240,7 +1258,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1248,7 +1266,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization settings: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated settings for user organization: " + userOrg.ID.String(),
 			Module:      "UserOrganization",
@@ -1268,7 +1286,7 @@ func (c *Controller) userOrganinzationController() {
 
 		var req core.UserOrganizationSelfSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: invalid payload: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1277,7 +1295,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: validation error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1308,7 +1326,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
 				Module:      "UserOrganization",
@@ -1316,7 +1334,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization settings: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated settings for user organization: " + userOrg.ID.String(),
 			Module:      "UserOrganization",

@@ -18,9 +18,13 @@ type FootstepEvent struct {
 }
 
 // Footstep records a footstep (activity) for the current user asynchronously.
-func (e *Event) Footstep(context context.Context, ctx echo.Context, data FootstepEvent) {
+func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 
 	go func() {
+
+		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
 		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil || user == nil {
 			return

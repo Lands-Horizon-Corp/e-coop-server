@@ -81,20 +81,24 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 		if rate <= 0 {
 			return 0.0
 		}
-		base := applied * rate / 100.0
+		// Use precise decimal arithmetic for percentage calculation
+		base := t.provider.Service.Decimal.MultiplyByPercentage(applied, rate)
+
 		switch mode {
 		case core.LoanModeOfPaymentDaily:
-			return base / 30.0
+			return t.provider.Service.Decimal.Divide(base, 30.0)
 		case core.LoanModeOfPaymentWeekly:
-			return base * 7.0 / 30.0
+			weeklyBase := t.provider.Service.Decimal.Multiply(base, 7.0)
+			return t.provider.Service.Decimal.Divide(weeklyBase, 30.0)
 		case core.LoanModeOfPaymentSemiMonthly:
-			return base * 15.0 / 30.0
+			semiMonthlyBase := t.provider.Service.Decimal.Multiply(base, 15.0)
+			return t.provider.Service.Decimal.Divide(semiMonthlyBase, 30.0)
 		case core.LoanModeOfPaymentMonthly:
 			return base
 		case core.LoanModeOfPaymentQuarterly:
-			return base * 3.0
+			return t.provider.Service.Decimal.Multiply(base, 3.0)
 		case core.LoanModeOfPaymentSemiAnnual:
-			return base * 6.0
+			return t.provider.Service.Decimal.Multiply(base, 6.0)
 		default:
 			return 0.0
 		}
@@ -108,11 +112,10 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 			}
 			charge := 0.0
 			if data.Charge > 0 {
-				charge = ald.Applied1 * (data.Charge / 100.0)
-
+				// Use precise decimal arithmetic for percentage calculation
+				charge = t.provider.Service.Decimal.MultiplyByPercentage(ald.Applied1, data.Charge)
 			} else if data.Amount > 0 {
 				charge = data.Amount
-
 			}
 			if charge > 0 {
 				result = charge
@@ -216,7 +219,7 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(_ context.Context, lt *core.LoanTransaction) (int, error) {
+func (t *TransactionService) LoanNumberOfPayments(lt *core.LoanTransaction) (int, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
 		return lt.Terms * 30, nil
@@ -241,9 +244,10 @@ func (t *TransactionService) LoanNumberOfPayments(_ context.Context, lt *core.Lo
 	return 0, eris.New("not implemented yet")
 }
 
-// LoanComputation calculates the loan amount after applying automatic loan deduction rules
-func (t *TransactionService) LoanComputation(_ context.Context, ald core.AutomaticLoanDeduction, lt core.LoanTransaction) float64 {
+// LoanComputation calculates the loan amount after applying automatic loan deduction rules using precise decimal arithmetic
+func (t *TransactionService) LoanComputation(ald core.AutomaticLoanDeduction, lt core.LoanTransaction) float64 {
 	result := lt.Applied1
+
 	// --- Min/Max check ---
 	if ald.MinAmount > 0 && result < ald.MinAmount {
 		return 0.0
@@ -252,65 +256,90 @@ func (t *TransactionService) LoanComputation(_ context.Context, ald core.Automat
 	if ald.MaxAmount > 0 && result > ald.MaxAmount {
 		return 0.0
 	}
-	// --- Percentage application ---
+
+	// --- Percentage application using decimal arithmetic ---
 	if ald.ChargesPercentage1 > 0 || ald.ChargesPercentage2 > 0 {
 		switch {
 		case ald.ChargesPercentage1 > 0 && ald.ChargesPercentage2 > 0:
 			if ald.AddOn {
-				result *= ald.ChargesPercentage2 / 100
+				result = t.provider.Service.Decimal.MultiplyByPercentage(result, ald.ChargesPercentage2)
 			} else {
-				result *= ald.ChargesPercentage1 / 100
+				result = t.provider.Service.Decimal.MultiplyByPercentage(result, ald.ChargesPercentage1)
 			}
 		case ald.ChargesPercentage1 > 0:
-			result *= ald.ChargesPercentage1 / 100
+			result = t.provider.Service.Decimal.MultiplyByPercentage(result, ald.ChargesPercentage1)
 		default:
-			result *= ald.ChargesPercentage2 / 100
+			result = t.provider.Service.Decimal.MultiplyByPercentage(result, ald.ChargesPercentage2)
 		}
 	}
 
-	// --- Divisor application ---
+	// --- Divisor application using decimal arithmetic ---
 	if ald.ChargesDivisor > 0 && result > 0 {
-		result = (result / ald.ChargesDivisor) * ald.ChargesAmount
+		// result = (result / ald.ChargesDivisor) * ald.ChargesAmount
+		dividedResult := t.provider.Service.Decimal.Divide(result, ald.ChargesDivisor)
+		result = t.provider.Service.Decimal.Multiply(dividedResult, ald.ChargesAmount)
 	}
 
-	// --- Annum adjustments (when months = 0) ---
+	// --- Annum adjustments (when months = 0) using decimal arithmetic ---
 	if ald.NumberOfMonths == 0 {
 		if ald.Anum == 1 {
-			result /= 12
+			result = t.provider.Service.Decimal.Divide(result, 12)
 		}
 	}
 
-	// --- Number of months adjustments ---
+	// --- Number of months adjustments using decimal arithmetic ---
 	if ald.NumberOfMonths == -1 {
-		result = (result * float64(lt.Terms)) / 12
+		// result = (result * float64(lt.Terms)) / 12
+		multipliedResult := t.provider.Service.Decimal.Multiply(result, float64(lt.Terms))
+		result = t.provider.Service.Decimal.Divide(multipliedResult, 12)
 	} else if ald.NumberOfMonths > 0 {
-		result = (result * float64(lt.Terms)) / float64(ald.NumberOfMonths)
+		// result = (result * float64(lt.Terms)) / float64(ald.NumberOfMonths)
+		multipliedResult := t.provider.Service.Decimal.Multiply(result, float64(lt.Terms))
+		result = t.provider.Service.Decimal.Divide(multipliedResult, float64(ald.NumberOfMonths))
 	}
 
 	if result == lt.Applied1 {
 		return ald.ChargesAmount
 	}
 
-	return result
+	// Round to 2 decimal places for financial precision
+	return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2)
 }
 
-// LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment
+// LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment using precise decimal arithmetic
 func (t *TransactionService) LoanModeOfPayment(_ context.Context, lt *core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
-		return lt.Applied1 / float64(lt.Terms) / 30, nil
+		// lt.Applied1 / float64(lt.Terms) / 30
+		termsDivision := t.provider.Service.Decimal.Divide(lt.Applied1, float64(lt.Terms))
+		result := t.provider.Service.Decimal.Divide(termsDivision, 30)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentWeekly:
-		return lt.Applied1 / float64(lt.Terms) / 4, nil
+		// lt.Applied1 / float64(lt.Terms) / 4
+		termsDivision := t.provider.Service.Decimal.Divide(lt.Applied1, float64(lt.Terms))
+		result := t.provider.Service.Decimal.Divide(termsDivision, 4)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentSemiMonthly:
-		return lt.Applied1 / float64(lt.Terms) / 2, nil
+		// lt.Applied1 / float64(lt.Terms) / 2
+		termsDivision := t.provider.Service.Decimal.Divide(lt.Applied1, float64(lt.Terms))
+		result := t.provider.Service.Decimal.Divide(termsDivision, 2)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentMonthly:
-		return lt.Applied1 / float64(lt.Terms), nil
+		// lt.Applied1 / float64(lt.Terms)
+		result := t.provider.Service.Decimal.Divide(lt.Applied1, float64(lt.Terms))
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentQuarterly:
-		return lt.Applied1 / (float64(lt.Terms) / 3), nil
+		// lt.Applied1 / (float64(lt.Terms) / 3)
+		termsDivision := t.provider.Service.Decimal.Divide(float64(lt.Terms), 3)
+		result := t.provider.Service.Decimal.Divide(lt.Applied1, termsDivision)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentSemiAnnual:
-		return lt.Applied1 / (float64(lt.Terms) / 6), nil
+		// lt.Applied1 / (float64(lt.Terms) / 6)
+		termsDivision := t.provider.Service.Decimal.Divide(float64(lt.Terms), 6)
+		result := t.provider.Service.Decimal.Divide(lt.Applied1, termsDivision)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	case core.LoanModeOfPaymentLumpsum:
-		return lt.Applied1, nil
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(lt.Applied1, 2), nil
 	case core.LoanModeOfPaymentFixedDays:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
@@ -318,7 +347,8 @@ func (t *TransactionService) LoanModeOfPayment(_ context.Context, lt *core.LoanT
 		if lt.ModeOfPaymentFixedDays <= 0 {
 			return 0, eris.New("invalid fixed days: must be greater than 0")
 		}
-		return lt.Applied1 / float64(lt.Terms), nil
+		result := t.provider.Service.Decimal.Divide(lt.Applied1, float64(lt.Terms))
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(result, 2), nil
 	}
 	return 0, eris.New("not implemented yet")
 }
@@ -342,30 +372,35 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 
 	switch modeOfPayment {
 	case core.LoanModeOfPaymentDaily:
-		// daily = total / (payment * 30)
-		terms = (principal / suggestedAmount) / 30
+		// daily = total / (payment * 30) using decimal arithmetic
+		principalDivision := t.provider.Service.Decimal.Divide(principal, suggestedAmount)
+		terms = t.provider.Service.Decimal.Divide(principalDivision, 30)
 	case core.LoanModeOfPaymentWeekly:
-		// weekly = total / (payment * 4)
-		terms = (principal / suggestedAmount) / 4
+		// weekly = total / (payment * 4) using decimal arithmetic
+		principalDivision := t.provider.Service.Decimal.Divide(principal, suggestedAmount)
+		terms = t.provider.Service.Decimal.Divide(principalDivision, 4)
 	case core.LoanModeOfPaymentSemiMonthly:
-		// semi-monthly = total / (payment * 2)
-		terms = (principal / suggestedAmount) / 2
+		// semi-monthly = total / (payment * 2) using decimal arithmetic
+		principalDivision := t.provider.Service.Decimal.Divide(principal, suggestedAmount)
+		terms = t.provider.Service.Decimal.Divide(principalDivision, 2)
 	case core.LoanModeOfPaymentMonthly:
-		// monthly = total / payment
-		terms = principal / suggestedAmount
+		// monthly = total / payment using decimal arithmetic
+		terms = t.provider.Service.Decimal.Divide(principal, suggestedAmount)
 	case core.LoanModeOfPaymentQuarterly:
-		// quarterly = total / (payment / 3)
-		terms = (principal / suggestedAmount) * 3
+		// quarterly = total / (payment / 3) using decimal arithmetic
+		principalDivision := t.provider.Service.Decimal.Divide(principal, suggestedAmount)
+		terms = t.provider.Service.Decimal.Multiply(principalDivision, 3)
 	case core.LoanModeOfPaymentSemiAnnual:
-		// semi-annual = total / (payment / 6)
-		terms = (principal / suggestedAmount) * 6
+		// semi-annual = total / (payment / 6) using decimal arithmetic
+		principalDivision := t.provider.Service.Decimal.Divide(principal, suggestedAmount)
+		terms = t.provider.Service.Decimal.Multiply(principalDivision, 6)
 	case core.LoanModeOfPaymentLumpsum:
 		terms = 1
 	case core.LoanModeOfPaymentFixedDays:
 		if fixedDays <= 0 {
 			return 0, errors.New("invalid fixed days: must be greater than 0")
 		}
-		terms = principal / suggestedAmount
+		terms = t.provider.Service.Decimal.Divide(principal, suggestedAmount)
 	default:
 		return 0, errors.New("unsupported mode of payment")
 	}

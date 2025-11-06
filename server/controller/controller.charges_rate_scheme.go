@@ -96,7 +96,7 @@ func (c *Controller) chargesRateSchemeController() {
 		context := ctx.Request().Context()
 		req, err := c.core.ChargesRateSchemeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), validation error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -105,7 +105,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), user org error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -113,7 +113,7 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if user.BranchID == nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), user not assigned to branch.",
 				Module:      "ChargesRateScheme",
@@ -184,7 +184,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 
 		if err := c.core.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -206,7 +206,7 @@ func (c *Controller) chargesRateSchemeController() {
 					OrganizationID:      user.OrganizationID,
 				}
 				if err := c.core.ChargesRateSchemeAccountManager.Create(context, chargesRateSchemeAccount); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Charges rate scheme account creation failed (/charges-rate-scheme), db error: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -216,7 +216,7 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created charges rate scheme (/charges-rate-scheme): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
@@ -235,7 +235,7 @@ func (c *Controller) chargesRateSchemeController() {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), invalid charges rate scheme ID.",
 				Module:      "ChargesRateScheme",
@@ -245,7 +245,7 @@ func (c *Controller) chargesRateSchemeController() {
 
 		req, err := c.core.ChargesRateSchemeManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), validation error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -254,7 +254,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), user org error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -263,7 +263,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 		chargesRateScheme, err := c.core.ChargesRateSchemeManager.GetByID(context, *chargesRateSchemeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), charges rate scheme not found.",
 				Module:      "ChargesRateScheme",
@@ -331,7 +331,7 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.CurrencyID = req.CurrencyID
 
 		if err := c.core.ChargesRateSchemeManager.UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -343,7 +343,7 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateSchemeAccountsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeAccountsDeleted {
 				if err := c.core.ChargesRateSchemeAccountManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme account: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -356,7 +356,7 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateByRangeOrMinimumAmountsDeleted != nil {
 			for _, id := range req.ChargesRateByRangeOrMinimumAmountsDeleted {
 				if err := c.core.ChargesRateByRangeOrMinimumAmountManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by range or minimum amount: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -369,7 +369,7 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateSchemeModeOfPaymentsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeModeOfPaymentsDeleted {
 				if err := c.core.ChargesRateSchemeModeOfPaymentManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme mode of payment: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -382,7 +382,7 @@ func (c *Controller) chargesRateSchemeController() {
 		if req.ChargesRateByTermsDeleted != nil {
 			for _, id := range req.ChargesRateByTermsDeleted {
 				if err := c.core.ChargesRateByTermManager.DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(context, ctx, event.FootstepEvent{
+					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by term: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -632,7 +632,7 @@ func (c *Controller) chargesRateSchemeController() {
 
 		// Commit the transaction
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit charges rate scheme update transaction: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -640,7 +640,7 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit charges rate scheme update: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated charges rate scheme (/charges-rate-scheme/:charges_rate_scheme_id): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
@@ -662,7 +662,7 @@ func (c *Controller) chargesRateSchemeController() {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), invalid charges rate scheme ID.",
 				Module:      "ChargesRateScheme",
@@ -671,7 +671,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 		chargesRateScheme, err := c.core.ChargesRateSchemeManager.GetByID(context, *chargesRateSchemeID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), not found.",
 				Module:      "ChargesRateScheme",
@@ -679,14 +679,14 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
 		if err := c.core.ChargesRateSchemeManager.Delete(context, *chargesRateSchemeID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted charges rate scheme (/charges-rate-scheme/:charges_rate_scheme_id): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
@@ -703,7 +703,7 @@ func (c *Controller) chargesRateSchemeController() {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -711,7 +711,7 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateScheme",
@@ -720,7 +720,7 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 
 		if err := c.core.ChargesRateSchemeManager.BulkDelete(context, reqBody.IDs); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -728,7 +728,7 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate schemes: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted charges rate schemes (/charges-rate-scheme/bulk-delete)",
 			Module:      "ChargesRateScheme",

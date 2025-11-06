@@ -24,7 +24,7 @@ func (c *Controller) memberContactReferenceController() {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create contact reference failed (/member-contact-reference/member-profile/:member_profile_id), invalid member_profile_id: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -33,7 +33,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 		req, err := c.core.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create contact reference failed (/member-contact-reference/member-profile/:member_profile_id), validation error: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -42,7 +42,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create contact reference failed (/member-contact-reference/member-profile/:member_profile_id), user org error: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -64,7 +64,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 
 		if err := c.core.MemberContactReferenceManager.Create(context, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create contact reference failed (/member-contact-reference/member-profile/:member_profile_id), db error: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -72,7 +72,7 @@ func (c *Controller) memberContactReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create contact reference: " + err.Error()})
 		}
 
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created contact reference (/member-contact-reference/member-profile/:member_profile_id): " + value.Name,
 			Module:      "MemberContactReference",
@@ -92,7 +92,7 @@ func (c *Controller) memberContactReferenceController() {
 		context := ctx.Request().Context()
 		memberContactReferenceID, err := handlers.EngineUUIDParam(ctx, "member_contact_reference_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), invalid member_contact_reference_id: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -101,7 +101,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 		req, err := c.core.MemberContactReferenceManager.Validate(ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), validation error: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -110,7 +110,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), user org error: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -120,7 +120,7 @@ func (c *Controller) memberContactReferenceController() {
 
 		value, err := c.core.MemberContactReferenceManager.GetByID(context, *memberContactReferenceID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), record not found: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -137,14 +137,14 @@ func (c *Controller) memberContactReferenceController() {
 		value.ContactNumber = req.ContactNumber
 
 		if err := c.core.MemberContactReferenceManager.UpdateByID(context, value.ID, value); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update contact reference failed (/member-contact-reference/:member_contact_reference_id), db error: " + err.Error(),
 				Module:      "MemberContactReference",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update contact reference: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated contact reference (/member-contact-reference/:member_contact_reference_id): " + value.Name,
 			Module:      "MemberContactReference",
@@ -161,7 +161,7 @@ func (c *Controller) memberContactReferenceController() {
 		context := ctx.Request().Context()
 		memberContactReferenceID, err := handlers.EngineUUIDParam(ctx, "member_contact_reference_id")
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete contact reference failed (/member-contact-reference/:member_contact_reference_id), invalid member_contact_reference_id: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -170,7 +170,7 @@ func (c *Controller) memberContactReferenceController() {
 		}
 		value, err := c.core.MemberContactReferenceManager.GetByID(context, *memberContactReferenceID)
 		if err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete contact reference failed (/member-contact-reference/:member_contact_reference_id), record not found: " + err.Error(),
 				Module:      "MemberContactReference",
@@ -178,14 +178,14 @@ func (c *Controller) memberContactReferenceController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact reference not found: " + err.Error()})
 		}
 		if err := c.core.MemberContactReferenceManager.Delete(context, *memberContactReferenceID); err != nil {
-			c.event.Footstep(context, ctx, event.FootstepEvent{
+			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete contact reference failed (/member-contact-reference/:member_contact_reference_id), db error: " + err.Error(),
 				Module:      "MemberContactReference",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete contact reference: " + err.Error()})
 		}
-		c.event.Footstep(context, ctx, event.FootstepEvent{
+		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted contact reference (/member-contact-reference/:member_contact_reference_id): " + value.Name,
 			Module:      "MemberContactReference",
