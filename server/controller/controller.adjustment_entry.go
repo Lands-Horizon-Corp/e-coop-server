@@ -293,8 +293,8 @@ func (c *Controller) adjustmentEntryController() {
 		totalDebit := 0.0
 		totalCredit := 0.0
 		for _, entry := range adjustmentEntries {
-			totalDebit += entry.Debit
-			totalCredit += entry.Credit
+			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
 			TotalDebit:  totalDebit,
@@ -372,8 +372,8 @@ func (c *Controller) adjustmentEntryController() {
 		totalCredit := 0.0
 		for _, entry := range adjustmentEntries {
 			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
@@ -461,8 +461,8 @@ func (c *Controller) adjustmentEntryController() {
 		totalCredit := 0.0
 		for _, entry := range adjustmentEntries {
 			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{

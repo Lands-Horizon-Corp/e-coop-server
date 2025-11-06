@@ -379,59 +379,18 @@ func (c *Controller) loanTransactionController() {
 		// Calculate totals
 		var totalCredit, totalDebit float64
 		for _, entry := range loanTransactionEntries {
-			totalCredit += entry.Credit
-			totalDebit += entry.Debit
+			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 		}
 
 		// Calculate total interest (assuming interest is the difference between debit and credit)
-		totalInterest := totalDebit - totalCredit
+		totalInterest := c.provider.Service.Decimal.Subtract(totalDebit, totalCredit)
 
 		return ctx.JSON(http.StatusOK, core.LoanTransactionTotalResponse{
 			TotalInterest: totalInterest,
 			TotalDebit:    totalDebit,
 			TotalCredit:   totalCredit,
 		})
-	})
-
-	// GET /api/v1/loan-transaction/:loan_transaction_id/amortization-schedule
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/:loan_transaction_id/amortization-schedule",
-		Method:       "GET",
-		ResponseType: core.AmortizationScheduleResponse{},
-		Note:         "Returns the amortization schedule for a specific loan transaction with payment details.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
-		}
-
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan amortization schedule"})
-		}
-
-		// Verify that the loan transaction exists and belongs to the user's organization and branch
-		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
-		}
-
-		// Check if the loan transaction belongs to the user's organization and branch
-		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
-		}
-
-		// Generate amortization schedule
-		schedule, err := c.core.GenerateLoanAmortizationSchedule(context, loanTransaction)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate amortization schedule: " + err.Error()})
-		}
-
-		return ctx.JSON(http.StatusOK, schedule)
 	})
 
 	// POST /api/v1/loan-transaction

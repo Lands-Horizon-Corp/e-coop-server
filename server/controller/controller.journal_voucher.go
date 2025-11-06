@@ -124,11 +124,11 @@ func (c *Controller) journalVoucherController() {
 		totalDebit, totalCredit := 0.0, 0.0
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
-				totalDebit += entryReq.Debit
-				totalCredit += entryReq.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entryReq.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entryReq.Credit)
 			}
 		}
-		if totalDebit != totalCredit {
+		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
@@ -264,11 +264,11 @@ func (c *Controller) journalVoucherController() {
 		totalDebit, totalCredit := 0.0, 0.0
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
-				totalDebit += entryReq.Debit
-				totalCredit += entryReq.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entryReq.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entryReq.Credit)
 			}
 		}
-		if totalDebit != totalCredit {
+		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), debit and credit totals do not match.",

@@ -306,12 +306,12 @@ func (c *Controller) transactionBatchController() {
 
 		var totalCashCount float64
 		for _, cashCount := range cashCounts {
-			totalCashCount += cashCount.Amount
+			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
 		}
 
 		transactionBatch.DepositInBank = req.DepositInBank
-		transactionBatch.GrandTotal = totalCashCount + req.DepositInBank
-		transactionBatch.TotalCashHandled = transactionBatch.BeginningBalance + req.DepositInBank + totalCashCount
+		transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, req.DepositInBank)
+		transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, req.DepositInBank), totalCashCount)
 		transactionBatch.TotalDepositInBank = req.DepositInBank
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID

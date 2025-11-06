@@ -88,13 +88,13 @@ func (c *Controller) batchFundingController() {
 
 		var totalCashCount float64
 		for _, cashCount := range cashCounts {
-			totalCashCount += cashCount.Amount * float64(cashCount.Quantity)
+			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, c.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
 		}
 
-		transactionBatch.BeginningBalance += batchFundingReq.Amount
-		transactionBatch.TotalCashHandled = batchFundingReq.Amount + transactionBatch.DepositInBank + totalCashCount
+		transactionBatch.BeginningBalance = c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, batchFundingReq.Amount)
+		transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(batchFundingReq.Amount, transactionBatch.DepositInBank), totalCashCount)
 		transactionBatch.CashCountTotal = totalCashCount
-		transactionBatch.GrandTotal = totalCashCount + transactionBatch.DepositInBank
+		transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, transactionBatch.DepositInBank)
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

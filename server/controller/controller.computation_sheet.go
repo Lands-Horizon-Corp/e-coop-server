@@ -128,18 +128,18 @@ func (c *Controller) computationSheetController() {
 			}
 
 			if !entry.IsAddOn {
-				totalNonAddOns += entry.Credit
+				totalNonAddOns = c.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
 			} else {
-				totalAddOns += entry.Credit
+				totalAddOns = c.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
 			}
 			if entry.Credit > 0 {
 				loanTransactionEntries = append(loanTransactionEntries, entry)
 			}
 		}
 		if request.IsAddOn {
-			loanTransactionEntries[0].Credit = request.Applied1 - totalNonAddOns
+			loanTransactionEntries[0].Credit = c.provider.Service.Decimal.Subtract(request.Applied1, totalNonAddOns)
 		} else {
-			loanTransactionEntries[0].Credit = request.Applied1 - (totalNonAddOns + totalAddOns)
+			loanTransactionEntries[0].Credit = c.provider.Service.Decimal.Subtract(request.Applied1, c.provider.Service.Decimal.Add(totalNonAddOns, totalAddOns))
 		}
 		if request.IsAddOn {
 			addOnEntry.Debit = totalAddOns
@@ -147,8 +147,8 @@ func (c *Controller) computationSheetController() {
 		}
 		totalDebit, totalCredit := 0.0, 0.0
 		for _, entry := range loanTransactionEntries {
-			totalDebit += entry.Debit
-			totalCredit += entry.Credit
+			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 		}
 		return ctx.JSON(http.StatusOK, core.ComputationSheetAmortizationResponse{
 			Entries:     c.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),

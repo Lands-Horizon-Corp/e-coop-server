@@ -174,7 +174,7 @@ func (c *Controller) cashCountController() {
 		}
 		cashCountReq.TransactionBatchID = transactionBatch.ID
 		cashCountReq.EmployeeUserID = userOrg.UserID
-		cashCountReq.Amount = cashCountReq.BillAmount * float64(cashCountReq.Quantity)
+		cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
 
 		newCashCount := &core.CashCount{
 			CreatedAt:          time.Now().UTC(),
@@ -299,7 +299,7 @@ func (c *Controller) cashCountController() {
 			}
 			cashCountReq.TransactionBatchID = transactionBatch.ID
 			cashCountReq.EmployeeUserID = userOrg.UserID
-			cashCountReq.Amount = cashCountReq.BillAmount * float64(cashCountReq.Quantity)
+			cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
 
 			if cashCountReq.ID != nil {
 				data := &core.CashCount{
@@ -380,7 +380,7 @@ func (c *Controller) cashCountController() {
 
 		var totalCashCount float64
 		for _, cashCount := range allCashCounts {
-			totalCashCount += cashCount.Amount
+			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
 		}
 
 		depositInBank := transactionBatch.DepositInBank
@@ -388,7 +388,7 @@ func (c *Controller) cashCountController() {
 			depositInBank = *batchRequest.DepositInBank
 		}
 
-		grandTotal := totalCashCount + depositInBank
+		grandTotal := c.provider.Service.Decimal.Add(totalCashCount, depositInBank)
 
 		var responseRequests []core.CashCountRequest
 		for _, cashCount := range updatedCashCounts {

@@ -164,11 +164,11 @@ func (c *Controller) onlineRemittanceController() {
 
 		var totalOnlineRemittance float64
 		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance += remittance.Amount
+			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
 		}
 
 		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = transactionBatch.TotalCheckRemittance + transactionBatch.TotalOnlineRemittance + transactionBatch.TotalDepositInBank
+		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
@@ -325,11 +325,11 @@ func (c *Controller) onlineRemittanceController() {
 
 		var totalOnlineRemittance float64
 		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance += remittance.Amount
+			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
 		}
 
 		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = transactionBatch.TotalCheckRemittance + transactionBatch.TotalOnlineRemittance + transactionBatch.TotalDepositInBank
+		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
@@ -474,11 +474,11 @@ func (c *Controller) onlineRemittanceController() {
 
 		var totalOnlineRemittance float64
 		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance += remittance.Amount
+			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
 		}
 
 		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = transactionBatch.TotalCheckRemittance + transactionBatch.TotalOnlineRemittance + transactionBatch.TotalDepositInBank
+		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 

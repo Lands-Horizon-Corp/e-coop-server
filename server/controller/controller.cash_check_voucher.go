@@ -233,13 +233,13 @@ func (c *Controller) cashCheckVoucherController() {
 		totalDebit, totalCredit := 0.0, 0.0
 		if request.CashCheckVoucherEntries != nil {
 			for _, entry := range request.CashCheckVoucherEntries {
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 		}
 
 		// Validate balance (optional - some vouchers might not require balanced entries)
-		if totalDebit != totalCredit && totalDebit > 0 && totalCredit > 0 {
+		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) && c.provider.Service.Decimal.IsGreaterThan(totalDebit, 0) && c.provider.Service.Decimal.IsGreaterThan(totalCredit, 0) {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), unbalanced entries.",
@@ -421,13 +421,13 @@ func (c *Controller) cashCheckVoucherController() {
 		totalDebit, totalCredit := 0.0, 0.0
 		if request.CashCheckVoucherEntries != nil {
 			for _, entry := range request.CashCheckVoucherEntries {
-				totalDebit += entry.Debit
-				totalCredit += entry.Credit
+				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 		}
 
 		// Validate balance (optional)
-		if totalDebit != totalCredit && totalDebit > 0 && totalCredit > 0 {
+		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) && c.provider.Service.Decimal.IsGreaterThan(totalDebit, 0) && c.provider.Service.Decimal.IsGreaterThan(totalCredit, 0) {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), unbalanced entries.",
