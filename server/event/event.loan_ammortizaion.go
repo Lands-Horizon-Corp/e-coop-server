@@ -58,6 +58,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 	for i := range numberOfPayments {
 		// Find next valid payment date (skip excluded days)
+		daysSkipped := 0
 		for {
 			var skip bool
 			if excludeSaturday {
@@ -79,6 +80,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 				break
 			}
 			paymentDate = paymentDate.AddDate(0, 0, 1)
+			daysSkipped++
 		}
 
 		// Store or output paymentDate here as needed
