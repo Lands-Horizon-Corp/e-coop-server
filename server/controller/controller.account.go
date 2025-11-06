@@ -1513,13 +1513,13 @@ func (c *Controller) accountController() {
 		if loanAccount.Type != core.AccountTypeFines && loanAccount.Type != core.AccountTypeInterest && loanAccount.Type != core.AccountTypeSVFLedger {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The specified loan account is not of a valid loan account type"})
 		}
-		account.LoanAccountID = &loanAccount.ID
-		account.UpdatedAt = time.Now().UTC()
-		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
+		loanAccount.LoanAccountID = &account.ID
+		loanAccount.UpdatedAt = time.Now().UTC()
+		loanAccount.UpdatedByID = userOrg.UserID
+		if err := c.core.AccountManager.UpdateByID(context, loanAccount.ID, loanAccount); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to loan: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
+		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(loanAccount))
 	})
 
 	// POST api/v1/account/:account_id/disconnect-account
