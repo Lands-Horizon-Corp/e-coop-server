@@ -8,22 +8,36 @@ import (
 	"github.com/google/uuid"
 )
 
-func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) error {
+type AccountValue struct {
+	Account core.Account `json:"account"`
+	Value   float64      `json:"value"`
+}
+
+type LoanAmortizationScheduleResponse struct {
+	ScheduledDate time.Time      `json:"scheduledDate"`
+	ActualDate    time.Time      `json:"actualDate"`
+	DaysSkipped   int            `json:"daysSkipped"`
+	Total         float64        `json:"total"`
+	Accounts      []AccountValue `json:"accounts"`
+}
+
+func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {
+	result := []*LoanAmortizationScheduleResponse{}
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID, "Account.Currency")
 	if err != nil {
-		return err
+		return result, err
 	}
 	holidays, err := e.core.HolidayManager.Find(ctx, &core.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
 	})
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction)
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	currency := loanTransaction.Account.Currency
@@ -117,5 +131,5 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			}
 		}
 	}
-	return nil
+	return result, nil
 }

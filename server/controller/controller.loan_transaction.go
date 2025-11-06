@@ -1978,4 +1978,23 @@ func (c *Controller) loanTransactionController() {
 		})
 	})
 
+	// GET /api/v1/loan-transaction/:loan_transaction_id/schedule
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/schedule",
+		Method:       "GET",
+		ResponseType: event.LoanAmortizationScheduleResponse{},
+		Note:         "Retrieves the payment schedule for a loan transaction by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, schedule)
+	})
+
 }
