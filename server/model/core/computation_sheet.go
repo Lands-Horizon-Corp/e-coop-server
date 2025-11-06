@@ -80,15 +80,6 @@ type (
 		ComakerAccount    float64   `json:"comaker_account,omitempty"`
 		ExistAccount      bool      `json:"exist_account,omitempty"`
 	}
-
-	// ComputationSheetAmortizationResponse represents the response structure for computationsheetamortization data
-
-	// ComputationSheetAmortizationResponse represents the response structure for ComputationSheetAmortization.
-	ComputationSheetAmortizationResponse struct {
-		Entries     []*LoanTransactionEntryResponse `json:"entries"`
-		TotalDebit  float64                         `json:"total_debit"`
-		TotalCredit float64                         `json:"total_credit"`
-	}
 )
 
 func (m *Core) computationSheet() {
