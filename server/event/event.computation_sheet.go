@@ -25,7 +25,7 @@ type LoanComputationSheetCalculatorRequest struct {
 	ModeOfPaymentSemiMonthlyPay1 int                    `json:"mode_of_payment_semi_monthly_pay_1"`
 	ModeOfPaymentSemiMonthlyPay2 int                    `json:"mode_of_payment_semi_monthly_pay_2"`
 	ModeOfPayment                core.LoanModeOfPayment `json:"mode_of_payment"`
-	Accounts                     []*core.AccountRequest `json:"accounts,omitempty"`
+	AccountsIDs                  uuid.UUIDs             `json:"account_ids,omitempty"`
 
 	CashOnHandAccountID *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
 	ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`
