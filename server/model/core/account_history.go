@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -462,7 +463,7 @@ func (m *Core) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDa
 		return histories[0], nil
 	}
 
-	return nil, fmt.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
+	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }
 
 // GetAccountsChangedInRange retrieves all accounts that had changes within the specified date range

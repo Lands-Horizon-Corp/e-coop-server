@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -73,7 +74,7 @@ func (c *Controller) notificationController() {
 						Description: fmt.Sprintf("View notifications failed: notification not found: %s", notificationID.String()),
 						Module:      "Notification",
 					})
-					return fmt.Errorf("notification with ID %s not found: %v", notificationID.String(), getErr)
+					return eris.New("notification with ID %s not found: %v", notificationID.String(), getErr)
 				}
 
 				if notification.IsViewed {
@@ -87,7 +88,7 @@ func (c *Controller) notificationController() {
 						Description: "View notifications failed: update error: " + updateErr.Error(),
 						Module:      "Notification",
 					})
-					return fmt.Errorf("failed to update notification: %v", updateErr)
+					return eris.New("failed to update notification: %v", updateErr)
 				}
 			}
 
@@ -99,7 +100,7 @@ func (c *Controller) notificationController() {
 					Description: "View notifications failed: get notifications error: " + getUserErr.Error(),
 					Module:      "Notification",
 				})
-				return fmt.Errorf("failed to get notifications: %v", getUserErr)
+				return eris.New("failed to get notifications: %v", getUserErr)
 			}
 
 			return nil
@@ -166,7 +167,7 @@ func (c *Controller) notificationController() {
 						Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, getErr),
 						Module:      "Notification",
 					})
-					return fmt.Errorf("notification with ID %s not found: %v", notif.ID, getErr)
+					return eris.New("notification with ID %s not found: %v", notif.ID, getErr)
 				}
 
 				if notification.IsViewed {
@@ -180,7 +181,7 @@ func (c *Controller) notificationController() {
 						Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, updateErr),
 						Module:      "Notification",
 					})
-					return fmt.Errorf("failed to update notification %s: %v", notif.ID, updateErr)
+					return eris.New("failed to update notification %s: %v", notif.ID, updateErr)
 				}
 
 				viewedCount++
@@ -191,7 +192,7 @@ func (c *Controller) notificationController() {
 				UserID: user.ID,
 			})
 			if findErr != nil {
-				return fmt.Errorf("failed to get the new notification updates: %v", findErr)
+				return eris.New("failed to get the new notification updates: %v", findErr)
 			}
 
 			return nil

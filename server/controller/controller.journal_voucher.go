@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // JournalVoucherController registers routes for managing journal vouchers.
@@ -133,7 +134,7 @@ func (c *Controller) journalVoucherController() {
 				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match: " + endTx(fmt.Errorf("debit and credit totals do not match")).Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match: " + endTx(eris.New("debit and credit totals do not match")).Error()})
 		}
 
 		journalVoucher := &core.JournalVoucher{
@@ -296,7 +297,7 @@ func (c *Controller) journalVoucherController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for deletion: " + endTx(err).Error()})
 				}
 				if entry.JournalVoucherID != journalVoucher.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher: " + endTx(fmt.Errorf("invalid journal voucher entry")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher: " + endTx(eris.New("invalid journal voucher entry")).Error()})
 				}
 				entry.DeletedByID = &user.UserID
 				if err := c.core.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
@@ -313,7 +314,7 @@ func (c *Controller) journalVoucherController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find journal voucher entry for update: " + endTx(err).Error()})
 					}
 					if entry.JournalVoucherID != journalVoucher.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update entry that doesn't belong to this journal voucher: " + endTx(fmt.Errorf("invalid journal voucher entry")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update entry that doesn't belong to this journal voucher: " + endTx(eris.New("invalid journal voucher entry")).Error()})
 					}
 					entry.AccountID = entryReq.AccountID
 					entry.MemberProfileID = entryReq.MemberProfileID

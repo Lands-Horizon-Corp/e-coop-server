@@ -551,7 +551,7 @@ func (c *Controller) loanTransactionController() {
 		}
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 		if cashOnHandAccountID == nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch: " + endTx(fmt.Errorf("cash on hand account not set")).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch: " + endTx(eris.New("cash on hand account not set")).Error()})
 		}
 		if err := c.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
@@ -772,7 +772,7 @@ func (c *Controller) loanTransactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts for currency conversion: " + endTx(err).Error()})
 			}
 			if len(accounts) == 0 {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion: " + endTx(fmt.Errorf("no account found")).Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "No account found for currency conversion: " + endTx(eris.New("no account found")).Error()})
 			}
 			cashOnCashEquivalenceAccountID = accounts[0].ID
 		}
@@ -858,7 +858,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis for deletion: " + endTx(err).Error()})
 				}
 				if clearanceAnalysis.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				clearanceAnalysis.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanClearanceAnalysisManager.DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
@@ -874,7 +874,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution for deletion: " + endTx(err).Error()})
 				}
 				if institution.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				institution.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanClearanceAnalysisInstitutionManager.DeleteWithTx(context, tx, institution.ID); err != nil {
@@ -890,7 +890,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment for deletion: " + endTx(err).Error()})
 				}
 				if suggestedPayment.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				suggestedPayment.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager.DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
@@ -906,7 +906,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt for deletion: " + endTx(err).Error()})
 				}
 				if amountReceipt.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				amountReceipt.DeletedByID = &userOrg.UserID
 				if err := c.core.LoanTermsAndConditionAmountReceiptManager.DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
@@ -923,7 +923,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile for deletion: " + endTx(err).Error()})
 				}
 				if comakerMemberProfile.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerMemberProfile.DeletedByID = &userOrg.UserID
 				if err := c.core.ComakerMemberProfileManager.DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
@@ -940,7 +940,7 @@ func (c *Controller) loanTransactionController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker collateral for deletion: " + endTx(err).Error()})
 				}
 				if comakerCollateral.LoanTransactionID != loanTransaction.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerCollateral.DeletedByID = &userOrg.UserID
 				if err := c.core.ComakerCollateralManager.DeleteWithTx(context, tx, comakerCollateral.ID); err != nil {
@@ -960,7 +960,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1009,7 +1009,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1052,7 +1052,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("invalid loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1138,7 +1138,7 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker member profile that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update comaker member profile that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker member profile that doesn't belong to this loan transaction: " + endTx(eris.New("Cannot update comaker member profile that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
@@ -1187,7 +1187,8 @@ func (c *Controller) loanTransactionController() {
 					}
 					// Verify ownership
 					if existingRecord.LoanTransactionID != loanTransaction.ID {
-						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update comaker collateral that doesn't belong to this loan transaction: " + endTx(fmt.Errorf("Cannot update comaker collateral that doesn't belong to this loan transaction")).Error()})
+						return ctx.JSON(http.StatusForbidden,
+							map[string]string{"error": "Cannot update comaker collateral that doesn't belong to this loan transaction: " + endTx(eris.New("Cannot update comaker collateral that doesn't belong to this loan transaction")).Error()})
 					}
 					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()

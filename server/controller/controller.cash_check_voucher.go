@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 // CashCheckVoucherController registers routes for managing cash check vouchers.
@@ -244,7 +245,7 @@ func (c *Controller) cashCheckVoucherController() {
 				Description: "Cash check voucher creation failed (/cash-check-voucher), unbalanced entries.",
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit) + " " + endTx(fmt.Errorf("unbalanced entries")).Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit) + " " + endTx(eris.New("unbalanced entries")).Error()})
 		}
 
 		cashCheckVoucher := &core.CashCheckVoucher{
@@ -494,7 +495,7 @@ func (c *Controller) cashCheckVoucherController() {
 					continue
 				}
 				if entry.CashCheckVoucherID != cashCheckVoucher.ID {
-					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher: " + endTx(fmt.Errorf("invalid entry")).Error()})
+					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher: " + endTx(eris.New("invalid entry")).Error()})
 				}
 				entry.DeletedByID = &user.UserID
 				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
