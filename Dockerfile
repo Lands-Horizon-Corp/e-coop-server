@@ -6,7 +6,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-RUN go clean -modcache
+RUN go clean -cache -modcache -testcache -fuzzcache
 
 
 # Now copy the rest of the source code
