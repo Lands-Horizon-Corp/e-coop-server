@@ -221,7 +221,6 @@ func (e Event) RecordTransaction(
 		// Handle the case where no previous general ledger exists (first transaction)
 		var currentBalance float64 = 0
 		if generalLedger == nil {
-			currentBalance = 0
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-first-transaction",
 				Description: "No previous general ledger found for account " + account.ID.String() + " and member " + memberProfile.ID.String() + " - starting with balance 0",
@@ -326,7 +325,6 @@ func (e Event) RecordTransaction(
 		// Handle the case where no previous subsidiary general ledger exists (first transaction)
 		var currentBalance float64 = 0
 		if generalLedger == nil {
-			currentBalance = 0
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "subsidiary-ledger-first-transaction",
 				Description: "No previous subsidiary general ledger found for account " + account.ID.String() + " - starting with balance 0",

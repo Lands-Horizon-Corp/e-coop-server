@@ -679,7 +679,22 @@ func (c *Controller) userOrganinzationController() {
 		})
 		// Notify organization admins about new member joining via invitation
 		c.event.OrganizationAdminsDirectNotification(ctx, invitationCode.OrganizationID, event.NotificationEvent{
-			Description:      fmt.Sprintf("New %s joined using invitation code: %s %s", string(userOrg.UserType), *user.FirstName, *user.LastName),
+			Description: fmt.Sprintf(
+				"New %s joined using invitation code: %s %s",
+				string(userOrg.UserType),
+				func() string {
+					if user.FirstName != nil {
+						return *user.FirstName
+					}
+					return ""
+				}(),
+				func() string {
+					if user.LastName != nil {
+						return *user.LastName
+					}
+					return ""
+				}(),
+			),
 			Title:            "New Member Joined via Invitation",
 			NotificationType: core.NotificationInfo,
 		})
@@ -803,7 +818,21 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 		c.event.OrganizationAdminsDirectNotification(ctx, *organizationID, event.NotificationEvent{
-			Description:      fmt.Sprintf("New member application received from %s %s", *user.FirstName, *user.LastName),
+			Description: fmt.Sprintf(
+				"New member application received from %s %s",
+				func() string {
+					if user.FirstName != nil {
+						return *user.FirstName
+					}
+					return ""
+				}(),
+				func() string {
+					if user.LastName != nil {
+						return *user.LastName
+					}
+					return ""
+				}(),
+			),
 			Title:            "New Member Application",
 			NotificationType: core.NotificationInfo,
 		})
