@@ -25,12 +25,14 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	// Copy non-zero fields from fields to existing
 	// This ensures hooks will fire when using Save()
 	val := reflect.ValueOf(fields).Elem()
+	existingVal := reflect.ValueOf(existing).Elem()
+
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Type().Field(i)
 		if field.Name == "ID" {
 			continue
 		}
-		existingField := reflect.ValueOf(existing).Elem().FieldByName(field.Name)
+		existingField := existingVal.FieldByName(field.Name)
 		if !existingField.CanSet() {
 			continue
 		}
@@ -40,8 +42,14 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 		}
 	}
 
-	// Use Save() instead of Updates() to ensure hooks fire
-	if err := r.Client(context).Save(existing).Error; err != nil {
+	// Ensure the ID is set on existing record for Save() to work properly
+	idField := existingVal.FieldByName("ID")
+	if idField.IsValid() && idField.CanSet() {
+		idField.Set(reflect.ValueOf(id))
+	}
+
+	// Use Save() with WHERE clause to ensure hooks fire and avoid the error
+	if err := r.Client(context).Model(existing).Where("id = ?", id).Save(existing).Error; err != nil {
 		return eris.Wrapf(err, "failed to update entity %s", id)
 	}
 
