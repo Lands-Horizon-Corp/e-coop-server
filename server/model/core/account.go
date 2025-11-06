@@ -504,6 +504,7 @@ func (m *Core) account() {
 			"CreatedBy", "UpdatedBy",
 			"AccountClassification", "AccountCategory",
 			"AccountTags", "ComputationSheet", "Currency",
+			"LoanAccount",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Account) *AccountResponse {
