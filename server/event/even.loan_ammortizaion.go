@@ -8,16 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// helper: returns the next date after 'from' that falls on 'weekday'
-func nextWeekday(from time.Time, weekday time.Weekday) time.Time {
-	// Move to the next day to avoid returning the current day if matches
-	d := from.AddDate(0, 0, 1)
-	for d.Weekday() != weekday {
-		d = d.AddDate(0, 0, 1)
-	}
-	return d
-}
-
 func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) error {
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID, "Account.Currency")
 	if err != nil {
@@ -84,7 +74,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		case core.LoanModeOfPaymentWeekly:
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
 			// Use configured weekday, expects weeklyExactDay as time.Weekday
-			paymentDate = nextWeekday(paymentDate, time.Weekday(weekDay))
+			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
 		case core.LoanModeOfPaymentSemiMonthly:
 			// Expect e.g. 15 and 30 as paydays. Move to next of these
 			thisDay := paymentDate.Day()
@@ -127,6 +117,16 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	return nil
 }
 
+// helper: returns the next date after 'from' that falls on 'weekday'
+func (e Event) nextWeekday(from time.Time, weekday time.Weekday) time.Time {
+	// Move to the next day to avoid returning the current day if matches
+	d := from.AddDate(0, 0, 1)
+	for d.Weekday() != weekday {
+		d = d.AddDate(0, 0, 1)
+	}
+	return d
+}
+
 func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
@@ -141,6 +141,7 @@ func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*co
 	}
 	return false, nil
 }
+
 func (e Event) isSunday(date time.Time, currency *core.Currency) (bool, error) {
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
