@@ -2611,10 +2611,11 @@ func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branc
 }
 
 // FindAccountsByTypesAndBranch finds all accounts with specified branch, organization and account types (Fines, Interest, or SVFLedger)
-func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "currency_id", Op: registry.OpEq, Value: currencyID},
 		{Field: "type", Op: registry.OpIn, Value: []AccountType{
 			AccountTypeFines,
 			AccountTypeInterest,

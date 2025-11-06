@@ -1553,7 +1553,7 @@ func (c *Controller) accountController() {
 
 	// GET api/v1/account/loan-accounts
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/account/loan-accounts",
+		Route:        "/api/v1/account/loan-accounts-currency/:currency_id",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
 		ResponseType: core.AccountResponse{},
@@ -1563,9 +1563,13 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
+		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
+		}
 		accounts, err := c.core.FindAccountsByTypesAndBranch(
 			context,
-			userOrg.OrganizationID, *userOrg.BranchID)
+			userOrg.OrganizationID, *userOrg.BranchID, *currencyID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan accounts: " + err.Error()})
 		}
