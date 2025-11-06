@@ -504,3 +504,16 @@ func (m *Core) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, clo
 
 	return nil
 }
+
+func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
+	filters := []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+	})
+}
