@@ -65,7 +65,7 @@ type (
 func (m *Core) notification() {
 	m.Migration = append(m.Migration, &Notification{})
 	m.NotificationManager = *registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
-		Preloads: nil,
+		Preloads: []string{"Recipient", "Recipient.Media"},
 		Service:  m.provider.Service,
 		Resource: func(data *Notification) *NotificationResponse {
 			if data == nil {
