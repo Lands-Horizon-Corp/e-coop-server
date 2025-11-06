@@ -17,6 +17,15 @@ type LoanComputationSheetCalculatorRequest struct {
 	MemberTypeID *uuid.UUID `json:"member_type_id,omitempty"`
 	IsAddOn      bool       `json:"is_add_on,omitempty"`
 
+	ExcludeSaturday              bool                   `json:"exclude_saturday"`
+	ExcludeSunday                bool                   `json:"exclude_sunday"`
+	ExcludeHoliday               bool                   `json:"exclude_holiday"`
+	ModeOfPaymentMonthlyExactDay bool                   `json:"mode_of_payment_monthly_exact_day"`
+	ModeOfPaymentWeekly          core.Weekdays          `json:"mode_of_payment_weekly"`
+	ModeOfPaymentSemiMonthlyPay1 int                    `json:"mode_of_payment_semi_monthly_pay_1"`
+	ModeOfPaymentSemiMonthlyPay2 int                    `json:"mode_of_payment_semi_monthly_pay_2"`
+	ModeOfPayment                core.LoanModeOfPayment `json:"mode_of_payment"`
+
 	CashOnHandAccountID *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
 	ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`
 }
