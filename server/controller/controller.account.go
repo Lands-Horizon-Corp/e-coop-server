@@ -1522,7 +1522,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// POST api/v1/account/:account_id/disconnect-account/:loan_account_id
+	// POST api/v1/account/:account_id/disconnect-account
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/disconnect-account",
 		Method:       "POST",
