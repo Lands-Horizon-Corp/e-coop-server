@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -538,35 +537,43 @@ func (e *Event) TransactionPayment(
 	}
 
 	// ================================================================================
-	// STEP 7: UPDATE TRANSACTION
+	// STEP 7: UPDATE TRANSACTION USING PRECISE DECIMAL ARITHMETIC
 	// ================================================================================
 	switch data.Source {
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
 			if data.Amount < 0 {
-				transaction.Amount += math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
 			} else {
-				transaction.Amount -= math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
 			}
 		} else {
 			if data.Amount < 0 {
-				transaction.Amount -= math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
 			} else {
-				transaction.Amount += math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
 			}
 		}
 	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
 			if data.Amount < 0 {
-				transaction.Amount -= math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
 			} else {
-				transaction.Amount += math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
 			}
 		} else {
 			if data.Amount < 0 {
-				transaction.Amount += math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
 			} else {
-				transaction.Amount -= math.Abs(data.Amount)
+				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
+				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
 			}
 		}
 	}

@@ -188,12 +188,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	totalNonAddOns, totalAddOns := 0.0, 0.0
 
-	// Add existing deduction entries and calculate running totals
+	// Add existing deduction entries and calculate running totals using precise decimal arithmetic
 	for _, entry := range deduction {
 		if !entry.IsAddOn {
-			totalNonAddOns += entry.Credit
+			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
 		} else {
-			totalAddOns += entry.Credit
+			totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
 		}
 		result = append(result, entry)
 	}
@@ -224,10 +224,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 
 		if !entry.IsAddOn {
-			totalNonAddOns += entry.Credit
-
+			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
 		} else {
-			totalAddOns += entry.Credit
+			totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
 		}
 
 		if entry.Credit > 0 {
@@ -280,11 +279,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			}
 
 			if !entry.IsAddOn {
-				totalNonAddOns += entry.Credit
-
+				totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
 			} else {
-				totalAddOns += entry.Credit
-
+				totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
 			}
 
 			if entry.Credit > 0 {
@@ -307,18 +304,19 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Type:              core.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
-		totalNonAddOns += previous.Balance
+		totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, previous.Balance)
 	}
 
 	// ================================================================================
 	// STEP 9: CALCULATE FINAL CREDIT AMOUNTS & ADD-ON INTEREST
 	// ================================================================================
 
-	// Adjust the first entry (cash equivalent) credit based on loan type and deductions
+	// Adjust the first entry (cash equivalent) credit based on loan type and deductions using precise decimal arithmetic
 	if loanTransaction.IsAddOn {
-		result[0].Credit = loanTransaction.Applied1 - totalNonAddOns
+		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalNonAddOns)
 	} else {
-		result[0].Credit = loanTransaction.Applied1 - (totalNonAddOns + totalAddOns)
+		totalDeductions := e.provider.Service.Decimal.Add(totalNonAddOns, totalAddOns)
+		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalDeductions)
 	}
 
 	// Add the add-on interest entry if applicable
@@ -386,8 +384,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
 		if !entry.IsAutomaticLoanDeductionDeleted {
-			totalDebit += entry.Debit
-			totalCredit += entry.Credit
+			totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+			totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 		}
 
 		if err := e.core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
