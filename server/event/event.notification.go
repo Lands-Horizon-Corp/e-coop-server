@@ -79,8 +79,8 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 				Description:      data.Description,
 				IsViewed:         false,
 				NotificationType: data.NotificationType,
-				RecipientID:      &orgs.UserID,
-				UserID:           user.UserID,
+				RecipientID:      &user.UserID,
+				UserID:           orgs.UserID,
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
 				return
@@ -125,9 +125,7 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 	}()
 }
 
-// OrganizationDirectNotification creates notifications for all users in an organization
-// by organization ID, without requiring a context user
-func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, data NotificationEvent) {
+func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -135,6 +133,11 @@ func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, data No
 		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
+		if err != nil {
+			return
+		}
+
+		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return
 		}
@@ -155,7 +158,7 @@ func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, data No
 				Description:      data.Description,
 				IsViewed:         false,
 				NotificationType: data.NotificationType,
-				RecipientID:      &orgs.UserID,
+				RecipientID:      &user.ID,
 				UserID:           orgs.UserID, // Set as self-notification since no context user
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
@@ -167,7 +170,7 @@ func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, data No
 
 // OrganizationAdminsDirectNotification creates notifications for admin users only
 // in an organization by organization ID, without requiring a context user
-func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, data NotificationEvent) {
+func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -175,6 +178,11 @@ func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, d
 		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
+		if err != nil {
+			return
+		}
+
+		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return
 		}
@@ -198,7 +206,7 @@ func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, d
 				Description:      data.Description,
 				IsViewed:         false,
 				NotificationType: data.NotificationType,
-				RecipientID:      &orgs.UserID,
+				RecipientID:      &user.ID,
 				UserID:           orgs.UserID, // Set as self-notification since no context user
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
