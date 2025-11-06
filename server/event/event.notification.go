@@ -42,6 +42,7 @@ func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
 			Description:      data.Description,
 			IsViewed:         false,
 			NotificationType: data.NotificationType,
+			UserType:         "",
 		}
 
 		if err := e.core.NotificationManager.Create(context, notification); err != nil {
@@ -81,6 +82,7 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 				NotificationType: data.NotificationType,
 				RecipientID:      &user.UserID,
 				UserID:           orgs.UserID,
+				UserType:         orgs.UserType,
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
 				return
@@ -117,6 +119,7 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 				NotificationType: data.NotificationType,
 				RecipientID:      &orgs.UserID,
 				UserID:           user.UserID,
+				UserType:         orgs.UserType,
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
 				return
@@ -160,6 +163,7 @@ func (e *Event) OrganizationDirectNotification(organizationID uuid.UUID, ctx ech
 				NotificationType: data.NotificationType,
 				RecipientID:      &user.ID,
 				UserID:           orgs.UserID, // Set as self-notification since no context user
+				UserType:         orgs.UserType,
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
 				continue // Continue with other notifications if one fails
@@ -208,6 +212,7 @@ func (e *Event) OrganizationAdminsDirectNotification(organizationID uuid.UUID, c
 				NotificationType: data.NotificationType,
 				RecipientID:      &user.ID,
 				UserID:           orgs.UserID, // Set as self-notification since no context user
+				UserType:         orgs.UserType,
 			}
 			if err := e.core.NotificationManager.Create(context, notification); err != nil {
 				continue // Continue with other notifications if one fails

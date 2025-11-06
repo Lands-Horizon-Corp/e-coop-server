@@ -41,6 +41,8 @@ type (
 		Description      string           `gorm:"type:text;not null"`
 		IsViewed         bool             `gorm:"default:false" json:"is_viewed"`
 		NotificationType NotificationType `gorm:"type:varchar(50);not null"`
+
+		UserType UserOrganizationType `gorm:"type:varchar(50);not null"`
 	}
 
 	// NotificationResponse represents the JSON response structure for notification data
@@ -58,6 +60,8 @@ type (
 		NotificationType NotificationType `json:"notification_type"`
 		CreatedAt        string           `json:"created_at"`
 		UpdatedAt        string           `json:"updated_at"`
+
+		UserType UserOrganizationType `json:"user_type"`
 	}
 )
 
@@ -83,6 +87,7 @@ func (m *Core) notification() {
 				NotificationType: data.NotificationType,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
+				UserType:         data.UserType,
 			}
 		},
 		Created: func(data *Notification) []string {
