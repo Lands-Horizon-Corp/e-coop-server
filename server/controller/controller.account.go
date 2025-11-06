@@ -835,10 +835,10 @@ func (c *Controller) accountController() {
 			Module:      "Account",
 		})
 		// Event notification
-		c.event.Notification(ctx, event.NotificationEvent{
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
 			Description:      fmt.Sprintf("Account: the account has been updated - %s", account.Name),
 			Title:            fmt.Sprintf("Updated account: %s", account.Name),
-			NotificationType: "success",
+			NotificationType: core.NotificationSystem,
 		})
 
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))

@@ -206,11 +206,6 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 7B: MEMBER LEDGER RETRIEVAL ---
 		// Get current member account ledger with row-level locking
-
-		// Additional safety check for memberProfile
-		if memberProfile == nil {
-			return endTx(eris.New("memberProfile became nil after validation"))
-		}
 		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx, memberProfile.ID, account.ID, memberProfile.OrganizationID, memberProfile.BranchID,
 		)

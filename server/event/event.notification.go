@@ -13,17 +13,17 @@ import (
 type NotificationEvent struct {
 	Title            string
 	Description      string
-	NotificationType string
+	NotificationType core.NotificationType
 }
 
 // Notification creates a notification record asynchronously for the
 // current user based on the supplied data.
-func (e *Event) Notification(echoCtx echo.Context, data NotificationEvent) {
+func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
 
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		user, err := e.userToken.CurrentUser(context, echoCtx)
+		user, err := e.userToken.CurrentUser(context, ctx)
 		if err != nil {
 			return
 		}
@@ -45,6 +45,81 @@ func (e *Event) Notification(echoCtx echo.Context, data NotificationEvent) {
 
 		if err := e.core.NotificationManager.Create(context, notification); err != nil {
 			return
+		}
+	}()
+}
+
+func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data NotificationEvent) {
+	go func() {
+		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return
+		}
+		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+			OrganizationID: user.OrganizationID,
+		})
+		data.Title = handlers.Sanitize(data.Title)
+		data.Description = handlers.Sanitize(data.Description)
+
+		if data.Description == "" || data.NotificationType == "" {
+			return
+		}
+		for _, orgs := range useOrganizations {
+			if orgs.UserType != core.UserOrganizationTypeEmployee && orgs.UserType != core.UserOrganizationTypeOwner {
+				continue
+			}
+			notification := &core.Notification{
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+
+				Title:            data.Title,
+				Description:      data.Description,
+				IsViewed:         false,
+				NotificationType: data.NotificationType,
+				RecipientID:      &orgs.UserID,
+				UserID:           user.UserID,
+			}
+			if err := e.core.NotificationManager.Create(context, notification); err != nil {
+				return
+			}
+		}
+	}()
+}
+
+func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEvent) {
+	go func() {
+		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return
+		}
+		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+			OrganizationID: user.OrganizationID,
+		})
+		data.Title = handlers.Sanitize(data.Title)
+		data.Description = handlers.Sanitize(data.Description)
+
+		if data.Description == "" || data.NotificationType == "" {
+			return
+		}
+		for _, orgs := range useOrganizations {
+			notification := &core.Notification{
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+
+				Title:            data.Title,
+				Description:      data.Description,
+				IsViewed:         false,
+				NotificationType: data.NotificationType,
+				RecipientID:      &orgs.UserID,
+				UserID:           user.UserID,
+			}
+			if err := e.core.NotificationManager.Create(context, notification); err != nil {
+				return
+			}
 		}
 	}()
 }

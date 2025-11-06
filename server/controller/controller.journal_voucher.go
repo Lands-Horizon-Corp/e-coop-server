@@ -1060,6 +1060,12 @@ func (c *Controller) journalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
+
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
+			Title:            "Journal Vouchers - Approved List Accessed",
+			NotificationType: core.NotificationInfo,
+		})
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
@@ -1084,6 +1090,11 @@ func (c *Controller) journalVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
 		}
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
+			Title:            "Journal Vouchers - Approved List Accessed",
+			NotificationType: core.NotificationSystem,
+		})
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
