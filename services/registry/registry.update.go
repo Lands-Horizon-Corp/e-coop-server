@@ -22,8 +22,8 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 		return eris.Wrapf(err, "failed to find entity %s", id)
 	}
 
-	// Copy non-zero fields from fields to existing
-	// This ensures hooks will fire when using Save()
+	// Copy ALL fields from fields to existing (including zero values)
+	// This allows updating to false, null, empty string, etc.
 	val := reflect.ValueOf(fields).Elem()
 	existingVal := reflect.ValueOf(existing).Elem()
 
@@ -37,9 +37,9 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 			continue
 		}
 		newValue := val.Field(i)
-		if !newValue.IsZero() {
-			existingField.Set(newValue)
-		}
+
+		// Remove the IsZero() check to allow false, nil, empty values
+		existingField.Set(newValue)
 	}
 
 	// Ensure the ID is set on existing record for Save() to work properly
@@ -48,8 +48,8 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 		idField.Set(reflect.ValueOf(id))
 	}
 
-	// Use Save() with WHERE clause to ensure hooks fire and avoid the error
-	if err := r.Client(context).Model(existing).Where("id = ?", id).Save(existing).Error; err != nil {
+	// Use Save() without WHERE clause since we have the ID set
+	if err := r.Client(context).Save(existing).Error; err != nil {
 		return eris.Wrapf(err, "failed to update entity %s", id)
 	}
 
