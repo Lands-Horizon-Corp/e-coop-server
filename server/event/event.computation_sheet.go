@@ -478,13 +478,16 @@ func (e *Event) ComputationSheetCalculator(
 		}
 		for _, acc := range accounts {
 			if acc.Account.Type == core.AccountTypeLoan {
-				acc.Value = e.provider.Service.Decimal.Clamp(
-					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)),
-					0,
-					balance,
-				)
+				// Calculate principal payment for this period
+				principalPayment := e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments))
+
+				// Ensure we don't pay more than the remaining balance
+				acc.Value = e.provider.Service.Decimal.Clamp(principalPayment, 0, balance)
 				acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+
+				// Update the remaining balance
 				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
+
 			}
 		}
 	}
