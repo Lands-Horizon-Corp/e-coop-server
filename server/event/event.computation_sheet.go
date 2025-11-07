@@ -165,7 +165,7 @@ func (e *Event) ComputationSheetCalculator(
 
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(lcscr.ModeOfPayment, lcscr.Terms)
 	if err != nil {
-		return nil, err
+		return nil, eris.Wrap(err, "failed to calculate number of payments")
 	}
 
 	currency := account.Currency
