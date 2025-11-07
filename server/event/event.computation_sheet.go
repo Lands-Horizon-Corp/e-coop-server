@@ -281,6 +281,7 @@ func (e *Event) ComputationSheetCalculator(
 	for i := range numberOfPayments + 1 {
 		// Find next valid payment date (skip excluded days)
 		actualDate := paymentDate
+		scheduledDate := paymentDate
 		daysSkipped := 0
 		checkDate := paymentDate
 		for {
@@ -305,6 +306,7 @@ func (e *Event) ComputationSheetCalculator(
 				break
 			}
 			paymentDate = paymentDate.AddDate(0, 0, 1)
+			scheduledDate = paymentDate
 			daysSkipped++
 		}
 
@@ -390,7 +392,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -400,7 +402,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentWeekly:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -411,7 +413,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentSemiMonthly:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -434,7 +436,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentMonthly:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -446,12 +448,12 @@ func (e *Event) ComputationSheetCalculator(
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else {
-				paymentDate = paymentDate.AddDate(0, 1, 0)
+				paymentDate = paymentDate.AddDate(0, 0, 30)
 			}
 		case core.LoanModeOfPaymentQuarterly:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -461,7 +463,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentSemiAnnual:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -471,7 +473,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentLumpsum:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
@@ -480,7 +482,7 @@ func (e *Event) ComputationSheetCalculator(
 		case core.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: paymentDate,
+				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
