@@ -352,7 +352,7 @@ func (e *Event) ComputationSheetCalculator(
 
 					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
 						acc.Value = e.usecase.ComputeFines(
-							balance,
+							principal,
 							acc.Account.FinesAmort,
 							acc.Account.FinesMaturity,
 							daysSkipped,
@@ -399,6 +399,16 @@ func (e *Event) ComputationSheetCalculator(
 		}
 
 		// Add to amortization schedule AFTER calculations
+		// Create a deep copy of accounts for this schedule entry
+		accountsCopy := make([]AccountValue, len(accounts))
+		for k, acc := range accounts {
+			accountsCopy[k] = AccountValue{
+				Account: acc.Account,
+				Value:   acc.Value,
+				Total:   acc.Total,
+			}
+		}
+
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
@@ -407,7 +417,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		case core.LoanModeOfPaymentWeekly:
@@ -417,7 +427,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
@@ -428,7 +438,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			// Semi-monthly logic...
 			thisDay := paymentDate.Day()
@@ -451,7 +461,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
@@ -468,7 +478,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
 		case core.LoanModeOfPaymentSemiAnnual:
@@ -478,7 +488,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
@@ -488,7 +498,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 		case core.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
@@ -497,7 +507,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         e.sumAccountValues(accounts),
-				Accounts:      accounts,
+				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
