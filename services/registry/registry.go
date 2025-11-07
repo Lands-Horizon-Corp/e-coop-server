@@ -32,14 +32,19 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 func NewRegistry[TData any, TResponse any, TRequest any](
 	params RegistryParams[TData, TResponse, TRequest],
 ) *Registry[TData, TResponse, TRequest] {
+	maxDepth := 2
 	return &Registry[TData, TResponse, TRequest]{
-		service:   params.Service,
-		created:   params.Created,
-		updated:   params.Updated,
-		deleted:   params.Deleted,
-		resource:  params.Resource,
-		preloads:  params.Preloads,
-		filtering: filter.NewFilter[TData](),
+		service:  params.Service,
+		created:  params.Created,
+		updated:  params.Updated,
+		deleted:  params.Deleted,
+		resource: params.Resource,
+		preloads: params.Preloads,
+		filtering: filter.NewFilter[TData](
+			filter.GolangFilteringConfig{
+				MaxDepth: &maxDepth,
+			},
+		),
 		threshold: params.Threshold,
 	}
 }
