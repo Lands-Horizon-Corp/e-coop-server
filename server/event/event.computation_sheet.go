@@ -351,7 +351,7 @@ func (e *Event) ComputationSheetCalculator(
 
 					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
 						acc.Value = e.usecase.ComputeFines(
-							principal,
+							balance, // Changed from principal to balance
 							acc.Account.FinesAmort,
 							acc.Account.FinesMaturity,
 							daysSkipped,
