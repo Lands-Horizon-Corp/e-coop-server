@@ -38,8 +38,8 @@ type ComputationSheetAmortizationResponse struct {
 	TotalDebit  float64                              `json:"total_debit"`
 	TotalCredit float64                              `json:"total_credit"`
 	Currency    core.CurrencyResponse                `json:"currency"`
-
-	Schedule []*LoanAmortizationScheduleResponse `json:"schedule,omitempty"`
+	Total       float64                              `json:"total"`
+	Schedule    []*LoanAmortizationScheduleResponse  `json:"schedule,omitempty"`
 }
 
 func (e *Event) ComputationSheetCalculator(
@@ -278,6 +278,7 @@ func (e *Event) ComputationSheetCalculator(
 	principal := totalCredit
 	balance := totalCredit
 	paymentDate := time.Now().UTC()
+	total := 0.0
 
 	for i := range numberOfPayments + 1 {
 		// Find next valid payment date (skip excluded days)
@@ -409,6 +410,9 @@ func (e *Event) ComputationSheetCalculator(
 			}
 		}
 
+		rowTotal := e.sumAccountValues(accounts)
+		total = e.provider.Service.Decimal.Add(total, rowTotal)
+
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
@@ -416,7 +420,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
@@ -426,7 +430,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
@@ -437,7 +441,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			// Semi-monthly logic...
@@ -460,7 +464,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			loc := paymentDate.Location()
@@ -477,7 +481,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
@@ -487,7 +491,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
@@ -497,7 +501,7 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 		case core.LoanModeOfPaymentFixedDays:
@@ -506,22 +510,12 @@ func (e *Event) ComputationSheetCalculator(
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         e.sumAccountValues(accounts),
+				Total:         rowTotal,
 				Accounts:      accountsCopy, // Use the copy instead of original
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
-	fmt.Printf("=== FINAL RESPONSE DEBUG ===\n")
-	for i, schedule := range amortization {
-		fmt.Printf("Schedule %d - Balance: %.2f, Total: %.2f\n", i, schedule.Balance, schedule.Total)
-		for j, acc := range schedule.Accounts {
-			if acc.Account.Type == core.AccountTypeFines {
-				fmt.Printf("  Fines Account %d - Value: %.2f, Total: %.2f\n", j, acc.Value, acc.Total)
-			}
-		}
-	}
-	fmt.Printf("=== END DEBUG ===\n")
 
 	return &ComputationSheetAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
