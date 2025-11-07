@@ -357,6 +357,9 @@ func (e *Event) ComputationSheetCalculator(
 							acc.Account,
 						)
 						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+
+						fmt.Printf("Payment %d - Fines Applied: Days Skipped: %d, Principal: %.2f, FinesAmort: %.2f, FinesMaturity: %.2f, Fines Amount: %.2f, Total Fines: %.2f\n",
+							i, daysSkipped, principal, acc.Account.FinesAmort, acc.Account.FinesMaturity, acc.Value, acc.Total)
 					} else {
 						acc.Value = 0
 					}
