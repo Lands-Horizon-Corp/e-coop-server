@@ -601,16 +601,6 @@ func (c *Controller) accountController() {
 
 			Icon:                        req.Icon,
 			InterestStandardComputation: req.InterestStandardComputation,
-
-			LumpsumComputationType:                            req.LumpsumComputationType,
-			InterestFinesComputationDiminishing:               req.InterestFinesComputationDiminishing,
-			InterestFinesComputationDiminishingStraightYearly: req.InterestFinesComputationDiminishingStraightYearly,
-			EarnedUnearnedInterest:                            req.EarnedUnearnedInterest,
-			LoanSavingType:                                    req.LoanSavingType,
-			InterestDeduction:                                 req.InterestDeduction,
-			OtherDeductionEntry:                               req.OtherDeductionEntry,
-			InterestSavingTypeDiminishingStraight:             req.InterestSavingTypeDiminishingStraight,
-			OtherInformationOfAnAccount:                       req.OtherInformationOfAnAccount,
 		}
 
 		if err := c.core.AccountManager.Create(context, account); err != nil {
