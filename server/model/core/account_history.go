@@ -76,7 +76,7 @@ type (
 		// Grace periods snapshot
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
+		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
 		CutOffDays                   int  `gorm:"type:int;default:0" json:"cut_off_days"`
@@ -141,8 +141,8 @@ type (
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
 		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
 		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
@@ -190,7 +190,7 @@ type (
 
 		FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
+		NoGracePeriodDaily           bool `json:"no_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
 		CutOffDays                   int  `json:"cut_off_days"`
@@ -251,8 +251,8 @@ type (
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
 		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
 		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
@@ -318,7 +318,7 @@ func (m *Core) accountHistory() {
 				InterestSecured:              data.InterestSecured,
 				FinesGracePeriodAmortization: data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:        data.AdditionalGracePeriod,
-				NumberGracePeriodDaily:       data.NumberGracePeriodDaily,
+				NoGracePeriodDaily:           data.NoGracePeriodDaily,
 				FinesGracePeriodMaturity:     data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:        data.YearlySubscriptionFee,
 				CutOffDays:                   data.CutOffDays,
@@ -377,8 +377,8 @@ func (m *Core) accountHistory() {
 				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 				CohCibFinesGracePeriodEntryQuarterlyAmortization:   data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 				CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-				CohCibFinesGracePeriodEntrySemiAnualAmortization:   data.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-				CohCibFinesGracePeriodEntrySemiAnualMaturity:       data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  data.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      data.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 				CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 			}
@@ -503,4 +503,17 @@ func (m *Core) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, clo
 	}
 
 	return nil
+}
+
+func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
+	filters := []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+	})
 }

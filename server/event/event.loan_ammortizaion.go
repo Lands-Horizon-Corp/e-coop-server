@@ -9,16 +9,17 @@ import (
 )
 
 type AccountValue struct {
-	Account core.Account `json:"account"`
-	Value   float64      `json:"value"`
+	Account core.AccountRequest `json:"account"`
+	Value   float64             `json:"value"`
 }
 
 type LoanAmortizationScheduleResponse struct {
-	ScheduledDate time.Time      `json:"scheduledDate"`
-	ActualDate    time.Time      `json:"actualDate"`
-	DaysSkipped   int            `json:"daysSkipped"`
-	Total         float64        `json:"total"`
-	Accounts      []AccountValue `json:"accounts"`
+	ScheduledDate time.Time       `json:"scheduledDate"`
+	ActualDate    time.Time       `json:"actualDate"`
+	DaysSkipped   int             `json:"daysSkipped"`
+	Total         float64         `json:"total"`
+	Balance       float64         `json:"balance"`
+	Accounts      []*AccountValue `json:"accounts"`
 }
 
 func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {
@@ -35,7 +36,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		return result, err
 	}
 
-	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction)
+	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return result, err
 	}
@@ -58,6 +59,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 	for i := range numberOfPayments {
 		// Find next valid payment date (skip excluded days)
+		daysSkipped := 0
 		for {
 			var skip bool
 			if excludeSaturday {
@@ -79,6 +81,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 				break
 			}
 			paymentDate = paymentDate.AddDate(0, 0, 1)
+			daysSkipped++
 		}
 
 		// Store or output paymentDate here as needed

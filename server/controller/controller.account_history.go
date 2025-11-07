@@ -29,11 +29,12 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
-			accountHistory, err := c.core.AccountHistoryManager.FindRaw(context, &core.AccountHistory{
-				AccountID:      *accountID,
-				OrganizationID: userOrg.OrganizationID,
-				BranchID:       *userOrg.BranchID,
-			})
+			accountHistory, err := c.core.GetAllAccountHistory(
+				context,
+				*accountID,
+				userOrg.OrganizationID,
+				*userOrg.BranchID,
+			)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
@@ -123,15 +124,15 @@ func (c *Controller) accountHistory() {
 			account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiMonthlyMaturity
 			account.CohCibFinesGracePeriodEntryQuarterlyAmortization = accountHistory.CohCibFinesGracePeriodEntryQuarterlyAmortization
 			account.CohCibFinesGracePeriodEntryQuarterlyMaturity = accountHistory.CohCibFinesGracePeriodEntryQuarterlyMaturity
-			account.CohCibFinesGracePeriodEntrySemiAnualAmortization = accountHistory.CohCibFinesGracePeriodEntrySemiAnualAmortization
-			account.CohCibFinesGracePeriodEntrySemiAnualMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiAnualMaturity
+			account.CohCibFinesGracePeriodEntrySemiAnnualAmortization = accountHistory.CohCibFinesGracePeriodEntrySemiAnnualAmortization
+			account.CohCibFinesGracePeriodEntrySemiAnnualMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiAnnualMaturity
 			account.CohCibFinesGracePeriodEntryLumpsumAmortization = accountHistory.CohCibFinesGracePeriodEntryLumpsumAmortization
 			account.CohCibFinesGracePeriodEntryLumpsumMaturity = accountHistory.CohCibFinesGracePeriodEntryLumpsumMaturity
 			account.GeneralLedgerType = accountHistory.GeneralLedgerType
 			account.LoanAccountID = accountHistory.LoanAccountID
 			account.FinesGracePeriodAmortization = accountHistory.FinesGracePeriodAmortization
 			account.AdditionalGracePeriod = accountHistory.AdditionalGracePeriod
-			account.NumberGracePeriodDaily = accountHistory.NumberGracePeriodDaily
+			account.NoGracePeriodDaily = accountHistory.NoGracePeriodDaily
 			account.FinesGracePeriodMaturity = accountHistory.FinesGracePeriodMaturity
 			account.YearlySubscriptionFee = accountHistory.YearlySubscriptionFee
 			account.CutOffDays = accountHistory.CutOffDays

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rotisserie/eris"
@@ -196,7 +195,6 @@ func NewHorizonAPIService(
 			return nil
 		},
 	}))
-	e.Use(echoprometheus.NewMiddleware(clientName))
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6,
 		Skipper: func(c echo.Context) bool {

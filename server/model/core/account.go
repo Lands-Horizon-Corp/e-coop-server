@@ -101,7 +101,7 @@ type InterestDeduction string
 
 // Values for InterestDeduction
 const (
-	InterestDeductionAbove InterestDeduction = "above"
+	InterestDeductionAbove InterestDeduction = "Above"
 	InterestDeductionBelow InterestDeduction = "Below"
 )
 
@@ -211,43 +211,45 @@ type (
 		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
 		PaidUpShareCapital bool `gorm:"default:false" json:"paid_up_share_capital"`
 
-		ComputationType ComputationType `gorm:"type:varchar(50)" json:"computation_type"`
+		ComputationType ComputationType `gorm:"type:varchar(50);default:'Straight'" json:"computation_type"`
 
-		FinesAmort       float64 `gorm:"type:decimal" json:"fines_amort"`
-		FinesMaturity    float64 `gorm:"type:decimal" json:"fines_maturity"`
-		InterestStandard float64 `gorm:"type:decimal" json:"interest_standard"`
-		InterestSecured  float64 `gorm:"type:decimal" json:"interest_secured"`
+		FinesAmort       float64 `gorm:"type:decimal;default:0;check:fines_amort >= 0 AND fines_amort <= 100" json:"fines_amort"`
+		FinesMaturity    float64 `gorm:"type:decimal;default:0;check:fines_maturity >= 0 AND fines_maturity <= 100" json:"fines_maturity"`
+		InterestStandard float64 `gorm:"type:decimal;default:0" json:"interest_standard"`
+		InterestSecured  float64 `gorm:"type:decimal;default:0" json:"interest_secured"`
 
 		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
 		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:SET NULL;" json:"computation_sheet,omitempty"`
 
-		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_hand"`
-		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
-		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
-		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
-		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
-		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
-		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
-		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
-		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
-		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
-		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
-		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
+		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_hand >= 0 AND coh_cib_fines_grace_period_entry_cash_hand <= 100" json:"coh_cib_fines_grace_period_entry_cash_hand"`
+		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_in_bank >= 0 AND coh_cib_fines_grace_period_entry_cash_in_bank <= 100" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
+		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_amortization >= 0 AND coh_cib_fines_grace_period_entry_daily_amortization <= 100" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
+		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_maturity >= 0 AND coh_cib_fines_grace_period_entry_daily_maturity <= 100" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
+		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_amortization >= 0 AND coh_cib_fines_grace_period_entry_weekly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
+		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_maturity >= 0 AND coh_cib_fines_grace_period_entry_weekly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
+		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
+		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
+		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_amortization >= 0 AND coh_cib_fines_grace_period_entry_quarterly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
+		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_maturity >= 0 AND coh_cib_fines_grace_period_entry_quarterly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
+		CohCibFinesGracePeriodEntryAnnualAmortization      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_annual_amortization >= 0 AND coh_cib_fines_grace_period_entry_annual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_annual_amortization"`
+		CohCibFinesGracePeriodEntryAnnualMaturity          float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_annual_maturity >= 0 AND coh_cib_fines_grace_period_entry_annual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_annual_maturity"`
+		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_amortization >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_amortization <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
+		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_maturity >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_maturity <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
 		GeneralLedgerType GeneralLedgerType `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
 		LoanAccountID *uuid.UUID `gorm:"type:uuid" json:"loan_account_id"`
 		LoanAccount   *Account   `gorm:"foreignKey:LoanAccountID;constraint:OnDelete:SET NULL;" json:"loan_account,omitempty"`
 
-		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
-		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
-		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
-		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
+		FinesGracePeriodAmortization int  `gorm:"type:int;default:0" json:"fines_grace_period_amortization"`
+		AdditionalGracePeriod        int  `gorm:"type:int;default:0" json:"additional_grace_period"`
+		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
+		FinesGracePeriodMaturity     int  `gorm:"type:int;default:0" json:"fines_grace_period_maturity"`
+		YearlySubscriptionFee        int  `gorm:"type:int;default:0" json:"yearly_subscription_fee"`
 		CutOffDays                   int  `gorm:"type:int;default:0;check:cut_off_days >= 0 AND cut_off_days <= 30" json:"cut_off_days"`
 		CutOffMonths                 int  `gorm:"type:int;default:0;check:cut_off_months >= 0 AND cut_off_months <= 12" json:"cut_off_months"`
 
@@ -261,9 +263,9 @@ type (
 		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
 		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
 
-		HeaderRow int `gorm:"type:int" json:"header_row"`
-		CenterRow int `gorm:"type:int" json:"center_row"`
-		TotalRow  int `gorm:"type:int" json:"total_row"`
+		HeaderRow int `gorm:"type:int;default:0" json:"header_row"`
+		CenterRow int `gorm:"type:int;default:0" json:"center_row"`
+		TotalRow  int `gorm:"type:int;default:0" json:"total_row"`
 
 		AccountTags                         []*AccountTag `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE;" json:"account_tags,omitempty"`
 		GeneralLedgerGroupingExcludeAccount bool          `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
@@ -351,8 +353,10 @@ type AccountResponse struct {
 	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
 	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
 	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
+	CohCibFinesGracePeriodEntryAnnualAmortization      float64 `json:"coh_cib_fines_grace_period_entry_annual_amortization"`
+	CohCibFinesGracePeriodEntryAnnualMaturity          float64 `json:"coh_cib_fines_grace_period_entry_annual_maturity"`
 	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
@@ -363,7 +367,7 @@ type AccountResponse struct {
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period"`
-	NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
+	NoGracePeriodDaily           bool `json:"no_grace_period_daily"`
 	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
 	CutOffDays                   int  `json:"cut_off_days"`
@@ -371,7 +375,7 @@ type AccountResponse struct {
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly"`
 	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest"`
 	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type"`
 	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction"`
@@ -425,45 +429,47 @@ type AccountRequest struct {
 
 	ComputationType ComputationType `json:"computation_type,omitempty"`
 
-	FinesAmort       float64 `json:"fines_amort,omitempty"`
-	FinesMaturity    float64 `json:"fines_maturity,omitempty"`
-	InterestStandard float64 `json:"interest_standard,omitempty"`
-	InterestSecured  float64 `json:"interest_secured,omitempty"`
+	FinesAmort       float64 `json:"fines_amort,omitempty" validate:"gte=0,lte=100"`
+	FinesMaturity    float64 `json:"fines_maturity,omitempty" validate:"gte=0,lte=100"`
+	InterestStandard float64 `json:"interest_standard,omitempty" validate:"gte=0,lte=100"`
+	InterestSecured  float64 `json:"interest_secured,omitempty" validate:"gte=0,lte=100"`
 
 	ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 
-	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand,omitempty"`
-	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank,omitempty"`
-	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization,omitempty"`
-	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty"`
+	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryAnnualAmortization      float64 `json:"coh_cib_fines_grace_period_entry_annual_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryAnnualMaturity          float64 `json:"coh_cib_fines_grace_period_entry_annual_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty" validate:"gte=0,lte=100"`
 
 	GeneralLedgerType GeneralLedgerType `json:"general_ledger_type,omitempty"`
 
 	LoanAccountID *uuid.UUID `json:"loan_account_id,omitempty"`
 
-	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
-	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
-	NumberGracePeriodDaily       bool `json:"number_grace_period_daily,omitempty"`
-	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty"`
-	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty"`
+	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty" validate:"gte=0,lte=365"`
+	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty" validate:"gte=0,lte=365"`
+	NoGracePeriodDaily           bool `json:"no_grace_period_daily,omitempty"`
+	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty" validate:"gte=0,lte=365"`
+	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty" validate:"gte=0"`
 	CutOffDays                   int  `json:"cut_off_days,omitempty" validate:"gte=0,lte=30"`
 	CutOffMonths                 int  `json:"cut_off_months,omitempty" validate:"gte=0,lte=12"`
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly,omitempty"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly,omitempty"`
 	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest,omitempty"`
 	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type,omitempty"`
 	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction,omitempty"`
@@ -564,8 +570,10 @@ func (m *Core) account() {
 				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 				CohCibFinesGracePeriodEntryQuarterlyAmortization:   data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 				CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-				CohCibFinesGracePeriodEntrySemiAnualAmortization:   data.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-				CohCibFinesGracePeriodEntrySemiAnualMaturity:       data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  data.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      data.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+				CohCibFinesGracePeriodEntryAnnualAmortization:      data.CohCibFinesGracePeriodEntryAnnualAmortization,
+				CohCibFinesGracePeriodEntryAnnualMaturity:          data.CohCibFinesGracePeriodEntryAnnualMaturity,
 				CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 				GeneralLedgerType:                   data.GeneralLedgerType,
@@ -573,20 +581,20 @@ func (m *Core) account() {
 				LoanAccount:                         m.AccountManager.ToModel(data.LoanAccount),
 				FinesGracePeriodAmortization:        data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:               data.AdditionalGracePeriod,
-				NumberGracePeriodDaily:              data.NumberGracePeriodDaily,
+				NoGracePeriodDaily:                  data.NoGracePeriodDaily,
 				FinesGracePeriodMaturity:            data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:               data.YearlySubscriptionFee,
 				CutOffDays:                          data.CutOffDays,
 				CutOffMonths:                        data.CutOffMonths,
-				LumpsumComputationType:              LumpsumComputationType(data.LumpsumComputationType),
-				InterestFinesComputationDiminishing: InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
-				InterestFinesComputationDiminishingStraightYearly: InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightYearly),
-				EarnedUnearnedInterest:                            EarnedUnearnedInterest(data.EarnedUnearnedInterest),
-				LoanSavingType:                                    LoanSavingType(data.LoanSavingType),
-				InterestDeduction:                                 InterestDeduction(data.InterestDeduction),
-				OtherDeductionEntry:                               OtherDeductionEntry(data.OtherDeductionEntry),
-				InterestSavingTypeDiminishingStraight:             InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
-				OtherInformationOfAnAccount:                       OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
+				LumpsumComputationType:              data.LumpsumComputationType,
+				InterestFinesComputationDiminishing: data.InterestFinesComputationDiminishing,
+				InterestFinesComputationDiminishingStraightYearly: data.InterestFinesComputationDiminishingStraightYearly,
+				EarnedUnearnedInterest:                            data.EarnedUnearnedInterest,
+				LoanSavingType:                                    data.LoanSavingType,
+				InterestDeduction:                                 data.InterestDeduction,
+				OtherDeductionEntry:                               data.OtherDeductionEntry,
+				InterestSavingTypeDiminishingStraight:             data.InterestSavingTypeDiminishingStraight,
+				OtherInformationOfAnAccount:                       data.OtherInformationOfAnAccount,
 				HeaderRow:                                         data.HeaderRow,
 				CenterRow:                                         data.CenterRow,
 				TotalRow:                                          data.TotalRow,
@@ -664,9 +672,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.5,
 			CurrencyID:        &currency.ID,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             1,
+			Icon:              "Savings",
 		},
 		{
 			CreatedAt:         now,
@@ -681,10 +690,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         5000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			GeneralLedgerType: GLTypeLiabilities,
+			ComputationType:   DiminishingYearly,
 			Index:             2,
 			CurrencyID:        &currency.ID,
+			Icon:              "Crown",
 		},
 		{
 			CreatedAt:         now,
@@ -699,10 +709,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         50.00,
 			MaxAmount:         100000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             3,
 			CurrencyID:        &currency.ID,
+			Icon:              "Cake",
 		},
 		{
 			CreatedAt:         now,
@@ -717,10 +728,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         500.00,
 			MaxAmount:         2000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			GeneralLedgerType: GLTypeLiabilities,
+			ComputationType:   DiminishingQuarterly,
 			Index:             4,
 			CurrencyID:        &currency.ID,
+			Icon:              "Umbrella",
 		},
 		{
 			CreatedAt:         now,
@@ -735,10 +747,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         200.00,
 			MaxAmount:         500000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             5,
 			CurrencyID:        &currency.ID,
+			Icon:              "Calendar",
 		},
 		{
 			CreatedAt:         now,
@@ -753,10 +766,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         1000.00,
 			MaxAmount:         3000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			GeneralLedgerType: GLTypeLiabilities,
+			ComputationType:   DiminishingAddOn,
 			Index:             6,
 			CurrencyID:        &currency.ID,
+			Icon:              "Graduation Cap",
 		},
 		{
 			CreatedAt:         now,
@@ -771,10 +785,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         500.00,
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             7,
 			CurrencyID:        &currency.ID,
+			Icon:              "Shield Check",
 		},
 		{
 			CreatedAt:         now,
@@ -789,10 +804,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         2000.00,
 			MaxAmount:         10000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			GeneralLedgerType: GLTypeLiabilities,
+			ComputationType:   DiminishingStraight,
 			Index:             8,
 			CurrencyID:        &currency.ID,
+			Icon:              "Brief Case",
 		},
 		{
 			CreatedAt:         now,
@@ -807,10 +823,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         1000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.5,
-			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			GeneralLedgerType: GLTypeLiabilities,
+			ComputationType:   DiminishingYearly,
 			Index:             9,
 			CurrencyID:        &currency.ID,
+			Icon:              "Clock",
 		},
 	}
 
@@ -848,7 +865,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			FinesAmort:                              1.0,
 			FinesMaturity:                           2.0,
 			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         "Diminishing Balance",
+			ComputationType:                         Diminishing,
 			Index:                                   10,
 			CutOffDays:                              3,
 			CutOffMonths:                            0,
@@ -868,6 +885,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
+			Icon:                                    "Rocket",
 		},
 		{
 			CreatedAt:                               now,
@@ -886,7 +904,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			FinesAmort:                              1.5,
 			FinesMaturity:                           2.5,
 			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         "Diminishing Balance",
+			ComputationType:                         DiminishingYearly,
 			Index:                                   11,
 			CutOffDays:                              7,
 			CutOffMonths:                            0,
@@ -906,6 +924,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			CurrencyID:                              &currency.ID,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			Icon:                                    "Shop Icon",
 		},
 		{
 			CreatedAt:                               now,
@@ -944,6 +963,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
+			Icon:                                    "Book Open",
 		},
 	}
 
@@ -955,7 +975,26 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
-		// Create Interest Account
+		// Create Interest Account with varying computation types
+		var interestComputationType ComputationType
+		var interestStandardRate float64
+
+		// Set different computation types and rates based on loan type
+		switch loanAccount.Name {
+		case "Emergency Loan":
+			interestComputationType = Diminishing
+			interestStandardRate = 2.5 // 2.5% interest standard
+		case "Business Loan":
+			interestComputationType = DiminishingStraight
+			interestStandardRate = 3.0 // 3% interest standard
+		case "Educational Loan":
+			interestComputationType = Straight
+			interestStandardRate = 1.5 // 1.5% interest standard
+		default:
+			interestComputationType = Diminishing
+			interestStandardRate = 2.0 // 2% default interest standard
+		}
+
 		interestAccount := &Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -968,10 +1007,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description:                             "Interest account for " + loanAccount.Description,
 			Type:                                    AccountTypeInterest,
 			MinAmount:                               0.00,
-			MaxAmount:                               1000000.00,
-			InterestStandard:                        0.0,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        interestStandardRate,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         interestComputationType,
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -982,13 +1021,33 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Percent",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
-		// Create Service Fee Account
+		// Create Service Fee Account with varying computation types
+		var svfComputationType ComputationType
+		var svfStandardRate float64
+
+		// Set different computation types and rates based on loan type
+		switch loanAccount.Name {
+		case "Emergency Loan":
+			svfComputationType = Straight
+			svfStandardRate = 1.0 // 1% service fee standard
+		case "Business Loan":
+			svfComputationType = DiminishingStraight
+			svfStandardRate = 1.5 // 1.5% service fee standard
+		case "Educational Loan":
+			svfComputationType = Diminishing
+			svfStandardRate = 0.5 // 0.5% service fee standard
+		default:
+			svfComputationType = Straight
+			svfStandardRate = 1.0 // 1% default service fee standard
+		}
+
 		serviceFeeAccount := &Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -1001,10 +1060,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description:                             "Service fee account for " + loanAccount.Description,
 			Type:                                    AccountTypeSVFLedger,
 			MinAmount:                               0.00,
-			MaxAmount:                               50000.00,
-			InterestStandard:                        0.0,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        svfStandardRate,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         svfComputationType,
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1015,31 +1074,61 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Receipt",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
-		// Create Fines Account
+		// Create Fines Account with percentage-based rates and grace periods
 		finesAccount := &Account{
-			CreatedAt:                               now,
-			CreatedByID:                             userID,
-			UpdatedAt:                               now,
-			UpdatedByID:                             userID,
-			OrganizationID:                          organizationID,
-			BranchID:                                branchID,
-			CurrencyID:                              &currency.ID,
-			Name:                                    "Fines " + loanAccount.Name,
-			Description:                             "Fines account for " + loanAccount.Description,
-			Type:                                    AccountTypeFines,
-			MinAmount:                               0.00,
-			MaxAmount:                               100000.00,
-			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
-			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
-			LoanAccountID:                           &loanAccount.ID,
+			CreatedAt:        now,
+			CreatedByID:      userID,
+			UpdatedAt:        now,
+			UpdatedByID:      userID,
+			OrganizationID:   organizationID,
+			BranchID:         branchID,
+			CurrencyID:       &currency.ID,
+			Name:             "Fines " + loanAccount.Name,
+			Description:      "Fines account for " + loanAccount.Description,
+			Type:             AccountTypeFines,
+			MinAmount:        0.00,
+			MaxAmount:        100.00, // Max percentage is 100%
+			InterestStandard: 0.0,
+
+			// Percentage-based fines rates (0-100%)
+			FinesAmort:    2.5, // 2.5% fine on amortization
+			FinesMaturity: 5.0, // 5.0% fine on maturity
+
+			// Grace periods for fines
+			FinesGracePeriodAmortization: 7,     // 7 days grace period for amortization fines
+			FinesGracePeriodMaturity:     15,    // 15 days grace period for maturity fines
+			AdditionalGracePeriod:        3,     // 3 additional days
+			NoGracePeriodDaily:           false, // Allow daily grace period
+
+			// Computation settings
+			GeneralLedgerType: GLTypeRevenue,
+			ComputationType:   Straight,
+			Index:             loanAccount.Index + 300, // Offset to avoid conflicts
+			LoanAccountID:     &loanAccount.ID,
+
+			// Enhanced grace period entries with different frequencies
+			CohCibFinesGracePeriodEntryDailyAmortization:       1.0,  // 1% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:           2.0,  // 2% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:      5.0,  // 5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:          8.0,  // 8% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization:     10.0, // 10% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:         15.0, // 15% monthly maturity fine
+			CohCibFinesGracePeriodEntrySemiMonthlyAmortization: 7.5,  // 7.5% semi-monthly amortization fine
+			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     12.0, // 12% semi-monthly maturity fine
+			CohCibFinesGracePeriodEntryQuarterlyAmortization:   20.0, // 20% quarterly amortization fine
+			CohCibFinesGracePeriodEntryQuarterlyMaturity:       25.0, // 25% quarterly maturity fine
+			CohCibFinesGracePeriodEntrySemiAnnualAmortization:  35.0, // 35% semi-annual amortization fine
+			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      40.0, // 40% semi-annual maturity fine
+			CohCibFinesGracePeriodEntryLumpsumAmortization:     50.0, // 50% lumpsum amortization fine
+			CohCibFinesGracePeriodEntryLumpsumMaturity:         60.0, // 60% lumpsum maturity fine
+
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -1048,12 +1137,326 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Warning",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 	}
+
+	// Create additional standalone fines accounts with different configurations
+	standaloneFinesAccounts := []*Account{
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Late Payment Fines",
+			Description:                  "Fines for late payment of any cooperative obligations and dues.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00, // Max percentage is 100%
+			InterestStandard:             0.0,
+			FinesAmort:                   3.0, // 3% fine on amortization
+			FinesMaturity:                7.5, // 7.5% fine on maturity
+			FinesGracePeriodAmortization: 5,   // 5 days grace period for amortization fines
+			FinesGracePeriodMaturity:     10,  // 10 days grace period for maturity fines
+			AdditionalGracePeriod:        2,   // 2 additional days
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        500,
+			CohCibFinesGracePeriodEntryDailyAmortization:   2.0,  // 2% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       3.5,  // 3.5% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  7.5,  // 7.5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      12.0, // 12% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 15.0, // 15% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     22.5, // 22.5% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+			Icon:                                           "Clock Cancel",
+		},
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Penalty Fines",
+			Description:                  "Penalty fines for violations of cooperative rules and regulations.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00,
+			InterestStandard:             0.0,
+			FinesAmort:                   5.0,  // 5% fine on amortization
+			FinesMaturity:                10.0, // 10% fine on maturity
+			FinesGracePeriodAmortization: 3,    // 3 days grace period for amortization fines
+			FinesGracePeriodMaturity:     7,    // 7 days grace period for maturity fines
+			AdditionalGracePeriod:        1,    // 1 additional day
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        501,
+			CohCibFinesGracePeriodEntryDailyAmortization:   3.0,  // 3% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       5.0,  // 5% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  10.0, // 10% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      15.0, // 15% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 25.0, // 25% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     35.0, // 35% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+			Icon:                                           "Badge Exclamation",
+		},
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Administrative Fines",
+			Description:                  "Administrative fines for procedural violations and documentation errors.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00,
+			InterestStandard:             0.0,
+			FinesAmort:                   1.5, // 1.5% fine on amortization
+			FinesMaturity:                4.0, // 4% fine on maturity
+			FinesGracePeriodAmortization: 10,  // 10 days grace period for amortization fines
+			FinesGracePeriodMaturity:     20,  // 20 days grace period for maturity fines
+			AdditionalGracePeriod:        5,   // 5 additional days
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        502,
+			CohCibFinesGracePeriodEntryDailyAmortization:   0.5,  // 0.5% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       1.0,  // 1% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  2.5,  // 2.5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      5.0,  // 5% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 8.0,  // 8% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     12.0, // 12% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+			Icon:                                           "Document File Fill",
+		},
+	}
+
+	// Create all standalone fines accounts
+	for _, finesAccount := range standaloneFinesAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
+		}
+	}
+
+	// Create additional standalone Interest accounts with different configurations
+	standaloneInterestAccounts := []*Account{
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "General Interest Income",
+			Icon:                                    "Trend Up",
+			Description:                             "General interest income from various cooperative investments and deposits.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        2.0,    // 2% interest standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Diminishing,
+			Index:                                   600,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Penalty Interest",
+			Icon:                                    "Arrow Trend Up",
+			Description:                             "Interest penalties for overdue accounts and late payments.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        5.0,    // 5% penalty interest
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   601,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Investment Interest",
+			Icon:                                    "Pie Chart",
+			Description:                             "Interest income from long-term investments and financial instruments.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        3.5,    // 3.5% investment interest
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         DiminishingStraight,
+			Index:                                   602,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+	}
+
+	// Create additional standalone SVF accounts with different configurations
+	standaloneSVFAccounts := []*Account{
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "General Service Fee",
+			Icon:                                    "Ticket",
+			Description:                             "General service fees for various cooperative services and transactions.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        1.0,    // 1% service fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   700,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Processing Service Fee",
+			Icon:                                    "Wrench Icon",
+			Description:                             "Service fees for loan processing, account opening, and administrative services.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        2.0,    // 2% processing fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Diminishing,
+			Index:                                   701,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Maintenance Service Fee",
+			Icon:                                    "Gear",
+			Description:                             "Monthly and annual maintenance service fees for account upkeep and services.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        0.5,    // 0.5% maintenance fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         DiminishingStraight,
+			Index:                                   702,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+	}
+
+	// Create all standalone interest accounts
+	for _, interestAccount := range standaloneInterestAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
+		}
+	}
+
+	// Create all standalone SVF accounts
+	for _, svfAccount := range standaloneSVFAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, svfAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
+		}
+	}
+
 	paidUpShareCapital := &Account{
 		CreatedAt:                         now,
 		CreatedByID:                       userID,
@@ -1063,13 +1466,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		BranchID:                          branchID,
 		CurrencyID:                        &currency.ID,
 		Name:                              "Paid Up Share Capital",
+		Icon:                              "Star",
 		Description:                       "Member's share capital contribution representing ownership stake in the cooperative.",
 		Type:                              AccountTypeOther,
 		MinAmount:                         100.00,
 		MaxAmount:                         1000000.00,
 		InterestStandard:                  0.0,
 		GeneralLedgerType:                 GLTypeEquity,
-		ComputationType:                   "Fixed Amount",
+		ComputationType:                   Straight,
 		Index:                             10,
 		PaidUpShareCapital:                true,
 		ShowInGeneralLedgerSourceWithdraw: true,
@@ -1089,13 +1493,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		BranchID:                                branchID,
 		CurrencyID:                              &currency.ID,
 		Name:                                    "Cash on Hand",
+		Icon:                                    "Hand Coins",
 		Description:                             "Physical cash available at the branch for daily operations and transactions.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   11,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       false,
@@ -1124,13 +1529,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		BranchID:                                branchID,
 		CurrencyID:                              &currency.ID,
 		Name:                                    "Cash in Bank",
+		Icon:                                    "Bank",
 		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               50000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   12,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1157,13 +1563,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Cash Online",
+		Icon:                                    "Smartphone",
 		Description:                             "Digital funds available through online banking platforms and digital wallets.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   13,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1191,13 +1598,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Petty Cash",
+		Icon:                                    "Wallet",
 		Description:                             "Small amount of cash kept on hand for minor expenses and incidental purchases.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               100000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   14,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1225,13 +1633,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Cash in Transit",
+		Icon:                                    "Running",
 		Description:                             "Cash deposits or transfers that are in process but not yet cleared or posted.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               5000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   15,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1259,13 +1668,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Foreign Currency Cash",
+		Icon:                                    "Globe Asia",
 		Description:                             "Cash holdings in foreign currencies for international transactions and exchange.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               2000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   16,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1293,6 +1703,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Money Market Fund",
+		Icon:                                    "Chart Bar",
 		Description:                             "Short-term, highly liquid investments that can be quickly converted to cash.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
@@ -1327,6 +1738,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OrganizationID:                          organizationID,
 		BranchID:                                branchID,
 		Name:                                    "Treasury Bills",
+		Icon:                                    "Document File Fill",
 		Description:                             "Short-term government securities with maturity of less than one year.",
 		Type:                                    AccountTypeOther,
 		MinAmount:                               0.00,
@@ -1365,11 +1777,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:                                    "Service Fee",
 			Description:                             "General service fees charged for account maintenance and banking services.",
 			Type:                                    AccountTypeOther,
+			Icon:                                    "Receipt",
 			MinAmount:                               0.00,
 			MaxAmount:                               10000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   19,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1392,11 +1805,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:                                    "Transaction Fee",
 			Description:                             "Fees charged for various transaction services including transfers and withdrawals.",
 			Type:                                    AccountTypeOther,
+			Icon:                                    "Transaction Dollar",
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   20,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1419,11 +1833,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:                                    "Loan Processing Fee",
 			Description:                             "One-time fee charged for loan application processing and documentation.",
 			Type:                                    AccountTypeOther,
+			Icon:                                    "Document File Fill",
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   21,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1446,11 +1861,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:                                    "Passbook Fee",
 			Description:                             "Fee for issuing new passbooks and passbook replacement services.",
 			Type:                                    AccountTypeOther,
+			Icon:                                    "Book",
 			MinAmount:                               0.00,
 			MaxAmount:                               500.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   22,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1473,11 +1889,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:                                    "ATM Fee",
 			Description:                             "Fees charged for ATM usage, card issuance, and ATM-related services.",
 			Type:                                    AccountTypeOther,
+			Icon:                                    "Credit Card",
 			MinAmount:                               0.00,
 			MaxAmount:                               200.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   23,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1497,13 +1914,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Check Processing Fee",
+			Icon:                                    "Receipt",
 			Description:                             "Fees for check processing, clearance, and checkbook issuance services.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   24,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1524,13 +1942,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Documentation Fee",
+			Icon:                                    "Document File Fill",
 			Description:                             "Fee for preparing legal documents, certificates, and official statements.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               2000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   25,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1551,13 +1970,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Late Payment Fee",
+			Icon:                                    "Warning",
 			Description:                             "Penalty fees charged for late loan payments and overdue account obligations.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   26,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1578,13 +1998,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Account Closure Fee",
+			Icon:                                    "User Lock",
 			Description:                             "Fee charged for closing accounts and terminating membership services.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   27,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1605,13 +2026,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Annual Membership Fee",
+			Icon:                                    "ID Card",
 			Description:                             "Yearly membership fee for maintaining cooperative membership status.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   28,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1632,13 +2054,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Insurance Premium Fee",
+			Icon:                                    "Shield",
 			Description:                             "Insurance premium fees for loan protection and member insurance coverage.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   29,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1659,13 +2082,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Notarial Fee",
+			Icon:                                    "Badge Check",
 			Description:                             "Fee for notarial services and document authentication requirements.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               3000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   30,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1690,13 +2114,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Computer Maintenance",
+			Icon:                                    "Monitor",
 			Description:                             "Expenses for computer hardware maintenance, software updates, and IT support services.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   31,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1717,13 +2142,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "General Maintenance",
+			Icon:                                    "Gear",
 			Description:                             "General maintenance expenses for equipment, furniture, and operational assets.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   32,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1744,13 +2170,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Electricity Bills",
+			Icon:                                    "Sparkle",
 			Description:                             "Monthly electricity and power consumption expenses for branch operations.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   33,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1771,13 +2198,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Water Bills",
+			Icon:                                    "Globe",
 			Description:                             "Monthly water utility expenses for branch facilities and operations.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   34,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1798,13 +2226,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Building Repairs",
+			Icon:                                    "Building",
 			Description:                             "Costs for building repairs, renovations, and structural maintenance work.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   35,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1825,13 +2254,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Internet and Telecommunications",
+			Icon:                                    "Globe",
 			Description:                             "Monthly internet, phone, and communication service expenses.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               30000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   36,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1852,13 +2282,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Office Supplies",
+			Icon:                                    "Pencil Outline",
 			Description:                             "Expenses for office supplies, stationery, and consumable materials.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               25000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   37,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1879,13 +2310,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Security Services",
+			Icon:                                    "Shield",
 			Description:                             "Expenses for security guards, surveillance systems, and safety equipment.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   38,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1906,13 +2338,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Cleaning Services",
+			Icon:                                    "Sparkle",
 			Description:                             "Expenses for janitorial services, cleaning supplies, and facility sanitation.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               40000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   39,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1933,13 +2366,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Professional Services",
+			Icon:                                    "Brief Case",
 			Description:                             "Fees for legal, accounting, consulting, and other professional services.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   40,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1960,13 +2394,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Vehicle Maintenance",
+			Icon:                                    "Gear",
 			Description:                             "Expenses for company vehicle maintenance, fuel, and transportation costs.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               60000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   41,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1987,13 +2422,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Equipment Rental",
+			Icon:                                    "Settings",
 			Description:                             "Rental expenses for equipment, machinery, and temporary facility needs.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   42,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2014,13 +2450,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Training and Development",
+			Icon:                                    "Graduation Cap",
 			Description:                             "Expenses for employee training, seminars, workshops, and professional development.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               75000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   43,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2041,13 +2478,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Marketing and Advertising",
+			Icon:                                    "Sparkle",
 			Description:                             "Expenses for promotional activities, advertising campaigns, and marketing materials.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   44,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2068,13 +2506,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Travel and Accommodation",
+			Icon:                                    "Navigation",
 			Description:                             "Business travel expenses including transportation, lodging, and meal allowances.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   45,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2095,13 +2534,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Government Fees and Permits",
+			Icon:                                    "Building Cog",
 			Description:                             "Expenses for business permits, licenses, regulatory fees, and government compliance.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   46,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2122,13 +2562,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Medical and Health Services",
+			Icon:                                    "Shield Check",
 			Description:                             "Expenses for employee health benefits, medical services, and workplace health programs.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   47,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2149,13 +2590,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Waste Management",
+			Icon:                                    "Recycle",
 			Description:                             "Expenses for garbage collection, waste disposal, and environmental compliance services.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               15000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   48,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2176,13 +2618,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OrganizationID:                          organizationID,
 			BranchID:                                branchID,
 			Name:                                    "Emergency Expenses",
+			Icon:                                    "Warning",
 			Description:                             "Unexpected expenses for emergency repairs, urgent purchases, and crisis management.",
 			Type:                                    AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   49,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2194,6 +2637,751 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              &currency.ID,
 		},
+	}
+
+	// Additional Cooperative-Specific Accounts
+	cooperativeAccounts := []*Account{
+		// === EQUITY ACCOUNTS ===
+		// Retained Earnings
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Retained Earnings",
+			Icon:                                    "PiggyBank",
+			Description:                             "Accumulated profits retained for reinvestment in the cooperative.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               50000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeEquity,
+			ComputationType:                         Straight,
+			Index:                                   50,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Patronage Refund Payable
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Patronage Refund Payable",
+			Icon:                                    "Hand Drop Coins",
+			Description:                             "Profits to be distributed to members based on their patronage.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               10000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeLiabilities,
+			ComputationType:                         Straight,
+			Index:                                   51,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Member Equity Withdrawals
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Member Equity Withdrawals",
+			Icon:                                    "Hand Withdraw",
+			Description:                             "Account for tracking member equity withdrawals and distributions.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeEquity,
+			ComputationType:                         Straight,
+			Index:                                   52,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// === REVENUE ACCOUNTS ===
+		// Dividend Income
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Dividend Income",
+			Icon:                                    "Money Trend",
+			Description:                             "Income from investments and dividend distributions.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               2000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   53,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Other Income
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Other Income",
+			Icon:                                    "Money",
+			Description:                             "Miscellaneous income not categorized elsewhere.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   54,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// === ASSET ACCOUNTS ===
+		// Accounts Receivable
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Accounts Receivable",
+			Icon:                                    "Receive Money",
+			Description:                             "Money owed to the cooperative by members and other parties.",
+			Type:                                    AccountTypeARLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               10000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   55,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Allowance for Doubtful Accounts
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Allowance for Doubtful Accounts",
+			Icon:                                    "Question Circle",
+			Description:                             "Reserve for potential uncollectible receivables.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   56,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Inventory
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Inventory",
+			Icon:                                    "Store",
+			Description:                             "Goods and supplies held for sale or use in operations.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               3000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   57,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Prepaid Expenses
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Prepaid Expenses",
+			Icon:                                    "Calendar Check",
+			Description:                             "Expenses paid in advance for future periods.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               500000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   58,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Fixed Assets - Land
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Land",
+			Icon:                                    "Park",
+			Description:                             "Real estate and land owned by the cooperative.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               50000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   59,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Fixed Assets - Building
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Building",
+			Icon:                                    "Building",
+			Description:                             "Buildings and structures owned by the cooperative.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               30000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   60,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Fixed Assets - Equipment
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Equipment",
+			Icon:                                    "Gear",
+			Description:                             "Machinery, tools, and equipment used in operations.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   61,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Fixed Assets - Furniture and Fixtures
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Furniture and Fixtures",
+			Icon:                                    "House",
+			Description:                             "Office furniture, fixtures, and fittings.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   62,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Accumulated Depreciation
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Accumulated Depreciation",
+			Icon:                                    "Trend Down",
+			Description:                             "Cumulative depreciation of fixed assets.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               20000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeAssets,
+			ComputationType:                         Straight,
+			Index:                                   63,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// === LIABILITY ACCOUNTS ===
+		// Accounts Payable
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Accounts Payable",
+			Icon:                                    "Bill",
+			Description:                             "Amounts owed to suppliers and vendors.",
+			Type:                                    AccountTypeAPLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeLiabilities,
+			ComputationType:                         Straight,
+			Index:                                   64,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Accrued Expenses
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Accrued Expenses",
+			Icon:                                    "Clock",
+			Description:                             "Expenses incurred but not yet paid.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               2000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeLiabilities,
+			ComputationType:                         Straight,
+			Index:                                   65,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Taxes Payable
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Taxes Payable",
+			Icon:                                    "Receipt",
+			Description:                             "Taxes owed to government authorities.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               3000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeLiabilities,
+			ComputationType:                         Straight,
+			Index:                                   66,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Unearned Revenue
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Unearned Revenue",
+			Icon:                                    "Calendar",
+			Description:                             "Advance payments received for services not yet rendered.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeLiabilities,
+			ComputationType:                         Straight,
+			Index:                                   67,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// === EXPENSE ACCOUNTS ===
+		// Salaries and Wages
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Salaries and Wages",
+			Icon:                                    "Users 3",
+			Description:                             "Employee compensation and payroll expenses.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               5000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   68,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Employee Benefits
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Employee Benefits",
+			Icon:                                    "Shield Check",
+			Description:                             "Health insurance, retirement, and other employee benefits.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   69,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Depreciation Expense
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Depreciation Expense",
+			Icon:                                    "Trend Down",
+			Description:                             "Systematic allocation of asset cost over useful life.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               500000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   70,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Bad Debt Expense
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Bad Debt Expense",
+			Icon:                                    "Trash",
+			Description:                             "Losses from uncollectible receivables.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               1000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   71,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Interest Expense on Borrowings
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Interest Expense on Borrowings",
+			Icon:                                    "Percent",
+			Description:                             "Interest paid on loans and borrowings.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               2000000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   72,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Audit and Accounting Fees
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Audit and Accounting Fees",
+			Icon:                                    "Finance Reports",
+			Description:                             "Professional fees for auditing and accounting services.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               300000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   73,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Bank Charges
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Bank Charges",
+			Icon:                                    "Bank",
+			Description:                             "Bank service fees, transaction charges, and related costs.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               100000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   74,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		// Donations and Contributions
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			Name:                                    "Donations and Contributions",
+			Icon:                                    "Hand Shake Heart",
+			Description:                             "Charitable donations and community contributions.",
+			Type:                                    AccountTypeOther,
+			MinAmount:                               0.00,
+			MaxAmount:                               500000.00,
+			InterestStandard:                        0.0,
+			GeneralLedgerType:                       GLTypeExpenses,
+			ComputationType:                         Straight,
+			Index:                                   75,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			CurrencyID:                              &currency.ID,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+	}
+
+	// Create all cooperative-specific accounts
+	for _, coopAccount := range cooperativeAccounts {
+		coopAccount.CurrencyID = &currency.ID
+		if err := m.AccountManager.CreateWithTx(context, tx, coopAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
+		}
 	}
 
 	// Create all fee accounts
@@ -2298,7 +3486,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		InterestSecured:                     original.InterestSecured,
 		FinesGracePeriodAmortization:        original.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               original.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              original.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  original.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            original.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               original.YearlySubscriptionFee,
 		CutOffDays:                          original.CutOffDays,
@@ -2353,8 +3541,8 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     original.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   original.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       original.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   original.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:       original.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  original.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      original.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     original.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         original.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
@@ -2395,7 +3583,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		InterestSecured:                     a.InterestSecured,
 		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
 		CutOffDays:                          a.CutOffDays,
@@ -2450,8 +3638,8 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:       a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
@@ -2498,7 +3686,7 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		InterestSecured:                     a.InterestSecured,
 		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
 		CutOffDays:                          a.CutOffDays,
@@ -2553,9 +3741,9 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 		// AccountCurrentBranch
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:   a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:  a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization: a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:     a.CohCibFinesGracePeriodEntryLumpsumMaturity,
 		// AccountCurrentBranch

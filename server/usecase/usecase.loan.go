@@ -10,7 +10,7 @@ import (
 )
 
 // LoanChargesRateComputation calculates the loan charges based on the rate scheme and loan transaction
-func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
+func (t *TransactionService) LoanChargesRateComputation(crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
 
 	result := 0.0
 
@@ -219,27 +219,27 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(lt *core.LoanTransaction) (int, error) {
-	switch lt.ModeOfPayment {
+func (t *TransactionService) LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
+	switch mp {
 	case core.LoanModeOfPaymentDaily:
-		return lt.Terms * 30, nil
+		return terms * 30, nil
 	case core.LoanModeOfPaymentWeekly:
-		return lt.Terms * 4, nil
+		return terms * 4, nil
 	case core.LoanModeOfPaymentSemiMonthly:
-		return lt.Terms * 2, nil
+		return terms * 2, nil
 	case core.LoanModeOfPaymentMonthly:
-		return lt.Terms, nil
+		return terms, nil
 	case core.LoanModeOfPaymentQuarterly:
-		return lt.Terms / 3, nil
+		return terms / 3, nil
 	case core.LoanModeOfPaymentSemiAnnual:
-		return lt.Terms / 6, nil
+		return terms / 6, nil
 	case core.LoanModeOfPaymentLumpsum:
 		return 1, nil
 	case core.LoanModeOfPaymentFixedDays:
-		if lt.ModeOfPaymentFixedDays <= 0 {
+		if terms <= 0 {
 			return 0, eris.New("invalid fixed days: must be greater than 0")
 		}
-		return lt.Terms, nil
+		return terms, nil
 	}
 	return 0, eris.New("not implemented yet")
 }
@@ -307,7 +307,7 @@ func (t *TransactionService) LoanComputation(ald core.AutomaticLoanDeduction, lt
 }
 
 // LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment using precise decimal arithmetic
-func (t *TransactionService) LoanModeOfPayment(_ context.Context, lt *core.LoanTransaction) (float64, error) {
+func (t *TransactionService) LoanModeOfPayment(lt *core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
 		// lt.Applied1 / float64(lt.Terms) / 30
@@ -407,4 +407,258 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 
 	numberOfTerms := max(1, int(math.Ceil(terms)))
 	return numberOfTerms, nil
+}
+
+// ...existing code...
+
+// computeFines calculates fines based on payment mode, grace periods, and late days
+func (t *TransactionService) ComputeFines(
+	balance float64,
+	finesAmortRate float64,
+	finesMaturityRate float64,
+	daysSkipped int,
+	mp core.LoanModeOfPayment,
+	noGracePeriodDaily bool,
+	account core.AccountRequest,
+) float64 {
+	if daysSkipped <= 0 {
+		return 0.0
+	}
+
+	// Use FinesAmort rate for regular late payments and FinesMaturity for overdue loans
+	finesRate := finesAmortRate
+
+	// If it's been significantly overdue (e.g., more than 30 days), use maturity rate
+	if daysSkipped > 30 {
+		finesRate = finesMaturityRate
+	}
+
+	if finesRate <= 0 {
+		return 0.0
+	}
+
+	// Apply grace period reduction only if NoGracePeriodDaily is false
+	// Grace period is a percentage (0-100%) that reduces the fine rate
+	if !noGracePeriodDaily {
+		var gracePeriodPercentage float64
+		switch mp {
+		case core.LoanModeOfPaymentDaily:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryDailyAmortization
+		case core.LoanModeOfPaymentWeekly:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryWeeklyAmortization
+		case core.LoanModeOfPaymentMonthly:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryMonthlyAmortization
+		case core.LoanModeOfPaymentSemiMonthly:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization
+		case core.LoanModeOfPaymentQuarterly:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryQuarterlyAmortization
+		case core.LoanModeOfPaymentSemiAnnual:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntrySemiAnnualAmortization
+		case core.LoanModeOfPaymentLumpsum:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryLumpsumAmortization
+		case core.LoanModeOfPaymentFixedDays:
+			gracePeriodPercentage = account.CohCibFinesGracePeriodEntryDailyAmortization // Use daily as default for fixed days
+		default:
+			gracePeriodPercentage = 0
+		}
+
+		// Apply grace period reduction: if grace period is 20%, reduce fine rate by 20%
+		// Example: If finesRate is 5% and gracePeriod is 20%, effective rate = 5% * (1 - 0.20) = 4%
+		if gracePeriodPercentage > 0 {
+			reductionFactor := t.provider.Service.Decimal.Divide(gracePeriodPercentage, 100)
+			remainingFactor := t.provider.Service.Decimal.Subtract(1.0, reductionFactor)
+			finesRate = t.provider.Service.Decimal.Multiply(finesRate, remainingFactor)
+		}
+
+		// If grace period is 100%, no fines apply
+		if gracePeriodPercentage >= 100 {
+			return 0.0
+		}
+	}
+
+	switch mp {
+	case core.LoanModeOfPaymentDaily:
+		// Daily fines: balance * (finesRate / 100) per day
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				float64(daysSkipped),
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentWeekly:
+		// Weekly fines: balance * (finesRate / 100) per week
+		weeksLate := t.provider.Service.Decimal.Divide(float64(daysSkipped), 7.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				weeksLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentMonthly:
+		// Monthly fines: balance * finesRate / 100 per month late
+		monthsLate := t.provider.Service.Decimal.Divide(float64(daysSkipped), 30.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				monthsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiMonthly:
+		// Semi-monthly fines: balance * (finesRate / 100) per 15-day period
+		semiMonthlyPeriodsLate := t.provider.Service.Decimal.Divide(float64(daysSkipped), 15.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				semiMonthlyPeriodsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentQuarterly:
+		// Quarterly fines: balance * (finesRate / 100) per quarter (90 days)
+		quartersLate := t.provider.Service.Decimal.Divide(float64(daysSkipped), 90.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				quartersLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiAnnual:
+		// Semi-annual fines: balance * (finesRate / 100) per 6 months (180 days)
+		semiAnnualPeriodsLate := t.provider.Service.Decimal.Divide(float64(daysSkipped), 180.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				semiAnnualPeriodsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentLumpsum:
+		// Lumpsum fines: use maturity rate as it's typically a one-time penalty
+		finalRate := finesMaturityRate
+		if finalRate <= 0 {
+			finalRate = finesAmortRate
+		}
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.MultiplyByPercentage(balance, finalRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentFixedDays:
+		// Fixed days fines: use daily rate
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				float64(daysSkipped),
+			),
+			2,
+		)
+
+	default:
+		return 0.0
+	}
+}
+
+func (t *TransactionService) ComputeInterest(balance float64, rate float64, mp core.LoanModeOfPayment) float64 {
+	switch mp {
+	case core.LoanModeOfPaymentMonthly:
+		// Monthly: (balance * rate) / 100
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Divide(
+				t.provider.Service.Decimal.Multiply(balance, rate),
+				100,
+			),
+			2, // You may want to make this configurable based on interest_round_mode_digit
+		)
+
+	case core.LoanModeOfPaymentWeekly:
+		// Weekly: balance * (rate / 100 / 30) * 7
+		dailyRate := t.provider.Service.Decimal.Divide(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		weeklyRate := t.provider.Service.Decimal.Multiply(dailyRate, 7)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, weeklyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentDaily:
+		// Daily: balance * (rate / 100 / 30)
+		dailyRate := t.provider.Service.Decimal.Divide(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, dailyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiMonthly:
+		// Semi-monthly: balance * (rate / 100 / 30) * 15
+		dailyRate := t.provider.Service.Decimal.Divide(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		semiMonthlyRate := t.provider.Service.Decimal.Multiply(dailyRate, 15)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, semiMonthlyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentQuarterly:
+		// Quarterly: balance * (rate / 100) * 3
+		quarterlyRate := t.provider.Service.Decimal.Multiply(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			3,
+		)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, quarterlyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiAnnual:
+		// Semi-annual: balance * (rate / 100) * 6
+		semiAnnualRate := t.provider.Service.Decimal.Multiply(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			6,
+		)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, semiAnnualRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentLumpsum:
+		// Lumpsum: typically the full annual interest
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Divide(
+				t.provider.Service.Decimal.Multiply(balance, rate),
+				100,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentFixedDays:
+		// Fixed days: use daily rate (you may want to adjust this based on actual fixed days)
+		dailyRate := t.provider.Service.Decimal.Divide(
+			t.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(balance, dailyRate),
+			2,
+		)
+
+	default:
+		return 0.0
+	}
 }

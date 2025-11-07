@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,11 +19,11 @@ func (c *Controller) computationSheetController() {
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
-		RequestType:  core.LoanComputationSheetCalculatorRequest{},
-		ResponseType: core.ComputationSheetAmortizationResponse{},
+		RequestType:  event.LoanComputationSheetCalculatorRequest{},
+		ResponseType: event.ComputationSheetAmortizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var request core.LoanComputationSheetCalculatorRequest
+		var request event.LoanComputationSheetCalculatorRequest
 		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
@@ -33,7 +32,7 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Computation sheet ID is required"})
 		}
 		if err := ctx.Bind(&request); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(request); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
@@ -42,119 +41,34 @@ func (c *Controller) computationSheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		computationSheet, err := c.core.ComputationSheetManager.GetByID(context, *computationSheetID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Computation sheet not found"})
-		}
-		automaticLoanDeductionEntries, err := c.core.AutomaticLoanDeductionManager.Find(context, &core.AutomaticLoanDeduction{
-			ComputationSheetID: &computationSheet.ID,
-			BranchID:           computationSheet.BranchID,
-			OrganizationID:     computationSheet.OrganizationID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve automatic loan deduction entries: " + err.Error()})
-		}
-		account, err := c.core.AccountManager.GetByID(context, *request.AccountID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
-		}
+
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		cashOnHand, err := c.core.AccountManager.GetByID(context, *cashOnHandAccountID)
+		computed, err := c.event.ComputationSheetCalculator(
+			context,
+			event.LoanComputationSheetCalculatorRequest{
+				AccountID:                    request.AccountID,
+				Applied1:                     request.Applied1,
+				Terms:                        request.Terms,
+				MemberTypeID:                 request.MemberTypeID,
+				IsAddOn:                      request.IsAddOn,
+				ExcludeSaturday:              request.ExcludeSaturday,
+				ExcludeSunday:                request.ExcludeSunday,
+				ExcludeHoliday:               request.ExcludeHoliday,
+				ModeOfPaymentMonthlyExactDay: request.ModeOfPaymentMonthlyExactDay,
+				ModeOfPaymentWeekly:          request.ModeOfPaymentWeekly,
+				ModeOfPaymentSemiMonthlyPay1: request.ModeOfPaymentSemiMonthlyPay1,
+				ModeOfPaymentSemiMonthlyPay2: request.ModeOfPaymentSemiMonthlyPay2,
+				ModeOfPayment:                request.ModeOfPayment,
+				Accounts:                     request.Accounts,
+				CashOnHandAccountID:          cashOnHandAccountID,
+				ComputationSheetID:           computationSheetID,
+			},
+		)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on hand account: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Computation failed: " + err.Error()})
 		}
-		loanTransactionEntries := []*core.LoanTransactionEntry{
-			{
-				Account: cashOnHand,
-				IsAddOn: false,
-				Type:    core.LoanTransactionStatic,
-				Debit:   0,
-				Credit:  request.Applied1,
-				Name:    account.Name,
-			},
-			{
-				Account: account,
-				IsAddOn: false,
-				Type:    core.LoanTransactionStatic,
-				Debit:   request.Applied1,
-				Credit:  0,
-				Name:    cashOnHand.Name,
-			},
-		}
-		addOnEntry := &core.LoanTransactionEntry{
-			Account: nil,
-			Credit:  0,
-			Debit:   0,
-			Name:    "ADD ON INTEREST",
-			Type:    core.LoanTransactionAddOn,
-			IsAddOn: true,
-		}
-		totalNonAddOns, totalAddOns := 0.0, 0.0
-		for _, ald := range automaticLoanDeductionEntries {
-			if ald.AccountID == nil {
-				continue
-			}
-			ald.Account, err = c.core.AccountManager.GetByID(context, *ald.AccountID)
-			if err != nil {
-				continue
-			}
-			entry := &core.LoanTransactionEntry{
-				Credit:  0,
-				Debit:   0,
-				Name:    ald.Name,
-				Type:    core.LoanTransactionDeduction,
-				IsAddOn: ald.AddOn,
-				Account: ald.Account,
-			}
-			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := c.core.ChargesRateSchemeManager.GetByID(context, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
-				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve charges rate scheme for %s: %s", entry.Name, err.Error())})
-				}
-				entry.Credit = c.usecase.LoanChargesRateComputation(context, *chargesRateScheme, core.LoanTransaction{
-					Applied1: request.Applied1,
-					Terms:    request.Terms,
-					MemberProfile: &core.MemberProfile{
-						MemberTypeID: request.MemberTypeID,
-					},
-				})
 
-			}
-			if entry.Credit <= 0 {
-				entry.Credit = c.usecase.LoanComputation(*ald, core.LoanTransaction{
-					Terms:    request.Terms,
-					Applied1: request.Applied1,
-				})
-			}
-
-			if !entry.IsAddOn {
-				totalNonAddOns = c.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
-			} else {
-				totalAddOns = c.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
-			}
-			if entry.Credit > 0 {
-				loanTransactionEntries = append(loanTransactionEntries, entry)
-			}
-		}
-		if request.IsAddOn {
-			loanTransactionEntries[0].Credit = c.provider.Service.Decimal.Subtract(request.Applied1, totalNonAddOns)
-		} else {
-			loanTransactionEntries[0].Credit = c.provider.Service.Decimal.Subtract(request.Applied1, c.provider.Service.Decimal.Add(totalNonAddOns, totalAddOns))
-		}
-		if request.IsAddOn {
-			addOnEntry.Debit = totalAddOns
-			loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
-		}
-		totalDebit, totalCredit := 0.0, 0.0
-		for _, entry := range loanTransactionEntries {
-			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-		}
-		return ctx.JSON(http.StatusOK, core.ComputationSheetAmortizationResponse{
-			Entries:     c.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
-			TotalDebit:  totalDebit,
-			TotalCredit: totalCredit,
-		})
+		return ctx.JSON(http.StatusOK, computed)
 	})
 
 	// GET /computation-sheet: List all computation sheets for the current user's branch.

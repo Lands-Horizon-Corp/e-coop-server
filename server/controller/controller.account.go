@@ -559,15 +559,17 @@ func (c *Controller) accountController() {
 			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     req.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 			CohCibFinesGracePeriodEntryQuarterlyAmortization:   req.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 			CohCibFinesGracePeriodEntryQuarterlyMaturity:       req.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-			CohCibFinesGracePeriodEntrySemiAnualAmortization:   req.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-			CohCibFinesGracePeriodEntrySemiAnualMaturity:       req.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+			CohCibFinesGracePeriodEntrySemiAnnualAmortization:  req.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      req.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 			CohCibFinesGracePeriodEntryLumpsumAmortization:     req.CohCibFinesGracePeriodEntryLumpsumAmortization,
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
+			CohCibFinesGracePeriodEntryAnnualAmortization:      req.CohCibFinesGracePeriodEntryAnnualAmortization,
+			CohCibFinesGracePeriodEntryAnnualMaturity:          req.CohCibFinesGracePeriodEntryAnnualMaturity,
 			GeneralLedgerType:                   req.GeneralLedgerType,
 			LoanAccountID:                       req.LoanAccountID,
 			FinesGracePeriodAmortization:        req.FinesGracePeriodAmortization,
 			AdditionalGracePeriod:               req.AdditionalGracePeriod,
-			NumberGracePeriodDaily:              req.NumberGracePeriodDaily,
+			NoGracePeriodDaily:                  req.NoGracePeriodDaily,
 			FinesGracePeriodMaturity:            req.FinesGracePeriodMaturity,
 			YearlySubscriptionFee:               req.YearlySubscriptionFee,
 			CutOffDays:                          req.CutOffDays,
@@ -755,15 +757,17 @@ func (c *Controller) accountController() {
 		account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity = req.CohCibFinesGracePeriodEntrySemiMonthlyMaturity
 		account.CohCibFinesGracePeriodEntryQuarterlyAmortization = req.CohCibFinesGracePeriodEntryQuarterlyAmortization
 		account.CohCibFinesGracePeriodEntryQuarterlyMaturity = req.CohCibFinesGracePeriodEntryQuarterlyMaturity
-		account.CohCibFinesGracePeriodEntrySemiAnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnualAmortization
-		account.CohCibFinesGracePeriodEntrySemiAnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnualMaturity
+		account.CohCibFinesGracePeriodEntrySemiAnnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnnualAmortization
+		account.CohCibFinesGracePeriodEntrySemiAnnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnnualMaturity
+		account.CohCibFinesGracePeriodEntryAnnualAmortization = req.CohCibFinesGracePeriodEntryAnnualAmortization
+		account.CohCibFinesGracePeriodEntryAnnualMaturity = req.CohCibFinesGracePeriodEntryAnnualMaturity
 		account.CohCibFinesGracePeriodEntryLumpsumAmortization = req.CohCibFinesGracePeriodEntryLumpsumAmortization
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
 		account.GeneralLedgerType = req.GeneralLedgerType
 		account.LoanAccountID = req.LoanAccountID
 		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
 		account.AdditionalGracePeriod = req.AdditionalGracePeriod
-		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily
+		account.NoGracePeriodDaily = req.NoGracePeriodDaily
 		account.FinesGracePeriodMaturity = req.FinesGracePeriodMaturity
 		account.YearlySubscriptionFee = req.YearlySubscriptionFee
 		account.CutOffDays = req.CutOffDays
@@ -794,6 +798,15 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
+		account.LumpsumComputationType = req.LumpsumComputationType
+		account.InterestFinesComputationDiminishing = req.InterestFinesComputationDiminishing
+		account.InterestFinesComputationDiminishingStraightYearly = req.InterestFinesComputationDiminishingStraightYearly
+		account.EarnedUnearnedInterest = req.EarnedUnearnedInterest
+		account.LoanSavingType = req.LoanSavingType
+		account.InterestDeduction = req.InterestDeduction
+		account.OtherDeductionEntry = req.OtherDeductionEntry
+		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
+		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
