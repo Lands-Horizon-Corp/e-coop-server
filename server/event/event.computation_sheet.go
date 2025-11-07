@@ -21,10 +21,10 @@ type LoanComputationSheetCalculatorRequest struct {
 	ExcludeSaturday              bool          `json:"exclude_saturday"`
 	ExcludeSunday                bool          `json:"exclude_sunday"`
 	ExcludeHoliday               bool          `json:"exclude_holiday"`
-	ModeOfPaymentMonthlyExactDay bool          `json:"mode_of_payment_monthly_exact_day"`
-	ModeOfPaymentWeekly          core.Weekdays `json:"mode_of_payment_weekly"`
-	ModeOfPaymentSemiMonthlyPay1 int           `json:"mode_of_payment_semi_monthly_pay_1"`
-	ModeOfPaymentSemiMonthlyPay2 int           `json:"mode_of_payment_semi_monthly_pay_2"`
+	ModeOfPaymentMonthlyExactDay bool          `json:"mode_of_payment_monthly_exact_day,omitempty"`
+	ModeOfPaymentWeekly          core.Weekdays `json:"mode_of_payment_weekly,omitempty"`
+	ModeOfPaymentSemiMonthlyPay1 int           `json:"mode_of_payment_semi_monthly_pay_1,omitempty"`
+	ModeOfPaymentSemiMonthlyPay2 int           `json:"mode_of_payment_semi_monthly_pay_2,omitempty"`
 
 	ModeOfPayment core.LoanModeOfPayment `json:"mode_of_payment"`
 	Accounts      []*core.Account        `json:"accounts,omitempty"`
