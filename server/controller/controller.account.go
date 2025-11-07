@@ -563,6 +563,8 @@ func (c *Controller) accountController() {
 			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      req.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 			CohCibFinesGracePeriodEntryLumpsumAmortization:     req.CohCibFinesGracePeriodEntryLumpsumAmortization,
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
+			CohCibFinesGracePeriodEntryAnnualAmortization:      req.CohCibFinesGracePeriodEntryAnnualAmortization,
+			CohCibFinesGracePeriodEntryAnnualMaturity:          req.CohCibFinesGracePeriodEntryAnnualMaturity,
 			GeneralLedgerType:                   req.GeneralLedgerType,
 			LoanAccountID:                       req.LoanAccountID,
 			FinesGracePeriodAmortization:        req.FinesGracePeriodAmortization,
@@ -757,6 +759,8 @@ func (c *Controller) accountController() {
 		account.CohCibFinesGracePeriodEntryQuarterlyMaturity = req.CohCibFinesGracePeriodEntryQuarterlyMaturity
 		account.CohCibFinesGracePeriodEntrySemiAnnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnnualAmortization
 		account.CohCibFinesGracePeriodEntrySemiAnnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnnualMaturity
+		account.CohCibFinesGracePeriodEntryAnnualAmortization = req.CohCibFinesGracePeriodEntryAnnualAmortization
+		account.CohCibFinesGracePeriodEntryAnnualMaturity = req.CohCibFinesGracePeriodEntryAnnualMaturity
 		account.CohCibFinesGracePeriodEntryLumpsumAmortization = req.CohCibFinesGracePeriodEntryLumpsumAmortization
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
 		account.GeneralLedgerType = req.GeneralLedgerType
