@@ -101,7 +101,7 @@ type InterestDeduction string
 
 // Values for InterestDeduction
 const (
-	InterestDeductionAbove InterestDeduction = "above"
+	InterestDeductionAbove InterestDeduction = "Above"
 	InterestDeductionBelow InterestDeduction = "Below"
 )
 
@@ -211,12 +211,12 @@ type (
 		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
 		PaidUpShareCapital bool `gorm:"default:false" json:"paid_up_share_capital"`
 
-		ComputationType ComputationType `gorm:"type:varchar(50)" json:"computation_type"`
+		ComputationType ComputationType `gorm:"type:varchar(50);default:'Straight'" json:"computation_type"`
 
-		FinesAmort       float64 `gorm:"type:decimal" json:"fines_amort"`
-		FinesMaturity    float64 `gorm:"type:decimal" json:"fines_maturity"`
-		InterestStandard float64 `gorm:"type:decimal" json:"interest_standard"`
-		InterestSecured  float64 `gorm:"type:decimal" json:"interest_secured"`
+		FinesAmort       float64 `gorm:"type:decimal;default:0" json:"fines_amort"`
+		FinesMaturity    float64 `gorm:"type:decimal;default:0" json:"fines_maturity"`
+		InterestStandard float64 `gorm:"type:decimal;default:0" json:"interest_standard"`
+		InterestSecured  float64 `gorm:"type:decimal;default:0" json:"interest_secured"`
 
 		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
 		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:SET NULL;" json:"computation_sheet,omitempty"`
@@ -243,11 +243,11 @@ type (
 		LoanAccountID *uuid.UUID `gorm:"type:uuid" json:"loan_account_id"`
 		LoanAccount   *Account   `gorm:"foreignKey:LoanAccountID;constraint:OnDelete:SET NULL;" json:"loan_account,omitempty"`
 
-		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
-		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
+		FinesGracePeriodAmortization int  `gorm:"type:int;default:0" json:"fines_grace_period_amortization"`
+		AdditionalGracePeriod        int  `gorm:"type:int;default:0" json:"additional_grace_period"`
 		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
-		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
-		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
+		FinesGracePeriodMaturity     int  `gorm:"type:int;default:0" json:"fines_grace_period_maturity"`
+		YearlySubscriptionFee        int  `gorm:"type:int;default:0" json:"yearly_subscription_fee"`
 		CutOffDays                   int  `gorm:"type:int;default:0;check:cut_off_days >= 0 AND cut_off_days <= 30" json:"cut_off_days"`
 		CutOffMonths                 int  `gorm:"type:int;default:0;check:cut_off_months >= 0 AND cut_off_months <= 12" json:"cut_off_months"`
 
@@ -261,9 +261,9 @@ type (
 		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
 		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
 
-		HeaderRow int `gorm:"type:int" json:"header_row"`
-		CenterRow int `gorm:"type:int" json:"center_row"`
-		TotalRow  int `gorm:"type:int" json:"total_row"`
+		HeaderRow int `gorm:"type:int;default:0" json:"header_row"`
+		CenterRow int `gorm:"type:int;default:0" json:"center_row"`
+		TotalRow  int `gorm:"type:int;default:0" json:"total_row"`
 
 		AccountTags                         []*AccountTag `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE;" json:"account_tags,omitempty"`
 		GeneralLedgerGroupingExcludeAccount bool          `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
@@ -371,7 +371,7 @@ type AccountResponse struct {
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly"`
 	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest"`
 	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type"`
 	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction"`
@@ -425,10 +425,10 @@ type AccountRequest struct {
 
 	ComputationType ComputationType `json:"computation_type,omitempty"`
 
-	FinesAmort       float64 `json:"fines_amort,omitempty"`
-	FinesMaturity    float64 `json:"fines_maturity,omitempty"`
-	InterestStandard float64 `json:"interest_standard,omitempty"`
-	InterestSecured  float64 `json:"interest_secured,omitempty"`
+	FinesAmort       float64 `json:"fines_amort,omitempty" validate:"gte=0,lte=100"`
+	FinesMaturity    float64 `json:"fines_maturity,omitempty" validate:"gte=0,lte=100"`
+	InterestStandard float64 `json:"interest_standard,omitempty" validate:"gte=0,lte=100"`
+	InterestSecured  float64 `json:"interest_secured,omitempty" validate:"gte=0,lte=100"`
 
 	ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 
@@ -453,17 +453,17 @@ type AccountRequest struct {
 
 	LoanAccountID *uuid.UUID `json:"loan_account_id,omitempty"`
 
-	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
-	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
+	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty" validate:"gte=0,lte=365"`
+	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty" validate:"gte=0,lte=365"`
 	NoGracePeriodDaily           bool `json:"no_grace_period_daily,omitempty"`
-	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty"`
-	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty"`
+	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty" validate:"gte=0,lte=365"`
+	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty" validate:"gte=0"`
 	CutOffDays                   int  `json:"cut_off_days,omitempty" validate:"gte=0,lte=30"`
 	CutOffMonths                 int  `json:"cut_off_months,omitempty" validate:"gte=0,lte=12"`
 
 	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
 	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_diminishing_yearly,omitempty"`
+	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly,omitempty"`
 	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest,omitempty"`
 	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type,omitempty"`
 	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction,omitempty"`
@@ -682,7 +682,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.0,
 			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			ComputationType:   DiminishingYearly,
 			Index:             2,
 			CurrencyID:        &currency.ID,
 		},
@@ -718,7 +718,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         2000000.00,
 			InterestStandard:  3.5,
 			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			ComputationType:   DiminishingQuarterly,
 			Index:             4,
 			CurrencyID:        &currency.ID,
 		},
@@ -754,7 +754,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         3000000.00,
 			InterestStandard:  4.0,
 			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			ComputationType:   DiminishingAddOn,
 			Index:             6,
 			CurrencyID:        &currency.ID,
 		},
@@ -790,7 +790,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         10000000.00,
 			InterestStandard:  3.5,
 			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			ComputationType:   DiminishingStraight,
 			Index:             8,
 			CurrencyID:        &currency.ID,
 		},
@@ -808,7 +808,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.5,
 			GeneralLedgerType: GLTypeAssets,
-			ComputationType:   "Compound Interest",
+			ComputationType:   DiminishingYearly,
 			Index:             9,
 			CurrencyID:        &currency.ID,
 		},
@@ -848,7 +848,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			FinesAmort:                              1.0,
 			FinesMaturity:                           2.0,
 			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         "Diminishing Balance",
+			ComputationType:                         Diminishing,
 			Index:                                   10,
 			CutOffDays:                              3,
 			CutOffMonths:                            0,
@@ -886,7 +886,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			FinesAmort:                              1.5,
 			FinesMaturity:                           2.5,
 			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         "Diminishing Balance",
+			ComputationType:                         DiminishingYearly,
 			Index:                                   11,
 			CutOffDays:                              7,
 			CutOffMonths:                            0,
@@ -971,7 +971,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1004,7 +1004,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1037,7 +1037,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1069,7 +1069,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                         1000000.00,
 		InterestStandard:                  0.0,
 		GeneralLedgerType:                 GLTypeEquity,
-		ComputationType:                   "Fixed Amount",
+		ComputationType:                   Straight,
 		Index:                             10,
 		PaidUpShareCapital:                true,
 		ShowInGeneralLedgerSourceWithdraw: true,
@@ -1095,7 +1095,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   11,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       false,
@@ -1130,7 +1130,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               50000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   12,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1163,7 +1163,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   13,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1197,7 +1197,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               100000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   14,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1231,7 +1231,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               5000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   15,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1265,7 +1265,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		MaxAmount:                               2000000.00,
 		InterestStandard:                        0.0,
 		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         "None",
+		ComputationType:                         Straight,
 		Index:                                   16,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1369,7 +1369,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               10000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   19,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1396,7 +1396,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   20,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1423,7 +1423,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   21,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1450,7 +1450,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               500.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   22,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1477,7 +1477,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               200.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   23,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1503,7 +1503,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   24,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1530,7 +1530,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               2000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   25,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1557,7 +1557,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   26,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1584,7 +1584,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   27,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1611,7 +1611,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   28,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1638,7 +1638,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   29,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1665,7 +1665,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               3000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   30,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1696,7 +1696,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   31,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1723,7 +1723,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   32,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1750,7 +1750,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   33,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1777,7 +1777,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   34,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1804,7 +1804,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   35,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1831,7 +1831,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               30000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   36,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1858,7 +1858,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               25000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   37,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1885,7 +1885,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   38,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1912,7 +1912,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               40000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   39,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1939,7 +1939,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   40,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1966,7 +1966,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               60000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   41,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1993,7 +1993,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   42,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2020,7 +2020,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               75000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   43,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2047,7 +2047,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   44,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2074,7 +2074,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   45,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2101,7 +2101,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   46,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2128,7 +2128,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   47,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2155,7 +2155,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               15000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   48,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2182,7 +2182,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
 			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         "Fixed Amount",
+			ComputationType:                         Straight,
 			Index:                                   49,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
