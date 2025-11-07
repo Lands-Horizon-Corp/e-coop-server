@@ -246,3 +246,30 @@ func (d *DecimalOperations) SimpleInterest(principal, rate, time float64) float6
 	resultFloat, _ := result.Float64()
 	return resultFloat
 }
+
+// Clamp constrains a value between a minimum and maximum range
+func (d *DecimalOperations) Clamp(value, min, max float64) float64 {
+	if d.IsLessThan(value, min) {
+		return min
+	}
+	if d.IsGreaterThan(value, max) {
+		return max
+	}
+	return value
+}
+
+// ClampMin ensures a value doesn't go below a minimum threshold
+func (d *DecimalOperations) ClampMin(value, min float64) float64 {
+	if d.IsLessThan(value, min) {
+		return min
+	}
+	return value
+}
+
+// ClampMax ensures a value doesn't exceed a maximum threshold
+func (d *DecimalOperations) ClampMax(value, max float64) float64 {
+	if d.IsGreaterThan(value, max) {
+		return max
+	}
+	return value
+}

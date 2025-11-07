@@ -148,6 +148,7 @@ func (e *Event) ComputationSheetCalculator(
 		addOnEntry.Debit = totalAddOns
 		loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
 	}
+
 	totalDebit, totalCredit := 0.0, 0.0
 	for _, entry := range loanTransactionEntries {
 		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
@@ -184,7 +185,7 @@ func (e *Event) ComputationSheetCalculator(
 	// Typically, start date comes from loanTransaction (adjust as needed)
 	amortization := []*LoanAmortizationScheduleResponse{}
 	accounts := []*AccountValue{
-		{Account: *account},
+		{Account: *account, Value: totalCredit},
 	}
 	for _, acc := range lcscr.Accounts {
 		accounts = append(accounts, &AccountValue{
@@ -222,13 +223,17 @@ func (e *Event) ComputationSheetCalculator(
 			daysSkipped++
 		}
 
-		// Store or output paymentDate here as needed
-		// fmt.Println("Payment", i+1, ":", paymentDate)
+		for _, acc := range accounts {
+			switch acc.Account.ComputationType {
+			case core.Straight:
+			case core.Diminishing:
+			case core.DiminishingStraight:
+			}
+		}
 
 		// Calculate next payment date
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -238,9 +243,7 @@ func (e *Event) ComputationSheetCalculator(
 				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
-
 		case core.LoanModeOfPaymentWeekly:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -253,7 +256,6 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
 
 		case core.LoanModeOfPaymentSemiMonthly:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -280,7 +282,6 @@ func (e *Event) ComputationSheetCalculator(
 			}
 
 		case core.LoanModeOfPaymentMonthly:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -301,7 +302,6 @@ func (e *Event) ComputationSheetCalculator(
 			}
 
 		case core.LoanModeOfPaymentQuarterly:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -313,7 +313,6 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = paymentDate.AddDate(0, 3, 0)
 
 		case core.LoanModeOfPaymentSemiAnnual:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -325,7 +324,6 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 
 		case core.LoanModeOfPaymentLumpsum:
-
 			//====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
@@ -338,7 +336,6 @@ func (e *Event) ComputationSheetCalculator(
 			if i == 0 {
 				// (store/output here) and then break outside for loop if needed
 			}
-
 		case core.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				ScheduledDate: paymentDate,
