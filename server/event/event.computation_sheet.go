@@ -488,6 +488,9 @@ func (e *Event) ComputationSheetCalculator(
 				// Update the remaining balance
 				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
 
+				fmt.Printf("Loan Account - Principal: %f, Payments: %d, Payment Amount: %f, Balance: %f\n",
+					principal, numberOfPayments, acc.Value, balance)
+
 			}
 		}
 	}
