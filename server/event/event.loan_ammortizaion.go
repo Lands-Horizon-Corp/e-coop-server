@@ -60,7 +60,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	// Typically, start date comes from loanTransaction (adjust as needed)
 	paymentDate := time.Now().UTC()
 
-	for i := range numberOfPayments {
+	for range numberOfPayments {
 		// Find next valid payment date (skip excluded days)
 		daysSkipped := 0
 		for {
@@ -106,11 +106,12 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			loc := paymentDate.Location()
 
 			// strictly next scheduled payday
-			if thisDay < semiMonthlyExactDay1 {
+			switch {
+			case thisDay < semiMonthlyExactDay1:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else if thisDay < semiMonthlyExactDay2 {
+			case thisDay < semiMonthlyExactDay2:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else {
+			default:
 				// Go to first date next month
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
@@ -131,10 +132,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		case core.LoanModeOfPaymentSemiAnnual:
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
-			// Usually, lumpsum means all due at once, so break after first
-			if i == 0 {
-				// (store/output here) and then break outside for loop if needed
-			}
+
 		}
 	}
 	return result, nil
