@@ -37,6 +37,7 @@ type ComputationSheetAmortizationResponse struct {
 	Entries     []*core.LoanTransactionEntryResponse `json:"entries"`
 	TotalDebit  float64                              `json:"total_debit"`
 	TotalCredit float64                              `json:"total_credit"`
+	Currency    core.CurrencyResponse                `json:"currency"`
 
 	Schedule []*LoanAmortizationScheduleResponse `json:"schedule,omitempty"`
 }
@@ -488,6 +489,7 @@ func (e *Event) ComputationSheetCalculator(
 
 	return &ComputationSheetAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
+		Currency:    *e.core.CurrencyManager.ToModel(currency),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
 		Schedule:    amortization,
