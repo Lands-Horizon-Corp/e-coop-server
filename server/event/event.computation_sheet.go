@@ -183,16 +183,95 @@ func (e *Event) ComputationSheetCalculator(
 
 	// Typically, start date comes from loanTransaction (adjust as needed)
 
-	amortization := []*LoanAmortizationScheduleResponse{
-		{},
+	amortization := []*LoanAmortizationScheduleResponse{}
+	accounts := []*AccountValue{
+		{
+			Account: core.AccountRequest{
+				GeneralLedgerDefinitionID:             account.GeneralLedgerDefinitionID,
+				FinancialStatementDefinitionID:        account.FinancialStatementDefinitionID,
+				AccountClassificationID:               account.AccountClassificationID,
+				AccountCategoryID:                     account.AccountCategoryID,
+				MemberTypeID:                          account.MemberTypeID,
+				CurrencyID:                            account.CurrencyID,
+				Name:                                  account.Name,
+				Description:                           account.Description,
+				MinAmount:                             account.MinAmount,
+				MaxAmount:                             account.MaxAmount,
+				Index:                                 account.Index,
+				Type:                                  account.Type,
+				IsInternal:                            account.IsInternal,
+				CashOnHand:                            account.CashOnHand,
+				PaidUpShareCapital:                    account.PaidUpShareCapital,
+				ComputationType:                       account.ComputationType,
+				FinesAmort:                            account.FinesAmort,
+				FinesMaturity:                         account.FinesMaturity,
+				InterestStandard:                      account.InterestStandard,
+				InterestSecured:                       account.InterestSecured,
+				ComputationSheetID:                    account.ComputationSheetID,
+				CohCibFinesGracePeriodEntryCashHand:   account.CohCibFinesGracePeriodEntryCashHand,
+				CohCibFinesGracePeriodEntryCashInBank: account.CohCibFinesGracePeriodEntryCashInBank,
+				CohCibFinesGracePeriodEntryDailyAmortization:       account.CohCibFinesGracePeriodEntryDailyAmortization,
+				CohCibFinesGracePeriodEntryDailyMaturity:           account.CohCibFinesGracePeriodEntryDailyMaturity,
+				CohCibFinesGracePeriodEntryWeeklyAmortization:      account.CohCibFinesGracePeriodEntryWeeklyAmortization,
+				CohCibFinesGracePeriodEntryWeeklyMaturity:          account.CohCibFinesGracePeriodEntryWeeklyMaturity,
+				CohCibFinesGracePeriodEntryMonthlyAmortization:     account.CohCibFinesGracePeriodEntryMonthlyAmortization,
+				CohCibFinesGracePeriodEntryMonthlyMaturity:         account.CohCibFinesGracePeriodEntryMonthlyMaturity,
+				CohCibFinesGracePeriodEntrySemiMonthlyAmortization: account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+				CohCibFinesGracePeriodEntryQuarterlyAmortization:   account.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+				CohCibFinesGracePeriodEntryQuarterlyMaturity:       account.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  account.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      account.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+				CohCibFinesGracePeriodEntryAnnualAmortization:      account.CohCibFinesGracePeriodEntryAnnualAmortization,
+				CohCibFinesGracePeriodEntryAnnualMaturity:          account.CohCibFinesGracePeriodEntryAnnualMaturity,
+				CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
+				CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
+				GeneralLedgerType:                   account.GeneralLedgerType,
+				LoanAccountID:                       account.LoanAccountID,
+				FinesGracePeriodAmortization:        account.FinesGracePeriodAmortization,
+				AdditionalGracePeriod:               account.AdditionalGracePeriod,
+				NoGracePeriodDaily:                  account.NoGracePeriodDaily,
+				FinesGracePeriodMaturity:            account.FinesGracePeriodMaturity,
+				YearlySubscriptionFee:               account.YearlySubscriptionFee,
+				CutOffDays:                          account.CutOffDays,
+				CutOffMonths:                        account.CutOffMonths,
+				LumpsumComputationType:              account.LumpsumComputationType,
+				InterestFinesComputationDiminishing: account.InterestFinesComputationDiminishing,
+				InterestFinesComputationDiminishingStraightYearly: account.InterestFinesComputationDiminishingStraightYearly,
+				EarnedUnearnedInterest:                            account.EarnedUnearnedInterest,
+				LoanSavingType:                                    account.LoanSavingType,
+				InterestDeduction:                                 account.InterestDeduction,
+				OtherDeductionEntry:                               account.OtherDeductionEntry,
+				InterestSavingTypeDiminishingStraight:             account.InterestSavingTypeDiminishingStraight,
+				OtherInformationOfAnAccount:                       account.OtherInformationOfAnAccount,
+				HeaderRow:                                         account.HeaderRow,
+				CenterRow:                                         account.CenterRow,
+				TotalRow:                                          account.TotalRow,
+				GeneralLedgerGroupingExcludeAccount:               account.GeneralLedgerGroupingExcludeAccount,
+				Icon:                                              account.Icon,
+				ShowInGeneralLedgerSourceWithdraw:                 account.ShowInGeneralLedgerSourceWithdraw,
+				ShowInGeneralLedgerSourceDeposit:                  account.ShowInGeneralLedgerSourceDeposit,
+				ShowInGeneralLedgerSourceJournal:                  account.ShowInGeneralLedgerSourceJournal,
+				ShowInGeneralLedgerSourcePayment:                  account.ShowInGeneralLedgerSourcePayment,
+				ShowInGeneralLedgerSourceAdjustment:               account.ShowInGeneralLedgerSourceAdjustment,
+				ShowInGeneralLedgerSourceJournalVoucher:           account.ShowInGeneralLedgerSourceJournalVoucher,
+				ShowInGeneralLedgerSourceCheckVoucher:             account.ShowInGeneralLedgerSourceCheckVoucher,
+				CompassionFund:                                    account.CompassionFund,
+				CompassionFundAmount:                              account.CompassionFundAmount,
+				CashAndCashEquivalence:                            account.CashAndCashEquivalence,
+				InterestStandardComputation:                       account.InterestStandardComputation,
+			},
+			Value: 0,
+		},
 	}
-	accounts := []*AccountValue{}
 	for _, acc := range lcscr.Accounts {
 		accounts = append(accounts, &AccountValue{
 			Account: *acc,
 			Value:   0,
+			Total:   0,
 		})
 	}
+
 	principal := totalCredit
 	balance := totalCredit
 	paymentDate := time.Now().UTC()

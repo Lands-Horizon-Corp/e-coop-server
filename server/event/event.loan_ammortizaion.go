@@ -11,6 +11,7 @@ import (
 type AccountValue struct {
 	Account core.AccountRequest `json:"account"`
 	Value   float64             `json:"value"`
+	Total   float64             `json:"total"`
 }
 
 type LoanAmortizationScheduleResponse struct {
@@ -21,6 +22,8 @@ type LoanAmortizationScheduleResponse struct {
 	Balance       float64         `json:"balance"`
 	Accounts      []*AccountValue `json:"accounts"`
 }
+
+type LoanAmortizationTotalResponse struct{}
 
 func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {
 	result := []*LoanAmortizationScheduleResponse{}
