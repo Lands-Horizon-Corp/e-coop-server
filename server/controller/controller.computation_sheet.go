@@ -32,7 +32,7 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Computation sheet ID is required"})
 		}
 		if err := ctx.Bind(&request); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(request); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
