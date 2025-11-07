@@ -222,12 +222,29 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 			daysSkipped++
 		}
-
 		for _, acc := range accounts {
 			switch acc.Account.ComputationType {
 			case core.Straight:
+				switch acc.Account.Type {
+				case core.AccountTypeLoan:
+				case core.AccountTypeInterest:
+				case core.AccountTypeSVFLedger:
+				case core.AccountTypeFines:
+				}
 			case core.Diminishing:
+				switch acc.Account.Type {
+				case core.AccountTypeLoan:
+				case core.AccountTypeInterest:
+				case core.AccountTypeSVFLedger:
+				case core.AccountTypeFines:
+				}
 			case core.DiminishingStraight:
+				switch acc.Account.Type {
+				case core.AccountTypeLoan:
+				case core.AccountTypeInterest:
+				case core.AccountTypeSVFLedger:
+				case core.AccountTypeFines:
+				}
 			}
 		}
 
