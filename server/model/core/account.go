@@ -664,7 +664,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.5,
 			CurrencyID:        &currency.ID,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             1,
 		},
@@ -681,7 +681,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         5000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   DiminishingYearly,
 			Index:             2,
 			CurrencyID:        &currency.ID,
@@ -699,7 +699,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         50.00,
 			MaxAmount:         100000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             3,
 			CurrencyID:        &currency.ID,
@@ -717,7 +717,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         500.00,
 			MaxAmount:         2000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   DiminishingQuarterly,
 			Index:             4,
 			CurrencyID:        &currency.ID,
@@ -735,7 +735,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         200.00,
 			MaxAmount:         500000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             5,
 			CurrencyID:        &currency.ID,
@@ -753,7 +753,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         1000.00,
 			MaxAmount:         3000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   DiminishingAddOn,
 			Index:             6,
 			CurrencyID:        &currency.ID,
@@ -771,7 +771,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         500.00,
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.0,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             7,
 			CurrencyID:        &currency.ID,
@@ -789,7 +789,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         2000.00,
 			MaxAmount:         10000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   DiminishingStraight,
 			Index:             8,
 			CurrencyID:        &currency.ID,
@@ -807,7 +807,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MinAmount:         1000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.5,
-			GeneralLedgerType: GLTypeAssets,
+			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   DiminishingYearly,
 			Index:             9,
 			CurrencyID:        &currency.ID,
@@ -955,7 +955,26 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
-		// Create Interest Account
+		// Create Interest Account with varying computation types
+		var interestComputationType ComputationType
+		var interestStandardRate float64
+
+		// Set different computation types and rates based on loan type
+		switch loanAccount.Name {
+		case "Emergency Loan":
+			interestComputationType = Diminishing
+			interestStandardRate = 2.5 // 2.5% interest standard
+		case "Business Loan":
+			interestComputationType = DiminishingStraight
+			interestStandardRate = 3.0 // 3% interest standard
+		case "Educational Loan":
+			interestComputationType = Straight
+			interestStandardRate = 1.5 // 1.5% interest standard
+		default:
+			interestComputationType = Diminishing
+			interestStandardRate = 2.0 // 2% default interest standard
+		}
+
 		interestAccount := &Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -968,10 +987,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description:                             "Interest account for " + loanAccount.Description,
 			Type:                                    AccountTypeInterest,
 			MinAmount:                               0.00,
-			MaxAmount:                               1000000.00,
-			InterestStandard:                        0.0,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        interestStandardRate,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			ComputationType:                         interestComputationType,
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -988,7 +1007,26 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
-		// Create Service Fee Account
+		// Create Service Fee Account with varying computation types
+		var svfComputationType ComputationType
+		var svfStandardRate float64
+
+		// Set different computation types and rates based on loan type
+		switch loanAccount.Name {
+		case "Emergency Loan":
+			svfComputationType = Straight
+			svfStandardRate = 1.0 // 1% service fee standard
+		case "Business Loan":
+			svfComputationType = DiminishingStraight
+			svfStandardRate = 1.5 // 1.5% service fee standard
+		case "Educational Loan":
+			svfComputationType = Diminishing
+			svfStandardRate = 0.5 // 0.5% service fee standard
+		default:
+			svfComputationType = Straight
+			svfStandardRate = 1.0 // 1% default service fee standard
+		}
+
 		serviceFeeAccount := &Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -1001,10 +1039,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description:                             "Service fee account for " + loanAccount.Description,
 			Type:                                    AccountTypeSVFLedger,
 			MinAmount:                               0.00,
-			MaxAmount:                               50000.00,
-			InterestStandard:                        0.0,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        svfStandardRate,
 			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			ComputationType:                         svfComputationType,
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
 			ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1208,6 +1246,185 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
 		}
 	}
+
+	// Create additional standalone Interest accounts with different configurations
+	standaloneInterestAccounts := []*Account{
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "General Interest Income",
+			Description:                             "General interest income from various cooperative investments and deposits.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        2.0,    // 2% interest standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Diminishing,
+			Index:                                   600,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Penalty Interest",
+			Description:                             "Interest penalties for overdue accounts and late payments.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        5.0,    // 5% penalty interest
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   601,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Investment Interest",
+			Description:                             "Interest income from long-term investments and financial instruments.",
+			Type:                                    AccountTypeInterest,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        3.5,    // 3.5% investment interest
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         DiminishingStraight,
+			Index:                                   602,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+	}
+
+	// Create additional standalone SVF accounts with different configurations
+	standaloneSVFAccounts := []*Account{
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "General Service Fee",
+			Description:                             "General service fees for various cooperative services and transactions.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        1.0,    // 1% service fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Straight,
+			Index:                                   700,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Processing Service Fee",
+			Description:                             "Service fees for loan processing, account opening, and administrative services.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        2.0,    // 2% processing fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         Diminishing,
+			Index:                                   701,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+		{
+			CreatedAt:                               now,
+			CreatedByID:                             userID,
+			UpdatedAt:                               now,
+			UpdatedByID:                             userID,
+			OrganizationID:                          organizationID,
+			BranchID:                                branchID,
+			CurrencyID:                              &currency.ID,
+			Name:                                    "Maintenance Service Fee",
+			Description:                             "Monthly and annual maintenance service fees for account upkeep and services.",
+			Type:                                    AccountTypeSVFLedger,
+			MinAmount:                               0.00,
+			MaxAmount:                               100.00, // Max percentage is 100%
+			InterestStandard:                        0.5,    // 0.5% maintenance fee standard
+			GeneralLedgerType:                       GLTypeRevenue,
+			ComputationType:                         DiminishingStraight,
+			Index:                                   702,
+			ShowInGeneralLedgerSourceWithdraw:       true,
+			ShowInGeneralLedgerSourceDeposit:        true,
+			ShowInGeneralLedgerSourceJournal:        true,
+			ShowInGeneralLedgerSourcePayment:        true,
+			ShowInGeneralLedgerSourceAdjustment:     true,
+			ShowInGeneralLedgerSourceJournalVoucher: true,
+			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			OtherInformationOfAnAccount:             OIOANone,
+		},
+	}
+
+	// Create all standalone interest accounts
+	for _, interestAccount := range standaloneInterestAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
+		}
+	}
+
+	// Create all standalone SVF accounts
+	for _, svfAccount := range standaloneSVFAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, svfAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
+		}
+	}
+
 	paidUpShareCapital := &Account{
 		CreatedAt:                         now,
 		CreatedByID:                       userID,
