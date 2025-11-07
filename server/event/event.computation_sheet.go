@@ -262,6 +262,7 @@ func (e *Event) ComputationSheetCalculator(
 				InterestStandardComputation:                       account.InterestStandardComputation,
 			},
 			Value: 0,
+			Total: 0,
 		},
 	}
 	for _, acc := range lcscr.Accounts {
@@ -305,29 +306,34 @@ func (e *Event) ComputationSheetCalculator(
 		}
 
 		for _, acc := range accounts {
-			acc.Value = 0
 
 			switch acc.Account.ComputationType {
 			case core.Straight:
 				switch acc.Account.Type {
 				case core.AccountTypeInterest:
 					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				case core.AccountTypeSVFLedger:
 					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				}
 			case core.Diminishing:
 				switch acc.Account.Type {
 				case core.AccountTypeInterest:
 					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				case core.AccountTypeSVFLedger:
 					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				}
 			case core.DiminishingStraight:
 				switch acc.Account.Type {
 				case core.AccountTypeInterest:
 					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				case core.AccountTypeSVFLedger:
 					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				}
 			}
 
@@ -343,6 +349,7 @@ func (e *Event) ComputationSheetCalculator(
 						acc.Account.NoGracePeriodDaily,
 						acc.Account,
 					)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				} else {
 					acc.Value = 0
 				}
@@ -352,6 +359,7 @@ func (e *Event) ComputationSheetCalculator(
 					0,
 					balance,
 				)
+				acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
 			}
 		}
