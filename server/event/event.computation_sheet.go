@@ -346,7 +346,7 @@ func (e *Event) ComputationSheetCalculator(
 				}
 
 				if acc.Account.Type == core.AccountTypeFines {
-					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
+					if daysSkipped >= 1 && !acc.Account.NoGracePeriodDaily {
 						acc.Value = e.usecase.ComputeFines(
 							principal,
 							acc.Account.FinesAmort,
