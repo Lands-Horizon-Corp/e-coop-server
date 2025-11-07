@@ -346,7 +346,10 @@ func (e *Event) ComputationSheetCalculator(
 				}
 
 				if acc.Account.Type == core.AccountTypeFines {
-					if daysSkipped >= 1 && !acc.Account.NoGracePeriodDaily {
+					fmt.Printf("Payment %d - Fines Check: Days Skipped: %d, NoGracePeriodDaily: %t\n",
+						i, daysSkipped, acc.Account.NoGracePeriodDaily)
+
+					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
 						acc.Value = e.usecase.ComputeFines(
 							principal,
 							acc.Account.FinesAmort,
@@ -358,10 +361,12 @@ func (e *Event) ComputationSheetCalculator(
 						)
 						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
 
-						fmt.Printf("Payment %d - Fines Applied: Days Skipped: %d, Principal: %.2f, FinesAmort: %.2f, FinesMaturity: %.2f, Fines Amount: %.2f, Total Fines: %.2f\n",
-							i, daysSkipped, principal, acc.Account.FinesAmort, acc.Account.FinesMaturity, acc.Value, acc.Total)
+						fmt.Printf("Payment %d - Fines Applied: Days Skipped: %d, Balance: %.2f, FinesAmort: %.2f, FinesMaturity: %.2f, Fines Amount: %.2f, Total Fines: %.2f\n",
+							i, daysSkipped, balance, acc.Account.FinesAmort, acc.Account.FinesMaturity, acc.Value, acc.Total)
 					} else {
 						acc.Value = 0
+						fmt.Printf("Payment %d - No Fines: Days Skipped: %d, NoGracePeriodDaily: %t\n",
+							i, daysSkipped, acc.Account.NoGracePeriodDaily)
 					}
 				}
 			}
