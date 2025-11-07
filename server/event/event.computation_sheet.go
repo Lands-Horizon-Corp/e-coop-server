@@ -306,65 +306,6 @@ func (e *Event) ComputationSheetCalculator(
 			daysSkipped++
 		}
 
-		for _, acc := range accounts {
-
-			switch acc.Account.ComputationType {
-			case core.Straight:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			case core.Diminishing:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			case core.DiminishingStraight:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			}
-
-			switch acc.Account.Type {
-			case core.AccountTypeFines:
-				if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
-					acc.Value = e.usecase.ComputeFines(
-						principal,
-						acc.Account.FinesAmort,
-						acc.Account.FinesMaturity,
-						daysSkipped,
-						lcscr.ModeOfPayment,
-						acc.Account.NoGracePeriodDaily,
-						acc.Account,
-					)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				} else {
-					acc.Value = 0
-				}
-			case core.AccountTypeLoan:
-				acc.Value = e.provider.Service.Decimal.Clamp(
-					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)),
-					0,
-					balance,
-				)
-				acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
-			}
-		}
-
 		// Calculate next payment date
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
@@ -484,6 +425,64 @@ func (e *Event) ComputationSheetCalculator(
 			})
 			// Add logic for fixed days payment mode
 			paymentDate = paymentDate.AddDate(0, 0, 1) // Adjust as needed for fixed days
+		}
+		for _, acc := range accounts {
+
+			switch acc.Account.ComputationType {
+			case core.Straight:
+				switch acc.Account.Type {
+				case core.AccountTypeInterest:
+					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				case core.AccountTypeSVFLedger:
+					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				}
+			case core.Diminishing:
+				switch acc.Account.Type {
+				case core.AccountTypeInterest:
+					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				case core.AccountTypeSVFLedger:
+					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				}
+			case core.DiminishingStraight:
+				switch acc.Account.Type {
+				case core.AccountTypeInterest:
+					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				case core.AccountTypeSVFLedger:
+					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				}
+			}
+
+			switch acc.Account.Type {
+			case core.AccountTypeFines:
+				if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
+					acc.Value = e.usecase.ComputeFines(
+						principal,
+						acc.Account.FinesAmort,
+						acc.Account.FinesMaturity,
+						daysSkipped,
+						lcscr.ModeOfPayment,
+						acc.Account.NoGracePeriodDaily,
+						acc.Account,
+					)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				} else {
+					acc.Value = 0
+				}
+			case core.AccountTypeLoan:
+				acc.Value = e.provider.Service.Decimal.Clamp(
+					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)),
+					0,
+					balance,
+				)
+				acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
+			}
 		}
 	}
 
