@@ -17,14 +17,16 @@ func (e Event) nextWeekday(from time.Time, weekday time.Weekday) time.Time {
 }
 
 func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {
+	// Convert to the currency's timezone
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
 		return false, err
 	}
-	localDate := date.In(loc).Truncate(24 * time.Hour)
+	localDate := date.In(loc)
+	year, month, day := localDate.Date()
 	for _, holiday := range holidays {
-		holidayDate := holiday.EntryDate.In(loc).Truncate(24 * time.Hour)
-		if localDate.Equal(holidayDate) {
+		hYear, hMonth, hDay := holiday.EntryDate.Date()
+		if year == hYear && month == hMonth && day == hDay {
 			return true, nil
 		}
 	}
