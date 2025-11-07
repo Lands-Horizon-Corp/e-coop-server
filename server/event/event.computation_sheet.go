@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
@@ -17,15 +18,16 @@ type LoanComputationSheetCalculatorRequest struct {
 	MemberTypeID *uuid.UUID `json:"member_type_id,omitempty"`
 	IsAddOn      bool       `json:"is_add_on,omitempty"`
 
-	ExcludeSaturday              bool                   `json:"exclude_saturday"`
-	ExcludeSunday                bool                   `json:"exclude_sunday"`
-	ExcludeHoliday               bool                   `json:"exclude_holiday"`
-	ModeOfPaymentMonthlyExactDay bool                   `json:"mode_of_payment_monthly_exact_day"`
-	ModeOfPaymentWeekly          core.Weekdays          `json:"mode_of_payment_weekly"`
-	ModeOfPaymentSemiMonthlyPay1 int                    `json:"mode_of_payment_semi_monthly_pay_1"`
-	ModeOfPaymentSemiMonthlyPay2 int                    `json:"mode_of_payment_semi_monthly_pay_2"`
-	ModeOfPayment                core.LoanModeOfPayment `json:"mode_of_payment"`
-	Accounts                     []*core.AccountRequest `json:"accounts,omitempty"`
+	ExcludeSaturday              bool          `json:"exclude_saturday"`
+	ExcludeSunday                bool          `json:"exclude_sunday"`
+	ExcludeHoliday               bool          `json:"exclude_holiday"`
+	ModeOfPaymentMonthlyExactDay bool          `json:"mode_of_payment_monthly_exact_day"`
+	ModeOfPaymentWeekly          core.Weekdays `json:"mode_of_payment_weekly"`
+	ModeOfPaymentSemiMonthlyPay1 int           `json:"mode_of_payment_semi_monthly_pay_1"`
+	ModeOfPaymentSemiMonthlyPay2 int           `json:"mode_of_payment_semi_monthly_pay_2"`
+
+	ModeOfPayment core.LoanModeOfPayment `json:"mode_of_payment"`
+	Accounts      []*core.AccountRequest `json:"accounts,omitempty"`
 
 	CashOnHandAccountID *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
 	ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`
@@ -154,6 +156,116 @@ func (e *Event) ComputationSheetCalculator(
 		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 	}
+
+	// Loan Amortization Schedule ==========================================
+
+	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
+		OrganizationID: computationSheet.OrganizationID,
+		BranchID:       computationSheet.BranchID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	numberOfPayments, err := e.usecase.LoanNumberOfPayments(lcscr.ModeOfPayment, lcscr.Terms)
+	if err != nil {
+		return nil, err
+	}
+
+	currency := account.Currency
+
+	// Excluding
+	excludeSaturday := lcscr.ExcludeSaturday
+	excludeSunday := lcscr.ExcludeSunday
+	excludeHolidays := lcscr.ExcludeHoliday
+
+	// Payment custom days
+	isMonthlyExactDay := lcscr.ModeOfPaymentMonthlyExactDay
+	weeklyExactDay := lcscr.ModeOfPaymentWeekly // expect this to be time.Weekday (0=Sunday...)
+	semiMonthlyExactDay1 := lcscr.ModeOfPaymentSemiMonthlyPay1
+	semiMonthlyExactDay2 := lcscr.ModeOfPaymentSemiMonthlyPay2
+
+	// Typically, start date comes from loanTransaction (adjust as needed)
+	paymentDate := time.Now().UTC()
+
+	for i := range numberOfPayments {
+		// Find next valid payment date (skip excluded days)
+		daysSkipped := 0
+		for {
+			var skip bool
+			if excludeSaturday {
+				if sat, _ := e.isSaturday(paymentDate, currency); sat {
+					skip = true
+				}
+			}
+			if excludeSunday {
+				if sun, _ := e.isSunday(paymentDate, currency); sun {
+					skip = true
+				}
+			}
+			if excludeHolidays {
+				if hol, _ := e.isHoliday(paymentDate, currency, holidays); hol {
+					skip = true
+				}
+			}
+			if !skip {
+				break
+			}
+			paymentDate = paymentDate.AddDate(0, 0, 1)
+			daysSkipped++
+		}
+
+		// Store or output paymentDate here as needed
+		// fmt.Println("Payment", i+1, ":", paymentDate)
+
+		// Calculate next payment date
+		switch lcscr.ModeOfPayment {
+		case core.LoanModeOfPaymentDaily:
+			paymentDate = paymentDate.AddDate(0, 0, 1)
+		case core.LoanModeOfPaymentWeekly:
+			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
+			// Use configured weekday, expects weeklyExactDay as time.Weekday
+			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
+		case core.LoanModeOfPaymentSemiMonthly:
+			// Expect e.g. 15 and 30 as paydays. Move to next of these
+			thisDay := paymentDate.Day()
+			thisMonth := paymentDate.Month()
+			thisYear := paymentDate.Year()
+			loc := paymentDate.Location()
+
+			// strictly next scheduled payday
+			if thisDay < semiMonthlyExactDay1 {
+				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+			} else if thisDay < semiMonthlyExactDay2 {
+				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+			} else {
+				// Go to first date next month
+				nextMonth := paymentDate.AddDate(0, 1, 0)
+				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+			}
+		case core.LoanModeOfPaymentMonthly:
+			loc := paymentDate.Location()
+			day := paymentDate.Day()
+			if isMonthlyExactDay {
+				// next month, same day-of-month as original
+				nextMonth := paymentDate.AddDate(0, 1, 0)
+				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+			} else {
+				// Just add 1 month (will keep day if possible)
+				paymentDate = paymentDate.AddDate(0, 1, 0)
+			}
+		case core.LoanModeOfPaymentQuarterly:
+			paymentDate = paymentDate.AddDate(0, 3, 0)
+		case core.LoanModeOfPaymentSemiAnnual:
+			paymentDate = paymentDate.AddDate(0, 6, 0)
+		case core.LoanModeOfPaymentLumpsum:
+			// Usually, lumpsum means all due at once, so break after first
+			if i == 0 {
+				// (store/output here) and then break outside for loop if needed
+			}
+		}
+	}
+
 	return &ComputationSheetAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 		TotalDebit:  totalDebit,

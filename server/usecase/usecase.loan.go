@@ -219,27 +219,27 @@ func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs c
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(lt *core.LoanTransaction) (int, error) {
-	switch lt.ModeOfPayment {
+func (t *TransactionService) LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
+	switch mp {
 	case core.LoanModeOfPaymentDaily:
-		return lt.Terms * 30, nil
+		return terms * 30, nil
 	case core.LoanModeOfPaymentWeekly:
-		return lt.Terms * 4, nil
+		return terms * 4, nil
 	case core.LoanModeOfPaymentSemiMonthly:
-		return lt.Terms * 2, nil
+		return terms * 2, nil
 	case core.LoanModeOfPaymentMonthly:
-		return lt.Terms, nil
+		return terms, nil
 	case core.LoanModeOfPaymentQuarterly:
-		return lt.Terms / 3, nil
+		return terms / 3, nil
 	case core.LoanModeOfPaymentSemiAnnual:
-		return lt.Terms / 6, nil
+		return terms / 6, nil
 	case core.LoanModeOfPaymentLumpsum:
 		return 1, nil
 	case core.LoanModeOfPaymentFixedDays:
-		if lt.ModeOfPaymentFixedDays <= 0 {
+		if terms <= 0 {
 			return 0, eris.New("invalid fixed days: must be greater than 0")
 		}
-		return lt.Terms, nil
+		return terms, nil
 	}
 	return 0, eris.New("not implemented yet")
 }

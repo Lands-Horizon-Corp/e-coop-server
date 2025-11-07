@@ -35,7 +35,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		return result, err
 	}
 
-	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction)
+	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return result, err
 	}
