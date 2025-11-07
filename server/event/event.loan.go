@@ -215,7 +215,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				if err != nil {
 					return nil, endTx(err)
 				}
-				entry.Credit = e.usecase.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+				entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 			}
 
 			if entry.Credit <= 0 {
@@ -270,7 +270,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 					return nil, endTx(err)
 				}
-				entry.Credit = e.usecase.LoanChargesRateComputation(ctx, *chargesRateScheme, *loanTransaction)
+				entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 
 			}
 
@@ -398,7 +398,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 	// Amortization
-	amort, err := e.usecase.LoanModeOfPayment(ctx, loanTransaction)
+	amort, err := e.usecase.LoanModeOfPayment(loanTransaction)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",

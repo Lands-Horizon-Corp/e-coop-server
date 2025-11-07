@@ -10,7 +10,7 @@ import (
 )
 
 // LoanChargesRateComputation calculates the loan charges based on the rate scheme and loan transaction
-func (t *TransactionService) LoanChargesRateComputation(_ context.Context, crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
+func (t *TransactionService) LoanChargesRateComputation(crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
 
 	result := 0.0
 
@@ -307,7 +307,7 @@ func (t *TransactionService) LoanComputation(ald core.AutomaticLoanDeduction, lt
 }
 
 // LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment using precise decimal arithmetic
-func (t *TransactionService) LoanModeOfPayment(_ context.Context, lt *core.LoanTransaction) (float64, error) {
+func (t *TransactionService) LoanModeOfPayment(lt *core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
 		// lt.Applied1 / float64(lt.Terms) / 30
@@ -407,4 +407,160 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 
 	numberOfTerms := max(1, int(math.Ceil(terms)))
 	return numberOfTerms, nil
+}
+
+// ...existing code...
+
+// computeFines calculates fines based on payment mode, grace periods, and late days
+func (t *TransactionService) ComputeFines(
+	balance float64,
+	finesAmortRate float64,
+	finesMaturityRate float64,
+	daysSkipped int,
+	mp core.LoanModeOfPayment,
+	noGracePeriodDaily bool,
+	account core.Account,
+) float64 {
+	if daysSkipped <= 0 {
+		return 0.0
+	}
+
+	// Calculate effective days late considering grace period
+	effectiveDaysLate := daysSkipped
+
+	// Apply grace period logic only if NoGracePeriodDaily is false
+	if !noGracePeriodDaily {
+		var gracePeriod int
+		switch mp {
+		case core.LoanModeOfPaymentDaily:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryDailyAmortization)
+		case core.LoanModeOfPaymentWeekly:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryWeeklyAmortization)
+		case core.LoanModeOfPaymentMonthly:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryMonthlyAmortization)
+		case core.LoanModeOfPaymentSemiMonthly:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization)
+		case core.LoanModeOfPaymentQuarterly:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryQuarterlyAmortization)
+		case core.LoanModeOfPaymentSemiAnnual:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntrySemiAnualAmortization)
+		case core.LoanModeOfPaymentLumpsum:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryLumpsumAmortization)
+		case core.LoanModeOfPaymentFixedDays:
+			gracePeriod = int(account.CohCibFinesGracePeriodEntryDailyAmortization) // Use daily as default for fixed days
+		default:
+			gracePeriod = 0
+		}
+
+		// If within grace period, no fines apply
+		if daysSkipped <= gracePeriod {
+			return 0.0
+		}
+
+		// Calculate effective days late after grace period
+		effectiveDaysLate = daysSkipped - gracePeriod
+	}
+
+	// Use FinesAmort rate for regular late payments and FinesMaturity for overdue loans
+	finesRate := finesAmortRate
+
+	// If it's been significantly overdue (e.g., more than 30 days), use maturity rate
+	if effectiveDaysLate > 30 {
+		finesRate = finesMaturityRate
+	}
+
+	if finesRate <= 0 {
+		return 0.0
+	}
+
+	switch mp {
+	case core.LoanModeOfPaymentDaily:
+		// Daily fines: balance * (finesRate / 100) per day
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				float64(effectiveDaysLate),
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentWeekly:
+		// Weekly fines: balance * (finesRate / 100) per week
+		weeksLate := t.provider.Service.Decimal.Divide(float64(effectiveDaysLate), 7.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				weeksLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentMonthly:
+		// Monthly fines: balance * finesRate / 100 per month late
+		monthsLate := t.provider.Service.Decimal.Divide(float64(effectiveDaysLate), 30.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				monthsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiMonthly:
+		// Semi-monthly fines: balance * (finesRate / 100) per 15-day period
+		semiMonthlyPeriodsLate := t.provider.Service.Decimal.Divide(float64(effectiveDaysLate), 15.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				semiMonthlyPeriodsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentQuarterly:
+		// Quarterly fines: balance * (finesRate / 100) per quarter (90 days)
+		quartersLate := t.provider.Service.Decimal.Divide(float64(effectiveDaysLate), 90.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				quartersLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiAnnual:
+		// Semi-annual fines: balance * (finesRate / 100) per 6 months (180 days)
+		semiAnnualPeriodsLate := t.provider.Service.Decimal.Divide(float64(effectiveDaysLate), 180.0)
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				semiAnnualPeriodsLate,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentLumpsum:
+		// Lumpsum fines: use maturity rate as it's typically a one-time penalty
+		finalRate := finesMaturityRate
+		if finalRate <= 0 {
+			finalRate = finesAmortRate
+		}
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.MultiplyByPercentage(balance, finalRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentFixedDays:
+		// Fixed days fines: use daily rate
+		return t.provider.Service.Decimal.RoundToDecimalPlaces(
+			t.provider.Service.Decimal.Multiply(
+				t.provider.Service.Decimal.MultiplyByPercentage(balance, finesRate),
+				float64(effectiveDaysLate),
+			),
+			2,
+		)
+
+	default:
+		return 0.0
+	}
 }
