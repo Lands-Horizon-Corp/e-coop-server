@@ -559,8 +559,8 @@ func (c *Controller) accountController() {
 			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     req.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 			CohCibFinesGracePeriodEntryQuarterlyAmortization:   req.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 			CohCibFinesGracePeriodEntryQuarterlyMaturity:       req.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-			CohCibFinesGracePeriodEntrySemiAnualAmortization:   req.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-			CohCibFinesGracePeriodEntrySemiAnualMaturity:       req.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+			CohCibFinesGracePeriodEntrySemiAnnualAmortization:  req.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      req.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 			CohCibFinesGracePeriodEntryLumpsumAmortization:     req.CohCibFinesGracePeriodEntryLumpsumAmortization,
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         req.CohCibFinesGracePeriodEntryLumpsumMaturity,
 			GeneralLedgerType:                   req.GeneralLedgerType,
@@ -755,8 +755,8 @@ func (c *Controller) accountController() {
 		account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity = req.CohCibFinesGracePeriodEntrySemiMonthlyMaturity
 		account.CohCibFinesGracePeriodEntryQuarterlyAmortization = req.CohCibFinesGracePeriodEntryQuarterlyAmortization
 		account.CohCibFinesGracePeriodEntryQuarterlyMaturity = req.CohCibFinesGracePeriodEntryQuarterlyMaturity
-		account.CohCibFinesGracePeriodEntrySemiAnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnualAmortization
-		account.CohCibFinesGracePeriodEntrySemiAnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnualMaturity
+		account.CohCibFinesGracePeriodEntrySemiAnnualAmortization = req.CohCibFinesGracePeriodEntrySemiAnnualAmortization
+		account.CohCibFinesGracePeriodEntrySemiAnnualMaturity = req.CohCibFinesGracePeriodEntrySemiAnnualMaturity
 		account.CohCibFinesGracePeriodEntryLumpsumAmortization = req.CohCibFinesGracePeriodEntryLumpsumAmortization
 		account.CohCibFinesGracePeriodEntryLumpsumMaturity = req.CohCibFinesGracePeriodEntryLumpsumMaturity
 		account.GeneralLedgerType = req.GeneralLedgerType

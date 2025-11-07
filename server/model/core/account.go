@@ -233,8 +233,8 @@ type (
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
 		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_amortization >= 0 AND coh_cib_fines_grace_period_entry_quarterly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
 		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_maturity >= 0 AND coh_cib_fines_grace_period_entry_quarterly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_anual_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_anual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_anual_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_anual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_amortization >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_amortization <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_maturity >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_maturity <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
@@ -351,8 +351,8 @@ type AccountResponse struct {
 	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
 	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
 	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
+	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
 	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
@@ -444,8 +444,8 @@ type AccountRequest struct {
 	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
 	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty" validate:"gte=0,lte=100"`
 	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity,omitempty" validate:"gte=0,lte=100"`
 	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty" validate:"gte=0,lte=100"`
 	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty" validate:"gte=0,lte=100"`
 
@@ -564,8 +564,8 @@ func (m *Core) account() {
 				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 				CohCibFinesGracePeriodEntryQuarterlyAmortization:   data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 				CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-				CohCibFinesGracePeriodEntrySemiAnualAmortization:   data.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-				CohCibFinesGracePeriodEntrySemiAnualMaturity:       data.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  data.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      data.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 				CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 				GeneralLedgerType:                   data.GeneralLedgerType,
@@ -1102,8 +1102,8 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     12.0, // 12% semi-monthly maturity fine
 			CohCibFinesGracePeriodEntryQuarterlyAmortization:   20.0, // 20% quarterly amortization fine
 			CohCibFinesGracePeriodEntryQuarterlyMaturity:       25.0, // 25% quarterly maturity fine
-			CohCibFinesGracePeriodEntrySemiAnualAmortization:   35.0, // 35% semi-annual amortization fine
-			CohCibFinesGracePeriodEntrySemiAnualMaturity:       40.0, // 40% semi-annual maturity fine
+			CohCibFinesGracePeriodEntrySemiAnnualAmortization:  35.0, // 35% semi-annual amortization fine
+			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      40.0, // 40% semi-annual maturity fine
 			CohCibFinesGracePeriodEntryLumpsumAmortization:     50.0, // 50% lumpsum amortization fine
 			CohCibFinesGracePeriodEntryLumpsumMaturity:         60.0, // 60% lumpsum maturity fine
 
@@ -3443,8 +3443,8 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     original.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   original.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       original.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   original.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:       original.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  original.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      original.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     original.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         original.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
@@ -3540,8 +3540,8 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:       a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
@@ -3643,9 +3643,9 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
 		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnualAmortization:   a.CohCibFinesGracePeriodEntrySemiAnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 		// AccountCurrentBranch
-		CohCibFinesGracePeriodEntrySemiAnualMaturity:   a.CohCibFinesGracePeriodEntrySemiAnualMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:  a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization: a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:     a.CohCibFinesGracePeriodEntryLumpsumMaturity,
 		// AccountCurrentBranch

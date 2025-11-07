@@ -124,8 +124,8 @@ func (c *Controller) accountHistory() {
 			account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiMonthlyMaturity
 			account.CohCibFinesGracePeriodEntryQuarterlyAmortization = accountHistory.CohCibFinesGracePeriodEntryQuarterlyAmortization
 			account.CohCibFinesGracePeriodEntryQuarterlyMaturity = accountHistory.CohCibFinesGracePeriodEntryQuarterlyMaturity
-			account.CohCibFinesGracePeriodEntrySemiAnualAmortization = accountHistory.CohCibFinesGracePeriodEntrySemiAnualAmortization
-			account.CohCibFinesGracePeriodEntrySemiAnualMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiAnualMaturity
+			account.CohCibFinesGracePeriodEntrySemiAnnualAmortization = accountHistory.CohCibFinesGracePeriodEntrySemiAnnualAmortization
+			account.CohCibFinesGracePeriodEntrySemiAnnualMaturity = accountHistory.CohCibFinesGracePeriodEntrySemiAnnualMaturity
 			account.CohCibFinesGracePeriodEntryLumpsumAmortization = accountHistory.CohCibFinesGracePeriodEntryLumpsumAmortization
 			account.CohCibFinesGracePeriodEntryLumpsumMaturity = accountHistory.CohCibFinesGracePeriodEntryLumpsumMaturity
 			account.GeneralLedgerType = accountHistory.GeneralLedgerType
