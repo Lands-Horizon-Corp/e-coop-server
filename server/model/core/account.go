@@ -675,6 +675,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			GeneralLedgerType: GLTypeLiabilities,
 			ComputationType:   Diminishing,
 			Index:             1,
+			Icon:              "Savings",
 		},
 		{
 			CreatedAt:         now,
@@ -693,6 +694,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   DiminishingYearly,
 			Index:             2,
 			CurrencyID:        &currency.ID,
+			Icon:              "Crown",
 		},
 		{
 			CreatedAt:         now,
@@ -711,6 +713,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   Diminishing,
 			Index:             3,
 			CurrencyID:        &currency.ID,
+			Icon:              "Cake",
 		},
 		{
 			CreatedAt:         now,
@@ -729,6 +732,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   DiminishingQuarterly,
 			Index:             4,
 			CurrencyID:        &currency.ID,
+			Icon:              "Umbrella",
 		},
 		{
 			CreatedAt:         now,
@@ -747,6 +751,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   Diminishing,
 			Index:             5,
 			CurrencyID:        &currency.ID,
+			Icon:              "Calendar",
 		},
 		{
 			CreatedAt:         now,
@@ -765,6 +770,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   DiminishingAddOn,
 			Index:             6,
 			CurrencyID:        &currency.ID,
+			Icon:              "Graduation Cap",
 		},
 		{
 			CreatedAt:         now,
@@ -783,6 +789,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   Diminishing,
 			Index:             7,
 			CurrencyID:        &currency.ID,
+			Icon:              "Shield Check",
 		},
 		{
 			CreatedAt:         now,
@@ -801,6 +808,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   DiminishingStraight,
 			Index:             8,
 			CurrencyID:        &currency.ID,
+			Icon:              "Brief Case",
 		},
 		{
 			CreatedAt:         now,
@@ -819,6 +827,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ComputationType:   DiminishingYearly,
 			Index:             9,
 			CurrencyID:        &currency.ID,
+			Icon:              "Clock",
 		},
 	}
 
@@ -876,6 +885,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
+			Icon:                                    "Rocket",
 		},
 		{
 			CreatedAt:                               now,
@@ -914,6 +924,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			CurrencyID:                              &currency.ID,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
+			Icon:                                    "Shop Icon",
 		},
 		{
 			CreatedAt:                               now,
@@ -952,6 +963,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              &currency.ID,
+			Icon:                                    "Book Open",
 		},
 	}
 
@@ -1009,6 +1021,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Percent",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
@@ -1061,6 +1074,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Receipt",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
@@ -1123,6 +1137,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
+			Icon:                                    "Warning",
 		}
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
@@ -1169,6 +1184,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceJournalVoucher:        true,
 			ShowInGeneralLedgerSourceCheckVoucher:          true,
 			OtherInformationOfAnAccount:                    OIOANone,
+			Icon:                                           "Clock Cancel",
 		},
 		{
 			CreatedAt:                    now,
