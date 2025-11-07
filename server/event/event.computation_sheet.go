@@ -277,8 +277,8 @@ func (e *Event) ComputationSheetCalculator(
 	principal := totalCredit
 	balance := totalCredit
 	paymentDate := time.Now().UTC()
-	for range numberOfPayments + 1 {
 
+	for i := range numberOfPayments + 1 {
 		// Find next valid payment date (skip excluded days)
 		actualDate := paymentDate
 		daysSkipped := 0
@@ -306,10 +306,86 @@ func (e *Event) ComputationSheetCalculator(
 			daysSkipped++
 		}
 
-		// Calculate next payment date
+		// Skip calculations for the first entry (loan disbursement date)
+		if i > 0 {
+			// Calculate account values for payments (not for disbursement)
+			for _, acc := range accounts {
+				switch acc.Account.ComputationType {
+				case core.Straight:
+					switch acc.Account.Type {
+					case core.AccountTypeInterest:
+						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					case core.AccountTypeSVFLedger:
+						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					}
+				case core.Diminishing:
+					switch acc.Account.Type {
+					case core.AccountTypeInterest:
+						acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					case core.AccountTypeSVFLedger:
+						acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					}
+				case core.DiminishingStraight:
+					switch acc.Account.Type {
+					case core.AccountTypeInterest:
+						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					case core.AccountTypeSVFLedger:
+						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					}
+				}
+
+				if acc.Account.Type == core.AccountTypeFines {
+					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
+						acc.Value = e.usecase.ComputeFines(
+							principal,
+							acc.Account.FinesAmort,
+							acc.Account.FinesMaturity,
+							daysSkipped,
+							lcscr.ModeOfPayment,
+							acc.Account.NoGracePeriodDaily,
+							acc.Account,
+						)
+						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+					} else {
+						acc.Value = 0
+					}
+				}
+			}
+
+			// Calculate loan principal payment
+			for _, acc := range accounts {
+				if acc.Account.Type == core.AccountTypeLoan {
+					// Calculate principal payment for this period
+					principalPayment := e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments))
+
+					// Ensure we don't pay more than the remaining balance
+					acc.Value = e.provider.Service.Decimal.Clamp(principalPayment, 0, balance)
+					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+
+					// Update the remaining balance
+					balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
+
+					fmt.Printf("Payment %d - Principal: %f, Payments: %d, Payment Amount: %f, Balance: %f\n",
+						i, principal, numberOfPayments, acc.Value, balance)
+				}
+			}
+		} else {
+			// First entry (disbursement date) - reset all account values to 0
+			for _, acc := range accounts {
+				acc.Value = 0
+			}
+			fmt.Printf("Disbursement Date - No payment calculations\n")
+		}
+
+		// Add to amortization schedule AFTER calculations
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -320,7 +396,6 @@ func (e *Event) ComputationSheetCalculator(
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		case core.LoanModeOfPaymentWeekly:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -331,9 +406,7 @@ func (e *Event) ComputationSheetCalculator(
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
-
 		case core.LoanModeOfPaymentSemiMonthly:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -342,25 +415,21 @@ func (e *Event) ComputationSheetCalculator(
 				Total:         e.sumAccountValues(accounts),
 				Accounts:      accounts,
 			})
-			// Expect e.g. 15 and 30 as paydays. Move to next of these
+			// Semi-monthly logic...
 			thisDay := paymentDate.Day()
 			thisMonth := paymentDate.Month()
 			thisYear := paymentDate.Year()
 			loc := paymentDate.Location()
 
-			// strictly next scheduled payday
 			if thisDay < semiMonthlyExactDay1 {
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else if thisDay < semiMonthlyExactDay2 {
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else {
-				// Go to first date next month
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			}
-
 		case core.LoanModeOfPaymentMonthly:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -372,16 +441,12 @@ func (e *Event) ComputationSheetCalculator(
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
 			if isMonthlyExactDay {
-				// next month, same day-of-month as original
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else {
-				// Just add 1 month (will keep day if possible)
 				paymentDate = paymentDate.AddDate(0, 1, 0)
 			}
-
 		case core.LoanModeOfPaymentQuarterly:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -391,9 +456,7 @@ func (e *Event) ComputationSheetCalculator(
 				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
-
 		case core.LoanModeOfPaymentSemiAnnual:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -403,9 +466,7 @@ func (e *Event) ComputationSheetCalculator(
 				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
-
 		case core.LoanModeOfPaymentLumpsum:
-			// ====================================================================
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
 				ScheduledDate: paymentDate,
@@ -423,75 +484,7 @@ func (e *Event) ComputationSheetCalculator(
 				Total:         e.sumAccountValues(accounts),
 				Accounts:      accounts,
 			})
-			// Add logic for fixed days payment mode
-			paymentDate = paymentDate.AddDate(0, 0, 1) // Adjust as needed for fixed days
-		}
-		for _, acc := range accounts {
-
-			switch acc.Account.ComputationType {
-			case core.Straight:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			case core.Diminishing:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			case core.DiminishingStraight:
-				switch acc.Account.Type {
-				case core.AccountTypeInterest:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				case core.AccountTypeSVFLedger:
-					acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				}
-			}
-
-			if acc.Account.Type == core.AccountTypeFines {
-				if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
-					acc.Value = e.usecase.ComputeFines(
-						principal,
-						acc.Account.FinesAmort,
-						acc.Account.FinesMaturity,
-						daysSkipped,
-						lcscr.ModeOfPayment,
-						acc.Account.NoGracePeriodDaily,
-						acc.Account,
-					)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-				} else {
-					acc.Value = 0
-				}
-			}
-
-		}
-		for _, acc := range accounts {
-			if acc.Account.Type == core.AccountTypeLoan {
-				// Calculate principal payment for this period
-				principalPayment := e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments))
-
-				// Ensure we don't pay more than the remaining balance
-				acc.Value = e.provider.Service.Decimal.Clamp(principalPayment, 0, balance)
-				acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-
-				// Update the remaining balance
-				balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
-
-				fmt.Printf("Loan Account - Principal: %f, Payments: %d, Payment Amount: %f, Balance: %f\n",
-					principal, numberOfPayments, acc.Value, balance)
-
-			}
+			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
 
