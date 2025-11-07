@@ -183,9 +183,12 @@ func (e *Event) ComputationSheetCalculator(
 	semiMonthlyExactDay2 := lcscr.ModeOfPaymentSemiMonthlyPay2
 
 	// Typically, start date comes from loanTransaction (adjust as needed)
-	amortization := []*LoanAmortizationScheduleResponse{}
+	principal := totalCredit
+	amortization := []*LoanAmortizationScheduleResponse{
+		{},
+	}
 	accounts := []*AccountValue{
-		{Account: *account, Value: totalCredit},
+		{Account: *account, Value: principal},
 	}
 	for _, acc := range lcscr.Accounts {
 		accounts = append(accounts, &AccountValue{
@@ -194,7 +197,7 @@ func (e *Event) ComputationSheetCalculator(
 		})
 	}
 	paymentDate := time.Now().UTC()
-	for i := range numberOfPayments {
+	for i := range numberOfPayments + 1 {
 
 		// Find next valid payment date (skip excluded days)
 		actualDate := paymentDate
@@ -222,14 +225,20 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 			daysSkipped++
 		}
+
 		for _, acc := range accounts {
 			switch acc.Account.ComputationType {
 			case core.Straight:
 				switch acc.Account.Type {
 				case core.AccountTypeLoan:
 				case core.AccountTypeInterest:
+					acc.Value = e.computeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
 				case core.AccountTypeSVFLedger:
+					acc.Value = e.computeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
 				case core.AccountTypeFines:
+					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
+
+					}
 				}
 			case core.Diminishing:
 				switch acc.Account.Type {
@@ -383,4 +392,99 @@ func (e *Event) sumAccountValues(accountValues []*AccountValue) float64 {
 		total = e.provider.Service.Decimal.Add(total, av.Value)
 	}
 	return total
+}
+
+func (e *Event) computeInterest(balance float64, rate float64, mp core.LoanModeOfPayment) float64 {
+	switch mp {
+	case core.LoanModeOfPaymentMonthly:
+		// Monthly: (balance * rate) / 100
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Divide(
+				e.provider.Service.Decimal.Multiply(balance, rate),
+				100,
+			),
+			2, // You may want to make this configurable based on interest_round_mode_digit
+		)
+
+	case core.LoanModeOfPaymentWeekly:
+		// Weekly: balance * (rate / 100 / 30) * 7
+		dailyRate := e.provider.Service.Decimal.Divide(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		weeklyRate := e.provider.Service.Decimal.Multiply(dailyRate, 7)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, weeklyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentDaily:
+		// Daily: balance * (rate / 100 / 30)
+		dailyRate := e.provider.Service.Decimal.Divide(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, dailyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiMonthly:
+		// Semi-monthly: balance * (rate / 100 / 30) * 15
+		dailyRate := e.provider.Service.Decimal.Divide(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		semiMonthlyRate := e.provider.Service.Decimal.Multiply(dailyRate, 15)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, semiMonthlyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentQuarterly:
+		// Quarterly: balance * (rate / 100) * 3
+		quarterlyRate := e.provider.Service.Decimal.Multiply(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			3,
+		)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, quarterlyRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentSemiAnnual:
+		// Semi-annual: balance * (rate / 100) * 6
+		semiAnnualRate := e.provider.Service.Decimal.Multiply(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			6,
+		)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, semiAnnualRate),
+			2,
+		)
+
+	case core.LoanModeOfPaymentLumpsum:
+		// Lumpsum: typically the full annual interest
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Divide(
+				e.provider.Service.Decimal.Multiply(balance, rate),
+				100,
+			),
+			2,
+		)
+
+	case core.LoanModeOfPaymentFixedDays:
+		// Fixed days: use daily rate (you may want to adjust this based on actual fixed days)
+		dailyRate := e.provider.Service.Decimal.Divide(
+			e.provider.Service.Decimal.Divide(rate, 100),
+			30,
+		)
+		return e.provider.Service.Decimal.RoundToDecimalPlaces(
+			e.provider.Service.Decimal.Multiply(balance, dailyRate),
+			2,
+		)
+
+	default:
+		return 0.0
+	}
 }

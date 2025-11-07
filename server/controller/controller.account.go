@@ -567,7 +567,7 @@ func (c *Controller) accountController() {
 			LoanAccountID:                       req.LoanAccountID,
 			FinesGracePeriodAmortization:        req.FinesGracePeriodAmortization,
 			AdditionalGracePeriod:               req.AdditionalGracePeriod,
-			NumberGracePeriodDaily:              req.NumberGracePeriodDaily,
+			NoGracePeriodDaily:                  req.NoGracePeriodDaily,
 			FinesGracePeriodMaturity:            req.FinesGracePeriodMaturity,
 			YearlySubscriptionFee:               req.YearlySubscriptionFee,
 			CutOffDays:                          req.CutOffDays,
@@ -763,7 +763,7 @@ func (c *Controller) accountController() {
 		account.LoanAccountID = req.LoanAccountID
 		account.FinesGracePeriodAmortization = req.FinesGracePeriodAmortization
 		account.AdditionalGracePeriod = req.AdditionalGracePeriod
-		account.NumberGracePeriodDaily = req.NumberGracePeriodDaily
+		account.NoGracePeriodDaily = req.NoGracePeriodDaily
 		account.FinesGracePeriodMaturity = req.FinesGracePeriodMaturity
 		account.YearlySubscriptionFee = req.YearlySubscriptionFee
 		account.CutOffDays = req.CutOffDays

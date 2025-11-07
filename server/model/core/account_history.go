@@ -76,7 +76,7 @@ type (
 		// Grace periods snapshot
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
+		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
 		CutOffDays                   int  `gorm:"type:int;default:0" json:"cut_off_days"`
@@ -190,7 +190,7 @@ type (
 
 		FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
+		NoGracePeriodDaily           bool `json:"no_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
 		CutOffDays                   int  `json:"cut_off_days"`
@@ -318,7 +318,7 @@ func (m *Core) accountHistory() {
 				InterestSecured:              data.InterestSecured,
 				FinesGracePeriodAmortization: data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:        data.AdditionalGracePeriod,
-				NumberGracePeriodDaily:       data.NumberGracePeriodDaily,
+				NoGracePeriodDaily:           data.NoGracePeriodDaily,
 				FinesGracePeriodMaturity:     data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:        data.YearlySubscriptionFee,
 				CutOffDays:                   data.CutOffDays,

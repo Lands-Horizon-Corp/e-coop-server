@@ -132,7 +132,7 @@ func (c *Controller) accountHistory() {
 			account.LoanAccountID = accountHistory.LoanAccountID
 			account.FinesGracePeriodAmortization = accountHistory.FinesGracePeriodAmortization
 			account.AdditionalGracePeriod = accountHistory.AdditionalGracePeriod
-			account.NumberGracePeriodDaily = accountHistory.NumberGracePeriodDaily
+			account.NoGracePeriodDaily = accountHistory.NoGracePeriodDaily
 			account.FinesGracePeriodMaturity = accountHistory.FinesGracePeriodMaturity
 			account.YearlySubscriptionFee = accountHistory.YearlySubscriptionFee
 			account.CutOffDays = accountHistory.CutOffDays

@@ -245,7 +245,7 @@ type (
 
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
-		NumberGracePeriodDaily       bool `gorm:"default:false" json:"number_grace_period_daily"`
+		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
 		FinesGracePeriodMaturity     int  `gorm:"type:int" json:"fines_grace_period_maturity"`
 		YearlySubscriptionFee        int  `gorm:"type:int" json:"yearly_subscription_fee"`
 		CutOffDays                   int  `gorm:"type:int;default:0;check:cut_off_days >= 0 AND cut_off_days <= 30" json:"cut_off_days"`
@@ -363,7 +363,7 @@ type AccountResponse struct {
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period"`
-	NumberGracePeriodDaily       bool `json:"number_grace_period_daily"`
+	NoGracePeriodDaily           bool `json:"no_grace_period_daily"`
 	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
 	CutOffDays                   int  `json:"cut_off_days"`
@@ -455,7 +455,7 @@ type AccountRequest struct {
 
 	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty"`
 	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty"`
-	NumberGracePeriodDaily       bool `json:"number_grace_period_daily,omitempty"`
+	NoGracePeriodDaily           bool `json:"no_grace_period_daily,omitempty"`
 	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty"`
 	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty"`
 	CutOffDays                   int  `json:"cut_off_days,omitempty" validate:"gte=0,lte=30"`
@@ -573,7 +573,7 @@ func (m *Core) account() {
 				LoanAccount:                         m.AccountManager.ToModel(data.LoanAccount),
 				FinesGracePeriodAmortization:        data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:               data.AdditionalGracePeriod,
-				NumberGracePeriodDaily:              data.NumberGracePeriodDaily,
+				NoGracePeriodDaily:                  data.NoGracePeriodDaily,
 				FinesGracePeriodMaturity:            data.FinesGracePeriodMaturity,
 				YearlySubscriptionFee:               data.YearlySubscriptionFee,
 				CutOffDays:                          data.CutOffDays,
@@ -2298,7 +2298,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		InterestSecured:                     original.InterestSecured,
 		FinesGracePeriodAmortization:        original.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               original.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              original.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  original.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            original.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               original.YearlySubscriptionFee,
 		CutOffDays:                          original.CutOffDays,
@@ -2395,7 +2395,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		InterestSecured:                     a.InterestSecured,
 		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
 		CutOffDays:                          a.CutOffDays,
@@ -2498,7 +2498,7 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		InterestSecured:                     a.InterestSecured,
 		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NumberGracePeriodDaily:              a.NumberGracePeriodDaily,
+		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
 		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
 		YearlySubscriptionFee:               a.YearlySubscriptionFee,
 		CutOffDays:                          a.CutOffDays,

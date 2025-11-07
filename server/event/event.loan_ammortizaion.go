@@ -18,6 +18,7 @@ type LoanAmortizationScheduleResponse struct {
 	ActualDate    time.Time       `json:"actualDate"`
 	DaysSkipped   int             `json:"daysSkipped"`
 	Total         float64         `json:"total"`
+	Balance       float64         `json:"balance"`
 	Accounts      []*AccountValue `json:"accounts"`
 }
 
