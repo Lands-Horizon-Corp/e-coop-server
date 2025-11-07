@@ -601,6 +601,16 @@ func (c *Controller) accountController() {
 
 			Icon:                        req.Icon,
 			InterestStandardComputation: req.InterestStandardComputation,
+
+			LumpsumComputationType:                            req.LumpsumComputationType,
+			InterestFinesComputationDiminishing:               req.InterestFinesComputationDiminishing,
+			InterestFinesComputationDiminishingStraightYearly: req.InterestFinesComputationDiminishingStraightYearly,
+			EarnedUnearnedInterest:                            req.EarnedUnearnedInterest,
+			LoanSavingType:                                    req.LoanSavingType,
+			InterestDeduction:                                 req.InterestDeduction,
+			OtherDeductionEntry:                               req.OtherDeductionEntry,
+			InterestSavingTypeDiminishingStraight:             req.InterestSavingTypeDiminishingStraight,
+			OtherInformationOfAnAccount:                       req.OtherInformationOfAnAccount,
 		}
 
 		if err := c.core.AccountManager.Create(context, account); err != nil {
@@ -798,6 +808,15 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
+		account.LumpsumComputationType = req.LumpsumComputationType
+		account.InterestFinesComputationDiminishing = req.InterestFinesComputationDiminishing
+		account.InterestFinesComputationDiminishingStraightYearly = req.InterestFinesComputationDiminishingStraightYearly
+		account.EarnedUnearnedInterest = req.EarnedUnearnedInterest
+		account.LoanSavingType = req.LoanSavingType
+		account.InterestDeduction = req.InterestDeduction
+		account.OtherDeductionEntry = req.OtherDeductionEntry
+		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
+		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
