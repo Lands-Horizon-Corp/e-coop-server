@@ -213,30 +213,30 @@ type (
 
 		ComputationType ComputationType `gorm:"type:varchar(50);default:'Straight'" json:"computation_type"`
 
-		FinesAmort       float64 `gorm:"type:decimal;default:0" json:"fines_amort"`
-		FinesMaturity    float64 `gorm:"type:decimal;default:0" json:"fines_maturity"`
+		FinesAmort       float64 `gorm:"type:decimal;default:0;check:fines_amort >= 0 AND fines_amort <= 100" json:"fines_amort"`
+		FinesMaturity    float64 `gorm:"type:decimal;default:0;check:fines_maturity >= 0 AND fines_maturity <= 100" json:"fines_maturity"`
 		InterestStandard float64 `gorm:"type:decimal;default:0" json:"interest_standard"`
 		InterestSecured  float64 `gorm:"type:decimal;default:0" json:"interest_secured"`
 
 		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
 		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:SET NULL;" json:"computation_sheet,omitempty"`
 
-		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_hand"`
-		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
-		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
-		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
-		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
-		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
-		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
-		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
-		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
-		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
-		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
-		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
+		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_hand >= 0 AND coh_cib_fines_grace_period_entry_cash_hand <= 100" json:"coh_cib_fines_grace_period_entry_cash_hand"`
+		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_in_bank >= 0 AND coh_cib_fines_grace_period_entry_cash_in_bank <= 100" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
+		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_amortization >= 0 AND coh_cib_fines_grace_period_entry_daily_amortization <= 100" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
+		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_maturity >= 0 AND coh_cib_fines_grace_period_entry_daily_maturity <= 100" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
+		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_amortization >= 0 AND coh_cib_fines_grace_period_entry_weekly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
+		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_maturity >= 0 AND coh_cib_fines_grace_period_entry_weekly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
+		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
+		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
+		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_amortization >= 0 AND coh_cib_fines_grace_period_entry_quarterly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
+		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_maturity >= 0 AND coh_cib_fines_grace_period_entry_quarterly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
+		CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_anual_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_anual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_anual_amortization"`
+		CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_anual_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_anual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_anual_maturity"`
+		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_amortization >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_amortization <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
+		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_maturity >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_maturity <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 
 		GeneralLedgerType GeneralLedgerType `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
@@ -432,22 +432,22 @@ type AccountRequest struct {
 
 	ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 
-	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand,omitempty"`
-	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank,omitempty"`
-	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty"`
-	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization,omitempty"`
-	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity,omitempty"`
-	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty"`
-	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty"`
+	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnualAmortization   float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntrySemiAnualMaturity       float64 `json:"coh_cib_fines_grace_period_entry_semi_anual_maturity,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty" validate:"gte=0,lte=100"`
+	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty" validate:"gte=0,lte=100"`
 
 	GeneralLedgerType GeneralLedgerType `json:"general_ledger_type,omitempty"`
 
@@ -1021,25 +1021,54 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
-		// Create Fines Account
+		// Create Fines Account with percentage-based rates and grace periods
 		finesAccount := &Account{
-			CreatedAt:                               now,
-			CreatedByID:                             userID,
-			UpdatedAt:                               now,
-			UpdatedByID:                             userID,
-			OrganizationID:                          organizationID,
-			BranchID:                                branchID,
-			CurrencyID:                              &currency.ID,
-			Name:                                    "Fines " + loanAccount.Name,
-			Description:                             "Fines account for " + loanAccount.Description,
-			Type:                                    AccountTypeFines,
-			MinAmount:                               0.00,
-			MaxAmount:                               100000.00,
-			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
-			Index:                                   loanAccount.Index + 300, // Offset to avoid conflicts
-			LoanAccountID:                           &loanAccount.ID,
+			CreatedAt:        now,
+			CreatedByID:      userID,
+			UpdatedAt:        now,
+			UpdatedByID:      userID,
+			OrganizationID:   organizationID,
+			BranchID:         branchID,
+			CurrencyID:       &currency.ID,
+			Name:             "Fines " + loanAccount.Name,
+			Description:      "Fines account for " + loanAccount.Description,
+			Type:             AccountTypeFines,
+			MinAmount:        0.00,
+			MaxAmount:        100.00, // Max percentage is 100%
+			InterestStandard: 0.0,
+
+			// Percentage-based fines rates (0-100%)
+			FinesAmort:    2.5, // 2.5% fine on amortization
+			FinesMaturity: 5.0, // 5.0% fine on maturity
+
+			// Grace periods for fines
+			FinesGracePeriodAmortization: 7,     // 7 days grace period for amortization fines
+			FinesGracePeriodMaturity:     15,    // 15 days grace period for maturity fines
+			AdditionalGracePeriod:        3,     // 3 additional days
+			NoGracePeriodDaily:           false, // Allow daily grace period
+
+			// Computation settings
+			GeneralLedgerType: GLTypeRevenue,
+			ComputationType:   Straight,
+			Index:             loanAccount.Index + 300, // Offset to avoid conflicts
+			LoanAccountID:     &loanAccount.ID,
+
+			// Enhanced grace period entries with different frequencies
+			CohCibFinesGracePeriodEntryDailyAmortization:       1.0,  // 1% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:           2.0,  // 2% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:      5.0,  // 5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:          8.0,  // 8% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization:     10.0, // 10% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:         15.0, // 15% monthly maturity fine
+			CohCibFinesGracePeriodEntrySemiMonthlyAmortization: 7.5,  // 7.5% semi-monthly amortization fine
+			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     12.0, // 12% semi-monthly maturity fine
+			CohCibFinesGracePeriodEntryQuarterlyAmortization:   20.0, // 20% quarterly amortization fine
+			CohCibFinesGracePeriodEntryQuarterlyMaturity:       25.0, // 25% quarterly maturity fine
+			CohCibFinesGracePeriodEntrySemiAnualAmortization:   35.0, // 35% semi-annual amortization fine
+			CohCibFinesGracePeriodEntrySemiAnualMaturity:       40.0, // 40% semi-annual maturity fine
+			CohCibFinesGracePeriodEntryLumpsumAmortization:     50.0, // 50% lumpsum amortization fine
+			CohCibFinesGracePeriodEntryLumpsumMaturity:         60.0, // 60% lumpsum maturity fine
+
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -1052,6 +1081,131 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
+		}
+	}
+
+	// Create additional standalone fines accounts with different configurations
+	standaloneFinesAccounts := []*Account{
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Late Payment Fines",
+			Description:                  "Fines for late payment of any cooperative obligations and dues.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00, // Max percentage is 100%
+			InterestStandard:             0.0,
+			FinesAmort:                   3.0, // 3% fine on amortization
+			FinesMaturity:                7.5, // 7.5% fine on maturity
+			FinesGracePeriodAmortization: 5,   // 5 days grace period for amortization fines
+			FinesGracePeriodMaturity:     10,  // 10 days grace period for maturity fines
+			AdditionalGracePeriod:        2,   // 2 additional days
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        500,
+			CohCibFinesGracePeriodEntryDailyAmortization:   2.0,  // 2% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       3.5,  // 3.5% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  7.5,  // 7.5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      12.0, // 12% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 15.0, // 15% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     22.5, // 22.5% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+		},
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Penalty Fines",
+			Description:                  "Penalty fines for violations of cooperative rules and regulations.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00,
+			InterestStandard:             0.0,
+			FinesAmort:                   5.0,  // 5% fine on amortization
+			FinesMaturity:                10.0, // 10% fine on maturity
+			FinesGracePeriodAmortization: 3,    // 3 days grace period for amortization fines
+			FinesGracePeriodMaturity:     7,    // 7 days grace period for maturity fines
+			AdditionalGracePeriod:        1,    // 1 additional day
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        501,
+			CohCibFinesGracePeriodEntryDailyAmortization:   3.0,  // 3% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       5.0,  // 5% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  10.0, // 10% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      15.0, // 15% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 25.0, // 25% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     35.0, // 35% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+		},
+		{
+			CreatedAt:                    now,
+			CreatedByID:                  userID,
+			UpdatedAt:                    now,
+			UpdatedByID:                  userID,
+			OrganizationID:               organizationID,
+			BranchID:                     branchID,
+			CurrencyID:                   &currency.ID,
+			Name:                         "Administrative Fines",
+			Description:                  "Administrative fines for procedural violations and documentation errors.",
+			Type:                         AccountTypeFines,
+			MinAmount:                    0.00,
+			MaxAmount:                    100.00,
+			InterestStandard:             0.0,
+			FinesAmort:                   1.5, // 1.5% fine on amortization
+			FinesMaturity:                4.0, // 4% fine on maturity
+			FinesGracePeriodAmortization: 10,  // 10 days grace period for amortization fines
+			FinesGracePeriodMaturity:     20,  // 20 days grace period for maturity fines
+			AdditionalGracePeriod:        5,   // 5 additional days
+			NoGracePeriodDaily:           false,
+			GeneralLedgerType:            GLTypeRevenue,
+			ComputationType:              Straight,
+			Index:                        502,
+			CohCibFinesGracePeriodEntryDailyAmortization:   0.5,  // 0.5% daily amortization fine
+			CohCibFinesGracePeriodEntryDailyMaturity:       1.0,  // 1% daily maturity fine
+			CohCibFinesGracePeriodEntryWeeklyAmortization:  2.5,  // 2.5% weekly amortization fine
+			CohCibFinesGracePeriodEntryWeeklyMaturity:      5.0,  // 5% weekly maturity fine
+			CohCibFinesGracePeriodEntryMonthlyAmortization: 8.0,  // 8% monthly amortization fine
+			CohCibFinesGracePeriodEntryMonthlyMaturity:     12.0, // 12% monthly maturity fine
+			ShowInGeneralLedgerSourceWithdraw:              true,
+			ShowInGeneralLedgerSourceDeposit:               true,
+			ShowInGeneralLedgerSourceJournal:               true,
+			ShowInGeneralLedgerSourcePayment:               true,
+			ShowInGeneralLedgerSourceAdjustment:            true,
+			ShowInGeneralLedgerSourceJournalVoucher:        true,
+			ShowInGeneralLedgerSourceCheckVoucher:          true,
+			OtherInformationOfAnAccount:                    OIOANone,
+		},
+	}
+
+	// Create all standalone fines accounts
+	for _, finesAccount := range standaloneFinesAccounts {
+		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
+			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
 		}
 	}
 	paidUpShareCapital := &Account{
