@@ -522,6 +522,7 @@ func (e *Event) ComputationSheetCalculator(
 		Currency:    *e.core.CurrencyManager.ToModel(currency),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
+		Total:       total,
 		Schedule:    amortization,
 	}, nil
 }
