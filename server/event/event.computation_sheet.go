@@ -458,8 +458,7 @@ func (e *Event) ComputationSheetCalculator(
 				}
 			}
 
-			switch acc.Account.Type {
-			case core.AccountTypeFines:
+			if acc.Account.Type == core.AccountTypeFines {
 				if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
 					acc.Value = e.usecase.ComputeFines(
 						principal,
@@ -474,7 +473,11 @@ func (e *Event) ComputationSheetCalculator(
 				} else {
 					acc.Value = 0
 				}
-			case core.AccountTypeLoan:
+			}
+
+		}
+		for _, acc := range accounts {
+			if acc.Account.Type == core.AccountTypeLoan {
 				acc.Value = e.provider.Service.Decimal.Clamp(
 					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)),
 					0,
