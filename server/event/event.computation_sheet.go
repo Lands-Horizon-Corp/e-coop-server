@@ -282,6 +282,7 @@ func (e *Event) ComputationSheetCalculator(
 		// Find next valid payment date (skip excluded days)
 		actualDate := paymentDate
 		daysSkipped := 0
+		checkDate := paymentDate
 		for {
 			var skip bool
 			if excludeSaturday {
@@ -300,6 +301,7 @@ func (e *Event) ComputationSheetCalculator(
 				}
 			}
 			if !skip {
+				paymentDate = checkDate
 				break
 			}
 			paymentDate = paymentDate.AddDate(0, 0, 1)

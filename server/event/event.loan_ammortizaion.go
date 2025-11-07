@@ -9,9 +9,9 @@ import (
 )
 
 type AccountValue struct {
-	Account core.AccountRequest `json:"account"`
-	Value   float64             `json:"value"`
-	Total   float64             `json:"total"`
+	Account core.AccountRequest `json:"account" validate:"required"`
+	Value   float64             `json:"value" validate:"required,gte=0"`
+	Total   float64             `json:"total" validate:"required,gte=0"`
 }
 
 type LoanAmortizationScheduleResponse struct {
