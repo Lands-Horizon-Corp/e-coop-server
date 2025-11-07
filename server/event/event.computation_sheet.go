@@ -186,7 +186,7 @@ func (e *Event) ComputationSheetCalculator(
 	// Typically, start date comes from loanTransaction (adjust as needed)
 
 	amortization := []*LoanAmortizationScheduleResponse{}
-	accounts := []*AccountValue{
+	accounts := []AccountValue{
 		{
 			Account: core.AccountRequest{
 				GeneralLedgerDefinitionID:             account.GeneralLedgerDefinitionID,
@@ -268,7 +268,7 @@ func (e *Event) ComputationSheetCalculator(
 		},
 	}
 	for _, acc := range lcscr.Accounts {
-		accounts = append(accounts, &AccountValue{
+		accounts = append(accounts, AccountValue{
 			Account: *acc,
 			Value:   0,
 			Total:   0,
@@ -520,12 +520,9 @@ func (e *Event) ComputationSheetCalculator(
 	}, nil
 }
 
-func (e *Event) sumAccountValues(accountValues []*AccountValue) float64 {
+func (e *Event) sumAccountValues(accountValues []AccountValue) float64 {
 	total := 0.0
 	for _, av := range accountValues {
-		if av == nil {
-			continue
-		}
 		total = e.provider.Service.Decimal.Add(total, av.Value)
 	}
 	return total

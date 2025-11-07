@@ -15,12 +15,12 @@ type AccountValue struct {
 }
 
 type LoanAmortizationScheduleResponse struct {
-	ScheduledDate time.Time       `json:"scheduled_date"`
-	ActualDate    time.Time       `json:"actual_date"`
-	DaysSkipped   int             `json:"days_skipped"`
-	Total         float64         `json:"total"`
-	Balance       float64         `json:"balance"`
-	Accounts      []*AccountValue `json:"accounts"`
+	ScheduledDate time.Time      `json:"scheduled_date"`
+	ActualDate    time.Time      `json:"actual_date"`
+	DaysSkipped   int            `json:"days_skipped"`
+	Total         float64        `json:"total"`
+	Balance       float64        `json:"balance"`
+	Accounts      []AccountValue `json:"accounts"`
 }
 
 type LoanAmortizationTotalResponse struct{}
