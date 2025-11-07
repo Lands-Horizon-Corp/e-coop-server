@@ -500,6 +500,16 @@ func (e *Event) ComputationSheetCalculator(
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
+	fmt.Printf("=== FINAL RESPONSE DEBUG ===\n")
+	for i, schedule := range amortization {
+		fmt.Printf("Schedule %d - Balance: %.2f, Total: %.2f\n", i, schedule.Balance, schedule.Total)
+		for j, acc := range schedule.Accounts {
+			if acc.Account.Type == core.AccountTypeFines {
+				fmt.Printf("  Fines Account %d - Value: %.2f, Total: %.2f\n", j, acc.Value, acc.Total)
+			}
+		}
+	}
+	fmt.Printf("=== END DEBUG ===\n")
 
 	return &ComputationSheetAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
