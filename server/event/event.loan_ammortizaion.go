@@ -9,16 +9,16 @@ import (
 )
 
 type AccountValue struct {
-	Account core.AccountResponse `json:"account"`
-	Value   float64              `json:"value"`
+	Account core.Account `json:"account"`
+	Value   float64      `json:"value"`
 }
 
 type LoanAmortizationScheduleResponse struct {
-	ScheduledDate time.Time      `json:"scheduledDate"`
-	ActualDate    time.Time      `json:"actualDate"`
-	DaysSkipped   int            `json:"daysSkipped"`
-	Total         float64        `json:"total"`
-	Accounts      []AccountValue `json:"accounts"`
+	ScheduledDate time.Time       `json:"scheduledDate"`
+	ActualDate    time.Time       `json:"actualDate"`
+	DaysSkipped   int             `json:"daysSkipped"`
+	Total         float64         `json:"total"`
+	Accounts      []*AccountValue `json:"accounts"`
 }
 
 func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {

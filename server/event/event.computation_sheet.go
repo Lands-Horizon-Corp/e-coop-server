@@ -27,7 +27,7 @@ type LoanComputationSheetCalculatorRequest struct {
 	ModeOfPaymentSemiMonthlyPay2 int           `json:"mode_of_payment_semi_monthly_pay_2"`
 
 	ModeOfPayment core.LoanModeOfPayment `json:"mode_of_payment"`
-	Accounts      []*core.AccountRequest `json:"accounts,omitempty"`
+	Accounts      []*core.Account        `json:"accounts,omitempty"`
 
 	CashOnHandAccountID *uuid.UUID `json:"cash_on_hand_account_id,omitempty"`
 	ComputationSheetID  *uuid.UUID `json:"computation_sheet_id,omitempty"`
@@ -67,7 +67,6 @@ func (e *Event) ComputationSheetCalculator(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get cash on hand account")
 	}
-
 	loanTransactionEntries := []*core.LoanTransactionEntry{
 		{
 			Account: cashOnHand,
@@ -86,7 +85,6 @@ func (e *Event) ComputationSheetCalculator(
 			Name:    cashOnHand.Name,
 		},
 	}
-
 	addOnEntry := &core.LoanTransactionEntry{
 		Account: nil,
 		Credit:  0,
@@ -141,7 +139,6 @@ func (e *Event) ComputationSheetCalculator(
 			loanTransactionEntries = append(loanTransactionEntries, entry)
 		}
 	}
-
 	if lcscr.IsAddOn {
 		loanTransactionEntries[0].Credit = e.provider.Service.Decimal.Subtract(lcscr.Applied1, totalNonAddOns)
 	} else {
@@ -158,7 +155,6 @@ func (e *Event) ComputationSheetCalculator(
 	}
 
 	// Loan Amortization Schedule ==========================================
-
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: computationSheet.OrganizationID,
 		BranchID:       computationSheet.BranchID,
@@ -186,10 +182,21 @@ func (e *Event) ComputationSheetCalculator(
 	semiMonthlyExactDay2 := lcscr.ModeOfPaymentSemiMonthlyPay2
 
 	// Typically, start date comes from loanTransaction (adjust as needed)
+	amortization := []*LoanAmortizationScheduleResponse{}
+	accounts := []*AccountValue{
+		{Account: *account},
+	}
+	for _, acc := range lcscr.Accounts {
+		accounts = append(accounts, &AccountValue{
+			Account: *acc,
+			Value:   0,
+		})
+	}
 	paymentDate := time.Now().UTC()
-
 	for i := range numberOfPayments {
+
 		// Find next valid payment date (skip excluded days)
+		actualDate := paymentDate
 		daysSkipped := 0
 		for {
 			var skip bool
@@ -221,12 +228,40 @@ func (e *Event) ComputationSheetCalculator(
 		// Calculate next payment date
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
+
 		case core.LoanModeOfPaymentWeekly:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
-			// Use configured weekday, expects weeklyExactDay as time.Weekday
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
+
 		case core.LoanModeOfPaymentSemiMonthly:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			// Expect e.g. 15 and 30 as paydays. Move to next of these
 			thisDay := paymentDate.Day()
 			thisMonth := paymentDate.Month()
@@ -243,7 +278,17 @@ func (e *Event) ComputationSheetCalculator(
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			}
+
 		case core.LoanModeOfPaymentMonthly:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
 			if isMonthlyExactDay {
@@ -254,15 +299,56 @@ func (e *Event) ComputationSheetCalculator(
 				// Just add 1 month (will keep day if possible)
 				paymentDate = paymentDate.AddDate(0, 1, 0)
 			}
+
 		case core.LoanModeOfPaymentQuarterly:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
+
 		case core.LoanModeOfPaymentSemiAnnual:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
+
 		case core.LoanModeOfPaymentLumpsum:
+
+			//====================================================================
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
 			// Usually, lumpsum means all due at once, so break after first
 			if i == 0 {
 				// (store/output here) and then break outside for loop if needed
 			}
+
+		case core.LoanModeOfPaymentFixedDays:
+			amortization = append(amortization, &LoanAmortizationScheduleResponse{
+				ScheduledDate: paymentDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         e.sumAccountValues(accounts),
+				Accounts:      accounts,
+			})
+			// Add logic for fixed days payment mode
+			paymentDate = paymentDate.AddDate(0, 0, 1) // Adjust as needed for fixed days
 		}
 	}
 
@@ -270,6 +356,17 @@ func (e *Event) ComputationSheetCalculator(
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
-		Schedule:    []*LoanAmortizationScheduleResponse{},
+		Schedule:    amortization,
 	}, nil
+}
+
+func (e *Event) sumAccountValues(accountValues []*AccountValue) float64 {
+	total := 0.0
+	for _, av := range accountValues {
+		if av == nil {
+			continue
+		}
+		total = e.provider.Service.Decimal.Add(total, av.Value)
+	}
+	return total
 }
