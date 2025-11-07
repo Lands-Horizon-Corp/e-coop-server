@@ -314,7 +314,8 @@ func (e *Event) ComputationSheetCalculator(
 		// Skip calculations for the first entry (loan disbursement date)
 		if i > 0 {
 			// Calculate account values for payments (not for disbursement)
-			for _, acc := range accounts {
+			for j := range accounts { // Use index instead of range with value
+				acc := &accounts[j] // Get reference to the actual slice element
 				switch acc.Account.ComputationType {
 				case core.Straight:
 					switch acc.Account.Type {
@@ -351,7 +352,7 @@ func (e *Event) ComputationSheetCalculator(
 
 					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
 						acc.Value = e.usecase.ComputeFines(
-							balance, // Changed from principal to balance
+							balance,
 							acc.Account.FinesAmort,
 							acc.Account.FinesMaturity,
 							daysSkipped,
@@ -372,7 +373,8 @@ func (e *Event) ComputationSheetCalculator(
 			}
 
 			// Calculate loan principal payment
-			for _, acc := range accounts {
+			for j := range accounts { // Use index here too
+				acc := &accounts[j]
 				if acc.Account.Type == core.AccountTypeLoan {
 					// Calculate principal payment for this period
 					principalPayment := e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments))
@@ -390,8 +392,8 @@ func (e *Event) ComputationSheetCalculator(
 			}
 		} else {
 			// First entry (disbursement date) - reset all account values to 0
-			for _, acc := range accounts {
-				acc.Value = 0
+			for j := range accounts { // Use index here as well
+				accounts[j].Value = 0
 			}
 			fmt.Printf("Disbursement Date - No payment calculations\n")
 		}
