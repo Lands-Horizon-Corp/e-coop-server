@@ -159,6 +159,7 @@ func (e *Event) ComputationSheetCalculator(
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: computationSheet.OrganizationID,
 		BranchID:       computationSheet.BranchID,
+		CurrencyID:     *account.CurrencyID,
 	})
 	if err != nil {
 		return nil, err
