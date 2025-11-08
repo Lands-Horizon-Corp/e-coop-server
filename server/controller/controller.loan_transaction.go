@@ -1941,7 +1941,7 @@ func (c *Controller) loanTransactionController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/schedule",
 		Method:       "GET",
-		ResponseType: event.LoanAmortizationScheduleResponse{},
+		ResponseType: event.LoanTransactionAmortizationResponse{},
 		Note:         "Retrieves the payment schedule for a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
