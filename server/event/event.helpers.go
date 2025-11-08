@@ -16,6 +16,54 @@ func (e Event) nextWeekday(from time.Time, weekday time.Weekday) time.Time {
 	return d
 }
 
+func (e Event) skippedDaysCount(
+	startDate time.Time, currency *core.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*core.Holiday) (int, error) {
+	skippedDays := 0
+	currentDate := startDate
+	for {
+		skip, err := e.skippedDate(currentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
+		if err != nil {
+			return 0, err
+		}
+		if !skip {
+			return skippedDays, nil
+		}
+		currentDate = currentDate.AddDate(0, 0, 1)
+		skippedDays++
+	}
+}
+
+func (e Event) skippedDate(date time.Time, currency *core.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*core.Holiday) (bool, error) {
+	if excludeSaturday {
+		isSat, err := e.isSaturday(date, currency)
+		if err != nil {
+			return false, err
+		}
+		if isSat {
+			return true, nil
+		}
+	}
+	if excludeSunday {
+		isSun, err := e.isSunday(date, currency)
+		if err != nil {
+			return false, err
+		}
+		if isSun {
+			return true, nil
+		}
+	}
+	if excludeHolidays {
+		isHol, err := e.isHoliday(date, currency, holidays)
+		if err != nil {
+			return false, err
+		}
+		if isHol {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {
 	// Convert to the currency's timezone
 	loc, err := time.LoadLocation(currency.Timezone)

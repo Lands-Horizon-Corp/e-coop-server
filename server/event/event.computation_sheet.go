@@ -179,94 +179,13 @@ func (e *Event) ComputationSheetCalculator(
 
 	// Payment custom days
 	isMonthlyExactDay := lcscr.ModeOfPaymentMonthlyExactDay
-	weeklyExactDay := lcscr.ModeOfPaymentWeekly // expect this to be time.Weekday (0=Sunday...)
+	weeklyExactDay := lcscr.ModeOfPaymentWeekly
 	semiMonthlyExactDay1 := lcscr.ModeOfPaymentSemiMonthlyPay1
 	semiMonthlyExactDay2 := lcscr.ModeOfPaymentSemiMonthlyPay2
 
 	// Typically, start date comes from loanTransaction (adjust as needed)
-
 	amortization := []*LoanAmortizationScheduleResponse{}
-	accounts := []AccountValue{
-		{
-			Account: core.AccountRequest{
-				GeneralLedgerDefinitionID:             account.GeneralLedgerDefinitionID,
-				FinancialStatementDefinitionID:        account.FinancialStatementDefinitionID,
-				AccountClassificationID:               account.AccountClassificationID,
-				AccountCategoryID:                     account.AccountCategoryID,
-				MemberTypeID:                          account.MemberTypeID,
-				CurrencyID:                            account.CurrencyID,
-				Name:                                  account.Name,
-				Description:                           account.Description,
-				MinAmount:                             account.MinAmount,
-				MaxAmount:                             account.MaxAmount,
-				Index:                                 account.Index,
-				Type:                                  account.Type,
-				IsInternal:                            account.IsInternal,
-				CashOnHand:                            account.CashOnHand,
-				PaidUpShareCapital:                    account.PaidUpShareCapital,
-				ComputationType:                       account.ComputationType,
-				FinesAmort:                            account.FinesAmort,
-				FinesMaturity:                         account.FinesMaturity,
-				InterestStandard:                      account.InterestStandard,
-				InterestSecured:                       account.InterestSecured,
-				ComputationSheetID:                    account.ComputationSheetID,
-				CohCibFinesGracePeriodEntryCashHand:   account.CohCibFinesGracePeriodEntryCashHand,
-				CohCibFinesGracePeriodEntryCashInBank: account.CohCibFinesGracePeriodEntryCashInBank,
-				CohCibFinesGracePeriodEntryDailyAmortization:       account.CohCibFinesGracePeriodEntryDailyAmortization,
-				CohCibFinesGracePeriodEntryDailyMaturity:           account.CohCibFinesGracePeriodEntryDailyMaturity,
-				CohCibFinesGracePeriodEntryWeeklyAmortization:      account.CohCibFinesGracePeriodEntryWeeklyAmortization,
-				CohCibFinesGracePeriodEntryWeeklyMaturity:          account.CohCibFinesGracePeriodEntryWeeklyMaturity,
-				CohCibFinesGracePeriodEntryMonthlyAmortization:     account.CohCibFinesGracePeriodEntryMonthlyAmortization,
-				CohCibFinesGracePeriodEntryMonthlyMaturity:         account.CohCibFinesGracePeriodEntryMonthlyMaturity,
-				CohCibFinesGracePeriodEntrySemiMonthlyAmortization: account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
-				CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
-				CohCibFinesGracePeriodEntryQuarterlyAmortization:   account.CohCibFinesGracePeriodEntryQuarterlyAmortization,
-				CohCibFinesGracePeriodEntryQuarterlyMaturity:       account.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  account.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
-				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      account.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
-				CohCibFinesGracePeriodEntryAnnualAmortization:      account.CohCibFinesGracePeriodEntryAnnualAmortization,
-				CohCibFinesGracePeriodEntryAnnualMaturity:          account.CohCibFinesGracePeriodEntryAnnualMaturity,
-				CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
-				CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
-				GeneralLedgerType:                   account.GeneralLedgerType,
-				LoanAccountID:                       account.LoanAccountID,
-				FinesGracePeriodAmortization:        account.FinesGracePeriodAmortization,
-				AdditionalGracePeriod:               account.AdditionalGracePeriod,
-				NoGracePeriodDaily:                  account.NoGracePeriodDaily,
-				FinesGracePeriodMaturity:            account.FinesGracePeriodMaturity,
-				YearlySubscriptionFee:               account.YearlySubscriptionFee,
-				CutOffDays:                          account.CutOffDays,
-				CutOffMonths:                        account.CutOffMonths,
-				LumpsumComputationType:              account.LumpsumComputationType,
-				InterestFinesComputationDiminishing: account.InterestFinesComputationDiminishing,
-				InterestFinesComputationDiminishingStraightYearly: account.InterestFinesComputationDiminishingStraightYearly,
-				EarnedUnearnedInterest:                            account.EarnedUnearnedInterest,
-				LoanSavingType:                                    account.LoanSavingType,
-				InterestDeduction:                                 account.InterestDeduction,
-				OtherDeductionEntry:                               account.OtherDeductionEntry,
-				InterestSavingTypeDiminishingStraight:             account.InterestSavingTypeDiminishingStraight,
-				OtherInformationOfAnAccount:                       account.OtherInformationOfAnAccount,
-				HeaderRow:                                         account.HeaderRow,
-				CenterRow:                                         account.CenterRow,
-				TotalRow:                                          account.TotalRow,
-				GeneralLedgerGroupingExcludeAccount:               account.GeneralLedgerGroupingExcludeAccount,
-				Icon:                                              account.Icon,
-				ShowInGeneralLedgerSourceWithdraw:                 account.ShowInGeneralLedgerSourceWithdraw,
-				ShowInGeneralLedgerSourceDeposit:                  account.ShowInGeneralLedgerSourceDeposit,
-				ShowInGeneralLedgerSourceJournal:                  account.ShowInGeneralLedgerSourceJournal,
-				ShowInGeneralLedgerSourcePayment:                  account.ShowInGeneralLedgerSourcePayment,
-				ShowInGeneralLedgerSourceAdjustment:               account.ShowInGeneralLedgerSourceAdjustment,
-				ShowInGeneralLedgerSourceJournalVoucher:           account.ShowInGeneralLedgerSourceJournalVoucher,
-				ShowInGeneralLedgerSourceCheckVoucher:             account.ShowInGeneralLedgerSourceCheckVoucher,
-				CompassionFund:                                    account.CompassionFund,
-				CompassionFundAmount:                              account.CompassionFundAmount,
-				CashAndCashEquivalence:                            account.CashAndCashEquivalence,
-				InterestStandardComputation:                       account.InterestStandardComputation,
-			},
-			Value: 0,
-			Total: 0,
-		},
-	}
+	accounts := []AccountValue{}
 	for _, acc := range lcscr.Accounts {
 		accounts = append(accounts, AccountValue{
 			Account: *acc,
@@ -274,154 +193,210 @@ func (e *Event) ComputationSheetCalculator(
 			Total:   0,
 		})
 	}
+	accounts = append(accounts, AccountValue{
+		Account: core.AccountRequest{
+			GeneralLedgerDefinitionID:             account.GeneralLedgerDefinitionID,
+			FinancialStatementDefinitionID:        account.FinancialStatementDefinitionID,
+			AccountClassificationID:               account.AccountClassificationID,
+			AccountCategoryID:                     account.AccountCategoryID,
+			MemberTypeID:                          account.MemberTypeID,
+			CurrencyID:                            account.CurrencyID,
+			Name:                                  account.Name,
+			Description:                           account.Description,
+			MinAmount:                             account.MinAmount,
+			MaxAmount:                             account.MaxAmount,
+			Index:                                 account.Index,
+			Type:                                  account.Type,
+			IsInternal:                            account.IsInternal,
+			CashOnHand:                            account.CashOnHand,
+			PaidUpShareCapital:                    account.PaidUpShareCapital,
+			ComputationType:                       account.ComputationType,
+			FinesAmort:                            account.FinesAmort,
+			FinesMaturity:                         account.FinesMaturity,
+			InterestStandard:                      account.InterestStandard,
+			InterestSecured:                       account.InterestSecured,
+			ComputationSheetID:                    account.ComputationSheetID,
+			CohCibFinesGracePeriodEntryCashHand:   account.CohCibFinesGracePeriodEntryCashHand,
+			CohCibFinesGracePeriodEntryCashInBank: account.CohCibFinesGracePeriodEntryCashInBank,
+			CohCibFinesGracePeriodEntryDailyAmortization:       account.CohCibFinesGracePeriodEntryDailyAmortization,
+			CohCibFinesGracePeriodEntryDailyMaturity:           account.CohCibFinesGracePeriodEntryDailyMaturity,
+			CohCibFinesGracePeriodEntryWeeklyAmortization:      account.CohCibFinesGracePeriodEntryWeeklyAmortization,
+			CohCibFinesGracePeriodEntryWeeklyMaturity:          account.CohCibFinesGracePeriodEntryWeeklyMaturity,
+			CohCibFinesGracePeriodEntryMonthlyAmortization:     account.CohCibFinesGracePeriodEntryMonthlyAmortization,
+			CohCibFinesGracePeriodEntryMonthlyMaturity:         account.CohCibFinesGracePeriodEntryMonthlyMaturity,
+			CohCibFinesGracePeriodEntrySemiMonthlyAmortization: account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+			CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+			CohCibFinesGracePeriodEntryQuarterlyAmortization:   account.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+			CohCibFinesGracePeriodEntryQuarterlyMaturity:       account.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+			CohCibFinesGracePeriodEntrySemiAnnualAmortization:  account.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+			CohCibFinesGracePeriodEntrySemiAnnualMaturity:      account.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+			CohCibFinesGracePeriodEntryAnnualAmortization:      account.CohCibFinesGracePeriodEntryAnnualAmortization,
+			CohCibFinesGracePeriodEntryAnnualMaturity:          account.CohCibFinesGracePeriodEntryAnnualMaturity,
+			CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
+			CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
+			GeneralLedgerType:                   account.GeneralLedgerType,
+			LoanAccountID:                       account.LoanAccountID,
+			FinesGracePeriodAmortization:        account.FinesGracePeriodAmortization,
+			AdditionalGracePeriod:               account.AdditionalGracePeriod,
+			NoGracePeriodDaily:                  account.NoGracePeriodDaily,
+			FinesGracePeriodMaturity:            account.FinesGracePeriodMaturity,
+			YearlySubscriptionFee:               account.YearlySubscriptionFee,
+			CutOffDays:                          account.CutOffDays,
+			CutOffMonths:                        account.CutOffMonths,
+			LumpsumComputationType:              account.LumpsumComputationType,
+			InterestFinesComputationDiminishing: account.InterestFinesComputationDiminishing,
+			InterestFinesComputationDiminishingStraightYearly: account.InterestFinesComputationDiminishingStraightYearly,
+			EarnedUnearnedInterest:                            account.EarnedUnearnedInterest,
+			LoanSavingType:                                    account.LoanSavingType,
+			InterestDeduction:                                 account.InterestDeduction,
+			OtherDeductionEntry:                               account.OtherDeductionEntry,
+			InterestSavingTypeDiminishingStraight:             account.InterestSavingTypeDiminishingStraight,
+			OtherInformationOfAnAccount:                       account.OtherInformationOfAnAccount,
+			HeaderRow:                                         account.HeaderRow,
+			CenterRow:                                         account.CenterRow,
+			TotalRow:                                          account.TotalRow,
+			GeneralLedgerGroupingExcludeAccount:               account.GeneralLedgerGroupingExcludeAccount,
+			Icon:                                              account.Icon,
+			ShowInGeneralLedgerSourceWithdraw:                 account.ShowInGeneralLedgerSourceWithdraw,
+			ShowInGeneralLedgerSourceDeposit:                  account.ShowInGeneralLedgerSourceDeposit,
+			ShowInGeneralLedgerSourceJournal:                  account.ShowInGeneralLedgerSourceJournal,
+			ShowInGeneralLedgerSourcePayment:                  account.ShowInGeneralLedgerSourcePayment,
+			ShowInGeneralLedgerSourceAdjustment:               account.ShowInGeneralLedgerSourceAdjustment,
+			ShowInGeneralLedgerSourceJournalVoucher:           account.ShowInGeneralLedgerSourceJournalVoucher,
+			ShowInGeneralLedgerSourceCheckVoucher:             account.ShowInGeneralLedgerSourceCheckVoucher,
+			CompassionFund:                                    account.CompassionFund,
+			CompassionFundAmount:                              account.CompassionFundAmount,
+			CashAndCashEquivalence:                            account.CashAndCashEquivalence,
+			InterestStandardComputation:                       account.InterestStandardComputation,
+		},
+		Value: 0,
+		Total: 0,
+	})
 
 	principal := totalCredit
 	balance := totalCredit
 	paymentDate := time.Now().UTC()
 	total := 0.0
 
-	for i := range numberOfPayments + 1 {
-		// Find next valid payment date (skip excluded days)
+	for range numberOfPayments + 1 {
 		actualDate := paymentDate
 		scheduledDate := paymentDate
 		daysSkipped := 0
-		checkDate := paymentDate
-		for {
-			var skip bool
-			if excludeSaturday {
-				if sat, _ := e.isSaturday(paymentDate, currency); sat {
-					skip = true
-				}
-			}
-			if excludeSunday {
-				if sun, _ := e.isSunday(paymentDate, currency); sun {
-					skip = true
-				}
-			}
-			if excludeHolidays {
-				if hol, _ := e.isHoliday(paymentDate, currency, holidays); hol {
-					skip = true
-				}
-			}
-			if !skip {
-				paymentDate = checkDate
-				break
-			}
-			paymentDate = paymentDate.AddDate(0, 0, 1)
-			scheduledDate = paymentDate
-			daysSkipped++
+		rowTotal := 0.0
+		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
+		if err != nil {
+			return nil, err
 		}
 
-		// Skip calculations for the first entry (loan disbursement date)
-		if i > 0 {
-			// Calculate account values for payments (not for disbursement)
-			for j := range accounts { // Use index instead of range with value
-				acc := &accounts[j] // Get reference to the actual slice element
-				switch acc.Account.ComputationType {
+		for j := range accounts {
+			switch accounts[j].Account.Type {
+			case core.AccountTypeLoan:
+				// LOAN PRINCIPAL PAYMENT FORMULA:
+				// Payment Amount = Principal ÷ Number of Payments
+				// Clamped to ensure we don't pay more than remaining balance
+				// Formula: min(Principal/NumberOfPayments, RemainingBalance)
+				accounts[j].Value = e.provider.Service.Decimal.Clamp(
+					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+
+				// CUMULATIVE TOTAL FORMULA:
+				// Total = Previous Total + Current Payment
+				accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
+
+				// REMAINING BALANCE FORMULA:
+				// New Balance = Previous Balance - Principal Payment
+				balance = e.provider.Service.Decimal.Subtract(balance, accounts[j].Value)
+
+			case core.AccountTypeFines:
+				// FINES CALCULATION FORMULA:
+				// Only apply fines if:
+				// 1. Days skipped > 0 (payment is late)
+				// 2. Account doesn't have NoGracePeriodDaily flag
+				// Formula: ComputeFines(principal, fines_rate, maturity_rate, days_late, payment_mode)
+				if daysSkipped > 0 && !accounts[j].Account.NoGracePeriodDaily {
+					accounts[j].Value = e.usecase.ComputeFines(
+						principal,
+						accounts[j].Account.FinesAmort,
+						accounts[j].Account.FinesMaturity,
+						daysSkipped,
+						lcscr.ModeOfPayment,
+						accounts[j].Account.NoGracePeriodDaily,
+						accounts[j].Account,
+					)
+					// CUMULATIVE FINES TOTAL FORMULA:
+					// Total Fines = Previous Total Fines + Current Period Fines
+					accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
+				}
+
+			default:
+				// INTEREST CALCULATION based on computation type
+				switch accounts[j].Account.ComputationType {
 				case core.Straight:
-					switch acc.Account.Type {
+					// STRAIGHT LINE INTEREST FORMULA:
+					// Interest is calculated on the original principal amount
+					// Formula: Interest = Principal × Interest Rate ÷ Payment Frequency
+					switch accounts[j].Account.Type {
 					case core.AccountTypeInterest:
-						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+						// STRAIGHT INTEREST ON PRINCIPAL:
+						// Uses original principal amount throughout the loan term
+						accounts[j].Value = e.usecase.ComputeInterest(principal, accounts[j].Account.InterestStandard, lcscr.ModeOfPayment)
+						accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
 					case core.AccountTypeSVFLedger:
-						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+						// SVF LEDGER STRAIGHT INTEREST:
+						// Special Voluntary Fund interest calculated on original principal
+						accounts[j].Value = e.usecase.ComputeInterest(principal, accounts[j].Account.InterestStandard, lcscr.ModeOfPayment)
+						accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
 					}
+
 				case core.Diminishing:
-					switch acc.Account.Type {
+					// DIMINISHING BALANCE INTEREST FORMULA:
+					// Interest is calculated on the remaining balance
+					// Formula: Interest = Remaining Balance × Interest Rate ÷ Payment Frequency
+					switch accounts[j].Account.Type {
 					case core.AccountTypeInterest:
-						acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+						// DIMINISHING INTEREST ON BALANCE:
+						// Uses current remaining balance (decreases each payment)
+						accounts[j].Value = e.usecase.ComputeInterest(balance, accounts[j].Account.InterestStandard, lcscr.ModeOfPayment)
+						accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
 					case core.AccountTypeSVFLedger:
-						acc.Value = e.usecase.ComputeInterest(balance, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+						// SVF LEDGER DIMINISHING - No calculation defined
+						// This case is intentionally left empty
 					}
+
 				case core.DiminishingStraight:
-					switch acc.Account.Type {
+					// DIMINISHING STRAIGHT INTEREST FORMULA:
+					// Hybrid approach - uses remaining balance for calculation
+					// Formula: Interest = Remaining Balance × Interest Rate ÷ Payment Frequency
+					switch accounts[j].Account.Type {
 					case core.AccountTypeInterest:
-						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
+						// DIMINISHING STRAIGHT INTEREST ON BALANCE:
+						// Uses current remaining balance like diminishing method
+						accounts[j].Value = e.usecase.ComputeInterest(balance, accounts[j].Account.InterestStandard, lcscr.ModeOfPayment)
+						accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
 					case core.AccountTypeSVFLedger:
-						acc.Value = e.usecase.ComputeInterest(principal, acc.Account.InterestStandard, lcscr.ModeOfPayment)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-					}
-				}
-
-				if acc.Account.Type == core.AccountTypeFines {
-					fmt.Printf("Payment %d - Fines Check: Days Skipped: %d, NoGracePeriodDaily: %t\n",
-						i, daysSkipped, acc.Account.NoGracePeriodDaily)
-
-					if daysSkipped > 0 && !acc.Account.NoGracePeriodDaily {
-						acc.Value = e.usecase.ComputeFines(
-							principal,
-							acc.Account.FinesAmort,
-							acc.Account.FinesMaturity,
-							daysSkipped,
-							lcscr.ModeOfPayment,
-							acc.Account.NoGracePeriodDaily,
-							acc.Account,
-						)
-						acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-
-						fmt.Printf("Payment %d - Fines Applied: Days Skipped: %d, Balance: %.2f, FinesAmort: %.2f, FinesMaturity: %.2f, Fines Amount: %.2f, Total Fines: %.2f\n",
-							i, daysSkipped, balance, acc.Account.FinesAmort, acc.Account.FinesMaturity, acc.Value, acc.Total)
-					} else {
-						acc.Value = 0
-						fmt.Printf("Payment %d - No Fines: Days Skipped: %d, NoGracePeriodDaily: %t\n",
-							i, daysSkipped, acc.Account.NoGracePeriodDaily)
+						// SVF LEDGER DIMINISHING STRAIGHT:
+						// Uses remaining balance for SVF calculations
+						accounts[j].Value = e.usecase.ComputeInterest(balance, accounts[j].Account.InterestStandard, lcscr.ModeOfPayment)
+						accounts[j].Total = e.provider.Service.Decimal.Add(accounts[j].Total, accounts[j].Value)
 					}
 				}
 			}
 
-			// Calculate loan principal payment
-			for j := range accounts { // Use index here too
-				acc := &accounts[j]
-				if acc.Account.Type == core.AccountTypeLoan {
-					// Calculate principal payment for this period
-					principalPayment := e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments))
-
-					// Ensure we don't pay more than the remaining balance
-					acc.Value = e.provider.Service.Decimal.Clamp(principalPayment, 0, balance)
-					acc.Total = e.provider.Service.Decimal.Add(acc.Total, acc.Value)
-
-					// Update the remaining balance
-					balance = e.provider.Service.Decimal.Subtract(balance, acc.Value)
-
-					fmt.Printf("Payment %d - Principal: %f, Payments: %d, Payment Amount: %f, Balance: %f\n",
-						i, principal, numberOfPayments, acc.Value, balance)
-				}
-			}
-		} else {
-			// First entry (disbursement date) - reset all account values to 0
-			for j := range accounts { // Use index here as well
-				accounts[j].Value = 0
-			}
-			fmt.Printf("Disbursement Date - No payment calculations\n")
+			// RUNNING TOTAL FORMULAS:
+			// Grand Total = Sum of all account values for all periods
+			total = e.provider.Service.Decimal.Add(total, accounts[j].Value)
+			// Row Total = Sum of all account values for current period
+			rowTotal = e.provider.Service.Decimal.Add(rowTotal, accounts[j].Value)
 		}
-
-		// Add to amortization schedule AFTER calculations
-		// Create a deep copy of accounts for this schedule entry
-		accountsCopy := make([]AccountValue, len(accounts))
-		for k, acc := range accounts {
-			accountsCopy[k] = AccountValue{
-				Account: acc.Account,
-				Value:   acc.Value,
-				Total:   acc.Total,
-			}
-		}
-
-		rowTotal := e.sumAccountValues(accounts)
-		total = e.provider.Service.Decimal.Add(total, rowTotal)
-
+		scheduledDate = paymentDate.AddDate(0, 0, daysSkipped)
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
 				Balance:       balance,
-				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
+				ScheduledDate: scheduledDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		case core.LoanModeOfPaymentWeekly:
@@ -431,7 +406,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
@@ -442,14 +417,12 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
-			// Semi-monthly logic...
 			thisDay := paymentDate.Day()
 			thisMonth := paymentDate.Month()
 			thisYear := paymentDate.Year()
 			loc := paymentDate.Location()
-
 			if thisDay < semiMonthlyExactDay1 {
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else if thisDay < semiMonthlyExactDay2 {
@@ -465,7 +438,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
@@ -482,7 +455,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
 		case core.LoanModeOfPaymentSemiAnnual:
@@ -492,7 +465,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
@@ -502,7 +475,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 		case core.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &LoanAmortizationScheduleResponse{
@@ -511,7 +484,7 @@ func (e *Event) ComputationSheetCalculator(
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
 				Total:         rowTotal,
-				Accounts:      accountsCopy, // Use the copy instead of original
+				Accounts:      accounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
@@ -525,12 +498,4 @@ func (e *Event) ComputationSheetCalculator(
 		Total:       total,
 		Schedule:    amortization,
 	}, nil
-}
-
-func (e *Event) sumAccountValues(accountValues []AccountValue) float64 {
-	total := 0.0
-	for _, av := range accountValues {
-		total = e.provider.Service.Decimal.Add(total, av.Value)
-	}
-	return total
 }
