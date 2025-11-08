@@ -176,9 +176,9 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account" json:"organization_id"`
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account;uniqueIndex:idx_account_name_org_branch" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account" json:"branch_id"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account;uniqueIndex:idx_account_name_org_branch" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid" json:"general_ledger_definition_id"`
@@ -199,7 +199,7 @@ type (
 		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
 		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency,omitempty"`
 
-		Name        string `gorm:"type:varchar(255);not null" json:"name"`
+		Name        string `gorm:"type:varchar(255);not null;uniqueIndex:idx_account_name_org_branch" json:"name"`
 		Description string `gorm:"type:text;not null" json:"description"`
 
 		MinAmount float64     `gorm:"type:decimal;default:0" json:"min_amount"`

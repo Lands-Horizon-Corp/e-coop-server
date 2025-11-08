@@ -9,18 +9,21 @@ import (
 )
 
 type AccountValue struct {
-	Account core.AccountRequest `json:"account"`
-	Value   float64             `json:"value"`
+	Account core.AccountRequest `json:"account" validate:"required"`
+	Value   float64             `json:"value" validate:"required,gte=0"`
+	Total   float64             `json:"total" validate:"required,gte=0"`
 }
 
 type LoanAmortizationScheduleResponse struct {
-	ScheduledDate time.Time       `json:"scheduledDate"`
-	ActualDate    time.Time       `json:"actualDate"`
-	DaysSkipped   int             `json:"daysSkipped"`
-	Total         float64         `json:"total"`
-	Balance       float64         `json:"balance"`
-	Accounts      []*AccountValue `json:"accounts"`
+	ScheduledDate time.Time      `json:"scheduled_date"`
+	ActualDate    time.Time      `json:"actual_date"`
+	DaysSkipped   int            `json:"days_skipped"`
+	Total         float64        `json:"total"`
+	Balance       float64        `json:"balance"`
+	Accounts      []AccountValue `json:"accounts"`
 }
+
+type LoanAmortizationTotalResponse struct{}
 
 func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {
 	result := []*LoanAmortizationScheduleResponse{}
@@ -57,7 +60,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	// Typically, start date comes from loanTransaction (adjust as needed)
 	paymentDate := time.Now().UTC()
 
-	for i := range numberOfPayments {
+	for range numberOfPayments {
 		// Find next valid payment date (skip excluded days)
 		daysSkipped := 0
 		for {
@@ -103,11 +106,12 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			loc := paymentDate.Location()
 
 			// strictly next scheduled payday
-			if thisDay < semiMonthlyExactDay1 {
+			switch {
+			case thisDay < semiMonthlyExactDay1:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else if thisDay < semiMonthlyExactDay2 {
+			case thisDay < semiMonthlyExactDay2:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else {
+			default:
 				// Go to first date next month
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
@@ -128,10 +132,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		case core.LoanModeOfPaymentSemiAnnual:
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
-			// Usually, lumpsum means all due at once, so break after first
-			if i == 0 {
-				// (store/output here) and then break outside for loop if needed
-			}
+
 		}
 	}
 	return result, nil

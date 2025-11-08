@@ -165,21 +165,6 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		// Begin transaction for row-level locking
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "db-error",
-				Description: "Failed to start transaction (/transaction/:transaction_id): " + tx.Error.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
-		}
-		defer func() {
-			if r := recover(); r != nil {
-			}
-		}()
-
 		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -187,28 +172,21 @@ func (c *Controller) transactionController() {
 				Description: "Transaction not found or lock failed (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
 		}
 		transaction.Description = req.Description
 		transaction.ReferenceNumber = req.ReferenceNumber
 		transaction.UpdatedAt = time.Now().UTC()
 		transaction.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionManager.UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
+		if err := c.core.TransactionManager.UpdateByID(context, transaction.ID, transaction); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update transaction (/transaction/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction: " + err.Error()})
 		}
-		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "commit-error",
-				Description: "Failed to commit transaction (/transaction/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
-		}
+
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Transaction description updated successfully (/transaction/:transaction_id), transaction_id: " + transaction.ID.String(),
