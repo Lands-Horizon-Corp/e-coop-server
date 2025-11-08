@@ -108,14 +108,12 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 	for range numberOfPayments {
 		actualDate := paymentDate
-		scheduledDate := paymentDate
 		daysSkipped := 0
 		rowTotal := 0.0
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
 			return nil, err
 		}
-
 		for j := range accountsSchedule {
 			switch accountsSchedule[j].Account.Type {
 			case core.AccountTypeLoan:
@@ -215,7 +213,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			// Row Total = Sum of all account values for current period
 			rowTotal = e.provider.Service.Decimal.Add(rowTotal, accountsSchedule[j].Value)
 		}
-
+		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 		switch loanTransaction.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -251,11 +249,12 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			thisMonth := paymentDate.Month()
 			thisYear := paymentDate.Year()
 			loc := paymentDate.Location()
-			if thisDay < semiMonthlyExactDay1 {
+			switch {
+			case thisDay < semiMonthlyExactDay1:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else if thisDay < semiMonthlyExactDay2 {
+			case thisDay < semiMonthlyExactDay2:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
-			} else {
+			default:
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			}
