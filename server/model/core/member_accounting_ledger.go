@@ -213,7 +213,6 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-
 	return m.MemberAccountingLedgerManager.FindWithSQL(ctx, filters, nil)
 }
 

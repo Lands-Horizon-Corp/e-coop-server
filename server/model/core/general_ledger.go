@@ -713,3 +713,28 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
 }
+func (m *Core) GeneralLedgerLatestLoanMemberAccount(
+	ctx context.Context,
+	memberProfileID, loanAccountID, organizationID, branchID uuid.UUID,
+) (*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "account_id", Op: registry.OpEq, Value: loanAccountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	sorts := []registry.FilterSortSQL{
+		{Field: "entry_date", Order: "DESC NULLS LAST"},
+		{Field: "created_at", Order: "DESC"},
+	}
+
+	ledger, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return ledger, nil
+}

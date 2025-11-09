@@ -63,10 +63,15 @@ func (c *Controller) memberAccountingLedgerController() {
 			totalDeposits = c.provider.Service.Decimal.Add(totalDeposits, entry.Balance)
 		}
 
+		totalLoans, err := c.event.LoanTotalMemberProfile(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate total loans: " + err.Error()})
+		}
+
 		summary := core.MemberAccountingLedgerSummary{
 			TotalDeposits:                     totalDeposits,
 			TotalShareCapitalPlusFixedSavings: TotalShareCapitalPlusFixedSavings,
-			TotalLoans:                        0,
+			TotalLoans:                        *totalLoans,
 		}
 		return ctx.JSON(http.StatusOK, summary)
 	})
