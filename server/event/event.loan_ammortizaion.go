@@ -9,42 +9,69 @@ import (
 )
 
 type AccountValue struct {
-	Account core.AccountRequest `json:"account" validate:"required"`
-	Value   float64             `json:"value" validate:"required,gte=0"`
-	Total   float64             `json:"total" validate:"required,gte=0"`
+	Account *core.Account `json:"account" validate:"required"`
+	Value   float64       `json:"value" validate:"required,gte=0"`
+	Total   float64       `json:"total" validate:"required,gte=0"`
 }
 
-type LoanAmortizationScheduleResponse struct {
-	ScheduledDate time.Time      `json:"scheduled_date"`
-	ActualDate    time.Time      `json:"actual_date"`
-	DaysSkipped   int            `json:"days_skipped"`
-	Total         float64        `json:"total"`
-	Balance       float64        `json:"balance"`
-	Accounts      []AccountValue `json:"accounts"`
+type LoanAmortizationSchedule struct {
+	ScheduledDate time.Time       `json:"scheduled_date"`
+	ActualDate    time.Time       `json:"actual_date"`
+	DaysSkipped   int             `json:"days_skipped"`
+	Total         float64         `json:"total"`
+	Balance       float64         `json:"balance"`
+	Accounts      []*AccountValue `json:"accounts"`
+}
+type LoanTransactionAmortizationResponse struct {
+	Entries     []*core.LoanTransactionEntryResponse `json:"entries"`
+	TotalDebit  float64                              `json:"total_debit"`
+	TotalCredit float64                              `json:"total_credit"`
+	Currency    core.CurrencyResponse                `json:"currency"`
+	Total       float64                              `json:"total"`
+	Schedule    []*LoanAmortizationSchedule          `json:"schedule,omitempty"`
 }
 
-type LoanAmortizationTotalResponse struct{}
-
-func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) ([]*LoanAmortizationScheduleResponse, error) {
-	result := []*LoanAmortizationScheduleResponse{}
+func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) (*LoanTransactionAmortizationResponse, error) {
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID, "Account.Currency")
 	if err != nil {
-		return result, err
+		return nil, err
+	}
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(ctx, &core.LoanTransactionEntry{
+		OrganizationID:    loanTransaction.OrganizationID,
+		BranchID:          loanTransaction.BranchID,
+		LoanTransactionID: loanTransaction.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	totalDebit, totalCredit := 0.0, 0.0
+	for _, entry := range loanTransactionEntries {
+		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+	}
+	currency := loanTransaction.Account.Currency
+	accounts, err := e.core.AccountManager.Find(ctx, &core.Account{
+		OrganizationID: loanTransaction.OrganizationID,
+		BranchID:       loanTransaction.BranchID,
+		LoanAccountID:  loanTransaction.AccountID,
+		CurrencyID:     &currency.ID,
+	}, "Currency")
+	if err != nil {
+		return nil, err
 	}
 	holidays, err := e.core.HolidayManager.Find(ctx, &core.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
+		CurrencyID:     currency.ID,
 	})
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-
-	currency := loanTransaction.Account.Currency
 
 	// Excluding
 	excludeSaturday := loanTransaction.ExcludeSaturday
@@ -57,83 +84,250 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
 	semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
+	accountsSchedule := []*AccountValue{}
+
+	amortization := []*LoanAmortizationSchedule{}
+	for _, acc := range accounts {
+		accountsSchedule = append(accountsSchedule, &AccountValue{
+			Account: acc,
+			Value:   0,
+			Total:   0,
+		})
+	}
+	accountsSchedule = append(accountsSchedule, &AccountValue{
+		Account: loanTransaction.Account,
+		Value:   0,
+		Total:   0,
+	})
+
 	// Typically, start date comes from loanTransaction (adjust as needed)
 	paymentDate := time.Now().UTC()
+	principal := totalCredit
+	balance := totalCredit
+	total := 0.0
 
-	for range numberOfPayments {
-		// Find next valid payment date (skip excluded days)
+	for i := range numberOfPayments {
+		actualDate := paymentDate
 		daysSkipped := 0
-		for {
-			var skip bool
-			if excludeSaturday {
-				if sat, _ := e.isSaturday(paymentDate, currency); sat {
-					skip = true
-				}
-			}
-			if excludeSunday {
-				if sun, _ := e.isSunday(paymentDate, currency); sun {
-					skip = true
-				}
-			}
-			if excludeHolidays {
-				if hol, _ := e.isHoliday(paymentDate, currency, holidays); hol {
-					skip = true
-				}
-			}
-			if !skip {
-				break
-			}
-			paymentDate = paymentDate.AddDate(0, 0, 1)
-			daysSkipped++
+		rowTotal := 0.0
+		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
+		if err != nil {
+			return nil, err
 		}
 
-		// Store or output paymentDate here as needed
-		// fmt.Println("Payment", i+1, ":", paymentDate)
+		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 
-		// Calculate next payment date
+		// ✅ CREATE INDEPENDENT ACCOUNT SLICE FOR THIS PERIOD
+		periodAccounts := make([]*AccountValue, len(accountsSchedule))
+
+		if i > 0 {
+			for j := range accountsSchedule {
+				// Create a new account entry for this period
+				periodAccounts[j] = &AccountValue{
+					Account: accountsSchedule[j].Account,
+					Value:   0,                         // Will be calculated below
+					Total:   accountsSchedule[j].Total, // Carry over cumulative total
+				}
+
+				switch accountsSchedule[j].Account.Type {
+				case core.AccountTypeLoan:
+					// LOAN PRINCIPAL PAYMENT FORMULA:
+					// Payment Amount = Principal ÷ Number of Payments
+					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
+						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+
+					// Update cumulative total in original slice
+					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+					periodAccounts[j].Total = accountsSchedule[j].Total
+
+					// REMAINING BALANCE FORMULA:
+					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
+
+				case core.AccountTypeFines:
+					// FINES CALCULATION FORMULA:
+					if daysSkipped > 0 && !accountsSchedule[j].Account.NoGracePeriodDaily {
+						periodAccounts[j].Value = e.usecase.ComputeFines(
+							principal,
+							accountsSchedule[j].Account.FinesAmort,
+							accountsSchedule[j].Account.FinesMaturity,
+							daysSkipped,
+							loanTransaction.ModeOfPayment,
+							accountsSchedule[j].Account.NoGracePeriodDaily,
+							*accountsSchedule[j].Account,
+						)
+
+						// Update cumulative total in original slice
+						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						periodAccounts[j].Total = accountsSchedule[j].Total
+					}
+
+				default:
+					// INTEREST CALCULATION based on computation type
+					switch accountsSchedule[j].Account.ComputationType {
+					case core.Straight:
+						// STRAIGHT LINE INTEREST FORMULA:
+						switch accountsSchedule[j].Account.Type {
+						case core.AccountTypeInterest:
+							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							periodAccounts[j].Total = accountsSchedule[j].Total
+						case core.AccountTypeSVFLedger:
+							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							periodAccounts[j].Total = accountsSchedule[j].Total
+						}
+
+					case core.Diminishing:
+						// DIMINISHING BALANCE INTEREST FORMULA:
+						switch accountsSchedule[j].Account.Type {
+						case core.AccountTypeInterest:
+							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							periodAccounts[j].Total = accountsSchedule[j].Total
+						case core.AccountTypeSVFLedger:
+							// SVF LEDGER DIMINISHING - No calculation defined
+						}
+
+					case core.DiminishingStraight:
+						// DIMINISHING STRAIGHT INTEREST FORMULA:
+						switch accountsSchedule[j].Account.Type {
+						case core.AccountTypeInterest:
+							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							periodAccounts[j].Total = accountsSchedule[j].Total
+						case core.AccountTypeSVFLedger:
+							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							periodAccounts[j].Total = accountsSchedule[j].Total
+						}
+					}
+				}
+
+				// RUNNING TOTAL FORMULAS:
+				total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
+				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
+			}
+		} else {
+			// First iteration (i=0), just copy the structure
+			for j := range accountsSchedule {
+				periodAccounts[j] = &AccountValue{
+					Account: accountsSchedule[j].Account,
+					Value:   0,
+					Total:   0,
+				}
+			}
+		}
+
+		// ✅ NOW append with period-specific accounts
 		switch loanTransaction.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ActualDate:    actualDate,
+				ScheduledDate: scheduledDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts, // Each period has its own independent slice!
+			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		case core.LoanModeOfPaymentWeekly:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
-			// Use configured weekday, expects weeklyExactDay as time.Weekday
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
 		case core.LoanModeOfPaymentSemiMonthly:
-			// Expect e.g. 15 and 30 as paydays. Move to next of these
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
 			thisDay := paymentDate.Day()
 			thisMonth := paymentDate.Month()
 			thisYear := paymentDate.Year()
 			loc := paymentDate.Location()
-
-			// strictly next scheduled payday
 			switch {
 			case thisDay < semiMonthlyExactDay1:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			case thisDay < semiMonthlyExactDay2:
 				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			default:
-				// Go to first date next month
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			}
 		case core.LoanModeOfPaymentMonthly:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
 			if isMonthlyExactDay {
-				// next month, same day-of-month as original
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			} else {
-				// Just add 1 month (will keep day if possible)
-				paymentDate = paymentDate.AddDate(0, 1, 0)
+				paymentDate = paymentDate.AddDate(0, 0, 30)
 			}
 		case core.LoanModeOfPaymentQuarterly:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
 		case core.LoanModeOfPaymentSemiAnnual:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
-
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
+		case core.LoanModeOfPaymentFixedDays:
+			amortization = append(amortization, &LoanAmortizationSchedule{
+				Balance:       balance,
+				ScheduledDate: scheduledDate,
+				ActualDate:    actualDate,
+				DaysSkipped:   daysSkipped,
+				Total:         rowTotal,
+				Accounts:      periodAccounts,
+			})
+			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
-	return result, nil
+
+	return &LoanTransactionAmortizationResponse{
+		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
+		Currency:    *e.core.CurrencyManager.ToModel(currency),
+		TotalDebit:  totalDebit,
+		TotalCredit: totalCredit,
+		Total:       total,
+		Schedule:    amortization,
+	}, nil
 }

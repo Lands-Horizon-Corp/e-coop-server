@@ -419,7 +419,7 @@ func (t *TransactionService) ComputeFines(
 	daysSkipped int,
 	mp core.LoanModeOfPayment,
 	noGracePeriodDaily bool,
-	account core.AccountRequest,
+	account core.Account,
 ) float64 {
 	if daysSkipped <= 0 {
 		return 0.0
