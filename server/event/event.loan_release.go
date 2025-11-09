@@ -171,6 +171,29 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	fmt.Printf("🧮 [STEP-5] Cash calculation - Debit: %.2f, Credit: %.2f, New Balance: %.2f\n", cashDebit, cashCredit, newCashBalance)
 
 	// Create general ledger entry for cash on hand
+	fmt.Printf("🔍 [STEP-5] Starting to create cash ledger entry...\n")
+
+	// Check each pointer before using it
+	fmt.Printf("🔍 [STEP-5] Checking currentUserOrg.UserID: %v\n", currentUserOrg.UserID)
+	fmt.Printf("🔍 [STEP-5] Checking currentUserOrg.BranchID: %v\n", currentUserOrg.BranchID)
+	if currentUserOrg.BranchID != nil {
+		fmt.Printf("🔍 [STEP-5] BranchID value: %s\n", currentUserOrg.BranchID.String())
+	}
+	fmt.Printf("🔍 [STEP-5] Checking activeBatch.ID: %v\n", activeBatch.ID)
+	fmt.Printf("🔍 [STEP-5] Checking targetLoanTransaction.CheckNumber: %v\n", targetLoanTransaction.CheckNumber)
+	fmt.Printf("🔍 [STEP-5] Checking cashAccount.ID: %v\n", cashAccount.ID)
+	fmt.Printf("🔍 [STEP-5] Checking cashAccount.Account: %v\n", cashAccount.Account)
+	if cashAccount.Account != nil {
+		fmt.Printf("🔍 [STEP-5] Checking cashAccount.Account.DefaultPaymentTypeID: %v\n", cashAccount.Account.DefaultPaymentTypeID)
+		fmt.Printf("🔍 [STEP-5] Checking cashAccount.Account.DefaultPaymentType: %v\n", cashAccount.Account.DefaultPaymentType)
+		if cashAccount.Account.DefaultPaymentType != nil {
+			fmt.Printf("🔍 [STEP-5] DefaultPaymentType.Type: %v\n", cashAccount.Account.DefaultPaymentType.Type)
+		}
+	}
+	fmt.Printf("🔍 [STEP-5] Checking cashAccount.Description: %v\n", cashAccount.Description)
+	fmt.Printf("🔍 [STEP-5] Checking loanCurrency.ID: %v\n", loanCurrency.ID)
+	fmt.Printf("🔍 [STEP-5] Checking targetLoanTransaction.ID: %v\n", targetLoanTransaction.ID)
+
 	cashLedgerEntry := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                currentUserOrg.UserID,
