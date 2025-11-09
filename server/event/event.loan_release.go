@@ -153,7 +153,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		fmt.Printf("💡 [STEP-4] No previous cash ledger found, initializing with zero balance\n")
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "cash-ledger-initialization",
-			Description: "Initializing new cash account ledger for " + cashAccount.ID.String() + " with zero balance",
+			Description: "Initializing new cash account ledger for " + cashAccount.Account.ID.String() + " with zero balance",
 			Module:      "Loan Release",
 		})
 	} else {
@@ -204,7 +204,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		TransactionBatchID:         &activeBatch.ID,
 		ReferenceNumber:            targetLoanTransaction.CheckNumber,
 		EntryDate:                  &now,
-		AccountID:                  &cashAccount.ID,
+		AccountID:                  &cashAccount.Account.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
 		TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
 		Source:                     core.GeneralLedgerSourceCheckVoucher,
@@ -225,7 +225,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		fmt.Printf("❌ [STEP-5] Failed to create cash ledger entry: %v\n", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "cash-ledger-creation-failed",
-			Description: "Unable to create cash account ledger entry for " + cashAccount.ID.String(),
+			Description: "Unable to create cash account ledger entry for " + cashAccount.Account.ID.String(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
@@ -235,7 +235,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 
 	e.Footstep(echoCtx, FootstepEvent{
 		Activity:    "cash-transaction-completed",
-		Description: "Successfully updated cash account " + cashAccount.ID.String() + " with new balance: " + fmt.Sprintf("%.2f", newCashBalance),
+		Description: "Successfully updated cash account " + cashAccount.Account.ID.String() + " with new balance: " + fmt.Sprintf("%.2f", newCashBalance),
 		Module:      "Loan Release",
 	})
 
