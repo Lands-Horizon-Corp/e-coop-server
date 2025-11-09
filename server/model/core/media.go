@@ -21,7 +21,7 @@ type (
 
 		FileName   string `gorm:"type:varchar(2048);unsigned" json:"file_name"`
 		FileSize   int64  `gorm:"unsigned" json:"file_size"`
-		FileType   string `gorm:"type:varchar(50);unsigned" json:"file_type"`
+		FileType   string `gorm:"type:varchar(255);unsigned" json:"file_type"`
 		StorageKey string `gorm:"type:varchar(2048)" json:"storage_key"`
 
 		Key        string `gorm:"type:varchar(2048)" json:"key"`
