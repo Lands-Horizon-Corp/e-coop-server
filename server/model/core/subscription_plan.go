@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
@@ -108,6 +107,93 @@ type (
 		Currency   *CurrencyResponse `json:"currency,omitempty"`
 	}
 )
+
+// SubscriptionPlan initializes the subscription plan model and its repository manager
+func (m *Core) subscriptionPlan() {
+	m.Migration = append(m.Migration, &SubscriptionPlan{})
+	m.SubscriptionPlanManager = *registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+		Preloads: []string{"Currency"},
+		Service:  m.provider.Service,
+		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
+			if sp == nil {
+				return nil
+			}
+
+			// Use decimal operations for precise financial calculations
+			decimal := m.provider.Service.Decimal
+
+			// MONTHLY PRICE CALCULATION:
+			// Round cost to 2 decimal places for precise monthly pricing
+			monthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(sp.Cost, 2)
+
+			// YEARLY PRICE CALCULATION:
+			// Yearly = Monthly * 12, rounded to 2 decimal places
+			yearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
+				decimal.Multiply(sp.Cost, 12), 2)
+
+			// DISCOUNTED MONTHLY PRICE CALCULATION:
+			// Apply monthly discount: Cost * (1 - Discount/100)
+			discountedMonthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
+				decimal.SubtractPercentage(sp.Cost, sp.Discount), 2)
+
+			// DISCOUNTED YEARLY PRICE CALCULATION:
+			// Apply yearly discount: (Cost * 12) * (1 - YearlyDiscount/100)
+			discountedYearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
+				decimal.SubtractPercentage(yearlyPrice, sp.YearlyDiscount), 2)
+
+			return &SubscriptionPlanResponse{
+				ID:                  sp.ID,
+				Name:                sp.Name,
+				Description:         sp.Description,
+				Cost:                sp.Cost,
+				Timespan:            sp.Timespan,
+				MaxBranches:         sp.MaxBranches,
+				MaxEmployees:        sp.MaxEmployees,
+				MaxMembersPerBranch: sp.MaxMembersPerBranch,
+				Discount:            sp.Discount,
+				YearlyDiscount:      sp.YearlyDiscount,
+				IsRecommended:       sp.IsRecommended,
+
+				// Core Features
+				HasAPIAccess:             sp.HasAPIAccess,
+				HasFlexibleOrgStructures: sp.HasFlexibleOrgStructures,
+				HasAIEnabled:             sp.HasAIEnabled,
+				HasMachineLearning:       sp.HasMachineLearning,
+
+				// Limits
+				MaxAPICallsPerMonth: sp.MaxAPICallsPerMonth,
+
+				MonthlyPrice:           monthlyPrice,
+				YearlyPrice:            yearlyPrice,
+				DiscountedMonthlyPrice: discountedMonthlyPrice,
+				DiscountedYearlyPrice:  discountedYearlyPrice,
+				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
+				CurrencyID:             sp.CurrencyID,
+				Currency:               m.CurrencyManager.ToModel(sp.Currency),
+			}
+		},
+
+		Created: func(data *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.create",
+				fmt.Sprintf("subscription_plan.create.%s", data.ID),
+			}
+		},
+		Updated: func(data *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.update",
+				fmt.Sprintf("subscription_plan.update.%s", data.ID),
+			}
+		},
+		Deleted: func(data *SubscriptionPlan) []string {
+			return []string{
+				"subscription_plan.delete",
+				fmt.Sprintf("subscription_plan.delete.%s", data.ID),
+			}
+		},
+	})
+}
 
 // newSubscriptionPlan creates a new SubscriptionPlan instance with tier-specific static properties.
 func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscount float64, tier string, currencyID *uuid.UUID) *SubscriptionPlan {
@@ -857,74 +943,4 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// SubscriptionPlan initializes the subscription plan model and its repository manager
-func (m *Core) subscriptionPlan() {
-	m.Migration = append(m.Migration, &SubscriptionPlan{})
-	m.SubscriptionPlanManager = *registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
-		Preloads: []string{"Currency"},
-		Service:  m.provider.Service,
-		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
-			if sp == nil {
-				return nil
-			}
-
-			monthlyPrice := math.Round(sp.Cost*100) / 100
-			yearlyPrice := math.Round(sp.Cost*12*100) / 100
-			discountedMonthlyPrice := math.Round((sp.Cost*(1-sp.Discount/100))*100) / 100
-			discountedYearlyPrice := math.Round((sp.Cost*12*(1-sp.YearlyDiscount/100))*100) / 100
-
-			return &SubscriptionPlanResponse{
-				ID:                  sp.ID,
-				Name:                sp.Name,
-				Description:         sp.Description,
-				Cost:                sp.Cost,
-				Timespan:            sp.Timespan,
-				MaxBranches:         sp.MaxBranches,
-				MaxEmployees:        sp.MaxEmployees,
-				MaxMembersPerBranch: sp.MaxMembersPerBranch,
-				Discount:            sp.Discount,
-				YearlyDiscount:      sp.YearlyDiscount,
-				IsRecommended:       sp.IsRecommended,
-
-				// Core Features
-				HasAPIAccess:             sp.HasAPIAccess,
-				HasFlexibleOrgStructures: sp.HasFlexibleOrgStructures,
-				HasAIEnabled:             sp.HasAIEnabled,
-				HasMachineLearning:       sp.HasMachineLearning,
-
-				// Limits
-				MaxAPICallsPerMonth: sp.MaxAPICallsPerMonth,
-
-				MonthlyPrice:           monthlyPrice,
-				YearlyPrice:            yearlyPrice,
-				DiscountedMonthlyPrice: discountedMonthlyPrice,
-				DiscountedYearlyPrice:  discountedYearlyPrice,
-				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
-				CurrencyID:             sp.CurrencyID,
-				Currency:               m.CurrencyManager.ToModel(sp.Currency),
-			}
-		},
-
-		Created: func(data *SubscriptionPlan) []string {
-			return []string{
-				"subscription_plan.create",
-				fmt.Sprintf("subscription_plan.create.%s", data.ID),
-			}
-		},
-		Updated: func(data *SubscriptionPlan) []string {
-			return []string{
-				"subscription_plan.update",
-				fmt.Sprintf("subscription_plan.update.%s", data.ID),
-			}
-		},
-		Deleted: func(data *SubscriptionPlan) []string {
-			return []string{
-				"subscription_plan.delete",
-				fmt.Sprintf("subscription_plan.delete.%s", data.ID),
-			}
-		},
-	})
 }
