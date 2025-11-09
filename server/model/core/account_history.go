@@ -118,6 +118,7 @@ type (
 		AccountCategoryID              *uuid.UUID `gorm:"type:uuid" json:"account_category_id,omitempty"`
 		MemberTypeID                   *uuid.UUID `gorm:"type:uuid" json:"member_type_id,omitempty"`
 		CurrencyID                     *uuid.UUID `gorm:"type:uuid" json:"currency_id,omitempty"`
+		DefaultPaymentTypeID           *uuid.UUID `gorm:"type:uuid" json:"default_payment_type_id,omitempty"`
 		ComputationSheetID             *uuid.UUID `gorm:"type:uuid" json:"computation_sheet_id,omitempty"`
 		LoanAccountID                  *uuid.UUID `gorm:"type:uuid" json:"loan_account_id,omitempty"`
 
@@ -224,6 +225,7 @@ type (
 		AccountCategoryID              *uuid.UUID `json:"account_category_id,omitempty"`
 		MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 		CurrencyID                     *uuid.UUID `json:"currency_id,omitempty"`
+		DefaultPaymentTypeID           *uuid.UUID `json:"default_payment_type_id,omitempty"`
 		ComputationSheetID             *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		LoanAccountID                  *uuid.UUID `json:"loan_account_id,omitempty"`
 
@@ -343,6 +345,7 @@ func (m *Core) accountHistory() {
 				AccountCategoryID:              data.AccountCategoryID,
 				MemberTypeID:                   data.MemberTypeID,
 				CurrencyID:                     data.CurrencyID,
+				DefaultPaymentTypeID:           data.DefaultPaymentTypeID,
 				ComputationSheetID:             data.ComputationSheetID,
 				LoanAccountID:                  data.LoanAccountID,
 
@@ -486,6 +489,7 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		AccountCategoryID:              data.AccountCategoryID,
 		MemberTypeID:                   data.MemberTypeID,
 		CurrencyID:                     data.CurrencyID,
+		DefaultPaymentTypeID:           data.DefaultPaymentTypeID,
 		ComputationSheetID:             data.ComputationSheetID,
 		LoanAccountID:                  data.LoanAccountID,
 

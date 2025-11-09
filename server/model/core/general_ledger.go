@@ -66,6 +66,8 @@ type (
 		JournalVoucherID           *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntryID          *uuid.UUID          `gorm:"type:uuid"`
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
+		LoanTransactionID          *uuid.UUID          `gorm:"type:uuid"`
+		LoanTransaction            *LoanTransaction    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
@@ -121,6 +123,8 @@ type (
 		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
 		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
+		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
+		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
 		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
 
 		Credit  float64 `json:"credit"`
@@ -165,6 +169,7 @@ type (
 		Source                     GeneralLedgerSource `json:"source,omitempty"`
 		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
+		LoanTransactionID          *uuid.UUID          `json:"loan_transaction_id,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `json:"credit,omitempty"`
 		Debit                      float64             `json:"debit,omitempty"`
@@ -275,6 +280,8 @@ func (m *Core) generalLedger() {
 				JournalVoucherID:           data.JournalVoucherID,
 				AdjustmentEntryID:          data.AdjustmentEntryID,
 				AdjustmentEntry:            m.AdjustmentEntryManager.ToModel(data.AdjustmentEntry),
+				LoanTransactionID:          data.LoanTransactionID,
+				LoanTransaction:            m.LoanTransactionManager.ToModel(data.LoanTransaction),
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,

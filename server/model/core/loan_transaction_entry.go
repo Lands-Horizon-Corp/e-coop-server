@@ -208,7 +208,9 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.FindOneWithSQL(ctx, filters, nil)
+	return m.LoanTransactionEntryManager.FindOneWithSQL(
+		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
+	)
 }
 
 // GetLoanEntryAccount returns the loan entry account (index 1) for the given loan transaction

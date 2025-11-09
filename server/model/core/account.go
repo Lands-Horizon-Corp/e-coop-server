@@ -199,6 +199,9 @@ type (
 		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
 		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency,omitempty"`
 
+		DefaultPaymentTypeID *uuid.UUID   `gorm:"type:uuid" json:"default_payment_type_id,omitempty"`
+		DefaultPaymentType   *PaymentType `gorm:"foreignKey:DefaultPaymentTypeID;constraint:OnDelete:SET NULL;" json:"default_payment_type,omitempty"`
+
 		Name        string `gorm:"type:varchar(255);not null;uniqueIndex:idx_account_name_org_branch" json:"name"`
 		Description string `gorm:"type:text;not null" json:"description"`
 
@@ -319,6 +322,8 @@ type AccountResponse struct {
 	MemberType                     *MemberTypeResponse                   `json:"member_type,omitempty"`
 	CurrencyID                     *uuid.UUID                            `json:"currency_id,omitempty"`
 	Currency                       *CurrencyResponse                     `json:"currency,omitempty"`
+	DefaultPaymentTypeID           *uuid.UUID                            `json:"default_payment_type_id,omitempty"`
+	DefaultPaymentType             *PaymentTypeResponse                  `json:"default_payment_type,omitempty"`
 
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -415,6 +420,7 @@ type AccountRequest struct {
 	AccountCategoryID              *uuid.UUID `json:"account_category_id,omitempty"`
 	MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
 	CurrencyID                     *uuid.UUID `json:"currency_id" validate:"required"`
+	DefaultPaymentTypeID           *uuid.UUID `json:"default_payment_type_id,omitempty"`
 
 	Name        string      `json:"name" validate:"required,min=1,max=255"`
 	Description string      `json:"description"`
@@ -510,7 +516,7 @@ func (m *Core) account() {
 			"CreatedBy", "UpdatedBy",
 			"AccountClassification", "AccountCategory",
 			"AccountTags", "ComputationSheet", "Currency",
-			"LoanAccount",
+			"DefaultPaymentType", "LoanAccount",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *Account) *AccountResponse {
@@ -542,6 +548,8 @@ func (m *Core) account() {
 				MemberType:                     m.MemberTypeManager.ToModel(data.MemberType),
 				CurrencyID:                     data.CurrencyID,
 				Currency:                       m.CurrencyManager.ToModel(data.Currency),
+				DefaultPaymentTypeID:           data.DefaultPaymentTypeID,
+				DefaultPaymentType:             m.PaymentTypeManager.ToModel(data.DefaultPaymentType),
 
 				Name:                                  data.Name,
 				Description:                           data.Description,
@@ -1484,14 +1492,37 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err := m.AccountManager.CreateWithTx(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
+
+	// Get default payment types that will be created during seeding
+	var cashOnHandPaymentType *PaymentType
+	paymentTypes, err := m.PaymentTypeCurrentBranch(context, organizationID, branchID)
+	if err != nil {
+		// If no payment types exist yet, we'll set them later after payment type seeding
+		cashOnHandPaymentType = nil
+	} else {
+		// Find the "Cash On Hand" payment type
+		for _, pt := range paymentTypes {
+			if pt.Name == "Cash On Hand" && pt.Type == PaymentTypeCash {
+				cashOnHandPaymentType = pt
+				break
+			}
+		}
+	}
+
 	cashOnHand := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
-		CurrencyID:                              &currency.ID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		CurrencyID:     &currency.ID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Cash on Hand",
 		Icon:                                    "Hand Coins",
 		Description:                             "Physical cash available at the branch for daily operations and transactions.",
@@ -1521,13 +1552,19 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash in Bank Account
 	cashInBank := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
-		CurrencyID:                              &currency.ID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		CurrencyID:     &currency.ID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Cash in Bank",
 		Icon:                                    "Bank",
 		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
@@ -1556,12 +1593,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash Online Account (Digital Wallets, Online Banking)
 	cashOnline := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Cash Online",
 		Icon:                                    "Smartphone",
 		Description:                             "Digital funds available through online banking platforms and digital wallets.",
@@ -1591,12 +1634,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Petty Cash Account
 	pettyCash := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Petty Cash",
 		Icon:                                    "Wallet",
 		Description:                             "Small amount of cash kept on hand for minor expenses and incidental purchases.",
@@ -1626,12 +1675,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash in Transit Account
 	cashInTransit := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Cash in Transit",
 		Icon:                                    "Running",
 		Description:                             "Cash deposits or transfers that are in process but not yet cleared or posted.",
@@ -1661,12 +1716,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Foreign Currency Cash Account
 	foreignCurrencyCash := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Foreign Currency Cash",
 		Icon:                                    "Globe Asia",
 		Description:                             "Cash holdings in foreign currencies for international transactions and exchange.",
@@ -1696,12 +1757,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash Equivalents - Money Market Account
 	moneyMarketFund := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Money Market Fund",
 		Icon:                                    "Chart Bar",
 		Description:                             "Short-term, highly liquid investments that can be quickly converted to cash.",
@@ -1731,12 +1798,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Treasury Bills (Short-term)
 	treasuryBills := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
+		CreatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedAt:      now,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		DefaultPaymentTypeID: func() *uuid.UUID {
+			if cashOnHandPaymentType != nil {
+				return &cashOnHandPaymentType.ID
+			}
+			return nil
+		}(),
 		Name:                                    "Treasury Bills",
 		Icon:                                    "Document File Fill",
 		Description:                             "Short-term government securities with maturity of less than one year.",
@@ -3520,6 +3593,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		AccountCategoryID:              original.AccountCategoryID,
 		MemberTypeID:                   original.MemberTypeID,
 		CurrencyID:                     original.CurrencyID,
+		DefaultPaymentTypeID:           original.DefaultPaymentTypeID,
 		ComputationSheetID:             original.ComputationSheetID,
 		LoanAccountID:                  original.LoanAccountID,
 
@@ -3637,6 +3711,8 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		// In the AccountHistoryToModel function (around line 500):
 		CohCibFinesGracePeriodEntryAnnualAmortization: a.CohCibFinesGracePeriodEntryAnnualAmortization,
 		CohCibFinesGracePeriodEntryAnnualMaturity:     a.CohCibFinesGracePeriodEntryAnnualMaturity,
+		// Add DefaultPaymentTypeID
+		DefaultPaymentTypeID: a.DefaultPaymentTypeID,
 	}
 
 	// Save the history record
@@ -3741,6 +3817,8 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 		// AccountCurrentBranch
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity: a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+		// Add DefaultPaymentTypeID
+		DefaultPaymentTypeID: a.DefaultPaymentTypeID,
 		// AccountCurrentBranch
 	}
 
