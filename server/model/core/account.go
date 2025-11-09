@@ -3464,11 +3464,6 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		BranchID:       original.BranchID,
 		CreatedByID:    a.CreatedByID,
 		CreatedAt:      now,
-		ChangeType:     HistoryChangeTypeUpdated,
-		ValidFrom:      original.UpdatedAt,
-		ValidTo:        &now,
-		ChangeReason:   "Account updated",
-
 		// Copy all original data
 		Name:                                original.Name,
 		Description:                         original.Description,
@@ -3562,9 +3557,6 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		OrganizationID: a.OrganizationID,
 		BranchID:       a.BranchID,
 		CreatedByID:    a.CreatedByID,
-		ChangeType:     HistoryChangeTypeCreated,
-		ValidFrom:      a.CreatedAt,
-		ChangeReason:   "Account created",
 
 		// Copy all current data
 		Name:                                a.Name,
@@ -3642,6 +3634,9 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
+		// In the AccountHistoryToModel function (around line 500):
+		CohCibFinesGracePeriodEntryAnnualAmortization: a.CohCibFinesGracePeriodEntryAnnualAmortization,
+		CohCibFinesGracePeriodEntryAnnualMaturity:     a.CohCibFinesGracePeriodEntryAnnualMaturity,
 	}
 
 	// Save the history record
@@ -3665,9 +3660,11 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		OrganizationID: a.OrganizationID,
 		BranchID:       a.BranchID,
 		CreatedByID:    a.CreatedByID,
-		ChangeType:     HistoryChangeTypeDeleted,
-		ValidFrom:      now,
-		ChangeReason:   "Account deleted",
+		// In the AccountHistoryToModel function (around line 500):
+		CohCibFinesGracePeriodEntryAnnualAmortization:  a.CohCibFinesGracePeriodEntryAnnualAmortization,
+		CohCibFinesGracePeriodEntryAnnualMaturity:      a.CohCibFinesGracePeriodEntryAnnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization: a.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:     a.CohCibFinesGracePeriodEntryLumpsumMaturity,
 
 		// Copy all current data before deletion
 		Name:                                a.Name,
@@ -3743,9 +3740,7 @@ func (a *Account) BeforeDelete(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
 		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 		// AccountCurrentBranch
-		CohCibFinesGracePeriodEntrySemiAnnualMaturity:  a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
-		CohCibFinesGracePeriodEntryLumpsumAmortization: a.CohCibFinesGracePeriodEntryLumpsumAmortization,
-		CohCibFinesGracePeriodEntryLumpsumMaturity:     a.CohCibFinesGracePeriodEntryLumpsumMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity: a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		// AccountCurrentBranch
 	}
 

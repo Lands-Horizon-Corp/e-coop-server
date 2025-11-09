@@ -46,13 +46,6 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_account_history_org_branch" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		// History metadata
-		ChangeType    HistoryChangeType `gorm:"type:varchar(50);not null" json:"change_type"`
-		ValidFrom     time.Time         `gorm:"not null;index:idx_account_history_valid_from" json:"valid_from"`
-		ValidTo       *time.Time        `gorm:"index:idx_account_history_valid_to" json:"valid_to,omitempty"`
-		ChangeReason  string            `gorm:"type:text" json:"change_reason,omitempty"`
-		ChangedFields string            `gorm:"type:text" json:"changed_fields,omitempty"`
-
 		// Snapshot of account data at the time of change
 		Name        string      `gorm:"type:varchar(255)" json:"name"`
 		Description string      `gorm:"type:text" json:"description"`
@@ -143,6 +136,8 @@ type (
 		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
 		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
+		CohCibFinesGracePeriodEntryAnnualAmortization      float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_annual_amortization"`
+		CohCibFinesGracePeriodEntryAnnualMaturity          float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_annual_maturity"`
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
@@ -162,12 +157,6 @@ type (
 		Organization   *OrganizationResponse `json:"organization,omitempty"`
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		ChangeType    HistoryChangeType `json:"change_type"`
-		ValidFrom     string            `json:"valid_from"`
-		ValidTo       *string           `json:"valid_to,omitempty"`
-		ChangeReason  string            `json:"change_reason,omitempty"`
-		ChangedFields string            `json:"changed_fields,omitempty"`
 
 		// Account snapshot data
 		Name        string      `json:"name"`
@@ -253,6 +242,8 @@ type (
 		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
 		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
+		CohCibFinesGracePeriodEntryAnnualAmortization      float64 `json:"coh_cib_fines_grace_period_entry_annual_amortization"`
+		CohCibFinesGracePeriodEntryAnnualMaturity          float64 `json:"coh_cib_fines_grace_period_entry_annual_maturity"`
 		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
@@ -261,12 +252,7 @@ type (
 
 	// AccountHistoryRequest represents the request structure for AccountHistory.
 	AccountHistoryRequest struct {
-		AccountID     uuid.UUID         `json:"account_id" validate:"required"`
-		ChangeType    HistoryChangeType `json:"change_type" validate:"required"`
-		ValidFrom     time.Time         `json:"valid_from" validate:"required"`
-		ValidTo       *time.Time        `json:"valid_to,omitempty"`
-		ChangeReason  string            `json:"change_reason,omitempty"`
-		ChangedFields string            `json:"changed_fields,omitempty"`
+		AccountID uuid.UUID `json:"account_id" validate:"required"`
 	}
 )
 
@@ -296,10 +282,6 @@ func (m *Core) accountHistory() {
 				Organization:   m.OrganizationManager.ToModel(data.Organization),
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
-				ChangeType:     data.ChangeType,
-				ValidFrom:      data.ValidFrom.Format(time.RFC3339),
-				ChangeReason:   data.ChangeReason,
-				ChangedFields:  data.ChangedFields,
 
 				// Account snapshot data
 				Name:                         data.Name,
@@ -324,15 +306,15 @@ func (m *Core) accountHistory() {
 				CutOffDays:                   data.CutOffDays,
 				CutOffMonths:                 data.CutOffMonths,
 
-				LumpsumComputationType:                            LumpsumComputationType(data.LumpsumComputationType),
-				InterestFinesComputationDiminishing:               InterestFinesComputationDiminishing(data.InterestFinesComputationDiminishing),
-				InterestFinesComputationDiminishingStraightYearly: InterestFinesComputationDiminishingStraightYearly(data.InterestFinesComputationDiminishingStraightYearly),
-				EarnedUnearnedInterest:                            EarnedUnearnedInterest(data.EarnedUnearnedInterest),
-				LoanSavingType:                                    LoanSavingType(data.LoanSavingType),
-				InterestDeduction:                                 InterestDeduction(data.InterestDeduction),
-				OtherDeductionEntry:                               OtherDeductionEntry(data.OtherDeductionEntry),
-				InterestSavingTypeDiminishingStraight:             InterestSavingTypeDiminishingStraight(data.InterestSavingTypeDiminishingStraight),
-				OtherInformationOfAnAccount:                       OtherInformationOfAnAccount(data.OtherInformationOfAnAccount),
+				LumpsumComputationType:                            data.LumpsumComputationType,
+				InterestFinesComputationDiminishing:               data.InterestFinesComputationDiminishing,
+				InterestFinesComputationDiminishingStraightYearly: data.InterestFinesComputationDiminishingStraightYearly,
+				EarnedUnearnedInterest:                            data.EarnedUnearnedInterest,
+				LoanSavingType:                                    data.LoanSavingType,
+				InterestDeduction:                                 data.InterestDeduction,
+				OtherDeductionEntry:                               data.OtherDeductionEntry,
+				InterestSavingTypeDiminishingStraight:             data.InterestSavingTypeDiminishingStraight,
+				OtherInformationOfAnAccount:                       data.OtherInformationOfAnAccount,
 
 				GeneralLedgerType:                   data.GeneralLedgerType,
 				HeaderRow:                           data.HeaderRow,
@@ -379,14 +361,10 @@ func (m *Core) accountHistory() {
 				CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
 				CohCibFinesGracePeriodEntrySemiAnnualAmortization:  data.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 				CohCibFinesGracePeriodEntrySemiAnnualMaturity:      data.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+				CohCibFinesGracePeriodEntryAnnualAmortization:      data.CohCibFinesGracePeriodEntryAnnualAmortization,
+				CohCibFinesGracePeriodEntryAnnualMaturity:          data.CohCibFinesGracePeriodEntryAnnualMaturity,
 				CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
-			}
-
-			// Handle ValidTo field
-			if data.ValidTo != nil {
-				validTo := data.ValidTo.Format(time.RFC3339)
-				response.ValidTo = &validTo
 			}
 
 			return response
@@ -414,6 +392,123 @@ func (m *Core) accountHistory() {
 			}
 		},
 	})
+}
+
+func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
+	if data == nil {
+		return nil
+	}
+	return &Account{
+		ID:        data.AccountID, // Use the original account ID
+		CreatedAt: data.CreatedAt,
+		UpdatedAt: data.UpdatedAt,
+		DeletedAt: gorm.DeletedAt{}, // History doesn't track deletion state of original
+
+		// Organization and branch references
+		OrganizationID: data.OrganizationID,
+		Organization:   data.Organization,
+		BranchID:       data.BranchID,
+		Branch:         data.Branch,
+
+		// Basic account information
+		Name:        data.Name,
+		Description: data.Description,
+		Type:        data.Type,
+		MinAmount:   data.MinAmount,
+		MaxAmount:   data.MaxAmount,
+		Index:       data.Index,
+
+		// Account flags
+		IsInternal:         data.IsInternal,
+		CashOnHand:         data.CashOnHand,
+		PaidUpShareCapital: data.PaidUpShareCapital,
+
+		// Computation configuration
+		ComputationType: data.ComputationType,
+
+		// Interest and fees
+		FinesAmort:       data.FinesAmort,
+		FinesMaturity:    data.FinesMaturity,
+		InterestStandard: data.InterestStandard,
+		InterestSecured:  data.InterestSecured,
+
+		// Grace periods
+		FinesGracePeriodAmortization: data.FinesGracePeriodAmortization,
+		AdditionalGracePeriod:        data.AdditionalGracePeriod,
+		NoGracePeriodDaily:           data.NoGracePeriodDaily,
+		FinesGracePeriodMaturity:     data.FinesGracePeriodMaturity,
+		YearlySubscriptionFee:        data.YearlySubscriptionFee,
+		CutOffDays:                   data.CutOffDays,
+		CutOffMonths:                 data.CutOffMonths,
+
+		// Advanced computation settings
+		LumpsumComputationType:                            data.LumpsumComputationType,
+		InterestFinesComputationDiminishing:               data.InterestFinesComputationDiminishing,
+		InterestFinesComputationDiminishingStraightYearly: data.InterestFinesComputationDiminishingStraightYearly,
+		EarnedUnearnedInterest:                            data.EarnedUnearnedInterest,
+		LoanSavingType:                                    data.LoanSavingType,
+		InterestDeduction:                                 data.InterestDeduction,
+		OtherDeductionEntry:                               data.OtherDeductionEntry,
+		InterestSavingTypeDiminishingStraight:             data.InterestSavingTypeDiminishingStraight,
+		OtherInformationOfAnAccount:                       data.OtherInformationOfAnAccount,
+
+		// General ledger configuration
+		GeneralLedgerType: data.GeneralLedgerType,
+
+		// Display configuration
+		HeaderRow: data.HeaderRow,
+		CenterRow: data.CenterRow,
+		TotalRow:  data.TotalRow,
+
+		GeneralLedgerGroupingExcludeAccount: data.GeneralLedgerGroupingExcludeAccount,
+		Icon:                                data.Icon,
+
+		// General Ledger Source flags
+		ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
+		ShowInGeneralLedgerSourceDeposit:        data.ShowInGeneralLedgerSourceDeposit,
+		ShowInGeneralLedgerSourceJournal:        data.ShowInGeneralLedgerSourceJournal,
+		ShowInGeneralLedgerSourcePayment:        data.ShowInGeneralLedgerSourcePayment,
+		ShowInGeneralLedgerSourceAdjustment:     data.ShowInGeneralLedgerSourceAdjustment,
+		ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
+		ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
+
+		// Compassion fund settings
+		CompassionFund:         data.CompassionFund,
+		CompassionFundAmount:   data.CompassionFundAmount,
+		CashAndCashEquivalence: data.CashAndCashEquivalence,
+
+		InterestStandardComputation: data.InterestStandardComputation,
+
+		// Foreign key references
+		GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
+		FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
+		AccountClassificationID:        data.AccountClassificationID,
+		AccountCategoryID:              data.AccountCategoryID,
+		MemberTypeID:                   data.MemberTypeID,
+		CurrencyID:                     data.CurrencyID,
+		ComputationSheetID:             data.ComputationSheetID,
+		LoanAccountID:                  data.LoanAccountID,
+
+		// Grace period entries
+		CohCibFinesGracePeriodEntryCashHand:                data.CohCibFinesGracePeriodEntryCashHand,
+		CohCibFinesGracePeriodEntryCashInBank:              data.CohCibFinesGracePeriodEntryCashInBank,
+		CohCibFinesGracePeriodEntryDailyAmortization:       data.CohCibFinesGracePeriodEntryDailyAmortization,
+		CohCibFinesGracePeriodEntryDailyMaturity:           data.CohCibFinesGracePeriodEntryDailyMaturity,
+		CohCibFinesGracePeriodEntryWeeklyAmortization:      data.CohCibFinesGracePeriodEntryWeeklyAmortization,
+		CohCibFinesGracePeriodEntryWeeklyMaturity:          data.CohCibFinesGracePeriodEntryWeeklyMaturity,
+		CohCibFinesGracePeriodEntryMonthlyAmortization:     data.CohCibFinesGracePeriodEntryMonthlyAmortization,
+		CohCibFinesGracePeriodEntryMonthlyMaturity:         data.CohCibFinesGracePeriodEntryMonthlyMaturity,
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: data.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     data.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+		CohCibFinesGracePeriodEntryQuarterlyAmortization:   data.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+		CohCibFinesGracePeriodEntryQuarterlyMaturity:       data.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  data.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      data.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+		CohCibFinesGracePeriodEntryAnnualAmortization:      data.CohCibFinesGracePeriodEntryAnnualAmortization,
+		CohCibFinesGracePeriodEntryAnnualMaturity:          data.CohCibFinesGracePeriodEntryAnnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization:     data.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
+	}
 }
 
 // GetAccountHistory retrieves the history records for a specific account
@@ -480,31 +575,6 @@ func (m *Core) GetAccountsChangedInRange(ctx context.Context, organizationID, br
 	})
 }
 
-// CloseAccountHistory closes open history records by updating their valid_to timestamp
-func (m *Core) CloseAccountHistory(ctx context.Context, accountID uuid.UUID, closedAt time.Time) error {
-	// Since there's no UpdateWhere method, we'll need to find and update individually
-	filters := []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "valid_to", Op: registry.OpIsNull, Value: nil},
-	}
-
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-	if err != nil {
-		return err
-	}
-
-	for _, history := range histories {
-		history.ValidTo = &closedAt
-		if err := m.AccountHistoryManager.UpdateByID(ctx, history.ID, history); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
@@ -516,4 +586,30 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
 	})
+}
+
+func (m *Core) GetAccountHistoryLatestByTime(
+	ctx context.Context,
+	accountID, organizationID, branchID uuid.UUID,
+	asOfDate time.Time) (*AccountHistory, error) {
+	filters := []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
+	}
+
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(histories) > 0 {
+		return histories[0], nil
+	}
+
+	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }

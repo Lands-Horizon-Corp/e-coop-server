@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -79,11 +78,6 @@ func (c *Controller) mediaController() {
 				fileName += ext
 			}
 		}
-
-		fmt.Println("Name " + fileName)
-		fmt.Println("Type " + contentType)
-		fmt.Println(" ---------------------------")
-
 		initial := &core.Media{
 			FileName:   fileName,
 			FileSize:   0,
