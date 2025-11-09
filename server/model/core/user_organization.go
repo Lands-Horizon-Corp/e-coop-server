@@ -92,6 +92,9 @@ type (
 		Status       UserOrganizationStatus `gorm:"type:varchar(50);not null;default:'offline'" json:"status"`
 		LastOnlineAt time.Time              `gorm:"default:now()" json:"last_online_at"`
 
+		// Time machine for experimentation - allows setting custom time for testing
+		TimeMachineTime *time.Time `gorm:"type:timestamp" json:"time_machine_time,omitempty"`
+
 		SettingsAccountingPaymentDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_accounting_payment_default_value_id,omitempty"`
 		SettingsAccountingPaymentDefaultValue   *Account   `gorm:"foreignKey:SettingsAccountingPaymentDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_accounting_payment_default_value,omitempty"`
 
@@ -107,8 +110,17 @@ type (
 		BranchSettingDefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid;index" json:"branch_setting_default_member_type_id,omitempty"`
 		BranchSettingDefaultMemberType   *MemberType `gorm:"foreignKey:BranchSettingDefaultMemberTypeID;constraint:OnDelete:SET NULL;"`
 	}
+)
 
-	// UserOrganizationRequest represents the request payload for creating or updating user organization data
+// UserOrgTime returns the time machine time if set, otherwise returns current UTC time
+func (uo *UserOrganization) UserOrgTime() time.Time {
+	if uo.TimeMachineTime != nil {
+		return *uo.TimeMachineTime
+	}
+	return time.Now().UTC()
+}
+
+type (
 	UserOrganizationRequest struct {
 		ID       *uuid.UUID           `json:"id,omitempty"`
 		UserType UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member owner"`
@@ -155,6 +167,9 @@ type (
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
+		// Time machine for experimentation - allows setting custom time for testing
+		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
+
 		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
 		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
@@ -178,6 +193,9 @@ type (
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
+
+		// Time machine for experimentation - allows setting custom time for testing
+		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
@@ -228,6 +246,9 @@ type (
 
 		Status       UserOrganizationStatus `json:"status"`
 		LastOnlineAt time.Time              `json:"last_online_at"`
+
+		// Time machine for experimentation - allows setting custom time for testing
+		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID *uuid.UUID       `json:"settings_accounting_payment_default_value_id"`
 		SettingsAccountingPaymentDefaultValue   *AccountResponse `json:"settings_accounting_payment_default_value,omitempty"`
@@ -361,6 +382,7 @@ func (m *Core) userOrganization() {
 				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
 				Status:                               data.Status,
 				LastOnlineAt:                         data.LastOnlineAt,
+				TimeMachineTime:                      data.TimeMachineTime,
 
 				SettingsAccountingPaymentDefaultValueID:  data.SettingsAccountingPaymentDefaultValueID,
 				SettingsAccountingPaymentDefaultValue:    m.AccountManager.ToModel(data.SettingsAccountingPaymentDefaultValue),

@@ -419,9 +419,6 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	if err := m.financialStatementGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.paymentTypeSeed(context, tx, userID, organizationID, branchID); err != nil {
-		return err
-	}
 	if err := m.accountSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}

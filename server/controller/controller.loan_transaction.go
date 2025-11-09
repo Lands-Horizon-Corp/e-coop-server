@@ -1755,14 +1755,6 @@ func (c *Controller) loanTransactionController() {
 		if loanTransaction.ReleasedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
-		now := time.Now().UTC()
-		loanTransaction.ReleasedDate = &now
-		loanTransaction.ReleasedByID = &userOrg.UserID
-		loanTransaction.UpdatedAt = now
-		loanTransaction.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionManager.UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
-		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransaction.ID,

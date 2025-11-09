@@ -549,6 +549,7 @@ func (c *Controller) accountController() {
 			ComputationSheetID:                    req.ComputationSheetID,
 			CohCibFinesGracePeriodEntryCashHand:   req.CohCibFinesGracePeriodEntryCashHand,
 			CohCibFinesGracePeriodEntryCashInBank: req.CohCibFinesGracePeriodEntryCashInBank,
+			DefaultPaymentTypeID:                  req.DefaultPaymentTypeID,
 			CohCibFinesGracePeriodEntryDailyAmortization:       req.CohCibFinesGracePeriodEntryDailyAmortization,
 			CohCibFinesGracePeriodEntryDailyMaturity:           req.CohCibFinesGracePeriodEntryDailyMaturity,
 			CohCibFinesGracePeriodEntryWeeklyAmortization:      req.CohCibFinesGracePeriodEntryWeeklyAmortization,
@@ -724,7 +725,7 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.BranchID = *userOrg.BranchID
 		account.OrganizationID = userOrg.OrganizationID
-
+		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
 		account.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
 		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
 		account.AccountClassificationID = req.AccountClassificationID
