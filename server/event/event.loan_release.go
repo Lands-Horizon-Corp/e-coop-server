@@ -219,6 +219,8 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		LoanTransactionID:          &targetLoanTransaction.ID,
 	}
 
+	fmt.Printf("✅ [STEP-5] Cash ledger entry struct created successfully\n")
+
 	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, cashLedgerEntry); err != nil {
 		fmt.Printf("❌ [STEP-5] Failed to create cash ledger entry: %v\n", err)
 		e.Footstep(echoCtx, FootstepEvent{
@@ -306,6 +308,25 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 
 	fmt.Printf("🧮 [STEP-7] Member calculation - Debit: %.2f, Credit: %.2f, New Balance: %.2f\n", memberDebit, memberCredit, newMemberBalance)
 
+	fmt.Printf("🔍 [STEP-7] Starting to create member ledger entry...\n")
+
+	// Check each pointer before using it for member ledger
+	fmt.Printf("🔍 [STEP-7] Checking currentUserOrg.UserID: %v\n", currentUserOrg.UserID)
+	fmt.Printf("🔍 [STEP-7] Checking currentUserOrg.BranchID: %v\n", currentUserOrg.BranchID)
+	fmt.Printf("🔍 [STEP-7] Checking activeBatch.ID: %v\n", activeBatch.ID)
+	fmt.Printf("🔍 [STEP-7] Checking targetLoanTransaction.CheckNumber: %v\n", targetLoanTransaction.CheckNumber)
+	fmt.Printf("🔍 [STEP-7] Checking targetLoanTransaction.AccountID: %v\n", targetLoanTransaction.AccountID)
+	fmt.Printf("🔍 [STEP-7] Checking memberProfile.ID: %v\n", memberProfile.ID)
+	fmt.Printf("🔍 [STEP-7] Checking cashAccount.Account: %v\n", cashAccount.Account)
+	if cashAccount.Account != nil {
+		fmt.Printf("🔍 [STEP-7] Checking cashAccount.Account.DefaultPaymentTypeID: %v\n", cashAccount.Account.DefaultPaymentTypeID)
+	}
+	fmt.Printf("🔍 [STEP-7] Checking targetLoanTransaction.Account: %v\n", targetLoanTransaction.Account)
+	if targetLoanTransaction.Account != nil {
+		fmt.Printf("🔍 [STEP-7] Checking targetLoanTransaction.Account.Description: %v\n", targetLoanTransaction.Account.Description)
+	}
+	fmt.Printf("🔍 [STEP-7] Checking loanCurrency.ID: %v\n", loanCurrency.ID)
+
 	var paymentTypeValue core.TypeOfPaymentType
 	memberLedgerEntry := &core.GeneralLedger{
 		CreatedAt:                  now,
@@ -330,6 +351,8 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		Balance:                    newMemberBalance,
 		CurrencyID:                 &loanCurrency.ID,
 	}
+
+	fmt.Printf("✅ [STEP-7] Member ledger entry struct created successfully\n")
 
 	// Create the member's general ledger entry in the database
 	if err := e.core.GeneralLedgerManager.CreateWithTx(ctx, tx, memberLedgerEntry); err != nil {
