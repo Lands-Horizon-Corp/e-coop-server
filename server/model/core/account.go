@@ -1493,18 +1493,173 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
 
-	// Get default payment types that will be created during seeding
+	// Create essential payment types for account seeding
 	var cashOnHandPaymentType *PaymentType
-	paymentTypes, err := m.PaymentTypeCurrentBranch(context, organizationID, branchID)
-	if err != nil {
-		// If no payment types exist yet, we'll set them later after payment type seeding
-		cashOnHandPaymentType = nil
-	} else {
-		// Find the "Cash On Hand" payment type
-		for _, pt := range paymentTypes {
-			if pt.Name == "Cash On Hand" && pt.Type == PaymentTypeCash {
-				cashOnHandPaymentType = pt
-				break
+
+	// If Cash On Hand payment type doesn't exist, create it
+	if cashOnHandPaymentType == nil {
+		cashOnHandPaymentType = &PaymentType{
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cash On Hand",
+			Description:    "Cash available at the branch for immediate use.",
+			Type:           PaymentTypeCash,
+			NumberOfDays:   0,
+		}
+
+		if err := m.PaymentTypeManager.CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+		}
+
+		// Set this payment type as the default in user organization settings
+		userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+			UserID:         userID,
+			OrganizationID: organizationID,
+			BranchID:       &branchID,
+		})
+		if err != nil {
+			return eris.Wrap(err, "failed to find user organization for setting default payment type")
+		}
+		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+		if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			return eris.Wrap(err, "failed to update user organization with default payment type")
+		}
+
+		// Create additional payment types
+		paymentTypes := []*PaymentType{
+			// Cash types
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Forward Cash On Hand",
+				Description:    "Physical cash received and forwarded for transactions.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeCash,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Petty Cash",
+				Description:    "Small amount of cash for minor expenses.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeCash,
+			},
+			// Online types
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "E-Wallet",
+				Description:    "Digital wallet for online payments.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "E-Bank",
+				Description:    "Online banking transfer.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "GCash",
+				Description:    "GCash mobile wallet payment.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			// Check/Bank types
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Cheque",
+				Description:    "Payment via cheque/check.",
+				NumberOfDays:   3,
+				Type:           PaymentTypeCheck,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Bank Transfer",
+				Description:    "Direct bank-to-bank transfer.",
+				NumberOfDays:   1,
+				Type:           PaymentTypeCheck,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Manager's Check",
+				Description:    "Bank-issued check for secure payments.",
+				NumberOfDays:   2,
+				Type:           PaymentTypeCheck,
+			},
+			// Adjustment types
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Manual Adjustment",
+				Description:    "Manual adjustments for corrections and reconciliation.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeAdjustment,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Adjustment Entry",
+				Description:    "Manual adjustments for corrections and reconciliation.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeAdjustment,
+			},
+		}
+
+		for _, data := range paymentTypes {
+			if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
+				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
 			}
 		}
 	}
