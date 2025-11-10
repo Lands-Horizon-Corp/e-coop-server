@@ -810,8 +810,6 @@ func (c *Controller) accountController() {
 		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
 
-		fmt.Printf("DEBUG: After account updates - DefaultPaymentTypeID: %v\n", account.DefaultPaymentTypeID)
-
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -820,8 +818,6 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 		}
-
-		fmt.Printf("DEBUG: updates - DefaultPaymentTypeID: %v\n", account.DefaultPaymentTypeID)
 
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {

@@ -20,20 +20,28 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	t := reflect.TypeOf(new(TData)).Elem()
-	fieldNames := make([]string, 0)
+
+	// Store important field values before save to preserve them after reload
+	v := reflect.ValueOf(fields).Elem()
+	t := reflect.TypeOf(fields).Elem()
+	preservedValues := make(map[string]interface{})
+
+	// Identify foreign key fields that need to be preserved
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		if field.Name == "ID" {
-			continue
+		fieldValue := v.Field(i)
+
+		// Preserve UUID pointer fields (foreign keys) that are not nil
+		if field.Type.String() == "*uuid.UUID" && !fieldValue.IsNil() {
+			preservedValues[field.Name] = fieldValue.Interface()
 		}
-		fieldNames = append(fieldNames, field.Name)
 	}
-	// Perform update with explicit field selection
-	db := r.service.Database.Client().WithContext(context).Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
-	if err := db.Error; err != nil {
+
+	// Perform update with Save to trigger hooks
+	if err := r.service.Database.Client().WithContext(context).Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
+
 	// Reload with preloads
 	reloadDb := r.Client(context).Where("id = ?", id)
 	for _, preload := range preloads {
@@ -42,6 +50,15 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
 	}
+
+	// Restore preserved foreign key values after reload
+	v = reflect.ValueOf(fields).Elem()
+	for fieldName, value := range preservedValues {
+		if field := v.FieldByName(fieldName); field.IsValid() && field.CanSet() {
+			field.Set(reflect.ValueOf(value))
+		}
+	}
+
 	r.OnUpdate(context, fields)
 	return nil
 }
@@ -57,27 +74,45 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	t := reflect.TypeOf(new(TData)).Elem()
-	fieldNames := make([]string, 0)
+
+	// Store important field values before save to preserve them after reload
+	v := reflect.ValueOf(fields).Elem()
+	t := reflect.TypeOf(fields).Elem()
+	preservedValues := make(map[string]interface{})
+
+	// Identify foreign key fields that need to be preserved
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		if field.Name == "ID" {
-			continue
+		fieldValue := v.Field(i)
+
+		// Preserve UUID pointer fields (foreign keys) that are not nil
+		if field.Type.String() == "*uuid.UUID" && !fieldValue.IsNil() {
+			preservedValues[field.Name] = fieldValue.Interface()
 		}
-		fieldNames = append(fieldNames, field.Name)
 	}
-	// Perform update with explicit field selection
-	db := tx.Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
-	if err := db.Error; err != nil {
+
+	// Perform update with Save to trigger hooks
+	if err := tx.Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s in transaction", id)
 	}
-	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
+
+	// Reload with preloads
+	reloadDb := tx.Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
 	}
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after field update in transaction", id)
 	}
+
+	// Restore preserved foreign key values after reload
+	v = reflect.ValueOf(fields).Elem()
+	for fieldName, value := range preservedValues {
+		if field := v.FieldByName(fieldName); field.IsValid() && field.CanSet() {
+			field.Set(reflect.ValueOf(value))
+		}
+	}
+
 	r.OnUpdate(context, fields)
 	return nil
 }
