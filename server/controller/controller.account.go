@@ -812,6 +812,12 @@ func (c *Controller) accountController() {
 			fmt.Printf("DEBUG: Request DefaultPaymentTypeID value: %s\n", *req.DefaultPaymentTypeID)
 		}
 
+		// Debug logging - User organization default payment type
+		fmt.Printf("DEBUG: UserOrg SettingsPaymentTypeDefaultValueID: %v\n", userOrg.SettingsPaymentTypeDefaultValueID)
+		if userOrg.SettingsPaymentTypeDefaultValueID != nil {
+			fmt.Printf("DEBUG: UserOrg Default PaymentTypeID value: %s\n", *userOrg.SettingsPaymentTypeDefaultValueID)
+		}
+
 		// Debug logging - Account values before update
 		fmt.Printf("DEBUG: Before update - MemberTypeID: %v\n", account.MemberTypeID)
 		fmt.Printf("DEBUG: Before update - DefaultPaymentTypeID: %v\n", account.DefaultPaymentTypeID)
