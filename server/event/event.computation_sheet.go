@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -311,6 +312,7 @@ func (e *Event) ComputationSheetCalculator(
 
 		if i > 0 {
 			for j := range accountsSchedule {
+
 				// Create a new account entry for this period
 				periodAccounts[j] = &ComputationSheetAccountValue{
 					Account: accountsSchedule[j].Account,
@@ -386,6 +388,13 @@ func (e *Event) ComputationSheetCalculator(
 				}
 			}
 		}
+
+		// Sort accounts in desired order: Loan → Interest → SVF → Fines
+		sort.Slice(periodAccounts, func(i, j int) bool {
+			return getAccountTypePriority(
+				periodAccounts[i].Account.Type) <
+				getAccountTypePriority(periodAccounts[j].Account.Type)
+		})
 
 		// ✅ NOW append with period-specific accounts
 		switch lcscr.ModeOfPayment {
@@ -578,5 +587,22 @@ func (e *Event) convertAccountRequestToAccount(req *core.AccountRequest) core.Ac
 		CompassionFundAmount:                              req.CompassionFundAmount,
 		CashAndCashEquivalence:                            req.CashAndCashEquivalence,
 		InterestStandardComputation:                       req.InterestStandardComputation,
+	}
+}
+
+// getAccountTypePriority returns the sort priority for account types
+// Lower numbers = higher priority (sorted first)
+func getAccountTypePriority(accountType core.AccountType) int {
+	switch accountType {
+	case core.AccountTypeLoan:
+		return 1 // First
+	case core.AccountTypeInterest:
+		return 2 // Second
+	case core.AccountTypeSVFLedger:
+		return 3 // Third
+	case core.AccountTypeFines:
+		return 4 // Fourth (Last)
+	default:
+		return 5 // Everything else goes last
 	}
 }

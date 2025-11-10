@@ -2,10 +2,12 @@ package event
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 )
 
 type AccountValue struct {
@@ -122,14 +124,22 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 		if i > 0 {
 			for j := range accountsSchedule {
+				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
+					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
+					loanTransaction.BranchID, *loanTransaction.PrintedDate,
+				)
+				if err != nil {
+					return nil, eris.Wrapf(err, "error getting account history")
+				}
+
 				// Create a new account entry for this period
 				periodAccounts[j] = &AccountValue{
-					Account: accountsSchedule[j].Account,
+					Account: accountHistory,
 					Value:   0,                         // Will be calculated below
 					Total:   accountsSchedule[j].Total, // Carry over cumulative total
 				}
 
-				switch accountsSchedule[j].Account.Type {
+				switch accountHistory.Type {
 				case core.AccountTypeLoan:
 					// LOAN PRINCIPAL PAYMENT FORMULA:
 					// Payment Amount = Principal ÷ Number of Payments
@@ -145,15 +155,15 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 				case core.AccountTypeFines:
 					// FINES CALCULATION FORMULA:
-					if daysSkipped > 0 && !accountsSchedule[j].Account.NoGracePeriodDaily {
+					if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
 						periodAccounts[j].Value = e.usecase.ComputeFines(
 							principal,
-							accountsSchedule[j].Account.FinesAmort,
-							accountsSchedule[j].Account.FinesMaturity,
+							accountHistory.FinesAmort,
+							accountHistory.FinesMaturity,
 							daysSkipped,
 							loanTransaction.ModeOfPayment,
-							accountsSchedule[j].Account.NoGracePeriodDaily,
-							*accountsSchedule[j].Account,
+							accountHistory.NoGracePeriodDaily,
+							*accountHistory,
 						)
 
 						// Update cumulative total in original slice
@@ -164,24 +174,24 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 				default:
 					// INTEREST CALCULATION based on computation type
 					// Interest calculations...
-					switch accountsSchedule[j].Account.ComputationType {
+					switch accountHistory.ComputationType {
 					case core.Straight:
-						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
 					case core.Diminishing:
-						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
 					case core.DiminishingStraight:
-						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
@@ -194,15 +204,27 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
 			}
 		} else {
-			// First iteration (i=0), just copy the structure
 			for j := range accountsSchedule {
+				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
+					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
+					loanTransaction.BranchID, *loanTransaction.PrintedDate,
+				)
+				if err != nil {
+					return nil, eris.Wrapf(err, "error getting account history")
+				}
 				periodAccounts[j] = &AccountValue{
-					Account: accountsSchedule[j].Account,
+					Account: accountHistory,
 					Value:   0,
 					Total:   0,
 				}
 			}
 		}
+
+		sort.Slice(periodAccounts, func(i, j int) bool {
+			return getAccountTypePriority(
+				periodAccounts[i].Account.Type) <
+				getAccountTypePriority(periodAccounts[j].Account.Type)
+		})
 
 		// ✅ NOW append with period-specific accounts
 		switch loanTransaction.ModeOfPayment {

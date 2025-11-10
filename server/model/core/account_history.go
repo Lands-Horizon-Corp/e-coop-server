@@ -595,7 +595,7 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 func (m *Core) GetAccountHistoryLatestByTime(
 	ctx context.Context,
 	accountID, organizationID, branchID uuid.UUID,
-	asOfDate time.Time) (*AccountHistory, error) {
+	asOfDate time.Time) (*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
@@ -612,7 +612,7 @@ func (m *Core) GetAccountHistoryLatestByTime(
 	}
 
 	if len(histories) > 0 {
-		return histories[0], nil
+		return m.AccountHistoryToModel(histories[0]), nil
 	}
 
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
