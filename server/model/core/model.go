@@ -425,6 +425,9 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	if err := m.loanPurposeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return nil
 	}
+	if err := m.accountClassificationSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
 	if err := m.accountCategorySeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
