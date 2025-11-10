@@ -21,41 +21,10 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-
-	// Store important field values before save to preserve them after reload
-	v := reflect.ValueOf(fields).Elem()
-	t := reflect.TypeOf(fields).Elem()
-	preservedValues := make(map[string]interface{})
-
-	// Identify foreign key fields that need to be preserved
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		fieldValue := v.Field(i)
-
-		// Preserve all UUID pointer fields (foreign keys) - both nil and non-nil values
-		if field.Type.String() == "*uuid.UUID" {
-			if fieldValue.IsNil() {
-				preservedValues[field.Name] = (*uuid.UUID)(nil)
-			} else {
-				preservedValues[field.Name] = fieldValue.Interface()
-			}
-		}
-
-		// Preserve time.Time pointer fields (like TimeMachineTime)
-		if field.Type.String() == "*time.Time" {
-			if fieldValue.IsNil() {
-				preservedValues[field.Name] = (*interface{})(nil)
-			} else {
-				preservedValues[field.Name] = fieldValue.Interface()
-			}
-		}
-	}
-
 	// Perform update with explicit field selection
 	if err := r.Client(context).Where("id = ?", id).Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
-
 	// Reload with preloads
 	reloadDb := r.Client(context).Where("id = ?", id)
 	for _, preload := range preloads {
@@ -64,15 +33,6 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
 	}
-
-	// Restore preserved values after reload
-	v = reflect.ValueOf(fields).Elem()
-	for fieldName, value := range preservedValues {
-		if field := v.FieldByName(fieldName); field.IsValid() && field.CanSet() {
-			field.Set(reflect.ValueOf(value))
-		}
-	}
-
 	r.OnUpdate(context, fields)
 	return nil
 }
