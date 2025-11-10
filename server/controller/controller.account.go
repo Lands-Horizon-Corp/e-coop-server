@@ -827,6 +827,13 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 		}
+
+		// Debug logging after successful database update
+		fmt.Printf("[DEBUG] Account successfully updated in database\n")
+		fmt.Printf("[DEBUG] Account ID: %v\n", account.ID)
+		fmt.Printf("[DEBUG] Account Name: %s\n", account.Name)
+		fmt.Printf("[DEBUG] DefaultPaymentTypeID after DB update: %v\n", account.DefaultPaymentTypeID)
+
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {
 				tag := &core.AccountTag{
