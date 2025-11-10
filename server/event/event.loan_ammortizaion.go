@@ -163,40 +163,26 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 				default:
 					// INTEREST CALCULATION based on computation type
+					// Interest calculations...
 					switch accountsSchedule[j].Account.ComputationType {
 					case core.Straight:
-						// STRAIGHT LINE INTEREST FORMULA:
-						switch accountsSchedule[j].Account.Type {
-						case core.AccountTypeInterest:
+						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
 							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						case core.AccountTypeSVFLedger:
-							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
-
 					case core.Diminishing:
-						// DIMINISHING BALANCE INTEREST FORMULA:
-						switch accountsSchedule[j].Account.Type {
-						case core.AccountTypeInterest:
+						if accountsSchedule[j].Account.Type == core.AccountTypeInterest {
 							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						case core.AccountTypeSVFLedger:
-							// SVF LEDGER DIMINISHING - No calculation defined
-						}
 
-					case core.DiminishingStraight:
-						// DIMINISHING STRAIGHT INTEREST FORMULA:
-						switch accountsSchedule[j].Account.Type {
-						case core.AccountTypeInterest:
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
-						case core.AccountTypeSVFLedger:
+						}
+					case core.DiminishingStraight:
+						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
 							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
+
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
