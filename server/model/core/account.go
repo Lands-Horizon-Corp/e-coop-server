@@ -199,7 +199,7 @@ type (
 		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
 		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency,omitempty"`
 
-		DefaultPaymentTypeID *uuid.UUID   `gorm:"type:uuid" json:"default_payment_type_id,omitempty"`
+		DefaultPaymentTypeID *uuid.UUID   `gorm:"type:uuid" json:"default_payment_type_id"`
 		DefaultPaymentType   *PaymentType `gorm:"foreignKey:DefaultPaymentTypeID;constraint:OnDelete:SET NULL;" json:"default_payment_type,omitempty"`
 
 		Name        string `gorm:"type:varchar(255);not null;uniqueIndex:idx_account_name_org_branch" json:"name"`
@@ -3809,6 +3809,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		FinancialStatementDefinitionID: a.FinancialStatementDefinitionID,
 		AccountClassificationID:        a.AccountClassificationID,
 		AccountCategoryID:              a.AccountCategoryID,
+		DefaultPaymentTypeID:           a.DefaultPaymentTypeID,
 		MemberTypeID:                   a.MemberTypeID,
 		CurrencyID:                     a.CurrencyID,
 		ComputationSheetID:             a.ComputationSheetID,
@@ -3835,7 +3836,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntryAnnualAmortization: a.CohCibFinesGracePeriodEntryAnnualAmortization,
 		CohCibFinesGracePeriodEntryAnnualMaturity:     a.CohCibFinesGracePeriodEntryAnnualMaturity,
 		// Add DefaultPaymentTypeID
-		DefaultPaymentTypeID: a.DefaultPaymentTypeID,
+
 	}
 
 	// Save the history record

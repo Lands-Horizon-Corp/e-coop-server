@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/google/uuid"
@@ -20,28 +21,10 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-
-	// Store important field values before save to preserve them after reload
-	v := reflect.ValueOf(fields).Elem()
-	t := reflect.TypeOf(fields).Elem()
-	preservedValues := make(map[string]interface{})
-
-	// Identify foreign key fields that need to be preserved
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		fieldValue := v.Field(i)
-
-		// Preserve UUID pointer fields (foreign keys) that are not nil
-		if field.Type.String() == "*uuid.UUID" && !fieldValue.IsNil() {
-			preservedValues[field.Name] = fieldValue.Interface()
-		}
-	}
-
-	// Perform update with Save to trigger hooks
-	if err := r.service.Database.Client().WithContext(context).Save(fields).Error; err != nil {
+	// Perform update with explicit field selection
+	if err := r.service.Database.Client().WithContext(context).Where("id = ?", id).Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
-
 	// Reload with preloads
 	reloadDb := r.Client(context).Where("id = ?", id)
 	for _, preload := range preloads {
@@ -50,15 +33,6 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if err := reloadDb.First(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
 	}
-
-	// Restore preserved foreign key values after reload
-	v = reflect.ValueOf(fields).Elem()
-	for fieldName, value := range preservedValues {
-		if field := v.FieldByName(fieldName); field.IsValid() && field.CanSet() {
-			field.Set(reflect.ValueOf(value))
-		}
-	}
-
 	r.OnUpdate(context, fields)
 	return nil
 }
@@ -85,9 +59,14 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 		field := t.Field(i)
 		fieldValue := v.Field(i)
 
-		// Preserve UUID pointer fields (foreign keys) that are not nil
-		if field.Type.String() == "*uuid.UUID" && !fieldValue.IsNil() {
-			preservedValues[field.Name] = fieldValue.Interface()
+		// Preserve all UUID pointer fields (foreign keys) - both nil and non-nil values
+		if field.Type.String() == "*uuid.UUID" {
+			if fieldValue.IsNil() {
+				preservedValues[field.Name] = (*uuid.UUID)(nil)
+			} else {
+				preservedValues[field.Name] = fieldValue.Interface()
+			}
+			fmt.Printf("DEBUG: Preserving %s = %v\n", field.Name, preservedValues[field.Name])
 		}
 	}
 
@@ -109,6 +88,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	v = reflect.ValueOf(fields).Elem()
 	for fieldName, value := range preservedValues {
 		if field := v.FieldByName(fieldName); field.IsValid() && field.CanSet() {
+			fmt.Printf("DEBUG: Restoring %s = %v\n", fieldName, value)
 			field.Set(reflect.ValueOf(value))
 		}
 	}
