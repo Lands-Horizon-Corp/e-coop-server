@@ -725,14 +725,7 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = userOrg.UserOrgTime()
 		account.BranchID = *userOrg.BranchID
 		account.OrganizationID = userOrg.OrganizationID
-
-		// Debug logging for DefaultPaymentTypeID
-		fmt.Printf("[DEBUG] Request DefaultPaymentTypeID: %v\n", req.DefaultPaymentTypeID)
-		fmt.Printf("[DEBUG] Account DefaultPaymentTypeID before update: %v\n", account.DefaultPaymentTypeID)
-
 		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
-
-		fmt.Printf("[DEBUG] Account DefaultPaymentTypeID after assignment: %v\n", account.DefaultPaymentTypeID)
 		account.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
 		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
 		account.AccountClassificationID = req.AccountClassificationID
@@ -816,9 +809,6 @@ func (c *Controller) accountController() {
 		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
 		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 
-		// Debug logging just before database update
-		fmt.Printf("[DEBUG] Final DefaultPaymentTypeID before DB update: %v\n", account.DefaultPaymentTypeID)
-
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -827,12 +817,6 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 		}
-
-		// Debug logging after successful database update
-		fmt.Printf("[DEBUG] Account successfully updated in database\n")
-		fmt.Printf("[DEBUG] Account ID: %v\n", account.ID)
-		fmt.Printf("[DEBUG] Account Name: %s\n", account.Name)
-		fmt.Printf("[DEBUG] DefaultPaymentTypeID after DB update: %v\n", account.DefaultPaymentTypeID)
 
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {

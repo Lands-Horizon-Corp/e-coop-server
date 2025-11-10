@@ -3659,6 +3659,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		BranchID:       original.BranchID,
 		CreatedByID:    a.CreatedByID,
 		CreatedAt:      now,
+
 		// Copy all original data
 		Name:                                original.Name,
 		Description:                         original.Description,
