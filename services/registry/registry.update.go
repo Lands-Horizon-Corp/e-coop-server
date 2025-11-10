@@ -16,12 +16,22 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	fields *TData,
 	preloads ...string,
 ) error {
+
+	if preloads == nil {
+		preloads = r.preloads
+	}
 	// Perform update with explicit field selection
 	if err := r.service.Database.Client().WithContext(context).Where("id = ?", id).Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
-	// Note: Removed automatic reload as it was overwriting the updated object with stale data
-	// The fields object already contains the correct updated values
+	// Reload with preloads
+	reloadDb := r.Client(context).Where("id = ?", id)
+	for _, preload := range preloads {
+		reloadDb = reloadDb.Preload(preload)
+	}
+	if err := reloadDb.First(fields).Error; err != nil {
+		return eris.Wrapf(err, "failed to reload entity %s after field update", id)
+	}
 	r.OnUpdate(context, fields)
 	return nil
 }
