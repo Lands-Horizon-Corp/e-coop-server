@@ -22,7 +22,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 		preloads = r.preloads
 	}
 	// Perform update with explicit field selection using Update instead of Save
-	if err := r.Client(context).Where("id = ?", id).Updates(fields).Error; err != nil {
+	if err := r.Client(context).Where("id = ?", id).UpdateColumns(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s", id)
 	}
 	// Reload with preloads
