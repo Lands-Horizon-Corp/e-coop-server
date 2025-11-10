@@ -173,7 +173,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
 					case core.Diminishing:
-						if accountsSchedule[j].Account.Type == core.AccountTypeInterest {
+						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
 							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
