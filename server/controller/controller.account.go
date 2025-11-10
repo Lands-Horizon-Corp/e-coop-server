@@ -828,10 +828,6 @@ func (c *Controller) accountController() {
 			fmt.Printf("DEBUG: DefaultPaymentTypeID value: %s\n", *account.DefaultPaymentTypeID)
 		}
 
-		// Clear preloaded relation to avoid association overwriting foreign key on Save
-		// (GORM can use a non-nil DefaultPaymentType struct to set DefaultPaymentTypeID).
-		account.DefaultPaymentType = nil
-
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
