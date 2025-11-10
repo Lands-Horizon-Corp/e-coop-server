@@ -722,10 +722,17 @@ func (c *Controller) accountController() {
 		}
 
 		account.UpdatedByID = userOrg.UserID
-		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedAt = userOrg.UserOrgTime()
 		account.BranchID = *userOrg.BranchID
 		account.OrganizationID = userOrg.OrganizationID
+
+		// Debug logging for DefaultPaymentTypeID
+		fmt.Printf("[DEBUG] Request DefaultPaymentTypeID: %v\n", req.DefaultPaymentTypeID)
+		fmt.Printf("[DEBUG] Account DefaultPaymentTypeID before update: %v\n", account.DefaultPaymentTypeID)
+
 		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
+
+		fmt.Printf("[DEBUG] Account DefaultPaymentTypeID after assignment: %v\n", account.DefaultPaymentTypeID)
 		account.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
 		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
 		account.AccountClassificationID = req.AccountClassificationID
@@ -808,6 +815,9 @@ func (c *Controller) accountController() {
 		account.OtherDeductionEntry = req.OtherDeductionEntry
 		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
 		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
+
+		// Debug logging just before database update
+		fmt.Printf("[DEBUG] Final DefaultPaymentTypeID before DB update: %v\n", account.DefaultPaymentTypeID)
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
