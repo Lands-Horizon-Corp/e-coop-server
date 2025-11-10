@@ -730,6 +730,8 @@ func (c *Controller) accountController() {
 		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
 		account.AccountClassificationID = req.AccountClassificationID
 		account.AccountCategoryID = req.AccountCategoryID
+		account.MemberTypeID = req.MemberTypeID
+		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
 
 		account.Name = req.Name
 		account.Description = req.Description
@@ -808,8 +810,6 @@ func (c *Controller) accountController() {
 		account.OtherDeductionEntry = req.OtherDeductionEntry
 		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
 		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
-		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
-		account.MemberTypeID = req.MemberTypeID
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
