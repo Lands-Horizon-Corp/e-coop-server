@@ -1497,187 +1497,180 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	var cashOnHandPaymentType *PaymentType
 
 	// If Cash On Hand payment type doesn't exist, create it
-	if cashOnHandPaymentType == nil {
-		cashOnHandPaymentType = &PaymentType{
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cash On Hand",
-			Description:    "Cash available at the branch for immediate use.",
-			Type:           PaymentTypeCash,
-			NumberOfDays:   0,
-		}
-
-		if err := m.PaymentTypeManager.CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
-			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
-		}
-
-		// Set this payment type as the default in user organization settings
-		userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
-			UserID:         userID,
-			OrganizationID: organizationID,
-			BranchID:       &branchID,
-		})
-		if err != nil {
-			return eris.Wrap(err, "failed to find user organization for setting default payment type")
-		}
-		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
-		if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-			return eris.Wrap(err, "failed to update user organization with default payment type")
-		}
-
-		// Create additional payment types
-		paymentTypes := []*PaymentType{
-			// Cash types
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Forward Cash On Hand",
-				Description:    "Physical cash received and forwarded for transactions.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Petty Cash",
-				Description:    "Small amount of cash for minor expenses.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
-			},
-			// Online types
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "E-Wallet",
-				Description:    "Digital wallet for online payments.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "E-Bank",
-				Description:    "Online banking transfer.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "GCash",
-				Description:    "GCash mobile wallet payment.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			// Check/Bank types
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Cheque",
-				Description:    "Payment via cheque/check.",
-				NumberOfDays:   3,
-				Type:           PaymentTypeCheck,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Bank Transfer",
-				Description:    "Direct bank-to-bank transfer.",
-				NumberOfDays:   1,
-				Type:           PaymentTypeCheck,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Manager's Check",
-				Description:    "Bank-issued check for secure payments.",
-				NumberOfDays:   2,
-				Type:           PaymentTypeCheck,
-			},
-			// Adjustment types
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Manual Adjustment",
-				Description:    "Manual adjustments for corrections and reconciliation.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Adjustment Entry",
-				Description:    "Manual adjustments for corrections and reconciliation.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
-			},
-		}
-
-		for _, data := range paymentTypes {
-			if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
-				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
-			}
-		}
-	}
-
-	cashOnHand := &Account{
+	cashOnHandPaymentType = &PaymentType{
 		CreatedAt:      now,
 		CreatedByID:    userID,
 		UpdatedAt:      now,
 		UpdatedByID:    userID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,
-		CurrencyID:     &currency.ID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		Name:           "Cash On Hand",
+		Description:    "Cash available at the branch for immediate use.",
+		Type:           PaymentTypeCash,
+		NumberOfDays:   0,
+	}
+
+	if err := m.PaymentTypeManager.CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+		return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+	}
+
+	// Set this payment type as the default in user organization settings
+	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for setting default payment type")
+	}
+	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+	if err := m.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default payment type")
+	}
+
+	// Create additional payment types
+	paymentTypes := []*PaymentType{
+		// Cash types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Forward Cash On Hand",
+			Description:    "Physical cash received and forwarded for transactions.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Petty Cash",
+			Description:    "Small amount of cash for minor expenses.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		// Online types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Wallet",
+			Description:    "Digital wallet for online payments.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Bank",
+			Description:    "Online banking transfer.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "GCash",
+			Description:    "GCash mobile wallet payment.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		// Check/Bank types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cheque",
+			Description:    "Payment via cheque/check.",
+			NumberOfDays:   3,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bank Transfer",
+			Description:    "Direct bank-to-bank transfer.",
+			NumberOfDays:   1,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manager's Check",
+			Description:    "Bank-issued check for secure payments.",
+			NumberOfDays:   2,
+			Type:           PaymentTypeCheck,
+		},
+		// Adjustment types
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manual Adjustment",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Adjustment Entry",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
+		},
+	}
+
+	for _, data := range paymentTypes {
+		if err := m.PaymentTypeManager.CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
+		}
+	}
+
+	cashOnHand := &Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		CurrencyID:                              &currency.ID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Cash on Hand",
 		Icon:                                    "Hand Coins",
 		Description:                             "Physical cash available at the branch for daily operations and transactions.",
@@ -1707,19 +1700,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash in Bank Account
 	cashInBank := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		CurrencyID:     &currency.ID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		CurrencyID:                              &currency.ID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Cash in Bank",
 		Icon:                                    "Bank",
 		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
@@ -1748,18 +1736,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash Online Account (Digital Wallets, Online Banking)
 	cashOnline := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Cash Online",
 		Icon:                                    "Smartphone",
 		Description:                             "Digital funds available through online banking platforms and digital wallets.",
@@ -1789,18 +1772,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Petty Cash Account
 	pettyCash := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Petty Cash",
 		Icon:                                    "Wallet",
 		Description:                             "Small amount of cash kept on hand for minor expenses and incidental purchases.",
@@ -1830,18 +1808,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash in Transit Account
 	cashInTransit := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Cash in Transit",
 		Icon:                                    "Running",
 		Description:                             "Cash deposits or transfers that are in process but not yet cleared or posted.",
@@ -1871,18 +1844,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Foreign Currency Cash Account
 	foreignCurrencyCash := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Foreign Currency Cash",
 		Icon:                                    "Globe Asia",
 		Description:                             "Cash holdings in foreign currencies for international transactions and exchange.",
@@ -1912,18 +1880,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Cash Equivalents - Money Market Account
 	moneyMarketFund := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Money Market Fund",
 		Icon:                                    "Chart Bar",
 		Description:                             "Short-term, highly liquid investments that can be quickly converted to cash.",
@@ -1953,18 +1916,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	// Treasury Bills (Short-term)
 	treasuryBills := &Account{
-		CreatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedAt:      now,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		DefaultPaymentTypeID: func() *uuid.UUID {
-			if cashOnHandPaymentType != nil {
-				return &cashOnHandPaymentType.ID
-			}
-			return nil
-		}(),
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
 		Name:                                    "Treasury Bills",
 		Icon:                                    "Document File Fill",
 		Description:                             "Short-term government securities with maturity of less than one year.",
@@ -3648,7 +3606,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
 	// Set default accounting accounts for user organization
-	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
+	userOrganization, err = m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,

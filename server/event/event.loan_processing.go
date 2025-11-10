@@ -1,5 +1,5 @@
 package event
 
-func (e *Event) LoanProcessing() error {
-	return nil
-}
+import "github.com/google/uuid"
+
+func (e *Event) LoanProcessing(loanTransactionID uuid.UUID) 
