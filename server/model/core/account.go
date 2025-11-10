@@ -1496,6 +1496,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	// Create essential payment types for account seeding
 	var cashOnHandPaymentType *PaymentType
 
+	// Try to find existing Cash On Hand payment type
+	cashOnHandPaymentType, _ = m.PaymentTypeManager.FindOne(context, &PaymentType{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Cash On Hand",
+	})
+
 	// If Cash On Hand payment type doesn't exist, create it
 	if cashOnHandPaymentType == nil {
 		cashOnHandPaymentType = &PaymentType{
