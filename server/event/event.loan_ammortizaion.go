@@ -126,7 +126,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
 					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
-					loanTransaction.BranchID, *loanTransaction.PrintedDate,
+					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {
 					return nil, eris.Wrapf(err, "error getting account history")
@@ -207,7 +207,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
 					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
-					loanTransaction.BranchID, *loanTransaction.PrintedDate,
+					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {
 					return nil, eris.Wrapf(err, "error getting account history")

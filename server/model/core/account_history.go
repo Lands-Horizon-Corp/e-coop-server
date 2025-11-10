@@ -595,7 +595,11 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 func (m *Core) GetAccountHistoryLatestByTime(
 	ctx context.Context,
 	accountID, organizationID, branchID uuid.UUID,
-	asOfDate time.Time) (*Account, error) {
+	asOfDate *time.Time) (*Account, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
