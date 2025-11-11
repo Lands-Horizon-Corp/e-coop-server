@@ -10,6 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type GeneratedReportType string
+
+const (
+	GeneratedReportTypePDF   GeneratedReportType = "pdf"
+	GeneratedReportTypeExcel GeneratedReportType = "excel"
+)
+
 type (
 	// GeneratedReport represents the GeneratedReport model.
 	GeneratedReport struct {
@@ -28,20 +35,21 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_generated_report"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserID            *uuid.UUID `gorm:"type:uuid"`
-		User              *User      `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
-		MediaID           *uuid.UUID `gorm:"type:uuid;not null"`
-		Media             *Media     `gorm:"foreignKey:MediaID"`
-		Name              string     `gorm:"type:varchar(255);not null"`
-		Description       string     `gorm:"type:text;not null"`
-		Status            string     `gorm:"type:varchar(50);not null"`
-		Progress          float64    `gorm:"not null"`
-		FilterSearch      string     `gorm:"type:text" json:"filter_search,omitempty"`
-		IsFavorite        bool       `gorm:"type:boolean;default:false" json:"is_favorite"`
-		Model             string     `gorm:"type:varchar(255)" json:"model,omitempty"`
-		DownloadSpeedKB   float64    `gorm:"type:decimal;default:0" json:"download_speed_kb"`
-		ReportSizeBytes   int64      `gorm:"type:bigint;default:0" json:"report_size_bytes"`
-		CurrentDownloaded int64      `gorm:"type:bigint;default:0" json:"current_downloaded"`
+		UserID              *uuid.UUID          `gorm:"type:uuid"`
+		User                *User               `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
+		MediaID             *uuid.UUID          `gorm:"type:uuid;not null"`
+		Media               *Media              `gorm:"foreignKey:MediaID"`
+		Name                string              `gorm:"type:varchar(255);not null"`
+		Description         string              `gorm:"type:text;not null"`
+		Status              string              `gorm:"type:varchar(50);not null"`
+		Progress            float64             `gorm:"not null"`
+		FilterSearch        string              `gorm:"type:text" json:"filter_search,omitempty"`
+		IsFavorite          bool                `gorm:"type:boolean;default:false" json:"is_favorite"`
+		Model               string              `gorm:"type:varchar(255)" json:"model,omitempty"`
+		DownloadSpeedKB     float64             `gorm:"type:decimal;default:0" json:"download_speed_kb"`
+		ReportSizeBytes     int64               `gorm:"type:bigint;default:0" json:"report_size_bytes"`
+		CurrentDownloaded   int64               `gorm:"type:bigint;default:0" json:"current_downloaded"`
+		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsers `gorm:"foreignKey:GeneratedReportID" json:"download_users,omitempty"`
@@ -49,17 +57,18 @@ type (
 
 	// GeneratedReportResponse represents the response structure for generatedreport data
 	GeneratedReportResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
+		ID                  uuid.UUID             `json:"id"`
+		CreatedAt           string                `json:"created_at"`
+		CreatedByID         uuid.UUID             `json:"created_by_id"`
+		CreatedBy           *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt           string                `json:"updated_at"`
+		UpdatedByID         uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy           *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID      uuid.UUID             `json:"organization_id"`
+		Organization        *OrganizationResponse `json:"organization,omitempty"`
+		BranchID            uuid.UUID             `json:"branch_id"`
+		Branch              *BranchResponse       `json:"branch,omitempty"`
+		GeneratedReportType GeneratedReportType   `json:"generated_report_type"`
 
 		UserID            *uuid.UUID     `json:"user_id"`
 		User              *UserResponse  `json:"user"`
@@ -91,6 +100,11 @@ type (
 		ReportSizeBytes   int64      `json:"report_size_bytes,omitempty"`
 		CurrentDownloaded int64      `json:"current_downloaded,omitempty"`
 	}
+
+	GeneratedReportAvailableModelsResponse struct {
+		Model string `json:"model"`
+		Count int    `json:"count"`
+	}
 )
 
 func (m *Core) generatedReport() {
@@ -113,17 +127,18 @@ func (m *Core) generatedReport() {
 				return nil
 			}
 			return &GeneratedReportResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				ID:                  data.ID,
+				GeneratedReportType: data.GeneratedReportType,
+				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:         data.CreatedByID,
+				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:         data.UpdatedByID,
+				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:      data.OrganizationID,
+				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				BranchID:            data.BranchID,
+				Branch:              m.BranchManager.ToModel(data.Branch),
 
 				UserID:            data.UserID,
 				User:              m.UserManager.ToModel(data.User),
@@ -171,17 +186,15 @@ func (m *Core) generatedReport() {
 	})
 }
 
-// GetGenerationReportByUser retrieves generated reports for a specific user
-func (m *Core) GetGenerationReportByUser(context context.Context, userID uuid.UUID) ([]*GeneratedReport, error) {
-	return m.GeneratedReportManager.Find(context, &GeneratedReport{
-		UserID: &userID,
-	})
-}
-
-// GeneratedReportCurrentBranch gets generated reports for the current branch
-func (m *Core) GeneratedReportCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReport, error) {
-	return m.GeneratedReportManager.Find(context, &GeneratedReport{
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-	})
+func (e *Core) GeneratedReportAvailableModels(context context.Context, organizationID, branchID uuid.UUID) ([]GeneratedReportAvailableModelsResponse, error) {
+	var results []GeneratedReportAvailableModelsResponse
+	err := e.GeneratedReportManager.Client(context).
+		Select("model, COUNT(*) as count").
+		Where("organization_id = ? AND branch_id = ?", organizationID, branchID).
+		Group("model").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }

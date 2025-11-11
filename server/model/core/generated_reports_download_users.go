@@ -1,7 +1,6 @@
 package core
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -121,27 +120,5 @@ func (m *Core) generatedReportsDownloadUsers() {
 				fmt.Sprintf("generated_reports_download_users.delete.generated_report.%s", data.GeneratedReportID),
 			}
 		},
-	})
-}
-
-// GeneratedReportsDownloadUsersCurrentBranch retrieves all generated reports download users associated with the specified organization and branch.
-func (m *Core) GeneratedReportsDownloadUsersCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedReportsDownloadUsers, error) {
-	return m.GeneratedReportsDownloadUsersManager.Find(context, &GeneratedReportsDownloadUsers{
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-	})
-}
-
-// GetGeneratedReportsDownloadUsersByUserOrganization retrieves generated reports download users by user organization
-func (m *Core) GetGeneratedReportsDownloadUsersByUserOrganization(context context.Context, userOrganizationID uuid.UUID) ([]*GeneratedReportsDownloadUsers, error) {
-	return m.GeneratedReportsDownloadUsersManager.Find(context, &GeneratedReportsDownloadUsers{
-		UserOrganizationID: userOrganizationID,
-	})
-}
-
-// GetGeneratedReportsDownloadUsersByGeneratedReport retrieves generated reports download users by generated report ID
-func (m *Core) GetGeneratedReportsDownloadUsersByGeneratedReport(context context.Context, generatedReportID uuid.UUID) ([]*GeneratedReportsDownloadUsers, error) {
-	return m.GeneratedReportsDownloadUsersManager.Find(context, &GeneratedReportsDownloadUsers{
-		GeneratedReportID: generatedReportID,
 	})
 }
