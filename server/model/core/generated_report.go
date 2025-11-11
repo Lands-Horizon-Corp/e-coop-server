@@ -55,6 +55,7 @@ type (
 		FilterSearch string `gorm:"type:text" json:"filter_search,omitempty"`
 		IsFavorite   bool   `gorm:"type:boolean;default:false" json:"is_favorite"`
 		Model        string `gorm:"type:varchar(255)" json:"model,omitempty"`
+		URL          string `gorm:"type:text" json:"url,omitempty"`
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
@@ -90,6 +91,7 @@ type (
 		Status      GeneratedReportStatus `json:"status"`
 		IsFavorite  bool                  `json:"is_favorite"`
 		Model       string                `json:"model,omitempty"`
+		URL         string                `json:"url,omitempty"`
 
 		// Progress tracking fields
 		TotalItems          int `json:"total_items,omitempty"`
@@ -104,6 +106,7 @@ type (
 		Name         string `json:"name" validate:"required,min=1,max=255"`
 		Description  string `json:"description" validate:"required,min=1"`
 		FilterSearch string `json:"filter_search,omitempty"`
+		URL          string `json:"url,omitempty"`
 		Model        string `json:"model,omitempty"`
 	}
 
@@ -160,6 +163,7 @@ func (m *Core) generatedReport() {
 				Status:              data.Status,
 				IsFavorite:          data.IsFavorite,
 				Model:               data.Model,
+				URL:                 data.URL,
 				TotalItems:          data.TotalItems,
 				TotalItemsProcessed: data.TotalItemsProcessed,
 				DownloadUsers:       m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),

@@ -41,7 +41,6 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-
 		if user.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -64,6 +63,7 @@ func (c *Controller) generatedReports() {
 			TotalItems:          0,
 			TotalItemsProcessed: 0,
 			Status:              core.GeneratedReportStatusPending,
+			URL:                 req.URL,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {

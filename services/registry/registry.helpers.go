@@ -65,6 +65,44 @@ func parseSort(ctx echo.Context) ([]filter.SortField, error) {
 	return sortFields, nil
 }
 
+// parseString extracts and validates a string parameter from query params
+func parseString(ctx echo.Context, paramName string) (string, error) {
+	param := ctx.QueryParam(paramName)
+	if param == "" {
+		return "", nil
+	}
+
+	// URL decode the parameter
+	decodedParam, err := url.QueryUnescape(param)
+	if err != nil {
+		return "", eris.Wrapf(err, "failed to unescape %s parameter", paramName)
+	}
+
+	return decodedParam, nil
+}
+
+// parseStringBase64 extracts and decodes a base64 encoded string parameter
+func parseStringBase64(ctx echo.Context, paramName string) (string, error) {
+	param := ctx.QueryParam(paramName)
+	if param == "" {
+		return "", nil
+	}
+
+	// URL decode first
+	decodedParam, err := url.QueryUnescape(param)
+	if err != nil {
+		return "", eris.Wrapf(err, "failed to unescape %s parameter", paramName)
+	}
+
+	// Base64 decode
+	stringBytes, err := base64.StdEncoding.DecodeString(decodedParam)
+	if err != nil {
+		return "", eris.Wrapf(err, "failed to base64 decode %s parameter", paramName)
+	}
+
+	return string(stringBytes), nil
+}
+
 // parsePageSize extracts and validates page size parameter
 func parsePageSize(ctx echo.Context) (int, error) {
 	pageSize, err := strconv.Atoi(ctx.QueryParam("pageSize"))
