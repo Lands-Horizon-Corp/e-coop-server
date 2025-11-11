@@ -50,20 +50,18 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReport := &core.GeneratedReport{
-			Name:                req.Name,
-			Description:         req.Description,
-			FilterSearch:        req.FilterSearch,
-			Model:               req.Model,
-			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
-			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
-			TotalItems:          0,
-			TotalItemsProcessed: 0,
-			Status:              core.GeneratedReportStatusPending,
-			URL:                 req.URL,
+			Name:           req.Name,
+			Description:    req.Description,
+			FilterSearch:   req.FilterSearch,
+			Model:          req.Model,
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+			Status:         core.GeneratedReportStatusPending,
+			URL:            req.URL,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {

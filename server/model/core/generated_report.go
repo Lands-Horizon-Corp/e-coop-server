@@ -60,10 +60,6 @@ type (
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
-		// Progress tracking fields
-		TotalItems          int `gorm:"type:integer;default:0" json:"total_items,omitempty"`
-		TotalItemsProcessed int `gorm:"type:integer;default:0" json:"total_items_processed,omitempty"`
-
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsers `gorm:"foreignKey:GeneratedReportID" json:"download_users,omitempty"`
 	}
@@ -94,10 +90,6 @@ type (
 		Model         string                `json:"model,omitempty"`
 		URL           string                `json:"url,omitempty"`
 		SystemMessage string                `json:"system_message,omitempty"`
-
-		// Progress tracking fields
-		TotalItems          int `json:"total_items,omitempty"`
-		TotalItemsProcessed int `json:"total_items_processed,omitempty"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsersResponse `json:"download_users,omitempty"`
@@ -166,9 +158,8 @@ func (m *Core) generatedReport() {
 				IsFavorite:          data.IsFavorite,
 				Model:               data.Model,
 				URL:                 data.URL,
-				TotalItems:          data.TotalItems,
-				TotalItemsProcessed: data.TotalItemsProcessed,
-				DownloadUsers:       m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
+
+				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}
 		},
 		Created: func(data *GeneratedReport) []string {
