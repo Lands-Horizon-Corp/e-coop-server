@@ -97,11 +97,12 @@ type (
 
 	// GeneratedReportRequest represents the request structure for GeneratedReport.
 	GeneratedReportRequest struct {
-		Name         string `json:"name" validate:"required,min=1,max=255"`
-		Description  string `json:"description" validate:"required,min=1"`
-		FilterSearch string `json:"filter_search,omitempty"`
-		URL          string `json:"url,omitempty"`
-		Model        string `json:"model,omitempty"`
+		Name                string              `json:"name" validate:"required,min=1,max=255"`
+		Description         string              `json:"description" validate:"required,min=1"`
+		FilterSearch        string              `json:"filter_search,omitempty"`
+		URL                 string              `json:"url,omitempty"`
+		Model               string              `json:"model,omitempty"`
+		GeneratedReportType GeneratedReportType `json:"generated_report_type" validate:"required,oneof=pdf excel"`
 	}
 
 	GeneratedReportUpdateRequest struct {
