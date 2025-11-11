@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/rotisserie/eris"
 )
 
@@ -21,6 +22,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
 		err := e.processReportGeneration(ctx, generatedReport)
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
+
 		if getErr != nil {
 			return
 		}
@@ -31,7 +33,6 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 		e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
 	}()
-
 	return generatedReport, nil
 }
 
@@ -42,5 +43,13 @@ func (e *Event) processReportGeneration(ctx context.Context, generatedReport *co
 	// 1. base 64 to real value
 	// 2. fetch SQL
 	// 3. procession to excel
+	switch generatedReport.GeneratedReportType {
+	case core.GeneratedReportTypeExcel:
+		extractor := handlers.NewRouteHandlerExtractor(generatedReport.URL)
+		extractor.MatchableRoute(func(param ...string) {
+
+		}, "/api/v1/bank/search")
+	case core.GeneratedReportTypePDF:
+	}
 	return nil
 }
