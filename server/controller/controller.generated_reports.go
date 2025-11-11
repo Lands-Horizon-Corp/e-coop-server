@@ -62,7 +62,7 @@ func (c *Controller) generatedReports() {
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
 		}
-		data, err := c.event.GeneratedReportDownload(context, ctx, generatedReport)
+		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-success",
