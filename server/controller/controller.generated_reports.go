@@ -161,7 +161,7 @@ func (c *Controller) generatedReports() {
 			Description: "Updated generated report (/generated-report/:generated_report_id): " + generatedReport.Name,
 			Module:      "GeneratedReport",
 		})
-		return nil
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
 
 	// POST /api/v1/generated-report/download-user
