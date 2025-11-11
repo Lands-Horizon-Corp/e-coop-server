@@ -42,7 +42,11 @@ type (
 		DownloadSpeedKB   float64    `gorm:"type:decimal;default:0" json:"download_speed_kb"`
 		ReportSizeBytes   int64      `gorm:"type:bigint;default:0" json:"report_size_bytes"`
 		CurrentDownloaded int64      `gorm:"type:bigint;default:0" json:"current_downloaded"`
+
+		// One-to-many relationship with GeneratedReportsDownloadUsers
+		DownloadUsers []*GeneratedReportsDownloadUsers `gorm:"foreignKey:GeneratedReportID" json:"download_users,omitempty"`
 	}
+
 	// GeneratedReportResponse represents the response structure for generatedreport data
 	GeneratedReportResponse struct {
 		ID             uuid.UUID             `json:"id"`
@@ -70,6 +74,9 @@ type (
 		DownloadSpeedKB   float64        `json:"download_speed_kb"`
 		ReportSizeBytes   int64          `json:"report_size_bytes"`
 		CurrentDownloaded int64          `json:"current_downloaded"`
+
+		// One-to-many relationship with GeneratedReportsDownloadUsers
+		DownloadUsers []*GeneratedReportsDownloadUsersResponse `json:"download_users,omitempty"`
 	}
 
 	// GeneratedReportRequest represents the request structure for GeneratedReport.
@@ -89,8 +96,18 @@ type (
 func (m *Core) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
 	m.GeneratedReportManager = *registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "User", "Media"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+			"User",
+			"Media",
+			"DownloadUsers",
+			"DownloadUsers.UserOrganization",
+			"DownloadUsers.UserOrganization.User.Media",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
 			if data == nil {
 				return nil
@@ -121,6 +138,7 @@ func (m *Core) generatedReport() {
 				DownloadSpeedKB:   data.DownloadSpeedKB,
 				ReportSizeBytes:   data.ReportSizeBytes,
 				CurrentDownloaded: data.CurrentDownloaded,
+				DownloadUsers:     m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}
 		},
 		Created: func(data *GeneratedReport) []string {
