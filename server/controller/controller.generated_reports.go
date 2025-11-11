@@ -66,8 +66,8 @@ func (c *Controller) generatedReports() {
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-success",
-				Description: "Created generated report (/generated-report): " + generatedReport.Name,
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), download error: " + err.Error(),
 				Module:      "GeneratedReport",
 			})
 		}
