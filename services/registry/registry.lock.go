@@ -62,37 +62,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindWithSQLLock(
 	// Apply locking
 	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
 
-	for _, f := range filters {
-		switch f.Op {
-		case OpEq:
-			tx = tx.Where(fmt.Sprintf("%s = ?", f.Field), f.Value)
-		case OpGt:
-			tx = tx.Where(fmt.Sprintf("%s > ?", f.Field), f.Value)
-		case OpGte:
-			tx = tx.Where(fmt.Sprintf("%s >= ?", f.Field), f.Value)
-		case OpLt:
-			tx = tx.Where(fmt.Sprintf("%s < ?", f.Field), f.Value)
-		case OpLte:
-			tx = tx.Where(fmt.Sprintf("%s <= ?", f.Field), f.Value)
-		case OpNe:
-			tx = tx.Where(fmt.Sprintf("%s <> ?", f.Field), f.Value)
-		case OpIn:
-			tx = tx.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
-		case OpNotIn:
-			tx = tx.Where(fmt.Sprintf("%s NOT IN (?)", f.Field), f.Value)
-		case OpLike:
-			tx = tx.Where(fmt.Sprintf("%s LIKE ?", f.Field), f.Value)
-		case OpILike:
-			// Case-insensitive LIKE
-			tx = tx.Where(fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", f.Field), f.Value)
-		case OpIsNull:
-			tx = tx.Where(fmt.Sprintf("%s IS NULL", f.Field))
-		case OpNotNull:
-			tx = tx.Where(fmt.Sprintf("%s IS NOT NULL", f.Field))
-		default:
-			tx = tx.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
-		}
-	}
+	tx = r.applySQLFilters(tx, filters)
 
 	for _, preload := range preloads {
 		tx = tx.Preload(preload)

@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/labstack/echo/v4"
@@ -122,36 +121,7 @@ func (r *Registry[TData, TResponse, TRequest]) PaginationWithSQL(
 	db := r.Client(context)
 
 	// Apply filters as preset conditions
-	for _, f := range filters {
-		switch f.Op {
-		case OpEq:
-			db = db.Where(fmt.Sprintf("%s = ?", f.Field), f.Value)
-		case OpGt:
-			db = db.Where(fmt.Sprintf("%s > ?", f.Field), f.Value)
-		case OpGte:
-			db = db.Where(fmt.Sprintf("%s >= ?", f.Field), f.Value)
-		case OpLt:
-			db = db.Where(fmt.Sprintf("%s < ?", f.Field), f.Value)
-		case OpLte:
-			db = db.Where(fmt.Sprintf("%s <= ?", f.Field), f.Value)
-		case OpNe:
-			db = db.Where(fmt.Sprintf("%s <> ?", f.Field), f.Value)
-		case OpIn:
-			db = db.Where(fmt.Sprintf("%s IN (?)", f.Field), f.Value)
-		case OpNotIn:
-			db = db.Where(fmt.Sprintf("%s NOT IN (?)", f.Field), f.Value)
-		case OpLike:
-			db = db.Where(fmt.Sprintf("%s LIKE ?", f.Field), f.Value)
-		case OpILike:
-			db = db.Where(fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", f.Field), f.Value)
-		case OpIsNull:
-			db = db.Where(fmt.Sprintf("%s IS NULL", f.Field))
-		case OpNotNull:
-			db = db.Where(fmt.Sprintf("%s IS NOT NULL", f.Field))
-		default:
-			db = db.Where(fmt.Sprintf("%s %s ?", f.Field, f.Op), f.Value)
-		}
-	}
+	db = r.applySQLFilters(db, filters)
 
 	// Convert sorts to filter.SortField format
 	filterSorts := make([]filter.SortField, len(sorts))

@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
 )
 
 // parseFilters decodes and validates filter parameters
@@ -206,4 +207,39 @@ func parseUUIDArrayFromQuery(query string) ([]uuid.UUID, bool) {
 		uuids = append(uuids, parsedUUID)
 	}
 	return uuids, true
+}
+
+// applySQLFilters safely applies FilterSQL conditions to the database query
+func (r *Registry[TData, TResponse, TRequest]) applySQLFilters(db *gorm.DB, filters []FilterSQL) *gorm.DB {
+	for _, f := range filters {
+
+		// Use GORM's safe query methods instead of string formatting
+		switch f.Op {
+		case OpEq:
+			db = db.Where(f.Field+" = ?", f.Value)
+		case OpGt:
+			db = db.Where(f.Field+" > ?", f.Value)
+		case OpGte:
+			db = db.Where(f.Field+" >= ?", f.Value)
+		case OpLt:
+			db = db.Where(f.Field+" < ?", f.Value)
+		case OpLte:
+			db = db.Where(f.Field+" <= ?", f.Value)
+		case OpNe:
+			db = db.Where(f.Field+" <> ?", f.Value)
+		case OpIn:
+			db = db.Where(f.Field+" IN (?)", f.Value)
+		case OpNotIn:
+			db = db.Where(f.Field+" NOT IN (?)", f.Value)
+		case OpLike:
+			db = db.Where(f.Field+" LIKE ?", f.Value)
+		case OpILike:
+			db = db.Where("LOWER("+f.Field+") LIKE LOWER(?)", f.Value)
+		case OpIsNull:
+			db = db.Where(f.Field + " IS NULL")
+		case OpNotNull:
+			db = db.Where(f.Field + " IS NOT NULL")
+		}
+	}
+	return db
 }
