@@ -12,6 +12,8 @@ import (
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
+	// =======================================[FILTERED]==========================================================
+
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
@@ -263,6 +265,232 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve available generated report models"})
 		}
 		return ctx.JSON(http.StatusOK, models)
+	})
+
+	// GET /api/v1/generated-report/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated reports by model.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+			Model:          model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/me/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/me/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated reports by model for current user logged in.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+			CreatedByID:    user.UserID,
+			Model:          model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/pdf/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/pdf/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated PDF reports by model.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:            *user.BranchID,
+			OrganizationID:      user.OrganizationID,
+			GeneratedReportType: core.GeneratedReportTypePDF,
+			Model:               model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/me/pdf/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/me/pdf/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated PDF reports by model for current user logged in.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:            *user.BranchID,
+			OrganizationID:      user.OrganizationID,
+			CreatedByID:         user.UserID,
+			GeneratedReportType: core.GeneratedReportTypePDF,
+			Model:               model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/excel/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/excel/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated Excel reports by model.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:            *user.BranchID,
+			OrganizationID:      user.OrganizationID,
+			GeneratedReportType: core.GeneratedReportTypeExcel,
+			Model:               model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/me/excel/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/me/excel/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search generated Excel reports by model for current user logged in.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:            *user.BranchID,
+			OrganizationID:      user.OrganizationID,
+			CreatedByID:         user.UserID,
+			GeneratedReportType: core.GeneratedReportTypeExcel,
+			Model:               model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/favorites/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/favorites/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search favorite generated reports by model.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+			IsFavorite:     true,
+			Model:          model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
+	})
+
+	// GET /api/v1/generated-report/me/favorites/model/:model/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/me/favorites/model/:model/search",
+		Method:       "GET",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Search favorite generated reports by model for current user logged in.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		model := ctx.Param("model")
+		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+			CreatedByID:    user.UserID,
+			IsFavorite:     true,
+			Model:          model,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
 }
