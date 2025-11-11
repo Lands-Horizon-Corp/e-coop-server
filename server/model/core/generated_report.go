@@ -46,7 +46,7 @@ type (
 
 		UserID        *uuid.UUID            `gorm:"type:uuid"`
 		User          *User                 `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
-		MediaID       *uuid.UUID            `gorm:"type:uuid;not null"`
+		MediaID       *uuid.UUID            `gorm:"type:uuid"`
 		Media         *Media                `gorm:"foreignKey:MediaID"`
 		Name          string                `gorm:"type:varchar(255);not null"`
 		Description   string                `gorm:"type:text;not null"`
