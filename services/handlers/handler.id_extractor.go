@@ -5,36 +5,39 @@ import (
 	"strings"
 )
 
-type RouteHandlerExtractor struct {
+type RouteHandlerExtractor[T any] struct {
 	URL string
 }
 
 // Constructor
-func NewRouteHandlerExtractor(url string) *RouteHandlerExtractor {
-	return &RouteHandlerExtractor{URL: url}
+func NewRouteHandlerExtractor[T any](url string) *RouteHandlerExtractor[T] {
+	return &RouteHandlerExtractor[T]{URL: url}
 }
 
-func (r *RouteHandlerExtractor) MatchableRoute(fn func(params ...string), route string) {
-	patternParts := strings.Split(strings.Trim(route, "/"), "/")
+func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params ...string) (T, error)) (T, error) {
 	pathParts := strings.Split(strings.Trim(r.URL, "/"), "/")
+	patternParts := strings.Split(strings.Trim(route, "/"), "/")
 	regexMatch := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
+	var zeroValue T
 	if len(patternParts) != len(pathParts) {
-		return
+		return zeroValue, nil
 	}
+
 	var params []string
 	for i := range patternParts {
 		pp := patternParts[i]
 		mp := pathParts[i]
 		if strings.HasPrefix(pp, ":") {
 			if !regexMatch.MatchString(mp) {
-				return
+				return zeroValue, nil
 			}
 			params = append(params, mp)
 			continue
 		}
 		if pp != mp {
-			return
+			return zeroValue, nil
 		}
 	}
-	fn(params...)
+	return fn(params...)
 }

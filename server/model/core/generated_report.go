@@ -44,13 +44,14 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_generated_report"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserID      *uuid.UUID            `gorm:"type:uuid"`
-		User        *User                 `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
-		MediaID     *uuid.UUID            `gorm:"type:uuid;not null"`
-		Media       *Media                `gorm:"foreignKey:MediaID"`
-		Name        string                `gorm:"type:varchar(255);not null"`
-		Description string                `gorm:"type:text;not null"`
-		Status      GeneratedReportStatus `gorm:"type:varchar(50);not null"`
+		UserID        *uuid.UUID            `gorm:"type:uuid"`
+		User          *User                 `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
+		MediaID       *uuid.UUID            `gorm:"type:uuid;not null"`
+		Media         *Media                `gorm:"foreignKey:MediaID"`
+		Name          string                `gorm:"type:varchar(255);not null"`
+		Description   string                `gorm:"type:text;not null"`
+		Status        GeneratedReportStatus `gorm:"type:varchar(50);not null"`
+		SystemMessage string                `gorm:"type:text" json:"system_message,omitempty"`
 
 		FilterSearch string `gorm:"type:text" json:"filter_search,omitempty"`
 		IsFavorite   bool   `gorm:"type:boolean;default:false" json:"is_favorite"`
@@ -82,16 +83,17 @@ type (
 		Branch              *BranchResponse       `json:"branch,omitempty"`
 		GeneratedReportType GeneratedReportType   `json:"generated_report_type"`
 
-		UserID      *uuid.UUID            `json:"user_id"`
-		User        *UserResponse         `json:"user"`
-		MediaID     *uuid.UUID            `json:"media_id"`
-		Media       *MediaResponse        `json:"media,omitempty"`
-		Name        string                `json:"name"`
-		Description string                `json:"description"`
-		Status      GeneratedReportStatus `json:"status"`
-		IsFavorite  bool                  `json:"is_favorite"`
-		Model       string                `json:"model,omitempty"`
-		URL         string                `json:"url,omitempty"`
+		UserID        *uuid.UUID            `json:"user_id"`
+		User          *UserResponse         `json:"user"`
+		MediaID       *uuid.UUID            `json:"media_id"`
+		Media         *MediaResponse        `json:"media,omitempty"`
+		Name          string                `json:"name"`
+		Description   string                `json:"description"`
+		Status        GeneratedReportStatus `json:"status"`
+		IsFavorite    bool                  `json:"is_favorite"`
+		Model         string                `json:"model,omitempty"`
+		URL           string                `json:"url,omitempty"`
+		SystemMessage string                `json:"system_message,omitempty"`
 
 		// Progress tracking fields
 		TotalItems          int `json:"total_items,omitempty"`
@@ -153,7 +155,7 @@ func (m *Core) generatedReport() {
 				Organization:        m.OrganizationManager.ToModel(data.Organization),
 				BranchID:            data.BranchID,
 				Branch:              m.BranchManager.ToModel(data.Branch),
-
+				SystemMessage:       data.SystemMessage,
 				UserID:              data.UserID,
 				User:                m.UserManager.ToModel(data.User),
 				MediaID:             data.MediaID,

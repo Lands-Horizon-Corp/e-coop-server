@@ -8,40 +8,42 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (r *Registry[TData, TResponse, TRequest]) NoPaginationWithFields(
+func (r *Registry[TData, TResponse, TRequest]) FilterFieldsCSV(
 	context context.Context,
 	query string,
 	fields *TData,
 	preloads ...string,
-) ([]*TResponse, error) {
-	if data, isUUID, err := r.GetByUUIDs(context, query, preloads...); isUUID {
-		return data, err
+) ([]byte, error) {
+	if preloads == nil {
+		preloads = r.preloads
+	}
+	uuids, ok := parseUUIDArrayFromQuery(query)
+	if ok && len(uuids) > 0 {
+		return r.FilterByUUIDsCSV(context, uuids, preloads)
 	}
 	filterRoot, _, _, err := parseStringQuery(query)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to parse string query on no pagination field")
 	}
-	if preloads == nil {
-		preloads = r.preloads
-	}
 	filterRoot.Preload = preloads
 	db := filter.ApplyPresetConditions(r.Client(context), fields)
-	data, err := r.filtering.DataGormNoPage(db, filterRoot)
+	data, err := r.filtering.GormNoPaginationCSV(db, filterRoot)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find filtered entities on no pagination field")
 	}
-	return r.ToModels(data), nil
+	return data, nil
 }
 
-func (r *Registry[TData, TResponse, TRequest]) NoPaginationWithSQLString(
+func (r *Registry[TData, TResponse, TRequest]) FilterWithSQLString(
 	context context.Context,
 	query string,
 	filters []FilterSQL,
 	sorts []FilterSortSQL,
 	preloads ...string,
-) ([]*TResponse, error) {
-	if data, isUUID, err := r.GetByUUIDs(context, query, preloads...); isUUID {
-		return data, err
+) ([]byte, error) {
+	uuids, ok := parseUUIDArrayFromQuery(query)
+	if ok && len(uuids) > 0 {
+		return r.FilterByUUIDsCSV(context, uuids, preloads)
 	}
 
 	filterRoot, _, _, err := parseStringQuery(query)
@@ -99,7 +101,7 @@ func (r *Registry[TData, TResponse, TRequest]) NoPaginationWithSQLString(
 	filterRoot.Preload = preloads
 
 	// Use the advanced GORM filtering without pagination
-	data, err := r.filtering.DataGormNoPage(
+	data, err := r.filtering.GormNoPaginationCSV(
 		db,
 		filterRoot,
 	)
@@ -107,7 +109,5 @@ func (r *Registry[TData, TResponse, TRequest]) NoPaginationWithSQLString(
 		return nil, eris.Wrap(err, "failed to find filtered entities")
 	}
 
-	return r.ToModels(data), nil
+	return data, nil
 }
-
-// ...existing code...

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -179,4 +180,30 @@ func parseStringQuery(query string) (filter.Root, int, int, error) {
 		return filter.Root{}, 0, 0, eris.Wrap(err, "pageSize processing failed")
 	}
 	return filterRoot, pageIndex, pageSize, nil
+}
+
+func parseUUIDArrayFromQuery(query string) ([]uuid.UUID, bool) {
+	if query == "" {
+		return nil, false
+	}
+	query = strings.TrimSpace(query)
+	if strings.HasPrefix(query, "[") && strings.HasSuffix(query, "]") {
+		query = strings.Trim(query, "[]")
+	}
+	values := strings.Split(query, ",")
+	if len(values) == 0 {
+		return nil, false
+	}
+	var uuids []uuid.UUID
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		value = strings.Trim(value, `"'`)
+		parsedUUID, err := uuid.Parse(value)
+		if err != nil {
+			return nil, false
+		}
+
+		uuids = append(uuids, parsedUUID)
+	}
+	return uuids, true
 }
