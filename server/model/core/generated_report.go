@@ -17,6 +17,15 @@ const (
 	GeneratedReportTypeExcel GeneratedReportType = "excel"
 )
 
+type GeneratedReportStatus string
+
+const (
+	GeneratedReportStatusPending    GeneratedReportStatus = "pending"
+	GeneratedReportStatusInProgress GeneratedReportStatus = "in_progress"
+	GeneratedReportStatusCompleted  GeneratedReportStatus = "completed"
+	GeneratedReportStatusFailed     GeneratedReportStatus = "failed"
+)
+
 type (
 	// GeneratedReport represents the GeneratedReport model.
 	GeneratedReport struct {
@@ -35,19 +44,23 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_generated_report"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserID       *uuid.UUID `gorm:"type:uuid"`
-		User         *User      `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
-		MediaID      *uuid.UUID `gorm:"type:uuid;not null"`
-		Media        *Media     `gorm:"foreignKey:MediaID"`
-		Name         string     `gorm:"type:varchar(255);not null"`
-		Description  string     `gorm:"type:text;not null"`
-		Status       string     `gorm:"type:varchar(50);not null"`
-		Progress     float64    `gorm:"not null"`
-		FilterSearch string     `gorm:"type:text" json:"filter_search,omitempty"`
-		IsFavorite   bool       `gorm:"type:boolean;default:false" json:"is_favorite"`
-		Model        string     `gorm:"type:varchar(255)" json:"model,omitempty"`
+		UserID      *uuid.UUID            `gorm:"type:uuid"`
+		User        *User                 `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
+		MediaID     *uuid.UUID            `gorm:"type:uuid;not null"`
+		Media       *Media                `gorm:"foreignKey:MediaID"`
+		Name        string                `gorm:"type:varchar(255);not null"`
+		Description string                `gorm:"type:text;not null"`
+		Status      GeneratedReportStatus `gorm:"type:varchar(50);not null"`
+
+		FilterSearch string `gorm:"type:text" json:"filter_search,omitempty"`
+		IsFavorite   bool   `gorm:"type:boolean;default:false" json:"is_favorite"`
+		Model        string `gorm:"type:varchar(255)" json:"model,omitempty"`
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
+
+		// Progress tracking fields
+		TotalItems          int `gorm:"type:integer;default:0" json:"total_items,omitempty"`
+		TotalItemsProcessed int `gorm:"type:integer;default:0" json:"total_items_processed,omitempty"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsers `gorm:"foreignKey:GeneratedReportID" json:"download_users,omitempty"`
@@ -68,16 +81,19 @@ type (
 		Branch              *BranchResponse       `json:"branch,omitempty"`
 		GeneratedReportType GeneratedReportType   `json:"generated_report_type"`
 
-		UserID      *uuid.UUID     `json:"user_id"`
-		User        *UserResponse  `json:"user"`
-		MediaID     *uuid.UUID     `json:"media_id"`
-		Media       *MediaResponse `json:"media,omitempty"`
-		Name        string         `json:"name"`
-		Description string         `json:"description"`
-		Status      string         `json:"status"`
-		Progress    float64        `json:"progress"`
-		IsFavorite  bool           `json:"is_favorite"`
-		Model       string         `json:"model,omitempty"`
+		UserID      *uuid.UUID            `json:"user_id"`
+		User        *UserResponse         `json:"user"`
+		MediaID     *uuid.UUID            `json:"media_id"`
+		Media       *MediaResponse        `json:"media,omitempty"`
+		Name        string                `json:"name"`
+		Description string                `json:"description"`
+		Status      GeneratedReportStatus `json:"status"`
+		IsFavorite  bool                  `json:"is_favorite"`
+		Model       string                `json:"model,omitempty"`
+
+		// Progress tracking fields
+		TotalItems          int `json:"total_items,omitempty"`
+		TotalItemsProcessed int `json:"total_items_processed,omitempty"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsersResponse `json:"download_users,omitempty"`
@@ -135,17 +151,18 @@ func (m *Core) generatedReport() {
 				BranchID:            data.BranchID,
 				Branch:              m.BranchManager.ToModel(data.Branch),
 
-				UserID:        data.UserID,
-				User:          m.UserManager.ToModel(data.User),
-				MediaID:       data.MediaID,
-				Media:         m.MediaManager.ToModel(data.Media),
-				Name:          data.Name,
-				Description:   data.Description,
-				Status:        data.Status,
-				Progress:      data.Progress,
-				IsFavorite:    data.IsFavorite,
-				Model:         data.Model,
-				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
+				UserID:              data.UserID,
+				User:                m.UserManager.ToModel(data.User),
+				MediaID:             data.MediaID,
+				Media:               m.MediaManager.ToModel(data.Media),
+				Name:                data.Name,
+				Description:         data.Description,
+				Status:              data.Status,
+				IsFavorite:          data.IsFavorite,
+				Model:               data.Model,
+				TotalItems:          data.TotalItems,
+				TotalItemsProcessed: data.TotalItemsProcessed,
+				DownloadUsers:       m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}
 		},
 		Created: func(data *GeneratedReport) []string {
