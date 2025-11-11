@@ -640,7 +640,7 @@ func (c *Controller) generatedReports() {
 			Model:               model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
