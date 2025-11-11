@@ -76,6 +76,37 @@ func (c *Controller) generatedReports() {
 	})
 
 	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/generated-report/:generated_report_id",
+		Method: "DELETE",
+		Note:   "Delete a generated report by ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
+		}
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
+		}
+		if generatedReport.MediaID == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No media associated with this generated report"})
+		}
+		if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
+				Module:      "Media",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+		}
+		if err := c.core.GeneratedReportManager.Delete(context, *generatedReportID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "PUT",
 		RequestType:  core.GeneratedReportUpdateRequest{},
