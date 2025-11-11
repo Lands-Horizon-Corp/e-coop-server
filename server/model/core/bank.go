@@ -122,18 +122,6 @@ func (m *Core) bank() {
 	})
 }
 
-// func (m *Core) BankCSV(ctx context.Context, generatedReport *core.GeneratedReport) ([]byte, error) {
-// 	banks, err := m.BankManager.NoPaginationWithFields(ctx, generatedReport.FilterSearch, &core.Bank{
-// 		OrganizationID: generatedReport.OrganizationID,
-// 		BranchID:       generatedReport.BranchID,
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	buf := &bytes.Buffer{}
-// 	writer := csv.NewWriter(buf)
-// 	return writer.Bytes(), nil
-// }
 
 func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
