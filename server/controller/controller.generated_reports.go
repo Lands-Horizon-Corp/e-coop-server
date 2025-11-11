@@ -217,7 +217,7 @@ func (c *Controller) generatedReports() {
 		// Toggle the IsFavorite field
 		generatedReport.IsFavorite = !generatedReport.IsFavorite
 		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update favorite status"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update favorite status: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
@@ -263,7 +263,7 @@ func (c *Controller) generatedReports() {
 			OrganizationID: user.OrganizationID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -290,7 +290,7 @@ func (c *Controller) generatedReports() {
 			CreatedByID:    user.UserID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -316,7 +316,7 @@ func (c *Controller) generatedReports() {
 			GeneratedReportType: core.GeneratedReportTypePDF,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -343,7 +343,7 @@ func (c *Controller) generatedReports() {
 			GeneratedReportType: core.GeneratedReportTypePDF,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -369,7 +369,7 @@ func (c *Controller) generatedReports() {
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -395,7 +395,7 @@ func (c *Controller) generatedReports() {
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -422,7 +422,7 @@ func (c *Controller) generatedReports() {
 			IsFavorite:     true,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -449,7 +449,7 @@ func (c *Controller) generatedReports() {
 			IsFavorite:     true,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch:" + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -471,7 +471,7 @@ func (c *Controller) generatedReports() {
 		}
 		models, err := c.core.GeneratedReportAvailableModels(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve available generated report models"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve available generated report models: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, models)
 	})
@@ -498,7 +498,7 @@ func (c *Controller) generatedReports() {
 			Model:          model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -526,7 +526,7 @@ func (c *Controller) generatedReports() {
 			Model:          model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -554,7 +554,7 @@ func (c *Controller) generatedReports() {
 			Model:               model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch : " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -583,7 +583,7 @@ func (c *Controller) generatedReports() {
 			Model:               model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -611,7 +611,7 @@ func (c *Controller) generatedReports() {
 			Model:               model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -626,7 +626,7 @@ func (c *Controller) generatedReports() {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
@@ -640,7 +640,7 @@ func (c *Controller) generatedReports() {
 			Model:               model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
@@ -655,7 +655,7 @@ func (c *Controller) generatedReports() {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
@@ -683,7 +683,7 @@ func (c *Controller) generatedReports() {
 		context := ctx.Request().Context()
 		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
@@ -697,7 +697,7 @@ func (c *Controller) generatedReports() {
 			Model:          model,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch"})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})

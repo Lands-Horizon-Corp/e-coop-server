@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
@@ -20,7 +19,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 
 		generatedReport.Status = core.GeneratedReportStatusInProgress
 		e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
-		err := e.processReportGeneration(ctx, id)
+		err := e.processReportGeneration(ctx, generatedReport)
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
 		if getErr != nil {
 			return
@@ -37,7 +36,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 }
 
 // Add your background processing logic here
-func (e *Event) processReportGeneration(ctx context.Context, reportID uuid.UUID) error {
+func (e *Event) processReportGeneration(ctx context.Context, generatedReport *core.GeneratedReport) error {
 	// Your actual report generation/upload logic goes here
 	// Example:
 	// 1. base 64 to real value
