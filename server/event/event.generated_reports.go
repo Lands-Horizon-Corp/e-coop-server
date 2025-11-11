@@ -38,15 +38,10 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 
 // Add your background processing logic here
 func (e *Event) processReportGeneration(ctx context.Context, generatedReport *core.GeneratedReport) error {
-	// Your actual report generation/upload logic goes here
-	// Example:
-	// 1. base 64 to real value
-	// 2. fetch SQL
-	// 3. procession to excel
 	switch generatedReport.GeneratedReportType {
 	case core.GeneratedReportTypeExcel:
 		extractor := handlers.NewRouteHandlerExtractor(generatedReport.URL)
-		extractor.MatchableRoute(func(param ...string) {
+		extractor.MatchableRoute(func(params ...string) {
 
 		}, "/api/v1/bank/search")
 	case core.GeneratedReportTypePDF:

@@ -65,44 +65,6 @@ func parseSort(ctx echo.Context) ([]filter.SortField, error) {
 	return sortFields, nil
 }
 
-// parseString extracts and validates a string parameter from query params
-func parseString(ctx echo.Context, paramName string) (string, error) {
-	param := ctx.QueryParam(paramName)
-	if param == "" {
-		return "", nil
-	}
-
-	// URL decode the parameter
-	decodedParam, err := url.QueryUnescape(param)
-	if err != nil {
-		return "", eris.Wrapf(err, "failed to unescape %s parameter", paramName)
-	}
-
-	return decodedParam, nil
-}
-
-// parseStringBase64 extracts and decodes a base64 encoded string parameter
-func parseStringBase64(ctx echo.Context, paramName string) (string, error) {
-	param := ctx.QueryParam(paramName)
-	if param == "" {
-		return "", nil
-	}
-
-	// URL decode first
-	decodedParam, err := url.QueryUnescape(param)
-	if err != nil {
-		return "", eris.Wrapf(err, "failed to unescape %s parameter", paramName)
-	}
-
-	// Base64 decode
-	stringBytes, err := base64.StdEncoding.DecodeString(decodedParam)
-	if err != nil {
-		return "", eris.Wrapf(err, "failed to base64 decode %s parameter", paramName)
-	}
-
-	return string(stringBytes), nil
-}
-
 // parsePageSize extracts and validates page size parameter
 func parsePageSize(ctx echo.Context) (int, error) {
 	pageSize, err := strconv.Atoi(ctx.QueryParam("pageSize"))
@@ -141,5 +103,80 @@ func parseQuery(ctx echo.Context) (filter.Root, int, int, error) {
 		return filter.Root{}, 0, 0, eris.Wrap(err, "pageSize processing failed")
 	}
 
+	return filterRoot, pageIndex, pageSize, nil
+}
+
+func parsesStringFilters(query string) (filter.Root, error) {
+	filterBytes, err := base64.StdEncoding.DecodeString(query)
+	if err != nil {
+		return filter.Root{}, eris.Wrap(err, "base64 decoding failed")
+	}
+	var filterRoot filter.Root
+	if err := json.Unmarshal(filterBytes, &filterRoot); err != nil {
+		return filter.Root{}, eris.Wrap(err, "JSON unmarshalling failed")
+	}
+	if filterRoot.Logic == "" {
+		filterRoot.Logic = filter.LogicAnd
+	}
+	return filterRoot, nil
+}
+
+// parseSort decodes and validates sort parameters
+func parseStringSort(query string) ([]filter.SortField, error) {
+	sortBytes, err := base64.StdEncoding.DecodeString(query)
+	if err != nil {
+		return nil, eris.Wrap(err, "base64 decoding failed")
+	}
+	var sortFields []filter.SortField
+	if err := json.Unmarshal(sortBytes, &sortFields); err != nil {
+		return nil, eris.Wrap(err, "JSON unmarshalling failed")
+	}
+	for i, sf := range sortFields {
+		order := strings.ToUpper(string(sf.Order))
+		if order != "ASC" && order != "DESC" {
+			sortFields[i].Order = "ASC"
+		} else {
+			sortFields[i].Order = filter.SortOrder(order)
+		}
+	}
+	return sortFields, nil
+}
+
+// parsePageIndex extracts and validates page index parameter
+func parseStringPageIndex(query string) (int, error) {
+	pageIndex, err := strconv.Atoi(query)
+	if err != nil {
+		return 0, eris.Wrap(err, "invalid pageIndex parameter")
+	}
+	return pageIndex, nil
+}
+
+// parsePageSize extracts and validates page size parameter
+func parseStringPageSize(query string) (int, error) {
+	pageSize, err := strconv.Atoi(query)
+	if err != nil {
+		return 0, eris.Wrap(err, "invalid pageSize parameter")
+	}
+	return pageSize, nil
+}
+
+func parseStringQuery(query string) (filter.Root, int, int, error) {
+	filterRoot, err := parsesStringFilters(query)
+	if err != nil {
+		return filter.Root{}, 0, 0, eris.Wrap(err, "filter processing failed")
+	}
+	sortFields, err := parseStringSort(query)
+	if err != nil {
+		return filter.Root{}, 0, 0, eris.Wrap(err, "sort processing failed")
+	}
+	filterRoot.SortFields = sortFields
+	pageIndex, err := parseStringPageIndex(query)
+	if err != nil {
+		return filter.Root{}, 0, 0, eris.Wrap(err, "pageIndex processing failed")
+	}
+	pageSize, err := parseStringPageSize(query)
+	if err != nil {
+		return filter.Root{}, 0, 0, eris.Wrap(err, "pageSize processing failed")
+	}
 	return filterRoot, pageIndex, pageSize, nil
 }
