@@ -22,7 +22,6 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
 		err := e.processReportGeneration(ctx, generatedReport)
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
-
 		if getErr != nil {
 			return
 		}
