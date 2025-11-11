@@ -2,7 +2,9 @@ package v1
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
@@ -12,8 +14,219 @@ import (
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
-	// =======================================[FILTERED]==========================================================
+	// POST
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report",
+		Method:       "POST",
+		RequestType:  core.GeneratedReportRequest{},
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Create a new generated report.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.core.GeneratedReportManager.Validate(ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), validation error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report data: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), user org error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
 
+		if user.BranchID == nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), user not assigned to branch.",
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		generatedReport := &core.GeneratedReport{
+			Name:           req.Name,
+			Description:    req.Description,
+			FilterSearch:   req.FilterSearch,
+			Model:          req.Model,
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    user.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    user.UserID,
+			BranchID:       *user.BranchID,
+			OrganizationID: user.OrganizationID,
+		}
+
+		if err := c.core.GeneratedReportManager.Create(context, generatedReport); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), db error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created generated report (/generated-report): " + generatedReport.Name,
+			Module:      "GeneratedReport",
+		})
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager.ToModel(generatedReport))
+
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/:generated_report_id",
+		Method:       "PUT",
+		RequestType:  core.GeneratedReportUpdateRequest{},
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Update an existing generated report.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
+		}
+		var req core.GeneratedReportUpdateRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report update payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated report update failed (/generated-report/:generated_report_id), user org error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated report update failed (/generated-report/:generated_report_id), generated report not found.",
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "GeneratedReport not found"})
+		}
+		generatedReport.Name = req.Name
+		generatedReport.Description = req.Description
+		generatedReport.UpdatedAt = time.Now().UTC()
+		generatedReport.UpdatedByID = user.UserID
+		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated report update failed (/generated-report/:generated_report_id), db error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated report: " + err.Error()})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Updated generated report (/generated-report/:generated_report_id): " + generatedReport.Name,
+			Module:      "GeneratedReport",
+		})
+		return nil
+	})
+
+	// POST /api/v1/generated-report/download-user
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/download-user",
+		Method:       "POST",
+		Note:         "Creates a new generated report download user entry for the current user's organization and branch.",
+		RequestType:  core.GeneratedReportsDownloadUsersRequest{},
+		ResponseType: core.GeneratedReportsDownloadUsersResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		req, err := c.core.GeneratedReportsDownloadUsersManager.Validate(ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated reports download user creation failed (/generated-report/download-user), validation error: " + err.Error(),
+				Module:      "GeneratedReportsDownloadUsers",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated reports download user data: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated reports download user creation failed (/generated-report/download-user), user org error: " + err.Error(),
+				Module:      "GeneratedReportsDownloadUsers",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if user.BranchID == nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated reports download user creation failed (/generated-report/download-user), user not assigned to branch.",
+				Module:      "GeneratedReportsDownloadUsers",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		downloadUser := &core.GeneratedReportsDownloadUsers{
+			UserOrganizationID: req.UserOrganizationID,
+			GeneratedReportID:  req.GeneratedReportID,
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        user.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        user.UserID,
+			BranchID:           *user.BranchID,
+			OrganizationID:     user.OrganizationID,
+		}
+
+		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, downloadUser); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated reports download user creation failed (/generated-report/download-user), db error: " + err.Error(),
+				Module:      "GeneratedReportsDownloadUsers",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated reports download user: " + err.Error()})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created generated reports download user (/generated-report/download-user)",
+			Module:      "GeneratedReportsDownloadUsers",
+		})
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportsDownloadUsersManager.ToModel(downloadUser))
+	})
+
+	// PUT /api/v1/generated-report/:generated_report_id/favorite: Mark or unmark a generated report as favorite.
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/:generated_report_id/favorite",
+		Method:       "PUT",
+		ResponseType: core.GeneratedReportResponse{},
+		Note:         "Mark or unmark a generated report as favorite.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
+		}
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
+		}
+		// Toggle the IsFavorite field
+		generatedReport.IsFavorite = !generatedReport.IsFavorite
+		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update favorite status"})
+		}
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
+	})
+
+	// =======================================[FILTERED]==========================================================
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
