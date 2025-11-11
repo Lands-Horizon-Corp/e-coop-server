@@ -28,14 +28,17 @@ type (
 		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_generated_report"`
 		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
 
-		UserID      *uuid.UUID `gorm:"type:uuid"`
-		User        *User      `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
-		MediaID     *uuid.UUID `gorm:"type:uuid;not null"`
-		Media       *Media     `gorm:"foreignKey:MediaID"`
-		Name        string     `gorm:"type:varchar(255);not null"`
-		Description string     `gorm:"type:text;not null"`
-		Status      string     `gorm:"type:varchar(50);not null"`
-		Progress    float64    `gorm:"not null"`
+		UserID       *uuid.UUID `gorm:"type:uuid"`
+		User         *User      `gorm:"foreignKey:UserID;constraint:OnDelete:SET NULL;" json:"user,omitempty"`
+		MediaID      *uuid.UUID `gorm:"type:uuid;not null"`
+		Media        *Media     `gorm:"foreignKey:MediaID"`
+		Name         string     `gorm:"type:varchar(255);not null"`
+		Description  string     `gorm:"type:text;not null"`
+		Status       string     `gorm:"type:varchar(50);not null"`
+		Progress     float64    `gorm:"not null"`
+		FilterSearch string     `gorm:"type:text" json:"filter_search,omitempty"`
+		IsFavorite   bool       `gorm:"type:boolean;default:false" json:"is_favorite"`
+		Model        string     `gorm:"type:varchar(255)" json:"model,omitempty"`
 	}
 	// GeneratedReportResponse represents the response structure for generatedreport data
 	GeneratedReportResponse struct {
@@ -59,15 +62,18 @@ type (
 		Description string         `json:"description"`
 		Status      string         `json:"status"`
 		Progress    float64        `json:"progress"`
+		IsFavorite  bool           `json:"is_favorite"`
+		Model       string         `json:"model,omitempty"`
 	}
-
-	// GeneratedReportRequest represents the request structure for creating/updating generatedreport
 
 	// GeneratedReportRequest represents the request structure for GeneratedReport.
 	GeneratedReportRequest struct {
-		ID          *uuid.UUID `json:"id,omitempty"`
-		Name        string     `json:"firstName" validate:"required,min=1,max=255"`
-		Description string     `json:"description" validate:"required,min=1"`
+		ID           *uuid.UUID `json:"id,omitempty"`
+		Name         string     `json:"firstName" validate:"required,min=1,max=255"`
+		Description  string     `json:"description" validate:"required,min=1"`
+		FilterSearch string     `json:"filter_search,omitempty"`
+		IsFavorite   bool       `json:"is_favorite,omitempty"`
+		Model        string     `json:"model,omitempty"`
 	}
 )
 
@@ -101,6 +107,8 @@ func (m *Core) generatedReport() {
 				Description: data.Description,
 				Status:      data.Status,
 				Progress:    data.Progress,
+				IsFavorite:  data.IsFavorite,
+				Model:       data.Model,
 			}
 		},
 		Created: func(data *GeneratedReport) []string {
