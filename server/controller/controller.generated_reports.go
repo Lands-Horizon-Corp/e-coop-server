@@ -50,7 +50,6 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-
 		generatedReport := &core.GeneratedReport{
 			Name:           req.Name,
 			Description:    req.Description,
@@ -63,21 +62,15 @@ func (c *Controller) generatedReports() {
 			BranchID:       *user.BranchID,
 			OrganizationID: user.OrganizationID,
 		}
-
-		if err := c.core.GeneratedReportManager.Create(context, generatedReport); err != nil {
+		data, err := c.event.GeneratedReportDownload(context, ctx, generatedReport)
+		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Generated report creation failed (/generated-report), db error: " + err.Error(),
+				Activity:    "create-success",
+				Description: "Created generated report (/generated-report): " + generatedReport.Name,
 				Module:      "GeneratedReport",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "create-success",
-			Description: "Created generated report (/generated-report): " + generatedReport.Name,
-			Module:      "GeneratedReport",
-		})
-		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager.ToModel(data))
 
 	})
 
