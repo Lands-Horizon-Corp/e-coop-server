@@ -122,7 +122,6 @@ func (m *Core) bank() {
 	})
 }
 
-
 func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	banks := []*Bank{
