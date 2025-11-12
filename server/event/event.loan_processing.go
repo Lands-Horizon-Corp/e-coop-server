@@ -6,23 +6,24 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/rotisserie/eris"
 )
 
 func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTransactionID *uuid.UUID) (*core.LoanTransaction, error) {
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
-	if err != nil {
-		return nil, eris.Wrap(err, "loan processing: failed to get loan transaction by id")
-	}
+	// tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
-	// Get current user organization
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
-	if err != nil {
-		return nil, eris.Wrap(err, "loan processing: failed to get current user organization")
-	}
-	if userOrg.BranchID == nil {
-		return nil, eris.New("loan processing: user organization has no branch assigned")
-	}
+	// loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+	// if err != nil {
+	// 	return nil, endTx(eris.Wrap(err, "loan processing: failed to get loan transaction by id"))
+	// }
+
+	// // Get current user organization
+	// userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	// if err != nil {
+	// 	return nil, endTx(eris.Wrap(err, "loan processing: failed to get current user organization"))
+	// }
+	// if userOrg.BranchID == nil {
+	// 	return nil, endTx(eris.New("loan processing: user organization has no branch assigned"))
+	// }
 
 	// // ===============================
 	// // STEP 5: FETCH RELATED ACCOUNTS & CURRENCY
@@ -40,7 +41,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 		Description: "Failed to retrieve loan-related accounts for amortization schedule: " + err.Error(),
 	// 		Module:      "Loan Amortization",
 	// 	})
-	// 	return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String())
+	// 	return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String()))
 	// }
 
 	// // ===============================
@@ -57,7 +58,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 		Description: "Failed to retrieve holiday calendar for payment schedule calculations: " + err.Error(),
 	// 		Module:      "Loan Amortization",
 	// 	})
-	// 	return nil, eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule")
+	// 	return nil, endTx(eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule"))
 	// }
 
 	// // ===============================
@@ -70,8 +71,8 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 		Description: "Failed to calculate number of payments for loan amortization: " + err.Error(),
 	// 		Module:      "Loan Amortization",
 	// 	})
-	// 	return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
-	// 		loanTransaction.ModeOfPayment, loanTransaction.Terms)
+	// 	return nil, endTx(eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
+	// 		loanTransaction.ModeOfPayment, loanTransaction.Terms))
 	// }
 
 	// // ===============================
@@ -89,7 +90,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
 	// if loanTransaction.PrintedDate == nil {
-	// 	return nil, eris.New("loan processing: printed date is nil")
+	// 	return nil, endTx(eris.New("loan processing: printed date is nil"))
 	// }
 	// // Initialize payment calculation variables
 	// currentDate := time.Now().UTC()
@@ -109,15 +110,34 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 			Description: "Failed to calculate skipped days for payment schedule: " + err.Error(),
 	// 			Module:      "Loan Amortization",
 	// 		})
-	// 		return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02"))
+	// 		return nil, endTx(eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02")))
 	// 	}
+
 	// 	scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 
+	// 	// ===============================
+	// 	// STEP 11: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
+	// 	// ===============================
 	// 	if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
+	// 		for _, account := range accounts {
+	// 			if account.LoanAccountID == nil || account.ComputationType == core.Straight {
+	// 				continue
+	// 			}
 
-	// 		// loanTransaction.LoanCount = i + 1
+	// 			// Apply general ledger here
+	// 		}
 
+	// 		loanTransaction.LoanCount = i + 1
+	// 		if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+	// 			e.Footstep(ctx, FootstepEvent{
+	// 				Activity:    "update-failed",
+	// 				Description: "Failed to update loan count during processing: " + err.Error(),
+	// 				Module:      "Loan Processing",
+	// 			})
+	// 			return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
+	// 		}
 	// 	}
+
 	// 	// ===============================
 	// 	// STEP 14: DETERMINE NEXT PAYMENT DATE
 	// 	// ===============================
@@ -159,5 +179,32 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 		paymentDate = paymentDate.AddDate(0, 0, 1)
 	// 	}
 	// }
-	return loanTransaction, nil
+	// // ================================================================================
+	// // STEP 10: DATABASE TRANSACTION COMMIT
+	// // ================================================================================
+	// // Commit all changes to the database
+	// if err := endTx(nil); err != nil {
+	// 	e.Footstep(ctx, FootstepEvent{
+	// 		Activity:    "database-commit-failed",
+	// 		Description: "Unable to commit loan release transaction to database: " + err.Error(),
+	// 		Module:      "Loan Release",
+	// 	})
+	// 	return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
+	// }
+
+	// // ================================================================================
+	// // STEP 11: FINAL TRANSACTION RETRIEVAL AND RETURN
+	// // ================================================================================
+	// // Retrieve and return the updated loan transaction
+	// updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
+	// if err != nil {
+	// 	e.Footstep(ctx, FootstepEvent{
+	// 		Activity:    "final-retrieval-failed",
+	// 		Description: "Unable to retrieve updated loan transaction after successful release: " + err.Error(),
+	// 		Module:      "Loan Release",
+	// 	})
+	// 	return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
+	// }
+	// return updatedLoanTransaction, nil
+	return nil, nil
 }

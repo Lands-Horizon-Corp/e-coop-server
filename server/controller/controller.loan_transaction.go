@@ -1763,12 +1763,12 @@ func (c *Controller) loanTransactionController() {
 		if loanTransaction.ReleasedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, endTx, event.LoanBalanceEvent{
+
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransaction.ID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 
 		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{

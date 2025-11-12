@@ -8,12 +8,12 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
-	"gorm.io/gorm"
 )
 
 // LoanRelease processes loan release with necessary validations and commits the transaction.
 // Returns the updated LoanTransaction after successful release.
-func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.DB, endTx func(error) error, data LoanBalanceEvent) (*core.LoanTransaction, error) {
+func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data LoanBalanceEvent) (*core.LoanTransaction, error) {
+	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
 	// ================================================================================
 	// STEP 1: AUTHENTICATION AND AUTHORIZATION
@@ -265,6 +265,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		Debit:                      memberDebit,
 		Balance:                    newMemberBalance,
 		CurrencyID:                 &loanCurrency.ID,
+		LoanTransactionID:          &loanTransaction.ID,
 	}
 
 	// Create the member's general ledger entry in the database
@@ -324,7 +325,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// Process all related accounts that have straight interest computation
 	for _, account := range accounts {
 		// Skip accounts that are not loan-related or don't use straight computation
-		if account.LoanAccountID == nil || account.ComputationType != core.Straight {
+		if account.LoanAccountID == nil ||
+			account.ComputationType != core.Straight ||
+			account.Type != core.AccountTypeLoan ||
+			account.Type != core.AccountTypeFines {
 			continue
 		}
 
