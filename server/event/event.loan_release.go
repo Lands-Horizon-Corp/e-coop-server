@@ -327,7 +327,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		// Skip accounts that are not loan-related or don't use straight computation
 		if account.LoanAccountID == nil ||
 			account.ComputationType != core.Straight ||
-			(account.Type != core.AccountTypeLoan && account.Type != core.AccountTypeFines) {
+			(account.Type == core.AccountTypeLoan || account.Type == core.AccountTypeFines) {
 			continue
 		}
 
