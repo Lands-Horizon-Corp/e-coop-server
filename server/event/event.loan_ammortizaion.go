@@ -207,7 +207,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 	// ===============================
 	// STEP 10: GENERATE AMORTIZATION SCHEDULE
 	// ===============================
-	for i := range numberOfPayments {
+	for i := range numberOfPayments + 1 {
 		actualDate := paymentDate
 		daysSkipped := 0
 		rowTotal := 0.0
@@ -337,23 +337,10 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 					})
 					return nil, eris.Wrapf(err, "failed to initialize account history for first payment")
 				}
-
 				periodAccounts[j] = &AccountValue{
 					Account: accountHistory,
 					Value:   0,
 					Total:   0,
-				}
-				if periodAccounts[j].Account.Type == core.AccountTypeLoan {
-					// LOAN PRINCIPAL PAYMENT: Principal ÷ Number of Payments
-					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
-						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-
-					// Update cumulative totals
-					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-					periodAccounts[j].Total = accountsSchedule[j].Total
-
-					// Update remaining balance
-					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
 				}
 			}
 		}
