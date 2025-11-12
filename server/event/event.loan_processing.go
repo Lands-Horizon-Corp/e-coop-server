@@ -144,7 +144,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		// ===============================
 		if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
 			for _, account := range accounts {
-				if account.LoanAccountID == nil || account.ComputationType == core.Straight {
+				if account.LoanAccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeFines {
 					continue
 				}
 				var price float64
@@ -179,7 +179,6 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				} else {
 					currentMemberBalance = memberAccountLedger.Balance
 				}
-
 				memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
 					*loanTransaction.Account, 0.0, price, currentMemberBalance)
 				memberLedgerEntry := &core.GeneralLedger{

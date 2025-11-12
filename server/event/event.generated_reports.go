@@ -81,14 +81,18 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 
 			// Upload binary data
 			fmt.Printf("Starting binary upload to storage...\n")
-			storage, uploadErr := e.provider.Service.Storage.UploadFromBinary(ctx, data, func(progress, _ int64, _ *horizon.Storage) {
-				fmt.Printf("Upload progress: %d%%\n", progress)
-				_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, &core.Media{
-					Progress:  progress,
-					Status:    "progress",
-					UpdatedAt: time.Now().UTC(),
+			storage, uploadErr := e.provider.Service.Storage.UploadFromBinaryWithContentType(
+				ctx,
+				data,
+				fileName,
+				contentType, func(progress, _ int64, _ *horizon.Storage) {
+					fmt.Printf("Upload progress: %d%%\n", progress)
+					_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, &core.Media{
+						Progress:  progress,
+						Status:    "progress",
+						UpdatedAt: time.Now().UTC(),
+					})
 				})
-			})
 
 			if uploadErr != nil {
 				fmt.Printf("Binary upload failed: %v\n", uploadErr)
