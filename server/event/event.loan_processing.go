@@ -16,11 +16,11 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	}
 
 	// Get current user organization
-	user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		return nil, eris.Wrap(err, "loan processing: failed to get current user organization")
 	}
-	if user.BranchID == nil {
+	if userOrg.BranchID == nil {
 		return nil, eris.New("loan processing: user organization has no branch assigned")
 	}
 
@@ -29,8 +29,8 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// // ===============================
 	// currency := loanTransaction.Account.Currency
 	// accounts, err := e.core.AccountManager.Find(context, &core.Account{
-	// 	OrganizationID: loanTransaction.OrganizationID,
-	// 	BranchID:       loanTransaction.BranchID,
+	// 	OrganizationID: userOrg.OrganizationID,
+	// 	BranchID:       *userOrg.BranchID,
 	// 	LoanAccountID:  loanTransaction.AccountID,
 	// 	CurrencyID:     &currency.ID,
 	// }, "Currency")
@@ -47,8 +47,8 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// // STEP 6: FETCH HOLIDAY CALENDAR
 	// // ===============================
 	// holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
-	// 	OrganizationID: loanTransaction.OrganizationID,
-	// 	BranchID:       loanTransaction.BranchID,
+	// 	OrganizationID: userOrg.OrganizationID,
+	// 	BranchID:       *userOrg.BranchID,
 	// 	CurrencyID:     currency.ID,
 	// })
 	// if err != nil {
@@ -94,7 +94,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// // Initialize payment calculation variables
 	// currentDate := time.Now().UTC()
 	// if userOrg.TimeMachineTime != nil {
-	// 	currentDate = user.UserOrgTime()
+	// 	currentDate = userOrg.UserOrgTime()
 	// }
 	// paymentDate := *loanTransaction.PrintedDate
 	// // accounts, err := e.usecase.
@@ -113,7 +113,9 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// 	}
 	// 	scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 
-	// 	if i < loanTransaction.LoanCount {
+	// 	if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
+
+	// 		// loanTransaction.LoanCount = i + 1
 
 	// 	}
 	// 	// ===============================

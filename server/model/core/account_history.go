@@ -655,7 +655,7 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
 		{Field: "account_id", Order: filter.SortOrderAsc},
 		{Field: "created_at", Order: filter.SortOrderDesc},
-	}, "Currency")
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -3647,6 +3647,7 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		BranchID:       original.BranchID,
 		CreatedByID:    a.CreatedByID,
 		CreatedAt:      now,
+		LoanAccountID:  a.LoanAccountID,
 
 		// Copy all original data
 		Name:                                original.Name,
@@ -3706,7 +3707,6 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		CurrencyID:                     original.CurrencyID,
 		DefaultPaymentTypeID:           original.DefaultPaymentTypeID,
 		ComputationSheetID:             original.ComputationSheetID,
-		LoanAccountID:                  original.LoanAccountID,
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                original.CohCibFinesGracePeriodEntryCashHand,
@@ -3743,6 +3743,7 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		BranchID:       a.BranchID,
 		CreatedByID:    a.CreatedByID,
 
+		LoanAccountID: a.LoanAccountID,
 		// Copy all current data
 		Name:                                a.Name,
 		Description:                         a.Description,
@@ -3801,7 +3802,6 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		MemberTypeID:                   a.MemberTypeID,
 		CurrencyID:                     a.CurrencyID,
 		ComputationSheetID:             a.ComputationSheetID,
-		LoanAccountID:                  a.LoanAccountID,
 
 		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
