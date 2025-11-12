@@ -87,20 +87,17 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 				fileName,
 				contentType, func(progress, _ int64, _ *horizon.Storage) {
 					fmt.Printf("Upload progress: %d%%\n", progress)
-					_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, &core.Media{
-						Progress:  progress,
-						Status:    "progress",
-						UpdatedAt: time.Now().UTC(),
-					})
+					initial.Progress = progress
+					initial.UpdatedAt = time.Now().UTC()
+					initial.Status = "progress"
+					_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, initial)
 				})
 
 			if uploadErr != nil {
 				fmt.Printf("Binary upload failed: %v\n", uploadErr)
-				_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, &core.Media{
-					ID:        initial.ID,
-					Status:    "error",
-					UpdatedAt: time.Now().UTC(),
-				})
+				initial.UpdatedAt = time.Now().UTC()
+				initial.Status = "error"
+				_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, initial)
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "File upload failed: " + uploadErr.Error()
 				e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
