@@ -453,7 +453,7 @@ func (h *StorageImpl) UploadFromBinaryWithContentType(ctx context.Context, data 
 	storage := &Storage{
 		FileName:   uniqueFileName,
 		FileSize:   int64(len(data)),
-		FileType:   contentType, // Use provided content type instead of detecting
+		FileType:   contentType,
 		StorageKey: uniqueFileName,
 		BucketName: h.storageBucket,
 		Status:     "progress",
