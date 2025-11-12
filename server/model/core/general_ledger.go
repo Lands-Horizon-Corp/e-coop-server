@@ -770,7 +770,7 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 	}
 	result := []*GeneralLedger{}
 	for _, entry := range entries {
-		if !entry.Account.CashAndCashEquivalence {
+		if entry.Account.CashAndCashEquivalence {
 			continue
 		}
 		if !(entry.Account.Type == AccountTypeLoan ||

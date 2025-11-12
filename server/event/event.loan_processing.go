@@ -11,6 +11,9 @@ import (
 )
 
 func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTransactionID *uuid.UUID) (*core.LoanTransaction, error) {
+	// ===============================
+	// STEP 1: INITIALIZE TRANSACTION AND BASIC VALIDATION
+	// ===============================
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	now := time.Now().UTC()
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
@@ -18,7 +21,9 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		return nil, endTx(eris.Wrap(err, "loan processing: failed to get loan transaction by id"))
 	}
 
-	// Get current user organization
+	// ===============================
+	// STEP 2: VALIDATE USER ORGANIZATION AND BRANCH
+	// ===============================
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "loan processing: failed to get current user organization"))
@@ -27,12 +32,15 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		return nil, endTx(eris.New("loan processing: user organization has no branch assigned"))
 	}
 
+	// ===============================
+	// STEP 3: RETRIEVE AND VALIDATE MEMBER PROFILE
+	// ===============================
 	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-retrieval-failed",
 			Description: "Unable to retrieve member profile " + loanTransaction.MemberProfileID.String() + ": " + err.Error(),
-			Module:      "Loan Release",
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 	}
@@ -40,13 +48,13 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-not-found",
 			Description: "Member profile does not exist for ID: " + loanTransaction.MemberProfileID.String(),
-			Module:      "Loan Release",
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.New("member profile not found"))
 	}
 
 	// ===============================
-	// STEP 5: FETCH RELATED ACCOUNTS & CURRENCY
+	// STEP 4: FETCH RELATED ACCOUNTS & CURRENCY
 	// ===============================
 	currency := loanTransaction.Account.Currency
 	accounts, err := e.core.AccountManager.Find(context, &core.Account{
@@ -57,15 +65,15 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	}, "Currency")
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
-			Description: "Failed to retrieve loan-related accounts for amortization schedule: " + err.Error(),
-			Module:      "Loan Amortization",
+			Activity:    "accounts-retrieval-failed",
+			Description: "Failed to retrieve loan-related accounts for processing: " + err.Error(),
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String()))
 	}
 
 	// ===============================
-	// STEP 6: FETCH HOLIDAY CALENDAR
+	// STEP 5: FETCH HOLIDAY CALENDAR
 	// ===============================
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: userOrg.OrganizationID,
@@ -74,29 +82,29 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	})
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
+			Activity:    "holidays-retrieval-failed",
 			Description: "Failed to retrieve holiday calendar for payment schedule calculations: " + err.Error(),
-			Module:      "Loan Amortization",
+			Module:      "Loan Processing",
 		})
-		return nil, endTx(eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule"))
+		return nil, endTx(eris.Wrapf(err, "failed to retrieve holidays for loan processing schedule"))
 	}
 
 	// ===============================
-	// STEP 7: CALCULATE NUMBER OF PAYMENTS
+	// STEP 6: CALCULATE NUMBER OF PAYMENTS
 	// ===============================
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
-			Activity:    "calculation-failed",
-			Description: "Failed to calculate number of payments for loan amortization: " + err.Error(),
-			Module:      "Loan Amortization",
+			Activity:    "payment-calculation-failed",
+			Description: "Failed to calculate number of payments for loan processing: " + err.Error(),
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms))
 	}
 
 	// ===============================
-	// STEP 8: CONFIGURE PAYMENT SCHEDULE SETTINGS
+	// STEP 7: CONFIGURE PAYMENT SCHEDULE SETTINGS
 	// ===============================
 	// Weekend and holiday exclusions
 	excludeSaturday := loanTransaction.ExcludeSaturday
@@ -112,7 +120,10 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	if loanTransaction.PrintedDate == nil {
 		return nil, endTx(eris.New("loan processing: printed date is nil"))
 	}
-	// Initialize payment calculation variables
+
+	// ===============================
+	// STEP 8: INITIALIZE PAYMENT CALCULATION VARIABLES
+	// ===============================
 	currentDate := time.Now().UTC()
 	if userOrg.TimeMachineTime != nil {
 		currentDate = userOrg.UserOrgTime()
@@ -120,39 +131,50 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	paymentDate := *loanTransaction.PrintedDate
 	balance := loanTransaction.TotalPrincipal
 	principal := loanTransaction.TotalPrincipal
+	// ===============================
+	// STEP 9: PROCESS PAYMENT SCHEDULE ITERATIONS
+	// ===============================
 	for i := range numberOfPayments + 1 {
+		// Calculate skipped days due to weekends/holidays
 		daysSkipped := 0
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "calculation-failed",
+				Activity:    "skipped-days-calculation-failed",
 				Description: "Failed to calculate skipped days for payment schedule: " + err.Error(),
-				Module:      "Loan Amortization",
+				Module:      "Loan Processing",
 			})
 			return nil, endTx(eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02")))
 		}
 
+		// Adjust payment date and calculate balance
 		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
-
 		currentBalance := e.provider.Service.Decimal.Clamp(
 			e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-
 		balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
 
 		// ===============================
-		// STEP 11: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
+		// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
 		// ===============================
 		if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
 			for _, account := range accounts {
-				if account.LoanAccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeFines {
+				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight {
 					continue
 				}
 				var price float64
-				switch account.ComputationType {
-				case core.Diminishing:
-					price = e.usecase.ComputeInterest(balance, account.InterestStandard, loanTransaction.ModeOfPayment)
-				case core.DiminishingStraight:
-					price = e.usecase.ComputeInterest(principal, account.InterestStandard, loanTransaction.ModeOfPayment)
+				switch account.Type {
+				case core.AccountTypeFines:
+				default:
+					switch account.ComputationType {
+					case core.Diminishing:
+						if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
+							price = e.usecase.ComputeInterest(balance, account.InterestStandard, loanTransaction.ModeOfPayment)
+						}
+					case core.DiminishingStraight:
+						if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
+							price = e.usecase.ComputeInterest(principal, account.InterestStandard, loanTransaction.ModeOfPayment)
+						}
+					}
 				}
 				if price <= 0 {
 					continue
@@ -165,14 +187,14 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 					memberProfile.BranchID,
 				)
 				if err != nil {
-					return nil, endTx(eris.New("failed to fetch current member general member thats ready for update"))
+					return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
 				}
 				var currentMemberBalance float64 = 0
 				if memberAccountLedger == nil {
 					e.Footstep(ctx, FootstepEvent{
 						Activity:    "member-ledger-initialization",
-						Description: "Initializing new member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
-						Module:      "Loan Release",
+						Description: "Initializing new member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String(),
+						Module:      "Loan Processing",
 					})
 				} else {
 					currentMemberBalance = memberAccountLedger.Balance
@@ -203,9 +225,9 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				}
 				if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 					e.Footstep(ctx, FootstepEvent{
-						Activity:    "cash-ledger-creation-failed",
-						Description: "Unable to create cash account ledger entry for :" + account.ID.String(),
-						Module:      "Loan Release",
+						Activity:    "ledger-entry-creation-failed",
+						Description: "Unable to create general ledger entry for account " + account.ID.String(),
+						Module:      "Loan Processing",
 					})
 					return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 				}
@@ -222,17 +244,17 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				)
 				if err != nil {
 					e.Footstep(ctx, FootstepEvent{
-						Activity:    "interest-accounting-ledger-failed",
-						Description: "Failed to update member accounting ledger for interest account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-						Module:      "Loan Release",
+						Activity:    "accounting-ledger-update-failed",
+						Description: "Failed to update member accounting ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+						Module:      "Loan Processing",
 					})
-					return nil, endTx(eris.Wrap(err, "failed to update interest accounting ledger"))
+					return nil, endTx(eris.Wrap(err, "failed to update accounting ledger"))
 				}
 			}
 			loanTransaction.LoanCount = i + 1
 			if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 				e.Footstep(ctx, FootstepEvent{
-					Activity:    "update-failed",
+					Activity:    "loan-count-update-failed",
 					Description: "Failed to update loan count during processing: " + err.Error(),
 					Module:      "Loan Processing",
 				})
@@ -241,7 +263,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		}
 
 		// ===============================
-		// STEP 14: DETERMINE NEXT PAYMENT DATE
+		// STEP 11: DETERMINE NEXT PAYMENT DATE
 		// ===============================
 		switch loanTransaction.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
@@ -281,29 +303,28 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
-	// ================================================================================
-	// STEP 10: DATABASE TRANSACTION COMMIT
-	// ================================================================================
-	// Commit all changes to the database
+
+	// ===============================
+	// STEP 12: DATABASE TRANSACTION COMMIT
+	// ===============================
 	if err := endTx(nil); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "database-commit-failed",
-			Description: "Unable to commit loan release transaction to database: " + err.Error(),
-			Module:      "Loan Release",
+			Description: "Unable to commit loan processing transaction to database: " + err.Error(),
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
-	// ================================================================================
-	// STEP 11: FINAL TRANSACTION RETRIEVAL AND RETURN
-	// ================================================================================
-	// Retrieve and return the updated loan transaction
+	// ===============================
+	// STEP 13: FINAL TRANSACTION RETRIEVAL AND RETURN
+	// ===============================
 	updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "final-retrieval-failed",
-			Description: "Unable to retrieve updated loan transaction after successful release: " + err.Error(),
-			Module:      "Loan Release",
+			Description: "Unable to retrieve updated loan transaction after successful processing: " + err.Error(),
+			Module:      "Loan Processing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
 	}
