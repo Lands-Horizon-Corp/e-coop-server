@@ -161,9 +161,35 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight {
 					continue
 				}
-				var price float64
+				memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
+					context, tx,
+					memberProfile.ID,
+					account.ID,
+					memberProfile.OrganizationID,
+					memberProfile.BranchID,
+				)
+
+				if err != nil {
+					return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
+				}
+				var currentMemberBalance float64 = 0
+				if memberAccountLedger == nil {
+					e.Footstep(ctx, FootstepEvent{
+						Activity:    "member-ledger-initialization",
+						Description: "Initializing new member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String(),
+						Module:      "Loan Processing",
+					})
+				} else {
+					currentMemberBalance = memberAccountLedger.Balance
+				}
+
+				var price float64 = 0.0
 				switch account.Type {
 				case core.AccountTypeFines:
+					if !e.provider.Service.Decimal.IsLessThan(balance, currentMemberBalance) {
+						continue
+					}
+					// Fines are computed on the remaining balance
 				default:
 					switch account.ComputationType {
 					case core.Diminishing:
@@ -179,26 +205,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				if price <= 0 {
 					continue
 				}
-				memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-					context, tx,
-					memberProfile.ID,
-					account.ID,
-					memberProfile.OrganizationID,
-					memberProfile.BranchID,
-				)
-				if err != nil {
-					return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
-				}
-				var currentMemberBalance float64 = 0
-				if memberAccountLedger == nil {
-					e.Footstep(ctx, FootstepEvent{
-						Activity:    "member-ledger-initialization",
-						Description: "Initializing new member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String(),
-						Module:      "Loan Processing",
-					})
-				} else {
-					currentMemberBalance = memberAccountLedger.Balance
-				}
+
 				memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
 					*loanTransaction.Account, 0.0, price, currentMemberBalance)
 				memberLedgerEntry := &core.GeneralLedger{
