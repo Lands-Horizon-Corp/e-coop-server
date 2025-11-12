@@ -361,12 +361,12 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		}
 
 		// Calculate straight interest for this account
-		interest := e.usecase.ComputeInterestStraight(
-			loanTransaction.Balance, account.InterestStandard, loanTransaction.Terms)
+		straightBalance := e.usecase.ComputeInterestStraight(
+			loanTransaction.TotalPrincipal, account.InterestStandard, loanTransaction.Terms)
 
 		// Calculate adjustment amounts for member interest account
 		intDebit, intCredit, newIntBalance := e.usecase.Adjustment(
-			*loanTransaction.Account, 0.0, interest, intBalance)
+			*loanTransaction.Account, 0.0, straightBalance, intBalance)
 
 		// Create member's general ledger entry for interest account
 		intMemberEntry := &core.GeneralLedger{
@@ -454,7 +454,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		}
 
 		// Calculate cash adjustment for interest amount
-		intCashDebit, intCashCredit, newIntCashBalance := e.usecase.Adjustment(*cashAccount.Account, interest, 0.0, intCashBalance)
+		intCashDebit, intCashCredit, newIntCashBalance := e.usecase.Adjustment(
+			*cashAccount.Account, straightBalance, 0.0, intCashBalance)
 
 		// Create cash account ledger entry for interest
 		intCashEntry := &core.GeneralLedger{
@@ -495,7 +496,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		// Log successful interest processing for this account
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "interest-account-processed",
-			Description: "Successfully processed interest account " + account.ID.String() + " with interest: " + fmt.Sprintf("%.2f", interest),
+			Description: "Successfully processed interest account " + account.ID.String() + " with interest: " + fmt.Sprintf("%.2f", straightBalance),
 			Module:      "Loan Release",
 		})
 	}
