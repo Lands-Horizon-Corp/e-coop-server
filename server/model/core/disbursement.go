@@ -138,10 +138,6 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-	currency, err := m.CurrencyFindByAlpha2(context, branch.CountryCode)
-	if err != nil {
-		return eris.Wrap(err, "failed to find currency for account seeding")
-	}
 
 	disbursements := []*Disbursement{
 		{
@@ -151,7 +147,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Petty Cash",
 
 			Description: "Small cash disbursements for minor expenses and miscellaneous operational costs.",
@@ -163,7 +159,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Office Supplies",
 
 			Description: "Purchase of office materials, stationery, and administrative supplies.",
@@ -175,7 +171,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Utilities",
 			Description:    "Payment for electricity, water, internet, and other utility services.",
 		},
@@ -186,7 +182,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Travel Expenses",
 			Description:    "Transportation costs, accommodation, and meal allowances for official travels.",
 		},
@@ -197,7 +193,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Meeting Expenses",
 			Description:    "Costs associated with meetings, seminars, and training sessions.",
 		},
@@ -208,7 +204,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Equipment Purchase",
 			Description:    "Acquisition of office equipment, furniture, and technology devices.",
 		},
@@ -219,7 +215,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Maintenance & Repairs",
 			Description:    "Building maintenance, equipment repairs, and facility improvements.",
 		},
@@ -230,7 +226,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Insurance Premium",
 			Description:    "Payment for insurance coverage including property, liability, and employee insurance.",
 		},
@@ -241,7 +237,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Professional Services",
 			Description:    "Fees for legal, accounting, consulting, and other professional services.",
 		},
@@ -252,7 +248,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Member Benefits",
 			Description:    "Disbursements for member welfare, dividends, and cooperative benefits distribution.",
 		},
@@ -263,7 +259,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Loan Disbursement",
 			Description:    "Release of approved loans to cooperative members.",
 		},
@@ -274,7 +270,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			CurrencyID:     currency.ID,
+			CurrencyID:     *branch.CurrencyID,
 			Name:           "Emergency Fund",
 			Description:    "Disbursements from emergency reserves for urgent organizational needs.",
 		},

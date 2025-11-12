@@ -150,7 +150,7 @@ func (c *Controller) organizationController() {
 			Name:           req.Name,
 			Email:          *req.Email,
 			Description:    req.Description,
-			CountryCode:    "",
+			CurrencyID:     req.CurrencyID,
 			ContactNumber:  req.ContactNumber,
 			Latitude:       &latitude,
 			Longitude:      &longitude,

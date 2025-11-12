@@ -15,6 +15,9 @@ import (
 
 // Seeder seeds sample data into the application's database. It holds
 // references to application services and state used during seeding.
+
+const country_code = "PH"
+
 type Seeder struct {
 	provider    *server.Provider
 	core        *core.Core
@@ -248,6 +251,10 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				s.provider.Service.Logger.Info(fmt.Sprintf("📸 Created branch media %d/%d", k+1, numBranches))
 				s.progressBar.Describe("📸 Created branch media")
 				_ = s.progressBar.Add(1)
+				currency, err := s.core.CurrencyFindByAlpha2(ctx, country_code)
+				if err != nil {
+					return eris.Wrap(err, "failed to find currency for account seeding")
+				}
 				branch := &core.Branch{
 					CreatedAt:      time.Now().UTC(),
 					CreatedByID:    user.ID,
@@ -263,7 +270,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					Region:         s.faker.Address().State(),
 					Barangay:       s.faker.Address().StreetName(),
 					PostalCode:     s.faker.Address().PostCode(),
-					CountryCode:    "PH",
+					CurrencyID:     &currency.ID,
 					ContactNumber:  ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
 					MediaID:        &branchMedia.ID,
 					// Random coordinates for Philippines (approximately between 4°-21°N, 116°-127°E)
@@ -276,10 +283,7 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				s.provider.Service.Logger.Info(fmt.Sprintf("🏪 Created branch: %s for %s", branch.Name, organization.Name))
 				s.progressBar.Describe(fmt.Sprintf("🏪 Created branch: %s for %s", branch.Name, organization.Name))
 				_ = s.progressBar.Add(1)
-				currency, err := s.core.CurrencyFindByAlpha2(ctx, branch.CountryCode)
-				if err != nil {
-					return eris.Wrap(err, "failed to find currency for account seeding")
-				}
+
 				// Create default branch settings for each branch
 				branchSetting := &core.BranchSetting{
 					CreatedAt: time.Now().UTC(),

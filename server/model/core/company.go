@@ -132,10 +132,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err != nil {
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
-	currency, err := m.CurrencyFindByAlpha2(context, branch.CountryCode)
-	if err != nil {
-		return eris.Wrap(err, "failed to find currency for account seeding")
-	}
+
 	companies := []*Company{
 		{
 
@@ -265,7 +262,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	switch currency.CurrencyCode {
+	switch branch.Currency.CurrencyCode {
 	case "USD": // United States
 		companies = append(companies,
 			// Electricity / Energy Companies

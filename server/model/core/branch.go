@@ -28,11 +28,14 @@ type (
 		MediaID        *uuid.UUID     `gorm:"type:uuid" json:"media_id"`
 		Media          *Media         `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
-		Type          string   `gorm:"type:varchar(100);not null" json:"type"`
-		Name          string   `gorm:"type:varchar(255);not null" json:"name"`
-		Email         string   `gorm:"type:varchar(255);not null" json:"email"`
-		Description   *string  `gorm:"type:text" json:"description,omitempty"`
-		CountryCode   string   `gorm:"type:varchar(10);not null" json:"country_code"`
+		Type        string  `gorm:"type:varchar(100);not null" json:"type"`
+		Name        string  `gorm:"type:varchar(255);not null" json:"name"`
+		Email       string  `gorm:"type:varchar(255);not null" json:"email"`
+		Description *string `gorm:"type:text" json:"description,omitempty"`
+
+		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
+		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency"`
+
 		ContactNumber *string  `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
 		Address       string   `gorm:"type:varchar(500);not null" json:"address"`
 		Province      string   `gorm:"type:varchar(100);not null" json:"province"`
@@ -65,7 +68,7 @@ type (
 		Name          string     `json:"name" validate:"required"`
 		Email         string     `json:"email" validate:"required,email"`
 		Description   *string    `json:"description,omitempty"`
-		CountryCode   string     `json:"country_code" validate:"required"`
+		CurrencyID    *uuid.UUID `json:"currency_id" validate:"required"` // Changed from Currency string to CurrencyID
 		ContactNumber *string    `json:"contact_number,omitempty"`
 		Address       string     `json:"address" validate:"required"`
 		Province      string     `json:"province" validate:"required"`
@@ -92,22 +95,23 @@ type (
 		UpdatedBy    *UserResponse         `json:"updated_by,omitempty"`
 		Organization *OrganizationResponse `json:"organization,omitempty"`
 
-		MediaID       *uuid.UUID     `json:"media_id,omitempty"`
-		Media         *MediaResponse `json:"media,omitempty"`
-		Type          string         `json:"type"`
-		Name          string         `json:"name"`
-		Email         string         `json:"email"`
-		Description   *string        `json:"description,omitempty"`
-		CountryCode   string         `json:"country_code"`
-		ContactNumber *string        `json:"contact_number,omitempty"`
-		Address       string         `json:"address"`
-		Province      string         `json:"province"`
-		City          string         `json:"city"`
-		Region        string         `json:"region"`
-		Barangay      string         `json:"barangay"`
-		PostalCode    string         `json:"postal_code"`
-		Latitude      *float64       `json:"latitude,omitempty"`
-		Longitude     *float64       `json:"longitude,omitempty"`
+		MediaID       *uuid.UUID        `json:"media_id,omitempty"`
+		Media         *MediaResponse    `json:"media,omitempty"`
+		Type          string            `json:"type"`
+		Name          string            `json:"name"`
+		Email         string            `json:"email"`
+		Description   *string           `json:"description,omitempty"`
+		CurrencyID    *uuid.UUID        `json:"currency_id,omitempty"`
+		Currency      *CurrencyResponse `json:"currency,omitempty"` // Changed from string to Currency object
+		ContactNumber *string           `json:"contact_number,omitempty"`
+		Address       string            `json:"address"`
+		Province      string            `json:"province"`
+		City          string            `json:"city"`
+		Region        string            `json:"region"`
+		Barangay      string            `json:"barangay"`
+		PostalCode    string            `json:"postal_code"`
+		Latitude      *float64          `json:"latitude,omitempty"`
+		Longitude     *float64          `json:"longitude,omitempty"`
 
 		IsMainBranch bool `json:"is_main_branch,omitempty"`
 
@@ -128,6 +132,7 @@ func (m *Core) branch() {
 			"Media",
 			"CreatedBy",
 			"UpdatedBy",
+			"Currency",
 			"BranchSetting",
 			"Footsteps",
 			"GeneratedReports",
@@ -160,7 +165,8 @@ func (m *Core) branch() {
 				Name:          data.Name,
 				Email:         data.Email,
 				Description:   data.Description,
-				CountryCode:   data.CountryCode,
+				CurrencyID:    data.CurrencyID,
+				Currency:      m.CurrencyManager.ToModel(data.Currency), // Use the Currency relationship
 				ContactNumber: data.ContactNumber,
 				Address:       data.Address,
 				Province:      data.Province,
