@@ -802,32 +802,6 @@ func (c *Controller) accountController() {
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
 
-		// Debug logging - Request values
-		fmt.Printf("DEBUG: Request - MemberTypeID: %v\n", req.MemberTypeID)
-		fmt.Printf("DEBUG: Request - DefaultPaymentTypeID: %v\n", req.DefaultPaymentTypeID)
-		if req.MemberTypeID != nil {
-			fmt.Printf("DEBUG: Request MemberTypeID value: %s\n", *req.MemberTypeID)
-		}
-		if req.DefaultPaymentTypeID != nil {
-			fmt.Printf("DEBUG: Request DefaultPaymentTypeID value: %s\n", *req.DefaultPaymentTypeID)
-		}
-
-		// Debug logging - User organization default payment type
-		fmt.Printf("DEBUG: UserOrg SettingsPaymentTypeDefaultValueID: %v\n", userOrg.SettingsPaymentTypeDefaultValueID)
-		if userOrg.SettingsPaymentTypeDefaultValueID != nil {
-			fmt.Printf("DEBUG: UserOrg Default PaymentTypeID value: %s\n", *userOrg.SettingsPaymentTypeDefaultValueID)
-		}
-
-		// Debug logging - Account values before update
-		fmt.Printf("DEBUG: Before update - MemberTypeID: %v\n", account.MemberTypeID)
-		fmt.Printf("DEBUG: Before update - DefaultPaymentTypeID: %v\n", account.DefaultPaymentTypeID)
-		if account.MemberTypeID != nil {
-			fmt.Printf("DEBUG: MemberTypeID value: %s\n", *account.MemberTypeID)
-		}
-		if account.DefaultPaymentTypeID != nil {
-			fmt.Printf("DEBUG: DefaultPaymentTypeID value: %s\n", *account.DefaultPaymentTypeID)
-		}
-
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -835,21 +809,6 @@ func (c *Controller) accountController() {
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
-		}
-
-		// Debug: Check what was actually saved
-		updatedAccount, err := c.core.AccountManager.GetByID(context, account.ID)
-		if err == nil {
-			fmt.Printf("DEBUG: After update - MemberTypeID: %v\n", updatedAccount.MemberTypeID)
-			fmt.Printf("DEBUG: After update - DefaultPaymentTypeID: %v\n", updatedAccount.DefaultPaymentTypeID)
-			if updatedAccount.MemberTypeID != nil {
-				fmt.Printf("DEBUG: Saved MemberTypeID value: %s\n", *updatedAccount.MemberTypeID)
-			}
-			if updatedAccount.DefaultPaymentTypeID != nil {
-				fmt.Printf("DEBUG: Saved DefaultPaymentTypeID value: %s\n", *updatedAccount.DefaultPaymentTypeID)
-			}
-		} else {
-			fmt.Printf("DEBUG: Error retrieving updated account: %v\n", err)
 		}
 
 		if len(req.AccountTags) > 0 {
