@@ -3329,7 +3329,7 @@ func (c *Controller) generalLedgerController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan general ledger entries"})
 		}
-		entries, err := c.core.GeneralLedgerManager.PaginationWithFields(context, ctx, &core.GeneralLedger{
+		entries, err := c.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 			LoanTransactionID: loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
