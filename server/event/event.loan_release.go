@@ -324,6 +324,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		}
 		computedInterest := e.usecase.ComputeInterestStraight(
 			targetLoanTransaction.Balance, account.InterestStandard, targetLoanTransaction.Terms)
+
 		memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
 			*targetLoanTransaction.Account, 0.0, computedInterest, currentMemberBalance)
 		memberLedgerEntry := &core.GeneralLedger{
@@ -358,7 +359,65 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
 
-		// General Ledger for account
+		// Lock the subsidiary ledger for the cash account
+		cashAccountLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+			context, tx, cashAccount.ID, currentUserOrg.OrganizationID, *currentUserOrg.BranchID)
+		if err != nil {
+
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "cash-ledger-lock-failed",
+				Description: "Unable to acquire lock on cash account subsidiary ledger " + cashAccount.ID.String(),
+				Module:      "Loan Release",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to retrieve subsidiary general ledger"))
+		}
+
+		var currentCashBalance float64 = 0
+		if cashAccountLedger == nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "cash-ledger-initialization",
+				Description: "Initializing new cash account ledger for " + cashAccount.Account.ID.String() + " with zero balance",
+				Module:      "Loan Release",
+			})
+		} else {
+			currentCashBalance = cashAccountLedger.Balance
+		}
+
+		cashDebit, cashCredit, newCashBalance := e.usecase.Adjustment(*cashAccount.Account, computedInterest, 0.0, currentCashBalance)
+		userOrgTime := currentUserOrg.UserOrgTime()
+		cashLedgerEntry := &core.GeneralLedger{
+			CreatedAt:                  now,
+			CreatedByID:                currentUserOrg.UserID,
+			UpdatedAt:                  now,
+			UpdatedByID:                currentUserOrg.UserID,
+			BranchID:                   *currentUserOrg.BranchID,
+			OrganizationID:             currentUserOrg.OrganizationID,
+			TransactionBatchID:         &activeBatch.ID,
+			ReferenceNumber:            targetLoanTransaction.CheckNumber,
+			EntryDate:                  &userOrgTime,
+			AccountID:                  &cashAccount.Account.ID,
+			PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
+			TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
+			Source:                     core.GeneralLedgerSourceCheckVoucher,
+			BankReferenceNumber:        "",
+			EmployeeUserID:             &currentUserOrg.UserID,
+			Description:                cashAccount.Description,
+			TypeOfPaymentType:          cashAccount.Account.DefaultPaymentType.Type,
+			Credit:                     cashCredit,
+			Debit:                      cashDebit,
+			Balance:                    newCashBalance,
+			CurrencyID:                 &loanCurrency.ID,
+			LoanTransactionID:          &targetLoanTransaction.ID,
+		}
+
+		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashLedgerEntry); err != nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "cash-ledger-creation-failed",
+				Description: "Unable to create cash account ledger entry for " + cashAccount.Account.ID.String(),
+				Module:      "Loan Release",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
+		}
 	}
 
 	// ================================================================================

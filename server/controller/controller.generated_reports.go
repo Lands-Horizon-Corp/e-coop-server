@@ -46,7 +46,7 @@ func (c *Controller) generatedReports() {
 			CreatedByID:        user.UserID,
 			UpdatedAt:          time.Now().UTC(),
 			UpdatedByID:        user.UserID,
-			OrganizationID:     user.UserID,
+			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
 			UserOrganizationID: user.ID,
 			GeneratedReportID:  generatedReport.ID,
