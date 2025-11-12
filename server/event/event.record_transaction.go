@@ -239,6 +239,10 @@ func (e Event) RecordTransaction(
 			paymentTypeValue = paymentType.Type
 		}
 
+		userOrgTime := userOrg.UserOrgTime()
+		if transaction.EntryDate != nil {
+			userOrgTime = *transaction.EntryDate
+		}
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
@@ -248,7 +252,7 @@ func (e Event) RecordTransaction(
 			OrganizationID:             userOrg.OrganizationID,
 			TransactionBatchID:         &transactionBatch.ID,
 			ReferenceNumber:            transaction.ReferenceNumber,
-			EntryDate:                  transaction.EntryDate,
+			EntryDate:                  &userOrgTime,
 			SignatureMediaID:           transaction.SignatureMediaID,
 			ProofOfPaymentMediaID:      transaction.ProofOfPaymentMediaID,
 			BankID:                     transaction.BankID,
@@ -344,6 +348,10 @@ func (e Event) RecordTransaction(
 		if paymentType != nil {
 			paymentTypeValue = paymentType.Type
 		}
+		userOrgTime := userOrg.UserOrgTime()
+		if transaction.EntryDate != nil {
+			userOrgTime = *transaction.EntryDate
+		}
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:             now,
 			CreatedByID:           userOrg.UserID,
@@ -353,7 +361,7 @@ func (e Event) RecordTransaction(
 			OrganizationID:        userOrg.OrganizationID,
 			TransactionBatchID:    &transactionBatch.ID,
 			ReferenceNumber:       transaction.ReferenceNumber,
-			EntryDate:             transaction.EntryDate,
+			EntryDate:             &userOrgTime,
 			SignatureMediaID:      transaction.SignatureMediaID,
 			ProofOfPaymentMediaID: transaction.ProofOfPaymentMediaID,
 			BankID:                transaction.BankID,

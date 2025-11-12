@@ -497,6 +497,10 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to process transaction"))
 	}
 
+	userOrgTime := userOrg.UserOrgTime()
+	if data.EntryDate != nil {
+		userOrgTime = *data.EntryDate
+	}
 	newGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -507,7 +511,7 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID:         &transactionBatch.ID,
 		ReferenceNumber:            referenceNumber,
 		TransactionID:              &transaction.ID,
-		EntryDate:                  data.EntryDate,
+		EntryDate:                  &userOrgTime,
 		SignatureMediaID:           data.SignatureMediaID,
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
@@ -673,6 +677,7 @@ func (e *Event) TransactionPayment(
 		block("Failed to process transaction: " + err.Error())
 		return nil, endTx(eris.Wrap(err, "failed to process transaction"))
 	}
+
 	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -683,7 +688,7 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID:         &transactionBatch.ID,
 		ReferenceNumber:            referenceNumber,
 		TransactionID:              &transaction.ID,
-		EntryDate:                  data.EntryDate,
+		EntryDate:                  &userOrgTime,
 		SignatureMediaID:           data.SignatureMediaID,
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,

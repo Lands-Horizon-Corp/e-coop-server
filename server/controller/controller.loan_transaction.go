@@ -1941,7 +1941,7 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID)
+		schedule, err := c.event.LoanAmortizationSchedule(context, ctx, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
 		}

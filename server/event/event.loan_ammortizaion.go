@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
@@ -33,12 +34,41 @@ type LoanTransactionAmortizationResponse struct {
 	Schedule    []*LoanAmortizationSchedule          `json:"schedule,omitempty"`
 }
 
-func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID uuid.UUID) (*LoanTransactionAmortizationResponse, error) {
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID, "Account.Currency")
+func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Context, loanTransactionID uuid.UUID) (*LoanTransactionAmortizationResponse, error) {
+	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	if err != nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "authentication-failed",
+			Description: "Unable to retrieve user organization context for transaction recording: " + err.Error(),
+			Module:      "Transaction Recording",
+		})
+		return nil, eris.Wrap(err, "failed to get user organization")
+	}
+
+	// Ensure user organization context exists
+	if userOrg == nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "authentication-failed",
+			Description: "User organization context is missing - cannot proceed with transaction recording",
+			Module:      "Transaction Recording",
+		})
+		return nil, eris.New("user organization is nil")
+	}
+
+	// Validate branch assignment for transaction context
+	if userOrg.BranchID == nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "branch-context-error",
+			Description: "User is not assigned to any branch - branch context required for transaction recording",
+			Module:      "Transaction Recording",
+		})
+		return nil, eris.New("user organization branch ID is nil")
+	}
+	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Branch", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
-	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(ctx, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
 		LoanTransactionID: loanTransaction.ID,
@@ -52,7 +82,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 	}
 	currency := loanTransaction.Account.Currency
-	accounts, err := e.core.AccountManager.Find(ctx, &core.Account{
+	accounts, err := e.core.AccountManager.Find(context, &core.Account{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
 		LoanAccountID:  loanTransaction.AccountID,
@@ -61,7 +91,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	if err != nil {
 		return nil, err
 	}
-	holidays, err := e.core.HolidayManager.Find(ctx, &core.Holiday{
+	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
 		CurrencyID:     currency.ID,
@@ -82,7 +112,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 
 	// Payment custom days
 	isMonthlyExactDay := loanTransaction.ModeOfPaymentMonthlyExactDay
-	weeklyExactDay := loanTransaction.ModeOfPaymentWeekly // expect this to be time.Weekday (0=Sunday...)
+	weeklyExactDay := loanTransaction.ModeOfPaymentWeekly
 	semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
 	semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
@@ -103,7 +133,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 	})
 
 	// Typically, start date comes from loanTransaction (adjust as needed)
-	paymentDate := time.Now().UTC()
+	paymentDate := userOrg.UserOrgTime()
 	principal := totalCredit
 	balance := totalCredit
 	total := 0.0
@@ -125,7 +155,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		if i > 0 {
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
-					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
+					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
 					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {
@@ -206,7 +236,7 @@ func (e Event) LoanAmortizationSchedule(ctx context.Context, loanTransactionID u
 		} else {
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
-					ctx, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
+					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
 					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {

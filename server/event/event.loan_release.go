@@ -141,7 +141,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 	// STEP 5: CASH ACCOUNT BALANCE CALCULATION AND LEDGER ENTRY
 	// ================================================================================
 	cashDebit, cashCredit, newCashBalance := e.usecase.Adjustment(*cashAccount.Account, targetLoanTransaction.Balance, 0.0, currentCashBalance)
-
+	userOrgTime := currentUserOrg.UserOrgTime()
 	cashLedgerEntry := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                currentUserOrg.UserID,
@@ -151,7 +151,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
 		ReferenceNumber:            targetLoanTransaction.CheckNumber,
-		EntryDate:                  &now,
+		EntryDate:                  &userOrgTime,
 		AccountID:                  &cashAccount.Account.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
 		TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
@@ -250,7 +250,7 @@ func (e *Event) LoanRelease(ctx context.Context, echoCtx echo.Context, tx *gorm.
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
 		ReferenceNumber:            targetLoanTransaction.CheckNumber,
-		EntryDate:                  &now,
+		EntryDate:                  &userOrgTime,
 		AccountID:                  targetLoanTransaction.AccountID,
 		MemberProfileID:            &memberProfile.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
