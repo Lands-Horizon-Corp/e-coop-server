@@ -171,7 +171,6 @@ type (
 		LoanTermsAndConditionSuggestedPaymentManager registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
 		LoanTermsAndConditionAmountReceiptManager    registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
 		LoanPurposeManager                           registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
-		LoanLedgerManager                            registry.Registry[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
 
 		// Maintenance
 		CollateralManager                                                   registry.Registry[Collateral, CollateralResponse, CollateralRequest]
@@ -291,7 +290,6 @@ func (m *Core) Start() error {
 	m.comakerCollateral()
 	m.loanGuaranteedFund()
 	m.loanGuaranteedFundPerMonth()
-	m.loanLedger()
 	m.loanPurpose()
 	m.loanStatus()
 	m.loanTag()
