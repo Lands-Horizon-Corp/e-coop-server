@@ -84,7 +84,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// ================================================================================
 
 	// Fetch the loan transaction with account and currency details
-	targetLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, data.LoanTransactionID, "Account", "Account.Currency")
+	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, data.LoanTransactionID, "Account", "Account.Currency")
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "loan-data-retrieval-failed",
@@ -94,11 +94,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
 	// Validate currency information
-	loanCurrency := targetLoanTransaction.Account.Currency
+	loanCurrency := loanTransaction.Account.Currency
 	if loanCurrency == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "currency-validation-failed",
-			Description: "Missing currency information for loan account " + targetLoanTransaction.AccountID.String(),
+			Description: "Missing currency information for loan account " + loanTransaction.AccountID.String(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.New("currency data is nil"))
@@ -109,7 +109,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// ================================================================================
 	// Retrieve the cash on hand account for the loan release
 	cashAccount, err := e.core.GetCashOnCashEquivalence(
-		context, targetLoanTransaction.ID, currentUserOrg.OrganizationID, *currentUserOrg.BranchID)
+		context, loanTransaction.ID, currentUserOrg.OrganizationID, *currentUserOrg.BranchID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to get cash on hand account"))
 	}
@@ -143,7 +143,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// ================================================================================
 	// STEP 5: CASH ACCOUNT BALANCE CALCULATION AND LEDGER ENTRY
 	// ================================================================================
-	cashDebit, cashCredit, newCashBalance := e.usecase.Adjustment(*cashAccount.Account, targetLoanTransaction.Balance, 0.0, currentCashBalance)
+	cashDebit, cashCredit, newCashBalance := e.usecase.Adjustment(*cashAccount.Account, loanTransaction.Balance, 0.0, currentCashBalance)
 	userOrgTime := currentUserOrg.UserOrgTime()
 	cashLedgerEntry := &core.GeneralLedger{
 		CreatedAt:                  now,
@@ -153,11 +153,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		BranchID:                   *currentUserOrg.BranchID,
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
-		ReferenceNumber:            targetLoanTransaction.CheckNumber,
+		ReferenceNumber:            loanTransaction.CheckNumber,
 		EntryDate:                  &userOrgTime,
 		AccountID:                  &cashAccount.Account.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-		TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
+		TransactionReferenceNumber: loanTransaction.CheckNumber,
 		Source:                     core.GeneralLedgerSourceCheckVoucher,
 		BankReferenceNumber:        "",
 		EmployeeUserID:             &currentUserOrg.UserID,
@@ -167,7 +167,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		Debit:                      cashDebit,
 		Balance:                    newCashBalance,
 		CurrencyID:                 &loanCurrency.ID,
-		LoanTransactionID:          &targetLoanTransaction.ID,
+		LoanTransactionID:          &loanTransaction.ID,
 	}
 
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashLedgerEntry); err != nil {
@@ -189,11 +189,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// STEP 6: MEMBER ACCOUNT LEDGER PROCESSING
 	// ================================================================================
 	// Retrieve member profile associated with the loan
-	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *targetLoanTransaction.MemberProfileID)
+	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-retrieval-failed",
-			Description: "Unable to retrieve member profile " + targetLoanTransaction.MemberProfileID.String() + ": " + err.Error(),
+			Description: "Unable to retrieve member profile " + loanTransaction.MemberProfileID.String() + ": " + err.Error(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
@@ -201,7 +201,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	if memberProfile == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-not-found",
-			Description: "Member profile does not exist for ID: " + targetLoanTransaction.MemberProfileID.String(),
+			Description: "Member profile does not exist for ID: " + loanTransaction.MemberProfileID.String(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.New("member profile not found"))
@@ -210,7 +210,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 		context, tx,
 		memberProfile.ID,
-		*targetLoanTransaction.AccountID,
+		*loanTransaction.AccountID,
 		memberProfile.OrganizationID,
 		memberProfile.BranchID,
 	)
@@ -218,7 +218,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-ledger-lock-failed",
-			Description: "Unable to acquire lock on member ledger for account " + targetLoanTransaction.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+			Description: "Unable to acquire lock on member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
@@ -230,7 +230,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-ledger-initialization",
-			Description: "Initializing new member ledger for account " + targetLoanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
+			Description: "Initializing new member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
 			Module:      "Loan Release",
 		})
 	} else {
@@ -241,7 +241,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// STEP 7: MEMBER ACCOUNT BALANCE CALCULATION AND LEDGER ENTRY
 	// ================================================================================
 	memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-		*targetLoanTransaction.Account, 0.0, targetLoanTransaction.Balance, currentMemberBalance)
+		*loanTransaction.Account, 0.0, loanTransaction.Balance, currentMemberBalance)
 
 	memberLedgerEntry := &core.GeneralLedger{
 		CreatedAt:                  now,
@@ -251,15 +251,15 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		BranchID:                   *currentUserOrg.BranchID,
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
-		ReferenceNumber:            targetLoanTransaction.CheckNumber,
+		ReferenceNumber:            loanTransaction.CheckNumber,
 		EntryDate:                  &userOrgTime,
-		AccountID:                  targetLoanTransaction.AccountID,
+		AccountID:                  loanTransaction.AccountID,
 		MemberProfileID:            &memberProfile.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-		TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
+		TransactionReferenceNumber: loanTransaction.CheckNumber,
 		Source:                     core.GeneralLedgerSourceCheckVoucher,
 		EmployeeUserID:             &currentUserOrg.UserID,
-		Description:                targetLoanTransaction.Account.Description,
+		Description:                loanTransaction.Account.Description,
 		TypeOfPaymentType:          cashAccount.Account.DefaultPaymentType.Type,
 		Credit:                     memberCredit,
 		Debit:                      memberDebit,
@@ -279,10 +279,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 
 	accounts, err := e.core.GetAccountHistoriesByFiltersAtTime(
 		context,
-		targetLoanTransaction.OrganizationID,
+		loanTransaction.OrganizationID,
 		*currentUserOrg.BranchID,
 		&timeNow,
-		targetLoanTransaction.AccountID,
+		loanTransaction.AccountID,
 		&loanCurrency.ID,
 	)
 	if err != nil {
@@ -291,7 +291,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			Description: "Failed to retrieve loan-related accounts for amortization schedule: " + err.Error(),
 			Module:      "Loan Amortization",
 		})
-		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", targetLoanTransaction.ID.String())
+		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String())
 	}
 	for _, account := range accounts {
 		if account.LoanAccountID == nil || account.ComputationType != core.Straight {
@@ -307,7 +307,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		if err != nil {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "member-ledger-lock-failed",
-				Description: "Unable to acquire lock on member ledger for account " + targetLoanTransaction.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+				Description: "Unable to acquire lock on member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 				Module:      "Loan Release",
 			})
 			return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
@@ -316,17 +316,17 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		if generalLedger == nil {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "member-ledger-initialization",
-				Description: "Initializing new member ledger for account " + targetLoanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
+				Description: "Initializing new member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
 				Module:      "Loan Release",
 			})
 		} else {
 			currentMemberBalance = generalLedger.Balance
 		}
 		computedInterest := e.usecase.ComputeInterestStraight(
-			targetLoanTransaction.Balance, account.InterestStandard, targetLoanTransaction.Terms)
+			loanTransaction.Balance, account.InterestStandard, loanTransaction.Terms)
 
 		memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-			*targetLoanTransaction.Account, 0.0, computedInterest, currentMemberBalance)
+			*loanTransaction.Account, 0.0, computedInterest, currentMemberBalance)
 		memberLedgerEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                currentUserOrg.UserID,
@@ -335,20 +335,21 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			BranchID:                   *currentUserOrg.BranchID,
 			OrganizationID:             currentUserOrg.OrganizationID,
 			TransactionBatchID:         &activeBatch.ID,
-			ReferenceNumber:            targetLoanTransaction.CheckNumber,
+			ReferenceNumber:            loanTransaction.CheckNumber,
 			EntryDate:                  &userOrgTime,
 			AccountID:                  &account.ID,
 			MemberProfileID:            &memberProfile.ID,
 			PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-			TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
+			TransactionReferenceNumber: loanTransaction.CheckNumber,
 			Source:                     core.GeneralLedgerSourceCheckVoucher,
 			EmployeeUserID:             &currentUserOrg.UserID,
-			Description:                targetLoanTransaction.Account.Description,
+			Description:                loanTransaction.Account.Description,
 			TypeOfPaymentType:          cashAccount.Account.DefaultPaymentType.Type,
 			Credit:                     memberCredit,
 			Debit:                      memberDebit,
 			Balance:                    newMemberBalance,
 			CurrencyID:                 &loanCurrency.ID,
+			LoanTransactionID:          &loanTransaction.ID,
 		}
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
@@ -393,11 +394,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			BranchID:                   *currentUserOrg.BranchID,
 			OrganizationID:             currentUserOrg.OrganizationID,
 			TransactionBatchID:         &activeBatch.ID,
-			ReferenceNumber:            targetLoanTransaction.CheckNumber,
+			ReferenceNumber:            loanTransaction.CheckNumber,
 			EntryDate:                  &userOrgTime,
 			AccountID:                  &cashAccount.Account.ID,
 			PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-			TransactionReferenceNumber: targetLoanTransaction.CheckNumber,
+			TransactionReferenceNumber: loanTransaction.CheckNumber,
 			Source:                     core.GeneralLedgerSourceCheckVoucher,
 			BankReferenceNumber:        "",
 			EmployeeUserID:             &currentUserOrg.UserID,
@@ -407,7 +408,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			Debit:                      cashDebit,
 			Balance:                    newCashBalance,
 			CurrencyID:                 &loanCurrency.ID,
-			LoanTransactionID:          &targetLoanTransaction.ID,
+			LoanTransactionID:          &loanTransaction.ID,
 		}
 
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashLedgerEntry); err != nil {
@@ -427,8 +428,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 		context,
 		tx,
-		*targetLoanTransaction.MemberProfileID,
-		*targetLoanTransaction.AccountID,
+		*loanTransaction.MemberProfileID,
+		*loanTransaction.AccountID,
 		currentUserOrg.OrganizationID,
 		*currentUserOrg.BranchID,
 		currentUserOrg.UserID,
@@ -438,7 +439,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-accounting-ledger-update-failed",
-			Description: "Unable to update member accounting ledger for member " + targetLoanTransaction.MemberProfileID.String() + " on account " + targetLoanTransaction.AccountID.String() + ": " + err.Error(),
+			Description: "Unable to update member accounting ledger for member " + loanTransaction.MemberProfileID.String() + " on account " + loanTransaction.AccountID.String() + ": " + err.Error(),
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
@@ -454,12 +455,12 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// STEP 9: LOAN TRANSACTION FINALIZATION
 	// ================================================================================
 	// Update loan transaction with release information
-	targetLoanTransaction.ReleasedDate = &timeNow
-	targetLoanTransaction.ReleasedByID = &currentUserOrg.UserID
-	targetLoanTransaction.UpdatedAt = now
-	targetLoanTransaction.UpdatedByID = currentUserOrg.UserID
+	loanTransaction.ReleasedDate = &timeNow
+	loanTransaction.ReleasedByID = &currentUserOrg.UserID
+	loanTransaction.UpdatedAt = now
+	loanTransaction.UpdatedByID = currentUserOrg.UserID
 
-	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, targetLoanTransaction.ID, targetLoanTransaction); err != nil {
+	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
 
@@ -480,7 +481,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 	// STEP 11: FINAL TRANSACTION RETRIEVAL AND RETURN
 	// ================================================================================
 	// Retrieve and return the updated loan transaction
-	updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, targetLoanTransaction.ID)
+	updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "final-retrieval-failed",
