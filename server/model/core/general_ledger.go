@@ -149,6 +149,8 @@ type (
 
 		Description string `json:"description,omitempty"`
 		PrintNumber int    `json:"print_number"`
+
+		AccountHistoryID *uuid.UUID `json:"account_history_id"`
 	}
 
 	// GeneralLedgerRequest represents the request structure for creating/updating generalledger
@@ -248,6 +250,13 @@ func (m *Core) generalLedger() {
 			if data == nil {
 				return nil
 			}
+
+			accountHistory, err := m.GetAccountHistoryLatestByTime(
+				context.Background(), data.ID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+			)
+			if err != nil {
+				return nil
+			}
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
@@ -299,6 +308,7 @@ func (m *Core) generalLedger() {
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
+				AccountHistoryID:      &accountHistory.ID,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {

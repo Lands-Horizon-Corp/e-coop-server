@@ -157,7 +157,6 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				if price <= 0 {
 					continue
 				}
-				// Lock member's general ledger for this interest account
 				memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 					context, tx,
 					memberProfile.ID,
@@ -168,7 +167,6 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 				if err != nil {
 					return nil, endTx(eris.New("failed to fetch current member general member thats ready for update"))
 				}
-				// Determine current member account balance
 				var currentMemberBalance float64 = 0
 				if memberAccountLedger == nil {
 					e.Footstep(ctx, FootstepEvent{

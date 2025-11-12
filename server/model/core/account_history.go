@@ -526,59 +526,6 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 	})
 }
 
-// GetAccountAtTime returns GetAccountAtTime for the current branch or organization where applicable.
-func (m *Core) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
-	filters := []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "valid_from", Op: registry.OpLte, Value: asOfDate},
-		{Field: "valid_to", Op: registry.OpGt, Value: asOfDate},
-	}
-
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(histories) > 0 {
-		return histories[0], nil
-	}
-
-	// If no history with valid_to > asOfDate, get the latest one before asOfDate
-	filters = []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "valid_from", Op: registry.OpLte, Value: asOfDate},
-	}
-
-	histories, err = m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(histories) > 0 {
-		return histories[0], nil
-	}
-
-	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
-}
-
-// GetAccountsChangedInRange retrieves all accounts that had changes within the specified date range
-func (m *Core) GetAccountsChangedInRange(ctx context.Context, organizationID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "valid_from", Op: registry.OpGte, Value: startDate},
-		{Field: "valid_from", Op: registry.OpLte, Value: endDate},
-	}
-
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-}
-
 func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
