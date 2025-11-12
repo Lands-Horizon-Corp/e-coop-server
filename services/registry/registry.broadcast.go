@@ -21,8 +21,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnCreate(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Dispatching CREATE event",
-				zap.Strings("topics", topics),
-				zap.Any("payload", payload))
+				zap.Strings("topics", topics))
 		}
 
 		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
@@ -57,8 +56,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnUpdate(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Dispatching UPDATE event",
-				zap.Strings("topics", topics),
-				zap.Any("payload", payload))
+				zap.Strings("topics", topics))
 		}
 
 		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
@@ -93,8 +91,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnDelete(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Dispatching DELETE event",
-				zap.Strings("topics", topics),
-				zap.Any("payload", payload))
+				zap.Strings("topics", topics))
 		}
 
 		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
