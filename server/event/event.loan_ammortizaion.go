@@ -207,7 +207,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 	// ===============================
 	// STEP 10: GENERATE AMORTIZATION SCHEDULE
 	// ===============================
-	for i := range numberOfPayments {
+	for range numberOfPayments {
 		actualDate := paymentDate
 		daysSkipped := 0
 		rowTotal := 0.0
@@ -229,122 +229,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 		// STEP 11: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
 		// ===============================
 		periodAccounts := make([]*AccountValue, len(accountsSchedule))
-
-		if i > 0 {
-			// For subsequent payments, calculate based on account history
-			for j := range accountsSchedule {
-				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
-					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
-					loanTransaction.BranchID, loanTransaction.PrintedDate,
-				)
-				if err != nil {
-					e.Footstep(ctx, FootstepEvent{
-						Activity:    "calculation-failed",
-						Description: "Failed to retrieve account history for amortization calculations: " + err.Error(),
-						Module:      "Loan Amortization",
-					})
-					return nil, eris.Wrapf(err, "failed to get account history for account ID: %s", accountsSchedule[j].Account.ID.String())
-				}
-
-				// Create new account entry for this period
-				periodAccounts[j] = &AccountValue{
-					Account: accountHistory,
-					Value:   0,
-					Total:   accountsSchedule[j].Total,
-				}
-
-				// ===============================
-				// STEP 12: CALCULATE ACCOUNT-SPECIFIC VALUES
-				// ===============================
-				switch accountHistory.Type {
-				case core.AccountTypeLoan:
-					// LOAN PRINCIPAL PAYMENT: Principal ÷ Number of Payments
-					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
-						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-
-					// Update cumulative totals
-					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-					periodAccounts[j].Total = accountsSchedule[j].Total
-
-					// Update remaining balance
-					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
-
-				case core.AccountTypeFines:
-					// FINES CALCULATION: Based on days skipped and penalty rates
-					if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
-						periodAccounts[j].Value = e.usecase.ComputeFines(
-							principal,
-							accountHistory.FinesAmort,
-							accountHistory.FinesMaturity,
-							daysSkipped,
-							loanTransaction.ModeOfPayment,
-							accountHistory.NoGracePeriodDaily,
-							*accountHistory,
-						)
-
-						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-						periodAccounts[j].Total = accountsSchedule[j].Total
-					}
-
-				default:
-					// ===============================
-					// STEP 13: INTEREST CALCULATIONS
-					// ===============================
-					switch accountHistory.ComputationType {
-					case core.Straight:
-						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// STRAIGHT INTEREST: Fixed percentage of original principal
-							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					case core.Diminishing:
-						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// DIMINISHING INTEREST: Percentage of remaining balance
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					case core.DiminishingStraight:
-						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// DIMINISHING STRAIGHT: Hybrid calculation method
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					}
-				}
-
-				// Update running totals
-				total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
-				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
-			}
-		} else {
-			// For first payment, initialize account entries
-			for j := range accountsSchedule {
-				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
-					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
-					loanTransaction.BranchID, loanTransaction.PrintedDate,
-				)
-				if err != nil {
-					e.Footstep(ctx, FootstepEvent{
-						Activity:    "initialization-failed",
-						Description: "Failed to initialize account history for first payment: " + err.Error(),
-						Module:      "Loan Amortization",
-					})
-					return nil, eris.Wrapf(err, "failed to initialize account history for first payment")
-				}
-
-				periodAccounts[j] = &AccountValue{
-					Account: accountHistory,
-					Value:   0,
-					Total:   0,
-				}
-			}
-		}
 
 		// Sort accounts by type priority for consistent ordering
 		sort.Slice(periodAccounts, func(i, j int) bool {
@@ -464,6 +348,96 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
+		}
+		for j := range accountsSchedule {
+			accountHistory, err := e.core.GetAccountHistoryLatestByTime(
+				context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
+				loanTransaction.BranchID, loanTransaction.PrintedDate,
+			)
+			if err != nil {
+				e.Footstep(ctx, FootstepEvent{
+					Activity:    "calculation-failed",
+					Description: "Failed to retrieve account history for amortization calculations: " + err.Error(),
+					Module:      "Loan Amortization",
+				})
+				return nil, eris.Wrapf(err, "failed to get account history for account ID: %s", accountsSchedule[j].Account.ID.String())
+			}
+
+			// Create new account entry for this period
+			periodAccounts[j] = &AccountValue{
+				Account: accountHistory,
+				Value:   0,
+				Total:   accountsSchedule[j].Total,
+			}
+
+			// ===============================
+			// STEP 12: CALCULATE ACCOUNT-SPECIFIC VALUES
+			// ===============================
+			switch accountHistory.Type {
+			case core.AccountTypeLoan:
+				// LOAN PRINCIPAL PAYMENT: Principal ÷ Number of Payments
+				periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
+					e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+
+				// Update cumulative totals
+				accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+				periodAccounts[j].Total = accountsSchedule[j].Total
+
+				// Update remaining balance
+				balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
+
+			case core.AccountTypeFines:
+				// FINES CALCULATION: Based on days skipped and penalty rates
+				if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
+					periodAccounts[j].Value = e.usecase.ComputeFines(
+						principal,
+						accountHistory.FinesAmort,
+						accountHistory.FinesMaturity,
+						daysSkipped,
+						loanTransaction.ModeOfPayment,
+						accountHistory.NoGracePeriodDaily,
+						*accountHistory,
+					)
+
+					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+					periodAccounts[j].Total = accountsSchedule[j].Total
+				}
+
+			default:
+				// ===============================
+				// STEP 13: INTEREST CALCULATIONS
+				// ===============================
+				switch accountHistory.ComputationType {
+				case core.Straight:
+					if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						// STRAIGHT INTEREST: Fixed percentage of original principal
+						periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+
+						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						periodAccounts[j].Total = accountsSchedule[j].Total
+					}
+				case core.Diminishing:
+					if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						// DIMINISHING INTEREST: Percentage of remaining balance
+						periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+
+						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						periodAccounts[j].Total = accountsSchedule[j].Total
+					}
+				case core.DiminishingStraight:
+					if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						// DIMINISHING STRAIGHT: Hybrid calculation method
+						periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+
+						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						periodAccounts[j].Total = accountsSchedule[j].Total
+					}
+				}
+			}
+
+			// Update running totals
+			total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
+			rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
 		}
 	}
 
