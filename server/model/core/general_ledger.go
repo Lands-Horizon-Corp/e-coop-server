@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
@@ -313,26 +312,26 @@ func (m *Core) generalLedger() {
 		},
 		Created: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.create",
-				fmt.Sprintf("general_ledger.create.%s", data.ID),
-				fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
+				// "general_ledger.create",
+				// fmt.Sprintf("general_ledger.create.%s", data.ID),
+				// fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.update",
-				fmt.Sprintf("general_ledger.update.%s", data.ID),
-				fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
+				// "general_ledger.update",
+				// fmt.Sprintf("general_ledger.update.%s", data.ID),
+				// fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.delete",
-				fmt.Sprintf("general_ledger.delete.%s", data.ID),
-				fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
+				// "general_ledger.delete",
+				// fmt.Sprintf("general_ledger.delete.%s", data.ID),
+				// fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
