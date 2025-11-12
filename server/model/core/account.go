@@ -3820,11 +3820,9 @@ func (a *Account) AfterCreate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
-		// In the AccountHistoryToModel function (around line 500):
+
 		CohCibFinesGracePeriodEntryAnnualAmortization: a.CohCibFinesGracePeriodEntryAnnualAmortization,
 		CohCibFinesGracePeriodEntryAnnualMaturity:     a.CohCibFinesGracePeriodEntryAnnualMaturity,
-		// Add DefaultPaymentTypeID
-
 	}
 
 	// Save the history record
