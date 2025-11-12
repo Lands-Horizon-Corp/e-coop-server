@@ -251,7 +251,7 @@ func (m *Core) generalLedger() {
 				return nil
 			}
 
-			accountHistory, err := m.GetAccountHistoryLatestByTime(
+			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
 				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
 			)
 			if err != nil {
@@ -308,7 +308,7 @@ func (m *Core) generalLedger() {
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
-				AccountHistoryID:      &accountHistory.ID,
+				AccountHistoryID:      accountHistoryID,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {
