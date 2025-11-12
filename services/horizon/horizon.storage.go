@@ -31,6 +31,7 @@ type StorageService interface {
 	DeleteFile(ctx context.Context, storage *Storage) error
 	RemoveAllFiles(ctx context.Context) error
 	GenerateUniqueName(ctx context.Context, originalName string, contentType string) (string, error)
+	UploadFromBinaryWithContentType(ctx context.Context, data []byte, fileName string, contentType string, cb ProgressCallback) (*Storage, error)
 }
 
 // Storage represents metadata about a stored file
@@ -240,7 +241,7 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 	}
 	storage.StorageKey = result.Key
 	storage.BucketName = result.Bucket
-	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
+	url, err := h.GeneratePresignedURL(ctx, storage, 30*time.Minute)
 	if err != nil {
 		return nil, err
 	}
@@ -440,6 +441,47 @@ func (h *StorageImpl) DeleteFile(ctx context.Context, storage *Storage) error {
 		return eris.Wrapf(err, "failed to delete key %s from bucket %s", storage.StorageKey, storage.BucketName)
 	}
 	return nil
+}
+
+// Add new method implementation
+func (h *StorageImpl) UploadFromBinaryWithContentType(ctx context.Context, data []byte, fileName string, contentType string, cb ProgressCallback) (*Storage, error) {
+	uniqueFileName, err := h.GenerateUniqueName(ctx, fileName, contentType)
+	if err != nil {
+		return nil, err
+	}
+
+	storage := &Storage{
+		FileName:   uniqueFileName,
+		FileSize:   int64(len(data)),
+		FileType:   contentType,
+		StorageKey: uniqueFileName,
+		BucketName: h.storageBucket,
+		Status:     "progress",
+	}
+
+	pr := &progressReader{
+		reader:   bytes.NewReader(data),
+		callback: cb,
+		total:    int64(len(data)),
+		storage:  storage,
+	}
+
+	result, err := h.client.PutObject(ctx, h.storageBucket, uniqueFileName, pr, storage.FileSize, minio.PutObjectOptions{
+		ContentType: contentType, // Force the content type
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "upload with explicit content type failed")
+	}
+
+	storage.StorageKey = result.Key
+	storage.BucketName = result.Bucket
+	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+	storage.URL = url
+	storage.Status = "completed"
+	return storage, nil
 }
 
 // RemoveAllFiles removes all files from the storage bucket

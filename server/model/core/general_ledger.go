@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
@@ -149,6 +148,8 @@ type (
 
 		Description string `json:"description,omitempty"`
 		PrintNumber int    `json:"print_number"`
+
+		AccountHistoryID *uuid.UUID `json:"account_history_id"`
 	}
 
 	// GeneralLedgerRequest represents the request structure for creating/updating generalledger
@@ -248,6 +249,13 @@ func (m *Core) generalLedger() {
 			if data == nil {
 				return nil
 			}
+
+			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
+				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+			)
+			if err != nil {
+				return nil
+			}
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
@@ -299,30 +307,31 @@ func (m *Core) generalLedger() {
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
+				AccountHistoryID:      accountHistoryID,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.create",
-				fmt.Sprintf("general_ledger.create.%s", data.ID),
-				fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
+				// "general_ledger.create",
+				// fmt.Sprintf("general_ledger.create.%s", data.ID),
+				// fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
 		Updated: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.update",
-				fmt.Sprintf("general_ledger.update.%s", data.ID),
-				fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
+				// "general_ledger.update",
+				// fmt.Sprintf("general_ledger.update.%s", data.ID),
+				// fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
 		Deleted: func(data *GeneralLedger) []string {
 			return []string{
-				"general_ledger.delete",
-				fmt.Sprintf("general_ledger.delete.%s", data.ID),
-				fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
+				// "general_ledger.delete",
+				// fmt.Sprintf("general_ledger.delete.%s", data.ID),
+				// fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
+				// fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
@@ -737,4 +746,40 @@ func (m *Core) GeneralLedgerLatestLoanMemberAccount(
 		return nil, err
 	}
 	return ledger, nil
+}
+
+// GeneralLedgerByLoanTransaction retrieves all general ledger entries for a specific loan transaction
+func (m *Core) GeneralLedgerByLoanTransaction(
+	ctx context.Context,
+	loanTransactionID, organizationID, branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	sorts := []registry.FilterSortSQL{
+		{Field: "entry_date", Order: "DESC NULLS LAST"},
+		{Field: "created_at", Order: "DESC"},
+	}
+
+	entries, err := m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account")
+	if err != nil {
+		return nil, err
+	}
+	result := []*GeneralLedger{}
+	for _, entry := range entries {
+		if entry.Account.CashAndCashEquivalence {
+			continue
+		}
+		if !(entry.Account.Type == AccountTypeLoan ||
+			entry.Account.Type == AccountTypeFines ||
+			entry.Account.Type == AccountTypeInterest ||
+			entry.Account.Type == AccountTypeSVFLedger) {
+			continue
+		}
+		result = append(result, entry)
+	}
+	return result, nil
 }

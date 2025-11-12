@@ -1353,6 +1353,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
+		userOrg.TimeMachineTime = req.TimeMachineTime
 
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1366,6 +1367,46 @@ func (c *Controller) userOrganinzationController() {
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated settings for user organization: " + userOrg.ID.String(),
+			Module:      "UserOrganization",
+		})
+
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+	})
+
+	// PUT api/v1/user-organization/time-machine/cancel
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/user-organization/time-machine/cancel",
+		Method:       "PUT",
+		Note:         "Cancels time machine by setting TimeMachineTime to nil for current user organization.",
+		ResponseType: core.UserOrganizationResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Cancel time machine failed: unauthorized: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+
+		// Set TimeMachineTime to nil
+		userOrg.TimeMachineTime = nil
+
+		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Cancel time machine failed: update error: " + err.Error(),
+				Module:      "UserOrganization",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to cancel time machine: " + err.Error()})
+		}
+
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: "Cancelled time machine for user organization: " + userOrg.ID.String(),
 			Module:      "UserOrganization",
 		})
 

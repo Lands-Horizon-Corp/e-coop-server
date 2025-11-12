@@ -1517,7 +1517,11 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Loan transaction has already been marked printed, you can undo it by clicking undo print"})
 		}
 		loanTransaction.PrintNumber++
-		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+		loanTransaction.PrintedDate = &timeNow
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
 		loanTransaction.CheckNumber = req.CheckNumber
@@ -1655,7 +1659,11 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already approved"})
 		}
 		now := time.Now().UTC()
-		loanTransaction.ApprovedDate = &now
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+		loanTransaction.ApprovedDate = &timeNow
 		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
@@ -1755,12 +1763,12 @@ func (c *Controller) loanTransactionController() {
 		if loanTransaction.ReleasedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		newLoanTransaction, err := c.event.LoanRelease(context, ctx, tx, endTx, event.LoanBalanceEvent{
+
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransaction.ID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 
 		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
@@ -1941,11 +1949,57 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID)
+		schedule, err := c.event.LoanAmortizationSchedule(context, ctx, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, schedule)
 	})
 
+	// POST /api/v1/loan-transaction/:loan_transaction_id/process
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
+		Method:       "POST",
+		Note:         "Processes a loan transaction by ID.",
+		ResponseType: core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, ctx, loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+	})
+
+	// POST /api/v1/loan-transaction/process
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/process",
+		Method:       "POST",
+		Note:         "All Loan transactions that are pending to be processed will be processed",
+		ResponseType: core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		processedLoanTransaction, err := c.core.LoanTransactionManager.FindIncludingDeletedRaw(context, &core.LoanTransaction{
+			OrganizationID: user.OrganizationID,
+			BranchID:       *user.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
+		}
+		for _, loanTransaction := range processedLoanTransaction {
+			_, err := c.event.LoanProcessing(context, ctx, &loanTransaction.ID)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction ID " + loanTransaction.ID.String() + ": " + err.Error()})
+			}
+		}
+		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+	})
 }

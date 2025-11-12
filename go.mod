@@ -3,7 +3,7 @@ module github.com/Lands-Horizon-Corp/e-coop-server
 go 1.25.4
 
 require (
-	github.com/Lands-Horizon-Corp/golang-filtering v1.1.1
+	github.com/Lands-Horizon-Corp/golang-filtering v1.2.1
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/robfig/cron/v3 v3.0.1
@@ -88,7 +88,7 @@ require (
 	github.com/rotisserie/eris v0.5.4
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/twilio/twilio-go v1.28.5
+	github.com/twilio/twilio-go v1.28.6
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/fx v1.24.0

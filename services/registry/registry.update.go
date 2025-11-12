@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -47,21 +46,12 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	t := reflect.TypeOf(new(TData)).Elem()
-	fieldNames := make([]string, 0)
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if field.Name == "ID" {
-			continue
-		}
-		fieldNames = append(fieldNames, field.Name)
-	}
 	// Perform update with explicit field selection
-	db := tx.Model(new(TData)).Where("id = ?", id).Select(fieldNames).Updates(fields)
-	if err := db.Error; err != nil {
+	if err := tx.Where("id = ?", id).Save(fields).Error; err != nil {
 		return eris.Wrapf(err, "failed to update fields for entity %s in transaction", id)
 	}
-	reloadDb := tx.Model(new(TData)).Where("id = ?", id)
+	// Reload with preloads
+	reloadDb := tx.Where("id = ?", id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
 	}

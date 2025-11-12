@@ -722,15 +722,17 @@ func (c *Controller) accountController() {
 		}
 
 		account.UpdatedByID = userOrg.UserID
-		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedAt = userOrg.UserOrgTime()
 		account.BranchID = *userOrg.BranchID
 		account.OrganizationID = userOrg.OrganizationID
-		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
+
 		account.GeneralLedgerDefinitionID = req.GeneralLedgerDefinitionID
 		account.FinancialStatementDefinitionID = req.FinancialStatementDefinitionID
 		account.AccountClassificationID = req.AccountClassificationID
 		account.AccountCategoryID = req.AccountCategoryID
 		account.MemberTypeID = req.MemberTypeID
+		account.DefaultPaymentTypeID = req.DefaultPaymentTypeID
+
 		account.Name = req.Name
 		account.Description = req.Description
 		account.MinAmount = req.MinAmount
@@ -799,15 +801,6 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
-		account.LumpsumComputationType = req.LumpsumComputationType
-		account.InterestFinesComputationDiminishing = req.InterestFinesComputationDiminishing
-		account.InterestFinesComputationDiminishingStraightYearly = req.InterestFinesComputationDiminishingStraightYearly
-		account.EarnedUnearnedInterest = req.EarnedUnearnedInterest
-		account.LoanSavingType = req.LoanSavingType
-		account.InterestDeduction = req.InterestDeduction
-		account.OtherDeductionEntry = req.OtherDeductionEntry
-		account.InterestSavingTypeDiminishingStraight = req.InterestSavingTypeDiminishingStraight
-		account.OtherInformationOfAnAccount = req.OtherInformationOfAnAccount
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -817,6 +810,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 		}
+
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {
 				tag := &core.AccountTag{

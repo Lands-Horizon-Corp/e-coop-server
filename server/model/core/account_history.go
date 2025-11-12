@@ -526,59 +526,6 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 	})
 }
 
-// GetAccountAtTime returns GetAccountAtTime for the current branch or organization where applicable.
-func (m *Core) GetAccountAtTime(ctx context.Context, accountID uuid.UUID, asOfDate time.Time) (*AccountHistory, error) {
-	filters := []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "valid_from", Op: registry.OpLte, Value: asOfDate},
-		{Field: "valid_to", Op: registry.OpGt, Value: asOfDate},
-	}
-
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(histories) > 0 {
-		return histories[0], nil
-	}
-
-	// If no history with valid_to > asOfDate, get the latest one before asOfDate
-	filters = []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "valid_from", Op: registry.OpLte, Value: asOfDate},
-	}
-
-	histories, err = m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(histories) > 0 {
-		return histories[0], nil
-	}
-
-	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
-}
-
-// GetAccountsChangedInRange retrieves all accounts that had changes within the specified date range
-func (m *Core) GetAccountsChangedInRange(ctx context.Context, organizationID, branchID uuid.UUID, startDate, endDate time.Time) ([]*AccountHistory, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "valid_from", Op: registry.OpGte, Value: startDate},
-		{Field: "valid_from", Op: registry.OpLte, Value: endDate},
-	}
-
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
-	})
-}
-
 func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
@@ -595,7 +542,11 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 func (m *Core) GetAccountHistoryLatestByTime(
 	ctx context.Context,
 	accountID, organizationID, branchID uuid.UUID,
-	asOfDate time.Time) (*AccountHistory, error) {
+	asOfDate *time.Time) (*Account, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
@@ -612,8 +563,93 @@ func (m *Core) GetAccountHistoryLatestByTime(
 	}
 
 	if len(histories) > 0 {
-		return histories[0], nil
+		return m.AccountHistoryToModel(histories[0]), nil
 	}
 
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
+}
+
+func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
+	ctx context.Context,
+	accountID, organizationID, branchID uuid.UUID,
+	asOfDate *time.Time) (*uuid.UUID, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
+	filters := []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
+	}
+
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(histories) > 0 {
+		return &histories[0].ID, nil
+	}
+
+	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
+}
+
+func (m *Core) GetAccountHistoriesByFiltersAtTime(
+	ctx context.Context,
+	organizationID, branchID uuid.UUID,
+	asOfDate *time.Time,
+	loanAccountID *uuid.UUID,
+	currencyID *uuid.UUID,
+) ([]*Account, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
+
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
+	}
+
+	if loanAccountID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "loan_account_id", Op: registry.OpEq, Value: *loanAccountID,
+		})
+	}
+
+	if currencyID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "currency_id", Op: registry.OpEq, Value: *currencyID,
+		})
+	}
+
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "account_id", Order: filter.SortOrderAsc},
+		{Field: "created_at", Order: filter.SortOrderDesc},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the latest history for each unique account_id
+	accountMap := make(map[uuid.UUID]*AccountHistory)
+	for _, history := range histories {
+		if existing, found := accountMap[history.AccountID]; !found || history.CreatedAt.After(existing.CreatedAt) {
+			accountMap[history.AccountID] = history
+		}
+	}
+
+	// Convert to Account models
+	var accounts []*Account
+	for _, history := range accountMap {
+		accounts = append(accounts, m.AccountHistoryToModel(history))
+	}
+
+	return accounts, nil
 }

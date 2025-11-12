@@ -731,10 +731,15 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this cash check voucher"})
 		}
 
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+
 		// Update print details
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
 		cashCheckVoucher.PrintCount++
-		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
+		cashCheckVoucher.PrintedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
@@ -787,8 +792,11 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already approved"})
 		}
 
-		// Update approval details
-		cashCheckVoucher.ApprovedDate = handlers.Ptr(time.Now().UTC())
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+		cashCheckVoucher.ApprovedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
@@ -851,8 +859,11 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
-		// Update release details
-		cashCheckVoucher.ReleasedDate = handlers.Ptr(time.Now().UTC())
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+		cashCheckVoucher.ReleasedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
@@ -881,7 +892,7 @@ func (c *Controller) cashCheckVoucherController() {
 				// Transaction metadata
 				ReferenceNumber:       cashCheckVoucher.CashVoucherNumber,
 				Description:           entry.Description,
-				EntryDate:             handlers.Ptr(time.Now().UTC()),
+				EntryDate:             &timeNow,
 				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
 				BankID:                nil, // Not applicable for journal voucher entries
 				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries

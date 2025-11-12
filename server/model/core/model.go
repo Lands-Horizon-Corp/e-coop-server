@@ -50,28 +50,29 @@ type (
 		provider  *server.Provider
 		Migration []any
 
-		BankManager                   registry.Registry[Bank, BankResponse, BankRequest]
-		BranchManager                 registry.Registry[Branch, BranchResponse, BranchRequest]
-		BranchSettingManager          registry.Registry[BranchSetting, BranchSettingResponse, BranchSettingRequest]
-		CategoryManager               registry.Registry[Category, CategoryResponse, CategoryRequest]
-		ContactUsManager              registry.Registry[ContactUs, ContactUsResponse, ContactUsRequest]
-		CurrencyManager               registry.Registry[Currency, CurrencyResponse, CurrencyRequest]
-		FeedbackManager               registry.Registry[Feedback, FeedbackResponse, FeedbackRequest]
-		FootstepManager               registry.Registry[Footstep, FootstepResponse, FootstepRequest]
-		GeneratedReportManager        registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
-		InvitationCodeManager         registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
-		MediaManager                  registry.Registry[Media, MediaResponse, MediaRequest]
-		NotificationManager           registry.Registry[Notification, NotificationResponse, any]
-		OrganizationCategoryManager   registry.Registry[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]
-		OrganizationDailyUsageManager registry.Registry[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
-		OrganizationManager           registry.Registry[Organization, OrganizationResponse, OrganizationRequest]
-		OrganizationMediaManager      registry.Registry[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]
-		PermissionTemplateManager     registry.Registry[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
-		SubscriptionPlanManager       registry.Registry[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
-		UserOrganizationManager       registry.Registry[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
-		UserManager                   registry.Registry[User, UserResponse, UserRegisterRequest]
-		UserRatingManager             registry.Registry[UserRating, UserRatingResponse, UserRatingRequest]
-		MemberProfileMediaManager     registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
+		BankManager                          registry.Registry[Bank, BankResponse, BankRequest]
+		BranchManager                        registry.Registry[Branch, BranchResponse, BranchRequest]
+		BranchSettingManager                 registry.Registry[BranchSetting, BranchSettingResponse, BranchSettingRequest]
+		CategoryManager                      registry.Registry[Category, CategoryResponse, CategoryRequest]
+		ContactUsManager                     registry.Registry[ContactUs, ContactUsResponse, ContactUsRequest]
+		CurrencyManager                      registry.Registry[Currency, CurrencyResponse, CurrencyRequest]
+		FeedbackManager                      registry.Registry[Feedback, FeedbackResponse, FeedbackRequest]
+		FootstepManager                      registry.Registry[Footstep, FootstepResponse, FootstepRequest]
+		GeneratedReportManager               registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
+		GeneratedReportsDownloadUsersManager registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]
+		InvitationCodeManager                registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
+		MediaManager                         registry.Registry[Media, MediaResponse, MediaRequest]
+		NotificationManager                  registry.Registry[Notification, NotificationResponse, any]
+		OrganizationCategoryManager          registry.Registry[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]
+		OrganizationDailyUsageManager        registry.Registry[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]
+		OrganizationManager                  registry.Registry[Organization, OrganizationResponse, OrganizationRequest]
+		OrganizationMediaManager             registry.Registry[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]
+		PermissionTemplateManager            registry.Registry[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]
+		SubscriptionPlanManager              registry.Registry[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]
+		UserOrganizationManager              registry.Registry[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]
+		UserManager                          registry.Registry[User, UserResponse, UserRegisterRequest]
+		UserRatingManager                    registry.Registry[UserRating, UserRatingResponse, UserRatingRequest]
+		MemberProfileMediaManager            registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
 
 		// Members
 		MemberAddressManager                registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest]
@@ -170,7 +171,6 @@ type (
 		LoanTermsAndConditionSuggestedPaymentManager registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
 		LoanTermsAndConditionAmountReceiptManager    registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
 		LoanPurposeManager                           registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
-		LoanLedgerManager                            registry.Registry[LoanLedger, LoanLedgerResponse, LoanLedgerRequest]
 
 		// Maintenance
 		CollateralManager                                                   registry.Registry[Collateral, CollateralResponse, CollateralRequest]
@@ -265,6 +265,7 @@ func (m *Core) Start() error {
 	m.generalLedgerTag()
 	m.generalLedgerAccountsGrouping()
 	m.generatedReport()
+	m.generatedReportsDownloadUsers()
 	m.generalLedgerDefinition()
 	m.account()
 	m.accountTag()
@@ -289,7 +290,6 @@ func (m *Core) Start() error {
 	m.comakerCollateral()
 	m.loanGuaranteedFund()
 	m.loanGuaranteedFundPerMonth()
-	m.loanLedger()
 	m.loanPurpose()
 	m.loanStatus()
 	m.loanTag()
@@ -385,7 +385,6 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	if err := m.bankSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-
 	if err := m.billAndCoinsSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
@@ -424,6 +423,9 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	}
 	if err := m.loanPurposeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return nil
+	}
+	if err := m.accountClassificationSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
 	}
 	if err := m.accountCategorySeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err

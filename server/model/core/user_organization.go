@@ -114,8 +114,25 @@ type (
 
 // UserOrgTime returns the time machine time if set, otherwise returns current UTC time
 func (uo *UserOrganization) UserOrgTime() time.Time {
-	if uo.TimeMachineTime != nil {
-		return *uo.TimeMachineTime
+	if uo.TimeMachineTime != nil && !uo.TimeMachineTime.IsZero() {
+		if uo.Branch != nil && uo.Branch.Currency != nil && uo.Branch.Currency.Timezone != "" {
+			loc, err := time.LoadLocation(uo.Branch.Currency.Timezone)
+			if err != nil {
+				return uo.TimeMachineTime.UTC()
+			}
+			localTime := time.Date(
+				uo.TimeMachineTime.Year(),
+				uo.TimeMachineTime.Month(),
+				uo.TimeMachineTime.Day(),
+				uo.TimeMachineTime.Hour(),
+				uo.TimeMachineTime.Minute(),
+				uo.TimeMachineTime.Second(),
+				uo.TimeMachineTime.Nanosecond(),
+				loc,
+			)
+			return localTime.UTC()
+		}
+		return uo.TimeMachineTime.UTC()
 	}
 	return time.Now().UTC()
 }

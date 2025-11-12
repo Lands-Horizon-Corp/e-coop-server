@@ -162,7 +162,7 @@ func (c *Controller) branchController() {
 			Name:           req.Name,
 			Email:          req.Email,
 			Description:    req.Description,
-			CountryCode:    req.CountryCode,
+			CurrencyID:     req.CurrencyID,
 			ContactNumber:  req.ContactNumber,
 			Address:        req.Address,
 			Province:       req.Province,
@@ -185,15 +185,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
-		currency, err := c.core.CurrencyFindByAlpha2(context, branch.CountryCode)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create error",
-				Description: fmt.Sprintf("Failed to find currency for branch country code for POST /branch/organization/:organization_id: %v", err),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find currency for branch country code: " + endTx(err).Error()})
-		}
+
 		// Create default branch settings for the new branch
 		branchSetting := &core.BranchSetting{
 			CreatedAt: time.Now().UTC(),
@@ -243,7 +235,7 @@ func (c *Controller) branchController() {
 			// Default Member Type - can be set later
 			DefaultMemberTypeID:       nil,
 			LoanAppliedEqualToBalance: true,
-			CurrencyID:                currency.ID,
+			CurrencyID:                *req.CurrencyID,
 		}
 
 		if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
@@ -426,7 +418,7 @@ func (c *Controller) branchController() {
 		branch.Name = req.Name
 		branch.Email = req.Email
 		branch.Description = req.Description
-		branch.CountryCode = req.CountryCode
+		branch.CurrencyID = req.CurrencyID
 		branch.ContactNumber = req.ContactNumber
 		branch.Address = req.Address
 		branch.Province = req.Province

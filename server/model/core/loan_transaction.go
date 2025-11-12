@@ -237,6 +237,8 @@ type (
 		TotalDebit     float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
+
+		LoanCount int `gorm:"default:0"`
 	}
 
 	// LoanTransactionResponse represents the response structure for loan transaction data.
@@ -396,6 +398,8 @@ type (
 		Interest    float64    `json:"interest"`
 		TotalDebit  float64    `json:"total_debit"`
 		TotalCredit float64    `json:"total_credit"`
+
+		LoanCount int `json:"loan_count"`
 	}
 
 	// LoanTransactionRequest represents the request structure for creating or updating a loan transaction.
@@ -510,6 +514,8 @@ type (
 		LoanTermsAndConditionAmountReceiptDeleted    uuid.UUIDs `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
 		ComakerMemberProfilesDeleted                 uuid.UUIDs `json:"comaker_member_profiles_deleted,omitempty"`
 		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
+
+		LoanCount int `json:"loan_count,omitempty"`
 	}
 
 	// AmortizationPayment represents a single amortization schedule payment.
