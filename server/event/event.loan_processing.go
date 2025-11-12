@@ -24,9 +24,9 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		return nil, eris.New("loan processing: user organization has no branch assigned")
 	}
 
-	// ===============================
-	// STEP 5: FETCH RELATED ACCOUNTS & CURRENCY
-	// ===============================
+	// // ===============================
+	// // STEP 5: FETCH RELATED ACCOUNTS & CURRENCY
+	// // ===============================
 	// currency := loanTransaction.Account.Currency
 	// accounts, err := e.core.AccountManager.Find(context, &core.Account{
 	// 	OrganizationID: loanTransaction.OrganizationID,
@@ -88,5 +88,12 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
 	// semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
+	// // count general ledger that how many generated on backend
+	// // 12 payments
+	// // schedule: january to december
+
+	// expectedNumberOfPayments := numberOfPayments
+
+	// // accounts, err := e.usecase.
 	return loanTransaction, nil
 }
