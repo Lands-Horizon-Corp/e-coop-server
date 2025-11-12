@@ -88,12 +88,74 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
 	// semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
-	// // count general ledger that how many generated on backend
-	// // 12 payments
-	// // schedule: january to december
-
-	// expectedNumberOfPayments := numberOfPayments
-
+	// if loanTransaction.PrintedDate == nil {
+	// 	return nil, eris.New("loan processing: printed date is nil")
+	// }
+	// // Initialize payment calculation variables
+	// currentDate := time.Now().UTC()
+	// if userOrg.TimeMachineTime != nil {
+	// 	currentDate = user.UserOrgTime()
+	// }
+	// paymentDate := *loanTransaction.PrintedDate
 	// // accounts, err := e.usecase.
+	// for i := range numberOfPayments + 1 {
+	// 	actualDate := paymentDate
+	// 	daysSkipped := 0
+	// 	rowTotal := 0.0
+	// 	daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
+	// 	if err != nil {
+	// 		e.Footstep(ctx, FootstepEvent{
+	// 			Activity:    "calculation-failed",
+	// 			Description: "Failed to calculate skipped days for payment schedule: " + err.Error(),
+	// 			Module:      "Loan Amortization",
+	// 		})
+	// 		return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02"))
+	// 	}
+	// 	scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
+
+	// 	if i < loanTransaction.LoanCount {
+
+	// 	}
+	// 	// ===============================
+	// 	// STEP 14: DETERMINE NEXT PAYMENT DATE
+	// 	// ===============================
+	// 	switch loanTransaction.ModeOfPayment {
+	// 	case core.LoanModeOfPaymentDaily:
+	// 		paymentDate = paymentDate.AddDate(0, 0, 1)
+	// 	case core.LoanModeOfPaymentWeekly:
+	// 		weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
+	// 		paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
+	// 	case core.LoanModeOfPaymentSemiMonthly:
+	// 		thisDay := paymentDate.Day()
+	// 		thisMonth := paymentDate.Month()
+	// 		thisYear := paymentDate.Year()
+	// 		loc := paymentDate.Location()
+	// 		switch {
+	// 		case thisDay < semiMonthlyExactDay1:
+	// 			paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+	// 		case thisDay < semiMonthlyExactDay2:
+	// 			paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+	// 		default:
+	// 			nextMonth := paymentDate.AddDate(0, 1, 0)
+	// 			paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+	// 		}
+	// 	case core.LoanModeOfPaymentMonthly:
+	// 		loc := paymentDate.Location()
+	// 		day := paymentDate.Day()
+	// 		if isMonthlyExactDay {
+	// 			nextMonth := paymentDate.AddDate(0, 1, 0)
+	// 			paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+	// 		} else {
+	// 			paymentDate = paymentDate.AddDate(0, 0, 30)
+	// 		}
+	// 	case core.LoanModeOfPaymentQuarterly:
+	// 		paymentDate = paymentDate.AddDate(0, 3, 0)
+	// 	case core.LoanModeOfPaymentSemiAnnual:
+	// 		paymentDate = paymentDate.AddDate(0, 6, 0)
+	// 	case core.LoanModeOfPaymentLumpsum:
+	// 	case core.LoanModeOfPaymentFixedDays:
+	// 		paymentDate = paymentDate.AddDate(0, 0, 1)
+	// 	}
+	// }
 	return loanTransaction, nil
 }

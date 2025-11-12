@@ -677,8 +677,12 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been approved"})
 		}
 
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
 		// Update approval details
-		journalVoucher.ApprovedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.ApprovedDate = handlers.Ptr(timeNow)
 		journalVoucher.ApprovedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
@@ -746,9 +750,12 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		// Update print details without voucher number change
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
 		journalVoucher.PrintNumber++
-		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
+		journalVoucher.PrintedDate = &timeNow
 		journalVoucher.PrintedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
@@ -904,7 +911,11 @@ func (c *Controller) journalVoucherController() {
 		// ================================================================================
 		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
 		// ================================================================================
-		journalVoucher.ReleasedDate = handlers.Ptr(time.Now().UTC())
+		timeNow := time.Now().UTC()
+		if userOrg.TimeMachineTime != nil {
+			timeNow = userOrg.UserOrgTime()
+		}
+		journalVoucher.ReleasedDate = &timeNow
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
@@ -944,7 +955,7 @@ func (c *Controller) journalVoucherController() {
 				// Transaction metadata
 				ReferenceNumber:       journalVoucher.CashVoucherNumber,
 				Description:           entry.Description,
-				EntryDate:             handlers.Ptr(time.Now().UTC()),
+				EntryDate:             &timeNow,
 				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
 				BankID:                nil, // Not applicable for journal voucher entries
 				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries

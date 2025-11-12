@@ -152,12 +152,9 @@ type ComputationType string
 
 // Values for ComputationType
 const (
-	Straight             ComputationType = "Straight"
-	Diminishing          ComputationType = "Diminishing"
-	DiminishingAddOn     ComputationType = "DiminishingAddOn"
-	DiminishingYearly    ComputationType = "DiminishingYearly"
-	DiminishingStraight  ComputationType = "DiminishingStraight"
-	DiminishingQuarterly ComputationType = "DiminishingQuarterly"
+	Straight            ComputationType = "Straight"
+	Diminishing         ComputationType = "Diminishing"
+	DiminishingStraight ComputationType = "DiminishingStraight"
 )
 
 // --- MODEL ---
@@ -695,7 +692,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.0,
 			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   DiminishingYearly,
 			Index:             2,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Crown",
@@ -714,7 +710,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         100000.00,
 			InterestStandard:  3.0,
 			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   Diminishing,
 			Index:             3,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Cake",
@@ -733,7 +728,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         2000000.00,
 			InterestStandard:  3.5,
 			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   DiminishingQuarterly,
 			Index:             4,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Umbrella",
@@ -771,7 +765,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         3000000.00,
 			InterestStandard:  4.0,
 			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   DiminishingAddOn,
+			ComputationType:   Straight,
 			Index:             6,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Graduation Cap",
@@ -828,7 +822,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.5,
 			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   DiminishingYearly,
 			Index:             9,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Clock",
@@ -908,7 +901,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			FinesAmort:                              1.5,
 			FinesMaturity:                           2.5,
 			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         DiminishingYearly,
 			Index:                                   11,
 			CutOffDays:                              7,
 			CutOffMonths:                            0,

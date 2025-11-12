@@ -621,3 +621,58 @@ func (m *Core) GetAccountHistoryLatestByTime(
 
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }
+
+func (m *Core) GetAccountHistoriesByFiltersAtTime(
+	ctx context.Context,
+	organizationID, branchID uuid.UUID,
+	asOfDate *time.Time,
+	loanAccountID *uuid.UUID,
+	currencyID *uuid.UUID,
+) ([]*Account, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
+
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
+	}
+
+	if loanAccountID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "loan_account_id", Op: registry.OpEq, Value: *loanAccountID,
+		})
+	}
+
+	if currencyID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "currency_id", Op: registry.OpEq, Value: *currencyID,
+		})
+	}
+
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "account_id", Order: filter.SortOrderAsc},
+		{Field: "created_at", Order: filter.SortOrderDesc},
+	}, "Currency")
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the latest history for each unique account_id
+	accountMap := make(map[uuid.UUID]*AccountHistory)
+	for _, history := range histories {
+		if existing, found := accountMap[history.AccountID]; !found || history.CreatedAt.After(existing.CreatedAt) {
+			accountMap[history.AccountID] = history
+		}
+	}
+
+	// Convert to Account models
+	var accounts []*Account
+	for _, history := range accountMap {
+		accounts = append(accounts, m.AccountHistoryToModel(history))
+	}
+
+	return accounts, nil
+}

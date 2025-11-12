@@ -57,7 +57,7 @@ func (c *Controller) generatedReports() {
 				Description: "Generated reports download user creation failed (/generated-report/download), db error: " + err.Error(),
 				Module:      "GeneratedReportsDownloadUsers",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated reports download user"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated reports download user " + err.Error()})
 		}
 
 		media, err := c.core.MediaManager.GetByID(context, *generatedReport.MediaID)
@@ -124,6 +124,7 @@ func (c *Controller) generatedReports() {
 				Description: "Generated report creation failed (/generated-report), download error: " + err.Error(),
 				Module:      "GeneratedReport",
 			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager.ToModel(data))
 

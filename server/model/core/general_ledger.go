@@ -84,7 +84,6 @@ type (
 		BankReferenceNumber        string              `gorm:"type:varchar(50)"`
 		Description                string              `gorm:"type:text"`
 		PrintNumber                int                 `gorm:"default:0"`
-		LoanCount                  int                 `gorm:"default:0"`
 	}
 
 	// GeneralLedgerResponse represents the response structure for GeneralLedger.
@@ -150,7 +149,6 @@ type (
 
 		Description string `json:"description,omitempty"`
 		PrintNumber int    `json:"print_number"`
-		LoanCount   int    `json:"loan_count"`
 	}
 
 	// GeneralLedgerRequest represents the request structure for creating/updating generalledger
@@ -301,7 +299,6 @@ func (m *Core) generalLedger() {
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
-				LoanCount:             data.LoanCount,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {

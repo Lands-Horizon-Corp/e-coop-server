@@ -662,3 +662,20 @@ func (t *TransactionService) ComputeInterest(balance float64, rate float64, mp c
 		return 0.0
 	}
 }
+
+func (t *TransactionService) ComputeInterestStraight(balance float64, rate float64, terms int) float64 {
+	if rate <= 0 || balance <= 0 {
+		return 0.0
+	}
+
+	// Straight interest: balance * (rate / 100)
+	// For multi-term loans, you might want to multiply by terms
+	straightInterest := t.provider.Service.Decimal.MultiplyByPercentage(balance, rate)
+
+	// If terms > 1, apply for the full term period
+	if terms > 1 {
+		straightInterest = t.provider.Service.Decimal.Multiply(straightInterest, float64(terms))
+	}
+
+	return t.provider.Service.Decimal.RoundToDecimalPlaces(straightInterest, 2)
+}
