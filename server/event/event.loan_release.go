@@ -317,11 +317,19 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 	}
 
+	// ================================================================================
+	// STEP 8: PROCESS INTEREST ACCOUNTS (STRAIGHT COMPUTATION ONLY)
+	// ================================================================================
+
+	// Process all related accounts that have straight interest computation
 	for _, account := range accounts {
+		// Skip accounts that are not loan-related or don't use straight computation
 		if account.LoanAccountID == nil || account.ComputationType != core.Straight {
 			continue
 		}
-		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
+
+		// Lock member's general ledger for this interest account
+		intLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
 			context, tx,
 			memberProfile.ID,
 			account.ID,
@@ -330,28 +338,35 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		)
 		if err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-ledger-lock-failed",
-				Description: "Unable to acquire lock on member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+				Activity:    "interest-ledger-lock-failed",
+				Description: "Failed to lock interest account ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 				Module:      "Loan Release",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
+			return nil, endTx(eris.Wrap(err, "failed to lock interest account ledger"))
 		}
-		var currentMemberBalance float64 = 0
-		if generalLedger == nil {
+
+		// Get current balance for this interest account
+		var intBalance float64 = 0
+		if intLedger == nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-ledger-initialization",
-				Description: "Initializing new member ledger for account " + loanTransaction.AccountID.String() + " and member " + memberProfile.ID.String(),
+				Activity:    "interest-ledger-initialization",
+				Description: "Initializing new interest ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String(),
 				Module:      "Loan Release",
 			})
 		} else {
-			currentMemberBalance = generalLedger.Balance
+			intBalance = intLedger.Balance
 		}
-		computedInterest := e.usecase.ComputeInterestStraight(
+
+		// Calculate straight interest for this account
+		interest := e.usecase.ComputeInterestStraight(
 			loanTransaction.Balance, account.InterestStandard, loanTransaction.Terms)
 
-		memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-			*loanTransaction.Account, 0.0, computedInterest, currentMemberBalance)
-		memberLedgerEntry := &core.GeneralLedger{
+		// Calculate adjustment amounts for member interest account
+		intDebit, intCredit, newIntBalance := e.usecase.Adjustment(
+			*loanTransaction.Account, 0.0, interest, intBalance)
+
+		// Create member's general ledger entry for interest account
+		intMemberEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                currentUserOrg.UserID,
 			UpdatedAt:                  now,
@@ -369,21 +384,24 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			EmployeeUserID:             &currentUserOrg.UserID,
 			Description:                loanTransaction.Account.Description,
 			TypeOfPaymentType:          cashAccount.Account.DefaultPaymentType.Type,
-			Credit:                     memberCredit,
-			Debit:                      memberDebit,
-			Balance:                    newMemberBalance,
+			Credit:                     intCredit,
+			Debit:                      intDebit,
+			Balance:                    newIntBalance,
 			CurrencyID:                 &loanCurrency.ID,
 			LoanTransactionID:          &loanTransaction.ID,
 		}
-		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
+
+		// Save member interest ledger entry to database
+		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, intMemberEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-ledger-creation-failed",
-				Description: "Unable to create member ledger entry for account " + memberLedgerEntry.AccountID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+				Activity:    "interest-member-ledger-failed",
+				Description: "Failed to create interest member ledger entry for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 				Module:      "Loan Release",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
+			return nil, endTx(eris.Wrap(err, "failed to create interest member ledger entry"))
 		}
 
+		// Update member accounting ledger for this interest account
 		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
@@ -392,45 +410,51 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			currentUserOrg.OrganizationID,
 			*currentUserOrg.BranchID,
 			currentUserOrg.UserID,
-			newMemberBalance,
+			newIntBalance,
 			now,
 		)
 		if err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-accounting-ledger-update-failed",
-				Description: "Unable to update member accounting ledger for member " + loanTransaction.MemberProfileID.String() + " on account " + loanTransaction.AccountID.String() + ": " + err.Error(),
+				Activity:    "interest-accounting-ledger-failed",
+				Description: "Failed to update member accounting ledger for interest account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 				Module:      "Loan Release",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
+			return nil, endTx(eris.Wrap(err, "failed to update interest accounting ledger"))
 		}
 
-		// Lock the subsidiary ledger for the cash account
-		cashAccountLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
+		// ================================================================
+		// Process cash account entry for the computed interest amount
+		// ================================================================
+
+		// Lock the cash account subsidiary ledger for interest processing
+		intCashLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			context, tx, cashAccount.ID, currentUserOrg.OrganizationID, *currentUserOrg.BranchID)
 		if err != nil {
-
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "cash-ledger-lock-failed",
-				Description: "Unable to acquire lock on cash account subsidiary ledger " + cashAccount.ID.String(),
+				Activity:    "interest-cash-lock-failed",
+				Description: "Failed to lock cash account subsidiary ledger for interest processing " + cashAccount.ID.String(),
 				Module:      "Loan Release",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to retrieve subsidiary general ledger"))
+			return nil, endTx(eris.Wrap(err, "failed to lock cash account for interest"))
 		}
 
-		var currentCashBalance float64 = 0
-		if cashAccountLedger == nil {
+		// Get current cash balance for interest processing
+		var intCashBalance float64 = 0
+		if intCashLedger == nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "cash-ledger-initialization",
-				Description: "Initializing new cash account ledger for " + cashAccount.Account.ID.String() + " with zero balance",
+				Activity:    "interest-cash-initialization",
+				Description: "Initializing cash account ledger for interest processing " + cashAccount.Account.ID.String(),
 				Module:      "Loan Release",
 			})
 		} else {
-			currentCashBalance = cashAccountLedger.Balance
+			intCashBalance = intCashLedger.Balance
 		}
 
-		cashDebit, cashCredit, newCashBalance := e.usecase.Adjustment(*cashAccount.Account, computedInterest, 0.0, currentCashBalance)
-		userOrgTime := currentUserOrg.UserOrgTime()
-		cashLedgerEntry := &core.GeneralLedger{
+		// Calculate cash adjustment for interest amount
+		intCashDebit, intCashCredit, newIntCashBalance := e.usecase.Adjustment(*cashAccount.Account, interest, 0.0, intCashBalance)
+
+		// Create cash account ledger entry for interest
+		intCashEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                currentUserOrg.UserID,
 			UpdatedAt:                  now,
@@ -448,29 +472,30 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			EmployeeUserID:             &currentUserOrg.UserID,
 			Description:                cashAccount.Description,
 			TypeOfPaymentType:          cashAccount.Account.DefaultPaymentType.Type,
-			Credit:                     cashCredit,
-			Debit:                      cashDebit,
-			Balance:                    newCashBalance,
+			Credit:                     intCashCredit,
+			Debit:                      intCashDebit,
+			Balance:                    newIntCashBalance,
 			CurrencyID:                 &loanCurrency.ID,
 			LoanTransactionID:          &loanTransaction.ID,
 		}
 
-		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashLedgerEntry); err != nil {
+		// Save cash interest ledger entry to database
+		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, intCashEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "cash-ledger-creation-failed",
-				Description: "Unable to create cash account ledger entry for " + cashAccount.Account.ID.String(),
+				Activity:    "interest-cash-ledger-failed",
+				Description: "Failed to create cash interest ledger entry for " + cashAccount.Account.ID.String(),
 				Module:      "Loan Release",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
+			return nil, endTx(eris.Wrap(err, "failed to create cash interest ledger entry"))
 		}
-	}
 
-	// Log successful member transaction completion
-	e.Footstep(ctx, FootstepEvent{
-		Activity:    "member-transaction-completed",
-		Description: "Successfully processed member loan account for " + memberProfile.ID.String() + " with new balance: " + fmt.Sprintf("%.2f", newMemberBalance),
-		Module:      "Loan Release",
-	})
+		// Log successful interest processing for this account
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "interest-account-processed",
+			Description: "Successfully processed interest account " + account.ID.String() + " with interest: " + fmt.Sprintf("%.2f", interest),
+			Module:      "Loan Release",
+		})
+	}
 
 	// ================================================================================
 	// STEP 9: LOAN TRANSACTION FINALIZATION
