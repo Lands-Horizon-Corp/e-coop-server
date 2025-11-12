@@ -16,7 +16,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// ===============================
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	now := time.Now().UTC()
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+	loanTransaction, err := e.core.LoanTransactionManager.GetByIDIncludingDeleted(context, *loanTransactionID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "loan processing: failed to get loan transaction by id"))
 	}
@@ -35,7 +35,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 	// ===============================
 	// STEP 3: RETRIEVE AND VALIDATE MEMBER PROFILE
 	// ===============================
-	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
+	memberProfile, err := e.core.MemberProfileManager.GetByIDIncludingDeleted(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-retrieval-failed",
@@ -156,7 +156,7 @@ func (e *Event) LoanProcessing(context context.Context, ctx echo.Context, loanTr
 		// ===============================
 		// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
 		// ===============================
-		if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
+		if loanTransaction.LoanCount >= i && currentDate.Before(scheduledDate) {
 			for _, account := range accounts {
 				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight {
 					continue
