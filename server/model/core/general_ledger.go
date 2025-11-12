@@ -748,3 +748,39 @@ func (m *Core) GeneralLedgerLatestLoanMemberAccount(
 	}
 	return ledger, nil
 }
+
+// GeneralLedgerByLoanTransaction retrieves all general ledger entries for a specific loan transaction
+func (m *Core) GeneralLedgerByLoanTransaction(
+	ctx context.Context,
+	loanTransactionID, organizationID, branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	filters := []registry.FilterSQL{
+		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	sorts := []registry.FilterSortSQL{
+		{Field: "entry_date", Order: "DESC NULLS LAST"},
+		{Field: "created_at", Order: "DESC"},
+	}
+
+	entries, err := m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account")
+	if err != nil {
+		return nil, err
+	}
+	result := []*GeneralLedger{}
+	for _, entry := range entries {
+		if !entry.Account.CashAndCashEquivalence {
+			continue
+		}
+		if !(entry.Account.Type == AccountTypeLoan ||
+			entry.Account.Type == AccountTypeFines ||
+			entry.Account.Type == AccountTypeInterest ||
+			entry.Account.Type == AccountTypeSVFLedger) {
+			continue
+		}
+		result = append(result, entry)
+	}
+	return result, nil
+}

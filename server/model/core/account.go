@@ -984,7 +984,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			interestComputationType = DiminishingStraight
 			interestStandardRate = 3.0 // 3% interest standard
 		case "Educational Loan":
-			interestComputationType = Straight
+			interestComputationType = Diminishing
 			interestStandardRate = 1.5 // 1.5% interest standard
 		default:
 			interestComputationType = Diminishing
@@ -1032,16 +1032,16 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		switch loanAccount.Name {
 		case "Emergency Loan":
 			svfComputationType = Straight
-			svfStandardRate = 1.0 // 1% service fee standard
+			svfStandardRate = 1.0
 		case "Business Loan":
 			svfComputationType = DiminishingStraight
-			svfStandardRate = 1.5 // 1.5% service fee standard
+			svfStandardRate = 1.5
 		case "Educational Loan":
 			svfComputationType = Diminishing
-			svfStandardRate = 0.5 // 0.5% service fee standard
+			svfStandardRate = 0.5
 		default:
-			svfComputationType = Straight
-			svfStandardRate = 1.0 // 1% default service fee standard
+			svfComputationType = DiminishingStraight
+			svfStandardRate = 1.0
 		}
 
 		serviceFeeAccount := &Account{
