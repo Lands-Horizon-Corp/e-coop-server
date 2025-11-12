@@ -148,7 +148,9 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.core.UserOrganizationManager.GetByID(ctx, handlers.ParseUUID(&claim.UserOrganizationID))
+	userOrganization, err := h.core.UserOrganizationManager.GetByID(
+		ctx, handlers.ParseUUID(&claim.UserOrganizationID),
+	)
 	if err != nil || userOrganization == nil {
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
