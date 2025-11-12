@@ -252,7 +252,7 @@ func (m *Core) generalLedger() {
 			}
 
 			accountHistory, err := m.GetAccountHistoryLatestByTime(
-				context.Background(), data.ID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
 			)
 			if err != nil {
 				return nil
