@@ -14,6 +14,59 @@ import (
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
+	// GET /api/v1/generated-report/:generated_report_id/download
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generated-report/:generated_report_id/download",
+		Method:       "POST",
+		ResponseType: core.Media{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generatedReportID, err := handlers.EngineUUIDParam(ctx, "generated_report_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
+		}
+		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated report creation failed (/generated-report), user org error: " + err.Error(),
+				Module:      "GeneratedReport",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
+		}
+		if generatedReport.MediaID == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No media associated with this generated report"})
+		}
+		generatedReportsDownloadUsers := &core.GeneratedReportsDownloadUsers{
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        user.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        user.UserID,
+			OrganizationID:     user.UserID,
+			BranchID:           *user.BranchID,
+			UserOrganizationID: user.ID,
+			GeneratedReportID:  generatedReport.ID,
+		}
+		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, generatedReportsDownloadUsers); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated reports download user creation failed (/generated-report/download), db error: " + err.Error(),
+				Module:      "GeneratedReportsDownloadUsers",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated reports download user"})
+		}
+
+		media, err := c.core.MediaManager.GetByID(context, *generatedReport.MediaID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found"})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModel(media))
+	})
+
 	// POST
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",

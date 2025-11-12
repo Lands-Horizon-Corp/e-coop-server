@@ -240,7 +240,7 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 	}
 	storage.StorageKey = result.Key
 	storage.BucketName = result.Bucket
-	url, err := h.GeneratePresignedURL(ctx, storage, 24*time.Hour)
+	url, err := h.GeneratePresignedURL(ctx, storage, 30*time.Minute)
 	if err != nil {
 		return nil, err
 	}

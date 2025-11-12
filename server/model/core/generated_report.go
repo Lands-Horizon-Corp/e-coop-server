@@ -135,6 +135,11 @@ func (m *Core) generatedReport() {
 			if data == nil {
 				return nil
 			}
+			var media *MediaResponse
+			if data.Media != nil {
+				media = m.MediaManager.ToModel(data.Media)
+				media.DownloadURL = ""
+			}
 			return &GeneratedReportResponse{
 				ID:                  data.ID,
 				GeneratedReportType: data.GeneratedReportType,
@@ -152,7 +157,7 @@ func (m *Core) generatedReport() {
 				UserID:              data.UserID,
 				User:                m.UserManager.ToModel(data.User),
 				MediaID:             data.MediaID,
-				Media:               m.MediaManager.ToModel(data.Media),
+				Media:               media,
 				Name:                data.Name,
 				Description:         data.Description,
 				Status:              data.Status,
