@@ -764,7 +764,7 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	entries, err := m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account", "Employee")
+	entries, err := m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account", "EmployeeUser", "EmployeeUser.Media")
 	if err != nil {
 		return nil, err
 	}
