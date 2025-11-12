@@ -12,8 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnCreate(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Starting OnCreate dispatch",
-				zap.String("operation", "CREATE"),
-				zap.Any("entity", entity))
+				zap.String("operation", "CREATE"))
 		}
 
 		topics := r.created(entity)
@@ -47,8 +46,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnUpdate(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Starting OnUpdate dispatch",
-				zap.String("operation", "UPDATE"),
-				zap.Any("entity", entity))
+				zap.String("operation", "UPDATE"))
 		}
 
 		topics := r.updated(entity)
@@ -82,8 +80,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnDelete(context context.Context,
 
 		if r.service.Logger != nil {
 			r.service.Logger.Info("[BROADCAST] Starting OnDelete dispatch",
-				zap.String("operation", "DELETE"),
-				zap.Any("entity", entity))
+				zap.String("operation", "DELETE"))
 		}
 
 		topics := r.deleted(entity)
