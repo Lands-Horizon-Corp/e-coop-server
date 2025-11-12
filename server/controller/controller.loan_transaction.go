@@ -1948,4 +1948,24 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, schedule)
 	})
 
+	// POST /api/v1/loan-transaction/:loan_transaction_id/process
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
+		Method:       "POST",
+		Note:         "Processes a loan transaction by ID.",
+		ResponseType: core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, ctx, loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+	})
+
 }
