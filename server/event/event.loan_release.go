@@ -293,6 +293,30 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		})
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String())
 	}
+	// ================================================================================
+	// STEP 8: MEMBER ACCOUNTING LEDGER UPDATE
+	// ================================================================================
+	// Update or create member accounting ledger with new balance
+	_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
+		context,
+		tx,
+		*loanTransaction.MemberProfileID,
+		*loanTransaction.AccountID,
+		currentUserOrg.OrganizationID,
+		*currentUserOrg.BranchID,
+		currentUserOrg.UserID,
+		newMemberBalance,
+		now,
+	)
+	if err != nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "member-accounting-ledger-update-failed",
+			Description: "Unable to update member accounting ledger for member " + loanTransaction.MemberProfileID.String() + " on account " + loanTransaction.AccountID.String() + ": " + err.Error(),
+			Module:      "Loan Release",
+		})
+		return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
+	}
+
 	for _, account := range accounts {
 		if account.LoanAccountID == nil || account.ComputationType != core.Straight {
 			continue
@@ -360,6 +384,26 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 			return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
 
+		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
+			context,
+			tx,
+			*loanTransaction.MemberProfileID,
+			account.ID,
+			currentUserOrg.OrganizationID,
+			*currentUserOrg.BranchID,
+			currentUserOrg.UserID,
+			newMemberBalance,
+			now,
+		)
+		if err != nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "member-accounting-ledger-update-failed",
+				Description: "Unable to update member accounting ledger for member " + loanTransaction.MemberProfileID.String() + " on account " + loanTransaction.AccountID.String() + ": " + err.Error(),
+				Module:      "Loan Release",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
+		}
+
 		// Lock the subsidiary ledger for the cash account
 		cashAccountLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
 			context, tx, cashAccount.ID, currentUserOrg.OrganizationID, *currentUserOrg.BranchID)
@@ -421,29 +465,6 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, tx *gorm.
 		}
 	}
 
-	// ================================================================================
-	// STEP 8: MEMBER ACCOUNTING LEDGER UPDATE
-	// ================================================================================
-	// Update or create member accounting ledger with new balance
-	_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
-		context,
-		tx,
-		*loanTransaction.MemberProfileID,
-		*loanTransaction.AccountID,
-		currentUserOrg.OrganizationID,
-		*currentUserOrg.BranchID,
-		currentUserOrg.UserID,
-		newMemberBalance,
-		now,
-	)
-	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "member-accounting-ledger-update-failed",
-			Description: "Unable to update member accounting ledger for member " + loanTransaction.MemberProfileID.String() + " on account " + loanTransaction.AccountID.String() + ": " + err.Error(),
-			Module:      "Loan Release",
-		})
-		return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
-	}
 	// Log successful member transaction completion
 	e.Footstep(ctx, FootstepEvent{
 		Activity:    "member-transaction-completed",
