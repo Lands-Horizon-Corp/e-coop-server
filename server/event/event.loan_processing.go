@@ -123,7 +123,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 		// Only process if this payment period hasn't been processed yet
 		if i >= loanTransaction.LoanCount && scheduledDate.Before(currentDate) {
 			for _, account := range accounts {
-				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight {
+				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeLoan {
 					continue
 				}
 				memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
@@ -174,12 +174,12 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					UpdatedByID:                userOrg.UserID,
 					BranchID:                   *userOrg.BranchID,
 					OrganizationID:             userOrg.OrganizationID,
-					ReferenceNumber:            loanTransaction.CheckNumber,
+					ReferenceNumber:            loanTransaction.Voucher,
 					EntryDate:                  &currentDate,
-					AccountID:                  loanTransaction.AccountID,
+					AccountID:                  &account.ID,
 					MemberProfileID:            &memberProfile.ID,
 					PaymentTypeID:              account.DefaultPaymentTypeID,
-					TransactionReferenceNumber: loanTransaction.CheckNumber,
+					TransactionReferenceNumber: loanTransaction.Voucher,
 					Source:                     core.GeneralLedgerSourceCheckVoucher,
 					EmployeeUserID:             &userOrg.UserID,
 					Description:                loanTransaction.Account.Description,
