@@ -31,10 +31,12 @@ func (e *Event) ProcessAllLoans(processContext context.Context, ctx echo.Context
 			err := e.provider.Service.Broker.Dispatch(timeoutContext, []string{
 				fmt.Sprintf("loan.process.branch.%s", user.BranchID),
 			}, map[string]any{
-				"total":     1000,
-				"processed": i + 1, // Add 1 to show actual progress (1-1000 instead of 0-999)
-				"start":     currentTime,
-				"current":   time.Now().UTC(),
+				"total":        1000,
+				"processed":    i + 1, // Add 1 to show actual progress (1-1000 instead of 0-999)
+				"start":        currentTime,
+				"current":      time.Now().UTC(),
+				"account_name": "sample name",
+				"member_name":  "member name sample",
 			})
 
 			// Log dispatch errors if any
