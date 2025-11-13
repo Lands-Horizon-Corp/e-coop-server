@@ -212,7 +212,6 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 			if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 				return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 			}
-			loanTransaction = loanTransaction
 
 		}
 
