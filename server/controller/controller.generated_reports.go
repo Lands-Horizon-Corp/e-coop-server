@@ -48,6 +48,7 @@ func (c *Controller) generatedReports() {
 			UpdatedByID:        user.UserID,
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
+			UserID:             user.UserID,
 			UserOrganizationID: user.ID,
 			GeneratedReportID:  generatedReport.ID,
 		}
@@ -116,6 +117,8 @@ func (c *Controller) generatedReports() {
 			Status:              core.GeneratedReportStatusPending,
 			GeneratedReportType: req.GeneratedReportType,
 			URL:                 req.URL,
+
+			UserID: &user.UserID,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
