@@ -112,105 +112,109 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 			return nil, endTx(eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02")))
 		}
 
-		// Adjust payment date and calculate balance
-		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
-		currentBalance := e.provider.Service.Decimal.Clamp(
-			e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-		balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
+		if i > 0 {
 
-		// ===============================
-		// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
-		// Only process if this payment period hasn't been processed yet
-		if i >= loanTransaction.LoanCount && scheduledDate.Before(currentDate) {
-			for _, account := range accounts {
-				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeLoan {
-					continue
-				}
-				memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-					context, tx,
-					memberProfile.ID,
-					account.ID,
-					memberProfile.OrganizationID,
-					memberProfile.BranchID,
-				)
+			// Adjust payment date and calculate balance
+			scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
+			currentBalance := e.provider.Service.Decimal.Clamp(
+				e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+			balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
 
-				if err != nil {
-					return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
-				}
-				var currentMemberBalance float64 = 0
-				if memberAccountLedger != nil {
-					currentMemberBalance = memberAccountLedger.Balance
-				}
-
-				var price float64 = 0.0
-				switch account.Type {
-				case core.AccountTypeFines:
-					if !e.provider.Service.Decimal.IsLessThan(balance, currentMemberBalance) {
+			// ===============================
+			// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
+			// Only process if this payment period hasn't been processed yet
+			if i >= loanTransaction.LoanCount && scheduledDate.Before(currentDate) {
+				for _, account := range accounts {
+					if loanTransaction.AccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeLoan {
 						continue
 					}
-					// Fines are computed on the remaining balance
-				default:
-					switch account.ComputationType {
-					case core.Diminishing:
-						if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
-							price = e.usecase.ComputeInterest(balance, account.InterestStandard, loanTransaction.ModeOfPayment)
+					memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
+						context, tx,
+						memberProfile.ID,
+						account.ID,
+						memberProfile.OrganizationID,
+						memberProfile.BranchID,
+					)
+
+					if err != nil {
+						return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
+					}
+					var currentMemberBalance float64 = 0
+					if memberAccountLedger != nil {
+						currentMemberBalance = memberAccountLedger.Balance
+					}
+
+					var price float64 = 0.0
+					switch account.Type {
+					case core.AccountTypeFines:
+						if !e.provider.Service.Decimal.IsLessThan(balance, currentMemberBalance) {
+							continue
 						}
-					case core.DiminishingStraight:
-						if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
-							price = e.usecase.ComputeInterest(principal, account.InterestStandard, loanTransaction.ModeOfPayment)
+						// Fines are computed on the remaining balance
+					default:
+						switch account.ComputationType {
+						case core.Diminishing:
+							if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
+								price = e.usecase.ComputeInterest(balance, account.InterestStandard, loanTransaction.ModeOfPayment)
+							}
+						case core.DiminishingStraight:
+							if account.Type == core.AccountTypeInterest || account.Type == core.AccountTypeSVFLedger {
+								price = e.usecase.ComputeInterest(principal, account.InterestStandard, loanTransaction.ModeOfPayment)
+							}
 						}
 					}
-				}
-				if price <= 0 {
-					continue
-				}
+					if price <= 0 {
+						continue
+					}
 
-				memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-					*loanTransaction.Account, 0.0, price, currentMemberBalance)
-				memberLedgerEntry := &core.GeneralLedger{
-					CreatedAt:                  now,
-					CreatedByID:                userOrg.UserID,
-					UpdatedAt:                  now,
-					UpdatedByID:                userOrg.UserID,
-					BranchID:                   *userOrg.BranchID,
-					OrganizationID:             userOrg.OrganizationID,
-					ReferenceNumber:            loanTransaction.Voucher,
-					EntryDate:                  &currentDate,
-					AccountID:                  &account.ID,
-					MemberProfileID:            &memberProfile.ID,
-					PaymentTypeID:              account.DefaultPaymentTypeID,
-					TransactionReferenceNumber: loanTransaction.Voucher,
-					Source:                     core.GeneralLedgerSourceCheckVoucher,
-					EmployeeUserID:             &userOrg.UserID,
-					Description:                loanTransaction.Account.Description,
-					Credit:                     memberCredit,
-					Debit:                      memberDebit,
-					Balance:                    newMemberBalance,
-					CurrencyID:                 &currency.ID,
-					LoanTransactionID:          &loanTransaction.ID,
+					memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
+						*loanTransaction.Account, 0.0, -price, currentMemberBalance)
+
+					memberLedgerEntry := &core.GeneralLedger{
+						CreatedAt:                  now,
+						CreatedByID:                userOrg.UserID,
+						UpdatedAt:                  now,
+						UpdatedByID:                userOrg.UserID,
+						BranchID:                   *userOrg.BranchID,
+						OrganizationID:             userOrg.OrganizationID,
+						ReferenceNumber:            loanTransaction.Voucher,
+						EntryDate:                  &scheduledDate,
+						AccountID:                  &account.ID,
+						MemberProfileID:            &memberProfile.ID,
+						PaymentTypeID:              account.DefaultPaymentTypeID,
+						TransactionReferenceNumber: loanTransaction.Voucher,
+						Source:                     core.GeneralLedgerSourceCheckVoucher,
+						EmployeeUserID:             &userOrg.UserID,
+						Description:                loanTransaction.Account.Description,
+						Credit:                     memberCredit,
+						Debit:                      memberDebit,
+						Balance:                    newMemberBalance,
+						CurrencyID:                 &currency.ID,
+						LoanTransactionID:          &loanTransaction.ID,
+					}
+					if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
+						return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
+					}
+					_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
+						context,
+						tx,
+						*loanTransaction.MemberProfileID,
+						account.ID,
+						userOrg.OrganizationID,
+						*userOrg.BranchID,
+						userOrg.UserID,
+						newMemberBalance,
+						now,
+					)
+					if err != nil {
+						return nil, endTx(eris.Wrap(err, "failed to update accounting ledger"))
+					}
 				}
-				if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
-					return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
+				// Update loan count AFTER successful processing
+				loanTransaction.LoanCount = i + 1
+				if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+					return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 				}
-				_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
-					context,
-					tx,
-					*loanTransaction.MemberProfileID,
-					account.ID,
-					userOrg.OrganizationID,
-					*userOrg.BranchID,
-					userOrg.UserID,
-					newMemberBalance,
-					now,
-				)
-				if err != nil {
-					return nil, endTx(eris.Wrap(err, "failed to update accounting ledger"))
-				}
-			}
-			// Update loan count AFTER successful processing
-			loanTransaction.LoanCount = i + 1
-			if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
-				return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 			}
 		}
 
