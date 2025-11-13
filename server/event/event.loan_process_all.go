@@ -9,6 +9,15 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+type LoanProcessingEventResponse struct {
+	Total       int       `json:"total"`
+	Processed   int       `json:"processed"`
+	StartTime   time.Time `json:"start_time"`
+	CurrentTime time.Time `json:"current_time"`
+	AccountName string    `json:"account_name"`
+	MemberName  string    `json:"member_name"`
+}
+
 func (e *Event) ProcessAllLoans(processContext context.Context, ctx echo.Context) error {
 	user, err := e.userOrganizationToken.CurrentUserOrganization(processContext, ctx)
 	if err != nil {
@@ -17,38 +26,49 @@ func (e *Event) ProcessAllLoans(processContext context.Context, ctx echo.Context
 
 	currentTime := time.Now().UTC()
 
+	// Initial footstep and notification
+	e.Footstep(ctx, FootstepEvent{
+		Activity:    "loan-processing-started",
+		Description: "Loan processing started",
+		Module:      "Loan Processing",
+	})
+	e.OrganizationAdminsNotification(ctx, NotificationEvent{
+		Title:       "Loan Processing",
+		Description: "Loan processing started",
+	})
+
+	total := 1_000
+
 	go func() {
-		// Create a new context with timeout to avoid shadowing the outer context
 		timeoutContext, cancel := context.WithTimeout(context.Background(), 1*time.Hour)
 		defer cancel()
 
-		// Loop 1000 times (fixed the range syntax)
-		for i := range 1000 {
-			// Add delay between iterations (e.g., 1 second)
-			time.Sleep(1 * time.Second)
+		// Process iterations
+		for i := range total {
+			// Add delay between iterations
+			time.Sleep(3 * time.Second)
 
-			// Dispatch progress update
 			err := e.provider.Service.Broker.Dispatch(timeoutContext, []string{
 				fmt.Sprintf("loan.process.branch.%s", user.BranchID),
-			}, map[string]any{
-				"total":        1000,
-				"processed":    i + 1, // Add 1 to show actual progress (1-1000 instead of 0-999)
-				"start":        currentTime,
-				"current":      time.Now().UTC(),
-				"account_name": "sample name",
-				"member_name":  "member name sample",
+			}, LoanProcessingEventResponse{
+				Total:       total,
+				Processed:   i + 1,
+				StartTime:   currentTime,
+				CurrentTime: time.Now().UTC(),
+				AccountName: "Test Account",
+				MemberName:  "Test Member",
 			})
 
-			// Log dispatch errors if any
+			// Handle dispatch errors
 			if err != nil {
 				e.Footstep(ctx, FootstepEvent{
 					Activity:    "loan-processing-dispatch-error",
-					Description: "Failed to dispatch loan processing progress: " + err.Error(),
+					Description: "Failed to dispatch processing progress :" + err.Error(),
 					Module:      "Loan Processing",
 				})
 			}
 
-			// Check for context cancellation
+			// Check for timeout
 			select {
 			case <-timeoutContext.Done():
 				e.Footstep(ctx, FootstepEvent{
@@ -58,15 +78,18 @@ func (e *Event) ProcessAllLoans(processContext context.Context, ctx echo.Context
 				})
 				return
 			default:
-				// Continue processing
 			}
 		}
 
-		// Final completion message
+		// Completion footstep and notification
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "loan-processing-completed",
-			Description: "Successfully completed processing all 1000 loan iterations",
+			Description: "Loan processing completed successfully",
 			Module:      "Loan Processing",
+		})
+		e.OrganizationAdminsNotification(ctx, NotificationEvent{
+			Title:       "Loan Processing",
+			Description: "Loan processing completed successfully",
 		})
 	}()
 
