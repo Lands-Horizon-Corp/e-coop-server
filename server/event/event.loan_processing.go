@@ -167,8 +167,10 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 						continue
 					}
 
+					price = -price
+
 					memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-						*loanTransaction.Account, 0.0, -price, currentMemberBalance)
+						*loanTransaction.Account, 0.0, price, currentMemberBalance)
 
 					memberLedgerEntry := &core.GeneralLedger{
 						CreatedAt:                  now,
