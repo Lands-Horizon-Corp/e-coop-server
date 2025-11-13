@@ -238,7 +238,8 @@ type (
 		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
 
-		LoanCount int `gorm:"default:0"`
+		LoanCount  int  `gorm:"default:0"`
+		Processing bool `gorm:"default:false" json:"processing"`
 	}
 
 	// LoanTransactionResponse represents the response structure for loan transaction data.
@@ -399,7 +400,8 @@ type (
 		TotalDebit  float64    `json:"total_debit"`
 		TotalCredit float64    `json:"total_credit"`
 
-		LoanCount int `json:"loan_count"`
+		LoanCount  int  `json:"loan_count"`
+		Processing bool `json:"processing"`
 	}
 
 	// LoanTransactionRequest represents the request structure for creating or updating a loan transaction.
@@ -808,6 +810,7 @@ func (m *Core) loanTransaction() {
 				Interest:                               data.Interest,
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
+				Processing:                             data.Processing,
 			}
 		},
 

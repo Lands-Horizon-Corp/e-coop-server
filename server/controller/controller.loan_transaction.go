@@ -1968,7 +1968,11 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		processedLoanTransaction, err := c.event.LoanProcessing(context, ctx, loanTransactionID)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
 		}
@@ -1983,23 +1987,23 @@ func (c *Controller) loanTransactionController() {
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		if err := c.event.ProcessAllLoans(context, ctx); err != nil {
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "loan-processing-started",
+			Description: "Loan processing started",
+			Module:      "Loan Processing",
+		})
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Title:       "Loan Processing",
+			Description: "Loan processing started",
+		})
+
+		if err := c.event.ProcessAllLoans(context, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
 		}
-		// processedLoanTransaction, err := c.core.LoanTransactionManager.FindIncludingDeletedRaw(context, &core.LoanTransaction{
-		// 	OrganizationID: user.OrganizationID,
-		// 	BranchID:       *user.BranchID,
-		// })
-		// if err != nil {
-		// 	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
-		// }
-		// for _, loanTransaction := range processedLoanTransaction {
-		// 	_, err := c.event.LoanProcessing(context, ctx, &loanTransaction.ID)
-		// 	if err != nil {
-		// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction ID " + loanTransaction.ID.String() + ": " + err.Error()})
-		// 	}
-		// }
-
 		// return ctx.JSON(http.StatusOK, processedLoanTransaction)
 		return ctx.NoContent(http.StatusNoContent)
 	})
