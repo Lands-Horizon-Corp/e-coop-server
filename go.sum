@@ -1,7 +1,5 @@
-github.com/Lands-Horizon-Corp/golang-filtering v1.2.2 h1:Li013/kMluzEO+hVILI27ek6TZ+AiXkU0ug+krM8dvk=
-github.com/Lands-Horizon-Corp/golang-filtering v1.2.2/go.mod h1:UviN89A5Kmt77TlRTIXGqJcsdrs47sMQo8oNwbjf15k=
-github.com/Lands-Horizon-Corp/golang-filtering v1.2.3 h1:9IGcbnIJJ5nwz6s2vybdRF+IUHpVtateElnmki3Jf2A=
-github.com/Lands-Horizon-Corp/golang-filtering v1.2.3/go.mod h1:UviN89A5Kmt77TlRTIXGqJcsdrs47sMQo8oNwbjf15k=
+github.com/Lands-Horizon-Corp/golang-filtering v1.2.4 h1:B8kRow5Reilo9rLmWDOkgcMkKp9BPV5k7HLZdg0b78o=
+github.com/Lands-Horizon-Corp/golang-filtering v1.2.4/go.mod h1:UviN89A5Kmt77TlRTIXGqJcsdrs47sMQo8oNwbjf15k=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
