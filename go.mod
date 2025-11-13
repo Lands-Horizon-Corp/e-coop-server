@@ -3,7 +3,7 @@ module github.com/Lands-Horizon-Corp/e-coop-server
 go 1.25.4
 
 require (
-	github.com/Lands-Horizon-Corp/golang-filtering v1.2.1
+	github.com/Lands-Horizon-Corp/golang-filtering v1.2.2
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/robfig/cron/v3 v3.0.1
@@ -21,7 +21,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/term v0.36.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
 )
 
 require (
@@ -92,10 +92,10 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/fx v1.24.0
-	golang.org/x/crypto v0.43.0
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/crypto v0.44.0
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.14.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1

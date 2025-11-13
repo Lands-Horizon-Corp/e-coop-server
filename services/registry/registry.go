@@ -14,6 +14,7 @@ type RegistryParams[TData any, TResponse any, TRequest any] struct {
 	Updated   func(*TData) []string
 	Deleted   func(*TData) []string
 	Resource  func(*TData) *TResponse
+	Headers   []string
 	Preloads  []string
 	Threshold int
 }
@@ -26,6 +27,7 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 	resource  func(*TData) *TResponse
 	filtering *filter.Handler[TData]
 	preloads  []string
+	headers   []string
 	threshold int
 }
 
@@ -40,6 +42,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 		deleted:  params.Deleted,
 		resource: params.Resource,
 		preloads: params.Preloads,
+		headers:  params.Headers,
 		filtering: filter.NewFilter[TData](
 			filter.GolangFilteringConfig{
 				MaxDepth: &maxDepth,
