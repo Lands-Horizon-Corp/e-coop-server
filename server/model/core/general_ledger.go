@@ -234,6 +234,7 @@ func (m *Core) generalLedger() {
 	]{
 		Preloads: []string{
 			"Account",
+			"Account.Currency",
 			"EmployeeUser",
 			"MemberProfile",
 			"MemberJointAccount",
