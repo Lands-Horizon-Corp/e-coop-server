@@ -118,7 +118,6 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 			scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 			currentBalance := e.provider.Service.Decimal.Clamp(
 				e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-			balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
 
 			// ===============================
 			// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
@@ -218,6 +217,8 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 				}
 			}
+
+			balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
 		}
 
 		// ===============================
