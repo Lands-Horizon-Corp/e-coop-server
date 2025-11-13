@@ -241,8 +241,6 @@ type (
 		Processing bool `gorm:"default:false" json:"processing"`
 	}
 
-	// LoanTransactionResponse represents the response structure for loan transaction data.
-
 	// LoanTransactionResponse represents the response structure for LoanTransaction.
 	LoanTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
@@ -402,8 +400,6 @@ type (
 		Processing bool `json:"processing"`
 	}
 
-	// LoanTransactionRequest represents the request structure for creating or updating a loan transaction.
-
 	// LoanTransactionRequest represents the request structure for LoanTransaction.
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
@@ -516,58 +512,12 @@ type (
 		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
-	// AmortizationPayment represents a single amortization schedule payment.
-	AmortizationPayment struct {
-		Date       string  `json:"date"`
-		Principal  float64 `json:"principal"`
-		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
-		Interest   float64 `json:"interest"`
-		ServiceFee float64 `json:"service_fee"`
-		Total      float64 `json:"total"`
-	}
-
-	// AmortizationSummary contains summary totals for an amortization schedule.
-	AmortizationSummary struct {
-		TotalTerms      int               `json:"total_terms"`
-		TotalPrincipal  float64           `json:"total_principal"`
-		TotalInterest   float64           `json:"total_interest"`
-		TotalServiceFee float64           `json:"total_service_fee"`
-		TotalAmount     float64           `json:"total_amount"`
-		LoanAmount      float64           `json:"loan_amount"`
-		MonthlyPayment  float64           `json:"monthly_payment"`
-		InterestRate    float64           `json:"interest_rate"`
-		ComputationType ComputationType   `json:"computation_type"`
-		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
-	}
-
-	// LoanDetails represents the LoanDetails model.
-	LoanDetails struct {
-		Amount         float64 `json:"amount"`
-		DueDate        string  `json:"due_date"`
-		AccountApplied float64 `json:"account_applied"`
-		Voucher        string  `json:"voucher"`
-	}
-
-	// AmortizationScheduleResponse represents the response structure for an amortization schedule.
-
-	// AmortizationScheduleResponse represents the response structure for AmortizationSchedule.
-	AmortizationScheduleResponse struct {
-		LoanDetails          LoanDetails           `json:"loan_details"`
-		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
-		Summary              AmortizationSummary   `json:"summary"`
-		GeneratedAt          string                `json:"generated_at"`
-	}
-
-	// LoanTransactionPrintRequest represents the request structure for creating/updating loantransactionprint
-
 	// LoanTransactionPrintRequest represents the request structure for LoanTransactionPrint.
 	LoanTransactionPrintRequest struct {
 		Voucher     string     `json:"voucher"`
 		CheckNumber string     `json:"check_number"`
 		CheckDate   *time.Time `json:"check_date"`
 	}
-
-	// LoanTransactionSignatureRequest represents the request structure for creating/updating loantransactionsignature
 
 	// LoanTransactionSignatureRequest represents the request structure for LoanTransactionSignature.
 	LoanTransactionSignatureRequest struct {
@@ -608,8 +558,6 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 
-	// LoanTransactionSuggestedRequest represents the request structure for creating/updating loantransactionsuggested
-
 	// LoanTransactionSuggestedRequest represents the request structure for LoanTransactionSuggested.
 	LoanTransactionSuggestedRequest struct {
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
@@ -617,6 +565,7 @@ type (
 		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment"`
 		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
+
 	// LoanTransactionSuggestedResponse represents the response structure for loantransactionsuggested data
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
