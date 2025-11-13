@@ -509,7 +509,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	loanTransaction.ReleasedDate = &timeNow
 	loanTransaction.ReleasedByID = &currentUserOrg.UserID
 	loanTransaction.UpdatedAt = now
-	loanTransaction.LoanCount = loanTransaction.LoanCount + 1
+	loanTransaction.Count = loanTransaction.Count + 1
 	loanTransaction.UpdatedByID = currentUserOrg.UserID
 
 	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {

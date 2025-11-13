@@ -122,7 +122,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 			// ===============================
 			// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
 			// Only process if this payment period hasn't been processed yet
-			if i >= loanTransaction.LoanCount && scheduledDate.Before(currentDate) {
+			if i >= loanTransaction.Count && scheduledDate.Before(currentDate) {
 				for _, account := range accounts {
 					if loanTransaction.AccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeLoan {
 						continue
@@ -212,7 +212,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					}
 				}
 				// Update loan count AFTER successful processing
-				loanTransaction.LoanCount = i + 1
+				loanTransaction.Count = i + 1
 				if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 					return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 				}
