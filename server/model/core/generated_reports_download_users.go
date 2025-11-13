@@ -28,6 +28,9 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_generated_reports_download_users" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
+		UserID uuid.UUID `gorm:"type:uuid;not null;index:idx_user_generated_reports_download" json:"user_id"`
+		User   *User     `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"user,omitempty"`
+
 		UserOrganizationID uuid.UUID         `gorm:"type:uuid;not null;index:idx_user_organization_generated_reports_download" json:"user_organization_id"`
 		UserOrganization   *UserOrganization `gorm:"foreignKey:UserOrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"user_organization,omitempty"`
 
@@ -49,6 +52,9 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
+		UserID uuid.UUID     `json:"user_id"`
+		User   *UserResponse `json:"user,omitempty"`
+
 		UserOrganizationID uuid.UUID                 `json:"user_organization_id"`
 		UserOrganization   *UserOrganizationResponse `json:"user_organization,omitempty"`
 
@@ -58,6 +64,7 @@ type (
 
 	// GeneratedReportsDownloadUsersRequest represents the request structure for creating/updating generated reports download users
 	GeneratedReportsDownloadUsersRequest struct {
+		UserID             uuid.UUID `json:"user_id" validate:"required"`
 		UserOrganizationID uuid.UUID `json:"user_organization_id" validate:"required"`
 		GeneratedReportID  uuid.UUID `json:"generated_report_id" validate:"required"`
 	}
@@ -66,7 +73,7 @@ type (
 func (m *Core) generatedReportsDownloadUsers() {
 	m.Migration = append(m.Migration, &GeneratedReportsDownloadUsers{})
 	m.GeneratedReportsDownloadUsersManager = *registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "UserOrganization", "GeneratedReport"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "User"},
 		Service:  m.provider.Service,
 		Resource: func(data *GeneratedReportsDownloadUsers) *GeneratedReportsDownloadUsersResponse {
 			if data == nil {
@@ -84,6 +91,8 @@ func (m *Core) generatedReportsDownloadUsers() {
 				Organization:       m.OrganizationManager.ToModel(data.Organization),
 				BranchID:           data.BranchID,
 				Branch:             m.BranchManager.ToModel(data.Branch),
+				UserID:             data.UserID,
+				User:               m.UserManager.ToModel(data.User),
 				UserOrganizationID: data.UserOrganizationID,
 				UserOrganization:   m.UserOrganizationManager.ToModel(data.UserOrganization),
 				GeneratedReportID:  data.GeneratedReportID,

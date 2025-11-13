@@ -126,9 +126,7 @@ func (m *Core) generatedReport() {
 			"Branch",
 			"User",
 			"Media",
-			"DownloadUsers",
-			"DownloadUsers.UserOrganization",
-			"DownloadUsers.UserOrganization.User.Media",
+			"DownloadUsers.User.Media",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
