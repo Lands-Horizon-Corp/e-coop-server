@@ -121,7 +121,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 		// ===============================
 		// STEP 10: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
 		// ===============================
-		if loanTransaction.LoanCount >= i && currentDate.Before(scheduledDate) {
+		if loanTransaction.LoanCount >= i && scheduledDate.Before(currentDate) {
 			for _, account := range accounts {
 				if loanTransaction.AccountID == nil || account.ComputationType == core.Straight {
 					continue

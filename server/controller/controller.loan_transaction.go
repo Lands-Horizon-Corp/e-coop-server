@@ -1974,7 +1974,7 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(processedLoanTransaction))
 	})
 
 	// POST /api/v1/loan-transaction/process
