@@ -81,6 +81,8 @@ func (e *Event) ProcessAllLoans(processContext context.Context, ctx echo.Context
 			}
 		}
 
+		// Loop here to stop process boolean on loan
+
 		// Completion footstep and notification
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "loan-processing-completed",
