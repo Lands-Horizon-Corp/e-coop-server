@@ -1983,23 +1983,24 @@ func (c *Controller) loanTransactionController() {
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		processedLoanTransaction, err := c.core.LoanTransactionManager.FindIncludingDeletedRaw(context, &core.LoanTransaction{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
-		})
-		if err != nil {
+		if err := c.event.ProcessAllLoans(context, ctx); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
 		}
-		for _, loanTransaction := range processedLoanTransaction {
-			_, err := c.event.LoanProcessing(context, ctx, &loanTransaction.ID)
-			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction ID " + loanTransaction.ID.String() + ": " + err.Error()})
-			}
-		}
-		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+		// processedLoanTransaction, err := c.core.LoanTransactionManager.FindIncludingDeletedRaw(context, &core.LoanTransaction{
+		// 	OrganizationID: user.OrganizationID,
+		// 	BranchID:       *user.BranchID,
+		// })
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
+		// }
+		// for _, loanTransaction := range processedLoanTransaction {
+		// 	_, err := c.event.LoanProcessing(context, ctx, &loanTransaction.ID)
+		// 	if err != nil {
+		// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction ID " + loanTransaction.ID.String() + ": " + err.Error()})
+		// 	}
+		// }
+
+		// return ctx.JSON(http.StatusOK, processedLoanTransaction)
+		return ctx.NoContent(http.StatusNoContent)
 	})
 }
