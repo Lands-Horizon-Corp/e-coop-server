@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
 // LoanRelease processes loan release with necessary validations and commits the transaction.
 // Returns the updated LoanTransaction after successful release.
-func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data LoanBalanceEvent) (*core.LoanTransaction, error) {
+func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTransactionID uuid.UUID) (*core.LoanTransaction, error) {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
 	// ================================================================================
@@ -84,7 +85,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 	// ================================================================================
 
 	// Fetch the loan transaction with account and currency details
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, data.LoanTransactionID, "Account", "Account.Currency")
+	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Account", "Account.Currency")
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "loan-data-retrieval-failed",
@@ -153,11 +154,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		BranchID:                   *currentUserOrg.BranchID,
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
-		ReferenceNumber:            loanTransaction.CheckNumber,
+		ReferenceNumber:            loanTransaction.Voucher,
 		EntryDate:                  &userOrgTime,
 		AccountID:                  &cashAccount.Account.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-		TransactionReferenceNumber: loanTransaction.CheckNumber,
+		TransactionReferenceNumber: loanTransaction.Voucher,
 		Source:                     core.GeneralLedgerSourceCheckVoucher,
 		BankReferenceNumber:        "",
 		EmployeeUserID:             &currentUserOrg.UserID,
@@ -251,12 +252,12 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 		BranchID:                   *currentUserOrg.BranchID,
 		OrganizationID:             currentUserOrg.OrganizationID,
 		TransactionBatchID:         &activeBatch.ID,
-		ReferenceNumber:            loanTransaction.CheckNumber,
+		ReferenceNumber:            loanTransaction.Voucher,
 		EntryDate:                  &userOrgTime,
 		AccountID:                  loanTransaction.AccountID,
 		MemberProfileID:            &memberProfile.ID,
 		PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-		TransactionReferenceNumber: loanTransaction.CheckNumber,
+		TransactionReferenceNumber: loanTransaction.Voucher,
 		Source:                     core.GeneralLedgerSourceCheckVoucher,
 		EmployeeUserID:             &currentUserOrg.UserID,
 		Description:                loanTransaction.Account.Description,
@@ -377,12 +378,12 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 			BranchID:                   *currentUserOrg.BranchID,
 			OrganizationID:             currentUserOrg.OrganizationID,
 			TransactionBatchID:         &activeBatch.ID,
-			ReferenceNumber:            loanTransaction.CheckNumber,
+			ReferenceNumber:            loanTransaction.Voucher,
 			EntryDate:                  &userOrgTime,
 			AccountID:                  &account.ID,
 			MemberProfileID:            &memberProfile.ID,
 			PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-			TransactionReferenceNumber: loanTransaction.CheckNumber,
+			TransactionReferenceNumber: loanTransaction.Voucher,
 			Source:                     core.GeneralLedgerSourceCheckVoucher,
 			EmployeeUserID:             &currentUserOrg.UserID,
 			Description:                loanTransaction.Account.Description,
@@ -466,11 +467,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, data Loan
 			BranchID:                   *currentUserOrg.BranchID,
 			OrganizationID:             currentUserOrg.OrganizationID,
 			TransactionBatchID:         &activeBatch.ID,
-			ReferenceNumber:            loanTransaction.CheckNumber,
+			ReferenceNumber:            loanTransaction.Voucher,
 			EntryDate:                  &userOrgTime,
 			AccountID:                  &cashAccount.Account.ID,
 			PaymentTypeID:              cashAccount.Account.DefaultPaymentTypeID,
-			TransactionReferenceNumber: loanTransaction.CheckNumber,
+			TransactionReferenceNumber: loanTransaction.Voucher,
 			Source:                     core.GeneralLedgerSourceCheckVoucher,
 			BankReferenceNumber:        "",
 			EmployeeUserID:             &currentUserOrg.UserID,

@@ -1764,9 +1764,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
 
-		newLoanTransaction, err := c.event.LoanRelease(context, ctx, event.LoanBalanceEvent{
-			LoanTransactionID: loanTransaction.ID,
-		})
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
