@@ -327,6 +327,9 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
 	})
+	if err != nil {
+		return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction entries"))
+	}
 	for _, entry := range loanTransactionEntry {
 		if entry.IsAutomaticLoanDeductionDeleted {
 			continue
