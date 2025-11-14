@@ -2088,7 +2088,7 @@ func (c *Controller) loanTransactionController() {
 		accounts, err := c.core.AccountManager.Find(context, &core.Account{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
-			LoanAccountID:  &loanTransaction.ID,
+			LoanAccountID:  loanTransaction.AccountID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})

@@ -108,7 +108,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	static, addOn, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
 
 	// Categorize existing entries by their transaction type
-	for _, entry := range loanTransactionEntries {
+	fmt.Printf("[DEBUG] Examining %d loan transaction entries:\n", len(loanTransactionEntries))
+	for i, entry := range loanTransactionEntries {
+		fmt.Printf("[DEBUG] Entry %d: ID=%s, Name=%s, Type=%s, Credit=%.2f, Debit=%.2f\n", i, entry.ID, entry.Name, entry.Type, entry.Credit, entry.Debit)
 		if entry.Type == core.LoanTransactionStatic {
 			static = append(static, entry)
 		}
@@ -181,8 +183,11 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	fmt.Printf("[DEBUG] Static entries arranged - Cash: %.2f, Loan: %.2f\n", result[0].Credit, result[1].Debit)
 
 	// Delete existing add-on entries (they will be recalculated)
-	for _, entry := range addOn {
+	fmt.Printf("[DEBUG] Deleting %d existing add-on entries\n", len(addOn))
+	for i, entry := range addOn {
+		fmt.Printf("[DEBUG] Deleting add-on entry %d: ID=%s, Name=%s\n", i, entry.ID, entry.Name)
 		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
+			fmt.Printf("[ERROR] Failed to delete add-on entry %d (%s): %v\n", i, entry.Name, err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to delete existing add on interest entries (/transaction/payment/:transaction_id): " + err.Error(),
@@ -367,9 +372,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// Delete all existing loan transaction entries before creating new ones
 	fmt.Printf("[DEBUG] Deleting %d existing loan transaction entries\n", len(loanTransactionEntries))
 	for i, entry := range loanTransactionEntries {
-		fmt.Printf("[DEBUG] Deleting entry %d: %s\n", i, entry.Name)
+		fmt.Printf("[DEBUG] Deleting entry %d: ID=%s, Name=%s\n", i, entry.ID, entry.Name)
+		// Check if entry has a valid ID
+		if entry.ID == uuid.Nil {
+			fmt.Printf("[WARNING] Skipping entry %d with nil ID: %s\n", i, entry.Name)
+			continue
+		}
 		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			fmt.Printf("[ERROR] Failed to delete entry %d: %v\n", i, err)
+			fmt.Printf("[ERROR] Failed to delete entry %d (%s, ID=%s): %v\n", i, entry.Name, entry.ID, err)
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to delete existing automatic loan deduction entries (/transaction/payment/:transaction_id): " + err.Error(),
