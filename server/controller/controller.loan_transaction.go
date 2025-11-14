@@ -2002,7 +2002,6 @@ func (c *Controller) loanTransactionController() {
 		if err := c.event.ProcessAllLoans(context, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
 		}
-		// return ctx.JSON(http.StatusOK, processedLoanTransaction)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

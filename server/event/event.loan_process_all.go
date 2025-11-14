@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 )
 
 type LoanProcessingEventResponse struct {
@@ -28,6 +29,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 	loanTransaction, err := e.core.LoanTransactionManager.FindIncludingDeleted(processContext, &core.LoanTransaction{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
+		Processing:     false,
 	})
 	if err != nil {
 		return eris.Wrap(err, "failed to get loan transactions for processing")
@@ -46,9 +48,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 
 		// Process iterations
 		for i, entry := range loanTransaction {
-			if entry.Processing {
-				continue
-			}
+
 			time.Sleep(1 * time.Second)
 
 			// ============================================================
@@ -56,6 +56,13 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 			// ============================================================
 			LoanProcessing, err := e.LoanProcessing(processContext, userOrg, &entry.ID)
 			if err != nil {
+				e.provider.Service.Logger.Error("failed to process loan transaction",
+					zap.Error(err),
+					zap.String("loanTransactionID", entry.ID.String()),
+					zap.String("organizationID", userOrg.OrganizationID.String()),
+					zap.String("branchID", (*userOrg.BranchID).String()),
+					zap.Int("iteration", i+1),
+					zap.Int("total", len(loanTransaction)))
 				return
 			}
 			entry = LoanProcessing
@@ -66,16 +73,23 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 				Processed:   i + 1,
 				StartTime:   currentTime,
 				CurrentTime: time.Now().UTC(),
-				AccountName: entry.Account.Name,
-				MemberName:  entry.MemberProfile.FullName,
+				AccountName: func() string {
+					if entry.Account != nil {
+						return entry.Account.Name
+					}
+					return ""
+				}(),
+				MemberName: func() string {
+					if entry.MemberProfile != nil {
+						return entry.MemberProfile.FullName
+					}
+					return ""
+				}(),
 			}); err != nil {
 				return
 			}
-
-			// Check for timeout
 			select {
 			case <-timeoutContext.Done():
-
 				return
 			default:
 			}

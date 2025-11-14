@@ -115,7 +115,7 @@ func (c *Controller) mediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "File upload failed: " + err.Error()})
 		}
 		initial.Progress = 100
-		initial.Status = "uploaded"
+		initial.Status = "completed"
 		initial.UpdatedAt = time.Now().UTC()
 
 		if err := c.core.MediaManager.UpdateByID(context, initial.ID, initial); err != nil {
