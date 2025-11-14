@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -2080,6 +2081,22 @@ func (c *Controller) loanTransactionController() {
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		accounts := []*core.Account{}
+		accountMap := make(map[uuid.UUID]*core.Account)
+
+		for _, entry := range entries {
+			if entry.AccountID == nil {
+				continue
+			}
+			if _, exists := accountMap[*entry.AccountID]; !exists {
+				account, err := c.core.AccountManager.GetByID(context, *entry.AccountID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account details: " + err.Error()})
+				}
+				accounts = append(accounts, account)
+				accountMap[*entry.AccountID] = account
+			}
 		}
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
 			GeneralLedger: c.core.GeneralLedgerManager.ToModels(entries),
