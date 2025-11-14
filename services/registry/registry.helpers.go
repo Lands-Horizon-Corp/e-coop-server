@@ -58,9 +58,9 @@ func parseSort(ctx echo.Context) ([]filter.SortField, error) {
 		return nil, eris.Wrap(err, "JSON unmarshalling failed")
 	}
 	for i, sf := range sortFields {
-		order := strings.ToUpper(string(sf.Order))
-		if order != "ASC" && order != "DESC" {
-			sortFields[i].Order = "ASC"
+		order := strings.ToLower(strings.TrimSpace(string(sf.Order)))
+		if order != "asc" && order != "desc" {
+			sortFields[i].Order = "asc"
 		} else {
 			sortFields[i].Order = filter.SortOrder(order)
 		}
