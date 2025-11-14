@@ -2073,6 +2073,10 @@ func (c *Controller) loanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
+		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
 		entries, err := c.core.GeneralLedgerByLoanTransaction(
 			context,
 			*loanTransactionID,
@@ -2085,6 +2089,7 @@ func (c *Controller) loanTransactionController() {
 		accounts := []*core.Account{}
 		accountMap := make(map[uuid.UUID]*core.Account)
 
+		arrears := 0.0
 		for _, entry := range entries {
 			if entry.AccountID == nil {
 				continue
@@ -2120,7 +2125,8 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
 			GeneralLedger:  c.core.GeneralLedgerManager.ToModels(entries),
 			AccountSummary: accountsummary,
+			Arrears:        arrears,
+			AmountGranted:  loanTransaction.Applied1,
 		})
 	})
-
 }
