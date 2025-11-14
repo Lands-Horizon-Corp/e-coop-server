@@ -265,7 +265,7 @@ func (m *Core) accountHistory() {
 	m.AccountHistoryManager = *registry.NewRegistry(registry.RegistryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
-		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Organization", "Branch"},
+		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountHistory) *AccountHistoryResponse {
 			if data == nil {
