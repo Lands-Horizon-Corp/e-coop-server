@@ -265,7 +265,7 @@ func (m *Core) accountHistory() {
 	m.AccountHistoryManager = *registry.NewRegistry(registry.RegistryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
-		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Organization", "Branch"},
+		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},
 		Service:  m.provider.Service,
 		Resource: func(data *AccountHistory) *AccountHistoryResponse {
 			if data == nil {
@@ -594,6 +594,36 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 
 	if len(histories) > 0 {
 		return &histories[0].ID, nil
+	}
+
+	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
+}
+
+func (m *Core) GetAccountHistoryLatestByTimeHistory(
+	ctx context.Context,
+	accountID, organizationID, branchID uuid.UUID,
+	asOfDate *time.Time) (*AccountHistory, error) {
+	currentTime := time.Now()
+	if asOfDate == nil {
+		asOfDate = &currentTime
+	}
+	filters := []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
+	}
+
+	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(histories) > 0 {
+		return histories[0], nil
 	}
 
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))

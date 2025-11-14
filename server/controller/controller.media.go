@@ -97,19 +97,16 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create media record: " + err.Error()})
 		}
-		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
-			_ = c.core.MediaManager.UpdateByID(context, initial.ID, &core.Media{
-				Progress:  progress,
-				Status:    "progress",
-				UpdatedAt: time.Now().UTC(),
-			})
+		_, err = c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
+			initial.Progress = progress
+			initial.Status = "progress"
+			initial.UpdatedAt = time.Now().UTC()
+			_ = c.core.MediaManager.UpdateByID(context, initial.ID, initial)
 		})
 		if err != nil {
-			_ = c.core.MediaManager.UpdateByID(context, initial.ID, &core.Media{
-				ID:        initial.ID,
-				Status:    "error",
-				UpdatedAt: time.Now().UTC(),
-			})
+			initial.Status = "error"
+			initial.UpdatedAt = time.Now().UTC()
+			_ = c.core.MediaManager.UpdateByID(context, initial.ID, initial)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), file upload failed: " + err.Error(),
@@ -117,19 +114,11 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "File upload failed: " + err.Error()})
 		}
-		completed := &core.Media{
-			FileName:   storage.FileName,
-			FileType:   storage.FileType,
-			FileSize:   storage.FileSize,
-			StorageKey: storage.StorageKey,
-			BucketName: storage.BucketName,
-			Status:     "completed",
-			Progress:   100,
-			CreatedAt:  initial.CreatedAt,
-			UpdatedAt:  time.Now().UTC(),
-			ID:         initial.ID,
-		}
-		if err := c.core.MediaManager.UpdateByID(context, completed.ID, completed); err != nil {
+		initial.Progress = 100
+		initial.Status = "completed"
+		initial.UpdatedAt = time.Now().UTC()
+
+		if err := c.core.MediaManager.UpdateByID(context, initial.ID, initial); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),
@@ -139,10 +128,10 @@ func (c *Controller) mediaController() {
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
-			Description: "Uploaded and created media (/media): " + completed.FileName,
+			Description: "Uploaded and created media (/media): " + initial.FileName,
 			Module:      "Media",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MediaManager.ToModel(completed))
+		return ctx.JSON(http.StatusCreated, c.core.MediaManager.ToModel(initial))
 	})
 
 	// PUT /media/:media_id: Update media file's name. (WITH footstep)

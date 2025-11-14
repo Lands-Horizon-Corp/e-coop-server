@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/rotisserie/eris"
+	"go.uber.org/zap"
 )
 
 func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *core.GeneratedReport) (*core.GeneratedReport, error) {
@@ -24,7 +25,9 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		if updateErr := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); updateErr != nil {
 			generatedReport.Status = core.GeneratedReportStatusFailed
 			generatedReport.SystemMessage = "Failed to update report status to in-progress: " + updateErr.Error()
-			e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
+			if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+				e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
+			}
 			return
 		}
 		data, err := e.processReportGeneration(ctx, generatedReport)
@@ -34,7 +37,9 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		if getErr != nil {
 			generatedReport.Status = core.GeneratedReportStatusFailed
 			generatedReport.SystemMessage = "Failed to retrieve report after processing: " + getErr.Error()
-			e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
+			if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+				e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
+			}
 			return
 		}
 		// Upload the generated data to media storage
@@ -58,7 +63,9 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			if mediaErr := e.core.MediaManager.Create(ctx, initial); mediaErr != nil {
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "Failed to create media record: " + mediaErr.Error()
-				e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
+				if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+					e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
+				}
 				return
 			}
 
@@ -70,13 +77,18 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 					initial.Progress = progress
 					initial.UpdatedAt = time.Now().UTC()
 					initial.Status = "progress"
-					_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, initial)
+					if err := e.core.MediaManager.UpdateByID(ctx, initial.ID, initial); err != nil {
+						e.provider.Service.Logger.Error("Failed to update media progress", zap.Error(err))
+					}
 				})
 
 			if uploadErr != nil {
 				initial.UpdatedAt = time.Now().UTC()
 				initial.Status = "error"
-				_ = e.core.MediaManager.UpdateByID(ctx, initial.ID, initial)
+				if err := e.core.MediaManager.UpdateByID(ctx, initial.ID, initial); err != nil {
+					e.provider.Service.Logger.Error("Failed to update media status after upload error", zap.Error(err))
+					return
+				}
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "File upload failed: " + uploadErr.Error()
 				e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
@@ -98,7 +110,9 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			if mediaUpdateErr := e.core.MediaManager.UpdateByID(ctx, completed.ID, completed); mediaUpdateErr != nil {
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "Failed to update media record after upload: " + mediaUpdateErr.Error()
-				e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
+				if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+					e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
+				}
 				return
 			}
 			generatedReport.MediaID = &completed.ID

@@ -26,5 +26,5 @@ func (t *TransactionService) Adjustment(
 		finalBalance = currentBalance // fallback, no change
 	}
 
-	return debit, credit, finalBalance
+	return t.provider.Service.Decimal.Abs(debit), t.provider.Service.Decimal.Abs(credit), finalBalance
 }

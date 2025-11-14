@@ -29,11 +29,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",
-			Description: "Failed to get user organization (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to get user organization during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
+
 	// ================================================================================
 	// STEP 2: LOAN TRANSACTION & RELATED DATA RETRIEVAL
 	// ================================================================================
@@ -41,21 +42,20 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to get loan transaction during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
 
-	// Get the account associated with the loan transaction
 	account, err := e.core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get cash on cash equivalence parent account (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to get loan account during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to get cash on cash equivalence parent account"))
+		return nil, endTx(eris.Wrap(err, "failed to get loan account"))
 	}
 
 	// Get existing loan transaction entries
@@ -67,8 +67,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get loan transaction entries (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to get loan transaction entries during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction entries"))
 	}
@@ -88,16 +88,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 3: CATEGORIZE EXISTING LOAN TRANSACTION ENTRIES BY TYPE
 	// ================================================================================
 	result := []*core.LoanTransactionEntry{}
-	static, addOn, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
+	static, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
 
 	// Categorize existing entries by their transaction type
 	for _, entry := range loanTransactionEntries {
 		if entry.Type == core.LoanTransactionStatic {
 			static = append(static, entry)
 		}
-		if entry.Type == core.LoanTransactionAddOn {
-			addOn = append(addOn, entry)
-		}
+
 		if entry.Type == core.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
@@ -105,6 +103,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			postComputed = append(postComputed, entry)
 		}
 	}
+
 	// ================================================================================
 	// STEP 4: CREATE DEFAULT STATIC ENTRIES IF NOT EXISTS
 	// ================================================================================
@@ -114,8 +113,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to get cash on cash equivalence account (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
+				Description: "Failed to get cash on cash equivalence account during loan balancing: " + err.Error(),
+				Module:      "LoanBalancing",
 			})
 			return nil, endTx(eris.Wrap(err, "failed to get cash on cash equivalence account"))
 		}
@@ -146,7 +145,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// ================================================================================
-	// STEP 5: ARRANGE STATIC ENTRIES & CLEANUP EXISTING ADD-ON ENTRIES
+	// STEP 5: ARRANGE STATIC ENTRIES IN CORRECT ORDER
 	// ================================================================================
 	// Order static entries: cash equivalent first, then loan account
 	if static[0].Account.CashAndCashEquivalence {
@@ -157,37 +156,11 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result = append(result, static[0])
 	}
 
-	// Delete existing add-on entries (they will be recalculated)
-	for _, entry := range addOn {
-		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "data-error",
-				Description: "Failed to delete existing add on interest entries (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return nil, endTx(eris.Wrap(err, "failed to delete existing add on interest entries + "+err.Error()))
-		}
-	}
-
 	// ================================================================================
-	// STEP 6: PREPARE ADD-ON INTEREST ENTRY TEMPLATE
-	// ================================================================================
-	addOnEntry := &core.LoanTransactionEntry{
-		Account:           nil,
-		Credit:            0,
-		Debit:             0,
-		Name:              "ADD ON INTEREST",
-		Type:              core.LoanTransactionAddOn,
-		LoanTransactionID: loanTransaction.ID,
-		IsAddOn:           true,
-	}
-
-	// ================================================================================
-	// STEP 7: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
+	// STEP 6: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
 	// ================================================================================
 
 	totalNonAddOns, totalAddOns := 0.0, 0.0
-
 	// Add existing deduction entries and calculate running totals using precise decimal arithmetic
 	for _, entry := range deduction {
 		if !entry.IsAddOn {
@@ -199,7 +172,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// Process post-computed (automatic deduction) entries
-
 	for _, entry := range postComputed {
 
 		if entry.IsAutomaticLoanDeductionDeleted {
@@ -234,17 +206,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 		}
 	}
-
 	// ================================================================================
-	// STEP 8: ADD MISSING AUTOMATIC DEDUCTIONS
+	// STEP 7: ADD MISSING AUTOMATIC DEDUCTIONS
 	// ================================================================================
-
 	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
 			if handlers.UUIDPtrEqual(&ald.ID, computed.AutomaticLoanDeductionID) {
 				exist = true
-
 				break
 			}
 		}
@@ -267,11 +236,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			if ald.ChargesRateSchemeID != nil {
 				chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
-
 					return nil, endTx(err)
 				}
 				entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
-
 			}
 
 			if entry.Credit <= 0 {
@@ -290,10 +257,12 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 
+	// Add previous loan balance for renewal and restructured loans
 	if (loanTransaction.LoanType == core.LoanTypeRestructured ||
 		loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
 		loanTransaction.LoanType == core.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
 		previous := loanTransaction.PreviousLoan
+
 		result = append(result, &core.LoanTransactionEntry{
 			Account:           previous.Account,
 			AccountID:         previous.AccountID,
@@ -308,9 +277,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	// ================================================================================
-	// STEP 9: CALCULATE FINAL CREDIT AMOUNTS & ADD-ON INTEREST
+	// STEP 8: CALCULATE FINAL CREDIT AMOUNTS FOR CASH EQUIVALENT ENTRY
 	// ================================================================================
-
 	// Adjust the first entry (cash equivalent) credit based on loan type and deductions using precise decimal arithmetic
 	if loanTransaction.IsAddOn {
 		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalNonAddOns)
@@ -319,32 +287,28 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalDeductions)
 	}
 
-	// Add the add-on interest entry if applicable
-	if loanTransaction.IsAddOn && totalAddOns > 0 {
-		addOnEntry.Debit = totalAddOns
-		result = append(result, addOnEntry)
-	}
-
 	// ================================================================================
-	// STEP 10: CLEANUP OLD ENTRIES & CREATE NEW BALANCED ENTRIES
+	// STEP 9: DELETE OLD ENTRIES & CREATE NEW BALANCED ENTRIES
 	// ================================================================================
-
 	// Delete all existing loan transaction entries before creating new ones
 	for _, entry := range loanTransactionEntries {
+		// Check if entry has a valid ID
+		if entry.ID == uuid.Nil {
+			continue
+		}
 		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to delete existing automatic loan deduction entries (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
+				Description: "Failed to delete existing loan transaction entries during loan balancing: " + err.Error(),
+				Module:      "LoanBalancing",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to delete existing automatic loan deduction entries + "+err.Error()))
+			return nil, endTx(eris.Wrap(err, "failed to delete existing loan transaction entries: "+err.Error()))
 		}
 	}
 
-	// Set the debit amount for the loan account entry
+	// Set the debit amount for the loan account entry and update name based on loan type
 	result[1].Debit = loanTransaction.Applied1
 	switch loanTransaction.LoanType {
-
 	case core.LoanTypeStandard:
 		result[1].Name = loanTransaction.Account.Name
 	case core.LoanTypeStandardPrevious:
@@ -355,14 +319,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
 	case core.LoanTypeRenewalWithoutDeduct:
 		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+	}
 
+	// Add add-on indicator to loan account name and adjust debit amount if applicable
+	if loanTransaction.IsAddOn && totalAddOns > 0 {
+		result[1].Name += " + Add On"
+		result[1].Debit = e.provider.Service.Decimal.Add(result[1].Debit, totalAddOns)
 	}
 
 	// Create new loan transaction entries and calculate totals
-
 	totalDebit, totalCredit := 0.0, 0.0
 	for index, entry := range result {
-
 		value := &core.LoanTransactionEntry{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
@@ -383,6 +350,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			Amount:                          entry.Amount,
 			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
+
+		// Only include non-deleted entries in total calculations
 		if !entry.IsAutomaticLoanDeductionDeleted {
 			totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 			totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
@@ -391,27 +360,27 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if err := e.core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to create loan transaction entry (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
+				Description: "Failed to create loan transaction entry during loan balancing: " + err.Error(),
+				Module:      "LoanBalancing",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to create loan transaction entry + "+err.Error()))
+			return nil, endTx(eris.Wrap(err, "failed to create loan transaction entry: "+err.Error()))
 		}
 	}
-	// Amortization
+
+	// Calculate loan amortization
 	amort, err := e.usecase.LoanModeOfPayment(loanTransaction)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to calculate loan amortization (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to calculate loan amortization during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization + "+err.Error()))
+		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization: "+err.Error()))
 	}
 
 	// ================================================================================
-	// STEP 11: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
+	// STEP 10: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
-
 	// Update the loan transaction with calculated totals
 	loanTransaction.Amortization = amort
 	loanTransaction.TotalPrincipal = totalCredit
@@ -420,38 +389,35 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.TotalDebit = totalDebit
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
+
 	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to update loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to update loan transaction during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to update loan transaction + "+err.Error()))
+		return nil, endTx(eris.Wrap(err, "failed to update loan transaction: "+err.Error()))
 	}
 
-	// Commit all database changes
-
+	// Commit the transaction
 	if err := endTx(nil); err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
-			Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to commit transaction during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
 	// ================================================================================
-	// STEP 12: RETRIEVE & RETURN UPDATED LOAN TRANSACTION
+	// STEP 11: RETRIEVE & RETURN UPDATED LOAN TRANSACTION
 	// ================================================================================
-
 	// Get the updated loan transaction with all related data
 	newLoanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
 	if err != nil {
-
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get updated loan transaction (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
+			Description: "Failed to get updated loan transaction during loan balancing: " + err.Error(),
+			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
 	}

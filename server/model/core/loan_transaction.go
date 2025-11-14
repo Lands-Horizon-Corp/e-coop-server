@@ -30,6 +30,8 @@ type LoanType string
 // LoanAmortizationType enumerates amortization strategies (suggested, none).
 type LoanAmortizationType string
 
+type LoanAdjustmentType string
+
 // LoanModeOfPayment and related constants define valid values for loan payment modes and
 // related enums used in loan processing.
 const (
@@ -67,12 +69,11 @@ const (
 	LoanAmortizationTypeNone      LoanAmortizationType = "none"
 )
 
-// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
-type LoanTransactionTotalResponse struct {
-	TotalInterest float64 `json:"total_interest"`
-	TotalDebit    float64 `json:"total_debit"`
-	TotalCredit   float64 `json:"total_credit"`
-}
+const (
+	LoanAdjustmentTypeDeduct   LoanAdjustmentType = "deduct"
+	LoanAdjustmentTypeAdd      LoanAdjustmentType = "add"
+	LoanAdjustmentTypeAdjusted LoanAdjustmentType = "adjusted"
+)
 
 // LoanTransaction represents a loan transaction record including relationships and
 // computed totals used by services and APIs.
@@ -238,10 +239,8 @@ type (
 		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
 
-		LoanCount int `gorm:"default:0"`
+		Processing bool `gorm:"default:false" json:"processing"`
 	}
-
-	// LoanTransactionResponse represents the response structure for loan transaction data.
 
 	// LoanTransactionResponse represents the response structure for LoanTransaction.
 	LoanTransactionResponse struct {
@@ -399,11 +398,61 @@ type (
 		TotalDebit  float64    `json:"total_debit"`
 		TotalCredit float64    `json:"total_credit"`
 
-		LoanCount int `json:"loan_count"`
+		Processing bool `json:"processing"`
 	}
 
-	// LoanTransactionRequest represents the request structure for creating or updating a loan transaction.
+	// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
+	LoanTransactionTotalResponse struct {
+		TotalInterest float64 `json:"total_interest"`
+		TotalDebit    float64 `json:"total_debit"`
+		TotalCredit   float64 `json:"total_credit"`
+	}
 
+	LoanAccountSummaryResponse struct {
+		AccountHistoryID uuid.UUID              `json:"account_history_id"`
+		AccountHistory   AccountHistoryResponse `json:"account_history"`
+
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
+		Balance     float64 `json:"balance"`
+
+		DueDate     *time.Time `json:"due_date,omitempty"`
+		LastPayment *time.Time `json:"last_payment,omitempty"`
+
+		TotalNumberOfPayments int `json:"total_number_of_payments"`
+
+		TotalNumberOfDeductions int `json:"total_number_of_deductions"`
+		TotalNumberOfAdditions  int `json:"total_number_of_additions"`
+
+		TotalAccountPrincipal          float64 `json:"total_account_principal"`
+		TotalAccountAdvancedPayment    float64 `json:"total_account_advanced_payment"`
+		TotalAccountPrincipalPaid      float64 `json:"total_account_principal_paid"`
+		TotalAccountRemainingPrincipal float64 `json:"total_remaining_principal"`
+	}
+
+	LoanTransactionSummaryResponse struct {
+		AmountGranted  float64                      `json:"amount_granted"`
+		AddOnAmount    float64                      `json:"add_on_amount"`
+		AccountSummary []LoanAccountSummaryResponse `json:"account_summary"`
+		GeneralLedger  []*GeneralLedgerResponse     `json:"general_ledger"`
+
+		Arrears float64 `json:"arrears"`
+
+		LastPayment             *time.Time `json:"last_payment,omitempty"`
+		FirstDeliquencyDate     *time.Time `json:"first_deliquency_date,omitempty"`
+		FirstIrregularityDate   *time.Time `json:"first_irregularity_date,omitempty"`
+		TotalPrincipal          float64    `json:"total_principal"`
+		TotalAdvancedPayment    float64    `json:"total_advanced_payment"`
+		TotalPrincipalPaid      float64    `json:"total_principal_paid"`
+		TotalRemainingPrincipal float64    `json:"total_remaining_principal"`
+	}
+
+	LoanTransactionAdjustmentRequest struct {
+		Voucher        string             `json:"voucher,omitempty"`
+		AccountID      uuid.UUID          `json:"account_id"`
+		AdjustmentType LoanAdjustmentType `json:"adjustment_type"`
+		Amount         float64            `json:"amount"`
+	}
 	// LoanTransactionRequest represents the request structure for LoanTransaction.
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
@@ -514,53 +563,7 @@ type (
 		LoanTermsAndConditionAmountReceiptDeleted    uuid.UUIDs `json:"loan_terms_and_condition_amount_receipt_deleted,omitempty"`
 		ComakerMemberProfilesDeleted                 uuid.UUIDs `json:"comaker_member_profiles_deleted,omitempty"`
 		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
-
-		LoanCount int `json:"loan_count,omitempty"`
 	}
-
-	// AmortizationPayment represents a single amortization schedule payment.
-	AmortizationPayment struct {
-		Date       string  `json:"date"`
-		Principal  float64 `json:"principal"`
-		LR         float64 `json:"lr"` // Loan Receivable (remaining balance)
-		Interest   float64 `json:"interest"`
-		ServiceFee float64 `json:"service_fee"`
-		Total      float64 `json:"total"`
-	}
-
-	// AmortizationSummary contains summary totals for an amortization schedule.
-	AmortizationSummary struct {
-		TotalTerms      int               `json:"total_terms"`
-		TotalPrincipal  float64           `json:"total_principal"`
-		TotalInterest   float64           `json:"total_interest"`
-		TotalServiceFee float64           `json:"total_service_fee"`
-		TotalAmount     float64           `json:"total_amount"`
-		LoanAmount      float64           `json:"loan_amount"`
-		MonthlyPayment  float64           `json:"monthly_payment"`
-		InterestRate    float64           `json:"interest_rate"`
-		ComputationType ComputationType   `json:"computation_type"`
-		ModeOfPayment   LoanModeOfPayment `json:"mode_of_payment"`
-	}
-
-	// LoanDetails represents the LoanDetails model.
-	LoanDetails struct {
-		Amount         float64 `json:"amount"`
-		DueDate        string  `json:"due_date"`
-		AccountApplied float64 `json:"account_applied"`
-		Voucher        string  `json:"voucher"`
-	}
-
-	// AmortizationScheduleResponse represents the response structure for an amortization schedule.
-
-	// AmortizationScheduleResponse represents the response structure for AmortizationSchedule.
-	AmortizationScheduleResponse struct {
-		LoanDetails          LoanDetails           `json:"loan_details"`
-		AmortizationSchedule []AmortizationPayment `json:"amortization_schedule"`
-		Summary              AmortizationSummary   `json:"summary"`
-		GeneratedAt          string                `json:"generated_at"`
-	}
-
-	// LoanTransactionPrintRequest represents the request structure for creating/updating loantransactionprint
 
 	// LoanTransactionPrintRequest represents the request structure for LoanTransactionPrint.
 	LoanTransactionPrintRequest struct {
@@ -568,8 +571,6 @@ type (
 		CheckNumber string     `json:"check_number"`
 		CheckDate   *time.Time `json:"check_date"`
 	}
-
-	// LoanTransactionSignatureRequest represents the request structure for creating/updating loantransactionsignature
 
 	// LoanTransactionSignatureRequest represents the request structure for LoanTransactionSignature.
 	LoanTransactionSignatureRequest struct {
@@ -610,8 +611,6 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 
-	// LoanTransactionSuggestedRequest represents the request structure for creating/updating loantransactionsuggested
-
 	// LoanTransactionSuggestedRequest represents the request structure for LoanTransactionSuggested.
 	LoanTransactionSuggestedRequest struct {
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
@@ -619,6 +618,7 @@ type (
 		ModeOfPayment LoanModeOfPayment `json:"mode_of_payment"`
 		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
+
 	// LoanTransactionSuggestedResponse represents the response structure for loantransactionsuggested data
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
@@ -808,6 +808,7 @@ func (m *Core) loanTransaction() {
 				Interest:                               data.Interest,
 				TotalDebit:                             data.TotalDebit,
 				TotalCredit:                            data.TotalCredit,
+				Processing:                             data.Processing,
 			}
 		},
 

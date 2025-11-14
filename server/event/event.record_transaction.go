@@ -220,6 +220,8 @@ func (e Event) RecordTransaction(
 
 		// Handle the case where no previous general ledger exists (first transaction)
 		var currentBalance float64 = 0
+		var loanTransactionID *uuid.UUID
+		var adjustmentType *core.LoanAdjustmentType
 		if generalLedger == nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-first-transaction",
@@ -228,12 +230,42 @@ func (e Event) RecordTransaction(
 			})
 		} else {
 			currentBalance = generalLedger.Balance
+			if generalLedger.LoanTransactionID != nil {
+				loanTransactionID = generalLedger.LoanTransactionID
+				adjustmentType = generalLedger.LoanAdjustmentType
+				loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+				if err != nil {
+					e.Footstep(echoCtx, FootstepEvent{
+						Activity:    "loan-transaction-retrieval-failed",
+						Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+						Module:      "Transaction Recording",
+					})
+					return endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
+				}
+				accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+					context,
+					account.ID,
+					account.OrganizationID,
+					account.BranchID,
+					loanTransaction.PrintedDate,
+				)
+				if err != nil {
+					e.Footstep(echoCtx, FootstepEvent{
+						Activity:    "account-history-retrieval-failed",
+						Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
+						Module:      "Transaction Recording",
+					})
+					return endTx(eris.Wrap(err, "failed to retrieve account history"))
+				}
+				if accountHistory != nil {
+					account = e.core.AccountHistoryToModel(accountHistory)
+				}
+			}
 		}
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
 		// Calculate adjusted debit, credit, and resulting balance
 		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, currentBalance)
-
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
 			paymentTypeValue = paymentType.Type
@@ -269,6 +301,8 @@ func (e Event) RecordTransaction(
 			Debit:                      debit,
 			Balance:                    balance,
 			CurrencyID:                 account.CurrencyID,
+			LoanTransactionID:          loanTransactionID,
+			LoanAdjustmentType:         adjustmentType,
 		}
 		// --- SUB-STEP 7E: GENERAL LEDGER ENTRY CREATION ---
 		// Create the general ledger entry in the database

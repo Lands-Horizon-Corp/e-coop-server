@@ -1764,9 +1764,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
 
-		newLoanTransaction, err := c.event.LoanRelease(context, ctx, event.LoanBalanceEvent{
-			LoanTransactionID: loanTransaction.ID,
-		})
+		newLoanTransaction, err := c.event.LoanRelease(context, ctx, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
@@ -1968,11 +1966,15 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		processedLoanTransaction, err := c.event.LoanProcessing(context, ctx, loanTransactionID)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(processedLoanTransaction))
 	})
 
 	// POST /api/v1/loan-transaction/process
@@ -1983,23 +1985,148 @@ func (c *Controller) loanTransactionController() {
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "loan-processing-started",
+			Description: "Loan processing started",
+			Module:      "Loan Processing",
+		})
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Title:       "Loan Processing",
+			Description: "Loan processing started",
+		})
+
+		if err := c.event.ProcessAllLoans(context, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	// POST /api/v1/loan-transaction/:loan_transaction_id/adjustment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/adjustment",
+		Method:       "POST",
+		Note:         "Creates an adjustment for a loan transaction by ID.",
+		ResponseType: core.LoanTransactionAdjustmentRequest{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		var req core.LoanTransactionAdjustmentRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "adjustment-create-error",
+				Description: "Loan transaction adjustment creation failed: invalid payload: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction adjustment payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "adjustment-create-error",
+				Description: "Loan transaction adjustment creation failed: validation error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transaction adjustments"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
+		}
+		if err := c.event.LoanAdjustment(context, *userOrg, processedLoanTransaction.ID, req); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction adjustment: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
+	// GET api/v1/loan-transaction/:loan_transaction/summary
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/summary",
+		Method:       "GET",
+		Note:         "Retrieves a summary of loan transactions based on query parameters.",
+		ResponseType: core.LoanTransactionSummaryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		processedLoanTransaction, err := c.core.LoanTransactionManager.FindIncludingDeletedRaw(context, &core.LoanTransaction{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+		}
+		entries, err := c.core.GeneralLedgerByLoanTransaction(
+			context,
+			*loanTransactionID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			LoanAccountID:  loanTransaction.AccountID,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		for _, loanTransaction := range processedLoanTransaction {
-			_, err := c.event.LoanProcessing(context, ctx, &loanTransaction.ID)
+		arrears := 0.0
+		accountsummary := []core.LoanAccountSummaryResponse{}
+		for _, entry := range accounts {
+			accountHistory, err := c.core.GetAccountHistoryLatestByTimeHistory(
+				context,
+				entry.ID,
+				entry.OrganizationID,
+				entry.BranchID,
+				loanTransaction.PrintedDate,
+			)
 			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction ID " + loanTransaction.ID.String() + ": " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
+			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
+				AccountHistoryID:               accountHistory.ID,
+				AccountHistory:                 *c.core.AccountHistoryManager.ToModel(accountHistory),
+				TotalDebit:                     0,
+				TotalCredit:                    0,
+				Balance:                        0,
+				DueDate:                        nil,
+				LastPayment:                    nil,
+				TotalNumberOfPayments:          0,
+				TotalNumberOfDeductions:        0,
+				TotalNumberOfAdditions:         0,
+				TotalAccountPrincipal:          0,
+				TotalAccountAdvancedPayment:    0,
+				TotalAccountPrincipalPaid:      0,
+				TotalAccountRemainingPrincipal: 0,
+			})
 		}
-		return ctx.JSON(http.StatusOK, processedLoanTransaction)
+		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
+			GeneralLedger:  c.core.GeneralLedgerManager.ToModels(entries),
+			AccountSummary: accountsummary,
+			Arrears:        arrears,
+			AmountGranted:  loanTransaction.Applied1,
+		})
 	})
 }

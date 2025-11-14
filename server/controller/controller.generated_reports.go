@@ -48,6 +48,7 @@ func (c *Controller) generatedReports() {
 			UpdatedByID:        user.UserID,
 			OrganizationID:     user.OrganizationID,
 			BranchID:           *user.BranchID,
+			UserID:             user.UserID,
 			UserOrganizationID: user.ID,
 			GeneratedReportID:  generatedReport.ID,
 		}
@@ -116,6 +117,8 @@ func (c *Controller) generatedReports() {
 			Status:              core.GeneratedReportStatusPending,
 			GeneratedReportType: req.GeneratedReportType,
 			URL:                 req.URL,
+
+			UserID: &user.UserID,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
@@ -144,16 +147,16 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		if generatedReport.MediaID == nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No media associated with this generated report"})
-		}
-		if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
-				Module:      "Media",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+		// Only delete media if it exists
+		if generatedReport.MediaID != nil {
+			if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
+					Module:      "Media",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+			}
 		}
 		if err := c.core.GeneratedReportManager.Delete(context, *generatedReportID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})

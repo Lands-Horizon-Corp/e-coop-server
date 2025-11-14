@@ -793,7 +793,7 @@ func (c *Controller) userOrganinzationController() {
 			PermissionName:           string(core.UserOrganizationTypeMember),
 			PermissionDescription:    "just a member",
 			Permissions:              []string{},
-			UserSettingDescription:   "",
+			UserSettingDescription:   "users settings description",
 			UserSettingStartOR:       0,
 			UserSettingEndOR:         1000,
 			UserSettingUsedOR:        0,
