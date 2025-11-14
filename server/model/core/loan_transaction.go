@@ -75,13 +75,6 @@ const (
 	LoanAdjustmentTypeAdjusted LoanAdjustmentType = "adjusted"
 )
 
-// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
-type LoanTransactionTotalResponse struct {
-	TotalInterest float64 `json:"total_interest"`
-	TotalDebit    float64 `json:"total_debit"`
-	TotalCredit   float64 `json:"total_credit"`
-}
-
 // LoanTransaction represents a loan transaction record including relationships and
 // computed totals used by services and APIs.
 type (
@@ -406,6 +399,36 @@ type (
 		TotalCredit float64    `json:"total_credit"`
 
 		Processing bool `json:"processing"`
+	}
+
+	// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
+	LoanTransactionTotalResponse struct {
+		TotalInterest float64 `json:"total_interest"`
+		TotalDebit    float64 `json:"total_debit"`
+		TotalCredit   float64 `json:"total_credit"`
+	}
+
+	LoanAccountSummaryResponse struct {
+		AccountID uuid.UUID       `json:"account_id"`
+		Account   AccountResponse `json:"account"`
+
+		DueDate     *time.Time `json:"due_date,omitempty"`
+		LastPayment *time.Time `json:"last_payment,omitempty"`
+
+		TotalNumberOfPayments int `json:"total_number_of_payments"`
+
+		TotalNumberOfDeductions int `json:"total_number_of_deductions"`
+		TotalNumberOfAdditions  int `json:"total_number_of_additions"`
+
+		TotalPrincipal       float64 `json:"total_principal"`
+		TotalPrincipalPaid   float64 `json:"total_principal_paid"`
+		TotalUnpaidPrincipal float64 `json:"total_unpaid_principal"`
+	}
+
+	LoanTransactionSummaryResponse struct {
+		AccountSummary []LoanAccountSummaryResponse `json:"account_summary"`
+		GeneralLedger  []*GeneralLedgerResponse     `json:"general_ledger"`
+		Arrears        float64                      `json:"arrears"`
 	}
 
 	LoanTransactionAdjustmentRequest struct {

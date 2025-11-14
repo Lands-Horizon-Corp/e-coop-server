@@ -2052,4 +2052,38 @@ func (c *Controller) loanTransactionController() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	// GET api/v1/loan-transaction/:loan_transaction/summary
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/summary",
+		Method:       "GET",
+		Note:         "Retrieves a summary of loan transactions based on query parameters.",
+		ResponseType: core.LoanTransactionSummaryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		entries, err := c.core.GeneralLedgerByLoanTransaction(
+			context,
+			*loanTransactionID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
+			GeneralLedger: c.core.GeneralLedgerManager.ToModels(entries),
+		})
+	})
+
 }
