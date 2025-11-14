@@ -121,6 +121,7 @@ func (m *Core) generatedReport() {
 	m.GeneratedReportManager = *registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{
 			"CreatedBy",
+			"CreatedBy.Media",
 			"UpdatedBy",
 			"Organization",
 			"Branch",
