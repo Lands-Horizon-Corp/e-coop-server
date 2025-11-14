@@ -2098,8 +2098,28 @@ func (c *Controller) loanTransactionController() {
 				accountMap[*entry.AccountID] = account
 			}
 		}
+		accountsummary := []core.LoanAccountSummaryResponse{}
+		for _, entry := range accounts {
+			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
+				AccountID:                      entry.ID,
+				Account:                        *c.core.AccountManager.ToModel(entry),
+				TotalDebit:                     0,
+				TotalCredit:                    0,
+				Balance:                        0,
+				DueDate:                        nil,
+				LastPayment:                    nil,
+				TotalNumberOfPayments:          0,
+				TotalNumberOfDeductions:        0,
+				TotalNumberOfAdditions:         0,
+				TotalAccountPrincipal:          0,
+				TotalAccountAdvancedPayment:    0,
+				TotalAccountPrincipalPaid:      0,
+				TotalAccountRemainingPrincipal: 0,
+			})
+		}
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
-			GeneralLedger: c.core.GeneralLedgerManager.ToModels(entries),
+			GeneralLedger:  c.core.GeneralLedgerManager.ToModels(entries),
+			AccountSummary: accountsummary,
 		})
 	})
 
