@@ -147,16 +147,16 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		if generatedReport.MediaID == nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No media associated with this generated report"})
-		}
-		if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
-				Module:      "Media",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+		// Only delete media if it exists
+		if generatedReport.MediaID != nil {
+			if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
+					Module:      "Media",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+			}
 		}
 		if err := c.core.GeneratedReportManager.Delete(context, *generatedReportID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})
