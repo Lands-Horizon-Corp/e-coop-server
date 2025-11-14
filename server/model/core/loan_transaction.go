@@ -30,6 +30,8 @@ type LoanType string
 // LoanAmortizationType enumerates amortization strategies (suggested, none).
 type LoanAmortizationType string
 
+type LoanAdjustmentType string
+
 // LoanModeOfPayment and related constants define valid values for loan payment modes and
 // related enums used in loan processing.
 const (
@@ -65,6 +67,11 @@ const (
 
 	LoanAmortizationTypeSuggested LoanAmortizationType = "suggested"
 	LoanAmortizationTypeNone      LoanAmortizationType = "none"
+)
+
+const (
+	LoanAdjustmentTypeDeduct LoanAdjustmentType = "deduct"
+	LoanAdjustmentTypeAdd    LoanAdjustmentType = "add"
 )
 
 // LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
@@ -400,6 +407,12 @@ type (
 		Processing bool `json:"processing"`
 	}
 
+	LoanTransactionAdjustmentRequest struct {
+		Voucher        string             `json:"voucher,omitempty"`
+		AccountID      uuid.UUID          `json:"account_id"`
+		AdjustmentType LoanAdjustmentType `json:"adjustment_type"`
+		Amount         float64            `json:"amount"`
+	}
 	// LoanTransactionRequest represents the request structure for LoanTransaction.
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`

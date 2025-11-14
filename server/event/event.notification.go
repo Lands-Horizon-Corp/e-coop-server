@@ -89,7 +89,7 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 			return
 		}
 
-		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 			BranchID:       user.BranchID,
 		})
@@ -97,7 +97,7 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 			return
 		}
 
-		adminUsers := e.filterAdminUsers(useOrganizations)
+		adminUsers := e.filterAdminUsers(userOrganizations)
 		e.createNotificationForUsers(context, adminUsers, data, &user.UserID)
 	}()
 }
@@ -113,14 +113,14 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 			return
 		}
 
-		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: user.OrganizationID,
 		})
 		if err != nil {
 			return
 		}
 
-		e.createNotificationForUsers(context, useOrganizations, data, &user.UserID)
+		e.createNotificationForUsers(context, userOrganizations, data, &user.UserID)
 	}()
 }
 
@@ -130,14 +130,14 @@ func (e *Event) OrganizationDirectNotification(ctx echo.Context, organizationID 
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {
 			return
 		}
 
-		e.createNotificationForUsers(context, useOrganizations, data, nil)
+		e.createNotificationForUsers(context, userOrganizations, data, nil)
 	}()
 }
 
@@ -147,14 +147,14 @@ func (e *Event) OrganizationAdminsDirectNotification(ctx echo.Context, organizat
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		useOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {
 			return
 		}
 
-		adminUsers := e.filterAdminUsers(useOrganizations)
+		adminUsers := e.filterAdminUsers(userOrganizations)
 		e.createNotificationForUsers(context, adminUsers, data, nil)
 	}()
 }

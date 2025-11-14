@@ -126,17 +126,17 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		useOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		if useOrganization.BranchID == nil {
+		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		disbursementTransactions, err := c.core.DisbursementTransactionManager.PaginationWithFields(context, ctx, &core.DisbursementTransaction{
-			CreatedByID:    useOrganization.UserID,
-			BranchID:       *useOrganization.BranchID,
-			OrganizationID: useOrganization.OrganizationID,
+			CreatedByID:    userOrganization.UserID,
+			BranchID:       *userOrganization.BranchID,
+			OrganizationID: userOrganization.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})

@@ -2005,4 +2005,51 @@ func (c *Controller) loanTransactionController() {
 		// return ctx.JSON(http.StatusOK, processedLoanTransaction)
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	// POST /api/v1/loan-transaction/:loan_transaction_id/adjustment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/adjustment",
+		Method:       "POST",
+		Note:         "Creates an adjustment for a loan transaction by ID.",
+		ResponseType: core.LoanTransactionAdjustmentRequest{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		var req core.LoanTransactionAdjustmentRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "adjustment-create-error",
+				Description: "Loan transaction adjustment creation failed: invalid payload: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction adjustment payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "adjustment-create-error",
+				Description: "Loan transaction adjustment creation failed: validation error: " + err.Error(),
+				Module:      "LoanTransaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transaction adjustments"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
+		}
+		if err := c.event.LoanAdjustment(context, *userOrg, processedLoanTransaction.ID, req); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction adjustment: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
 }

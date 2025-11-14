@@ -20,6 +20,10 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 		return nil, endTx(eris.Wrap(err, "loan processing: failed to get loan transaction by id"))
 	}
 
+	if loanTransaction.Processing {
+		return nil, endTx(eris.New("This loan transaction is still being processed"))
+	}
+
 	// ===============================
 	// STEP 2: VALIDATE USER ORGANIZATION AND BRANCH
 	// ===============================
@@ -165,9 +169,6 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					if price <= 0 {
 						continue
 					}
-
-					price = -price
-
 					memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
 						*account, 0.0, price, currentMemberBalance)
 
@@ -267,7 +268,6 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 	// STEP 12: DATABASE TRANSACTION COMMIT
 	// ===============================
 	if err := endTx(nil); err != nil {
-
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
