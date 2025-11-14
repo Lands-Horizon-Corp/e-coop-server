@@ -3,6 +3,7 @@ package registry
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -104,6 +105,14 @@ func parseQuery(ctx echo.Context) (filter.Root, int, int, error) {
 	if err != nil {
 		return filter.Root{}, 0, 0, eris.Wrap(err, "pageSize processing failed")
 	}
+
+	// Print beautiful JSON
+	if jsonBytes, err := json.MarshalIndent(filterRoot, "", "  "); err == nil {
+		fmt.Println("FilterRoot JSON:")
+		fmt.Println(string(jsonBytes))
+	}
+	fmt.Println("Pageindex: ", pageIndex)
+	fmt.Println("PageSize: ", pageSize)
 
 	return filterRoot, pageIndex, pageSize, nil
 }
