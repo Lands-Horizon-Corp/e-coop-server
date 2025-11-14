@@ -107,12 +107,14 @@ func parseQuery(ctx echo.Context) (filter.Root, int, int, error) {
 	}
 
 	// Print beautiful JSON
+	fmt.Println("---------------------------------------------------------")
 	if jsonBytes, err := json.MarshalIndent(filterRoot, "", "  "); err == nil {
 		fmt.Println("FilterRoot JSON:")
 		fmt.Println(string(jsonBytes))
 	}
 	fmt.Println("Pageindex: ", pageIndex)
 	fmt.Println("PageSize: ", pageSize)
+	fmt.Println("---------------------------------------------------------")
 
 	return filterRoot, pageIndex, pageSize, nil
 }
