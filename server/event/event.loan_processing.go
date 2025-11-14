@@ -142,6 +142,20 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					if err != nil {
 						return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
 					}
+					accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+						context,
+						account.ID,
+						account.OrganizationID,
+						account.BranchID,
+						loanTransaction.PrintedDate,
+					)
+					if err != nil {
+						return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
+					}
+					if accountHistory != nil {
+						account = e.core.AccountHistoryToModel(accountHistory)
+					}
+
 					var currentMemberBalance float64 = 0
 					if memberAccountLedger != nil {
 						currentMemberBalance = memberAccountLedger.Balance

@@ -2105,9 +2105,19 @@ func (c *Controller) loanTransactionController() {
 		}
 		accountsummary := []core.LoanAccountSummaryResponse{}
 		for _, entry := range accounts {
+			accountHistory, err := c.core.GetAccountHistoryLatestByTimeHistory(
+				context,
+				entry.ID,
+				entry.OrganizationID,
+				entry.BranchID,
+				loanTransaction.PrintedDate,
+			)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
+			}
 			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
-				AccountID:                      entry.ID,
-				Account:                        *c.core.AccountManager.ToModel(entry),
+				AccountHistoryID:               accountHistory.ID,
+				AccountHistory:                 *c.core.AccountHistoryManager.ToModel(accountHistory),
 				TotalDebit:                     0,
 				TotalCredit:                    0,
 				Balance:                        0,

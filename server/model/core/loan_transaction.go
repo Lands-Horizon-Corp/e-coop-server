@@ -409,8 +409,8 @@ type (
 	}
 
 	LoanAccountSummaryResponse struct {
-		AccountID uuid.UUID       `json:"account_id"`
-		Account   AccountResponse `json:"account"`
+		AccountHistoryID uuid.UUID              `json:"account_history_id"`
+		AccountHistory   AccountHistoryResponse `json:"account_history"`
 
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`

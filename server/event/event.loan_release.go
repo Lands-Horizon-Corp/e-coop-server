@@ -325,6 +325,21 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 
 	// Process all related accounts that have straight interest computation
 	for _, account := range accounts {
+
+		accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+			context,
+			account.ID,
+			account.OrganizationID,
+			account.BranchID,
+			loanTransaction.PrintedDate,
+		)
+		if err != nil {
+			return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
+		}
+		if accountHistory != nil {
+			account = e.core.AccountHistoryToModel(accountHistory)
+		}
+
 		// Skip accounts that are not loan-related or don't use straight computation
 		if account.LoanAccountID == nil ||
 			account.ComputationType != core.Straight ||

@@ -66,6 +66,20 @@ func (e *Event) LoanAdjustment(
 		return endTx(eris.Wrap(err, "Account not found for adjustment"))
 	}
 
+	accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+		context,
+		account.ID,
+		account.OrganizationID,
+		account.BranchID,
+		loanTransaction.PrintedDate,
+	)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to retrieve account history"))
+	}
+	if accountHistory != nil {
+		account = e.core.AccountHistoryToModel(accountHistory)
+	}
+
 	// ========================================
 	// STEP 5: Calculate adjustment amounts
 	// ========================================
