@@ -323,7 +323,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	// Add add-on indicator to loan account name and adjust debit amount if applicable
 	if loanTransaction.IsAddOn && totalAddOns > 0 {
-		result[1].Name = result[1].Name + " + Add On"
+		result[1].Name += " + Add On"
 		result[1].Debit = e.provider.Service.Decimal.Add(result[1].Debit, totalAddOns)
 	}
 

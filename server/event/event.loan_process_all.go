@@ -60,7 +60,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 					zap.Error(err),
 					zap.String("loanTransactionID", entry.ID.String()),
 					zap.String("organizationID", userOrg.OrganizationID.String()),
-					zap.String("branchID", (*userOrg.BranchID).String()),
+					zap.String("branchID", userOrg.BranchID.String()),
 					zap.Int("iteration", i+1),
 					zap.Int("total", len(loanTransaction)))
 				return
