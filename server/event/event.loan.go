@@ -88,16 +88,14 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 3: CATEGORIZE EXISTING LOAN TRANSACTION ENTRIES BY TYPE
 	// ================================================================================
 	result := []*core.LoanTransactionEntry{}
-	static, addOn, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
+	static, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
 
 	// Categorize existing entries by their transaction type
 	for _, entry := range loanTransactionEntries {
 		if entry.Type == core.LoanTransactionStatic {
 			static = append(static, entry)
 		}
-		if entry.Type == core.LoanTransactionAddOn {
-			addOn = append(addOn, entry)
-		}
+
 		if entry.Type == core.LoanTransactionDeduction {
 			deduction = append(deduction, entry)
 		}
