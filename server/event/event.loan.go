@@ -182,21 +182,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 	fmt.Printf("[DEBUG] Static entries arranged - Cash: %.2f, Loan: %.2f\n", result[0].Credit, result[1].Debit)
 
-	// Delete existing add-on entries (they will be recalculated)
-	fmt.Printf("[DEBUG] Deleting %d existing add-on entries\n", len(addOn))
-	for i, entry := range addOn {
-		fmt.Printf("[DEBUG] Deleting add-on entry %d: ID=%s, Name=%s\n", i, entry.ID, entry.Name)
-		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			fmt.Printf("[ERROR] Failed to delete add-on entry %d (%s): %v\n", i, entry.Name, err)
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "data-error",
-				Description: "Failed to delete existing add on interest entries (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return nil, endTx(eris.Wrap(err, "failed to delete existing add on interest entries + "+err.Error()))
-		}
-	}
-
 	// ================================================================================
 	// STEP 6: PREPARE ADD-ON INTEREST ENTRY TEMPLATE
 	// ================================================================================
