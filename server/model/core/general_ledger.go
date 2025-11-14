@@ -67,6 +67,7 @@ type (
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
 		LoanTransactionID          *uuid.UUID          `gorm:"type:uuid"`
 		LoanTransaction            *LoanTransaction    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
+		LoanAdjustmentType         *LoanAdjustmentType `gorm:"type:varchar(20)" json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
@@ -118,13 +119,14 @@ type (
 		PaymentTypeID *uuid.UUID           `json:"payment_type_id,omitempty"`
 		PaymentType   *PaymentTypeResponse `json:"payment_type,omitempty"`
 
-		Source            GeneralLedgerSource      `json:"source"`
-		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
-		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
-		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
-		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
-		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
+		Source             GeneralLedgerSource      `json:"source"`
+		JournalVoucherID   *uuid.UUID               `json:"journal_voucher_id,omitempty"`
+		AdjustmentEntryID  *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
+		AdjustmentEntry    *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
+		LoanTransactionID  *uuid.UUID               `json:"loan_transaction_id,omitempty"`
+		LoanTransaction    *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		LoanAdjustmentType *LoanAdjustmentType      `json:"loan_adjustment_type,omitempty"`
+		TypeOfPaymentType  TypeOfPaymentType        `json:"type_of_payment_type"`
 
 		Credit  float64 `json:"credit"`
 		Debit   float64 `json:"debit"`
@@ -171,6 +173,7 @@ type (
 		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
 		LoanTransactionID          *uuid.UUID          `json:"loan_transaction_id,omitempty"`
+		LoanAdjustmentType         *LoanAdjustmentType `json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `json:"credit,omitempty"`
 		Debit                      float64             `json:"debit,omitempty"`
@@ -295,20 +298,20 @@ func (m *Core) generalLedger() {
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
 				Balance:                    data.Balance,
-
-				SignatureMediaID:      data.SignatureMediaID,
-				SignatureMedia:        m.MediaManager.ToModel(data.SignatureMedia),
-				EntryDate:             data.EntryDate,
-				BankID:                data.BankID,
-				Bank:                  m.BankManager.ToModel(data.Bank),
-				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
-				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
-				CurrencyID:            data.CurrencyID,
-				Currency:              m.CurrencyManager.ToModel(data.Currency),
-				BankReferenceNumber:   data.BankReferenceNumber,
-				Description:           data.Description,
-				PrintNumber:           data.PrintNumber,
-				AccountHistoryID:      accountHistoryID,
+				LoanAdjustmentType:         data.LoanAdjustmentType,
+				SignatureMediaID:           data.SignatureMediaID,
+				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
+				EntryDate:                  data.EntryDate,
+				BankID:                     data.BankID,
+				Bank:                       m.BankManager.ToModel(data.Bank),
+				ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
+				ProofOfPaymentMedia:        m.MediaManager.ToModel(data.ProofOfPaymentMedia),
+				CurrencyID:                 data.CurrencyID,
+				Currency:                   m.CurrencyManager.ToModel(data.Currency),
+				BankReferenceNumber:        data.BankReferenceNumber,
+				Description:                data.Description,
+				PrintNumber:                data.PrintNumber,
+				AccountHistoryID:           accountHistoryID,
 			}
 		},
 		Created: func(data *GeneralLedger) []string {

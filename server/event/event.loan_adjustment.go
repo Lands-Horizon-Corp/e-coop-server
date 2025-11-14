@@ -107,6 +107,7 @@ func (e *Event) LoanAdjustment(
 		Balance:                    newMemberBalance,
 		CurrencyID:                 account.CurrencyID,
 		LoanTransactionID:          &loanTransaction.ID,
+		LoanAdjustmentType:         &la.AdjustmentType,
 	}
 
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {

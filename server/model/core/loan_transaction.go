@@ -70,8 +70,9 @@ const (
 )
 
 const (
-	LoanAdjustmentTypeDeduct LoanAdjustmentType = "deduct"
-	LoanAdjustmentTypeAdd    LoanAdjustmentType = "add"
+	LoanAdjustmentTypeDeduct   LoanAdjustmentType = "deduct"
+	LoanAdjustmentTypeAdd      LoanAdjustmentType = "add"
+	LoanAdjustmentTypeAdjusted LoanAdjustmentType = "adjusted"
 )
 
 // LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.

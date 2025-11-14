@@ -220,6 +220,8 @@ func (e Event) RecordTransaction(
 
 		// Handle the case where no previous general ledger exists (first transaction)
 		var currentBalance float64 = 0
+		var loanTransactionID *uuid.UUID
+		var adjustmentType *core.LoanAdjustmentType
 		if generalLedger == nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-first-transaction",
@@ -228,6 +230,8 @@ func (e Event) RecordTransaction(
 			})
 		} else {
 			currentBalance = generalLedger.Balance
+			loanTransactionID = generalLedger.LoanTransactionID
+			adjustmentType = generalLedger.LoanAdjustmentType
 		}
 
 		// --- SUB-STEP 7C: BALANCE CALCULATION ---
@@ -269,6 +273,8 @@ func (e Event) RecordTransaction(
 			Debit:                      debit,
 			Balance:                    balance,
 			CurrencyID:                 account.CurrencyID,
+			LoanTransactionID:          loanTransactionID,
+			LoanAdjustmentType:         adjustmentType,
 		}
 		// --- SUB-STEP 7E: GENERAL LEDGER ENTRY CREATION ---
 		// Create the general ledger entry in the database
