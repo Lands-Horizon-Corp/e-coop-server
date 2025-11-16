@@ -30,7 +30,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view check remittances"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -92,7 +92,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create check remittances"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -256,7 +256,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -410,7 +410,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,

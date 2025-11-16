@@ -562,14 +562,6 @@ func (m *Core) TransactionBatchViewRequests(context context.Context, organizatio
 	})
 }
 
-// TransactionBatchCurrentBranch retrieves all transaction batches for the current branch.
-func (m *Core) TransactionBatchCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	return m.TransactionBatchManager.Find(context, &TransactionBatch{
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-	})
-}
-
 // TransactionBatchCurrentDay retrieves all closed transaction batches for the current day.
 func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
@@ -585,18 +577,4 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 	}, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
-}
-
-func (m *Core) CurrentOpenTransactionBatch(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
-	return m.TransactionBatchManager.FindOneWithSQL(context,
-		[]registry.FilterSQL{
-			{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-			{Field: "employee_user_id", Op: registry.OpEq, Value: userID},
-			{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-			{Field: "is_closed", Op: registry.OpEq, Value: false},
-		},
-		[]registry.FilterSortSQL{
-			{Field: "updated_at", Order: filter.SortOrderDesc},
-		},
-	)
 }

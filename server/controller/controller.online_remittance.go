@@ -29,7 +29,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -92,7 +92,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -257,7 +257,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -416,7 +416,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Online remittance not found in your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,

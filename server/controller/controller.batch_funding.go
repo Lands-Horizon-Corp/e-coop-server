@@ -49,7 +49,7 @@ func (c *Controller) batchFundingController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
