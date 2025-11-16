@@ -123,7 +123,7 @@ func (c *Controller) journalVoucherController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
-			JournalVoucherEntries: request.JournalVoucherEntries,
+			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -259,7 +259,7 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
-			JournalVoucherEntries: request.JournalVoucherEntries,
+			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

@@ -8,11 +8,14 @@ import (
 )
 
 type Balance struct {
-	// Entries to balance
-	GeneralLedgers          []*core.GeneralLedger
-	AdjustmentEntry         []*core.AdjustmentEntry
-	CashCheckVoucherRequest []*core.CashCheckVoucherEntryRequest
-	JournalVoucherEntries   []*core.JournalVoucherEntryRequest
+	// Models
+	GeneralLedgers         []*core.GeneralLedger
+	AdjustmentEntries      []*core.AdjustmentEntry
+	LoanTransactionEntries []*core.LoanTransactionEntry
+
+	// Requests
+	CashCheckVoucherEntriesRequest []*core.CashCheckVoucherEntryRequest
+	JournalVoucherEntriesRequest   []*core.JournalVoucherEntryRequest
 
 	// Strict variables
 	CurrencyID *uuid.UUID
@@ -22,6 +25,7 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 	credit = 0.0
 	debit = 0.0
 	balance = 0.0
+	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
 			if entry == nil {
@@ -46,8 +50,8 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			}
 		}
 	}
-	if data.AdjustmentEntry != nil {
-		for _, entry := range data.AdjustmentEntry {
+	if data.AdjustmentEntries != nil {
+		for _, entry := range data.AdjustmentEntries {
 			if entry == nil {
 				return 0, 0, 0, eris.New("nil cash check voucher")
 			}
@@ -67,8 +71,31 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			}
 		}
 	}
-	if data.CashCheckVoucherRequest != nil {
-		for _, entry := range data.CashCheckVoucherRequest {
+	if data.LoanTransactionEntries != nil {
+		for _, entry := range data.LoanTransactionEntries {
+			if entry == nil {
+				return 0, 0, 0, eris.New("nil loan transaction entry")
+			}
+			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
+				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
+				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+			}
+			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+			switch entry.Account.GeneralLedgerType {
+			case core.GLTypeAssets, core.GLTypeExpenses:
+				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
+				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
+
+			default:
+				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+			}
+		}
+	}
+
+	// Requests
+	if data.CashCheckVoucherEntriesRequest != nil {
+		for _, entry := range data.CashCheckVoucherEntriesRequest {
 			if entry == nil {
 				return 0, 0, 0, eris.New("nil cash check voucher")
 			}
@@ -77,8 +104,8 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 		}
 	}
-	if data.JournalVoucherEntries != nil {
-		for _, entry := range data.JournalVoucherEntries {
+	if data.JournalVoucherEntriesRequest != nil {
+		for _, entry := range data.JournalVoucherEntriesRequest {
 			if entry == nil {
 				return 0, 0, 0, eris.New("nil journal voucher")
 			}
@@ -91,6 +118,7 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 
 	return credit, debit, balance, nil
 }
+
 func (t *TransactionService) StrictBalance(data Balance) (credit, debit, balance float64, err error) {
 	credit, debit, balance, err = t.Balance(data)
 	if err != nil {

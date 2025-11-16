@@ -292,7 +292,7 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
 		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
-			AdjustmentEntry: entries,
+			AdjustmentEntries: entries,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
@@ -371,8 +371,8 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
 		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
-			AdjustmentEntry: entries,
-			CurrencyID:      currencyID,
+			AdjustmentEntries: entries,
+			CurrencyID:        currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
@@ -460,8 +460,8 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
 		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
-			AdjustmentEntry: entries,
-			CurrencyID:      currencyID,
+			AdjustmentEntries: entries,
+			CurrencyID:        currencyID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})

@@ -230,7 +230,7 @@ func (c *Controller) cashCheckVoucherController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
-			CashCheckVoucherRequest: request.CashCheckVoucherEntries,
+			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
 		if err != nil {
@@ -412,7 +412,7 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
-			CashCheckVoucherRequest: request.CashCheckVoucherEntries,
+			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
 		if err != nil {
