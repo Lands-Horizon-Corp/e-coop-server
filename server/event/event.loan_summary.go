@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
@@ -31,7 +32,9 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to get latest general ledger for loan account id: %s", *loanTransaction.AccountID)
 		}
-		_, _, balance, err := e.usecase.ComputeBalance(generalLedgers)
+		_, _, balance, err := e.usecase.Balance(usecase.Balance{
+			GeneralLedgers: generalLedgers,
+		})
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to compute balance for loan account id: %s", *loanTransaction.AccountID)
 		}

@@ -1,12 +1,12 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -229,23 +229,17 @@ func (c *Controller) cashCheckVoucherController() {
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Calculate totals from entries
-		totalDebit, totalCredit := 0.0, 0.0
-		if request.CashCheckVoucherEntries != nil {
-			for _, entry := range request.CashCheckVoucherEntries {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			}
-		}
+		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+			CashCheckVoucherRequest: request.CashCheckVoucherEntries,
+		})
 
-		// Validate balance (optional - some vouchers might not require balanced entries)
-		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) && c.provider.Service.Decimal.IsGreaterThan(totalDebit, 0) && c.provider.Service.Decimal.IsGreaterThan(totalCredit, 0) {
+		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
-				Description: "Cash check voucher creation failed (/cash-check-voucher), unbalanced entries.",
+				Description: "Cash check voucher creation failed (/cash-check-voucher), balance calculation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit) + " " + endTx(eris.New("unbalanced entries")).Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + endTx(err).Error()})
 		}
 
 		cashCheckVoucher := &core.CashCheckVoucher{
@@ -253,8 +247,8 @@ func (c *Controller) cashCheckVoucherController() {
 			Status:                        request.Status,
 			Description:                   request.Description,
 			CashVoucherNumber:             request.CashVoucherNumber,
-			TotalDebit:                    totalDebit,
-			TotalCredit:                   totalCredit,
+			TotalDebit:                    debit,
+			TotalCredit:                   credit,
 			PrintCount:                    request.PrintCount,
 			PrintedDate:                   request.PrintedDate,
 			ApprovedDate:                  request.ApprovedDate,
@@ -417,23 +411,17 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
 
-		// Calculate totals from entries
-		totalDebit, totalCredit := 0.0, 0.0
-		if request.CashCheckVoucherEntries != nil {
-			for _, entry := range request.CashCheckVoucherEntries {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			}
-		}
+		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+			CashCheckVoucherRequest: request.CashCheckVoucherEntries,
+		})
 
-		// Validate balance (optional)
-		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) && c.provider.Service.Decimal.IsGreaterThan(totalDebit, 0) && c.provider.Service.Decimal.IsGreaterThan(totalCredit, 0) {
+		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), unbalanced entries.",
+				Activity:    "create-error",
+				Description: "Cash check voucher creation failed (/cash-check-voucher), balance calculation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Cash check voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + err.Error()})
 		}
 
 		// Start transaction
@@ -444,8 +432,8 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.Status = request.Status
 		cashCheckVoucher.Description = request.Description
 		cashCheckVoucher.CashVoucherNumber = request.CashVoucherNumber
-		cashCheckVoucher.TotalDebit = totalDebit
-		cashCheckVoucher.TotalCredit = totalCredit
+		cashCheckVoucher.TotalDebit = debit
+		cashCheckVoucher.TotalCredit = credit
 		cashCheckVoucher.PrintCount = request.PrintCount
 		cashCheckVoucher.PrintedDate = request.PrintedDate
 		cashCheckVoucher.ApprovedDate = request.ApprovedDate
