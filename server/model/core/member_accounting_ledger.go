@@ -92,13 +92,6 @@ type (
 		LastPay             *time.Time `json:"last_pay,omitempty"`
 	}
 
-	// MemberAccountingLedgerSummary represents a summary of member accounting ledger data
-	MemberAccountingLedgerSummary struct {
-		TotalDeposits                     float64 `json:"total_deposits"`
-		TotalShareCapitalPlusFixedSavings float64 `json:"total_share_capital_plus_fixed_savings"`
-		TotalLoans                        float64 `json:"total_loans"`
-	}
-
 	MemberAccountingLedgerUpdateOrCreateParams struct {
 		MemberProfileID uuid.UUID `validate:"required"`
 		AccountID       uuid.UUID `validate:"required"`
