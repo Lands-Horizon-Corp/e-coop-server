@@ -12,6 +12,7 @@ import (
 
 func (c *Controller) memberAccountingLedgerController() {
 	req := c.provider.Service.Request
+
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
@@ -25,9 +26,6 @@ func (c *Controller) memberAccountingLedgerController() {
 		}
 
 		summary, err := c.event.MemberAccountingLedgerSummary(context, ctx, memberProfileID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}

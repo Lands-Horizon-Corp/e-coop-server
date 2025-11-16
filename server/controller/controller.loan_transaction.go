@@ -381,6 +381,9 @@ func (c *Controller) loanTransactionController() {
 		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
 			LoanTransactionEntries: entries,
 		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to compute loan transaction totals: %s", err.Error())})
+		}
 		return ctx.JSON(http.StatusOK, core.LoanTransactionTotalResponse{
 			Balance:     balance,
 			TotalDebit:  debit,
