@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -286,19 +287,20 @@ func (c *Controller) adjustmentEntryController() {
 		if user.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		entries, err := c.core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		totalDebit := 0.0
-		totalCredit := 0.0
-		for _, entry := range adjustmentEntries {
-			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+		credit, debit, balance, err := c.usecase.ComputeAdjustment(usecase.ComputeAdjustment{
+			Entries: entries,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  totalDebit,
-			TotalCredit: totalCredit,
+			TotalDebit:  debit,
+			TotalCredit: credit,
+			Balance:     balance,
 		})
 	})
 
@@ -361,24 +363,24 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
+		entries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
 			OrganizationID: user.OrganizationID,
 			BranchID:       *user.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		totalDebit := 0.0
-		totalCredit := 0.0
-		for _, entry := range adjustmentEntries {
-			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			}
+		credit, debit, balance, err := c.usecase.ComputeAdjustment(usecase.ComputeAdjustment{
+			Entries:    entries,
+			CurrencyID: currencyID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  totalDebit,
-			TotalCredit: totalCredit,
+			TotalDebit:  debit,
+			TotalCredit: credit,
+			Balance:     balance,
 		})
 	})
 
@@ -449,7 +451,7 @@ func (c *Controller) adjustmentEntryController() {
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
+		entries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
 			OrganizationID: userOrganization.OrganizationID,
 			BranchID:       *userOrganization.BranchID,
 			EmployeeUserID: &userOrganization.UserID,
@@ -457,17 +459,17 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		totalDebit := 0.0
-		totalCredit := 0.0
-		for _, entry := range adjustmentEntries {
-			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			}
+		credit, debit, balance, err := c.usecase.ComputeAdjustment(usecase.ComputeAdjustment{
+			Entries:    entries,
+			CurrencyID: currencyID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  totalDebit,
-			TotalCredit: totalCredit,
+			TotalDebit:  debit,
+			TotalCredit: credit,
+			Balance:     balance,
 		})
 	})
 
