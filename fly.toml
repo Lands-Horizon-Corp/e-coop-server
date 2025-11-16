@@ -26,6 +26,6 @@ primary_region = 'sin'
     handlers = ["tls", "http"]
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
+  memory = '4gb'
+  cpu_kind = 'performance'
+  cpus = 2
