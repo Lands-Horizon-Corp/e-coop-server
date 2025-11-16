@@ -1484,17 +1484,17 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 	uniqueBanks := make(map[string]*Bank)
 
 	// Build unique banks map (keeps the latest occurrence)
-for _, data := range banks {
-    normalizedName := strings.ToLower(strings.TrimSpace(data.Name))
-    normalizedName = strings.ReplaceAll(normalizedName, " ", "")
-    normalizedName = strings.ReplaceAll(normalizedName, "-", "")
-    normalizedName = strings.ReplaceAll(normalizedName, ".", "")
-    normalizedName = strings.ReplaceAll(normalizedName, "'", "")
-    normalizedName = strings.ReplaceAll(normalizedName, "(", "")
-    normalizedName = strings.ReplaceAll(normalizedName, ")", "")
-    
-    uniqueBanks[normalizedName] = data 
-}
+	for _, data := range banks {
+		normalizedName := strings.ToLower(strings.TrimSpace(data.Name))
+		normalizedName = strings.ReplaceAll(normalizedName, " ", "")
+		normalizedName = strings.ReplaceAll(normalizedName, "-", "")
+		normalizedName = strings.ReplaceAll(normalizedName, ".", "")
+		normalizedName = strings.ReplaceAll(normalizedName, "'", "")
+		normalizedName = strings.ReplaceAll(normalizedName, "(", "")
+		normalizedName = strings.ReplaceAll(normalizedName, ")", "")
+
+		uniqueBanks[normalizedName] = data
+	}
 	// Convert map to slice
 	for _, bank := range uniqueBanks {
 		*finalBanks = append(*finalBanks, bank)
