@@ -38,26 +38,6 @@ func (e *Event) LoanAdjustment(
 	if loanTransaction.Processing {
 		return endTx(eris.New("Cannot adjust loan while transaction is being processed"))
 	}
-
-	// ========================================
-	// STEP 3: Get current member account balance
-	// ========================================
-	memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-		context, tx,
-		*loanTransaction.MemberProfileID,
-		la.AccountID,
-		loanTransaction.OrganizationID,
-		loanTransaction.BranchID,
-	)
-	if err != nil {
-		return endTx(eris.Wrap(err, "Unable to retrieve member account ledger for adjustment"))
-	}
-
-	var currentMemberBalance float64 = 0
-	if memberAccountLedger != nil {
-		currentMemberBalance = memberAccountLedger.Balance
-	}
-
 	// ========================================
 	// STEP 4: Validate account information
 	// ========================================
@@ -83,16 +63,12 @@ func (e *Event) LoanAdjustment(
 	// ========================================
 	// STEP 5: Calculate adjustment amounts
 	// ========================================
-	memberDebit, memberCredit, newMemberBalance := 0.0, 0.0, 0.0
+	memberDebit, memberCredit := 0.0, 0.0
 	switch la.AdjustmentType {
 	case core.LoanAdjustmentTypeAdd:
-		// Adding amount to member account (credit)
-		memberDebit, memberCredit, newMemberBalance = e.usecase.Adjustment(
-			*account, 0.0, la.Amount, currentMemberBalance)
+		memberCredit = la.Amount
 	case core.LoanAdjustmentTypeDeduct:
-		// Deducting amount from member account (debit)
-		memberDebit, memberCredit, newMemberBalance = e.usecase.Adjustment(
-			*account, la.Amount, 0.0, currentMemberBalance)
+		memberDebit = la.Amount
 	default:
 		return endTx(eris.New("Invalid adjustment type specified"))
 	}
@@ -118,7 +94,6 @@ func (e *Event) LoanAdjustment(
 		Description:                account.Description,
 		Credit:                     memberCredit,
 		Debit:                      memberDebit,
-		Balance:                    newMemberBalance,
 		CurrencyID:                 account.CurrencyID,
 		LoanTransactionID:          &loanTransaction.ID,
 		LoanAdjustmentType:         &la.AdjustmentType,
@@ -134,13 +109,16 @@ func (e *Event) LoanAdjustment(
 	_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 		context,
 		tx,
-		*loanTransaction.MemberProfileID,
-		account.ID,
-		userOrg.OrganizationID,
-		*userOrg.BranchID,
-		userOrg.UserID,
-		newMemberBalance,
-		now,
+		core.MemberAccountingLedgerUpdateOrCreateParams{
+			MemberProfileID: *loanTransaction.MemberProfileID,
+			AccountID:       account.ID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			UserID:          userOrg.UserID,
+			DebitAmount:     memberDebit,
+			CreditAmount:    memberCredit,
+			LastPayTime:     now,
+		},
 	)
 	if err != nil {
 		return endTx(eris.Wrap(err, "Failed to update member account balance"))

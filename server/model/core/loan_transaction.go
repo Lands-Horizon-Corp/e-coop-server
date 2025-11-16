@@ -403,9 +403,9 @@ type (
 
 	// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
 	LoanTransactionTotalResponse struct {
-		TotalInterest float64 `json:"total_interest"`
-		TotalDebit    float64 `json:"total_debit"`
-		TotalCredit   float64 `json:"total_credit"`
+		Balance     float64 `json:"balance"`
+		TotalDebit  float64 `json:"total_debit"`
+		TotalCredit float64 `json:"total_credit"`
 	}
 
 	LoanAccountSummaryResponse struct {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -367,7 +368,7 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		// Get all loan transaction entries for this loan transaction
-		loanTransactionEntries, err := c.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
+		entries, err := c.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
 			LoanTransactionID: *loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -377,19 +378,16 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		// Calculate totals
-		var totalCredit, totalDebit float64
-		for _, entry := range loanTransactionEntries {
-			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+			LoanTransactionEntries: entries,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to compute loan transaction totals: %s", err.Error())})
 		}
-
-		// Calculate total interest (assuming interest is the difference between debit and credit)
-		totalInterest := c.provider.Service.Decimal.Subtract(totalDebit, totalCredit)
-
 		return ctx.JSON(http.StatusOK, core.LoanTransactionTotalResponse{
-			TotalInterest: totalInterest,
-			TotalDebit:    totalDebit,
-			TotalCredit:   totalCredit,
+			Balance:     balance,
+			TotalDebit:  debit,
+			TotalCredit: credit,
 		})
 	})
 

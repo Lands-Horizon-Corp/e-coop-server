@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -121,20 +122,16 @@ func (c *Controller) journalVoucherController() {
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		totalDebit, totalCredit := 0.0, 0.0
-		if request.JournalVoucherEntries != nil {
-			for _, entryReq := range request.JournalVoucherEntries {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entryReq.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entryReq.Credit)
-			}
-		}
-		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
+		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
+		})
+		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
-				Description: "Journal voucher creation failed (/journal-voucher), debit and credit totals do not match.",
+				Description: "Journal voucher creation failed (/journal-voucher), entries not balanced: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match: " + endTx(eris.New("debit and credit totals do not match")).Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher entries are not balanced: " + endTx(err).Error()})
 		}
 
 		journalVoucher := &core.JournalVoucher{
@@ -148,8 +145,8 @@ func (c *Controller) journalVoucherController() {
 			UpdatedByID:       user.UserID,
 			BranchID:          *user.BranchID,
 			OrganizationID:    user.OrganizationID,
-			TotalDebit:        totalDebit,
-			TotalCredit:       totalCredit,
+			TotalDebit:        debit,
+			TotalCredit:       credit,
 			CashVoucherNumber: request.CashVoucherNumber,
 			Name:              request.Name,
 			CurrencyID:        request.CurrencyID,
@@ -261,22 +258,17 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 
-		totalDebit, totalCredit := 0.0, 0.0
-		if request.JournalVoucherEntries != nil {
-			for _, entryReq := range request.JournalVoucherEntries {
-				totalDebit = c.provider.Service.Decimal.Add(totalDebit, entryReq.Debit)
-				totalCredit = c.provider.Service.Decimal.Add(totalCredit, entryReq.Credit)
-			}
-		}
-		if !c.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
+		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
+		})
+		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), debit and credit totals do not match.",
+				Description: "Journal voucher update failed (/journal-voucher/:journal_voucher_id), entries not balanced: " + err.Error(),
 				Module:      "JournalVoucher",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Debit and credit totals do not match."})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher entries are not balanced: " + err.Error()})
 		}
-
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
@@ -352,8 +344,8 @@ func (c *Controller) journalVoucherController() {
 
 			}
 		}
-		journalVoucher.TotalCredit = totalCredit
-		journalVoucher.TotalDebit = totalDebit
+		journalVoucher.TotalCredit = credit
+		journalVoucher.TotalDebit = debit
 		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

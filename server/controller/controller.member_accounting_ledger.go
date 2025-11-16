@@ -3,17 +3,20 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
 
 func (c *Controller) memberAccountingLedgerController() {
 	req := c.provider.Service.Request
+
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedgerSummary{},
+		ResponseType: event.MemberAccountingLedgerSummary{},
 		Note:         "Returns the total amount for a specific member profile's general ledger entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -21,57 +24,10 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
-		}
 
-		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
-		}
-		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
-		}
-		entries, err := c.core.MemberAccountingLedgerMemberProfileEntries(context,
-			*memberProfileID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-		)
+		summary, err := c.event.MemberAccountingLedgerSummary(context, ctx, memberProfileID)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
-		}
-		paidUpShareCapital, err := c.core.MemberAccountingLedgerManager.Find(context, &core.MemberAccountingLedger{
-			MemberProfileID: *memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			AccountID:       *userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paid-up share capital entries: " + err.Error()})
-		}
-
-		var TotalShareCapitalPlusFixedSavings float64
-		for _, entry := range paidUpShareCapital {
-			TotalShareCapitalPlusFixedSavings = c.provider.Service.Decimal.Add(TotalShareCapitalPlusFixedSavings, entry.Balance)
-		}
-		var totalDeposits float64
-		for _, entry := range entries {
-			totalDeposits = c.provider.Service.Decimal.Add(totalDeposits, entry.Balance)
-		}
-
-		totalLoans, err := c.event.LoanTotalMemberProfile(context, *memberProfileID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate total loans: " + err.Error()})
-		}
-
-		summary := core.MemberAccountingLedgerSummary{
-			TotalDeposits:                     totalDeposits,
-			TotalShareCapitalPlusFixedSavings: TotalShareCapitalPlusFixedSavings,
-			TotalLoans:                        *totalLoans,
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, summary)
 	})
@@ -111,25 +67,14 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		memberAccountingLedger, err := c.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
-			MemberProfileID: *memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			AccountID:       *accountID,
+		totalCredit, totalDebit, balance, err := c.usecase.Balance(usecase.Balance{
+			GeneralLedgers: entries,
 		})
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
-		}
-
-		var totalDebit float64
-		var totalCredit float64
-
-		for _, entry := range entries {
-			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
-			Balance:     memberAccountingLedger.Balance,
+			Balance:     balance,
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
 		})

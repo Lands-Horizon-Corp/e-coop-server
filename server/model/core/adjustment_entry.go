@@ -112,6 +112,7 @@ type (
 	AdjustmentEntryTotalResponse struct {
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
+		Balance     float64 `json:"balance"`
 	}
 
 	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary

@@ -71,7 +71,6 @@ type (
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
-		Balance                    float64             `gorm:"type:decimal"`
 		SignatureMediaID           *uuid.UUID          `gorm:"type:uuid"`
 		SignatureMedia             *Media              `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
 		EntryDate                  *time.Time          `gorm:"type:date" json:"entry_date"`
@@ -128,9 +127,8 @@ type (
 		LoanAdjustmentType *LoanAdjustmentType      `json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType  TypeOfPaymentType        `json:"type_of_payment_type"`
 
-		Credit  float64 `json:"credit"`
-		Debit   float64 `json:"debit"`
-		Balance float64 `json:"balance"`
+		Credit float64 `json:"credit"`
+		Debit  float64 `json:"debit"`
 
 		SignatureMediaID *uuid.UUID     `json:"signature_media_id,omitempty"`
 		SignatureMedia   *MediaResponse `json:"signature_media,omitempty"`
@@ -177,7 +175,6 @@ type (
 		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `json:"credit,omitempty"`
 		Debit                      float64             `json:"debit,omitempty"`
-		Balance                    float64             `json:"balance,omitempty"`
 		SignatureMediaID           *uuid.UUID          `json:"signature_media_id,omitempty"`
 		EntryDate                  *time.Time          `json:"entry_date,omitempty"`
 		BankID                     *uuid.UUID          `json:"bank_id,omitempty"`
@@ -297,7 +294,6 @@ func (m *Core) generalLedger() {
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
-				Balance:                    data.Balance,
 				LoanAdjustmentType:         data.LoanAdjustmentType,
 				SignatureMediaID:           data.SignatureMediaID,
 				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
@@ -725,31 +721,6 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
-}
-func (m *Core) GeneralLedgerLatestLoanMemberAccount(
-	ctx context.Context,
-	memberProfileID, loanAccountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
-	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "account_id", Op: registry.OpEq, Value: loanAccountID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-	}
-
-	sorts := []registry.FilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
-		{Field: "created_at", Order: "DESC"},
-	}
-
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return ledger, nil
 }
 
 // GeneralLedgerByLoanTransaction retrieves all general ledger entries for a specific loan transaction

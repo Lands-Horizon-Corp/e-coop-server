@@ -139,8 +139,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Name:        fmt.Sprintf("%s - %s", organization.Name, branch.Name),
 			Description: fmt.Sprintf("The main company of %s located at %s, %s", organization.Name, branch.Address, branch.City),
 		},
-
-		// Technology Companies
 		{
 			Name:        "Apple Inc.",
 			Description: "American multinational technology company known for iPhone, Mac, and other consumer electronics.",
@@ -604,7 +602,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "SEK":
+	case "SEK": // Sweden
 		companies = append(companies,
 			&Company{
 				Name:        "Vattenfall AB",
@@ -663,6 +661,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Infrastructure and facilities management company providing maintenance, utilities, and asset management services.",
 			},
 		)
+
 	case "PHP": // Philippines
 		companies = append(companies,
 			&Company{
@@ -730,6 +729,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Government agency responsible for water supply and wastewater treatment in Delhi.",
 			},
 		)
+
 	case "KRW": // South Korea
 		companies = append(companies,
 			&Company{
