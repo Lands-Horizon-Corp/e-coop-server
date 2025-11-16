@@ -206,6 +206,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				return nil, endTx(eris.Wrap(err, "failed to create member ledger entry"))
 			}
 
+			// STEP 5: Fix in member ledger update
 			_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 				context,
 				tx,
@@ -240,7 +241,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				ReferenceNumber:            loanTransaction.Voucher,
 				EntryDate:                  &userOrgTime,
 				AccountID:                  &account.ID,
-			MemberProfileID:            &memberProfile.ID,
+				MemberProfileID:            &memberProfile.ID,
 				PaymentTypeID:              account.DefaultPaymentTypeID,
 				TransactionReferenceNumber: loanTransaction.Voucher,
 				Source:                     core.GeneralLedgerSourceCheckVoucher,
@@ -359,7 +360,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				context,
 				tx,
 				core.MemberAccountingLedgerUpdateOrCreateParams{
-					MemberProfileID: loanTransaction.ID,
+					MemberProfileID: *loanTransaction.MemberProfileID, // Fixed: was loanTransaction.ID
 					AccountID:       interestAccount.ID,
 					OrganizationID:  userOrg.OrganizationID,
 					BranchID:        *userOrg.BranchID,

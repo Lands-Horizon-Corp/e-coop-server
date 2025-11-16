@@ -615,8 +615,8 @@ func (e *Event) TransactionPayment(
 		EmployeeUserID:             &userOrg.UserID,
 		Description:                data.Description,
 		TypeOfPaymentType:          paymentType.Type,
-		Credit:                     credit,
-		Debit:                      debit,
+		Credit:                     debit,
+		Debit:                      credit,
 		CurrencyID:                 account.CurrencyID,
 	}
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashOnHandGeneralLedger); err != nil {

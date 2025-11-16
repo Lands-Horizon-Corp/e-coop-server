@@ -25,6 +25,7 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 	credit = 0.0
 	debit = 0.0
 	balance = 0.0
+
 	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
@@ -44,33 +45,33 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-
 			default:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			}
 		}
 	}
+
 	if data.AdjustmentEntries != nil {
 		for _, entry := range data.AdjustmentEntries {
 			if entry == nil {
-				return 0, 0, 0, eris.New("nil cash check voucher")
+				return 0, 0, 0, eris.New("nil adjustment entry")
 			}
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
 			}
-			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+
 			switch entry.Account.GeneralLedgerType {
 			case core.GLTypeAssets, core.GLTypeExpenses:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-
 			default:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			}
 		}
 	}
+
 	if data.LoanTransactionEntries != nil {
 		for _, entry := range data.LoanTransactionEntries {
 			if entry == nil {
@@ -80,13 +81,12 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
 			}
-			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+
 			switch entry.Account.GeneralLedgerType {
 			case core.GLTypeAssets, core.GLTypeExpenses:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-
 			default:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 			}
@@ -104,6 +104,7 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 		}
 	}
+
 	if data.JournalVoucherEntriesRequest != nil {
 		for _, entry := range data.JournalVoucherEntriesRequest {
 			if entry == nil {
@@ -112,7 +113,6 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
 			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
-
 		}
 	}
 
@@ -128,7 +128,7 @@ func (t *TransactionService) StrictBalance(data Balance) (credit, debit, balance
 	if !isBalanced {
 		return 0, 0, 0, eris.Errorf("entries are not balanced: balance is %.2f", balance)
 	}
-	if !t.provider.Service.Decimal.IsLessThan(debit, 0) {
+	if t.provider.Service.Decimal.IsLessThan(debit, 0) {
 		return 0, 0, 0, eris.New("entries cannot be empty")
 	}
 	return credit, debit, balance, nil

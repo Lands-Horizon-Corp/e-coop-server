@@ -417,8 +417,8 @@ func (c *Controller) cashCheckVoucherController() {
 
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Cash check voucher creation failed (/cash-check-voucher), balance calculation error: " + err.Error(),
+				Activity:    "update-error",
+				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), balance calculation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + err.Error()})
