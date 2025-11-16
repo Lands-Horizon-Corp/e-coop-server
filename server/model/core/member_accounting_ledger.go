@@ -99,6 +99,17 @@ type (
 		TotalLoans                        float64 `json:"total_loans"`
 	}
 
+	MemberAccountingLedgerUpdateOrCreateParams struct {
+		MemberProfileID uuid.UUID `validate:"required"`
+		AccountID       uuid.UUID `validate:"required"`
+		OrganizationID  uuid.UUID `validate:"required"`
+		BranchID        uuid.UUID `validate:"required"`
+		UserID          uuid.UUID `validate:"required"`
+		DebitAmount     float64
+		CreditAmount    float64
+		LastPayTime     time.Time `validate:"required"`
+	}
+
 	// MemberAccountingLedgerAccountSummary represents an account summary for member accounting ledger
 	MemberAccountingLedgerAccountSummary struct {
 		Balance     float64 `json:"balance"`
@@ -244,51 +255,44 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 	return ledger, nil
 }
 
-// MemberAccountingLedgerUpdateOrCreate safely updates existing or creates new member accounting ledger
-// with race condition protection and proper transaction handling
-//
-// This function:
-// 1. Attempts to find and lock an existing ledger entry
-// 2. If found, updates the balance, last pay time, and increments transaction count
-// 3. If not found, creates a new ledger entry with initial values
-// 4. Uses SELECT FOR UPDATE to prevent concurrent modifications
-//
-// Example usage:
-//
-//	ledger, err := m.memberAccountingLedgerUpdateOrCreate(
-//	    ctx, tx, memberID, accountID, organizationID, branchID, userID,
-//	    newBalance, time.Now())
-//	if err != nil {
-//	}
-//
-// MemberAccountingLedgerUpdateOrCreate returns MemberAccountingLedgerUpdateOrCreate for the current branch or organization where applicable.
 func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
-	memberProfileID, accountID, organizationID, branchID, userID uuid.UUID,
-	newBalance float64,
-	lastPayTime time.Time,
+	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
+	// Validate: Either debit or credit must be non-zero, but not both
+	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
+		return nil, eris.New("exactly one of debit or credit must be non-zero")
+	}
+
 	// First, try to find and lock existing ledger
-	ledger, err := m.MemberAccountingLedgerFindForUpdate(ctx, tx, memberProfileID, accountID, organizationID, branchID)
+	ledger, err := m.MemberAccountingLedgerFindForUpdate(
+		ctx, tx,
+		params.MemberProfileID,
+		params.AccountID,
+		params.OrganizationID,
+		params.BranchID,
+	)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
+	// Calculate balance change: debit increases balance, credit decreases balance
+	balanceChange := params.DebitAmount - params.CreditAmount
+
 	if ledger == nil {
 		// Create new member accounting ledger
 		ledger = &MemberAccountingLedger{
-			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     userID,
-			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     userID,
-			OrganizationID:  organizationID,
-			BranchID:        branchID,
-			MemberProfileID: memberProfileID,
-			AccountID:       accountID,
-			Balance:         newBalance,
-			LastPay:         &lastPayTime,
-			// Initialize other fields to zero
+			CreatedAt:           time.Now().UTC(),
+			CreatedByID:         params.UserID,
+			UpdatedAt:           time.Now().UTC(),
+			UpdatedByID:         params.UserID,
+			OrganizationID:      params.OrganizationID,
+			BranchID:            params.BranchID,
+			MemberProfileID:     params.MemberProfileID,
+			AccountID:           params.AccountID,
+			Balance:             balanceChange,
+			LastPay:             &params.LastPayTime,
 			Count:               1,
 			Interest:            0,
 			Fines:               0,
@@ -304,11 +308,11 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		}
 	} else {
 		// Update existing member accounting ledger
-		ledger.Balance = newBalance
-		ledger.LastPay = &lastPayTime
+		ledger.Balance += balanceChange
+		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
-		ledger.UpdatedByID = userID
-		ledger.Count++ // Increment transaction count
+		ledger.UpdatedByID = params.UserID
+		ledger.Count++
 
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {

@@ -24,17 +24,18 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 
 	total := 0.0
 	for _, loanTransaction := range loanTransactions {
-		ledger, err := e.core.GeneralLedgerLatestLoanMemberAccount(
-			context,
-			memberProfile.ID,
-			*loanTransaction.AccountID,
-			memberProfile.OrganizationID,
-			memberProfile.BranchID,
-		)
+		generalLedgers, err := e.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+			AccountID:      loanTransaction.AccountID,
+			OrganizationID: memberProfile.OrganizationID,
+		})
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to get latest general ledger for loan account id: %s", *loanTransaction.AccountID)
 		}
-		total = e.provider.Service.Decimal.Add(total, ledger.Balance)
+		_, _, balance, err := e.usecase.ComputeBalance(generalLedgers)
+		if err != nil {
+			return nil, eris.Wrapf(err, "failed to compute balance for loan account id: %s", *loanTransaction.AccountID)
+		}
+		total = e.provider.Service.Decimal.Add(total, balance)
 	}
 	return &total, nil
 }

@@ -130,17 +130,6 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					if loanTransaction.AccountID == nil || account.ComputationType == core.Straight || account.Type == core.AccountTypeLoan {
 						continue
 					}
-					memberAccountLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-						context, tx,
-						memberProfile.ID,
-						account.ID,
-						memberProfile.OrganizationID,
-						memberProfile.BranchID,
-					)
-
-					if err != nil {
-						return nil, endTx(eris.New("failed to fetch current member general ledger for update"))
-					}
 					accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 						context,
 						account.ID,
@@ -155,18 +144,12 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 						account = e.core.AccountHistoryToModel(accountHistory)
 					}
 
-					var currentMemberBalance float64 = 0
-					if memberAccountLedger != nil {
-						currentMemberBalance = memberAccountLedger.Balance
-					}
-
 					var price float64 = 0.0
 					switch account.Type {
 					case core.AccountTypeFines:
-						if !e.provider.Service.Decimal.IsLessThan(balance, currentMemberBalance) {
-							continue
-						}
-						// Fines are computed on the remaining balance
+						// if !e.provider.Service.Decimal.IsLessThan(balance, currentMemberBalance) {
+						// 	continue
+						// }
 					default:
 						switch account.ComputationType {
 						case core.Diminishing:
@@ -182,9 +165,8 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 					if price <= 0 {
 						continue
 					}
-					memberDebit, memberCredit, newMemberBalance := e.usecase.Adjustment(
-						*account, 0.0, price, currentMemberBalance)
-
+					memberDebit := 0.0
+					memberCredit := price
 					memberLedgerEntry := &core.GeneralLedger{
 						CreatedAt:                  now,
 						CreatedByID:                userOrg.UserID,
@@ -203,23 +185,26 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 						Description:                account.Description,
 						Credit:                     memberCredit,
 						Debit:                      memberDebit,
-						Balance:                    newMemberBalance,
 						CurrencyID:                 &currency.ID,
 						LoanTransactionID:          &loanTransaction.ID,
 					}
 					if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 						return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 					}
+
 					_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 						context,
 						tx,
-						*loanTransaction.MemberProfileID,
-						account.ID,
-						userOrg.OrganizationID,
-						*userOrg.BranchID,
-						userOrg.UserID,
-						newMemberBalance,
-						now,
+						core.MemberAccountingLedgerUpdateOrCreateParams{
+							MemberProfileID: *loanTransaction.MemberProfileID,
+							AccountID:       account.ID,
+							OrganizationID:  userOrg.OrganizationID,
+							BranchID:        *userOrg.BranchID,
+							UserID:          userOrg.UserID,
+							DebitAmount:     memberDebit,
+							CreditAmount:    memberCredit,
+							LastPayTime:     now,
+						},
 					)
 					if err != nil {
 						return nil, endTx(eris.Wrap(err, "failed to update accounting ledger"))

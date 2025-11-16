@@ -51,7 +51,7 @@ func (c *Controller) generalLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
-		credit, debit, balance, err := c.usecase.ComputeTotalBalance(entries)
+		credit, debit, balance, err := c.usecase.ComputeBalance(entries)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}

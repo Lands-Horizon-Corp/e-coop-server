@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -21,7 +20,6 @@ type RecordTransactionRequest struct {
 	AccountID       uuid.UUID
 	MemberProfileID *uuid.UUID
 
-	// To record current balance after transaction
 	TransactionBatchID uuid.UUID
 
 	ReferenceNumber string
@@ -45,7 +43,6 @@ type RecordTransactionRequest struct {
 // 3. Transaction batch validation
 // 4. Account and payment type resolution
 // 5. General ledger entry creation (member or subsidiary)
-// 6. Balance updates and accounting ledger maintenance
 func (e Event) RecordTransaction(
 	context context.Context,
 	echoCtx echo.Context,
@@ -218,59 +215,40 @@ func (e Event) RecordTransaction(
 			return endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
 		}
 
-		// Handle the case where no previous general ledger exists (first transaction)
-		var currentBalance float64 = 0
 		var loanTransactionID *uuid.UUID
 		var adjustmentType *core.LoanAdjustmentType
-		if generalLedger == nil {
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "member-ledger-first-transaction",
-				Description: "No previous general ledger found for account " + account.ID.String() + " and member " + memberProfile.ID.String() + " - starting with balance 0",
-				Module:      "Transaction Recording",
-			})
-		} else {
-			currentBalance = generalLedger.Balance
-			if generalLedger.LoanTransactionID != nil {
-				loanTransactionID = generalLedger.LoanTransactionID
-				adjustmentType = generalLedger.LoanAdjustmentType
-				loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
-				if err != nil {
-					e.Footstep(echoCtx, FootstepEvent{
-						Activity:    "loan-transaction-retrieval-failed",
-						Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
-						Module:      "Transaction Recording",
-					})
-					return endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
-				}
-				accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
-					context,
-					account.ID,
-					account.OrganizationID,
-					account.BranchID,
-					loanTransaction.PrintedDate,
-				)
-				if err != nil {
-					e.Footstep(echoCtx, FootstepEvent{
-						Activity:    "account-history-retrieval-failed",
-						Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
-						Module:      "Transaction Recording",
-					})
-					return endTx(eris.Wrap(err, "failed to retrieve account history"))
-				}
-				if accountHistory != nil {
-					account = e.core.AccountHistoryToModel(accountHistory)
-				}
+
+		if generalLedger != nil && generalLedger.LoanTransactionID != nil {
+			loanTransactionID = generalLedger.LoanTransactionID
+			adjustmentType = generalLedger.LoanAdjustmentType
+			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+			if err != nil {
+				e.Footstep(echoCtx, FootstepEvent{
+					Activity:    "loan-transaction-retrieval-failed",
+					Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+					Module:      "Transaction Recording",
+				})
+				return endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
+			}
+			accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+				context,
+				account.ID,
+				account.OrganizationID,
+				account.BranchID,
+				loanTransaction.PrintedDate,
+			)
+			if err != nil {
+				e.Footstep(echoCtx, FootstepEvent{
+					Activity:    "account-history-retrieval-failed",
+					Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
+					Module:      "Transaction Recording",
+				})
+				return endTx(eris.Wrap(err, "failed to retrieve account history"))
+			}
+			if accountHistory != nil {
+				account = e.core.AccountHistoryToModel(accountHistory)
 			}
 		}
-
-		// --- SUB-STEP 7C: BALANCE CALCULATION ---
-		// Calculate adjusted debit, credit, and resulting balance
-		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, currentBalance)
-		var paymentTypeValue core.TypeOfPaymentType
-		if paymentType != nil {
-			paymentTypeValue = paymentType.Type
-		}
-
 		userOrgTime := userOrg.UserOrgTime()
 		if transaction.EntryDate != nil {
 			userOrgTime = *transaction.EntryDate
@@ -296,16 +274,13 @@ func (e Event) RecordTransaction(
 			BankReferenceNumber:        transaction.BankReferenceNumber,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
-			TypeOfPaymentType:          paymentTypeValue,
-			Credit:                     credit,
-			Debit:                      debit,
-			Balance:                    balance,
+			Credit:                     transaction.Credit,
+			Debit:                      transaction.Debit,
 			CurrencyID:                 account.CurrencyID,
 			LoanTransactionID:          loanTransactionID,
 			LoanAdjustmentType:         adjustmentType,
 		}
-		// --- SUB-STEP 7E: GENERAL LEDGER ENTRY CREATION ---
-		// Create the general ledger entry in the database
+
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-creation-failed",
@@ -314,70 +289,45 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
-		// --- SUB-STEP 7F: MEMBER ACCOUNTING LEDGER UPDATE ---
-		// Update or create member accounting ledger with new balance
+
 		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
-			*transaction.MemberProfileID,
-			transaction.AccountID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-			userOrg.UserID,
-			balance,
-			now,
+			core.MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: memberProfile.ID,
+				AccountID:       account.ID,
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				UserID:          userOrg.UserID,
+				DebitAmount:     transaction.Debit,
+				CreditAmount:    transaction.Credit,
+				LastPayTime:     now,
+			},
 		)
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "member-accounting-ledger-update-failed",
-				Description: "Failed to update member accounting ledger for member " + transaction.MemberProfileID.String() + " on account " + transaction.AccountID.String() + ": " + err.Error(),
-				Module:      "Transaction Recording",
+				Activity: "member-accounting-ledger-update-failed",
+				Description: "Failed to update member accounting ledger for member " +
+					transaction.MemberProfileID.String() + " on account " +
+					transaction.AccountID.String() + ": " + err.Error(),
+				Module: "Transaction Recording",
 			})
 			return endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 		}
 
 		// Log successful member transaction completion
 		e.Footstep(echoCtx, FootstepEvent{
-			Activity:    "member-transaction-completed",
-			Description: "Successfully recorded member transaction for " + memberProfile.ID.String() + " with balance: " + fmt.Sprintf("%.2f", balance),
-			Module:      "Transaction Recording",
+			Activity: "member-transaction-completed",
+			Description: "Successfully recorded member transaction for " +
+				memberProfile.ID.String(),
+			Module: "Transaction Recording",
 		})
 
 	} else {
 		// ================================================================================
 		// STEP 8: TRANSACTION PROCESSING - SUBSIDIARY ACCOUNT PATH
 		// ================================================================================
-		// --- SUB-STEP 8A: SUBSIDIARY LEDGER RETRIEVAL ---
-		// For organization/subsidiary accounts (non-member transactions)
-		generalLedger, err := e.core.GeneralLedgerCurrentSubsidiaryAccountForUpdate(
-			context, tx, account.ID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "subsidiary-ledger-lock-failed",
-				Description: "Failed to lock subsidiary ledger for account " + account.ID.String() + " in organization " + userOrg.OrganizationID.String() + ": " + err.Error(),
-				Module:      "Transaction Recording",
-			})
-			return endTx(eris.Wrap(err, "failed to retrieve subsidiary general ledger"))
-		}
 
-		// Handle the case where no previous subsidiary general ledger exists (first transaction)
-		var currentBalance float64 = 0
-		if generalLedger == nil {
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "subsidiary-ledger-first-transaction",
-				Description: "No previous subsidiary general ledger found for account " + account.ID.String() + " - starting with balance 0",
-				Module:      "Transaction Recording",
-			})
-		} else {
-			currentBalance = generalLedger.Balance
-		}
-
-		// --- SUB-STEP 8B: BALANCE CALCULATION ---
-		// Calculate adjusted debit, credit, and resulting balance for subsidiary account
-		debit, credit, balance := e.usecase.Adjustment(*account, transaction.Debit, transaction.Credit, currentBalance)
-
-		// --- SUB-STEP 8C: SUBSIDIARY LEDGER ENTRY PREPARATION ---
-		// Prepare new subsidiary general ledger entry
 		var paymentTypeValue core.TypeOfPaymentType
 		if paymentType != nil {
 			paymentTypeValue = paymentType.Type
@@ -408,9 +358,8 @@ func (e Event) RecordTransaction(
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
 			TypeOfPaymentType:          paymentTypeValue,
-			Credit:                     credit,
-			Debit:                      debit,
-			Balance:                    balance,
+			Credit:                     transaction.Credit,
+			Debit:                      transaction.Debit,
 			CurrencyID:                 account.CurrencyID,
 		}
 
@@ -418,17 +367,20 @@ func (e Event) RecordTransaction(
 		// Create the subsidiary general ledger entry in the database
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "subsidiary-ledger-creation-failed",
-				Description: "Failed to create subsidiary general ledger entry for account " + account.ID.String() + " in organization " + userOrg.OrganizationID.String() + ": " + err.Error(),
-				Module:      "Transaction Recording",
+				Activity: "subsidiary-ledger-creation-failed",
+				Description: "Failed to create subsidiary general ledger entry for account " +
+					account.ID.String() + " in organization " + userOrg.OrganizationID.String() +
+					": " + err.Error(),
+				Module: "Transaction Recording",
 			})
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
 		// Log successful subsidiary transaction completion
 		e.Footstep(echoCtx, FootstepEvent{
-			Activity:    "subsidiary-transaction-completed",
-			Description: "Successfully recorded subsidiary transaction for account " + account.ID.String() + " with balance: " + fmt.Sprintf("%.2f", balance),
-			Module:      "Transaction Recording",
+			Activity: "subsidiary-transaction-completed",
+			Description: "Successfully recorded subsidiary transaction for account " +
+				account.ID.String(),
+			Module: "Transaction Recording",
 		})
 	}
 
