@@ -180,6 +180,11 @@ func (e Event) RecordTransaction(
 	// STEP 7: TRANSACTION PROCESSING - MEMBER ACCOUNT PATH
 	// ================================================================================
 	if transaction.MemberProfileID != nil {
+		var paymentTypeValue core.TypeOfPaymentType
+		if paymentType != nil {
+			paymentTypeValue = paymentType.Type
+		}
+
 		// --- SUB-STEP 7A: MEMBER PROFILE VALIDATION ---
 		// Retrieve and validate member profile for member-specific transactions
 		memberProfile, err := e.core.MemberProfileManager.GetByID(context, *transaction.MemberProfileID)
@@ -274,6 +279,7 @@ func (e Event) RecordTransaction(
 			BankReferenceNumber:        transaction.BankReferenceNumber,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
+			TypeOfPaymentType:          paymentTypeValue,
 			Credit:                     transaction.Credit,
 			Debit:                      transaction.Debit,
 			CurrencyID:                 account.CurrencyID,
