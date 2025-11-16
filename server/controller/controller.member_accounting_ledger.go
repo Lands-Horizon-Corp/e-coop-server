@@ -111,25 +111,12 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		memberAccountingLedger, err := c.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
-			MemberProfileID: *memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			AccountID:       *accountID,
-		})
+		totalCredit, totalDebit, balance, err := c.usecase.ComputeBalance(entries)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
-		}
-
-		var totalDebit float64
-		var totalCredit float64
-
-		for _, entry := range entries {
-			totalCredit = c.provider.Service.Decimal.Add(totalCredit, entry.Credit)
-			totalDebit = c.provider.Service.Decimal.Add(totalDebit, entry.Debit)
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
-			Balance:     memberAccountingLedger.Balance,
+			Balance:     balance,
 			TotalDebit:  totalDebit,
 			TotalCredit: totalCredit,
 		})

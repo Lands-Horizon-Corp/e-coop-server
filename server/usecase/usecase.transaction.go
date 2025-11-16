@@ -3,8 +3,6 @@ package usecase
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-
-	"github.com/rotisserie/eris"
 )
 
 // TransactionData holds the necessary data for processing financial transactions
@@ -31,33 +29,4 @@ func NewTransactionService(
 		model:    model,
 		provider: provider,
 	}, nil
-}
-
-func (t *TransactionService) ComputeBalance(generalLedgers []*core.GeneralLedger) (credit, debit, balance float64, err error) {
-	credit = 0.0
-	debit = 0.0
-	balance = 0.0
-
-	for _, gl := range generalLedgers {
-		if gl == nil {
-			return 0, 0, 0, eris.New("nil general ledger")
-		}
-		if gl.Account == nil {
-			return 0, 0, 0, eris.New("general ledger missing account")
-		}
-		credit = t.provider.Service.Decimal.Add(credit, gl.Credit)
-		debit = t.provider.Service.Decimal.Add(debit, gl.Debit)
-
-		switch gl.Account.GeneralLedgerType {
-		case core.GLTypeAssets, core.GLTypeExpenses:
-			balance = t.provider.Service.Decimal.Add(balance, gl.Debit-gl.Credit)
-		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
-			balance = t.provider.Service.Decimal.Add(balance, gl.Credit-gl.Debit)
-
-		default:
-			balance = t.provider.Service.Decimal.Add(balance, gl.Debit-gl.Credit)
-		}
-	}
-
-	return credit, debit, balance, nil
 }
