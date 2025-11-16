@@ -869,6 +869,17 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 
+		// Perform comprehensive delete validation
+		if err := c.core.AccountDeleteCheck(context, *accountID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Account delete failed (/account/:account_id): " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+
+		// Get account for logging purposes
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -878,6 +889,8 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
+
+		// Check user authorization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -887,22 +900,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.Branch.BranchSetting.CashOnHandAccountID != nil && *userOrg.Branch.BranchSetting.CashOnHandAccountID == *accountID {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Account delete failed (/account/:account_id), cannot delete cash on hand account: " + account.Name,
-				Module:      "Account",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete cash on hand account: " + account.Name})
-		}
-		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID != nil && *userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == *accountID {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Account delete failed (/account/:account_id), cannot delete paid up share capital account: " + account.Name,
-				Module:      "Account",
-			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete paid up share capital account: " + account.Name})
-		}
+
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -911,6 +909,8 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
+
+		// Perform deletion
 		if err := c.core.AccountManager.Delete(context, account.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -919,16 +919,17 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account: " + err.Error()})
 		}
+
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
+
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
 	// DELETE: Bulk (WITH footstep)
-	// DELETE /account/bulk-delete - Bulk delete accounts by IDs.
 	req.RegisterRoute(handlers.Route{
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
@@ -936,6 +937,7 @@ func (c *Controller) accountController() {
 		RequestType: core.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -945,6 +947,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
+
 		if len(reqBody.IDs) == 0 {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -954,6 +957,52 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
 
+		// Check user authorization
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Failed bulk delete accounts (/account/bulk-delete) | user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Unauthorized bulk delete attempt for accounts (/account/bulk-delete)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+
+		// Validate each account before deletion
+		var failedAccounts []string
+		for _, accountID := range reqBody.IDs {
+			if err := c.core.AccountDeleteCheck(context, accountID); err != nil {
+				account, _ := c.core.AccountManager.GetByID(context, accountID)
+				accountName := accountID.String()
+				if account != nil {
+					accountName = account.Name
+				}
+				failedAccounts = append(failedAccounts, fmt.Sprintf("%s: %s", accountName, err.Error()))
+			}
+		}
+
+		if len(failedAccounts) > 0 {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "bulk-delete-error",
+				Description: "Failed bulk delete accounts (/account/bulk-delete) | validation errors",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+				"error":           "Some accounts cannot be deleted",
+				"failed_accounts": failedAccounts,
+			})
+		}
+
+		// Perform bulk deletion
 		if err := c.core.AccountManager.BulkDelete(context, reqBody.IDs); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
@@ -962,11 +1011,13 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete accounts: " + err.Error()})
 		}
+
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
-			Description: "Bulk deleted accounts (/account/bulk-delete)",
+			Description: fmt.Sprintf("Bulk deleted %d accounts (/account/bulk-delete)", len(reqBody.IDs)),
 			Module:      "Account",
 		})
+
 		return ctx.NoContent(http.StatusNoContent)
 	})
 

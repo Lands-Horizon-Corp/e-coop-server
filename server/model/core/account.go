@@ -4053,3 +4053,96 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	}
 	return accounts, nil
 }
+
+// AccountDeleteCheck verifies if an account can be safely deleted by checking:
+// 1. If account has any general ledger entries
+// 2. If account is set as Cash on Hand in branch settings
+// 3. If account is set as Paid Up Share Capital in branch settings
+// 4. If account is referenced by unbalanced accounts (shortage or overage)
+// 5. If account is a parent loan account for other accounts (Interest/Fines/SVF)
+// Returns an error if any of these conditions are met, preventing deletion.
+func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
+	// Check if account has any general ledger entries
+	hasEntries, err := m.GeneralLedgerManager.Exists(ctx, []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to check general ledger entries for account")
+	}
+
+	if hasEntries {
+		return eris.New("cannot delete account: account has existing general ledger entries")
+	}
+
+	// Get the account to check organization and branch
+	account, err := m.AccountManager.GetByID(ctx, accountID)
+	if err != nil {
+		return eris.Wrap(err, "failed to retrieve account for validation")
+	}
+
+	// Get branch settings for this account's branch
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{
+		BranchID: account.BranchID,
+	})
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to retrieve branch settings")
+	}
+
+	// Check if account is Cash on Hand
+	if branchSetting != nil && branchSetting.CashOnHandAccountID != nil &&
+		*branchSetting.CashOnHandAccountID == accountID {
+		return eris.New("cannot delete account: it is currently set as the Cash on Hand account in branch settings")
+	}
+
+	// Check if account is Paid Up Share Capital
+	if branchSetting != nil && branchSetting.PaidUpSharedCapitalAccountID != nil &&
+		*branchSetting.PaidUpSharedCapitalAccountID == accountID {
+		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
+	}
+
+	// Check if account is referenced by unbalanced accounts (shortage or overage)
+	unbalancedAccount, err := m.UnbalancedAccountManager.FindOne(ctx, &UnbalancedAccount{
+		BranchSettingsID: branchSetting.ID,
+	})
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to check unbalanced account references")
+	}
+
+	if unbalancedAccount != nil {
+		if unbalancedAccount.AccountForShortageID == accountID {
+			return eris.New("cannot delete account: it is currently set as the shortage account in branch settings")
+		}
+		if unbalancedAccount.AccountForOverageID == accountID {
+			return eris.New("cannot delete account: it is currently set as the overage account in branch settings")
+		}
+	}
+
+	// Check if account is a parent loan account for other accounts
+	linkedAccounts, err := m.FindLoanAccountsByID(ctx, account.OrganizationID, account.BranchID, accountID)
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to check linked loan accounts")
+	}
+
+	if len(linkedAccounts) > 0 {
+		return eris.Errorf("cannot delete account: %d other accounts (Interest/Fines/SVF) are linked to this loan account. Please delete or unlink them first", len(linkedAccounts))
+	}
+
+	return nil
+}
+
+// AccountDeleteCheckIncludingDeleted verifies if an account can be safely deleted
+// by checking for existing general ledger entries, including soft-deleted ones.
+func (m *Core) AccountDeleteCheckIncludingDeleted(ctx context.Context, accountID uuid.UUID) error {
+	hasEntries, err := m.GeneralLedgerManager.ExistsIncludingDeleted(ctx, []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to check general ledger entries for account")
+	}
+
+	if hasEntries {
+		return eris.New("cannot delete account: account has existing general ledger entries (including deleted)")
+	}
+
+	return nil
+}
