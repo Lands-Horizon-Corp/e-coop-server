@@ -241,10 +241,7 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		type DepositInBankRequest struct {
-			DepositInBank float64 `json:"deposit_in_bank" validate:"min=0"`
-		}
-		var req DepositInBankRequest
+		var req core.TransactionBatchDepositInBankRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

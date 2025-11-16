@@ -347,6 +347,10 @@ type (
 		EmployeeByName             string     `json:"employee_by_name"`
 		EmployeeByPosition         string     `json:"employee_by_position"`
 	}
+
+	TransactionBatchDepositInBankRequest struct {
+		DepositInBank float64 `json:"deposit_in_bank" validate:"min=0"`
+	}
 )
 
 func (m *Core) transactionBatch() {
