@@ -249,6 +249,10 @@ func (e Event) RecordTransaction(
 				account = e.core.AccountHistoryToModel(accountHistory)
 			}
 		}
+		var paymentTypeValue core.TypeOfPaymentType
+		if paymentType != nil {
+			paymentTypeValue = paymentType.Type
+		}
 		userOrgTime := userOrg.UserOrgTime()
 		if transaction.EntryDate != nil {
 			userOrgTime = *transaction.EntryDate
@@ -274,6 +278,7 @@ func (e Event) RecordTransaction(
 			BankReferenceNumber:        transaction.BankReferenceNumber,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
+			TypeOfPaymentType:          paymentTypeValue,
 			Credit:                     transaction.Credit,
 			Debit:                      transaction.Debit,
 			CurrencyID:                 account.CurrencyID,

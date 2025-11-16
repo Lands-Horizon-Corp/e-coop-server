@@ -28,6 +28,8 @@ go.work.sum
 
 main
 
+e-coop-server
+
 .env.production
 .env.development
 .env.local
