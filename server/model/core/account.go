@@ -866,9 +866,9 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 
-		// Create account history for seed
+		// Create account history for seed within the same transaction
 		if err := m.CreateAccountHistory(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded account %s", data.Name)
+			return eris.Wrapf(err, "failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
 		}
 	}
 
@@ -3825,10 +3825,12 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
 
-	if tx != nil {
-		return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
+	// Debug: check if tx is nil
+	if tx == nil {
+		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
 	}
-	return m.AccountHistoryManager.Create(ctx, history)
+
+	return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
 }
 
 // CreateAccountHistoryBeforeUpdate creates a history record with the original account data before update
