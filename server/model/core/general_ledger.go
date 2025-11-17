@@ -312,7 +312,7 @@ func (m *Core) generalLedger() {
 				Description:                data.Description,
 				PrintNumber:                data.PrintNumber,
 				AccountHistoryID:           accountHistoryID,
-			}
+				Balance:                    data.Balance}
 		},
 		Created: func(data *GeneralLedger) []string {
 			return []string{
