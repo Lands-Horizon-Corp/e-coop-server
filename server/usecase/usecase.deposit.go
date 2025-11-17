@@ -11,11 +11,11 @@ import (
 // Deposit processes a deposit transaction for the given account and amount using precise decimal arithmetic
 func (t *TransactionService) Deposit(
 	ctx context.Context,
-	account TransactionData,
+	account *core.Account,
 	amount float64,
 ) (credit, debit float64, err error) {
 
-	if account.Account == nil {
+	if account == nil {
 		return 0, 0, eris.New("account is required")
 	}
 
@@ -26,7 +26,7 @@ func (t *TransactionService) Deposit(
 		positiveAmount := t.provider.Service.Decimal.Abs(amount)
 		return t.Withdraw(ctx, account, positiveAmount)
 	}
-	switch account.Account.Type {
+	switch account.Type {
 	case core.AccountTypeDeposit, core.AccountTypeTimeDeposit, core.AccountTypeSVFLedger:
 		return amount, 0, nil
 

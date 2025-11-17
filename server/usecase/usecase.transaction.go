@@ -5,13 +5,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 )
 
-// TransactionData holds the necessary data for processing financial transactions
-// including the account, general ledger entry, and reverse transaction flag.
-type TransactionData struct {
-	Account *core.Account
-	Reverse bool
-}
-
 // TransactionService provides methods for handling financial transactions
 // and balance calculations in the cooperative system.
 type TransactionService struct {

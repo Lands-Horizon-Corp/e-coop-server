@@ -134,6 +134,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
+
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
 	})
 
