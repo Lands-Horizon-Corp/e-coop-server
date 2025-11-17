@@ -286,6 +286,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update deposit for a closed transaction batch"})
 		}
+		transactionBatch.DepositInBank = req.DepositInBank
 
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

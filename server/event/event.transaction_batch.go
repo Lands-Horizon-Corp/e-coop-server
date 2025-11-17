@@ -3,6 +3,8 @@ package event
 import (
 	"context"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
@@ -19,8 +21,186 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	return nil
 }
 
-func (m *Event) BatchFunding() {
+func (m *Event) TBBatchFunding(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	batchFunding, err := m.core.BatchFundingManager.Find(context, &core.BatchFunding{
+		TransactionBatchID: transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+	})
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to find batch fundings")
+	}
+	var totalBatchFunding float64
+	for _, funding := range batchFunding {
+		totalBatchFunding = m.provider.Service.Decimal.Add(totalBatchFunding, funding.Amount)
+	}
+	return totalBatchFunding, nil
+}
 
+func (m *Event) TBCashCount(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	cashCounts, err := m.core.CashCountManager.Find(context, &core.CashCount{
+		TransactionBatchID: transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+	})
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to find cash counts")
+	}
+	var totalCashCount float64
+	for _, cashCount := range cashCounts {
+		totalCashCount = m.provider.Service.Decimal.Add(totalCashCount, m.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
+	}
+	return totalCashCount, nil
+}
+
+func (m *Event) TBCheckRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	checkRemittances, err := m.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+	})
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to find check remittances")
+	}
+	var totalCheckRemittance float64
+	for _, remittance := range checkRemittances {
+		totalCheckRemittance = m.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
+	}
+	return totalCheckRemittance, nil
+}
+
+func (m *Event) TBOnlineRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	onlineRemittances, err := m.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+	})
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to find online remittances")
+	}
+	var totalOnlineRemittance float64
+	for _, remittance := range onlineRemittances {
+		totalOnlineRemittance = m.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
+	}
+	return totalOnlineRemittance, nil
+}
+
+func (m *Event) TBDisbursementTransaction(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	disbursementTransactions, err := m.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+		TransactionBatchID: transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+	})
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to find disbursement transactions")
+	}
+	var totalDisbursementTransaction float64
+	for _, transaction := range disbursementTransactions {
+		totalDisbursementTransaction = m.provider.Service.Decimal.Add(totalDisbursementTransaction, transaction.Amount)
+	}
+	return totalDisbursementTransaction, nil
+}
+
+func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	withdrawals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceWithdraw,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find withdrawals")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: withdrawals,
+	})
+}
+
+func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	deposits, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceDeposit,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find deposits")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: deposits,
+	})
+}
+
+func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	journals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceJournal,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find journals")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: journals,
+	})
+}
+
+func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	payments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourcePayment,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find payments")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: payments,
+	})
+}
+
+func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	adjustments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceAdjustment,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find adjustments")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: adjustments,
+	})
+}
+
+func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	journalVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceJournalVoucher,
+	})
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: journalVouchers,
+	})
+}
+
+func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	checkVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceCheckVoucher,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find check vouchers")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: checkVouchers,
+	})
 }
 
 /*
