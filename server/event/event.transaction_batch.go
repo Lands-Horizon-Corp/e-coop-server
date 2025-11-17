@@ -14,7 +14,24 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	if err != nil {
 		return eris.Wrap(err, "failed to get transaction batch by ID")
 	}
-
+	// TotalCashCollection
+	// TotalDepositEntry
+	// BeginningBalance
+	// DepositInBank
+	// CashCountTotal
+	// GrandTotal
+	// PettyCash
+	// LoanReleases
+	// TimeDepositWithdrawal
+	// SavingsWithdrawal
+	// TotalCashHandled
+	// TotalSupposedRemitance
+	// TotalCashOnHand
+	// TotalCheckRemittance
+	// TotalOnlineRemittance
+	// TotalDepositInBank
+	// TotalActualRemittance
+	// TotalActualSupposedComparison
 	if err := m.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 		return eris.Wrap(err, "failed to update transaction batch")
 	}
@@ -222,7 +239,6 @@ func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branc
 }
 
 /*
-
 --------------------------- Batch Funding
 cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
 	TransactionBatchID: transactionBatch.ID,
