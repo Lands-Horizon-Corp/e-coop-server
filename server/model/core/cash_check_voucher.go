@@ -58,21 +58,20 @@ type (
 
 		PayTo string `gorm:"type:varchar(255)" json:"pay_to,omitempty"`
 
-		Status            CashCheckVoucherStatus `gorm:"type:varchar(20)" json:"status,omitempty"` // enum as string
-		Description       string                 `gorm:"type:text" json:"description,omitempty"`
-		CashVoucherNumber string                 `gorm:"type:varchar(255)" json:"cash_voucher_number,omitempty"`
-		TotalDebit        float64                `gorm:"type:decimal" json:"total_debit,omitempty"`
-		TotalCredit       float64                `gorm:"type:decimal" json:"total_credit,omitempty"`
-		PrintCount        int                    `gorm:"default:0" json:"print_count,omitempty"`
-		PrintedDate       *time.Time             `gorm:"default:null" json:"printed_date,omitempty"`
-		ApprovedDate      *time.Time             `gorm:"default:null" json:"approved_date,omitempty"`
-		ReleasedDate      *time.Time             `gorm:"default:null" json:"released_date,omitempty"`
-
-		// SIGNATURES
-		ApprovedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"approved_by_signature_media_id,omitempty"`
-		ApprovedBySignatureMedia   *Media     `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
-		ApprovedByName             string     `gorm:"type:varchar(255)" json:"approved_by_name,omitempty"`
-		ApprovedByPosition         string     `gorm:"type:varchar(255)" json:"approved_by_position,omitempty"`
+		Status                     CashCheckVoucherStatus `gorm:"type:varchar(20)" json:"status,omitempty"` // enum as string
+		Description                string                 `gorm:"type:text" json:"description,omitempty"`
+		CashVoucherNumber          string                 `gorm:"type:varchar(255)" json:"cash_voucher_number,omitempty"`
+		TotalDebit                 float64                `gorm:"type:decimal" json:"total_debit,omitempty"`
+		TotalCredit                float64                `gorm:"type:decimal" json:"total_credit,omitempty"`
+		PrintCount                 int                    `gorm:"default:0" json:"print_count,omitempty"`
+		EntryDate                  *time.Time             `gorm:"default:null" json:"entry_date,omitempty"`
+		PrintedDate                *time.Time             `gorm:"default:null" json:"printed_date,omitempty"`
+		ApprovedDate               *time.Time             `gorm:"default:null" json:"approved_date,omitempty"`
+		ReleasedDate               *time.Time             `gorm:"default:null" json:"released_date,omitempty"` // SIGNATURES
+		ApprovedBySignatureMediaID *uuid.UUID             `gorm:"type:uuid" json:"approved_by_signature_media_id,omitempty"`
+		ApprovedBySignatureMedia   *Media                 `gorm:"foreignKey:ApprovedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"approved_by_signature_media,omitempty"`
+		ApprovedByName             string                 `gorm:"type:varchar(255)" json:"approved_by_name,omitempty"`
+		ApprovedByPosition         string                 `gorm:"type:varchar(255)" json:"approved_by_position,omitempty"`
 
 		PreparedBySignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"prepared_by_signature_media_id,omitempty"`
 		PreparedBySignatureMedia   *Media     `gorm:"foreignKey:PreparedBySignatureMediaID;constraint:OnDelete:SET NULL;" json:"prepared_by_signature_media,omitempty"`
@@ -163,6 +162,7 @@ type (
 		TotalDebit        float64                `json:"total_debit"`
 		TotalCredit       float64                `json:"total_credit"`
 		PrintCount        int                    `json:"print_count"`
+		EntryDate         *string                `json:"entry_date,omitempty"`
 		PrintedDate       *string                `json:"printed_date,omitempty"`
 		ApprovedDate      *string                `json:"approved_date,omitempty"`
 		ReleasedDate      *string                `json:"released_date,omitempty"`
@@ -235,6 +235,7 @@ type (
 		CashVoucherNumber string                 `json:"cash_voucher_number,omitempty"`
 		Name              string                 `json:"name" validate:"required"`
 		PrintCount        int                    `json:"print_count,omitempty"`
+		EntryDate         *time.Time             `json:"entry_date,omitempty"`
 		PrintedDate       *time.Time             `json:"printed_date,omitempty"`
 		ApprovedDate      *time.Time             `json:"approved_date,omitempty"`
 		ReleasedDate      *time.Time             `json:"released_date,omitempty"`
@@ -315,7 +316,11 @@ func (m *Core) cashCheckVoucher() {
 			if data == nil {
 				return nil
 			}
-			var printedDate, approvedDate, releasedDate *string
+			var printedDate, approvedDate, releasedDate, entryDate *string
+			if data.EntryDate != nil {
+				str := data.EntryDate.Format(time.RFC3339)
+				entryDate = &str
+			}
 			if data.PrintedDate != nil {
 				str := data.PrintedDate.Format(time.RFC3339)
 				printedDate = &str
@@ -362,6 +367,7 @@ func (m *Core) cashCheckVoucher() {
 				TotalDebit:        data.TotalDebit,
 				TotalCredit:       data.TotalCredit,
 				PrintCount:        data.PrintCount,
+				EntryDate:         entryDate,
 				PrintedDate:       printedDate,
 				ApprovedDate:      approvedDate,
 				ReleasedDate:      releasedDate,

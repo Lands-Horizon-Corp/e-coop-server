@@ -704,6 +704,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		// Update print details
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
+		cashCheckVoucher.EntryDate = &timeNow
 		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
