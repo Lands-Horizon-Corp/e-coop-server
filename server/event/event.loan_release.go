@@ -467,6 +467,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	loanTransaction.ReleasedByID = &userOrg.UserID
 	loanTransaction.UpdatedAt = now
 	loanTransaction.Count++
+	loanTransaction.TransactionBatchID = &transactionBatch.ID
 	loanTransaction.UpdatedByID = userOrg.UserID
 
 	// Save updated loan transaction to database

@@ -424,10 +424,11 @@ type (
 		TotalNumberOfDeductions int `json:"total_number_of_deductions"`
 		TotalNumberOfAdditions  int `json:"total_number_of_additions"`
 
-		TotalAccountPrincipal          float64 `json:"total_account_principal"`
-		TotalAccountAdvancedPayment    float64 `json:"total_account_advanced_payment"`
-		TotalAccountPrincipalPaid      float64 `json:"total_account_principal_paid"`
-		TotalAccountRemainingPrincipal float64 `json:"total_remaining_principal"`
+		TotalAccountPrincipal          float64   `json:"total_account_principal"`
+		TotalAccountAdvancedPayment    float64   `json:"total_account_advanced_payment"`
+		TotalAccountPrincipalPaid      float64   `json:"total_account_principal_paid"`
+		TotalAccountRemainingPrincipal float64   `json:"total_remaining_principal"`
+		LoanTransactionID              uuid.UUID `json:"loan_transaction_id"`
 	}
 
 	LoanTransactionSummaryResponse struct {

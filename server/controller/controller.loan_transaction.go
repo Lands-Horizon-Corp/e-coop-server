@@ -2100,6 +2100,7 @@ func (c *Controller) loanTransactionController() {
 				TotalAccountAdvancedPayment:    0,
 				TotalAccountPrincipalPaid:      0,
 				TotalAccountRemainingPrincipal: 0,
+				LoanTransactionID:              loanTransaction.ID,
 			})
 		}
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
