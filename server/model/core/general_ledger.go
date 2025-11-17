@@ -137,7 +137,7 @@ type (
 		SignatureMediaID *uuid.UUID     `json:"signature_media_id,omitempty"`
 		SignatureMedia   *MediaResponse `json:"signature_media,omitempty"`
 
-		EntryDate *time.Time `json:"entry_date,omitempty"`
+		EntryDate string `json:"entry_date,omitempty"`
 
 		BankID *uuid.UUID    `json:"bank_id,omitempty"`
 		Bank   *BankResponse `json:"bank,omitempty"`
@@ -301,7 +301,7 @@ func (m *Core) generalLedger() {
 				LoanAdjustmentType:         data.LoanAdjustmentType,
 				SignatureMediaID:           data.SignatureMediaID,
 				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
-				EntryDate:                  data.EntryDate,
+				EntryDate:                  data.EntryDate.Format(time.RFC3339),
 				BankID:                     data.BankID,
 				Bank:                       m.BankManager.ToModel(data.Bank),
 				ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
