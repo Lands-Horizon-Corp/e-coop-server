@@ -198,6 +198,23 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		fmt.Println("DEBUG: account.IsMemberLedger():", account.IsMemberLedger())
 		fmt.Println("DEBUG: account.DefaultPaymentTypeID:", account.DefaultPaymentTypeID)
 		fmt.Println("DEBUG: account.DefaultPaymentType:", account.DefaultPaymentType)
+
+		// Load DefaultPaymentType if not already loaded
+		if account.DefaultPaymentType == nil && account.DefaultPaymentTypeID != nil {
+			fmt.Println("DEBUG: Loading DefaultPaymentType for ID:", *account.DefaultPaymentTypeID)
+			paymentType, err := e.core.PaymentTypeManager.GetByID(context, *account.DefaultPaymentTypeID)
+			if err != nil {
+				return nil, endTx(eris.Wrap(err, "failed to retrieve payment type"))
+			}
+			account.DefaultPaymentType = paymentType
+			fmt.Println("DEBUG: Loaded DefaultPaymentType:", account.DefaultPaymentType)
+		}
+
+		var typeOfPaymentType core.TypeOfPaymentType
+		if account.DefaultPaymentType != nil {
+			typeOfPaymentType = account.DefaultPaymentType.Type
+		}
+
 		if account.IsMemberLedger() {
 			// Create new general ledger entry for member account
 			memberLedgerEntry := &core.GeneralLedger{
@@ -217,7 +234,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				Source:                     core.GeneralLedgerSourceLoan,
 				EmployeeUserID:             &userOrg.UserID,
 				Description:                loanTransaction.Account.Description,
-				TypeOfPaymentType:          account.DefaultPaymentType.Type,
+				TypeOfPaymentType:          typeOfPaymentType,
 				Credit:                     entry.Credit,
 				Debit:                      entry.Debit,
 				CurrencyID:                 &loanAccountCurrency.ID,
@@ -278,7 +295,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				Source:                     core.GeneralLedgerSourceLoan,
 				EmployeeUserID:             &userOrg.UserID,
 				Description:                loanTransaction.Account.Description,
-				TypeOfPaymentType:          account.DefaultPaymentType.Type,
+				TypeOfPaymentType:          typeOfPaymentType,
 				Credit:                     entry.Credit,
 				Debit:                      entry.Debit,
 				CurrencyID:                 &loanAccountCurrency.ID,
@@ -360,6 +377,23 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		fmt.Println("DEBUG: Processing interest - IsMemberLedger:", interestAccount.IsMemberLedger())
 		fmt.Println("DEBUG: interestAccount.DefaultPaymentTypeID:", interestAccount.DefaultPaymentTypeID)
 		fmt.Println("DEBUG: interestAccount.DefaultPaymentType:", interestAccount.DefaultPaymentType)
+
+		// Load DefaultPaymentType for interest account if not already loaded
+		if interestAccount.DefaultPaymentType == nil && interestAccount.DefaultPaymentTypeID != nil {
+			fmt.Println("DEBUG: Loading interest account DefaultPaymentType for ID:", *interestAccount.DefaultPaymentTypeID)
+			paymentType, err := e.core.PaymentTypeManager.GetByID(context, *interestAccount.DefaultPaymentTypeID)
+			if err != nil {
+				return nil, endTx(eris.Wrap(err, "failed to retrieve interest account payment type"))
+			}
+			interestAccount.DefaultPaymentType = paymentType
+			fmt.Println("DEBUG: Loaded interest account DefaultPaymentType:", interestAccount.DefaultPaymentType)
+		}
+
+		var interestTypeOfPaymentType core.TypeOfPaymentType
+		if interestAccount.DefaultPaymentType != nil {
+			interestTypeOfPaymentType = interestAccount.DefaultPaymentType.Type
+		}
+
 		if interestAccount.IsMemberLedger() {
 			// Lock member interest account ledger for atomic updates
 
@@ -388,7 +422,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				Source:                     core.GeneralLedgerSourceLoan,
 				EmployeeUserID:             &userOrg.UserID,
 				Description:                loanTransaction.Account.Description,
-				TypeOfPaymentType:          interestAccount.DefaultPaymentType.Type,
+				TypeOfPaymentType:          interestTypeOfPaymentType,
 				Credit:                     credit,
 				Debit:                      debit,
 				CurrencyID:                 &loanAccountCurrency.ID,
@@ -457,7 +491,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				BankReferenceNumber:        "",
 				EmployeeUserID:             &userOrg.UserID,
 				Description:                interestAccount.Description,
-				TypeOfPaymentType:          interestAccount.DefaultPaymentType.Type,
+				TypeOfPaymentType:          interestTypeOfPaymentType,
 				Credit:                     credit,
 				Debit:                      debit,
 				CurrencyID:                 &loanAccountCurrency.ID,
