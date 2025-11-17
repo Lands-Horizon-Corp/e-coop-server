@@ -103,6 +103,13 @@ func (e *Event) LoanAdjustment(
 		LoanAdjustmentType:         &la.AdjustmentType,
 	}
 
+	fmt.Println("DEBUG: memberLedgerEntry.EntryDate:", memberLedgerEntry.EntryDate)
+	if memberLedgerEntry.EntryDate != nil {
+		fmt.Println("DEBUG: memberLedgerEntry.EntryDate value:", *memberLedgerEntry.EntryDate)
+	} else {
+		fmt.Println("DEBUG: memberLedgerEntry.EntryDate is nil")
+	}
+
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 		return endTx(eris.Wrap(err, "Failed to record adjustment in general ledger"))
 	}
