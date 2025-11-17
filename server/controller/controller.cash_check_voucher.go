@@ -253,8 +253,7 @@ func (c *Controller) cashCheckVoucherController() {
 			PrintedDate:                   request.PrintedDate,
 			ApprovedDate:                  request.ApprovedDate,
 			ReleasedDate:                  request.ReleasedDate,
-			EmployeeUserID:                request.EmployeeUserID,
-			TransactionBatchID:            request.TransactionBatchID,
+			EmployeeUserID:                &userOrg.UserID,
 			ApprovedBySignatureMediaID:    request.ApprovedBySignatureMediaID,
 			ApprovedByName:                request.ApprovedByName,
 			ApprovedByPosition:            request.ApprovedByPosition,
@@ -306,21 +305,11 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + endTx(err).Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "End transaction batch failed: retrieve error: " + err.Error(),
-				Module:      "TransactionBatch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + endTx(err).Error()})
-		}
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				entry := &core.CashCheckVoucherEntry{
 					AccountID:              entryReq.AccountID,
 					EmployeeUserID:         &userOrg.UserID,
-					TransactionBatchID:     &transactionBatch.ID,
 					CashCheckVoucherID:     cashCheckVoucher.ID,
 					Debit:                  entryReq.Debit,
 					Credit:                 entryReq.Credit,
@@ -438,8 +427,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.PrintedDate = request.PrintedDate
 		cashCheckVoucher.ApprovedDate = request.ApprovedDate
 		cashCheckVoucher.ReleasedDate = request.ReleasedDate
-		cashCheckVoucher.EmployeeUserID = request.EmployeeUserID
-		cashCheckVoucher.TransactionBatchID = request.TransactionBatchID
+		cashCheckVoucher.EmployeeUserID = &userOrg.UserID
 		cashCheckVoucher.ApprovedBySignatureMediaID = request.ApprovedBySignatureMediaID
 		cashCheckVoucher.ApprovedByName = request.ApprovedByName
 		cashCheckVoucher.ApprovedByPosition = request.ApprovedByPosition
@@ -496,15 +484,7 @@ func (c *Controller) cashCheckVoucherController() {
 				}
 			}
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "End transaction batch failed: retrieve error: " + err.Error(),
-				Module:      "TransactionBatch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + endTx(err).Error()})
-		}
+
 		// Handle cash check voucher entries (create new or update existing)
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
@@ -521,7 +501,6 @@ func (c *Controller) cashCheckVoucherController() {
 					}
 					entry.AccountID = entryReq.AccountID
 					entry.EmployeeUserID = &userOrg.UserID
-					entry.TransactionBatchID = &transactionBatch.ID
 					entry.Debit = entryReq.Debit
 					entry.Credit = entryReq.Credit
 					entry.Description = entryReq.Description
@@ -541,7 +520,6 @@ func (c *Controller) cashCheckVoucherController() {
 					entry := &core.CashCheckVoucherEntry{
 						AccountID:              entryReq.AccountID,
 						EmployeeUserID:         &userOrg.UserID,
-						TransactionBatchID:     &transactionBatch.ID,
 						CashCheckVoucherID:     cashCheckVoucher.ID,
 						Debit:                  entryReq.Debit,
 						Credit:                 entryReq.Credit,
@@ -865,6 +843,17 @@ func (c *Controller) cashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash check voucher entries: " + err.Error()})
 		}
+
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, *cashCheckVoucher.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "batch-retrieval-failed",
+				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+				Module:      "Loan Release",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
+
 		for _, entry := range cashCheckVoucherEntries {
 			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
 			// Prepare transaction request with journal voucher entry details
@@ -881,9 +870,10 @@ func (c *Controller) cashCheckVoucherController() {
 				ReferenceNumber:       cashCheckVoucher.CashVoucherNumber,
 				Description:           entry.Description,
 				EntryDate:             &timeNow,
-				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
-				BankID:                nil, // Not applicable for journal voucher entries
-				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries
+				BankReferenceNumber:   "",
+				BankID:                nil,
+				ProofOfPaymentMediaID: nil,
+				TransactionBatchID:    transactionBatch.ID,
 			}
 
 			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---

@@ -61,30 +61,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	}
 
 	// ================================================================================
-	// STEP 2: ACTIVE TRANSACTION BATCH VALIDATION
-	// ================================================================================
-	// Retrieve and validate active transaction batch required for loan operations
-	transactionBatch, err := e.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "batch-retrieval-failed",
-			Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-			Module:      "Loan Release",
-		})
-		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch"))
-	}
-
-	if transactionBatch == nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "batch-validation-failed",
-			Description: "No active transaction batch found - batch is required for loan release operations",
-			Module:      "Loan Release",
-		})
-		return nil, endTx(eris.New("transaction batch is nil"))
-	}
-
-	// ================================================================================
-	// STEP 3: LOAN TRANSACTION AND CURRENCY DATA RETRIEVAL
+	// STEP 2: LOAN TRANSACTION AND CURRENCY DATA RETRIEVAL
 	// ================================================================================
 	// Fetch loan transaction with complete account and currency relationship data
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Account", "Account.Currency")
@@ -106,6 +83,29 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			Module:      "Loan Release",
 		})
 		return nil, endTx(eris.New("currency data is nil"))
+	}
+
+	// ================================================================================
+	// STEP 3: ACTIVE TRANSACTION BATCH VALIDATION
+	// ================================================================================
+	// Retrieve and validate active transaction batch required for loan operations
+	transactionBatch, err := e.core.TransactionBatchCurrent(context, *loanTransaction.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+	if err != nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "batch-retrieval-failed",
+			Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+			Module:      "Loan Release",
+		})
+		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch - The one who created the loan must have created the transaction batch"))
+	}
+
+	if transactionBatch == nil {
+		e.Footstep(ctx, FootstepEvent{
+			Activity:    "batch-validation-failed",
+			Description: "No active transaction batch found - batch is required for loan release operations",
+			Module:      "Loan Release",
+		})
+		return nil, endTx(eris.New("transaction batch is nil"))
 	}
 
 	// ================================================================================

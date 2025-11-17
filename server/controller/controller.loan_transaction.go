@@ -413,16 +413,6 @@ func (c *Controller) loanTransactionController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-error",
-				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
-
 		loanTransaction := &core.LoanTransaction{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
@@ -431,7 +421,6 @@ func (c *Controller) loanTransactionController() {
 			UpdatedByID:                            userOrg.UserID,
 			OrganizationID:                         userOrg.OrganizationID,
 			BranchID:                               *userOrg.BranchID,
-			TransactionBatchID:                     &transactionBatch.ID,
 			OfficialReceiptNumber:                  request.OfficialReceiptNumber,
 			Voucher:                                request.Voucher,
 			EmployeeUserID:                         &userOrg.UserID,
@@ -701,16 +690,6 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-error",
-				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
-
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		cashOnHandAccount, err := c.core.GetCashOnCashEquivalence(
 			context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
@@ -737,7 +716,6 @@ func (c *Controller) loanTransactionController() {
 		// Update fields
 		loanTransaction.AccountID = request.AccountID
 		loanTransaction.UpdatedByID = userOrg.UserID
-		loanTransaction.TransactionBatchID = &transactionBatch.ID
 		loanTransaction.OfficialReceiptNumber = request.OfficialReceiptNumber
 		loanTransaction.Voucher = request.Voucher
 		loanTransaction.EmployeeUserID = &userOrg.UserID
@@ -1765,6 +1743,10 @@ func (c *Controller) loanTransactionController() {
 		newLoanTransaction, err := c.event.LoanRelease(context, ctx, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, *newLoanTransaction.TransactionBatchID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
 		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{

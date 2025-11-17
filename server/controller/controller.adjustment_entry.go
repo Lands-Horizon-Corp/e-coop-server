@@ -196,6 +196,15 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create adjustment entry: " + err.Error()})
 		}
+
+		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Adjustment entry creation failed (/adjustment-entry), transaction batch balancing error: " + err.Error(),
+				Module:      "AdjustmentEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after adjustment entry creation: " + err.Error()})
+		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created adjustment entry (/adjustment-entry): " + adjustmentEntry.ReferenceNumber,

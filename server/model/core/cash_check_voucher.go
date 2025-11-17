@@ -227,9 +227,7 @@ type (
 
 	// CashCheckVoucherRequest represents the request structure for CashCheckVoucher.
 	CashCheckVoucherRequest struct {
-		EmployeeUserID     *uuid.UUID `json:"employee_user_id,omitempty"`
-		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
-		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
+		CurrencyID uuid.UUID `json:"currency_id" validate:"required"`
 
 		PayTo             string                 `json:"pay_to,omitempty"`
 		Status            CashCheckVoucherStatus `json:"status,omitempty"`
