@@ -867,7 +867,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, data); err != nil {
+		if err := m.CreateAccountHistory(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded account %s", data.Name)
 		}
 	}
@@ -1001,7 +1001,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, loanAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
@@ -1059,7 +1059,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, interestAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
@@ -1117,7 +1117,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, serviceFeeAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
@@ -1185,7 +1185,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, finesAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
@@ -1318,7 +1318,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, finesAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
@@ -1500,7 +1500,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, interestAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone interest account %s", interestAccount.Name)
 		}
 	}
@@ -1512,7 +1512,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		// Create account history for seed
-		if err := m.CreateAccountHistory(context, svfAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
 	}
@@ -1546,7 +1546,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, paidUpShareCapital); err != nil {
+	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
@@ -1765,7 +1765,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, cashOnHand); err != nil {
+	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
@@ -1806,7 +1806,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, cashInBank); err != nil {
+	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInBank.Name)
 	}
 
@@ -1847,7 +1847,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, cashOnline); err != nil {
+	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnline.Name)
 	}
 
@@ -1888,7 +1888,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, pettyCash); err != nil {
+	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", pettyCash.Name)
 	}
 
@@ -1929,7 +1929,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, cashInTransit); err != nil {
+	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
@@ -1970,7 +1970,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, foreignCurrencyCash); err != nil {
+	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
@@ -2011,7 +2011,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	// Create account history for seed
-	if err := m.CreateAccountHistory(context, moneyMarketFund); err != nil {
+	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
@@ -3735,7 +3735,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 }
 
 // CreateAccountHistory creates a history record for the account
-func (m *Core) CreateAccountHistory(ctx context.Context, account *Account) error {
+func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
 	now := time.Now().UTC()
 	history := &AccountHistory{
 		AccountID:      account.ID,
@@ -3825,11 +3825,14 @@ func (m *Core) CreateAccountHistory(ctx context.Context, account *Account) error
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
 
+	if tx != nil {
+		return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
+	}
 	return m.AccountHistoryManager.Create(ctx, history)
 }
 
 // CreateAccountHistoryBeforeUpdate creates a history record with the original account data before update
-func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, accountID uuid.UUID, updatedBy uuid.UUID) error {
+func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, updatedBy uuid.UUID) error {
 	// Get the original account data before update
 	original, err := m.AccountManager.GetByID(ctx, accountID)
 	if err != nil {
@@ -3926,6 +3929,9 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, accountID u
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         original.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
 
+	if tx != nil {
+		return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
+	}
 	return m.AccountHistoryManager.Create(ctx, history)
 }
 

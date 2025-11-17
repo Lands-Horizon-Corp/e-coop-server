@@ -614,7 +614,7 @@ func (c *Controller) accountController() {
 		}
 
 		// Create account history
-		if err := c.core.CreateAccountHistory(context, account); err != nil {
+		if err := c.core.CreateAccountHistory(context, nil, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-warning",
 				Description: "Account created but history creation failed (/account): " + err.Error(),
@@ -813,7 +813,7 @@ func (c *Controller) accountController() {
 		account.CurrencyID = req.CurrencyID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before update failed (/account/:account_id): " + err.Error(),
@@ -1099,7 +1099,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index update failed (/account/:account_id/index/:index): " + err.Error(),
@@ -1171,7 +1171,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before GL def removal failed (/account/:account_id/general-ledger-definition/remove): " + err.Error(),
@@ -1242,7 +1242,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before FS def removal failed (/account/:account_id/financial-statement-definition/remove): " + err.Error(),
@@ -1558,7 +1558,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet connection failed: " + err.Error(),
@@ -1596,7 +1596,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet disconnection failed: " + err.Error(),
@@ -1646,7 +1646,7 @@ func (c *Controller) accountController() {
 		loanAccount.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, loanAccount.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, loanAccount.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan connection failed: " + err.Error(),
@@ -1685,7 +1685,7 @@ func (c *Controller) accountController() {
 		account.UpdatedByID = userOrg.UserID
 
 		// Create account history before update
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan account disconnection failed: " + err.Error(),
