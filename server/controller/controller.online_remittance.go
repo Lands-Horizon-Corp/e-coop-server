@@ -148,39 +148,9 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create online remittance: " + err.Error()})
 		}
 
-		allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Create online remittance failed: find all error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
+		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-
-		var totalOnlineRemittance float64
-		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
-		}
-
-		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Create online remittance failed: update batch error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
-		}
-
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created online remittance for batch ID: " + transactionBatch.ID.String(),
@@ -309,39 +279,6 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update online remittance: " + err.Error()})
 		}
 
-		allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update online remittance failed: find all error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
-		}
-
-		var totalOnlineRemittance float64
-		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
-		}
-
-		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update online remittance failed: update batch error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
-		}
-
 		updatedRemittance, err := c.core.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -350,6 +287,10 @@ func (c *Controller) onlineRemittanceController() {
 				Module:      "OnlineRemittance",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated online remittance: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{
@@ -458,37 +399,8 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete online remittance: " + err.Error()})
 		}
 
-		allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Delete online remittance failed: find all error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
-		}
-
-		var totalOnlineRemittance float64
-		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
-		}
-
-		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Delete online remittance failed: update batch error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{

@@ -86,5 +86,39 @@ transactionBatch.UpdatedByID = userOrg.UserID
 --------------------------- Online Remittance
 
 
+allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
+			TransactionBatchID: &transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+		})
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: find all error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
+		}
+
+		var totalOnlineRemittance float64
+		for _, remittance := range allOnlineRemittances {
+			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
+		}
+
+		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
+		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "delete-error",
+				Description: "Delete online remittance failed: update batch error: " + err.Error(),
+				Module:      "OnlineRemittance",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+
 --------------------------- Disbursement Transaction
 */
