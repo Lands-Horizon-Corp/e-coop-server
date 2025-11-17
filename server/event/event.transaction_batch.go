@@ -4,19 +4,23 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 )
 
 func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID uuid.UUID) error {
+	transactionBatch, err := m.core.TransactionBatchManager.GetByID(context, transactionBatchID)
+	if err != nil {
+		return eris.Wrap(err, "failed to get transaction batch by ID")
+	}
 
-	// transactionBatch, err := m.core.TransactionBatchManager.GetByID(context, transactionBatchID)
-	// if err != nil {
-	// 	return eris.Wrap(err, "failed to get transaction batch by ID")
-	// }
-
-	// Adjustment entry
-	// Loan release
-	// Cash Check voucher
+	if err := m.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		return eris.Wrap(err, "failed to update transaction batch")
+	}
 	return nil
+}
+
+func (m *Event) BatchFunding() {
+
 }
 
 /*

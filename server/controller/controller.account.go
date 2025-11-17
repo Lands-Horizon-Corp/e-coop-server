@@ -612,6 +612,16 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
 		}
+
+		// Create account history
+		if err := c.core.CreateAccountHistory(context, account); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-warning",
+				Description: "Account created but history creation failed (/account): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if len(req.AccountTags) > 0 {
 			var tags []core.AccountTag
 			for _, tagReq := range req.AccountTags {
@@ -801,6 +811,15 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before update failed (/account/:account_id): " + err.Error(),
+				Module:      "Account",
+			})
+		}
 
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1078,6 +1097,16 @@ func (c *Controller) accountController() {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before index update failed (/account/:account_id/index/:index): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1140,6 +1169,16 @@ func (c *Controller) accountController() {
 		account.GeneralLedgerDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before GL def removal failed (/account/:account_id/general-ledger-definition/remove): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1201,6 +1240,16 @@ func (c *Controller) accountController() {
 		account.FinancialStatementDefinitionID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before FS def removal failed (/account/:account_id/financial-statement-definition/remove): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1507,6 +1556,16 @@ func (c *Controller) accountController() {
 		account.ComputationSheetID = computationSheetID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before computation sheet connection failed: " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
@@ -1535,6 +1594,16 @@ func (c *Controller) accountController() {
 		account.ComputationSheetID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before computation sheet disconnection failed: " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
@@ -1575,6 +1644,16 @@ func (c *Controller) accountController() {
 		loanAccount.LoanAccountID = &account.ID
 		loanAccount.UpdatedAt = time.Now().UTC()
 		loanAccount.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, loanAccount.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before loan connection failed: " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, loanAccount.ID, loanAccount); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to loan: " + err.Error()})
 		}
@@ -1604,6 +1683,16 @@ func (c *Controller) accountController() {
 		account.LoanAccountID = nil
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
+
+		// Create account history before update
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before loan account disconnection failed: " + err.Error(),
+				Module:      "Account",
+			})
+		}
+
 		if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to disconnect account from loan account: " + err.Error()})
 		}
