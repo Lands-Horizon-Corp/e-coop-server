@@ -9,8 +9,11 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID uuid.UUID) error {
-	transactionBatch, err := m.core.TransactionBatchManager.GetByID(context, transactionBatchID)
+func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID *uuid.UUID) error {
+	if transactionBatchID == nil {
+		return eris.New("transactionBatchID is nil")
+	}
+	transactionBatch, err := m.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to get transaction batch by ID")
 	}

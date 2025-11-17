@@ -895,7 +895,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, *cashCheckVoucher.TransactionBatchID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, cashCheckVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 

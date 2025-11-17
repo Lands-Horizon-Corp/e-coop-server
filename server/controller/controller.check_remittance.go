@@ -148,7 +148,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create check remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
@@ -280,7 +280,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update check remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		updatedRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
@@ -386,7 +386,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete check remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 

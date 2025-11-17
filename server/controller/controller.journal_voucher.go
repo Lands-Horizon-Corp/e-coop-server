@@ -999,7 +999,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release journal voucher: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, *journalVoucher.TransactionBatchID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, journalVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 

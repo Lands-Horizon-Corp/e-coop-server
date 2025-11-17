@@ -1745,7 +1745,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, *newLoanTransaction.TransactionBatchID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, newLoanTransaction.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
@@ -1754,7 +1754,7 @@ func (c *Controller) loanTransactionController() {
 			Title:            "Loan Transaction Released",
 			NotificationType: core.NotificationInfo,
 		})
-		return ctx.JSON(http.StatusOK, newLoanTransaction)
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// Put /api/v1/loan-transaction/:loan_transaction_id/signature

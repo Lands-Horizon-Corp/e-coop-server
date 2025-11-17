@@ -96,7 +96,7 @@ func (c *Controller) batchFundingController() {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Unable to create batch funding record: " + err.Error()})
 		}
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{

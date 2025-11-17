@@ -66,7 +66,7 @@ func (c *Controller) disbursementTransactionController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create disbursement transaction: " + err.Error()})
 		}
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{

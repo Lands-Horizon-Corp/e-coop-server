@@ -201,7 +201,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash count: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
@@ -409,7 +409,7 @@ func (c *Controller) cashCountController() {
 			GrandTotal:     &grandTotal,
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
@@ -487,7 +487,7 @@ func (c *Controller) cashCountController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
-		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{

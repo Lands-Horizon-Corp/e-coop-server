@@ -674,7 +674,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 9: UPDATE USER ORGANIZATION OR GENERATED
 	// ================================================================================
-	if err := e.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to balance transaction batch"))
 	}
 
