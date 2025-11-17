@@ -287,32 +287,6 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update deposit for a closed transaction batch"})
 		}
 
-		cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
-			TransactionBatchID: transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Update deposit in bank failed: get cash counts error: " + err.Error(),
-				Module:      "TransactionBatch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash counts: " + err.Error()})
-		}
-
-		var totalCashCount float64
-		for _, cashCount := range cashCounts {
-			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
-		}
-
-		transactionBatch.DepositInBank = req.DepositInBank
-		transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, req.DepositInBank)
-		transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, req.DepositInBank), totalCashCount)
-		transactionBatch.TotalDepositInBank = req.DepositInBank
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
 		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -322,6 +296,9 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
 
+		if err := c.event.TransactionBatchBalancing(context, transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
+		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated deposit in bank for batch " + transactionBatch.ID.String(),
