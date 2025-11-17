@@ -36,11 +36,14 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// Setup timestamp variables for consistent time tracking
 	now := time.Now().UTC()
 	userOrgTime := time.Now().UTC()
+	fmt.Println("DEBUG: userOrg:", userOrg)
 	if userOrg.TimeMachineTime != nil {
 		userOrgTime = userOrg.UserOrgTime()
 	}
+	fmt.Println("DEBUG: userOrgTime:", userOrgTime)
 
 	// Validate user organization has required branch assignment
+	fmt.Println("DEBUG: userOrg.BranchID:", userOrg.BranchID)
 	if userOrg.BranchID == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "validation-failed",
@@ -49,6 +52,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.New("invalid user organization data"))
 	}
+	fmt.Println("DEBUG: Branch ID validated:", *userOrg.BranchID)
 
 	// Validate user has sufficient permissions for loan release operations
 	if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
@@ -64,6 +68,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 2: LOAN TRANSACTION AND CURRENCY DATA RETRIEVAL
 	// ================================================================================
 	// Fetch loan transaction with complete account and currency relationship data
+	fmt.Println("DEBUG: Fetching loan transaction ID:", loanTransactionID)
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Account", "Account.Currency")
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -73,8 +78,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
+	fmt.Println("DEBUG: loanTransaction:", loanTransaction)
+	fmt.Println("DEBUG: loanTransaction.Account:", loanTransaction.Account)
 
 	// Extract and validate currency information from loan account
+	fmt.Println("DEBUG: loanTransaction.Account.Currency:", loanTransaction.Account.Currency)
 	loanAccountCurrency := loanTransaction.Account.Currency
 	if loanAccountCurrency == nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -84,11 +92,15 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.New("currency data is nil"))
 	}
+	fmt.Println("DEBUG: loanAccountCurrency:", loanAccountCurrency)
 
 	// ================================================================================
 	// STEP 3: ACTIVE TRANSACTION BATCH VALIDATION
 	// ================================================================================
 	// Retrieve and validate active transaction batch required for loan operations
+	fmt.Println("DEBUG: loanTransaction.EmployeeUserID:", loanTransaction.EmployeeUserID)
+	fmt.Println("DEBUG: userOrg.OrganizationID:", userOrg.OrganizationID)
+	fmt.Println("DEBUG: userOrg.BranchID:", userOrg.BranchID)
 	transactionBatch, err := e.core.TransactionBatchCurrent(context, *loanTransaction.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -98,6 +110,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch - The one who created the loan must have created the transaction batch"))
 	}
+	fmt.Println("DEBUG: transactionBatch:", transactionBatch)
 
 	if transactionBatch == nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -112,6 +125,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 4: MEMBER PROFILE DATA RETRIEVAL AND VALIDATION
 	// ================================================================================
 	// Retrieve member profile associated with the loan transaction
+	fmt.Println("DEBUG: loanTransaction.MemberProfileID:", loanTransaction.MemberProfileID)
 	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -121,6 +135,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 	}
+	fmt.Println("DEBUG: memberProfile:", memberProfile)
 
 	if memberProfile == nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -135,6 +150,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 5: LOAN TRANSACTION ENTRIES PROCESSING AND LEDGER UPDATES
 	// ================================================================================
 	// Retrieve all loan transaction entries for processing automatic deductions
+	fmt.Println("DEBUG: Fetching loan transaction entries for loan ID:", loanTransaction.ID)
 	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    loanTransaction.OrganizationID,
@@ -143,15 +159,21 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction entries"))
 	}
+	fmt.Println("DEBUG: Found", len(loanTransactionEntries), "loan transaction entries")
 
 	// Process each loan transaction entry for ledger updates
-	for _, entry := range loanTransactionEntries {
+	for i, entry := range loanTransactionEntries {
+		fmt.Println("DEBUG: Processing entry", i+1, "of", len(loanTransactionEntries))
+		fmt.Println("DEBUG: entry:", entry)
+		fmt.Println("DEBUG: entry.AccountID:", entry.AccountID)
 		// Skip entries marked as deleted automatic loan deductions
 		if entry.IsAutomaticLoanDeductionDeleted {
+			fmt.Println("DEBUG: Skipping deleted entry", i+1)
 			continue
 		}
 
 		// Retrieve account history for the transaction entry at the specific time
+		fmt.Println("DEBUG: Fetching account history for AccountID:", *entry.AccountID)
 		accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 			context,
 			*entry.AccountID,
@@ -162,14 +184,20 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		if err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
 		}
+		fmt.Println("DEBUG: accountHistory:", accountHistory)
 
 		// Convert account history to account model for processing
+		fmt.Println("DEBUG: Converting account history to model")
 		account := e.core.AccountHistoryToModel(accountHistory)
+		fmt.Println("DEBUG: account:", account)
 		if accountHistory == nil {
 			return nil, endTx(eris.New("account history not found for entry"))
 		}
 
 		// Process member ledger accounts differently from subsidiary accounts
+		fmt.Println("DEBUG: account.IsMemberLedger():", account.IsMemberLedger())
+		fmt.Println("DEBUG: account.DefaultPaymentTypeID:", account.DefaultPaymentTypeID)
+		fmt.Println("DEBUG: account.DefaultPaymentType:", account.DefaultPaymentType)
 		if account.IsMemberLedger() {
 			// Create new general ledger entry for member account
 			memberLedgerEntry := &core.GeneralLedger{
@@ -196,6 +224,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				LoanTransactionID:          &loanTransaction.ID,
 			}
 
+			fmt.Println("DEBUG: Creating member ledger entry:", memberLedgerEntry)
 			// Save member ledger entry to database
 			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 				e.Footstep(ctx, FootstepEvent{
@@ -207,6 +236,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			}
 
 			// STEP 5: Fix in member ledger update
+			fmt.Println("DEBUG: Updating member accounting ledger for MemberProfileID:", *loanTransaction.MemberProfileID)
 			_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 				context,
 				tx,
@@ -230,6 +260,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 			}
 		} else {
+			fmt.Println("DEBUG: Processing non-member ledger entry")
 			intMemberEntry := &core.GeneralLedger{
 				CreatedAt:                  now,
 				CreatedByID:                userOrg.UserID,
@@ -253,6 +284,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				CurrencyID:                 &loanAccountCurrency.ID,
 				LoanTransactionID:          &loanTransaction.ID,
 			}
+			fmt.Println("DEBUG: Creating interest member ledger entry:", intMemberEntry)
 			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, intMemberEntry); err != nil {
 				e.Footstep(ctx, FootstepEvent{
 					Activity: "interest-member-ledger-failed",
@@ -270,6 +302,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 6: INTEREST ACCOUNT PROCESSING FOR STRAIGHT COMPUTATION
 	// ================================================================================
 	// Retrieve loan-related accounts for interest calculations
+	fmt.Println("DEBUG: Fetching loan-related accounts for interest processing")
+	fmt.Println("DEBUG: loanTransaction.AccountID:", loanTransaction.AccountID)
 	loanRelatedAccounts, err := e.core.GetAccountHistoriesByFiltersAtTime(
 		context,
 		loanTransaction.OrganizationID,
@@ -287,8 +321,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String()))
 	}
 
+	fmt.Println("DEBUG: Found", len(loanRelatedAccounts), "loan-related accounts for interest")
 	// Process each interest-bearing account with straight computation
-	for _, interestAccount := range loanRelatedAccounts {
+	for j, interestAccount := range loanRelatedAccounts {
+		fmt.Println("DEBUG: Processing interest account", j+1, "of", len(loanRelatedAccounts))
+		fmt.Println("DEBUG: interestAccount:", interestAccount)
 		// Get account history at the specific transaction time
 		interestAccountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 			context,
@@ -301,27 +338,38 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			return nil, endTx(eris.Wrap(err, "failed to retrieve interest account history"))
 		}
 
+		fmt.Println("DEBUG: interestAccountHistory:", interestAccountHistory)
 		// Use account history if available, otherwise use current account data
 		if interestAccountHistory != nil {
 			interestAccount = e.core.AccountHistoryToModel(interestAccountHistory)
 		}
+		fmt.Println("DEBUG: Final interestAccount:", interestAccount)
 
 		// Filter accounts: only process loan-related accounts with straight computation
 		// Skip loan principal accounts and fines accounts
+		fmt.Println("DEBUG: interestAccount.LoanAccountID:", interestAccount.LoanAccountID)
+		fmt.Println("DEBUG: interestAccount.ComputationType:", interestAccount.ComputationType)
+		fmt.Println("DEBUG: interestAccount.Type:", interestAccount.Type)
 		if interestAccount.LoanAccountID == nil ||
 			interestAccount.ComputationType != core.Straight ||
 			(interestAccount.Type == core.AccountTypeLoan || interestAccount.Type == core.AccountTypeFines) {
+			fmt.Println("DEBUG: Skipping interest account due to filter conditions")
 			continue
 		}
 		// Process member interest accounts
+		fmt.Println("DEBUG: Processing interest - IsMemberLedger:", interestAccount.IsMemberLedger())
+		fmt.Println("DEBUG: interestAccount.DefaultPaymentTypeID:", interestAccount.DefaultPaymentTypeID)
+		fmt.Println("DEBUG: interestAccount.DefaultPaymentType:", interestAccount.DefaultPaymentType)
 		if interestAccount.IsMemberLedger() {
 			// Lock member interest account ledger for atomic updates
 
 			straightInterestAmount := e.usecase.ComputeInterestStraight(
 				loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
+			fmt.Println("DEBUG: straightInterestAmount:", straightInterestAmount)
 
 			credit := straightInterestAmount
 			debit := 0.0
+			fmt.Println("DEBUG: Creating member interest entry - credit:", credit, "debit:", debit)
 			// Create member interest ledger entry
 			memberInterestEntry := &core.GeneralLedger{
 				CreatedAt:                  now,
@@ -347,6 +395,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				LoanTransactionID:          &loanTransaction.ID,
 			}
 
+			fmt.Println("DEBUG: Saving member interest ledger entry:", memberInterestEntry)
 			// Save member interest ledger entry to database
 			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberInterestEntry); err != nil {
 				e.Footstep(ctx, FootstepEvent{
@@ -356,6 +405,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				})
 				return nil, endTx(eris.Wrap(err, "failed to create member interest ledger entry"))
 			}
+			fmt.Println("DEBUG: Updating member accounting ledger for interest - MemberProfileID:", *loanTransaction.MemberProfileID)
 			_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
 				context,
 				tx,
@@ -380,13 +430,15 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			}
 
 		} else {
-
+			fmt.Println("DEBUG: Processing subsidiary interest account")
 			// Calculate straight interest amount for subsidiary account
 			straightInterestAmount := e.usecase.ComputeInterestStraight(
 				loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
+			fmt.Println("DEBUG: Subsidiary straightInterestAmount:", straightInterestAmount)
 
 			credit := 0.0
 			debit := straightInterestAmount
+			fmt.Println("DEBUG: Creating subsidiary interest entry - credit:", credit, "debit:", debit)
 			// Create subsidiary interest account ledger entry
 			subsidiaryInterestEntry := &core.GeneralLedger{
 				CreatedAt:                  now,
@@ -412,6 +464,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				LoanTransactionID:          &loanTransaction.ID,
 			}
 
+			fmt.Println("DEBUG: Saving subsidiary interest ledger entry:", subsidiaryInterestEntry)
 			// Save subsidiary interest ledger entry to database
 			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, subsidiaryInterestEntry); err != nil {
 				e.Footstep(ctx, FootstepEvent{
@@ -433,22 +486,27 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// ================================================================================
 	// STEP 7: LOAN TRANSACTION FINALIZATION AND STATUS UPDATE
 	// ================================================================================
+	fmt.Println("DEBUG: Updating loan transaction with release information")
 	// Update loan transaction with release information and timestamps
 	loanTransaction.ReleasedDate = &userOrgTime
 	loanTransaction.ReleasedByID = &userOrg.UserID
 	loanTransaction.UpdatedAt = now
 	loanTransaction.Count++
 	loanTransaction.UpdatedByID = userOrg.UserID
+	fmt.Println("DEBUG: Updated loanTransaction:", loanTransaction)
 
 	// Save updated loan transaction to database
+	fmt.Println("DEBUG: Saving updated loan transaction to database")
 	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
+	fmt.Println("DEBUG: Loan transaction saved successfully")
 
 	// ================================================================================
 	// STEP 8: DATABASE TRANSACTION COMMIT
 	// ================================================================================
 	// Commit all changes to the database atomically
+	fmt.Println("DEBUG: Committing database transaction")
 	if err := endTx(nil); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "database-commit-failed",
@@ -462,6 +520,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 9: FINAL LOAN TRANSACTION RETRIEVAL AND RESPONSE
 	// ================================================================================
 	// Retrieve and return the updated loan transaction with all relationships
+	fmt.Println("DEBUG: Retrieving final updated loan transaction")
 	updatedloanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -478,5 +537,6 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		Module:      "Loan Release",
 	})
 
+	fmt.Println("DEBUG: Loan release completed successfully")
 	return updatedloanTransaction, nil
 }
