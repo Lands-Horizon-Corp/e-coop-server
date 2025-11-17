@@ -261,8 +261,10 @@ func (m *Core) generalLedger() {
 			if err != nil {
 				return nil
 			}
+
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
+				EntryDate:                  data.EntryDate.Format(time.RFC3339),
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
 				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
@@ -301,18 +303,18 @@ func (m *Core) generalLedger() {
 				LoanAdjustmentType:         data.LoanAdjustmentType,
 				SignatureMediaID:           data.SignatureMediaID,
 				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
-				EntryDate:                  data.EntryDate.Format(time.RFC3339),
-				BankID:                     data.BankID,
-				Bank:                       m.BankManager.ToModel(data.Bank),
-				ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
-				ProofOfPaymentMedia:        m.MediaManager.ToModel(data.ProofOfPaymentMedia),
-				CurrencyID:                 data.CurrencyID,
-				Currency:                   m.CurrencyManager.ToModel(data.Currency),
-				BankReferenceNumber:        data.BankReferenceNumber,
-				Description:                data.Description,
-				PrintNumber:                data.PrintNumber,
-				AccountHistoryID:           accountHistoryID,
-				Balance:                    data.Balance}
+
+				BankID:                data.BankID,
+				Bank:                  m.BankManager.ToModel(data.Bank),
+				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
+				ProofOfPaymentMedia:   m.MediaManager.ToModel(data.ProofOfPaymentMedia),
+				CurrencyID:            data.CurrencyID,
+				Currency:              m.CurrencyManager.ToModel(data.Currency),
+				BankReferenceNumber:   data.BankReferenceNumber,
+				Description:           data.Description,
+				PrintNumber:           data.PrintNumber,
+				AccountHistoryID:      accountHistoryID,
+				Balance:               data.Balance}
 		},
 		Created: func(data *GeneralLedger) []string {
 			return []string{

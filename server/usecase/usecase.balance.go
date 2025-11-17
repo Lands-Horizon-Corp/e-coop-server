@@ -143,7 +143,7 @@ func (t *TransactionService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*
 
 	// Sort by CreatedAt (oldest first)
 	sort.Slice(GeneralLedgers, func(i, j int) bool {
-		return GeneralLedgers[i].CreatedAt.Before(GeneralLedgers[j].CreatedAt)
+		return GeneralLedgers[i].EntryDate.Before(*GeneralLedgers[j].EntryDate)
 	})
 
 	// Group by AccountID and calculate running balance
