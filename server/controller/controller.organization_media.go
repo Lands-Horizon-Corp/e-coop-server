@@ -22,11 +22,11 @@ func (c *Controller) organizationMediaController() {
 		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.core.OrganizationMediaFindByOrganization(context, user.OrganizationID)
+		organizationMedia, err := c.core.OrganizationMediaFindByOrganization(context, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No organization media found for the current organization"})
 		}
@@ -41,12 +41,12 @@ func (c *Controller) organizationMediaController() {
 		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		organizationMedia, err := c.core.OrganizationMediaManager.PaginationWithFields(context, ctx, &core.OrganizationMedia{
-			OrganizationID: user.OrganizationID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch organization media for pagination: " + err.Error()})

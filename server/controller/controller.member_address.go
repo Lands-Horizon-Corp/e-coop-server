@@ -41,7 +41,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), user not assigned to branch.",
@@ -69,11 +69,11 @@ func (c *Controller) memberAddressController() {
 			Landmark:        req.Landmark,
 			Address:         req.Address,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
+			CreatedByID:     userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 			Longitude:       req.Longitude,
 			Latitude:        req.Latitude,
 		}
@@ -120,7 +120,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -129,7 +129,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), user not assigned to branch.",
@@ -147,9 +147,9 @@ func (c *Controller) memberAddressController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = user.UserID
-		value.OrganizationID = user.OrganizationID
-		value.BranchID = *user.BranchID
+		value.UpdatedByID = userOrg.UserID
+		value.OrganizationID = userOrg.OrganizationID
+		value.BranchID = *userOrg.BranchID
 
 		value.MemberProfileID = req.MemberProfileID
 		value.Label = req.Label

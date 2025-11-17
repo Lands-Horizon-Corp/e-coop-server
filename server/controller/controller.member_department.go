@@ -21,11 +21,11 @@ func (c *Controller) memberDepartmentController() {
 		Note:         "Returns all member department history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member department history: " + err.Error()})
 		}
@@ -44,13 +44,13 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager.PaginationWithFields(context, ctx, &core.MemberDepartmentHistory{
-			OrganizationID:  user.OrganizationID,
-			BranchID:        *user.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
 		})
 		if err != nil {
@@ -67,11 +67,11 @@ func (c *Controller) memberDepartmentController() {
 		Note:         "Returns all member departments for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.core.MemberDepartmentCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberDepartment, err := c.core.MemberDepartmentCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments: " + err.Error()})
 		}
@@ -86,13 +86,13 @@ func (c *Controller) memberDepartmentController() {
 		Note:         "Returns paginated member departments for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberDepartment, err := c.core.MemberDepartmentManager.PaginationWithFields(context, ctx, &core.MemberDepartment{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments for pagination: " + err.Error()})
@@ -118,7 +118,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -133,11 +133,11 @@ func (c *Controller) memberDepartmentController() {
 			Description:    req.Description,
 			Icon:           req.Icon,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberDepartmentManager.Create(context, memberDepartment); err != nil {
@@ -176,7 +176,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_department_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,9 +204,9 @@ func (c *Controller) memberDepartmentController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member department not found: " + err.Error()})
 		}
 		memberDepartment.UpdatedAt = time.Now().UTC()
-		memberDepartment.UpdatedByID = user.UserID
-		memberDepartment.OrganizationID = user.OrganizationID
-		memberDepartment.BranchID = *user.BranchID
+		memberDepartment.UpdatedByID = userOrg.UserID
+		memberDepartment.OrganizationID = userOrg.OrganizationID
+		memberDepartment.BranchID = *userOrg.BranchID
 		memberDepartment.Name = req.Name
 		memberDepartment.Description = req.Description
 		memberDepartment.Icon = req.Icon

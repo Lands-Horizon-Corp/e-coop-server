@@ -1,19 +1,5 @@
 package event
 
-func (m *Event) TBBatchFunding() {}
+import "github.com/google/uuid"
 
-func (m *Event) TBDepositInBank() {}
-
-func (m *Event) TBCashCount() {}
-
-func (m *Event) TBCheckRemittance() {}
-
-func (m *Event) TBOnlineRemittance() {}
-
-func (m *Event) TBDisbursements() {}
-
-func (m *Event) TBCashCheckVoucherRelease() {}
-
-func (m *Event) TBJournalVoucherRelease() {}
-
-func (m *Event) TBLoanRelease() {}
+func (m *Event) TransactionBatchBalancing(transactionBatchID uuid.UUID)

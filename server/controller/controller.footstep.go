@@ -31,7 +31,7 @@ func (c *Controller) footstepController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -40,7 +40,7 @@ func (c *Controller) footstepController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), user not assigned to branch.",
@@ -52,7 +52,7 @@ func (c *Controller) footstepController() {
 		latitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude"))
 		footstep := &core.Footstep{
 			Activity: req.Activity,
-			UserType: user.UserType,
+			UserType: userOrg.UserType,
 			Module:   req.Module,
 
 			Description:    req.Description,
@@ -65,12 +65,12 @@ func (c *Controller) footstepController() {
 			AcceptLanguage: ctx.Request().Header.Get("Accept-Language"),
 			Timestamp:      time.Now().UTC(),
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			UserID:         &user.UserID,
-			BranchID:       user.BranchID,
-			OrganizationID: &user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			UserID:         &userOrg.UserID,
+			BranchID:       userOrg.BranchID,
+			OrganizationID: &userOrg.OrganizationID,
 		}
 
 		if err := c.core.FootstepManager.Create(context, footstep); err != nil {

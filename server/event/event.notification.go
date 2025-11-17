@@ -84,21 +84,21 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}
 
 		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
-			OrganizationID: user.OrganizationID,
-			BranchID:       user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       userOrg.BranchID,
 		})
 		if err != nil {
 			return
 		}
 
 		adminUsers := e.filterAdminUsers(userOrganizations)
-		e.createNotificationForUsers(context, adminUsers, data, &user.UserID)
+		e.createNotificationForUsers(context, adminUsers, data, &userOrg.UserID)
 	}()
 }
 
@@ -108,19 +108,19 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		user, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}
 
 		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
-			OrganizationID: user.OrganizationID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return
 		}
 
-		e.createNotificationForUsers(context, userOrganizations, data, &user.UserID)
+		e.createNotificationForUsers(context, userOrganizations, data, &userOrg.UserID)
 	}()
 }
 

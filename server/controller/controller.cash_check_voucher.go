@@ -24,14 +24,14 @@ func (c *Controller) cashCheckVoucherController() {
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cashCheckVouchers, err := c.core.CashCheckVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check vouchers found for the current branch"})
 		}
@@ -46,16 +46,16 @@ func (c *Controller) cashCheckVoucherController() {
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		cashCheckVouchers, err := c.core.CashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CashCheckVoucher{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check vouchers for pagination: " + err.Error()})
@@ -208,7 +208,7 @@ func (c *Controller) cashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -217,7 +217,7 @@ func (c *Controller) cashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), user not assigned to branch.",
@@ -287,11 +287,11 @@ func (c *Controller) cashCheckVoucherController() {
 			CheckEntryCheckDate:           request.CheckEntryCheckDate,
 			CheckEntryAccountID:           request.CheckEntryAccountID,
 			CreatedAt:                     time.Now().UTC(),
-			CreatedByID:                   user.UserID,
+			CreatedByID:                   userOrg.UserID,
 			UpdatedAt:                     time.Now().UTC(),
-			UpdatedByID:                   user.UserID,
-			BranchID:                      *user.BranchID,
-			OrganizationID:                user.OrganizationID,
+			UpdatedByID:                   userOrg.UserID,
+			BranchID:                      *userOrg.BranchID,
+			OrganizationID:                userOrg.OrganizationID,
 			Name:                          request.Name,
 			CurrencyID:                    request.CurrencyID,
 		}
@@ -306,7 +306,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash check voucher: " + endTx(err).Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -319,18 +319,18 @@ func (c *Controller) cashCheckVoucherController() {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				entry := &core.CashCheckVoucherEntry{
 					AccountID:              entryReq.AccountID,
-					EmployeeUserID:         &user.UserID,
+					EmployeeUserID:         &userOrg.UserID,
 					TransactionBatchID:     &transactionBatch.ID,
 					CashCheckVoucherID:     cashCheckVoucher.ID,
 					Debit:                  entryReq.Debit,
 					Credit:                 entryReq.Credit,
 					Description:            entryReq.Description,
 					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            user.UserID,
+					CreatedByID:            userOrg.UserID,
 					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            user.UserID,
-					BranchID:               *user.BranchID,
-					OrganizationID:         user.OrganizationID,
+					UpdatedByID:            userOrg.UserID,
+					BranchID:               *userOrg.BranchID,
+					OrganizationID:         userOrg.OrganizationID,
 					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					MemberProfileID:        entryReq.MemberProfileID,
 				}
@@ -391,7 +391,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher data: " + err.Error()})
 		}
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -472,7 +472,7 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.CheckEntryCheckDate = request.CheckEntryCheckDate
 		cashCheckVoucher.CheckEntryAccountID = request.CheckEntryAccountID
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
-		cashCheckVoucher.UpdatedByID = user.UserID
+		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.Name = request.Name
 
 		// Handle deleted entries
@@ -485,7 +485,7 @@ func (c *Controller) cashCheckVoucherController() {
 				if entry.CashCheckVoucherID != cashCheckVoucher.ID {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher: " + endTx(eris.New("invalid entry")).Error()})
 				}
-				entry.DeletedByID = &user.UserID
+				entry.DeletedByID = &userOrg.UserID
 				if err := c.core.CashCheckVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -496,7 +496,7 @@ func (c *Controller) cashCheckVoucherController() {
 				}
 			}
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -520,13 +520,13 @@ func (c *Controller) cashCheckVoucherController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get cash check voucher entry: " + endTx(err).Error()})
 					}
 					entry.AccountID = entryReq.AccountID
-					entry.EmployeeUserID = &user.UserID
+					entry.EmployeeUserID = &userOrg.UserID
 					entry.TransactionBatchID = &transactionBatch.ID
 					entry.Debit = entryReq.Debit
 					entry.Credit = entryReq.Credit
 					entry.Description = entryReq.Description
 					entry.UpdatedAt = time.Now().UTC()
-					entry.UpdatedByID = user.UserID
+					entry.UpdatedByID = userOrg.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.core.CashCheckVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
@@ -540,18 +540,18 @@ func (c *Controller) cashCheckVoucherController() {
 				} else {
 					entry := &core.CashCheckVoucherEntry{
 						AccountID:              entryReq.AccountID,
-						EmployeeUserID:         &user.UserID,
+						EmployeeUserID:         &userOrg.UserID,
 						TransactionBatchID:     &transactionBatch.ID,
 						CashCheckVoucherID:     cashCheckVoucher.ID,
 						Debit:                  entryReq.Debit,
 						Credit:                 entryReq.Credit,
 						Description:            entryReq.Description,
 						CreatedAt:              time.Now().UTC(),
-						CreatedByID:            user.UserID,
+						CreatedByID:            userOrg.UserID,
 						UpdatedAt:              time.Now().UTC(),
-						UpdatedByID:            user.UserID,
-						BranchID:               *user.BranchID,
-						OrganizationID:         user.OrganizationID,
+						UpdatedByID:            userOrg.UserID,
+						BranchID:               *userOrg.BranchID,
+						OrganizationID:         userOrg.OrganizationID,
 						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 						MemberProfileID:        entryReq.MemberProfileID,
 					}

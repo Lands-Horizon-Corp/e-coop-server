@@ -22,14 +22,14 @@ func (c *Controller) timeDepositTypeController() {
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		timeDepositTypes, err := c.core.TimeDepositTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		timeDepositTypes, err := c.core.TimeDepositTypeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}
@@ -73,7 +73,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -82,7 +82,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), user not assigned to branch.",
@@ -98,11 +98,11 @@ func (c *Controller) timeDepositTypeController() {
 			PreMatureRate:  req.PreMatureRate,
 			Excess:         req.Excess,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			CurrencyID:     req.CurrencyID,
 		}
 
@@ -150,7 +150,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) timeDepositTypeController() {
 		timeDepositType.PreMatureRate = req.PreMatureRate
 		timeDepositType.Excess = req.Excess
 		timeDepositType.UpdatedAt = time.Now().UTC()
-		timeDepositType.UpdatedByID = user.UserID
+		timeDepositType.UpdatedByID = userOrg.UserID
 
 		timeDepositType.Header1 = req.Header1
 		timeDepositType.Header2 = req.Header2
@@ -261,7 +261,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingComputation.Header10 = computationReq.Header10
 					existingComputation.Header11 = computationReq.Header11
 					existingComputation.UpdatedAt = time.Now().UTC()
-					existingComputation.UpdatedByID = user.UserID
+					existingComputation.UpdatedByID = userOrg.UserID
 					if err := c.core.TimeDepositComputationManager.UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + endTx(err).Error()})
 					}
@@ -283,11 +283,11 @@ func (c *Controller) timeDepositTypeController() {
 						Header10:          computationReq.Header10,
 						Header11:          computationReq.Header11,
 						CreatedAt:         time.Now().UTC(),
-						CreatedByID:       user.UserID,
+						CreatedByID:       userOrg.UserID,
 						UpdatedAt:         time.Now().UTC(),
-						UpdatedByID:       user.UserID,
-						BranchID:          *user.BranchID,
-						OrganizationID:    user.OrganizationID,
+						UpdatedByID:       userOrg.UserID,
+						BranchID:          *userOrg.BranchID,
+						OrganizationID:    userOrg.OrganizationID,
 					}
 					if err := c.core.TimeDepositComputationManager.CreateWithTx(context, tx, newComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation: " + endTx(err).Error()})
@@ -310,7 +310,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingPreMature.To = preMatureReq.To
 					existingPreMature.Rate = preMatureReq.Rate
 					existingPreMature.UpdatedAt = time.Now().UTC()
-					existingPreMature.UpdatedByID = user.UserID
+					existingPreMature.UpdatedByID = userOrg.UserID
 					if err := c.core.TimeDepositComputationPreMatureManager.UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + endTx(err).Error()})
 					}
@@ -323,11 +323,11 @@ func (c *Controller) timeDepositTypeController() {
 						To:                preMatureReq.To,
 						Rate:              preMatureReq.Rate,
 						CreatedAt:         time.Now().UTC(),
-						CreatedByID:       user.UserID,
+						CreatedByID:       userOrg.UserID,
 						UpdatedAt:         time.Now().UTC(),
-						UpdatedByID:       user.UserID,
-						BranchID:          *user.BranchID,
-						OrganizationID:    user.OrganizationID,
+						UpdatedByID:       userOrg.UserID,
+						BranchID:          *userOrg.BranchID,
+						OrganizationID:    userOrg.OrganizationID,
 					}
 					if err := c.core.TimeDepositComputationPreMatureManager.CreateWithTx(context, tx, newPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation pre mature: " + endTx(err).Error()})
@@ -457,7 +457,7 @@ func (c *Controller) timeDepositTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -468,8 +468,8 @@ func (c *Controller) timeDepositTypeController() {
 		}
 		timeDepositTypes, err := c.core.TimeDepositTypeManager.Find(context, &core.TimeDepositType{
 			CurrencyID:     *currencyID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types: " + err.Error()})

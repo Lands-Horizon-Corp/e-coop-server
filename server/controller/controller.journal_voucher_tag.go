@@ -22,14 +22,14 @@ func (c *Controller) journalVoucherTagController() {
 		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.JournalVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.JournalVoucherTagCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the current branch"})
 		}
@@ -44,16 +44,16 @@ func (c *Controller) journalVoucherTagController() {
 		ResponseType: core.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		tags, err := c.core.JournalVoucherTagManager.PaginationWithFields(context, ctx, &core.JournalVoucherTag{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal voucher tags for pagination: " + err.Error()})
@@ -98,7 +98,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -107,7 +107,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher tag creation failed (/journal-voucher-tag), user not assigned to branch.",
@@ -124,11 +124,11 @@ func (c *Controller) journalVoucherTagController() {
 			Color:            req.Color,
 			Icon:             req.Icon,
 			CreatedAt:        time.Now().UTC(),
-			CreatedByID:      user.UserID,
+			CreatedByID:      userOrg.UserID,
 			UpdatedAt:        time.Now().UTC(),
-			UpdatedByID:      user.UserID,
-			BranchID:         *user.BranchID,
-			OrganizationID:   user.OrganizationID,
+			UpdatedByID:      userOrg.UserID,
+			BranchID:         *userOrg.BranchID,
+			OrganizationID:   userOrg.OrganizationID,
 		}
 
 		if err := c.core.JournalVoucherTagManager.Create(context, tag); err != nil {
@@ -175,7 +175,7 @@ func (c *Controller) journalVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -200,7 +200,7 @@ func (c *Controller) journalVoucherTagController() {
 		tag.Color = req.Color
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
-		tag.UpdatedByID = user.UserID
+		tag.UpdatedByID = userOrg.UserID
 		if err := c.core.JournalVoucherTagManager.UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -229,18 +229,18 @@ func (c *Controller) journalVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher ID"})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
 		tags, err := c.core.JournalVoucherTagManager.Find(context, &core.JournalVoucherTag{
 			JournalVoucherID: journalVoucherID,
-			OrganizationID:   user.OrganizationID,
-			BranchID:         *user.BranchID,
+			OrganizationID:   userOrg.OrganizationID,
+			BranchID:         *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal voucher tags found for the given journal voucher ID"})

@@ -22,11 +22,11 @@ func (c *Controller) automaticLoanDeductionController() {
 		ResponseType: core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -35,8 +35,8 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		// Find all for this computation sheet, org, and branch
 		alds, err := c.core.AutomaticLoanDeductionManager.Find(context, &core.AutomaticLoanDeduction{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -53,11 +53,11 @@ func (c *Controller) automaticLoanDeductionController() {
 		ResponseType: core.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -66,8 +66,8 @@ func (c *Controller) automaticLoanDeductionController() {
 		}
 		// Find all for this computation sheet, org, and branch
 		alds, err := c.core.AutomaticLoanDeductionManager.PaginationWithFields(context, ctx, &core.AutomaticLoanDeduction{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -94,7 +94,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -103,7 +103,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Automatic loan deduction creation failed (/automatic-loan-deduction), user not assigned to branch.",
@@ -142,11 +142,11 @@ func (c *Controller) automaticLoanDeductionController() {
 			Name:                name,
 			Description:         request.Description,
 			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
+			CreatedByID:         userOrg.UserID,
 			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			UpdatedByID:         userOrg.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			NumberOfMonths:      request.NumberOfMonths,
 		}
 
@@ -194,7 +194,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -242,7 +242,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		ald.Name = name
 		ald.Description = request.Description
 		ald.UpdatedAt = time.Now().UTC()
-		ald.UpdatedByID = user.UserID
+		ald.UpdatedByID = userOrg.UserID
 		ald.NumberOfMonths = request.NumberOfMonths
 
 		if err := c.core.AutomaticLoanDeductionManager.UpdateByID(context, ald.ID, ald); err != nil {

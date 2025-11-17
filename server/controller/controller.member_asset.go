@@ -41,7 +41,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid asset data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), user not assigned to branch.",
@@ -66,11 +66,11 @@ func (c *Controller) memberAssetController() {
 			Description:     req.Description,
 			Cost:            req.Cost,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
+			CreatedByID:     userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 		}
 		if err := c.core.MemberAssetManager.Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -115,7 +115,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid asset data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -124,7 +124,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), user not assigned to branch.",
@@ -142,9 +142,9 @@ func (c *Controller) memberAssetController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member asset record not found"})
 		}
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = user.UserID
-		value.OrganizationID = user.OrganizationID
-		value.BranchID = *user.BranchID
+		value.UpdatedByID = userOrg.UserID
+		value.OrganizationID = userOrg.OrganizationID
+		value.BranchID = *userOrg.BranchID
 		value.MediaID = req.MediaID
 		value.Name = req.Name
 		value.EntryDate = req.EntryDate

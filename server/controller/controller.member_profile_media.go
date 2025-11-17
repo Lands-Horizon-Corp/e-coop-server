@@ -24,7 +24,7 @@ func (c *Controller) memberProfileMediaController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
@@ -56,8 +56,8 @@ func (c *Controller) memberProfileMediaController() {
 		}
 		// Search for all member profile media for the specified member profile
 		memberProfileMediaList, err := c.core.MemberProfileMediaManager.FindRaw(context, &core.MemberProfileMedia{
-			BranchID:        user.BranchID,
-			OrganizationID:  &user.OrganizationID,
+			BranchID:        userOrg.BranchID,
+			OrganizationID:  &userOrg.OrganizationID,
 			MemberProfileID: &memberProfile.ID,
 		})
 		if err != nil {
@@ -98,7 +98,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media data: " + err.Error()})
 		}
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -108,7 +108,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile media creation failed (/member-profile-media), user not assigned to branch.",
@@ -122,11 +122,11 @@ func (c *Controller) memberProfileMediaController() {
 			Name:           reqData.Name,
 			Description:    reqData.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       user.BranchID,
-			OrganizationID: &user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       userOrg.BranchID,
+			OrganizationID: &userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberProfileMediaManager.Create(context, memberProfileMedia); err != nil {
@@ -182,7 +182,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media data: " + err.Error()})
 		}
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -217,7 +217,7 @@ func (c *Controller) memberProfileMediaController() {
 			Name:        reqData.Name,
 			Description: reqData.Description,
 			UpdatedAt:   time.Now().UTC(),
-			UpdatedByID: user.UserID,
+			UpdatedByID: userOrg.UserID,
 		}
 
 		if err := c.core.MemberProfileMediaManager.UpdateByID(context, *memberProfileMediaID, updateData); err != nil {
@@ -337,7 +337,7 @@ func (c *Controller) memberProfileMediaController() {
 		ResponseType: core.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -361,11 +361,11 @@ func (c *Controller) memberProfileMediaController() {
 			memberProfileMedia := &core.MemberProfileMedia{
 				MediaID:         &mediaID,
 				CreatedAt:       time.Now().UTC(),
-				CreatedByID:     user.UserID,
+				CreatedByID:     userOrg.UserID,
 				UpdatedAt:       time.Now().UTC(),
-				UpdatedByID:     user.UserID,
-				BranchID:        user.BranchID,
-				OrganizationID:  &user.OrganizationID,
+				UpdatedByID:     userOrg.UserID,
+				BranchID:        userOrg.BranchID,
+				OrganizationID:  &userOrg.OrganizationID,
 				MemberProfileID: memberProfileID,
 				Name:            media.FileName,
 				Description:     media.FileName + " at " + time.Now().Format(time.RFC3339),

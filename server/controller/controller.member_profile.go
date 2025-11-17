@@ -360,13 +360,13 @@ func (c *Controller) memberProfileController() {
 		Note:         "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.MemberProfileManager.PaginationWithFields(context, ctx, &core.MemberProfile{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles for pagination: " + err.Error()})
@@ -586,7 +586,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -647,12 +647,12 @@ func (c *Controller) memberProfileController() {
 		}
 
 		profile := &core.MemberProfile{
-			OrganizationID:       user.OrganizationID,
-			BranchID:             *user.BranchID,
+			OrganizationID:       userOrg.OrganizationID,
+			BranchID:             *userOrg.BranchID,
 			CreatedAt:            time.Now().UTC(),
 			UpdatedAt:            time.Now().UTC(),
-			CreatedByID:          user.UserID,
-			UpdatedByID:          user.UserID,
+			CreatedByID:          userOrg.UserID,
+			UpdatedByID:          userOrg.UserID,
 			UserID:               userProfileID,
 			OldReferenceID:       req.OldReferenceID,
 			Passbook:             req.Passbook,
@@ -681,7 +681,7 @@ func (c *Controller) memberProfileController() {
 		}
 
 		if userProfile != nil {
-			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userOrg.ID.String())
 			if err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
@@ -693,11 +693,11 @@ func (c *Controller) memberProfileController() {
 			developerKey = developerKey + uuid.NewString() + "-horizon"
 			userOrg := &core.UserOrganization{
 				CreatedAt:                time.Now().UTC(),
-				CreatedByID:              user.UserID,
+				CreatedByID:              userOrg.UserID,
 				UpdatedAt:                time.Now().UTC(),
-				UpdatedByID:              user.UserID,
-				OrganizationID:           user.OrganizationID,
-				BranchID:                 user.BranchID,
+				UpdatedByID:              userOrg.UserID,
+				OrganizationID:           userOrg.OrganizationID,
+				BranchID:                 userOrg.BranchID,
 				UserID:                   *userProfileID,
 				UserType:                 core.UserOrganizationTypeMember,
 				Description:              "",

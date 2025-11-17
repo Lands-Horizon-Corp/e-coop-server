@@ -22,16 +22,16 @@ func (c *Controller) cashCountController() {
 		ResponseType: core.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})
@@ -46,11 +46,11 @@ func (c *Controller) cashCountController() {
 		ResponseType: core.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -59,8 +59,8 @@ func (c *Controller) cashCountController() {
 		}
 		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
 			TransactionBatchID: *transactionBatchID,
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash counts found for the current branch"})

@@ -40,7 +40,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -60,11 +60,11 @@ func (c *Controller) memberGovernmentBenefitController() {
 			Value:           req.Value,
 			ExpiryDate:      req.ExpiryDate,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
+			CreatedByID:     userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberGovernmentBenefitManager.Create(context, value); err != nil {
@@ -112,7 +112,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -133,9 +133,9 @@ func (c *Controller) memberGovernmentBenefitController() {
 		}
 
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = user.UserID
-		value.OrganizationID = user.OrganizationID
-		value.BranchID = *user.BranchID
+		value.UpdatedByID = userOrg.UserID
+		value.OrganizationID = userOrg.OrganizationID
+		value.BranchID = *userOrg.BranchID
 		value.FrontMediaID = req.FrontMediaID
 		value.BackMediaID = req.BackMediaID
 		value.CountryCode = req.CountryCode

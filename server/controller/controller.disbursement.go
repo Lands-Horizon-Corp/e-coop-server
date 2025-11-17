@@ -22,14 +22,14 @@ func (c *Controller) disbursementController() {
 		ResponseType: core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, user.UserID, user.OrganizationID, *user.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch current transaction batch: " + err.Error()})
 		}
@@ -37,8 +37,8 @@ func (c *Controller) disbursementController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the current branch"})
 		}
 		disbursements, err := c.core.DisbursementManager.Find(context, &core.Disbursement{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 			CurrencyID:     transactionBatch.CurrencyID,
 		})
 		if err != nil {
@@ -55,16 +55,16 @@ func (c *Controller) disbursementController() {
 		ResponseType: core.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		disbursements, err := c.core.DisbursementManager.PaginationWithFields(context, ctx, &core.Disbursement{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch disbursements for pagination: " + err.Error()})
@@ -109,7 +109,7 @@ func (c *Controller) disbursementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -118,7 +118,7 @@ func (c *Controller) disbursementController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement creation failed (/disbursement), user not assigned to branch.",
@@ -132,11 +132,11 @@ func (c *Controller) disbursementController() {
 			Icon:           req.Icon,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			CurrencyID:     req.CurrencyID,
 		}
 
@@ -184,7 +184,7 @@ func (c *Controller) disbursementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid disbursement data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -206,7 +206,7 @@ func (c *Controller) disbursementController() {
 		disbursement.Icon = req.Icon
 		disbursement.Description = req.Description
 		disbursement.UpdatedAt = time.Now().UTC()
-		disbursement.UpdatedByID = user.UserID
+		disbursement.UpdatedByID = userOrg.UserID
 		disbursement.CurrencyID = req.CurrencyID
 		if err := c.core.DisbursementManager.UpdateByID(context, disbursement.ID, disbursement); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

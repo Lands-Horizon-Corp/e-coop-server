@@ -21,11 +21,11 @@ func (c *Controller) memberCenterController() {
 		Note:         "Returns all member center history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.core.MemberCenterHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberCenterHistory, err := c.core.MemberCenterHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history: " + err.Error()})
 		}
@@ -44,13 +44,13 @@ func (c *Controller) memberCenterController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberCenterHistory, err := c.core.MemberCenterHistoryManager.PaginationWithFields(context, ctx, &core.MemberCenterHistory{
-			OrganizationID:  user.OrganizationID,
-			BranchID:        *user.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
 		})
 		if err != nil {
@@ -67,11 +67,11 @@ func (c *Controller) memberCenterController() {
 		Note:         "Returns all member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenter, err := c.core.MemberCenterCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberCenter, err := c.core.MemberCenterCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers: " + err.Error()})
 		}
@@ -86,13 +86,13 @@ func (c *Controller) memberCenterController() {
 		Note:         "Returns paginated member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.MemberCenterManager.PaginationWithFields(context, ctx, &core.MemberCenter{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers for pagination: " + err.Error()})
@@ -118,7 +118,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -132,11 +132,11 @@ func (c *Controller) memberCenterController() {
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberCenterManager.Create(context, memberCenter); err != nil {
@@ -175,7 +175,7 @@ func (c *Controller) memberCenterController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,9 +203,9 @@ func (c *Controller) memberCenterController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
 		memberCenter.UpdatedAt = time.Now().UTC()
-		memberCenter.UpdatedByID = user.UserID
-		memberCenter.OrganizationID = user.OrganizationID
-		memberCenter.BranchID = *user.BranchID
+		memberCenter.UpdatedByID = userOrg.UserID
+		memberCenter.OrganizationID = userOrg.OrganizationID
+		memberCenter.BranchID = *userOrg.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
 		if err := c.core.MemberCenterManager.UpdateByID(context, memberCenter.ID, memberCenter); err != nil {

@@ -41,7 +41,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation pre mature data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation pre mature creation failed (/time-deposit-computation-pre-mature), user not assigned to branch.",
@@ -66,11 +66,11 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			To:                req.To,
 			Rate:              req.Rate,
 			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
+			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
+			UpdatedByID:       userOrg.UserID,
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
 		}
 
 		if err := c.core.TimeDepositComputationPreMatureManager.Create(context, timeDepositComputationPreMature); err != nil {
@@ -117,7 +117,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation pre mature data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -141,7 +141,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		timeDepositComputationPreMature.To = req.To
 		timeDepositComputationPreMature.Rate = req.Rate
 		timeDepositComputationPreMature.UpdatedAt = time.Now().UTC()
-		timeDepositComputationPreMature.UpdatedByID = user.UserID
+		timeDepositComputationPreMature.UpdatedByID = userOrg.UserID
 		if err := c.core.TimeDepositComputationPreMatureManager.UpdateByID(context, timeDepositComputationPreMature.ID, timeDepositComputationPreMature); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
