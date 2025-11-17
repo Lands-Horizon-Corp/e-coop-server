@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -25,6 +26,9 @@ func (e *Event) LoanAdjustment(
 	currentDate := now
 	if userOrg.TimeMachineTime != nil {
 		currentDate = *userOrg.TimeMachineTime
+		fmt.Println("DEBUG: Using TimeMachineTime:", currentDate)
+	} else {
+		fmt.Println("DEBUG: Using current time (now):", currentDate)
 	}
 
 	// ========================================

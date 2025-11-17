@@ -2093,7 +2093,7 @@ func (c *Controller) loanTransactionController() {
 				TotalCredit: 0, // sum of credit from general ledger
 				Balance:     0, // latest balance from account
 
-				DueDate:                        nil, // due date
+				DueDate:                        nil,
 				LastPayment:                    nil,
 				TotalNumberOfPayments:          0,
 				TotalNumberOfDeductions:        0,
