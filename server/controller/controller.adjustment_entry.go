@@ -162,9 +162,9 @@ func (c *Controller) adjustmentEntryController() {
 			Credit: req.Credit,
 
 			// Account and member information
-			AccountID:       req.AccountID,
-			MemberProfileID: req.MemberProfileID,
-
+			AccountID:          req.AccountID,
+			MemberProfileID:    req.MemberProfileID,
+			TransactionBatchID: transactionBatch.ID,
 			// Transaction metadata
 			ReferenceNumber:       req.ReferenceNumber,
 			Description:           req.Description,

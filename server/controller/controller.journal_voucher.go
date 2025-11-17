@@ -150,6 +150,7 @@ func (c *Controller) journalVoucherController() {
 			CashVoucherNumber: request.CashVoucherNumber,
 			Name:              request.Name,
 			CurrencyID:        request.CurrencyID,
+			EmployeeUserID:    &userOrg.UserID,
 		}
 
 		if err := c.core.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -281,6 +282,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
 		journalVoucher.Name = request.Name
+		journalVoucher.EmployeeUserID = &userOrg.UserID
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
@@ -900,6 +902,15 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been released"})
 		}
 
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, *journalVoucher.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "batch-retrieval-failed",
+				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		// ================================================================================
 		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
 		// ================================================================================
@@ -911,6 +922,7 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
+		journalVoucher.TransactionBatchID = &transactionBatch.ID
 
 		// ================================================================================
 		// STEP 2: RETRIEVE ALL JOURNAL VOUCHER ENTRIES FOR TRANSACTION RECORDING
@@ -941,8 +953,9 @@ func (c *Controller) journalVoucherController() {
 				Credit: entry.Credit,
 
 				// Account and member information
-				AccountID:       entry.AccountID,
-				MemberProfileID: entry.MemberProfileID,
+				AccountID:          entry.AccountID,
+				MemberProfileID:    entry.MemberProfileID,
+				TransactionBatchID: transactionBatch.ID,
 
 				// Transaction metadata
 				ReferenceNumber:       journalVoucher.CashVoucherNumber,
@@ -984,6 +997,10 @@ func (c *Controller) journalVoucherController() {
 				Module:      "JournalVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release journal voucher: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, *journalVoucher.TransactionBatchID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{

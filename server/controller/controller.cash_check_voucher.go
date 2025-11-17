@@ -849,7 +849,7 @@ func (c *Controller) cashCheckVoucherController() {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",
 				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-				Module:      "Loan Release",
+				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
@@ -892,6 +892,10 @@ func (c *Controller) cashCheckVoucherController() {
 
 		if err := c.core.CashCheckVoucherManager.UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, *cashCheckVoucher.TransactionBatchID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{
