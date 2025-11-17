@@ -22,9 +22,9 @@ func (e *Event) LoanAdjustment(
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	now := time.Now().UTC()
 
-	currentDate := time.Now().UTC()
+	currentDate := now
 	if userOrg.TimeMachineTime != nil {
-		currentDate = userOrg.UserOrgTime()
+		currentDate = *userOrg.TimeMachineTime
 	}
 
 	// ========================================

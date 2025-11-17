@@ -2086,12 +2086,14 @@ func (c *Controller) loanTransactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
 			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
-				AccountHistoryID:               accountHistory.ID,
-				AccountHistory:                 *c.core.AccountHistoryManager.ToModel(accountHistory),
-				TotalDebit:                     0,
-				TotalCredit:                    0,
-				Balance:                        0,
-				DueDate:                        nil,
+				AccountHistoryID: accountHistory.ID,
+				AccountHistory:   *c.core.AccountHistoryManager.ToModel(accountHistory),
+
+				TotalDebit:  0, // sum of debits from general ledger
+				TotalCredit: 0, // sum of credit from general ledger
+				Balance:     0, // latest balance from account
+
+				DueDate:                        nil, // due date
 				LastPayment:                    nil,
 				TotalNumberOfPayments:          0,
 				TotalNumberOfDeductions:        0,
