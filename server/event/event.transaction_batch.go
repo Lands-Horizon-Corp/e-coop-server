@@ -18,3 +18,73 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	// Cash Check voucher
 	return nil
 }
+
+/*
+
+--------------------------- Batch Funding
+cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
+	TransactionBatchID: transactionBatch.ID,
+	OrganizationID:     userOrg.OrganizationID,
+	BranchID:           *userOrg.BranchID,
+})
+if err != nil {
+	c.event.Footstep(ctx, event.FootstepEvent{
+		Activity:    "create-error",
+		Description: "Batch funding creation failed (/batch-funding), cash count lookup error: " + err.Error(),
+		Module:      "BatchFunding",
+	})
+	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve cash counts: " + err.Error()})
+}
+
+var totalCashCount float64
+for _, cashCount := range cashCounts {
+	totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, c.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
+}
+transactionBatch.BeginningBalance = c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, batchFundingReq.Amount)
+transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(batchFundingReq.Amount, transactionBatch.DepositInBank), totalCashCount)
+transactionBatch.CashCountTotal = totalCashCount
+transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, transactionBatch.DepositInBank)
+
+if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+	c.event.Footstep(ctx, event.FootstepEvent{
+		Activity:    "create-error",
+		Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
+		Module:      "BatchFunding",
+	})
+	return ctx.JSON(http.StatusConflict, map[string]string{"error": "Could not update transaction batch balances: " + err.Error()})
+}
+
+--------------------------- Cash Count
+
+
+--------------------------- Check Remittance
+
+allCheckRemittances, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
+			TransactionBatchID: &transactionBatch.ID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+})
+if err != nil {
+	c.event.Footstep(ctx, event.FootstepEvent{
+		Activity:    "delete-error",
+		Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
+		Module:      "CheckRemittance",
+	})
+	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to recalculate check remittances: " + err.Error()})
+}
+
+var totalCheckRemittance float64
+for _, remittance := range allCheckRemittances {
+	totalCheckRemittance = c.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
+}
+transactionBatch.TotalCheckRemittance = totalCheckRemittance
+transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
+transactionBatch.UpdatedAt = time.Now().UTC()
+transactionBatch.UpdatedByID = userOrg.UserID
+
+
+--------------------------- Online Remittance
+
+
+--------------------------- Disbursement Transaction
+*/
