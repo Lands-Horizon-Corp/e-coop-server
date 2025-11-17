@@ -72,18 +72,20 @@ type (
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
-		SignatureMediaID           *uuid.UUID          `gorm:"type:uuid"`
-		SignatureMedia             *Media              `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-		EntryDate                  *time.Time          `gorm:"type:date" json:"entry_date"`
-		BankID                     *uuid.UUID          `gorm:"type:uuid"`
-		Bank                       *Bank               `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
-		ProofOfPaymentMediaID      *uuid.UUID          `gorm:"type:uuid"`
-		ProofOfPaymentMedia        *Media              `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
-		CurrencyID                 *uuid.UUID          `gorm:"type:uuid"`
-		Currency                   *Currency           `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
-		BankReferenceNumber        string              `gorm:"type:varchar(50)"`
-		Description                string              `gorm:"type:text"`
-		PrintNumber                int                 `gorm:"default:0"`
+		Balance                    float64             `gorm:"type:decimal"`
+
+		SignatureMediaID      *uuid.UUID `gorm:"type:uuid"`
+		SignatureMedia        *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
+		EntryDate             *time.Time `gorm:"type:date" json:"entry_date"`
+		BankID                *uuid.UUID `gorm:"type:uuid"`
+		Bank                  *Bank      `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
+		ProofOfPaymentMediaID *uuid.UUID `gorm:"type:uuid"`
+		ProofOfPaymentMedia   *Media     `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
+		CurrencyID            *uuid.UUID `gorm:"type:uuid"`
+		Currency              *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+		BankReferenceNumber   string     `gorm:"type:varchar(50)"`
+		Description           string     `gorm:"type:text"`
+		PrintNumber           int        `gorm:"default:0"`
 	}
 
 	// GeneralLedgerResponse represents the response structure for GeneralLedger.
@@ -128,8 +130,9 @@ type (
 		LoanAdjustmentType *LoanAdjustmentType      `json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType  TypeOfPaymentType        `json:"type_of_payment_type"`
 
-		Credit float64 `json:"credit"`
-		Debit  float64 `json:"debit"`
+		Credit  float64 `json:"credit"`
+		Debit   float64 `json:"debit"`
+		Balance float64 `json:"balance"`
 
 		SignatureMediaID *uuid.UUID     `json:"signature_media_id,omitempty"`
 		SignatureMedia   *MediaResponse `json:"signature_media,omitempty"`

@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"sort"
+
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
@@ -132,4 +134,45 @@ func (t *TransactionService) StrictBalance(data Balance) (credit, debit, balance
 		return 0, 0, 0, eris.New("entries cannot be empty")
 	}
 	return credit, debit, balance, nil
+}
+
+func (t *TransactionService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core.GeneralLedger) []*core.GeneralLedger {
+	if len(GeneralLedgers) == 0 {
+		return GeneralLedgers
+	}
+
+	// Sort by CreatedAt (oldest first)
+	sort.Slice(GeneralLedgers, func(i, j int) bool {
+		return GeneralLedgers[i].CreatedAt.Before(GeneralLedgers[j].CreatedAt)
+	})
+
+	// Group by AccountID and calculate running balance
+	accountBalances := make(map[uuid.UUID]float64)
+
+	for _, ledger := range GeneralLedgers {
+		if ledger == nil || ledger.Account == nil || ledger.AccountID == nil {
+			continue
+		}
+
+		accountID := *ledger.AccountID
+		currentBalance := accountBalances[accountID]
+
+		// Calculate new balance based on account type
+		switch ledger.Account.GeneralLedgerType {
+		case core.GLTypeAssets, core.GLTypeExpenses:
+			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
+		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
+			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Credit-ledger.Debit)
+		default:
+			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
+		}
+
+		// Update the balance in the map
+		accountBalances[accountID] = currentBalance
+
+		// Set the running balance on the ledger
+		ledger.Balance = currentBalance
+	}
+
+	return GeneralLedgers
 }

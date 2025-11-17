@@ -2104,7 +2104,9 @@ func (c *Controller) loanTransactionController() {
 			})
 		}
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
-			GeneralLedger:     c.core.GeneralLedgerManager.ToModels(entries),
+			GeneralLedger: c.core.GeneralLedgerManager.ToModels(
+				c.usecase.GeneralLedgerAddBalanceByAccount(entries),
+			),
 			AccountSummary:    accountsummary,
 			Arrears:           arrears,
 			AmountGranted:     loanTransaction.Applied1,
