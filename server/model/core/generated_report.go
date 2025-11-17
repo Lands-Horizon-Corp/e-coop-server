@@ -58,6 +58,8 @@ type (
 		IsFavorite   bool   `gorm:"type:boolean;default:false" json:"is_favorite"`
 		Model        string `gorm:"type:varchar(255)" json:"model,omitempty"`
 		URL          string `gorm:"type:text" json:"url,omitempty"`
+		PaperSize    string `gorm:"type:text;default:''" json:"paper_size,omitempty"`
+		Template     string `gorm:"type:text;default:''" json:"template,omitempty"`
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
@@ -90,6 +92,8 @@ type (
 		IsFavorite    bool                  `json:"is_favorite"`
 		Model         string                `json:"model,omitempty"`
 		URL           string                `json:"url,omitempty"`
+		PaperSize     string                `json:"paper_size,omitempty"`
+		Template      string                `json:"template,omitempty"`
 		SystemMessage string                `json:"system_message,omitempty"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
@@ -103,6 +107,8 @@ type (
 		FilterSearch        string              `json:"filter_search,omitempty"`
 		URL                 string              `json:"url,omitempty"`
 		Model               string              `json:"model,omitempty"`
+		PaperSize           string              `json:"paper_size,omitempty"`
+		Template            string              `json:"template,omitempty"`
 		GeneratedReportType GeneratedReportType `json:"generated_report_type" validate:"required,oneof=pdf excel"`
 	}
 
@@ -164,6 +170,8 @@ func (m *Core) generatedReport() {
 				IsFavorite:          data.IsFavorite,
 				Model:               data.Model,
 				URL:                 data.URL,
+				PaperSize:           data.PaperSize,
+				Template:            data.Template,
 
 				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}

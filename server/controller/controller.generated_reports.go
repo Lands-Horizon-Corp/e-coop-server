@@ -117,8 +117,9 @@ func (c *Controller) generatedReports() {
 			Status:              core.GeneratedReportStatusPending,
 			GeneratedReportType: req.GeneratedReportType,
 			URL:                 req.URL,
-
-			UserID: &userOrg.UserID,
+			Template:            req.Template,
+			PaperSize:           req.PaperSize,
+			UserID:              &userOrg.UserID,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
@@ -206,6 +207,7 @@ func (c *Controller) generatedReports() {
 		generatedReport.Description = req.Description
 		generatedReport.UpdatedAt = time.Now().UTC()
 		generatedReport.UpdatedByID = userOrg.UserID
+
 		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
