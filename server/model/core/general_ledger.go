@@ -76,7 +76,7 @@ type (
 
 		SignatureMediaID      *uuid.UUID `gorm:"type:uuid"`
 		SignatureMedia        *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-		EntryDate             *time.Time `gorm:"type:date" json:"entry_date"`
+		EntryDate             time.Time  `gorm:"type:date" json:"entry_date"`
 		BankID                *uuid.UUID `gorm:"type:uuid"`
 		Bank                  *Bank      `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
 		ProofOfPaymentMediaID *uuid.UUID `gorm:"type:uuid"`

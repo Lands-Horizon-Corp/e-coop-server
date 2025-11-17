@@ -88,7 +88,7 @@ func (e *Event) LoanAdjustment(
 		BranchID:                   *userOrg.BranchID,
 		OrganizationID:             userOrg.OrganizationID,
 		ReferenceNumber:            loanTransaction.Voucher,
-		EntryDate:                  &currentDate,
+		EntryDate:                  currentDate,
 		AccountID:                  &account.ID,
 		MemberProfileID:            loanTransaction.MemberProfileID,
 		PaymentTypeID:              account.DefaultPaymentTypeID,
@@ -104,11 +104,6 @@ func (e *Event) LoanAdjustment(
 	}
 
 	fmt.Println("DEBUG: memberLedgerEntry.EntryDate:", memberLedgerEntry.EntryDate)
-	if memberLedgerEntry.EntryDate != nil {
-		fmt.Println("DEBUG: memberLedgerEntry.EntryDate value:", *memberLedgerEntry.EntryDate)
-	} else {
-		fmt.Println("DEBUG: memberLedgerEntry.EntryDate is nil")
-	}
 
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 		return endTx(eris.Wrap(err, "Failed to record adjustment in general ledger"))

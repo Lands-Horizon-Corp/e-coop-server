@@ -175,7 +175,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 						BranchID:                   *userOrg.BranchID,
 						OrganizationID:             userOrg.OrganizationID,
 						ReferenceNumber:            loanTransaction.Voucher,
-						EntryDate:                  &scheduledDate,
+						EntryDate:                  scheduledDate,
 						AccountID:                  &account.ID,
 						MemberProfileID:            &memberProfile.ID,
 						PaymentTypeID:              account.DefaultPaymentTypeID,
