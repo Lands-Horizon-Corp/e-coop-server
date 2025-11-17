@@ -431,10 +431,11 @@ type (
 	}
 
 	LoanTransactionSummaryResponse struct {
-		AmountGranted  float64                      `json:"amount_granted"`
-		AddOnAmount    float64                      `json:"add_on_amount"`
-		AccountSummary []LoanAccountSummaryResponse `json:"account_summary"`
-		GeneralLedger  []*GeneralLedgerResponse     `json:"general_ledger"`
+		LoanTransactionID uuid.UUID                    `json:"loan_transaction_id"`
+		AmountGranted     float64                      `json:"amount_granted"`
+		AddOnAmount       float64                      `json:"add_on_amount"`
+		AccountSummary    []LoanAccountSummaryResponse `json:"account_summary"`
+		GeneralLedger     []*GeneralLedgerResponse     `json:"general_ledger"`
 
 		Arrears float64 `json:"arrears"`
 

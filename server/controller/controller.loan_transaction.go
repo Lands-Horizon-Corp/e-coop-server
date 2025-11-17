@@ -2103,10 +2103,11 @@ func (c *Controller) loanTransactionController() {
 			})
 		}
 		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
-			GeneralLedger:  c.core.GeneralLedgerManager.ToModels(entries),
-			AccountSummary: accountsummary,
-			Arrears:        arrears,
-			AmountGranted:  loanTransaction.Applied1,
+			GeneralLedger:     c.core.GeneralLedgerManager.ToModels(entries),
+			AccountSummary:    accountsummary,
+			Arrears:           arrears,
+			AmountGranted:     loanTransaction.Applied1,
+			LoanTransactionID: loanTransaction.ID,
 		})
 	})
 }
