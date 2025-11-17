@@ -24,6 +24,7 @@ const (
 	GeneralLedgerSourceAdjustment     GeneralLedgerSource = "adjustment"
 	GeneralLedgerSourceJournalVoucher GeneralLedgerSource = "journal voucher"
 	GeneralLedgerSourceCheckVoucher   GeneralLedgerSource = "check voucher"
+	GeneralLedgerSourceLoan           GeneralLedgerSource = "loan"
 )
 
 // Assumes you have TypeOfPaymentType defined elsewhere, as in your payment_type model

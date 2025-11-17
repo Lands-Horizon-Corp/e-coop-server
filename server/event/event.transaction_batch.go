@@ -183,6 +183,9 @@ func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, or
 		BranchID:           branchID,
 		Source:             core.GeneralLedgerSourceJournalVoucher,
 	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find journal vouchers")
+	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: journalVouchers,
 	})
@@ -200,6 +203,21 @@ func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgI
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: checkVouchers,
+	})
+}
+
+func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+	loanVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             core.GeneralLedgerSourceLoan,
+	})
+	if err != nil {
+		return 0, 0, 0, eris.Wrap(err, "failed to find loan vouchers")
+	}
+	return m.usecase.Balance(usecase.Balance{
+		GeneralLedgers: loanVouchers,
 	})
 }
 
