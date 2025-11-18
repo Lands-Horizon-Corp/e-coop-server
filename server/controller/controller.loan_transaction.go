@@ -1927,8 +1927,25 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		schedule, err := c.event.LoanAmortizationSchedule(context, ctx, *loanTransactionID)
+		// ===============================
+		// STEP 1: AUTHENTICATION & AUTHORIZATION
+		// ===============================
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "authentication-failed",
+				Description: "Failed to authenticate user organization for loan amortization schedule generation: " + err.Error(),
+				Module:      "Loan Amortization",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to authenticate user organization for loan amortization schedule"})
+		}
+		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID, userOrg)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "schedule-retrieval-failed",
+				Description: "Failed to retrieve loan transaction schedule: " + err.Error(),
+				Module:      "Loan Amortization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, schedule)
