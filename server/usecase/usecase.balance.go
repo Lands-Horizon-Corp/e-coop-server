@@ -23,6 +23,8 @@ type Balance struct {
 	// Strict variables
 	CurrencyID *uuid.UUID
 	AccountID  *uuid.UUID
+
+	IsAddOn bool
 }
 
 type BalanceResponse struct {
@@ -41,6 +43,8 @@ type BalanceResponse struct {
 	LastPayment *time.Time
 	LastCredit  *time.Time
 	LastDebit   *time.Time
+
+	AddOnAmount float64
 }
 
 func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
@@ -53,6 +57,7 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	countAdded := 0
 	countDebit := 0
 	countCredit := 0
+	addOnAmount := 0.0
 	var lastPayment *time.Time
 	var lastCredit *time.Time
 	var lastDebit *time.Time
@@ -184,6 +189,9 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 					Balance: balance,
 				}, eris.New("nil loan transaction entry")
 			}
+			if entry.IsAddOn && data.IsAddOn {
+				addOnAmount = t.provider.Service.Decimal.Add(addOnAmount, entry.Debit+entry.Credit)
+			}
 			// Skip if AccountID filter is set and doesn't match
 			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
 				continue
@@ -270,6 +278,7 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 		LastPayment:     lastPayment,
 		LastCredit:      lastCredit,
 		LastDebit:       lastDebit,
+		AddOnAmount:     addOnAmount,
 	}, nil
 }
 

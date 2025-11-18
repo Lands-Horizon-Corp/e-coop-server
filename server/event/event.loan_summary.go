@@ -125,11 +125,9 @@ func (e *Event) LoanSummary(
 			TotalAdditions:          balance.Added,
 			TotalNumberOfPayments:   balance.CountCredit,
 			LoanTransactionID:       loanTransaction.ID,
+			LastPayment:             balance.LastPayment,
 
-			LastPayment: balance.LastPayment,
-
-			DueDate: nil,
-
+			DueDate:                        nil,
 			TotalAccountPrincipal:          0,
 			TotalAccountAdvancedPayment:    0,
 			TotalAccountPrincipalPaid:      0,
@@ -137,6 +135,19 @@ func (e *Event) LoanSummary(
 		})
 	}
 
+	// Retrieve all loan transaction entries for processing automatic deductions
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
+		LoanTransactionID: loanTransaction.ID,
+		OrganizationID:    loanTransaction.OrganizationID,
+		BranchID:          loanTransaction.BranchID,
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to retrieve loan transaction entries")
+	}
+	loanBalance, err := e.usecase.Balance(usecase.Balance{
+		LoanTransactionEntries: loanTransactionEntries,
+		IsAddOn:                loanTransaction.IsAddOn,
+	})
 	return &LoanTransactionSummaryResponse{
 		GeneralLedger: e.core.GeneralLedgerManager.ToModels(
 			e.usecase.GeneralLedgerAddBalanceByAccount(entries),
@@ -146,8 +157,8 @@ func (e *Event) LoanSummary(
 		AmountGranted:     loanTransaction.Applied1,
 		LoanTransactionID: loanTransaction.ID,
 		LastPayment:       lastPayment,
+		AddOnAmount:       loanBalance.AddOnAmount,
 
-		// AddOnAmount
 		// FirstDeliquencyDate
 		// FirstIrregularityDate
 		// TotalPrincipal
