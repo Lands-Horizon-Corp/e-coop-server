@@ -63,16 +63,13 @@ type LoanPaymentResponse struct {
 
 func (e *Event) LoanPaymenSummary(
 	context context.Context,
-	memberProfile *uuid.UUID,
 	loanTransactionID *uuid.UUID,
 	userOrg *core.UserOrganization,
 ) (*LoanPaymentResponse, error) {
 	// ===============================================================================================
 	// STEP 1: VALIDATE INPUT PARAMETERS
 	// ===============================================================================================
-	if memberProfile == nil {
-		return nil, eris.New("member profile is required")
-	}
+
 	if loanTransactionID == nil {
 		return nil, eris.New("loan transaction ID is required")
 	}
@@ -118,27 +115,6 @@ func (e *Event) LoanPaymenSummary(
 	// STEP 3: PROCESS EACH ACCOUNT
 	// ===============================================================================================
 	for _, account := range accounts {
-
-		// -------------------------------------------------------------------------------------------
-		// 3.2: Find Associated Loan Transaction
-		// -------------------------------------------------------------------------------------------
-		loanTransactions, err := e.core.LoanTransactionManager.Find(context, &core.LoanTransaction{
-			AccountID:       &account.ID,
-			MemberProfileID: memberProfile,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-		})
-		if err != nil {
-			return nil, eris.Wrapf(err,
-				"failed to retrieve loan transactions for account id: %s", &account.ID)
-		}
-
-		if len(loanTransactions) == 0 {
-			continue // No loan transaction found for this account
-		}
-
-		// Use the most recent loan transaction
-		loanTransaction := loanTransactions[0]
 
 		// -------------------------------------------------------------------------------------------
 		// 3.3: Get Amortization Schedule

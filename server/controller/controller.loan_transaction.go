@@ -2068,4 +2068,30 @@ func (c *Controller) loanTransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, loanSummary)
 	})
+
+	// GET api/v1/loan-transaction/:loan_transaction_id/payment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/payment",
+		Method:       "GET",
+		Note:         "Retrieves payment details for a specific loan transaction by ID.",
+		ResponseType: event.LoanPaymentResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanPayment, err := c.event.LoanPaymenSummary(context, loanTransactionID, userOrg)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan payment details: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, loanPayment)
+	})
 }
