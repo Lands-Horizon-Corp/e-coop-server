@@ -23,6 +23,7 @@ type TransactionEvent struct {
 	MemberProfileID      *uuid.UUID `json:"member_profile_id"`
 	SignatureMediaID     *uuid.UUID `json:"signature_media_id"`
 	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
+	LoanTransactionID    *uuid.UUID `json:"loan_transaction_id"`
 
 	Source core.GeneralLedgerSource `json:"source" validate:"required"`
 
@@ -280,7 +281,7 @@ func (e *Event) TransactionPayment(
 
 	// --- CHECK FOR LOAN ACCOUNT LEDGER ---
 	// Get current member account ledger with row-level locking if member profile exists
-	var loanTransactionID *uuid.UUID
+	loanTransactionID := data.LoanTransactionID
 
 	if memberProfileID != nil {
 		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
@@ -295,7 +296,7 @@ func (e *Event) TransactionPayment(
 			return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
 		}
 
-		if generalLedger != nil && generalLedger.LoanTransactionID != nil {
+		if data.LoanTransactionID != nil && generalLedger != nil && generalLedger.LoanTransactionID != nil {
 			loanTransactionID = generalLedger.LoanTransactionID
 			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
 			if err != nil {
