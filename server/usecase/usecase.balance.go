@@ -21,13 +21,13 @@ type Balance struct {
 
 	// Strict variables
 	CurrencyID *uuid.UUID
+	AccountID  *uuid.UUID
 }
 
 func (t *TransactionService) Balance(data Balance) (credit, debit, balance float64, err error) {
 	credit = 0.0
 	debit = 0.0
 	balance = 0.0
-
 	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
@@ -36,6 +36,10 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			}
 			if entry.Account == nil {
 				return 0, 0, 0, eris.New("general ledger missing account")
+			}
+			// Skip if AccountID filter is set and doesn't match
+			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
+				continue
 			}
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
@@ -58,6 +62,10 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 			if entry == nil {
 				return 0, 0, 0, eris.New("nil adjustment entry")
 			}
+			// Skip if AccountID filter is set and doesn't match
+			if data.AccountID != nil && !handlers.UUIDPtrEqual(&entry.AccountID, data.AccountID) {
+				continue
+			}
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
@@ -78,6 +86,10 @@ func (t *TransactionService) Balance(data Balance) (credit, debit, balance float
 		for _, entry := range data.LoanTransactionEntries {
 			if entry == nil {
 				return 0, 0, 0, eris.New("nil loan transaction entry")
+			}
+			// Skip if AccountID filter is set and doesn't match
+			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
+				continue
 			}
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)

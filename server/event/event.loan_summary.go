@@ -97,19 +97,28 @@ func (e *Event) LoanSummary(
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to retrieve account history: %s", err.Error())
 		}
+		credit, debit, balance, err := e.usecase.Balance(usecase.Balance{
+			GeneralLedgers: entries,
+			AccountID:      &entry.ID,
+		})
+		if err != nil {
+			return nil, eris.Wrapf(err, "failed to compute balance for account id: %s", entry.ID)
+		}
 		accountsummary = append(accountsummary, LoanAccountSummaryResponse{
 			AccountHistoryID: accountHistory.ID,
 			AccountHistory:   *e.core.AccountHistoryManager.ToModel(accountHistory),
 
-			TotalDebit:  0, // sum of debits from general ledger
-			TotalCredit: 0, // sum of credit from general ledger
-			Balance:     0, // latest balance from account
+			TotalDebit:  debit,
+			TotalCredit: credit,
+			Balance:     balance,
 
-			DueDate:                        nil,
-			LastPayment:                    nil,
-			TotalNumberOfPayments:          0,
-			TotalNumberOfDeductions:        0,
-			TotalNumberOfAdditions:         0,
+			TotalNumberOfDeductions: 0,
+			TotalNumberOfAdditions:  0,
+
+			DueDate:               nil,
+			LastPayment:           nil,
+			TotalNumberOfPayments: 0,
+
 			TotalAccountPrincipal:          0,
 			TotalAccountAdvancedPayment:    0,
 			TotalAccountPrincipalPaid:      0,
@@ -127,7 +136,6 @@ func (e *Event) LoanSummary(
 		LoanTransactionID: loanTransaction.ID,
 	}, nil
 }
-
 
 func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID uuid.UUID) (*float64, error) {
 	memberProfile, err := e.core.MemberProfileManager.GetByID(context, memberProfileID)
