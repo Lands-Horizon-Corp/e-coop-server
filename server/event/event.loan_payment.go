@@ -32,6 +32,8 @@ type LoanPaymentPerAccount struct {
 	TotalAdvancePayment    float64               `json:"total_advance_payment"`    // Total amount paid in advance
 	SuggestedPaymentAmount float64               `json:"suggested_payment_amount"` // Recommended payment (includes overdue + next upcoming)
 	NextPaymentDate        string                `json:"next_payment_date"`
+	LastPaymentDate        string                `json:"last_payment_date"`     // Date of the last payment made
+	LastPaymentAmount      float64               `json:"last_payment_amount"`   // Amount of the last payment made
 	AdvancePaymentCount    int                   `json:"advance_payment_count"` // Number of advance payments made
 	OverduePaymentCount    int                   `json:"overdue_payment_count"` // Number of overdue payments
 }
@@ -49,6 +51,8 @@ type LoanPaymentSummary struct {
 	TotalAdvancePayments    int     `json:"total_advance_payments"`     // Total number of advance payments
 	TotalUpcomingPayments   int     `json:"total_upcoming_payments"`    // Total number of upcoming payments
 	EarliestNextPaymentDate string  `json:"earliest_next_payment_date"` // Earliest next payment date across all accounts
+	LastPaymentDate         string  `json:"last_payment_date"`          // Most recent payment date across all accounts
+	LastPaymentAmount       float64 `json:"last_payment_amount"`        // Amount of the most recent payment across all accounts
 	AccountsWithOverdue     int     `json:"accounts_with_overdue"`      // Number of accounts with overdue payments
 	AccountsFullyPaid       int     `json:"accounts_fully_paid"`        // Number of accounts fully paid
 	AccountsWithAdvance     int     `json:"accounts_with_advance"`      // Number of accounts with advance payments
@@ -110,6 +114,8 @@ func (e *Event) LoanPaymenSummary(
 	summaryAccountsFullyPaid := 0
 	summaryAccountsWithAdvance := 0
 	var earliestNextPaymentDate *time.Time
+	var overallLastPaymentDate *time.Time
+	overallLastPaymentAmount := 0.0
 
 	// ===============================================================================================
 	// STEP 3: PROCESS EACH ACCOUNT
@@ -161,6 +167,8 @@ func (e *Event) LoanPaymenSummary(
 		nextUpcomingAmount := 0.0
 		var nextUpcomingDate *time.Time // Track the date of next upcoming payment
 		var nextPaymentDate *time.Time
+		var lastPaymentDate *time.Time
+		lastPaymentAmount := 0.0
 		now := userOrg.UserOrgTime()
 
 		if amortizationSchedule != nil && amortizationSchedule.Schedule != nil {
@@ -212,6 +220,12 @@ func (e *Event) LoanPaymenSummary(
 					paidPaymentCount++
 					// Add to total paid amount (all paid payments)
 					totalPaidAmount = e.provider.Service.Decimal.Add(totalPaidAmount, paymentAmount)
+
+					// Track last payment date and amount (most recent paid date)
+					if lastPaymentDate == nil || schedule.ScheduledDate.After(*lastPaymentDate) {
+						lastPaymentDate = &schedule.ScheduledDate
+						lastPaymentAmount = paymentAmount
+					}
 
 					if isAdvance {
 						// Calculate days paid in advance (scheduled date - current date)
@@ -276,7 +290,7 @@ func (e *Event) LoanPaymenSummary(
 		suggestedPaymentAmount = e.provider.Service.Decimal.Add(totalDueAmount, nextUpcomingAmount)
 
 		// -------------------------------------------------------------------------------------------
-		// 3.7: Format Next Payment Date
+		// 3.7: Format Next Payment Date and Last Payment Date
 		// -------------------------------------------------------------------------------------------
 		nextPaymentDateStr := ""
 		if nextPaymentDate != nil {
@@ -285,6 +299,17 @@ func (e *Event) LoanPaymenSummary(
 			// Track earliest next payment date across all accounts
 			if earliestNextPaymentDate == nil || nextPaymentDate.Before(*earliestNextPaymentDate) {
 				earliestNextPaymentDate = nextPaymentDate
+			}
+		}
+
+		lastPaymentDateStr := ""
+		if lastPaymentDate != nil {
+			lastPaymentDateStr = lastPaymentDate.Format("2006-01-02")
+
+			// Track most recent payment date across all accounts
+			if overallLastPaymentDate == nil || lastPaymentDate.After(*overallLastPaymentDate) {
+				overallLastPaymentDate = lastPaymentDate
+				overallLastPaymentAmount = lastPaymentAmount
 			}
 		}
 
@@ -324,6 +349,8 @@ func (e *Event) LoanPaymenSummary(
 			TotalAdvancePayment:    totalAdvancePayment,
 			SuggestedPaymentAmount: suggestedPaymentAmount,
 			NextPaymentDate:        nextPaymentDateStr,
+			LastPaymentDate:        lastPaymentDateStr,
+			LastPaymentAmount:      lastPaymentAmount,
 			AdvancePaymentCount:    advancePaymentCount,
 			OverduePaymentCount:    overduePaymentCount,
 		})
@@ -335,6 +362,11 @@ func (e *Event) LoanPaymenSummary(
 	earliestNextPaymentDateStr := ""
 	if earliestNextPaymentDate != nil {
 		earliestNextPaymentDateStr = earliestNextPaymentDate.Format("2006-01-02")
+	}
+
+	overallLastPaymentDateStr := ""
+	if overallLastPaymentDate != nil {
+		overallLastPaymentDateStr = overallLastPaymentDate.Format("2006-01-02")
 	}
 
 	// Determine overall payment status
@@ -359,6 +391,8 @@ func (e *Event) LoanPaymenSummary(
 		TotalAdvancePayments:    summaryTotalAdvancePayments,
 		TotalUpcomingPayments:   summaryTotalUpcomingPayments,
 		EarliestNextPaymentDate: earliestNextPaymentDateStr,
+		LastPaymentDate:         overallLastPaymentDateStr,
+		LastPaymentAmount:       overallLastPaymentAmount,
 		AccountsWithOverdue:     summaryAccountsWithOverdue,
 		AccountsFullyPaid:       summaryAccountsFullyPaid,
 		AccountsWithAdvance:     summaryAccountsWithAdvance,
