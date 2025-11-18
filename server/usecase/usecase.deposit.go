@@ -31,7 +31,8 @@ func (t *TransactionService) Deposit(
 		return amount, 0, nil
 
 	case core.AccountTypeLoan, core.AccountTypeFines, core.AccountTypeInterest, core.AccountTypeAPLedger:
-		return 0, amount, nil
+		// When receiving payment on a loan, CREDIT the loan account (reduces the debt)
+		return amount, 0, nil
 
 	case core.AccountTypeARLedger, core.AccountTypeARAging:
 		return amount, 0, nil

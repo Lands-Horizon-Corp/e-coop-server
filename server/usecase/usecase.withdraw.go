@@ -29,7 +29,8 @@ func (t *TransactionService) Withdraw(
 		return 0, amount, nil
 
 	case core.AccountTypeLoan, core.AccountTypeFines, core.AccountTypeInterest, core.AccountTypeAPLedger:
-		return amount, 0, nil
+		// When disbursing/releasing a loan, DEBIT the loan account (increases the debt)
+		return 0, amount, nil
 
 	case core.AccountTypeARLedger, core.AccountTypeARAging:
 		return 0, amount, nil
