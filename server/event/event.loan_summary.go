@@ -104,6 +104,7 @@ func (e *Event) LoanSummary(
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction id: %s", *loanTransactionID)
 	}
+	accounts = append(accounts, loanTransaction.Account)
 
 	// ===============================================================================================
 	// STEP 5: FETCH LOAN AMORTIZATION SCHEDULE
