@@ -671,10 +671,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been approved"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		// Update approval details
 		journalVoucher.ApprovedDate = handlers.Ptr(timeNow)
 		journalVoucher.ApprovedByID = &userOrg.UserID
@@ -744,10 +741,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = &timeNow
 		journalVoucher.PrintedByID = &userOrg.UserID
@@ -914,10 +908,7 @@ func (c *Controller) journalVoucherController() {
 		// ================================================================================
 		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
 		// ================================================================================
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		journalVoucher.ReleasedDate = &timeNow
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()

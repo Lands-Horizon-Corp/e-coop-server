@@ -169,7 +169,7 @@ func (e *Event) LoanSummary(
 		var dueDate *time.Time           // Next payment due date
 
 		if amortizationSchedule != nil && amortizationSchedule.Schedule != nil {
-			now := time.Now().UTC()
+			now := userOrg.UserOrgTime()
 
 			// Loop through each scheduled payment period
 			for _, schedule := range amortizationSchedule.Schedule {

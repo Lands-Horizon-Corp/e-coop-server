@@ -23,14 +23,7 @@ func (e *Event) LoanAdjustment(
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	now := time.Now().UTC()
 
-	currentDate := now
-	if userOrg.TimeMachineTime != nil {
-		currentDate = *userOrg.TimeMachineTime
-		fmt.Println("DEBUG: Using TimeMachineTime:", currentDate)
-	} else {
-		fmt.Println("DEBUG: Using current time (now):", currentDate)
-	}
-
+	currentDate := userOrg.UserOrgTime()
 	// ========================================
 	// STEP 2: Validate loan transaction
 	// ========================================

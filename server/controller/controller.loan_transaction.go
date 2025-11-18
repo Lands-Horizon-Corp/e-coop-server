@@ -1493,10 +1493,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Loan transaction has already been marked printed, you can undo it by clicking undo print"})
 		}
 		loanTransaction.PrintNumber++
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		loanTransaction.PrintedDate = &timeNow
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
@@ -1635,10 +1632,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already approved"})
 		}
 		now := time.Now().UTC()
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		loanTransaction.ApprovedDate = &timeNow
 		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now

@@ -35,10 +35,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 
 	// Setup timestamp variables for consistent time tracking
 	now := time.Now().UTC()
-	userOrgTime := time.Now().UTC()
-	if userOrg.TimeMachineTime != nil {
-		userOrgTime = userOrg.UserOrgTime()
-	}
+	currentTime := userOrg.UserOrgTime()
 
 	// Validate user organization has required branch assignment
 	if userOrg.BranchID == nil {
@@ -196,7 +193,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				OrganizationID:             userOrg.OrganizationID,
 				TransactionBatchID:         &transactionBatch.ID,
 				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  userOrgTime,
+				EntryDate:                  currentTime,
 				AccountID:                  &account.ID,
 				MemberProfileID:            &memberProfile.ID,
 				PaymentTypeID:              account.DefaultPaymentTypeID,
@@ -254,7 +251,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				OrganizationID:             userOrg.OrganizationID,
 				TransactionBatchID:         &transactionBatch.ID,
 				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  userOrgTime,
+				EntryDate:                  currentTime,
 				AccountID:                  &account.ID,
 				MemberProfileID:            &memberProfile.ID,
 				PaymentTypeID:              account.DefaultPaymentTypeID,
@@ -289,7 +286,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		context,
 		loanTransaction.OrganizationID,
 		loanTransaction.BranchID,
-		&userOrgTime,
+		&currentTime,
 		loanTransaction.AccountID,
 		&loanAccountCurrency.ID,
 	)
@@ -362,7 +359,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				OrganizationID:             userOrg.OrganizationID,
 				TransactionBatchID:         &transactionBatch.ID,
 				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  userOrgTime,
+				EntryDate:                  currentTime,
 				AccountID:                  &interestAccount.ID,
 				MemberProfileID:            &memberProfile.ID,
 				PaymentTypeID:              interestAccount.DefaultPaymentTypeID,
@@ -426,7 +423,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				OrganizationID:             userOrg.OrganizationID,
 				TransactionBatchID:         &transactionBatch.ID,
 				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  userOrgTime,
+				EntryDate:                  currentTime,
 				AccountID:                  &interestAccount.ID,
 				PaymentTypeID:              interestAccount.DefaultPaymentTypeID,
 				TransactionReferenceNumber: loanTransaction.Voucher,
@@ -463,7 +460,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	// STEP 7: LOAN TRANSACTION FINALIZATION AND STATUS UPDATE
 	// ================================================================================
 	// Update loan transaction with release information and timestamps
-	loanTransaction.ReleasedDate = &userOrgTime
+	loanTransaction.ReleasedDate = &currentTime
 	loanTransaction.ReleasedByID = &userOrg.UserID
 	loanTransaction.UpdatedAt = now
 	loanTransaction.Count++

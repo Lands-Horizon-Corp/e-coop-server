@@ -697,10 +697,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this cash check voucher"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 
 		// Update print details
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
@@ -759,10 +756,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already approved"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ApprovedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
@@ -826,10 +820,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ReleasedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()

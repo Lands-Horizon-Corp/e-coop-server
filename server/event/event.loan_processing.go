@@ -102,10 +102,7 @@ func (e *Event) LoanProcessing(
 	// ===============================
 	// STEP 8: INITIALIZE PAYMENT CALCULATION VARIABLES
 	// ===============================
-	currentDate := time.Now().UTC()
-	if userOrg.TimeMachineTime != nil {
-		currentDate = userOrg.UserOrgTime()
-	}
+	currentDate := userOrg.UserOrgTime()
 	paymentDate := *loanTransaction.PrintedDate
 	balance := loanTransaction.TotalPrincipal
 	principal := loanTransaction.TotalPrincipal
