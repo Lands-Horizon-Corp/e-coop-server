@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -305,119 +304,68 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			interestTypeOfPaymentType = interestAccount.DefaultPaymentType.Type
 		}
 
-		if interestAccount.IsMemberLedger() {
-			// Lock member interest account ledger for atomic updates
+		straightInterestAmount := e.usecase.ComputeInterestStraight(
+			loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
 
-			straightInterestAmount := e.usecase.ComputeInterestStraight(
-				loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
+		credit := straightInterestAmount
+		debit := 0.0
+		// Create member interest ledger entry
+		memberInterestEntry := &core.GeneralLedger{
+			CreatedAt:                  now,
+			CreatedByID:                userOrg.UserID,
+			UpdatedAt:                  now,
+			UpdatedByID:                userOrg.UserID,
+			BranchID:                   *userOrg.BranchID,
+			OrganizationID:             userOrg.OrganizationID,
+			TransactionBatchID:         &transactionBatch.ID,
+			ReferenceNumber:            loanTransaction.Voucher,
+			EntryDate:                  currentTime,
+			AccountID:                  &interestAccount.ID,
+			MemberProfileID:            &memberProfile.ID,
+			PaymentTypeID:              interestAccount.DefaultPaymentTypeID,
+			TransactionReferenceNumber: loanTransaction.Voucher,
+			Source:                     core.GeneralLedgerSourceLoan,
+			EmployeeUserID:             &userOrg.UserID,
+			Description:                loanTransaction.Account.Description,
+			TypeOfPaymentType:          interestTypeOfPaymentType,
+			Credit:                     credit,
+			Debit:                      debit,
+			CurrencyID:                 &loanAccountCurrency.ID,
+			LoanTransactionID:          &loanTransaction.ID,
+		}
 
-			credit := straightInterestAmount
-			debit := 0.0
-			// Create member interest ledger entry
-			memberInterestEntry := &core.GeneralLedger{
-				CreatedAt:                  now,
-				CreatedByID:                userOrg.UserID,
-				UpdatedAt:                  now,
-				UpdatedByID:                userOrg.UserID,
-				BranchID:                   *userOrg.BranchID,
-				OrganizationID:             userOrg.OrganizationID,
-				TransactionBatchID:         &transactionBatch.ID,
-				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  currentTime,
-				AccountID:                  &interestAccount.ID,
-				MemberProfileID:            &memberProfile.ID,
-				PaymentTypeID:              interestAccount.DefaultPaymentTypeID,
-				TransactionReferenceNumber: loanTransaction.Voucher,
-				Source:                     core.GeneralLedgerSourceLoan,
-				EmployeeUserID:             &userOrg.UserID,
-				Description:                loanTransaction.Account.Description,
-				TypeOfPaymentType:          interestTypeOfPaymentType,
-				Credit:                     credit,
-				Debit:                      debit,
-				CurrencyID:                 &loanAccountCurrency.ID,
-				LoanTransactionID:          &loanTransaction.ID,
-			}
-
-			// Save member interest ledger entry to database
-			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberInterestEntry); err != nil {
-				e.Footstep(ctx, FootstepEvent{
-					Activity:    "member-interest-creation-failed",
-					Description: "Failed to create member interest ledger entry for account " + interestAccount.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-					Module:      "Loan Release",
-				})
-				return nil, endTx(eris.Wrap(err, "failed to create member interest ledger entry"))
-			}
-			_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
-				context,
-				tx,
-				core.MemberAccountingLedgerUpdateOrCreateParams{
-					MemberProfileID: *loanTransaction.MemberProfileID, // Fixed: was loanTransaction.ID
-					AccountID:       interestAccount.ID,
-					OrganizationID:  userOrg.OrganizationID,
-					BranchID:        *userOrg.BranchID,
-					UserID:          userOrg.UserID,
-					DebitAmount:     debit,
-					CreditAmount:    credit,
-					LastPayTime:     now,
-				},
-			)
-			if err != nil {
-				e.Footstep(ctx, FootstepEvent{
-					Activity:    "member-interest-accounting-failed",
-					Description: "Failed to update member accounting ledger for interest account " + interestAccount.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-					Module:      "Loan Release",
-				})
-				return nil, endTx(eris.Wrap(err, "failed to update member interest accounting ledger"))
-			}
-
-		} else {
-			// Calculate straight interest amount for subsidiary account
-			straightInterestAmount := e.usecase.ComputeInterestStraight(
-				loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
-
-			credit := 0.0
-			debit := straightInterestAmount
-			// Create subsidiary interest account ledger entry
-			subsidiaryInterestEntry := &core.GeneralLedger{
-				CreatedAt:                  now,
-				CreatedByID:                userOrg.UserID,
-				UpdatedAt:                  now,
-				UpdatedByID:                userOrg.UserID,
-				BranchID:                   *userOrg.BranchID,
-				OrganizationID:             userOrg.OrganizationID,
-				TransactionBatchID:         &transactionBatch.ID,
-				ReferenceNumber:            loanTransaction.Voucher,
-				EntryDate:                  currentTime,
-				AccountID:                  &interestAccount.ID,
-				PaymentTypeID:              interestAccount.DefaultPaymentTypeID,
-				TransactionReferenceNumber: loanTransaction.Voucher,
-				Source:                     core.GeneralLedgerSourceLoan,
-				BankReferenceNumber:        "",
-				EmployeeUserID:             &userOrg.UserID,
-				Description:                interestAccount.Description,
-				TypeOfPaymentType:          interestTypeOfPaymentType,
-				Credit:                     credit,
-				Debit:                      debit,
-				CurrencyID:                 &loanAccountCurrency.ID,
-				LoanTransactionID:          &loanTransaction.ID,
-			}
-
-			// Save subsidiary interest ledger entry to database
-			if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, subsidiaryInterestEntry); err != nil {
-				e.Footstep(ctx, FootstepEvent{
-					Activity:    "subsidiary-interest-creation-failed",
-					Description: "Failed to create subsidiary interest ledger entry for " + interestAccount.ID.String(),
-					Module:      "Loan Release",
-				})
-				return nil, endTx(eris.Wrap(err, "failed to create subsidiary interest ledger entry"))
-			}
-
+		// Save member interest ledger entry to database
+		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberInterestEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
-				Activity:    "interest-account-processed",
-				Description: "Successfully processed interest account " + interestAccount.ID.String() + " with interest: " + fmt.Sprintf("%.2f", straightInterestAmount),
+				Activity:    "member-interest-creation-failed",
+				Description: "Failed to create member interest ledger entry for account " + interestAccount.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
 				Module:      "Loan Release",
 			})
+			return nil, endTx(eris.Wrap(err, "failed to create member interest ledger entry"))
 		}
+		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
+			context,
+			tx,
+			core.MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: *loanTransaction.MemberProfileID, // Fixed: was loanTransaction.ID
+				AccountID:       interestAccount.ID,
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				UserID:          userOrg.UserID,
+				DebitAmount:     debit,
+				CreditAmount:    credit,
+				LastPayTime:     now,
+			},
+		)
+		if err != nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "member-interest-accounting-failed",
+				Description: "Failed to update member accounting ledger for interest account " + interestAccount.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
+				Module:      "Loan Release",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to update member interest accounting ledger"))
+		}
+
 	}
 
 	// ================================================================================

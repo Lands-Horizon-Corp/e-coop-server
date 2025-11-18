@@ -502,30 +502,6 @@ type AccountRequest struct {
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
 }
 
-func (acc Account) IsMemberLedger() bool {
-
-	// 1. Must be Asset or Liability
-	if acc.GeneralLedgerType != GLTypeAssets && acc.GeneralLedgerType != GLTypeLiabilities {
-		return false
-	}
-
-	// 2. Must be one of the member-related account types
-	switch acc.Type {
-	case
-		AccountTypeDeposit,
-		AccountTypeLoan,
-		AccountTypeARLedger,
-		AccountTypeARAging,
-		AccountTypeInterest,
-		AccountTypeSVFLedger,
-		AccountTypeTimeDeposit,
-		AccountTypeWOff:
-		return true
-	}
-
-	return false
-}
-
 // --- REGISTRATION ---
 
 func (m *Core) account() {
