@@ -401,7 +401,7 @@ func (e *Event) LoanPaymenSummary(
 		totalRemainingBalance := e.provider.Service.Decimal.Subtract(totalPrincipal, totalPaidAmount)
 		accountPayments = append(accountPayments, LoanPaymentPerAccount{
 			Account:                *e.core.AccountManager.ToModel(account),
-			AccountHistoryID:       &account.ID,
+			AccountHistoryID:       account.AccountHistoryID,
 			LoanPaymentSchedule:    paymentSchedule,
 			TotalPrincipal:         totalPrincipal,
 			TotalPaidAmount:        totalPaidAmount,
