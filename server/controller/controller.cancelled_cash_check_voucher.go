@@ -22,14 +22,14 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		ResponseType: core.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.core.CancelledCashCheckVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		cancelledVouchers, err := c.core.CancelledCashCheckVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cancelled cash check vouchers found for the current branch"})
 		}
@@ -44,16 +44,16 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		ResponseType: core.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CancelledCashCheckVoucher{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cancelled cash check vouchers for pagination: " + err.Error()})
@@ -98,7 +98,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cancelled cash check voucher data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -107,7 +107,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cancelled cash check voucher creation failed (/cancelled-cash-check-voucher), user not assigned to branch.",
@@ -121,11 +121,11 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			EntryDate:      req.EntryDate,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.CancelledCashCheckVoucherManager.Create(context, cancelledVoucher); err != nil {
@@ -172,7 +172,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cancelled cash check voucher data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -194,7 +194,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		cancelledVoucher.EntryDate = req.EntryDate
 		cancelledVoucher.Description = req.Description
 		cancelledVoucher.UpdatedAt = time.Now().UTC()
-		cancelledVoucher.UpdatedByID = user.UserID
+		cancelledVoucher.UpdatedByID = userOrg.UserID
 		if err := c.core.CancelledCashCheckVoucherManager.UpdateByID(context, cancelledVoucher.ID, cancelledVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

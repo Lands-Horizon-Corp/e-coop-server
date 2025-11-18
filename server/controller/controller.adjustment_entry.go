@@ -23,14 +23,14 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		adjustmentEntries, err := c.core.AdjustmentEntryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
@@ -45,16 +45,16 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		adjustmentEntries, err := c.core.AdjustmentEntryManager.PaginationWithFields(context, ctx, &core.AdjustmentEntry{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
@@ -99,7 +99,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -108,7 +108,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), user not assigned to branch.",
@@ -117,24 +117,40 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
+		transactionBatch, err := c.core.TransactionBatchCurrent(
+			context,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Adjustment entry creation failed (/adjustment-entry), transaction batch lookup error: " + err.Error(),
+				Module:      "AdjustmentEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
+		}
+
 		adjustmentEntry := &core.AdjustmentEntry{
-			SignatureMediaID:  req.SignatureMediaID,
-			AccountID:         req.AccountID,
-			MemberProfileID:   req.MemberProfileID,
-			EmployeeUserID:    &user.UserID,
-			PaymentTypeID:     req.PaymentTypeID,
-			TypeOfPaymentType: req.TypeOfPaymentType,
-			Description:       req.Description,
-			ReferenceNumber:   req.ReferenceNumber,
-			EntryDate:         req.EntryDate,
-			Debit:             req.Debit,
-			Credit:            req.Credit,
-			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
-			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
+			SignatureMediaID:   req.SignatureMediaID,
+			AccountID:          req.AccountID,
+			MemberProfileID:    req.MemberProfileID,
+			EmployeeUserID:     &userOrg.UserID,
+			PaymentTypeID:      req.PaymentTypeID,
+			TypeOfPaymentType:  req.TypeOfPaymentType,
+			Description:        req.Description,
+			ReferenceNumber:    req.ReferenceNumber,
+			EntryDate:          req.EntryDate,
+			Debit:              req.Debit,
+			Credit:             req.Credit,
+			CreatedAt:          time.Now().UTC(),
+			CreatedByID:        userOrg.UserID,
+			UpdatedAt:          time.Now().UTC(),
+			UpdatedByID:        userOrg.UserID,
+			BranchID:           *userOrg.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			TransactionBatchID: &transactionBatch.ID,
 		}
 		// ================================================================================
 		// STEP 2: RECORD TRANSACTION IN GENERAL LEDGER
@@ -146,9 +162,9 @@ func (c *Controller) adjustmentEntryController() {
 			Credit: req.Credit,
 
 			// Account and member information
-			AccountID:       req.AccountID,
-			MemberProfileID: req.MemberProfileID,
-
+			AccountID:          req.AccountID,
+			MemberProfileID:    req.MemberProfileID,
+			TransactionBatchID: transactionBatch.ID,
 			// Transaction metadata
 			ReferenceNumber:       req.ReferenceNumber,
 			Description:           req.Description,
@@ -179,6 +195,15 @@ func (c *Controller) adjustmentEntryController() {
 				Module:      "AdjustmentEntry",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create adjustment entry: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Adjustment entry creation failed (/adjustment-entry), transaction batch balancing error: " + err.Error(),
+				Module:      "AdjustmentEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after adjustment entry creation: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
@@ -280,27 +305,27 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.AdjustmentEntryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		entries, err := c.core.AdjustmentEntryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			AdjustmentEntries: entries,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  debit,
-			TotalCredit: credit,
-			Balance:     balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
+			Balance:     balance.Balance,
 		})
 	})
 
@@ -312,11 +337,11 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
@@ -324,8 +349,8 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
 		adjustmentEntries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
@@ -352,11 +377,11 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
@@ -364,13 +389,13 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
 		entries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			AdjustmentEntries: entries,
 			CurrencyID:        currencyID,
 		})
@@ -378,9 +403,9 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  debit,
-			TotalCredit: credit,
-			Balance:     balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
+			Balance:     balance.Balance,
 		})
 	})
 
@@ -459,7 +484,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			AdjustmentEntries: entries,
 			CurrencyID:        currencyID,
 		})
@@ -467,9 +492,9 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
-			TotalDebit:  debit,
-			TotalCredit: credit,
-			Balance:     balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
+			Balance:     balance.Balance,
 		})
 	})
 

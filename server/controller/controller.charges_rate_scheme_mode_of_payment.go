@@ -41,7 +41,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme model of payment data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme model of payment creation failed (/charges-rate-scheme-mode-of-payment), user not assigned to branch.",
@@ -86,11 +86,11 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			Column21:            req.Column21,
 			Column22:            req.Column22,
 			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
+			CreatedByID:         userOrg.UserID,
 			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			UpdatedByID:         userOrg.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 		}
 
 		if err := c.core.ChargesRateSchemeModeOfPaymentManager.Create(context, chargesRateSchemeModeOfPayment); err != nil {
@@ -137,7 +137,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme model of payment data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -180,7 +180,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		chargesRateSchemeModeOfPayment.Column21 = req.Column21
 		chargesRateSchemeModeOfPayment.Column22 = req.Column22
 		chargesRateSchemeModeOfPayment.UpdatedAt = time.Now().UTC()
-		chargesRateSchemeModeOfPayment.UpdatedByID = user.UserID
+		chargesRateSchemeModeOfPayment.UpdatedByID = userOrg.UserID
 		if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateByID(context, chargesRateSchemeModeOfPayment.ID, chargesRateSchemeModeOfPayment); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

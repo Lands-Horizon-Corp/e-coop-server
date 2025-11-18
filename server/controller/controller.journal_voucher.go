@@ -25,14 +25,14 @@ func (c *Controller) journalVoucherController() {
 		ResponseType: core.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.core.JournalVoucherCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		journalVouchers, err := c.core.JournalVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal vouchers found for the current branch"})
 		}
@@ -47,16 +47,16 @@ func (c *Controller) journalVoucherController() {
 		ResponseType: core.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		journalVouchers, err := c.core.JournalVoucherManager.PaginationWithFields(context, ctx, &core.JournalVoucher{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers for pagination: " + err.Error()})
@@ -101,7 +101,7 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -110,7 +110,7 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Journal voucher creation failed (/journal-voucher), user not assigned to branch.",
@@ -122,7 +122,7 @@ func (c *Controller) journalVoucherController() {
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -140,16 +140,17 @@ func (c *Controller) journalVoucherController() {
 			Reference:         request.Reference,
 			Status:            request.Status,
 			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
+			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
-			TotalDebit:        debit,
-			TotalCredit:       credit,
+			UpdatedByID:       userOrg.UserID,
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
+			TotalDebit:        balance.Debit,
+			TotalCredit:       balance.Credit,
 			CashVoucherNumber: request.CashVoucherNumber,
 			Name:              request.Name,
 			CurrencyID:        request.CurrencyID,
+			EmployeeUserID:    &userOrg.UserID,
 		}
 
 		if err := c.core.JournalVoucherManager.CreateWithTx(context, tx, journalVoucher); err != nil {
@@ -173,11 +174,11 @@ func (c *Controller) journalVoucherController() {
 					Debit:                  entryReq.Debit,
 					Credit:                 entryReq.Credit,
 					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            user.UserID,
+					CreatedByID:            userOrg.UserID,
 					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            user.UserID,
-					BranchID:               *user.BranchID,
-					OrganizationID:         user.OrganizationID,
+					UpdatedByID:            userOrg.UserID,
+					BranchID:               *userOrg.BranchID,
+					OrganizationID:         userOrg.OrganizationID,
 					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 				}
 
@@ -238,7 +239,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid journal voucher data: " + err.Error()})
 		}
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -258,7 +259,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -278,9 +279,10 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.Reference = request.Reference
 		journalVoucher.Status = request.Status
 		journalVoucher.UpdatedAt = time.Now().UTC()
-		journalVoucher.UpdatedByID = user.UserID
+		journalVoucher.UpdatedByID = userOrg.UserID
 		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
 		journalVoucher.Name = request.Name
+		journalVoucher.EmployeeUserID = &userOrg.UserID
 		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
@@ -291,7 +293,7 @@ func (c *Controller) journalVoucherController() {
 				if entry.JournalVoucherID != journalVoucher.ID {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this journal voucher: " + endTx(eris.New("invalid journal voucher entry")).Error()})
 				}
-				entry.DeletedByID = &user.UserID
+				entry.DeletedByID = &userOrg.UserID
 				if err := c.core.JournalVoucherEntryManager.DeleteWithTx(context, tx, entry.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete journal voucher entry: " + endTx(err).Error()})
 				}
@@ -315,7 +317,7 @@ func (c *Controller) journalVoucherController() {
 					entry.Debit = entryReq.Debit
 					entry.Credit = entryReq.Credit
 					entry.UpdatedAt = time.Now().UTC()
-					entry.UpdatedByID = user.UserID
+					entry.UpdatedByID = userOrg.UserID
 					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
 					if err := c.core.JournalVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
@@ -330,11 +332,11 @@ func (c *Controller) journalVoucherController() {
 						Debit:                  entryReq.Debit,
 						Credit:                 entryReq.Credit,
 						CreatedAt:              time.Now().UTC(),
-						CreatedByID:            user.UserID,
+						CreatedByID:            userOrg.UserID,
 						UpdatedAt:              time.Now().UTC(),
-						UpdatedByID:            user.UserID,
-						BranchID:               *user.BranchID,
-						OrganizationID:         user.OrganizationID,
+						UpdatedByID:            userOrg.UserID,
+						BranchID:               *userOrg.BranchID,
+						OrganizationID:         userOrg.OrganizationID,
 						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
 					}
 					if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -344,8 +346,8 @@ func (c *Controller) journalVoucherController() {
 
 			}
 		}
-		journalVoucher.TotalCredit = credit
-		journalVoucher.TotalDebit = debit
+		journalVoucher.TotalCredit = balance.Credit
+		journalVoucher.TotalDebit = balance.Debit
 		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -669,10 +671,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been approved"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		// Update approval details
 		journalVoucher.ApprovedDate = handlers.Ptr(timeNow)
 		journalVoucher.ApprovedByID = &userOrg.UserID
@@ -742,10 +741,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = &timeNow
 		journalVoucher.PrintedByID = &userOrg.UserID
@@ -900,17 +896,24 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been released"})
 		}
 
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, *journalVoucher.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "batch-retrieval-failed",
+				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+				Module:      "JournalVoucher",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		// ================================================================================
 		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
 		// ================================================================================
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		journalVoucher.ReleasedDate = &timeNow
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID
+		journalVoucher.TransactionBatchID = &transactionBatch.ID
 
 		// ================================================================================
 		// STEP 2: RETRIEVE ALL JOURNAL VOUCHER ENTRIES FOR TRANSACTION RECORDING
@@ -941,8 +944,9 @@ func (c *Controller) journalVoucherController() {
 				Credit: entry.Credit,
 
 				// Account and member information
-				AccountID:       entry.AccountID,
-				MemberProfileID: entry.MemberProfileID,
+				AccountID:          entry.AccountID,
+				MemberProfileID:    entry.MemberProfileID,
+				TransactionBatchID: transactionBatch.ID,
 
 				// Transaction metadata
 				ReferenceNumber:       journalVoucher.CashVoucherNumber,
@@ -984,6 +988,10 @@ func (c *Controller) journalVoucherController() {
 				Module:      "JournalVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release journal voucher: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, journalVoucher.TransactionBatchID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{

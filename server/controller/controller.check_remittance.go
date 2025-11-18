@@ -30,7 +30,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view check remittances"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -92,7 +92,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create check remittances"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -148,39 +148,9 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Check remittance creation failed (/check-remittance), recalc error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to recalculate check remittances: " + err.Error()})
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-
-		// Recalculate totals
-		var totalCheckRemittance float64
-		for _, remittance := range allCheckRemittances {
-			totalCheckRemittance = c.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
-		}
-		transactionBatch.TotalCheckRemittance = totalCheckRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Check remittance creation failed (/check-remittance), batch totals update error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
-		}
-
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created check remittance (/check-remittance): " + checkRemittance.AccountName,
@@ -256,7 +226,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -310,44 +280,9 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to recalculate check remittances: " + err.Error()})
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-
-		var totalCheckRemittance float64
-		for _, remittance := range allCheckRemittances {
-			totalCheckRemittance = c.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
-		}
-		transactionBatch.TotalCheckRemittance = totalCheckRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
-		}
-
-		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "update-success",
-			Description: "Updated check remittance (/check-remittance/:check_remittance_id): " + updatedCheckRemittance.AccountName,
-			Module:      "CheckRemittance",
-		})
-
 		updatedRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated check remittance: " + err.Error()})
@@ -410,7 +345,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.CurrentOpenTransactionBatch(
+		transactionBatch, err := c.core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -451,36 +386,8 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete check remittance: " + err.Error()})
 		}
 
-		allCheckRemittances, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to recalculate check remittances: " + err.Error()})
-		}
-
-		var totalCheckRemittance float64
-		for _, remittance := range allCheckRemittances {
-			totalCheckRemittance = c.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
-		}
-		transactionBatch.TotalCheckRemittance = totalCheckRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch totals update error: " + err.Error(),
-				Module:      "CheckRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch totals: " + err.Error()})
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{

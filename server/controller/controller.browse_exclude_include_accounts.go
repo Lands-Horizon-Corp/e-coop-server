@@ -22,11 +22,11 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		ResponseType: core.BrowseExcludeIncludeAccountsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -34,8 +34,8 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		records, err := c.core.BrowseExcludeIncludeAccountsManager.Find(context, &core.BrowseExcludeIncludeAccounts{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -52,11 +52,11 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -64,8 +64,8 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		records, err := c.core.BrowseExcludeIncludeAccountsManager.Find(context, &core.BrowseExcludeIncludeAccounts{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -92,7 +92,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -101,7 +101,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Browse exclude include account creation failed (/browse-exclude-include-accounts), user not assigned to branch.",
@@ -118,11 +118,11 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			DeliquentAccountID:           req.DeliquentAccountID,
 			IncludeExistingLoanAccountID: req.IncludeExistingLoanAccountID,
 			CreatedAt:                    time.Now().UTC(),
-			CreatedByID:                  user.UserID,
+			CreatedByID:                  userOrg.UserID,
 			UpdatedAt:                    time.Now().UTC(),
-			UpdatedByID:                  user.UserID,
-			BranchID:                     *user.BranchID,
-			OrganizationID:               user.OrganizationID,
+			UpdatedByID:                  userOrg.UserID,
+			BranchID:                     *userOrg.BranchID,
+			OrganizationID:               userOrg.OrganizationID,
 		}
 
 		if err := c.core.BrowseExcludeIncludeAccountsManager.Create(context, record); err != nil {
@@ -169,7 +169,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -194,7 +194,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		record.DeliquentAccountID = req.DeliquentAccountID
 		record.IncludeExistingLoanAccountID = req.IncludeExistingLoanAccountID
 		record.UpdatedAt = time.Now().UTC()
-		record.UpdatedByID = user.UserID
+		record.UpdatedByID = userOrg.UserID
 
 		if err := c.core.BrowseExcludeIncludeAccountsManager.UpdateByID(context, record.ID, record); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

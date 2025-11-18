@@ -408,45 +408,6 @@ type (
 		TotalCredit float64 `json:"total_credit"`
 	}
 
-	LoanAccountSummaryResponse struct {
-		AccountHistoryID uuid.UUID              `json:"account_history_id"`
-		AccountHistory   AccountHistoryResponse `json:"account_history"`
-
-		TotalDebit  float64 `json:"total_debit"`
-		TotalCredit float64 `json:"total_credit"`
-		Balance     float64 `json:"balance"`
-
-		DueDate     *time.Time `json:"due_date,omitempty"`
-		LastPayment *time.Time `json:"last_payment,omitempty"`
-
-		TotalNumberOfPayments int `json:"total_number_of_payments"`
-
-		TotalNumberOfDeductions int `json:"total_number_of_deductions"`
-		TotalNumberOfAdditions  int `json:"total_number_of_additions"`
-
-		TotalAccountPrincipal          float64 `json:"total_account_principal"`
-		TotalAccountAdvancedPayment    float64 `json:"total_account_advanced_payment"`
-		TotalAccountPrincipalPaid      float64 `json:"total_account_principal_paid"`
-		TotalAccountRemainingPrincipal float64 `json:"total_remaining_principal"`
-	}
-
-	LoanTransactionSummaryResponse struct {
-		AmountGranted  float64                      `json:"amount_granted"`
-		AddOnAmount    float64                      `json:"add_on_amount"`
-		AccountSummary []LoanAccountSummaryResponse `json:"account_summary"`
-		GeneralLedger  []*GeneralLedgerResponse     `json:"general_ledger"`
-
-		Arrears float64 `json:"arrears"`
-
-		LastPayment             *time.Time `json:"last_payment,omitempty"`
-		FirstDeliquencyDate     *time.Time `json:"first_deliquency_date,omitempty"`
-		FirstIrregularityDate   *time.Time `json:"first_irregularity_date,omitempty"`
-		TotalPrincipal          float64    `json:"total_principal"`
-		TotalAdvancedPayment    float64    `json:"total_advanced_payment"`
-		TotalPrincipalPaid      float64    `json:"total_principal_paid"`
-		TotalRemainingPrincipal float64    `json:"total_remaining_principal"`
-	}
-
 	LoanTransactionAdjustmentRequest struct {
 		Voucher        string             `json:"voucher,omitempty"`
 		AccountID      uuid.UUID          `json:"account_id"`
@@ -885,6 +846,14 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 
 // LoanTransactionsMemberAccount returns loan transactions for a member filtered by account and branch/org.
 func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, accountID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
+
+	account, err := m.AccountManager.GetByID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if account.Type != AccountTypeLoan {
+		accountID = *account.LoanAccountID
+	}
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberID},
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},

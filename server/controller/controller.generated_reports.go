@@ -25,7 +25,7 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -43,13 +43,13 @@ func (c *Controller) generatedReports() {
 		}
 		generatedReportsDownloadUsers := &core.GeneratedReportsDownloadUsers{
 			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.UserID,
+			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.UserID,
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
-			UserID:             user.UserID,
-			UserOrganizationID: user.ID,
+			UpdatedByID:        userOrg.UserID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
+			UserID:             userOrg.UserID,
+			UserOrganizationID: userOrg.ID,
 			GeneratedReportID:  generatedReport.ID,
 		}
 		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, generatedReportsDownloadUsers); err != nil {
@@ -86,7 +86,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -95,7 +95,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Generated report creation failed (/generated-report), user not assigned to branch.",
@@ -109,16 +109,17 @@ func (c *Controller) generatedReports() {
 			FilterSearch:        req.FilterSearch,
 			Model:               req.Model,
 			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
+			CreatedByID:         userOrg.UserID,
 			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			UpdatedByID:         userOrg.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			Status:              core.GeneratedReportStatusPending,
 			GeneratedReportType: req.GeneratedReportType,
 			URL:                 req.URL,
-
-			UserID: &user.UserID,
+			Template:            req.Template,
+			PaperSize:           req.PaperSize,
+			UserID:              &userOrg.UserID,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
@@ -184,7 +185,7 @@ func (c *Controller) generatedReports() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -205,7 +206,8 @@ func (c *Controller) generatedReports() {
 		generatedReport.Name = req.Name
 		generatedReport.Description = req.Description
 		generatedReport.UpdatedAt = time.Now().UTC()
-		generatedReport.UpdatedByID = user.UserID
+		generatedReport.UpdatedByID = userOrg.UserID
+
 		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -240,7 +242,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated reports download user data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -249,7 +251,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Generated reports download user creation failed (/generated-report/download-user), user not assigned to branch.",
@@ -262,11 +264,11 @@ func (c *Controller) generatedReports() {
 			UserOrganizationID: req.UserOrganizationID,
 			GeneratedReportID:  req.GeneratedReportID,
 			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.UserID,
+			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.UserID,
-			BranchID:           *user.BranchID,
-			OrganizationID:     user.OrganizationID,
+			UpdatedByID:        userOrg.UserID,
+			BranchID:           *userOrg.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
 		}
 
 		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, downloadUser); err != nil {
@@ -338,16 +340,16 @@ func (c *Controller) generatedReports() {
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -364,17 +366,17 @@ func (c *Controller) generatedReports() {
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			CreatedByID:    user.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			CreatedByID:    userOrg.UserID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -390,16 +392,16 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated PDF reports.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
 		})
 		if err != nil {
@@ -416,17 +418,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated PDF reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
-			CreatedByID:         user.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
+			CreatedByID:         userOrg.UserID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
 		})
 		if err != nil {
@@ -443,16 +445,16 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated Excel reports.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 		})
 		if err != nil {
@@ -468,17 +470,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated Excel reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
-			CreatedByID:         user.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
+			CreatedByID:         userOrg.UserID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 		})
 		if err != nil {
@@ -496,16 +498,16 @@ func (c *Controller) generatedReports() {
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
 		})
 		if err != nil {
@@ -522,17 +524,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search favorite generated reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			CreatedByID:    user.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			CreatedByID:    userOrg.UserID,
 			IsFavorite:     true,
 		})
 		if err != nil {
@@ -549,14 +551,14 @@ func (c *Controller) generatedReports() {
 		Note:         "Get available generated report models with their counts for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		models, err := c.core.GeneratedReportAvailableModels(context, user.OrganizationID, *user.BranchID)
+		models, err := c.core.GeneratedReportAvailableModels(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve available generated report models: " + err.Error()})
 		}
@@ -571,17 +573,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			Model:          model,
 		})
 		if err != nil {
@@ -598,18 +600,18 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			CreatedByID:    user.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			CreatedByID:    userOrg.UserID,
 			Model:          model,
 		})
 		if err != nil {
@@ -626,17 +628,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated PDF reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
 			Model:               model,
 		})
@@ -654,18 +656,18 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated PDF reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
-			CreatedByID:         user.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
+			CreatedByID:         userOrg.UserID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
 			Model:               model,
 		})
@@ -683,17 +685,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated Excel reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 			Model:               model,
 		})
@@ -711,18 +713,18 @@ func (c *Controller) generatedReports() {
 		Note:         "Search generated Excel reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
-			CreatedByID:         user.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
+			CreatedByID:         userOrg.UserID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
 			Model:               model,
 		})
@@ -740,17 +742,17 @@ func (c *Controller) generatedReports() {
 		Note:         "Search favorite generated reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
 			Model:          model,
 		})
@@ -768,18 +770,18 @@ func (c *Controller) generatedReports() {
 		Note:         "Search favorite generated reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed: " + err.Error()})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
 		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
-			CreatedByID:    user.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			CreatedByID:    userOrg.UserID,
 			IsFavorite:     true,
 			Model:          model,
 		})

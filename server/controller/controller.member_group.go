@@ -21,11 +21,11 @@ func (c *Controller) memberGroupController() {
 		Note:         "Returns all member group history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.core.MemberGroupHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberGroupHistory, err := c.core.MemberGroupHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history: " + err.Error()})
 		}
@@ -44,14 +44,14 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroupHistory, err := c.core.MemberGroupHistoryManager.PaginationWithFields(context, ctx, &core.MemberGroupHistory{
 			MemberProfileID: *memberProfileID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history by profile: " + err.Error()})
@@ -67,13 +67,13 @@ func (c *Controller) memberGroupController() {
 		Note:         "Returns all member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroup, err := c.core.MemberGroupManager.FindRaw(context, &core.MemberGroup{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
@@ -90,13 +90,13 @@ func (c *Controller) memberGroupController() {
 		Note:         "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberGroup, err := c.core.MemberGroupManager.PaginationWithFields(context, ctx, &core.MemberGroup{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member groups: " + err.Error()})
@@ -122,7 +122,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -136,11 +136,11 @@ func (c *Controller) memberGroupController() {
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberGroupManager.Create(context, memberGroup); err != nil {
@@ -179,7 +179,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -207,9 +207,9 @@ func (c *Controller) memberGroupController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
 		memberGroup.UpdatedAt = time.Now().UTC()
-		memberGroup.UpdatedByID = user.UserID
-		memberGroup.OrganizationID = user.OrganizationID
-		memberGroup.BranchID = *user.BranchID
+		memberGroup.UpdatedByID = userOrg.UserID
+		memberGroup.OrganizationID = userOrg.OrganizationID
+		memberGroup.BranchID = *userOrg.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
 		if err := c.core.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {

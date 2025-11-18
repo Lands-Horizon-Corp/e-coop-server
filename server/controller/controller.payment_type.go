@@ -21,11 +21,11 @@ func (c *Controller) paymentTypeController() {
 		Note:         "Returns all payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		paymentTypes, err := c.core.PaymentTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		paymentTypes, err := c.core.PaymentTypeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types: " + err.Error()})
 		}
@@ -40,13 +40,13 @@ func (c *Controller) paymentTypeController() {
 		Note:         "Returns paginated payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.PaymentTypeManager.PaginationWithFields(context, ctx, &core.PaymentType{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types for pagination: " + err.Error()})
@@ -91,7 +91,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -107,11 +107,11 @@ func (c *Controller) paymentTypeController() {
 			NumberOfDays:   req.NumberOfDays,
 			Type:           req.Type,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.PaymentTypeManager.Create(context, paymentType); err != nil {
@@ -160,7 +160,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -184,7 +184,7 @@ func (c *Controller) paymentTypeController() {
 		paymentType.NumberOfDays = req.NumberOfDays
 		paymentType.Type = req.Type
 		paymentType.UpdatedAt = time.Now().UTC()
-		paymentType.UpdatedByID = user.UserID
+		paymentType.UpdatedByID = userOrg.UserID
 		if err := c.core.PaymentTypeManager.UpdateByID(context, paymentType.ID, paymentType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

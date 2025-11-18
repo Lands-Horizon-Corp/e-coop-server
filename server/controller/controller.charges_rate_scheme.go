@@ -22,14 +22,14 @@ func (c *Controller) chargesRateSchemeController() {
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		chargesRateSchemes, err := c.core.ChargesRateSchemeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		chargesRateSchemes, err := c.core.ChargesRateSchemeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes for pagination: " + err.Error()})
 		}
@@ -48,17 +48,17 @@ func (c *Controller) chargesRateSchemeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		chargesRateSchemes, err := c.core.ChargesRateSchemeManager.Find(context, &core.ChargesRateScheme{
 			CurrencyID:     *currencyID,
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes by currency ID: " + err.Error()})
@@ -103,7 +103,7 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -112,7 +112,7 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), user not assigned to branch.",
@@ -174,11 +174,11 @@ func (c *Controller) chargesRateSchemeController() {
 			ByTermHeader21: req.ByTermHeader21,
 			ByTermHeader22: req.ByTermHeader22,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 			CurrencyID:     req.CurrencyID,
 			Type:           req.Type,
 		}
@@ -199,11 +199,11 @@ func (c *Controller) chargesRateSchemeController() {
 					ChargesRateSchemeID: chargesRateScheme.ID,
 					AccountID:           accountID,
 					CreatedAt:           time.Now().UTC(),
-					CreatedByID:         user.UserID,
+					CreatedByID:         userOrg.UserID,
 					UpdatedAt:           time.Now().UTC(),
-					UpdatedByID:         user.UserID,
-					BranchID:            *user.BranchID,
-					OrganizationID:      user.OrganizationID,
+					UpdatedByID:         userOrg.UserID,
+					BranchID:            *userOrg.BranchID,
+					OrganizationID:      userOrg.OrganizationID,
 				}
 				if err := c.core.ChargesRateSchemeAccountManager.Create(context, chargesRateSchemeAccount); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
@@ -252,7 +252,7 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -327,7 +327,7 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.ByTermHeader21 = req.ByTermHeader21
 		chargesRateScheme.ByTermHeader22 = req.ByTermHeader22
 		chargesRateScheme.UpdatedAt = time.Now().UTC()
-		chargesRateScheme.UpdatedByID = user.UserID
+		chargesRateScheme.UpdatedByID = userOrg.UserID
 		chargesRateScheme.CurrencyID = req.CurrencyID
 
 		if err := c.core.ChargesRateSchemeManager.UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
@@ -403,7 +403,7 @@ func (c *Controller) chargesRateSchemeController() {
 					}
 					existingAccount.AccountID = accountReq.AccountID
 					existingAccount.UpdatedAt = time.Now().UTC()
-					existingAccount.UpdatedByID = user.UserID
+					existingAccount.UpdatedByID = userOrg.UserID
 					if err := c.core.ChargesRateSchemeAccountManager.UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 					}
@@ -413,11 +413,11 @@ func (c *Controller) chargesRateSchemeController() {
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						AccountID:           accountReq.AccountID,
 						CreatedAt:           time.Now().UTC(),
-						CreatedByID:         user.UserID,
+						CreatedByID:         userOrg.UserID,
 						UpdatedAt:           time.Now().UTC(),
-						UpdatedByID:         user.UserID,
-						BranchID:            *user.BranchID,
-						OrganizationID:      user.OrganizationID,
+						UpdatedByID:         userOrg.UserID,
+						BranchID:            *userOrg.BranchID,
+						OrganizationID:      userOrg.OrganizationID,
 					}
 					if err := c.core.ChargesRateSchemeAccountManager.CreateWithTx(context, tx, newAccount); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + endTx(err).Error()})
@@ -441,7 +441,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingRange.Amount = rangeReq.Amount
 					existingRange.MinimumAmount = rangeReq.MinimumAmount
 					existingRange.UpdatedAt = time.Now().UTC()
-					existingRange.UpdatedByID = user.UserID
+					existingRange.UpdatedByID = userOrg.UserID
 					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByIDWithTx(context, tx, existingRange.ID, existingRange); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
@@ -455,11 +455,11 @@ func (c *Controller) chargesRateSchemeController() {
 						Amount:              rangeReq.Amount,
 						MinimumAmount:       rangeReq.MinimumAmount,
 						CreatedAt:           time.Now().UTC(),
-						CreatedByID:         user.UserID,
+						CreatedByID:         userOrg.UserID,
 						UpdatedAt:           time.Now().UTC(),
-						UpdatedByID:         user.UserID,
-						BranchID:            *user.BranchID,
-						OrganizationID:      user.OrganizationID,
+						UpdatedByID:         userOrg.UserID,
+						BranchID:            *userOrg.BranchID,
+						OrganizationID:      userOrg.OrganizationID,
 					}
 					if err := c.core.ChargesRateByRangeOrMinimumAmountManager.CreateWithTx(context, tx, newRange); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by range or minimum amount: " + endTx(err).Error()})
@@ -502,7 +502,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingMode.Column21 = modeReq.Column21
 					existingMode.Column22 = modeReq.Column22
 					existingMode.UpdatedAt = time.Now().UTC()
-					existingMode.UpdatedByID = user.UserID
+					existingMode.UpdatedByID = userOrg.UserID
 					if err := c.core.ChargesRateSchemeModeOfPaymentManager.UpdateByIDWithTx(context, tx, existingMode.ID, existingMode); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
@@ -535,11 +535,11 @@ func (c *Controller) chargesRateSchemeController() {
 						Column21:            modeReq.Column21,
 						Column22:            modeReq.Column22,
 						CreatedAt:           time.Now().UTC(),
-						CreatedByID:         user.UserID,
+						CreatedByID:         userOrg.UserID,
 						UpdatedAt:           time.Now().UTC(),
-						UpdatedByID:         user.UserID,
-						BranchID:            *user.BranchID,
-						OrganizationID:      user.OrganizationID,
+						UpdatedByID:         userOrg.UserID,
+						BranchID:            *userOrg.BranchID,
+						OrganizationID:      userOrg.OrganizationID,
 					}
 					if err := c.core.ChargesRateSchemeModeOfPaymentManager.CreateWithTx(context, tx, newMode); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme mode of payment: " + endTx(err).Error()})
@@ -583,7 +583,7 @@ func (c *Controller) chargesRateSchemeController() {
 					existingTerm.Rate21 = termReq.Rate21
 					existingTerm.Rate22 = termReq.Rate22
 					existingTerm.UpdatedAt = time.Now().UTC()
-					existingTerm.UpdatedByID = user.UserID
+					existingTerm.UpdatedByID = userOrg.UserID
 					if err := c.core.ChargesRateByTermManager.UpdateByIDWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + endTx(err).Error()})
 					}
@@ -617,11 +617,11 @@ func (c *Controller) chargesRateSchemeController() {
 						Rate21:              termReq.Rate21,
 						Rate22:              termReq.Rate22,
 						CreatedAt:           time.Now().UTC(),
-						CreatedByID:         user.UserID,
+						CreatedByID:         userOrg.UserID,
 						UpdatedAt:           time.Now().UTC(),
-						UpdatedByID:         user.UserID,
-						BranchID:            *user.BranchID,
-						OrganizationID:      user.OrganizationID,
+						UpdatedByID:         userOrg.UserID,
+						BranchID:            *userOrg.BranchID,
+						OrganizationID:      userOrg.OrganizationID,
 					}
 					if err := c.core.ChargesRateByTermManager.CreateWithTx(context, tx, newTerm); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + endTx(err).Error()})

@@ -41,7 +41,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), user not assigned to branch.",
@@ -87,11 +87,11 @@ func (c *Controller) chargesRateByTermController() {
 			Rate21:              req.Rate21,
 			Rate22:              req.Rate22,
 			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
+			CreatedByID:         userOrg.UserID,
 			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			UpdatedByID:         userOrg.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 		}
 
 		if err := c.core.ChargesRateByTermManager.Create(context, chargesRateByTerm); err != nil {
@@ -138,7 +138,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -182,7 +182,7 @@ func (c *Controller) chargesRateByTermController() {
 		chargesRateByTerm.Rate21 = req.Rate21
 		chargesRateByTerm.Rate22 = req.Rate22
 		chargesRateByTerm.UpdatedAt = time.Now().UTC()
-		chargesRateByTerm.UpdatedByID = user.UserID
+		chargesRateByTerm.UpdatedByID = userOrg.UserID
 		if err := c.core.ChargesRateByTermManager.UpdateByID(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

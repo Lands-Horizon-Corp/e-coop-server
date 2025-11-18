@@ -21,14 +21,14 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns the current timesheet entry (not timed out yet) for the user, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		timesheet, _ := c.core.TimesheetManager.FindOne(context, &core.Timesheet{
-			UserID:         user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UserID:         userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if timesheet == nil || timesheet.TimeOut != nil {
 			return ctx.NoContent(http.StatusNoContent)
@@ -46,7 +46,7 @@ func (c *Controller) timesheetController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -67,9 +67,9 @@ func (c *Controller) timesheetController() {
 		}
 
 		timesheet, _ := c.core.TimesheetManager.FindOne(context, &core.Timesheet{
-			UserID:         user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UserID:         userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 
 		now := time.Now().UTC()
@@ -77,14 +77,14 @@ func (c *Controller) timesheetController() {
 		if timesheet == nil || timesheet.TimeOut != nil {
 			newTimesheet := &core.Timesheet{
 				CreatedAt:      now,
-				CreatedByID:    user.UserID,
+				CreatedByID:    userOrg.UserID,
 				UpdatedAt:      now,
-				UpdatedByID:    user.UserID,
-				BranchID:       *user.BranchID,
-				OrganizationID: user.OrganizationID,
+				UpdatedByID:    userOrg.UserID,
+				BranchID:       *userOrg.BranchID,
+				OrganizationID: userOrg.OrganizationID,
 				TimeIn:         now,
 				MediaInID:      req.MediaID,
-				UserID:         user.UserID,
+				UserID:         userOrg.UserID,
 			}
 
 			if err := c.core.TimesheetManager.Create(context, newTimesheet); err != nil {
@@ -97,7 +97,7 @@ func (c *Controller) timesheetController() {
 			}
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-success",
-				Description: "Time-in: new timesheet created for user " + user.UserID.String(),
+				Description: "Time-in: new timesheet created for user " + userOrg.UserID.String(),
 				Module:      "Timesheet",
 			})
 			return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModel(newTimesheet))
@@ -117,7 +117,7 @@ func (c *Controller) timesheetController() {
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: "Time-out: timesheet updated for user " + user.UserID.String(),
+			Description: "Time-out: timesheet updated for user " + userOrg.UserID.String(),
 			Module:      "Timesheet",
 		})
 		return ctx.JSON(http.StatusOK, c.core.TimesheetManager.ToModel(timesheet))
@@ -150,11 +150,11 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns all timesheets of users/employees for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.TimesheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.core.TimesheetCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets: " + err.Error()})
 		}
@@ -169,13 +169,13 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns paginated timesheets for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets for pagination: " + err.Error()})
@@ -191,11 +191,11 @@ func (c *Controller) timesheetController() {
 		RequestType: core.TimesheetRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.GetUserTimesheet(context, user.UserID, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.core.GetUserTimesheet(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
@@ -210,14 +210,14 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns paginated timesheets of the current user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
-			UserID:         user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UserID:         userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets for pagination: " + err.Error()})
@@ -237,11 +237,11 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.GetUserTimesheet(context, *userID, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.core.GetUserTimesheet(context, *userID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
@@ -260,14 +260,14 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
 			UserID:         *userID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets for pagination: " + err.Error()})
@@ -286,7 +286,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -297,8 +297,8 @@ func (c *Controller) timesheetController() {
 
 		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
 			UserID:         userOrganization.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets for pagination: " + err.Error()})
@@ -314,11 +314,11 @@ func (c *Controller) timesheetController() {
 		Note:         "Returns all currently timed-in users for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.TimeSheetActiveUsers(context, user.OrganizationID, *user.BranchID)
+		timesheets, err := c.core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve current timesheets: " + err.Error()})
 		}

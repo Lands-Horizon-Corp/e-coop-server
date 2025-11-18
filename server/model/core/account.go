@@ -502,30 +502,6 @@ type AccountRequest struct {
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
 }
 
-func (acc Account) IsMemberLedger() bool {
-
-	// 1. Must be Asset or Liability
-	if acc.GeneralLedgerType != GLTypeAssets && acc.GeneralLedgerType != GLTypeLiabilities {
-		return false
-	}
-
-	// 2. Must be one of the member-related account types
-	switch acc.Type {
-	case
-		AccountTypeDeposit,
-		AccountTypeLoan,
-		AccountTypeARLedger,
-		AccountTypeARAging,
-		AccountTypeInterest,
-		AccountTypeSVFLedger,
-		AccountTypeTimeDeposit,
-		AccountTypeWOff:
-		return true
-	}
-
-	return false
-}
-
 // --- REGISTRATION ---
 
 func (m *Core) account() {
@@ -865,6 +841,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager.CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
+
+		// Create account history for seed within the same transaction
+		if err := m.CreateAccountHistory(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
+		}
 	}
 
 	// Create loan accounts with their alternative accounts
@@ -995,6 +976,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded loan account %s", loanAccount.Name)
+		}
+
 		// Create Interest Account with varying computation types
 		var interestComputationType ComputationType
 		var interestStandardRate float64
@@ -1048,6 +1034,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded interest account for %s", loanAccount.Name)
+		}
+
 		// Create Service Fee Account with varying computation types
 		var svfComputationType ComputationType
 		var svfStandardRate float64
@@ -1099,6 +1090,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 		if err := m.AccountManager.CreateWithTx(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
+		}
+
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
 		// Create Fines Account with percentage-based rates and grace periods
@@ -1162,6 +1158,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
+		}
+
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
 
@@ -1290,6 +1291,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	for _, finesAccount := range standaloneFinesAccounts {
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
+		}
+
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
 
@@ -1468,12 +1474,22 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
 		}
+
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded standalone interest account %s", interestAccount.Name)
+		}
 	}
 
 	// Create all standalone SVF accounts
 	for _, svfAccount := range standaloneSVFAccounts {
 		if err := m.AccountManager.CreateWithTx(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
+		}
+
+		// Create account history for seed
+		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
+			return eris.Wrapf(err, "failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
 	}
 
@@ -1503,6 +1519,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 	if err := m.AccountManager.CreateWithTx(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
+	}
+
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
 	// Create essential payment types for account seeding
@@ -1719,6 +1740,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
 
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnHand.Name)
+	}
+
 	// Cash in Bank Account
 	cashInBank := &Account{
 		CreatedAt:                               now,
@@ -1753,6 +1779,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	if err := m.AccountManager.CreateWithTx(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
+	}
+
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInBank.Name)
 	}
 
 	// Cash Online Account (Digital Wallets, Online Banking)
@@ -1791,6 +1822,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
 	}
 
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnline.Name)
+	}
+
 	// Petty Cash Account
 	pettyCash := &Account{
 		CreatedAt:                               now,
@@ -1825,6 +1861,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	if err := m.AccountManager.CreateWithTx(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
+	}
+
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", pettyCash.Name)
 	}
 
 	// Cash in Transit Account
@@ -1863,6 +1904,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
 	}
 
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInTransit.Name)
+	}
+
 	// Foreign Currency Cash Account
 	foreignCurrencyCash := &Account{
 		CreatedAt:                               now,
@@ -1899,6 +1945,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
 	}
 
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", foreignCurrencyCash.Name)
+	}
+
 	// Cash Equivalents - Money Market Account
 	moneyMarketFund := &Account{
 		CreatedAt:                               now,
@@ -1933,6 +1984,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	if err := m.AccountManager.CreateWithTx(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
+	}
+
+	// Create account history for seed
+	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
 	// Treasury Bills (Short-term)
@@ -3654,24 +3710,122 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-// BeforeUpdate hook for Account model to track changes
-func (a *Account) BeforeUpdate(tx *gorm.DB) error {
+// CreateAccountHistory creates a history record for the account
+func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
+	now := time.Now().UTC()
+	history := &AccountHistory{
+		AccountID:      account.ID,
+		OrganizationID: account.OrganizationID,
+		BranchID:       account.BranchID,
+		CreatedByID:    account.CreatedByID,
+		CreatedAt:      now,
+		LoanAccountID:  account.LoanAccountID,
+
+		// Copy all account data
+		Name:                                account.Name,
+		Description:                         account.Description,
+		Type:                                account.Type,
+		MinAmount:                           account.MinAmount,
+		MaxAmount:                           account.MaxAmount,
+		Index:                               account.Index,
+		IsInternal:                          account.IsInternal,
+		CashOnHand:                          account.CashOnHand,
+		PaidUpShareCapital:                  account.PaidUpShareCapital,
+		ComputationType:                     account.ComputationType,
+		FinesAmort:                          account.FinesAmort,
+		FinesMaturity:                       account.FinesMaturity,
+		InterestStandard:                    account.InterestStandard,
+		InterestSecured:                     account.InterestSecured,
+		FinesGracePeriodAmortization:        account.FinesGracePeriodAmortization,
+		AdditionalGracePeriod:               account.AdditionalGracePeriod,
+		NoGracePeriodDaily:                  account.NoGracePeriodDaily,
+		FinesGracePeriodMaturity:            account.FinesGracePeriodMaturity,
+		YearlySubscriptionFee:               account.YearlySubscriptionFee,
+		CutOffDays:                          account.CutOffDays,
+		CutOffMonths:                        account.CutOffMonths,
+		LumpsumComputationType:              account.LumpsumComputationType,
+		InterestFinesComputationDiminishing: account.InterestFinesComputationDiminishing,
+		InterestFinesComputationDiminishingStraightYearly: account.InterestFinesComputationDiminishingStraightYearly,
+		EarnedUnearnedInterest:                            account.EarnedUnearnedInterest,
+		LoanSavingType:                                    account.LoanSavingType,
+		InterestDeduction:                                 account.InterestDeduction,
+		OtherDeductionEntry:                               account.OtherDeductionEntry,
+		InterestSavingTypeDiminishingStraight:             account.InterestSavingTypeDiminishingStraight,
+		OtherInformationOfAnAccount:                       account.OtherInformationOfAnAccount,
+		GeneralLedgerType:                                 account.GeneralLedgerType,
+		HeaderRow:                                         account.HeaderRow,
+		CenterRow:                                         account.CenterRow,
+		TotalRow:                                          account.TotalRow,
+		GeneralLedgerGroupingExcludeAccount:               account.GeneralLedgerGroupingExcludeAccount,
+		Icon:                                              account.Icon,
+		ShowInGeneralLedgerSourceWithdraw:                 account.ShowInGeneralLedgerSourceWithdraw,
+		ShowInGeneralLedgerSourceDeposit:                  account.ShowInGeneralLedgerSourceDeposit,
+		ShowInGeneralLedgerSourceJournal:                  account.ShowInGeneralLedgerSourceJournal,
+		ShowInGeneralLedgerSourcePayment:                  account.ShowInGeneralLedgerSourcePayment,
+		ShowInGeneralLedgerSourceAdjustment:               account.ShowInGeneralLedgerSourceAdjustment,
+		ShowInGeneralLedgerSourceJournalVoucher:           account.ShowInGeneralLedgerSourceJournalVoucher,
+		ShowInGeneralLedgerSourceCheckVoucher:             account.ShowInGeneralLedgerSourceCheckVoucher,
+		CompassionFund:                                    account.CompassionFund,
+		CompassionFundAmount:                              account.CompassionFundAmount,
+		CashAndCashEquivalence:                            account.CashAndCashEquivalence,
+		InterestStandardComputation:                       account.InterestStandardComputation,
+
+		// Foreign key references
+		GeneralLedgerDefinitionID:      account.GeneralLedgerDefinitionID,
+		FinancialStatementDefinitionID: account.FinancialStatementDefinitionID,
+		AccountClassificationID:        account.AccountClassificationID,
+		AccountCategoryID:              account.AccountCategoryID,
+		MemberTypeID:                   account.MemberTypeID,
+		CurrencyID:                     account.CurrencyID,
+		DefaultPaymentTypeID:           account.DefaultPaymentTypeID,
+		ComputationSheetID:             account.ComputationSheetID,
+
+		// Grace period entries
+		CohCibFinesGracePeriodEntryCashHand:                account.CohCibFinesGracePeriodEntryCashHand,
+		CohCibFinesGracePeriodEntryCashInBank:              account.CohCibFinesGracePeriodEntryCashInBank,
+		CohCibFinesGracePeriodEntryDailyAmortization:       account.CohCibFinesGracePeriodEntryDailyAmortization,
+		CohCibFinesGracePeriodEntryDailyMaturity:           account.CohCibFinesGracePeriodEntryDailyMaturity,
+		CohCibFinesGracePeriodEntryWeeklyAmortization:      account.CohCibFinesGracePeriodEntryWeeklyAmortization,
+		CohCibFinesGracePeriodEntryWeeklyMaturity:          account.CohCibFinesGracePeriodEntryWeeklyMaturity,
+		CohCibFinesGracePeriodEntryMonthlyAmortization:     account.CohCibFinesGracePeriodEntryMonthlyAmortization,
+		CohCibFinesGracePeriodEntryMonthlyMaturity:         account.CohCibFinesGracePeriodEntryMonthlyMaturity,
+		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
+		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     account.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
+		CohCibFinesGracePeriodEntryQuarterlyAmortization:   account.CohCibFinesGracePeriodEntryQuarterlyAmortization,
+		CohCibFinesGracePeriodEntryQuarterlyMaturity:       account.CohCibFinesGracePeriodEntryQuarterlyMaturity,
+		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  account.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
+		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      account.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+		CohCibFinesGracePeriodEntryAnnualAmortization:      account.CohCibFinesGracePeriodEntryAnnualAmortization,
+		CohCibFinesGracePeriodEntryAnnualMaturity:          account.CohCibFinesGracePeriodEntryAnnualMaturity,
+		CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
+		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
+	}
+
+	// Debug: check if tx is nil
+	if tx == nil {
+		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
+	}
+
+	return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
+}
+
+// CreateAccountHistoryBeforeUpdate creates a history record with the original account data before update
+func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, updatedBy uuid.UUID) error {
 	// Get the original account data before update
-	var original Account
-	if err := tx.Unscoped().Where("id = ?", a.ID).First(&original).Error; err != nil {
-		// If we can't find the original record, skip history creation to avoid blocking the update
+	original, err := m.AccountManager.GetByID(ctx, accountID)
+	if err != nil {
+		// If we can't find the original record, skip history creation
 		return nil
 	}
 
-	// Create history record with the original data
 	now := time.Now().UTC()
 	history := &AccountHistory{
-		AccountID:      a.ID,
+		AccountID:      accountID,
 		OrganizationID: original.OrganizationID,
 		BranchID:       original.BranchID,
-		CreatedByID:    a.CreatedByID,
+		CreatedByID:    updatedBy,
 		CreatedAt:      now,
-		LoanAccountID:  a.LoanAccountID,
+		LoanAccountID:  original.LoanAccountID,
 
 		// Copy all original data
 		Name:                                original.Name,
@@ -3747,217 +3901,16 @@ func (a *Account) BeforeUpdate(tx *gorm.DB) error {
 		CohCibFinesGracePeriodEntryQuarterlyMaturity:       original.CohCibFinesGracePeriodEntryQuarterlyMaturity,
 		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  original.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
 		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      original.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
+		CohCibFinesGracePeriodEntryAnnualAmortization:      original.CohCibFinesGracePeriodEntryAnnualAmortization,
+		CohCibFinesGracePeriodEntryAnnualMaturity:          original.CohCibFinesGracePeriodEntryAnnualMaturity,
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     original.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         original.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
 
-	// Save the history record
-	if err := tx.Create(history).Error; err != nil {
-		return err
+	if tx != nil {
+		return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
 	}
-
-	return nil
-}
-
-// AfterCreate hook for Account model to create initial history record
-func (a *Account) AfterCreate(tx *gorm.DB) error {
-	history := &AccountHistory{
-		AccountID:      a.ID,
-		OrganizationID: a.OrganizationID,
-		BranchID:       a.BranchID,
-		CreatedByID:    a.CreatedByID,
-
-		LoanAccountID: a.LoanAccountID,
-		// Copy all current data
-		Name:                                a.Name,
-		Description:                         a.Description,
-		Type:                                a.Type,
-		MinAmount:                           a.MinAmount,
-		MaxAmount:                           a.MaxAmount,
-		Index:                               a.Index,
-		IsInternal:                          a.IsInternal,
-		CashOnHand:                          a.CashOnHand,
-		PaidUpShareCapital:                  a.PaidUpShareCapital,
-		ComputationType:                     a.ComputationType,
-		FinesAmort:                          a.FinesAmort,
-		FinesMaturity:                       a.FinesMaturity,
-		InterestStandard:                    a.InterestStandard,
-		InterestSecured:                     a.InterestSecured,
-		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
-		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
-		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
-		YearlySubscriptionFee:               a.YearlySubscriptionFee,
-		CutOffDays:                          a.CutOffDays,
-		CutOffMonths:                        a.CutOffMonths,
-		LumpsumComputationType:              a.LumpsumComputationType,
-		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
-		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,
-		EarnedUnearnedInterest:                            a.EarnedUnearnedInterest,
-		LoanSavingType:                                    a.LoanSavingType,
-		InterestDeduction:                                 a.InterestDeduction,
-		OtherDeductionEntry:                               a.OtherDeductionEntry,
-		InterestSavingTypeDiminishingStraight:             a.InterestSavingTypeDiminishingStraight,
-		OtherInformationOfAnAccount:                       a.OtherInformationOfAnAccount,
-		GeneralLedgerType:                                 a.GeneralLedgerType,
-		HeaderRow:                                         a.HeaderRow,
-		CenterRow:                                         a.CenterRow,
-		TotalRow:                                          a.TotalRow,
-		GeneralLedgerGroupingExcludeAccount:               a.GeneralLedgerGroupingExcludeAccount,
-		Icon:                                              a.Icon,
-		ShowInGeneralLedgerSourceWithdraw:                 a.ShowInGeneralLedgerSourceWithdraw,
-		ShowInGeneralLedgerSourceDeposit:                  a.ShowInGeneralLedgerSourceDeposit,
-		ShowInGeneralLedgerSourceJournal:                  a.ShowInGeneralLedgerSourceJournal,
-		ShowInGeneralLedgerSourcePayment:                  a.ShowInGeneralLedgerSourcePayment,
-		ShowInGeneralLedgerSourceAdjustment:               a.ShowInGeneralLedgerSourceAdjustment,
-		ShowInGeneralLedgerSourceJournalVoucher:           a.ShowInGeneralLedgerSourceJournalVoucher,
-		ShowInGeneralLedgerSourceCheckVoucher:             a.ShowInGeneralLedgerSourceCheckVoucher,
-		CompassionFund:                                    a.CompassionFund,
-		CompassionFundAmount:                              a.CompassionFundAmount,
-		CashAndCashEquivalence:                            a.CashAndCashEquivalence,
-		InterestStandardComputation:                       a.InterestStandardComputation,
-
-		// Foreign key references
-		GeneralLedgerDefinitionID:      a.GeneralLedgerDefinitionID,
-		FinancialStatementDefinitionID: a.FinancialStatementDefinitionID,
-		AccountClassificationID:        a.AccountClassificationID,
-		AccountCategoryID:              a.AccountCategoryID,
-		DefaultPaymentTypeID:           a.DefaultPaymentTypeID,
-		MemberTypeID:                   a.MemberTypeID,
-		CurrencyID:                     a.CurrencyID,
-		ComputationSheetID:             a.ComputationSheetID,
-
-		// Grace period entries
-		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
-		CohCibFinesGracePeriodEntryCashInBank:              a.CohCibFinesGracePeriodEntryCashInBank,
-		CohCibFinesGracePeriodEntryDailyAmortization:       a.CohCibFinesGracePeriodEntryDailyAmortization,
-		CohCibFinesGracePeriodEntryDailyMaturity:           a.CohCibFinesGracePeriodEntryDailyMaturity,
-		CohCibFinesGracePeriodEntryWeeklyAmortization:      a.CohCibFinesGracePeriodEntryWeeklyAmortization,
-		CohCibFinesGracePeriodEntryWeeklyMaturity:          a.CohCibFinesGracePeriodEntryWeeklyMaturity,
-		CohCibFinesGracePeriodEntryMonthlyAmortization:     a.CohCibFinesGracePeriodEntryMonthlyAmortization,
-		CohCibFinesGracePeriodEntryMonthlyMaturity:         a.CohCibFinesGracePeriodEntryMonthlyMaturity,
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: a.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
-		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
-		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
-		CohCibFinesGracePeriodEntrySemiAnnualMaturity:      a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
-		CohCibFinesGracePeriodEntryLumpsumAmortization:     a.CohCibFinesGracePeriodEntryLumpsumAmortization,
-		CohCibFinesGracePeriodEntryLumpsumMaturity:         a.CohCibFinesGracePeriodEntryLumpsumMaturity,
-
-		CohCibFinesGracePeriodEntryAnnualAmortization: a.CohCibFinesGracePeriodEntryAnnualAmortization,
-		CohCibFinesGracePeriodEntryAnnualMaturity:     a.CohCibFinesGracePeriodEntryAnnualMaturity,
-	}
-
-	// Save the history record
-	return tx.Create(history).Error
-}
-
-// BeforeDelete hook for Account model to track deletion
-func (a *Account) BeforeDelete(tx *gorm.DB) error {
-	now := time.Now().UTC()
-
-	// Close any open history records for this account
-	if err := tx.Model(&AccountHistory{}).
-		Where("account_id = ? AND valid_to IS NULL", a.ID).
-		Update("valid_to", now).Error; err != nil {
-		return err
-	}
-
-	// Create deletion history record
-	history := &AccountHistory{
-		AccountID:      a.ID,
-		OrganizationID: a.OrganizationID,
-		BranchID:       a.BranchID,
-		CreatedByID:    a.CreatedByID,
-		// In the AccountHistoryToModel function (around line 500):
-		CohCibFinesGracePeriodEntryAnnualAmortization:  a.CohCibFinesGracePeriodEntryAnnualAmortization,
-		CohCibFinesGracePeriodEntryAnnualMaturity:      a.CohCibFinesGracePeriodEntryAnnualMaturity,
-		CohCibFinesGracePeriodEntryLumpsumAmortization: a.CohCibFinesGracePeriodEntryLumpsumAmortization,
-		CohCibFinesGracePeriodEntryLumpsumMaturity:     a.CohCibFinesGracePeriodEntryLumpsumMaturity,
-
-		// Copy all current data before deletion
-		Name:                                a.Name,
-		Description:                         a.Description,
-		Type:                                a.Type,
-		MinAmount:                           a.MinAmount,
-		MaxAmount:                           a.MaxAmount,
-		Index:                               a.Index,
-		IsInternal:                          a.IsInternal,
-		CashOnHand:                          a.CashOnHand,
-		PaidUpShareCapital:                  a.PaidUpShareCapital,
-		ComputationType:                     a.ComputationType,
-		FinesAmort:                          a.FinesAmort,
-		FinesMaturity:                       a.FinesMaturity,
-		InterestStandard:                    a.InterestStandard,
-		InterestSecured:                     a.InterestSecured,
-		FinesGracePeriodAmortization:        a.FinesGracePeriodAmortization,
-		AdditionalGracePeriod:               a.AdditionalGracePeriod,
-		NoGracePeriodDaily:                  a.NoGracePeriodDaily,
-		FinesGracePeriodMaturity:            a.FinesGracePeriodMaturity,
-		YearlySubscriptionFee:               a.YearlySubscriptionFee,
-		CutOffDays:                          a.CutOffDays,
-		CutOffMonths:                        a.CutOffMonths,
-		LumpsumComputationType:              a.LumpsumComputationType,
-		InterestFinesComputationDiminishing: a.InterestFinesComputationDiminishing,
-		InterestFinesComputationDiminishingStraightYearly: a.InterestFinesComputationDiminishingStraightYearly,
-		EarnedUnearnedInterest:                            a.EarnedUnearnedInterest,
-		LoanSavingType:                                    a.LoanSavingType,
-		InterestDeduction:                                 a.InterestDeduction,
-		OtherDeductionEntry:                               a.OtherDeductionEntry,
-		InterestSavingTypeDiminishingStraight:             a.InterestSavingTypeDiminishingStraight,
-		OtherInformationOfAnAccount:                       a.OtherInformationOfAnAccount,
-		GeneralLedgerType:                                 a.GeneralLedgerType,
-		HeaderRow:                                         a.HeaderRow,
-		CenterRow:                                         a.CenterRow,
-		TotalRow:                                          a.TotalRow,
-		GeneralLedgerGroupingExcludeAccount:               a.GeneralLedgerGroupingExcludeAccount,
-		Icon:                                              a.Icon,
-		ShowInGeneralLedgerSourceWithdraw:                 a.ShowInGeneralLedgerSourceWithdraw,
-		ShowInGeneralLedgerSourceDeposit:                  a.ShowInGeneralLedgerSourceDeposit,
-		ShowInGeneralLedgerSourceJournal:                  a.ShowInGeneralLedgerSourceJournal,
-		ShowInGeneralLedgerSourcePayment:                  a.ShowInGeneralLedgerSourcePayment,
-		ShowInGeneralLedgerSourceAdjustment:               a.ShowInGeneralLedgerSourceAdjustment,
-		ShowInGeneralLedgerSourceJournalVoucher:           a.ShowInGeneralLedgerSourceJournalVoucher,
-		ShowInGeneralLedgerSourceCheckVoucher:             a.ShowInGeneralLedgerSourceCheckVoucher,
-		CompassionFund:                                    a.CompassionFund,
-		CompassionFundAmount:                              a.CompassionFundAmount,
-		CashAndCashEquivalence:                            a.CashAndCashEquivalence,
-		InterestStandardComputation:                       a.InterestStandardComputation,
-
-		// Foreign key references
-		GeneralLedgerDefinitionID:      a.GeneralLedgerDefinitionID,
-		FinancialStatementDefinitionID: a.FinancialStatementDefinitionID,
-		AccountClassificationID:        a.AccountClassificationID,
-		AccountCategoryID:              a.AccountCategoryID,
-		MemberTypeID:                   a.MemberTypeID,
-		CurrencyID:                     a.CurrencyID,
-		ComputationSheetID:             a.ComputationSheetID,
-		LoanAccountID:                  a.LoanAccountID,
-
-		// Grace period entries
-		CohCibFinesGracePeriodEntryCashHand:                a.CohCibFinesGracePeriodEntryCashHand,
-		CohCibFinesGracePeriodEntryCashInBank:              a.CohCibFinesGracePeriodEntryCashInBank,
-		CohCibFinesGracePeriodEntryDailyAmortization:       a.CohCibFinesGracePeriodEntryDailyAmortization,
-		CohCibFinesGracePeriodEntryDailyMaturity:           a.CohCibFinesGracePeriodEntryDailyMaturity,
-		CohCibFinesGracePeriodEntryWeeklyAmortization:      a.CohCibFinesGracePeriodEntryWeeklyAmortization,
-		CohCibFinesGracePeriodEntryWeeklyMaturity:          a.CohCibFinesGracePeriodEntryWeeklyMaturity,
-		CohCibFinesGracePeriodEntryMonthlyAmortization:     a.CohCibFinesGracePeriodEntryMonthlyAmortization,
-		CohCibFinesGracePeriodEntryMonthlyMaturity:         a.CohCibFinesGracePeriodEntryMonthlyMaturity,
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization: a.CohCibFinesGracePeriodEntrySemiMonthlyAmortization,
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity:     a.CohCibFinesGracePeriodEntrySemiMonthlyMaturity,
-		CohCibFinesGracePeriodEntryQuarterlyAmortization:   a.CohCibFinesGracePeriodEntryQuarterlyAmortization,
-		CohCibFinesGracePeriodEntryQuarterlyMaturity:       a.CohCibFinesGracePeriodEntryQuarterlyMaturity,
-		CohCibFinesGracePeriodEntrySemiAnnualAmortization:  a.CohCibFinesGracePeriodEntrySemiAnnualAmortization,
-		// AccountCurrentBranch
-		CohCibFinesGracePeriodEntrySemiAnnualMaturity: a.CohCibFinesGracePeriodEntrySemiAnnualMaturity,
-		// Add DefaultPaymentTypeID
-		DefaultPaymentTypeID: a.DefaultPaymentTypeID,
-		// AccountCurrentBranch
-	}
-
-	// Save the deletion history record
-	return tx.Create(history).Error
+	return m.AccountHistoryManager.Create(ctx, history)
 }
 
 // AccountCurrentBranch
@@ -4052,4 +4005,97 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 		return nil, err
 	}
 	return accounts, nil
+}
+
+// AccountDeleteCheck verifies if an account can be safely deleted by checking:
+// 1. If account has any general ledger entries
+// 2. If account is set as Cash on Hand in branch settings
+// 3. If account is set as Paid Up Share Capital in branch settings
+// 4. If account is referenced by unbalanced accounts (shortage or overage)
+// 5. If account is a parent loan account for other accounts (Interest/Fines/SVF)
+// Returns an error if any of these conditions are met, preventing deletion.
+func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
+	// Check if account has any general ledger entries
+	hasEntries, err := m.GeneralLedgerManager.Exists(ctx, []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to check general ledger entries for account")
+	}
+
+	if hasEntries {
+		return eris.New("cannot delete account: account has existing general ledger entries")
+	}
+
+	// Get the account to check organization and branch
+	account, err := m.AccountManager.GetByID(ctx, accountID)
+	if err != nil {
+		return eris.Wrap(err, "failed to retrieve account for validation")
+	}
+
+	// Get branch settings for this account's branch
+	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{
+		BranchID: account.BranchID,
+	})
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to retrieve branch settings")
+	}
+
+	// Check if account is Cash on Hand
+	if branchSetting != nil && branchSetting.CashOnHandAccountID != nil &&
+		*branchSetting.CashOnHandAccountID == accountID {
+		return eris.New("cannot delete account: it is currently set as the Cash on Hand account in branch settings")
+	}
+
+	// Check if account is Paid Up Share Capital
+	if branchSetting != nil && branchSetting.PaidUpSharedCapitalAccountID != nil &&
+		*branchSetting.PaidUpSharedCapitalAccountID == accountID {
+		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
+	}
+
+	// Check if account is referenced by unbalanced accounts (shortage or overage)
+	unbalancedAccount, err := m.UnbalancedAccountManager.FindOne(ctx, &UnbalancedAccount{
+		BranchSettingsID: branchSetting.ID,
+	})
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to check unbalanced account references")
+	}
+
+	if unbalancedAccount != nil {
+		if unbalancedAccount.AccountForShortageID == accountID {
+			return eris.New("cannot delete account: it is currently set as the shortage account in branch settings")
+		}
+		if unbalancedAccount.AccountForOverageID == accountID {
+			return eris.New("cannot delete account: it is currently set as the overage account in branch settings")
+		}
+	}
+
+	// Check if account is a parent loan account for other accounts
+	linkedAccounts, err := m.FindLoanAccountsByID(ctx, account.OrganizationID, account.BranchID, accountID)
+	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
+		return eris.Wrap(err, "failed to check linked loan accounts")
+	}
+
+	if len(linkedAccounts) > 0 {
+		return eris.Errorf("cannot delete account: %d other accounts (Interest/Fines/SVF) are linked to this loan account. Please delete or unlink them first", len(linkedAccounts))
+	}
+
+	return nil
+}
+
+// AccountDeleteCheckIncludingDeleted verifies if an account can be safely deleted
+// by checking for existing general ledger entries, including soft-deleted ones.
+func (m *Core) AccountDeleteCheckIncludingDeleted(ctx context.Context, accountID uuid.UUID) error {
+	hasEntries, err := m.GeneralLedgerManager.ExistsIncludingDeleted(ctx, []registry.FilterSQL{
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to check general ledger entries for account")
+	}
+
+	if hasEntries {
+		return eris.New("cannot delete account: account has existing general ledger entries (including deleted)")
+	}
+
+	return nil
 }

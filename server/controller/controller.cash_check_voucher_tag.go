@@ -22,14 +22,14 @@ func (c *Controller) cashCheckVoucherTagController() {
 		ResponseType: core.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.CashCheckVoucherTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		tags, err := c.core.CashCheckVoucherTagCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the current branch"})
 		}
@@ -44,16 +44,16 @@ func (c *Controller) cashCheckVoucherTagController() {
 		ResponseType: core.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		tags, err := c.core.CashCheckVoucherTagManager.PaginationWithFields(context, ctx, &core.CashCheckVoucherTag{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash check voucher tags for pagination: " + err.Error()})
@@ -98,7 +98,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -107,7 +107,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher tag creation failed (/cash-check-voucher-tag), user not assigned to branch.",
@@ -124,11 +124,11 @@ func (c *Controller) cashCheckVoucherTagController() {
 			Color:              req.Color,
 			Icon:               req.Icon,
 			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.UserID,
+			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.UserID,
-			BranchID:           *user.BranchID,
-			OrganizationID:     user.OrganizationID,
+			UpdatedByID:        userOrg.UserID,
+			BranchID:           *userOrg.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
 		}
 
 		if err := c.core.CashCheckVoucherTagManager.Create(context, tag); err != nil {
@@ -175,7 +175,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -200,7 +200,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		tag.Color = req.Color
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
-		tag.UpdatedByID = user.UserID
+		tag.UpdatedByID = userOrg.UserID
 		if err := c.core.CashCheckVoucherTagManager.UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

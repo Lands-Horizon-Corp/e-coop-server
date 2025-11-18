@@ -378,16 +378,16 @@ func (c *Controller) loanTransactionController() {
 		}
 
 		// Calculate totals
-		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			LoanTransactionEntries: entries,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to compute loan transaction totals: %s", err.Error())})
 		}
 		return ctx.JSON(http.StatusOK, core.LoanTransactionTotalResponse{
-			Balance:     balance,
-			TotalDebit:  debit,
-			TotalCredit: credit,
+			Balance:     balance.Balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
 		})
 	})
 
@@ -413,16 +413,6 @@ func (c *Controller) loanTransactionController() {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-error",
-				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
-
 		loanTransaction := &core.LoanTransaction{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
@@ -431,7 +421,6 @@ func (c *Controller) loanTransactionController() {
 			UpdatedByID:                            userOrg.UserID,
 			OrganizationID:                         userOrg.OrganizationID,
 			BranchID:                               *userOrg.BranchID,
-			TransactionBatchID:                     &transactionBatch.ID,
 			OfficialReceiptNumber:                  request.OfficialReceiptNumber,
 			Voucher:                                request.Voucher,
 			EmployeeUserID:                         &userOrg.UserID,
@@ -701,16 +690,6 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-error",
-				Description: "Failed to retrieve transaction batch (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
-
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		cashOnHandAccount, err := c.core.GetCashOnCashEquivalence(
 			context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
@@ -737,7 +716,6 @@ func (c *Controller) loanTransactionController() {
 		// Update fields
 		loanTransaction.AccountID = request.AccountID
 		loanTransaction.UpdatedByID = userOrg.UserID
-		loanTransaction.TransactionBatchID = &transactionBatch.ID
 		loanTransaction.OfficialReceiptNumber = request.OfficialReceiptNumber
 		loanTransaction.Voucher = request.Voucher
 		loanTransaction.EmployeeUserID = &userOrg.UserID
@@ -1515,10 +1493,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Loan transaction has already been marked printed, you can undo it by clicking undo print"})
 		}
 		loanTransaction.PrintNumber++
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		loanTransaction.PrintedDate = &timeNow
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.Voucher = req.Voucher
@@ -1657,10 +1632,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already approved"})
 		}
 		now := time.Now().UTC()
-		timeNow := time.Now().UTC()
-		if userOrg.TimeMachineTime != nil {
-			timeNow = userOrg.UserOrgTime()
-		}
+		timeNow := userOrg.UserOrgTime()
 		loanTransaction.ApprovedDate = &timeNow
 		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
@@ -1767,12 +1739,16 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 
+		if err := c.event.TransactionBatchBalancing(context, newLoanTransaction.TransactionBatchID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
+		}
+
 		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
 			Description:      fmt.Sprintf("Loan transaction has been released by %s", *userOrg.User.FirstName),
 			Title:            "Loan Transaction Released",
 			NotificationType: core.NotificationInfo,
 		})
-		return ctx.JSON(http.StatusOK, newLoanTransaction)
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
 	// Put /api/v1/loan-transaction/:loan_transaction_id/signature
@@ -1945,8 +1921,25 @@ func (c *Controller) loanTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		schedule, err := c.event.LoanAmortizationSchedule(context, ctx, *loanTransactionID)
+		// ===============================
+		// STEP 1: AUTHENTICATION & AUTHORIZATION
+		// ===============================
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "authentication-failed",
+				Description: "Failed to authenticate user organization for loan amortization schedule generation: " + err.Error(),
+				Module:      "Loan Amortization",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to authenticate user organization for loan amortization schedule"})
+		}
+		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID, userOrg)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "schedule-retrieval-failed",
+				Description: "Failed to retrieve loan transaction schedule: " + err.Error(),
+				Module:      "Loan Amortization",
+			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction schedule: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, schedule)
@@ -2055,7 +2048,7 @@ func (c *Controller) loanTransactionController() {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/summary",
 		Method:       "GET",
 		Note:         "Retrieves a summary of loan transactions based on query parameters.",
-		ResponseType: core.LoanTransactionSummaryResponse{},
+		ResponseType: event.LoanTransactionSummaryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -2069,62 +2062,37 @@ func (c *Controller) loanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		loanSummary, err := c.event.LoanSummary(context, loanTransactionID, userOrg)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan summary: " + err.Error()})
 		}
-		entries, err := c.core.GeneralLedgerByLoanTransaction(
-			context,
-			*loanTransactionID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-		)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
-		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-			LoanAccountID:  loanTransaction.AccountID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
-		}
-		arrears := 0.0
-		accountsummary := []core.LoanAccountSummaryResponse{}
-		for _, entry := range accounts {
-			accountHistory, err := c.core.GetAccountHistoryLatestByTimeHistory(
-				context,
-				entry.ID,
-				entry.OrganizationID,
-				entry.BranchID,
-				loanTransaction.PrintedDate,
-			)
-			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
-			}
-			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
-				AccountHistoryID:               accountHistory.ID,
-				AccountHistory:                 *c.core.AccountHistoryManager.ToModel(accountHistory),
-				TotalDebit:                     0,
-				TotalCredit:                    0,
-				Balance:                        0,
-				DueDate:                        nil,
-				LastPayment:                    nil,
-				TotalNumberOfPayments:          0,
-				TotalNumberOfDeductions:        0,
-				TotalNumberOfAdditions:         0,
-				TotalAccountPrincipal:          0,
-				TotalAccountAdvancedPayment:    0,
-				TotalAccountPrincipalPaid:      0,
-				TotalAccountRemainingPrincipal: 0,
-			})
-		}
-		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
-			GeneralLedger:  c.core.GeneralLedgerManager.ToModels(entries),
-			AccountSummary: accountsummary,
-			Arrears:        arrears,
-			AmountGranted:  loanTransaction.Applied1,
-		})
+		return ctx.JSON(http.StatusOK, loanSummary)
 	})
+
+	// GET api/v1/loan-transaction/:loan_transaction_id/payment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/payment",
+		Method:       "GET",
+		Note:         "Retrieves payment details for a specific loan transaction by ID.",
+		ResponseType: event.LoanPaymentResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanPayment, err := c.event.LoanPaymenSummary(context, loanTransactionID, userOrg)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan payment details: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, loanPayment)
+	})
+
 }

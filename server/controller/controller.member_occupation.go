@@ -21,11 +21,11 @@ func (c *Controller) memberOccupationController() {
 		Note:         "Returns all member occupation history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.core.MemberOccupationHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupationHistory, err := c.core.MemberOccupationHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history: " + err.Error()})
 		}
@@ -44,14 +44,14 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager.PaginationWithFields(context, ctx, &core.MemberOccupationHistory{
 			MemberProfileID: *memberProfileID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history by profile: " + err.Error()})
@@ -67,11 +67,11 @@ func (c *Controller) memberOccupationController() {
 		Note:         "Returns all member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupation, err := c.core.MemberOccupationCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberOccupation, err := c.core.MemberOccupationCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations: " + err.Error()})
 		}
@@ -86,13 +86,13 @@ func (c *Controller) memberOccupationController() {
 		Note:         "Returns paginated member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.MemberOccupationManager.PaginationWithFields(context, ctx, &core.MemberOccupation{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations for pagination: " + err.Error()})
@@ -118,7 +118,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -132,11 +132,11 @@ func (c *Controller) memberOccupationController() {
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberOccupationManager.Create(context, memberOccupation); err != nil {
@@ -175,7 +175,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_occupation_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,9 +203,9 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member occupation not found: " + err.Error()})
 		}
 		memberOccupation.UpdatedAt = time.Now().UTC()
-		memberOccupation.UpdatedByID = user.UserID
-		memberOccupation.OrganizationID = user.OrganizationID
-		memberOccupation.BranchID = *user.BranchID
+		memberOccupation.UpdatedByID = userOrg.UserID
+		memberOccupation.OrganizationID = userOrg.OrganizationID
+		memberOccupation.BranchID = *userOrg.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
 		if err := c.core.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {

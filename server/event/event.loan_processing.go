@@ -9,7 +9,11 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrganization, loanTransactionID *uuid.UUID) (*core.LoanTransaction, error) {
+func (e *Event) LoanProcessing(
+	context context.Context,
+	userOrg *core.UserOrganization,
+	loanTransactionID *uuid.UUID,
+) (*core.LoanTransaction, error) {
 	// ===============================
 	// STEP 1: INITIALIZE TRANSACTION AND BASIC VALIDATION
 	// ===============================
@@ -98,10 +102,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 	// ===============================
 	// STEP 8: INITIALIZE PAYMENT CALCULATION VARIABLES
 	// ===============================
-	currentDate := time.Now().UTC()
-	if userOrg.TimeMachineTime != nil {
-		currentDate = userOrg.UserOrgTime()
-	}
+	currentDate := userOrg.UserOrgTime()
 	paymentDate := *loanTransaction.PrintedDate
 	balance := loanTransaction.TotalPrincipal
 	principal := loanTransaction.TotalPrincipal
@@ -175,7 +176,7 @@ func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrgani
 						BranchID:                   *userOrg.BranchID,
 						OrganizationID:             userOrg.OrganizationID,
 						ReferenceNumber:            loanTransaction.Voucher,
-						EntryDate:                  &scheduledDate,
+						EntryDate:                  scheduledDate,
 						AccountID:                  &account.ID,
 						MemberProfileID:            &memberProfile.ID,
 						PaymentTypeID:              account.DefaultPaymentTypeID,

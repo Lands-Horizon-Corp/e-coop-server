@@ -79,14 +79,14 @@ func (c *Controller) computationSheetController() {
 		ResponseType: core.ComputationSheetResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheets, err := c.core.ComputationSheetCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		sheets, err := c.core.ComputationSheetCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}
@@ -130,7 +130,7 @@ func (c *Controller) computationSheetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -139,7 +139,7 @@ func (c *Controller) computationSheetController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Computation sheet creation failed (/computation-sheet), user not assigned to branch.",
@@ -157,11 +157,11 @@ func (c *Controller) computationSheetController() {
 			ComakerAccount:    req.ComakerAccount,
 			ExistAccount:      req.ExistAccount,
 			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
+			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
+			UpdatedByID:       userOrg.UserID,
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
 			CurrencyID:        req.CurrencyID,
 		}
 
@@ -209,7 +209,7 @@ func (c *Controller) computationSheetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -235,7 +235,7 @@ func (c *Controller) computationSheetController() {
 		sheet.ComakerAccount = req.ComakerAccount
 		sheet.ExistAccount = req.ExistAccount
 		sheet.UpdatedAt = time.Now().UTC()
-		sheet.UpdatedByID = user.UserID
+		sheet.UpdatedByID = userOrg.UserID
 
 		if err := c.core.ComputationSheetManager.UpdateByID(context, sheet.ID, sheet); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

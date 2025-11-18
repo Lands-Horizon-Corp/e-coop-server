@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
@@ -35,38 +34,15 @@ type LoanTransactionAmortizationResponse struct {
 	Schedule    []*LoanAmortizationSchedule          `json:"schedule,omitempty"`
 }
 
-func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Context, loanTransactionID uuid.UUID) (*LoanTransactionAmortizationResponse, error) {
-
-	// ===============================
-	// STEP 1: AUTHENTICATION & AUTHORIZATION
-	// ===============================
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
-	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "authentication-failed",
-			Description: "Failed to authenticate user organization for loan amortization schedule generation: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
-		return nil, eris.Wrap(err, "failed to authenticate user organization for loan amortization schedule")
-	}
+func (e Event) LoanAmortizationSchedule(context context.Context, loanTransactionID uuid.UUID, userOrg *core.UserOrganization) (*LoanTransactionAmortizationResponse, error) {
 
 	// Validate user organization context
 	if userOrg == nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "authentication-failed",
-			Description: "User organization context is missing - cannot generate loan amortization schedule without proper authentication",
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.New("user organization context is required for loan amortization schedule generation")
 	}
 
 	// Validate branch assignment
 	if userOrg.BranchID == nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "branch-validation-failed",
-			Description: "User is not assigned to any branch - branch context is required for loan amortization calculations",
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.New("branch assignment is required for loan amortization schedule generation")
 	}
 
@@ -75,11 +51,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 	// ===============================
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Branch", "Account.Currency")
 	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
-			Description: "Failed to retrieve loan transaction data for amortization schedule: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with ID: %s", loanTransactionID.String())
 	}
 
@@ -92,11 +63,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 		LoanTransactionID: loanTransaction.ID,
 	})
 	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
-			Description: "Failed to retrieve loan transaction entries for amortization calculations: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction entries for transaction ID: %s", loanTransactionID.String())
 	}
 
@@ -120,11 +86,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 		CurrencyID:     &currency.ID,
 	}, "Currency")
 	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
-			Description: "Failed to retrieve loan-related accounts for amortization schedule: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String())
 	}
 
@@ -137,11 +98,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 		CurrencyID:     currency.ID,
 	})
 	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "data-retrieval-failed",
-			Description: "Failed to retrieve holiday calendar for payment schedule calculations: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule")
 	}
 
@@ -150,11 +106,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 	// ===============================
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "calculation-failed",
-			Description: "Failed to calculate number of payments for loan amortization: " + err.Error(),
-			Module:      "Loan Amortization",
-		})
 		return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	}
@@ -215,11 +166,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 		// Calculate skipped days due to weekends/holidays
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
-			e.Footstep(ctx, FootstepEvent{
-				Activity:    "calculation-failed",
-				Description: "Failed to calculate skipped days for payment schedule: " + err.Error(),
-				Module:      "Loan Amortization",
-			})
 			return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02"))
 		}
 
@@ -238,11 +184,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {
-					e.Footstep(ctx, FootstepEvent{
-						Activity:    "calculation-failed",
-						Description: "Failed to retrieve account history for amortization calculations: " + err.Error(),
-						Module:      "Loan Amortization",
-					})
 					return nil, eris.Wrapf(err, "failed to get account history for account ID: %s", accountsSchedule[j].Account.ID.String())
 				}
 
@@ -330,11 +271,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, ctx echo.Contex
 					loanTransaction.BranchID, loanTransaction.PrintedDate,
 				)
 				if err != nil {
-					e.Footstep(ctx, FootstepEvent{
-						Activity:    "initialization-failed",
-						Description: "Failed to initialize account history for first payment: " + err.Error(),
-						Module:      "Loan Amortization",
-					})
 					return nil, eris.Wrapf(err, "failed to initialize account history for first payment")
 				}
 				periodAccounts[j] = &AccountValue{

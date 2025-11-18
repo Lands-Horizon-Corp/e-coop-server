@@ -22,11 +22,11 @@ func (c *Controller) memberTypeController() {
 		Note:         "Returns all member type history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.core.MemberTypeHistoryCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberTypeHistory, err := c.core.MemberTypeHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
@@ -45,13 +45,13 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		memberTypeHistory, err := c.core.MemberTypeHistoryManager.PaginationWithFields(context, ctx, &core.MemberTypeHistory{
-			OrganizationID:  user.OrganizationID,
-			BranchID:        *user.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
 		})
 		if err != nil {
@@ -68,11 +68,11 @@ func (c *Controller) memberTypeController() {
 		Note:         "Returns all member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberType, err := c.core.MemberTypeCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		memberType, err := c.core.MemberTypeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
@@ -87,13 +87,13 @@ func (c *Controller) memberTypeController() {
 		Note:         "Returns paginated member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		value, err := c.core.MemberTypeManager.PaginationWithFields(context, ctx, &core.MemberType{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types for pagination: " + err.Error()})
@@ -119,7 +119,7 @@ func (c *Controller) memberTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -134,11 +134,11 @@ func (c *Controller) memberTypeController() {
 			Description:    req.Description,
 			Prefix:         req.Prefix,
 			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.UserID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.UserID,
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberTypeManager.Create(context, memberType); err != nil {
@@ -177,7 +177,7 @@ func (c *Controller) memberTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -208,9 +208,9 @@ func (c *Controller) memberTypeController() {
 		}
 
 		memberType.UpdatedAt = time.Now().UTC()
-		memberType.UpdatedByID = user.UserID
-		memberType.OrganizationID = user.OrganizationID
-		memberType.BranchID = *user.BranchID
+		memberType.UpdatedByID = userOrg.UserID
+		memberType.OrganizationID = userOrg.OrganizationID
+		memberType.BranchID = *userOrg.BranchID
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix

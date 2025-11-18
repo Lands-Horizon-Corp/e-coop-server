@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -24,6 +23,7 @@ type TransactionEvent struct {
 	MemberProfileID      *uuid.UUID `json:"member_profile_id"`
 	SignatureMediaID     *uuid.UUID `json:"signature_media_id"`
 	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
+	LoanTransactionID    *uuid.UUID `json:"loan_transaction_id"`
 
 	Source core.GeneralLedgerSource `json:"source" validate:"required"`
 
@@ -278,6 +278,56 @@ func (e *Event) TransactionPayment(
 		block("Account is nil")
 		return nil, endTx(eris.New("account is nil"))
 	}
+
+	// --- CHECK FOR LOAN ACCOUNT LEDGER ---
+	// Get current member account ledger with row-level locking if member profile exists
+	loanTransactionID := data.LoanTransactionID
+
+	if memberProfileID != nil {
+		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
+			context, tx, *memberProfileID, account.ID, userOrg.OrganizationID, *userOrg.BranchID,
+		)
+		if err != nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "member-ledger-lock-failed",
+				Description: "Failed to lock member ledger for account " + account.ID.String() + " and member " + memberProfileID.String() + ": " + err.Error(),
+				Module:      "Transaction",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
+		}
+
+		if data.LoanTransactionID != nil && generalLedger != nil && generalLedger.LoanTransactionID != nil {
+			loanTransactionID = generalLedger.LoanTransactionID
+			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+			if err != nil {
+				e.Footstep(ctx, FootstepEvent{
+					Activity:    "loan-transaction-retrieval-failed",
+					Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+					Module:      "Transaction",
+				})
+				return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
+			}
+			accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
+				context,
+				account.ID,
+				account.OrganizationID,
+				account.BranchID,
+				loanTransaction.PrintedDate,
+			)
+			if err != nil {
+				e.Footstep(ctx, FootstepEvent{
+					Activity:    "account-history-retrieval-failed",
+					Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
+					Module:      "Transaction",
+				})
+				return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
+			}
+			if accountHistory != nil {
+				account = e.core.AccountHistoryToModel(accountHistory)
+			}
+		}
+	}
+
 	if account.BranchID != *userOrg.BranchID {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "branch-mismatch",
@@ -410,13 +460,9 @@ func (e *Event) TransactionPayment(
 
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
-			credit, debit, err = e.usecase.Withdraw(context, usecase.TransactionData{
-				Account: account,
-			}, data.Amount)
+			credit, debit, err = e.usecase.Withdraw(context, account, data.Amount)
 		} else {
-			credit, debit, err = e.usecase.Deposit(context, usecase.TransactionData{
-				Account: account,
-			}, data.Amount)
+			credit, debit, err = e.usecase.Deposit(context, account, data.Amount)
 		}
 
 		if err != nil {
@@ -424,16 +470,12 @@ func (e *Event) TransactionPayment(
 		}
 	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
-			credit, debit, err = e.usecase.Deposit(context, usecase.TransactionData{
-				Account: account,
-			}, data.Amount)
+			credit, debit, err = e.usecase.Deposit(context, account, data.Amount)
 			if err != nil {
 				err = eris.Wrap(err, "Account")
 			}
 		} else {
-			credit, debit, err = e.usecase.Withdraw(context, usecase.TransactionData{
-				Account: account,
-			}, data.Amount)
+			credit, debit, err = e.usecase.Withdraw(context, account, data.Amount)
 			if err != nil {
 				err = eris.Wrap(err, "Account")
 			}
@@ -466,7 +508,7 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID:         &transactionBatch.ID,
 		ReferenceNumber:            referenceNumber,
 		TransactionID:              &transaction.ID,
-		EntryDate:                  &userOrgTime,
+		EntryDate:                  userOrgTime,
 		SignatureMediaID:           data.SignatureMediaID,
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
@@ -483,6 +525,7 @@ func (e *Event) TransactionPayment(
 		Credit:                     credit,
 		Debit:                      debit,
 		CurrencyID:                 account.CurrencyID,
+		LoanTransactionID:          loanTransactionID,
 	}
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -601,7 +644,7 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID:         &transactionBatch.ID,
 		ReferenceNumber:            referenceNumber,
 		TransactionID:              &transaction.ID,
-		EntryDate:                  &userOrgTime,
+		EntryDate:                  userOrgTime,
 		SignatureMediaID:           data.SignatureMediaID,
 		ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
 		BankID:                     data.BankID,
@@ -632,9 +675,9 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 9: UPDATE USER ORGANIZATION OR GENERATED
 	// ================================================================================
-	// if data.ORAutoGenerated {
-	// 	userOrg.
-	// }
+	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		return nil, endTx(eris.Wrap(err, "failed to balance transaction batch"))
+	}
 
 	// ================================================================================
 	// STEP 10: TRANSACTION COMMIT & SUCCESS LOGGING

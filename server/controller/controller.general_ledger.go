@@ -52,16 +52,16 @@ func (c *Controller) generalLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
-		credit, debit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			GeneralLedgers: entries,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.MemberGeneralLedgerTotal{
-			Balance:     balance,
-			TotalDebit:  debit,
-			TotalCredit: credit,
+			Balance:     balance.Balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
 		})
 	})
 

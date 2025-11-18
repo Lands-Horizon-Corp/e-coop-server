@@ -40,12 +40,12 @@ func (c *Controller) currencyController() {
 		Note:         "Returns all available currencies on unbalance accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		currency := []*core.Currency{}
-		for _, unbal := range user.Branch.BranchSetting.UnbalancedAccounts {
+		for _, unbal := range userOrg.Branch.BranchSetting.UnbalancedAccounts {
 			if unbal.Currency != nil {
 				currency = append(currency, unbal.Currency)
 			}
@@ -61,7 +61,7 @@ func (c *Controller) currencyController() {
 		Note:         "Returns all available currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -71,8 +71,8 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		accounts, err := c.core.AccountManager.Find(context, &core.Account{
-			OrganizationID: user.OrganizationID,
-			BranchID:       *user.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})

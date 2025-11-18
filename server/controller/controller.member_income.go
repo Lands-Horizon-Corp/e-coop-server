@@ -40,7 +40,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -58,11 +58,11 @@ func (c *Controller) memberIncomeController() {
 			Amount:          req.Amount,
 			ReleaseDate:     req.ReleaseDate,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     user.UserID,
+			CreatedByID:     userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     user.UserID,
-			BranchID:        *user.BranchID,
-			OrganizationID:  user.OrganizationID,
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
 		}
 
 		if err := c.core.MemberIncomeManager.Create(context, value); err != nil {
@@ -110,7 +110,7 @@ func (c *Controller) memberIncomeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -131,9 +131,9 @@ func (c *Controller) memberIncomeController() {
 		}
 
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = user.UserID
-		value.OrganizationID = user.OrganizationID
-		value.BranchID = *user.BranchID
+		value.UpdatedByID = userOrg.UserID
+		value.OrganizationID = userOrg.OrganizationID
+		value.BranchID = *userOrg.BranchID
 		value.MediaID = req.MediaID
 		value.Name = req.Name
 		value.Source = req.Source

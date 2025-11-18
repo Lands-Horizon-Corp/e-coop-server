@@ -22,14 +22,14 @@ func (c *Controller) loanTagController() {
 		ResponseType: core.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.core.LoanTagCurrentBranch(context, user.OrganizationID, *user.BranchID)
+		loanTags, err := c.core.LoanTagCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the current branch"})
 		}
@@ -48,17 +48,17 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		loanTags, err := c.core.LoanTagManager.Find(context, &core.LoanTag{
 			LoanTransactionID: loanTransactionID,
-			OrganizationID:    user.OrganizationID,
-			BranchID:          *user.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
+			BranchID:          *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the specified loan transaction ID in the current branch"})
@@ -74,16 +74,16 @@ func (c *Controller) loanTagController() {
 		ResponseType: core.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		loanTags, err := c.core.LoanTagManager.PaginationWithFields(context, ctx, &core.LoanTag{
-			BranchID:       *user.BranchID,
-			OrganizationID: user.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch loan tags for pagination: " + err.Error()})
@@ -128,7 +128,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -137,7 +137,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed " + err.Error()})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), user not assigned to branch.",
@@ -154,11 +154,11 @@ func (c *Controller) loanTagController() {
 			Color:             req.Color,
 			Icon:              req.Icon,
 			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
+			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
+			UpdatedByID:       userOrg.UserID,
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
 		}
 
 		if err := c.core.LoanTagManager.Create(context, loanTag); err != nil {
@@ -205,7 +205,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan tag data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -230,7 +230,7 @@ func (c *Controller) loanTagController() {
 		loanTag.Color = req.Color
 		loanTag.Icon = req.Icon
 		loanTag.UpdatedAt = time.Now().UTC()
-		loanTag.UpdatedByID = user.UserID
+		loanTag.UpdatedByID = userOrg.UserID
 		if err := c.core.LoanTagManager.UpdateByID(context, loanTag.ID, loanTag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

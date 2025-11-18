@@ -123,30 +123,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("user organization branch ID is nil"))
 	}
 	// ================================================================================
-	// STEP 4: TRANSACTION BATCH VALIDATION
-	// ================================================================================
-	// Get the current active transaction batch for grouping related transactions
-	transactionBatch, err := e.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-	if err != nil {
-		e.Footstep(echoCtx, FootstepEvent{
-			Activity:    "batch-retrieval-failed",
-			Description: "Cannot retrieve current transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-			Module:      "Transaction Recording",
-		})
-		return endTx(eris.Wrap(err, "failed to retrieve transaction batch"))
-	}
-
-	// Ensure a valid transaction batch exists
-	if transactionBatch == nil {
-		e.Footstep(echoCtx, FootstepEvent{
-			Activity:    "batch-missing",
-			Description: "No active transaction batch found for current user session - batch is required for transaction recording",
-			Module:      "Transaction Recording",
-		})
-		return endTx(eris.New("transaction batch is nil"))
-	}
-
-	// ================================================================================
 	// STEP 5: ACCOUNT RESOLUTION AND LOCKING
 	// ================================================================================
 	// Lock the target account for update to prevent concurrent modifications
@@ -265,9 +241,9 @@ func (e Event) RecordTransaction(
 			UpdatedByID:                userOrg.UserID,
 			BranchID:                   *userOrg.BranchID,
 			OrganizationID:             userOrg.OrganizationID,
-			TransactionBatchID:         &transactionBatch.ID,
+			TransactionBatchID:         &transaction.TransactionBatchID,
 			ReferenceNumber:            transaction.ReferenceNumber,
-			EntryDate:                  &userOrgTime,
+			EntryDate:                  userOrgTime,
 			SignatureMediaID:           transaction.SignatureMediaID,
 			ProofOfPaymentMediaID:      transaction.ProofOfPaymentMediaID,
 			BankID:                     transaction.BankID,
@@ -351,9 +327,9 @@ func (e Event) RecordTransaction(
 			UpdatedByID:                userOrg.UserID,
 			BranchID:                   *userOrg.BranchID,
 			OrganizationID:             userOrg.OrganizationID,
-			TransactionBatchID:         &transactionBatch.ID,
+			TransactionBatchID:         &transaction.TransactionBatchID,
 			ReferenceNumber:            transaction.ReferenceNumber,
-			EntryDate:                  &userOrgTime,
+			EntryDate:                  userOrgTime,
 			SignatureMediaID:           transaction.SignatureMediaID,
 			ProofOfPaymentMediaID:      transaction.ProofOfPaymentMediaID,
 			BankID:                     transaction.BankID,

@@ -41,7 +41,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by range or minimum amount creation failed (/charges-rate-by-range-or-minimum-amount), user not assigned to branch.",
@@ -67,11 +67,11 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			Amount:              req.Amount,
 			MinimumAmount:       req.MinimumAmount,
 			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         user.UserID,
+			CreatedByID:         userOrg.UserID,
 			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         user.UserID,
-			BranchID:            *user.BranchID,
-			OrganizationID:      user.OrganizationID,
+			UpdatedByID:         userOrg.UserID,
+			BranchID:            *userOrg.BranchID,
+			OrganizationID:      userOrg.OrganizationID,
 		}
 
 		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Create(context, chargesRateByRangeOrMinimumAmount); err != nil {
@@ -118,7 +118,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -142,7 +142,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		chargesRateByRangeOrMinimumAmount.Amount = req.Amount
 		chargesRateByRangeOrMinimumAmount.MinimumAmount = req.MinimumAmount
 		chargesRateByRangeOrMinimumAmount.UpdatedAt = time.Now().UTC()
-		chargesRateByRangeOrMinimumAmount.UpdatedByID = user.UserID
+		chargesRateByRangeOrMinimumAmount.UpdatedByID = userOrg.UserID
 		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByID(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

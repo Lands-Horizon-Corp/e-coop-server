@@ -22,11 +22,11 @@ func (c *Controller) includeNegativeAccountController() {
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -34,8 +34,8 @@ func (c *Controller) includeNegativeAccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		records, err := c.core.IncludeNegativeAccountManager.PaginationWithFields(context, ctx, &core.IncludeNegativeAccount{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -52,11 +52,11 @@ func (c *Controller) includeNegativeAccountController() {
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -64,8 +64,8 @@ func (c *Controller) includeNegativeAccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		records, err := c.core.IncludeNegativeAccountManager.Find(context, &core.IncludeNegativeAccount{
-			OrganizationID:     user.OrganizationID,
-			BranchID:           *user.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
+			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
 		})
 		if err != nil {
@@ -92,7 +92,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -101,7 +101,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), user not assigned to branch.",
@@ -115,11 +115,11 @@ func (c *Controller) includeNegativeAccountController() {
 			AccountID:          req.AccountID,
 			Description:        req.Description,
 			CreatedAt:          time.Now().UTC(),
-			CreatedByID:        user.UserID,
+			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
-			UpdatedByID:        user.UserID,
-			BranchID:           *user.BranchID,
-			OrganizationID:     user.OrganizationID,
+			UpdatedByID:        userOrg.UserID,
+			BranchID:           *userOrg.BranchID,
+			OrganizationID:     userOrg.OrganizationID,
 		}
 
 		if err := c.core.IncludeNegativeAccountManager.Create(context, record); err != nil {
@@ -166,7 +166,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) includeNegativeAccountController() {
 		record.AccountID = req.AccountID
 		record.Description = req.Description
 		record.UpdatedAt = time.Now().UTC()
-		record.UpdatedByID = user.UserID
+		record.UpdatedByID = userOrg.UserID
 
 		if err := c.core.IncludeNegativeAccountManager.UpdateByID(context, record.ID, record); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

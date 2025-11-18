@@ -22,11 +22,7 @@ func (e *Event) LoanAdjustment(
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	now := time.Now().UTC()
 
-	currentDate := time.Now().UTC()
-	if userOrg.TimeMachineTime != nil {
-		currentDate = userOrg.UserOrgTime()
-	}
-
+	currentDate := userOrg.UserOrgTime()
 	// ========================================
 	// STEP 2: Validate loan transaction
 	// ========================================
@@ -84,7 +80,7 @@ func (e *Event) LoanAdjustment(
 		BranchID:                   *userOrg.BranchID,
 		OrganizationID:             userOrg.OrganizationID,
 		ReferenceNumber:            loanTransaction.Voucher,
-		EntryDate:                  &currentDate,
+		EntryDate:                  currentDate,
 		AccountID:                  &account.ID,
 		MemberProfileID:            loanTransaction.MemberProfileID,
 		PaymentTypeID:              account.DefaultPaymentTypeID,

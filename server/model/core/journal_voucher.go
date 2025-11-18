@@ -43,17 +43,23 @@ type (
 		PostedByID        *uuid.UUID `gorm:"type:uuid"`
 		PostedBy          *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
+		// Employee and transaction batch
+		EmployeeUserID     *uuid.UUID        `gorm:"type:uuid" json:"employee_user_id,omitempty"`
+		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
+		TransactionBatchID *uuid.UUID        `gorm:"type:uuid" json:"transaction_batch_id,omitempty"`
+		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
+
 		// Print and approval fields
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
 		PrintedByID  *uuid.UUID `gorm:"type:uuid"`
-		PrintedBy    *User      `gorm:"foreignKey:PrintedByID;constraint:OnDelete:SET NULL;" json:"printed_by,omitempty"`
+		PrintedBy    *User      `gorm:"foreignKey:PrintedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"printed_by,omitempty"`
 		PrintNumber  int        `gorm:"type:int;default:0"`
 		ApprovedDate *time.Time `gorm:"type:timestamp"`
 		ApprovedByID *uuid.UUID `gorm:"type:uuid"`
-		ApprovedBy   *User      `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:SET NULL;" json:"approved_by,omitempty"`
+		ApprovedBy   *User      `gorm:"foreignKey:ApprovedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"approved_by,omitempty"`
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
 		ReleasedByID *uuid.UUID `gorm:"type:uuid"`
-		ReleasedBy   *User      `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:SET NULL;" json:"released_by,omitempty"`
+		ReleasedBy   *User      `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"released_by,omitempty"`
 
 		JournalVoucherTags []*JournalVoucherTag `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_tags,omitempty"`
 
@@ -64,8 +70,6 @@ type (
 		TotalDebit  float64 `gorm:"-" json:"total_debit"`
 		TotalCredit float64 `gorm:"-" json:"total_credit"`
 	}
-
-	// JournalVoucherResponse represents the response structure for journalvoucher data
 
 	// JournalVoucherResponse represents the response structure for JournalVoucher.
 	JournalVoucherResponse struct {
@@ -92,6 +96,12 @@ type (
 		PostedAt          *string               `json:"posted_at,omitempty"`
 		PostedByID        *uuid.UUID            `json:"posted_by_id,omitempty"`
 		PostedBy          *UserResponse         `json:"posted_by,omitempty"`
+
+		// Employee and transaction batch
+		EmployeeUserID     *uuid.UUID                `json:"employee_user_id,omitempty"`
+		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
+		TransactionBatchID *uuid.UUID                `json:"transaction_batch_id,omitempty"`
+		TransactionBatch   *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 
 		// Print and approval fields
 		PrintedDate  *string       `json:"printed_date,omitempty"`
@@ -147,6 +157,7 @@ func (m *Core) journalVoucher() {
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "DeletedBy", "Currency", "PostedBy",
+			"EmployeeUser", "EmployeeUser.Media", "TransactionBatch",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",
@@ -211,6 +222,10 @@ func (m *Core) journalVoucher() {
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
 				PostedBy:              m.UserManager.ToModel(data.PostedBy),
+				EmployeeUserID:        data.EmployeeUserID,
+				EmployeeUser:          m.UserManager.ToModel(data.EmployeeUser),
+				TransactionBatchID:    data.TransactionBatchID,
+				TransactionBatch:      m.TransactionBatchManager.ToModel(data.TransactionBatch),
 				PrintedDate:           printedDate,
 				PrintedByID:           data.PrintedByID,
 				PrintedBy:             m.UserManager.ToModel(data.PrintedBy),

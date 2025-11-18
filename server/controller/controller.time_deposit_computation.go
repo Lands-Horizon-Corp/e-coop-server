@@ -41,7 +41,7 @@ func (c *Controller) timeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -50,7 +50,7 @@ func (c *Controller) timeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		if user.BranchID == nil {
+		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit computation creation failed (/time-deposit-computation), user not assigned to branch.",
@@ -75,11 +75,11 @@ func (c *Controller) timeDepositComputationController() {
 			Header10:          req.Header10,
 			Header11:          req.Header11,
 			CreatedAt:         time.Now().UTC(),
-			CreatedByID:       user.UserID,
+			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         time.Now().UTC(),
-			UpdatedByID:       user.UserID,
-			BranchID:          *user.BranchID,
-			OrganizationID:    user.OrganizationID,
+			UpdatedByID:       userOrg.UserID,
+			BranchID:          *userOrg.BranchID,
+			OrganizationID:    userOrg.OrganizationID,
 		}
 
 		if err := c.core.TimeDepositComputationManager.Create(context, timeDepositComputation); err != nil {
@@ -126,7 +126,7 @@ func (c *Controller) timeDepositComputationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit computation data: " + err.Error()})
 		}
-		user, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -158,7 +158,7 @@ func (c *Controller) timeDepositComputationController() {
 		timeDepositComputation.Header10 = req.Header10
 		timeDepositComputation.Header11 = req.Header11
 		timeDepositComputation.UpdatedAt = time.Now().UTC()
-		timeDepositComputation.UpdatedByID = user.UserID
+		timeDepositComputation.UpdatedByID = userOrg.UserID
 		if err := c.core.TimeDepositComputationManager.UpdateByID(context, timeDepositComputation.ID, timeDepositComputation); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
