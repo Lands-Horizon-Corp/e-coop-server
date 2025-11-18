@@ -27,7 +27,9 @@ type LoanPaymentSchedule struct {
 type LoanPaymentPerAccount struct {
 	Account                core.AccountResponse  `json:"account"`
 	LoanPaymentSchedule    []LoanPaymentSchedule `json:"loan_payment_schedule"`
+	TotalPrincipal         float64               `json:"total_principal"` // Total principal amount (sum of all scheduled payments for this account)
 	TotalPaidAmount        float64               `json:"total_paid_amount"`
+	TotalRemainingBalance  float64               `json:"total_remaining_balance"` // Remaining balance to be paid (TotalPrincipal - TotalPaidAmount)
 	TotalDueAmount         float64               `json:"total_due_amount"`
 	TotalAdvancePayment    float64               `json:"total_advance_payment"`    // Total amount paid in advance
 	SuggestedPaymentAmount float64               `json:"suggested_payment_amount"` // Recommended payment (includes overdue + next upcoming)
@@ -42,7 +44,9 @@ type LoanPaymentPerAccount struct {
 // LoanPaymentSummary represents aggregated summary across all accounts
 type LoanPaymentSummary struct {
 	TotalAccounts           int     `json:"total_accounts"`             // Total number of loan accounts
+	TotalPrincipal          float64 `json:"total_principal"`            // Total principal amount across all accounts (sum of all scheduled payments)
 	TotalPaidAmount         float64 `json:"total_paid_amount"`          // Sum of all paid amounts
+	TotalRemainingBalance   float64 `json:"total_remaining_balance"`    // Total remaining balance across all accounts (TotalPrincipal - TotalPaidAmount)
 	TotalDueAmount          float64 `json:"total_due_amount"`           // Sum of all due amounts
 	TotalAdvancePayment     float64 `json:"total_advance_payment"`      // Sum of all advance payments
 	TotalSuggestedPayment   float64 `json:"total_suggested_payment"`    // Sum of all suggested payments across accounts
@@ -103,6 +107,7 @@ func (e *Event) LoanPaymenSummary(
 	accountPayments := []LoanPaymentPerAccount{}
 
 	// Summary aggregation variables
+	summaryTotalPrincipal := 0.0
 	summaryTotalPaidAmount := 0.0
 	summaryTotalDueAmount := 0.0
 	summaryTotalAdvancePayment := 0.0
@@ -158,6 +163,7 @@ func (e *Event) LoanPaymenSummary(
 		// 3.5: Build Payment Schedule from Amortization
 		// -------------------------------------------------------------------------------------------
 		paymentSchedule := []LoanPaymentSchedule{}
+		totalPrincipal := 0.0 // Total principal for this account (sum of all scheduled payments)
 		totalPaidAmount := 0.0
 		totalDueAmount := 0.0
 		totalAdvancePayment := 0.0
@@ -192,6 +198,9 @@ func (e *Event) LoanPaymenSummary(
 				if paymentAmount == 0.0 {
 					continue
 				}
+
+				// Add to total principal (all scheduled payments)
+				totalPrincipal = e.provider.Service.Decimal.Add(totalPrincipal, paymentAmount)
 
 				// Count scheduled payments for this account
 				summaryTotalScheduledPayments++
@@ -340,6 +349,7 @@ func (e *Event) LoanPaymenSummary(
 		// -------------------------------------------------------------------------------------------
 		// 3.8: Update Summary Aggregations
 		// -------------------------------------------------------------------------------------------
+		summaryTotalPrincipal = e.provider.Service.Decimal.Add(summaryTotalPrincipal, totalPrincipal)
 		summaryTotalPaidAmount = e.provider.Service.Decimal.Add(summaryTotalPaidAmount, totalPaidAmount)
 		summaryTotalDueAmount = e.provider.Service.Decimal.Add(summaryTotalDueAmount, totalDueAmount)
 		summaryTotalAdvancePayment = e.provider.Service.Decimal.Add(summaryTotalAdvancePayment, totalAdvancePayment)
@@ -366,10 +376,13 @@ func (e *Event) LoanPaymenSummary(
 		// -------------------------------------------------------------------------------------------
 		// 3.9: Build and Append Account Payment
 		// -------------------------------------------------------------------------------------------
+		totalRemainingBalance := e.provider.Service.Decimal.Subtract(totalPrincipal, totalPaidAmount)
 		accountPayments = append(accountPayments, LoanPaymentPerAccount{
 			Account:                *e.core.AccountManager.ToModel(account),
 			LoanPaymentSchedule:    paymentSchedule,
+			TotalPrincipal:         totalPrincipal,
 			TotalPaidAmount:        totalPaidAmount,
+			TotalRemainingBalance:  totalRemainingBalance,
 			TotalDueAmount:         totalDueAmount,
 			TotalAdvancePayment:    totalAdvancePayment,
 			SuggestedPaymentAmount: suggestedPaymentAmount,
@@ -408,9 +421,14 @@ func (e *Event) LoanPaymenSummary(
 	// Determine if the entire loan is fully paid (all accounts fully paid)
 	isOverallLoanFullyPaid := len(accountPayments) > 0 && summaryAccountsFullyPaid == len(accountPayments)
 
+	// Calculate overall remaining balance
+	summaryTotalRemainingBalance := e.provider.Service.Decimal.Subtract(summaryTotalPrincipal, summaryTotalPaidAmount)
+
 	summary := LoanPaymentSummary{
 		TotalAccounts:           len(accountPayments),
+		TotalPrincipal:          summaryTotalPrincipal,
 		TotalPaidAmount:         summaryTotalPaidAmount,
+		TotalRemainingBalance:   summaryTotalRemainingBalance,
 		TotalDueAmount:          summaryTotalDueAmount,
 		TotalAdvancePayment:     summaryTotalAdvancePayment,
 		TotalSuggestedPayment:   summaryTotalSuggestedPayment,
