@@ -846,6 +846,14 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 
 // LoanTransactionsMemberAccount returns loan transactions for a member filtered by account and branch/org.
 func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, accountID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
+
+	account, err := m.AccountManager.GetByID(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if account.Type != AccountTypeLoan {
+		accountID = *account.LoanAccountID
+	}
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberID},
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
