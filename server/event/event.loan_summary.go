@@ -179,7 +179,7 @@ func (e *Event) LoanSummary(
 					for _, accountValue := range schedule.Accounts {
 						if accountValue.Account != nil && handlers.UUIDPtrEqual(&accountValue.Account.ID, &entry.ID) {
 							// Accumulate total scheduled principal (cumulative total from amortization)
-							totalAccountPrincipal = e.provider.Service.Decimal.Add(totalAccountPrincipal, accountValue.Total)
+							totalAccountPrincipal = e.provider.Service.Decimal.Add(totalAccountPrincipal, accountValue.Value)
 
 							// Capture the first future scheduled date as the due date
 							if dueDate == nil && schedule.ScheduledDate.After(now) {
