@@ -45,6 +45,8 @@ type LoanPaymentPerAccount struct {
 
 // LoanPaymentSummary represents aggregated summary across all accounts
 type LoanPaymentSummary struct {
+	Currency core.CurrencyResponse `json:"currency"`
+
 	TotalAccounts           int     `json:"total_accounts"`             // Total number of loan accounts
 	TotalPrincipal          float64 `json:"total_principal"`            // Total principal amount across all accounts (sum of all scheduled payments)
 	TotalPaidAmount         float64 `json:"total_paid_amount"`          // Sum of all paid amounts
@@ -466,6 +468,7 @@ func (e *Event) LoanPaymenSummary(
 		AccountsWithAdvance:     summaryAccountsWithAdvance,
 		OverallPaymentStatus:    overallStatus,
 		IsLoanFullyPaid:         isOverallLoanFullyPaid,
+		Currency:                *e.core.CurrencyManager.ToModel(currency),
 	}
 
 	// ===============================================================================================
