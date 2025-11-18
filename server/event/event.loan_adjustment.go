@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -95,8 +94,6 @@ func (e *Event) LoanAdjustment(
 		LoanTransactionID:          &loanTransaction.ID,
 		LoanAdjustmentType:         &la.AdjustmentType,
 	}
-
-	fmt.Println("DEBUG: memberLedgerEntry.EntryDate:", memberLedgerEntry.EntryDate)
 
 	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
 		return endTx(eris.Wrap(err, "Failed to record adjustment in general ledger"))
