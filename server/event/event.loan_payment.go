@@ -67,6 +67,7 @@ type LoanPaymentSummary struct {
 
 // LoanPaymentResponse is the main response structure containing both details and summary
 type LoanPaymentResponse struct {
+	Currency        core.CurrencyResponse   `json:"currency"`
 	AccountPayments []LoanPaymentPerAccount `json:"account_payments"` // Payment details per account
 	Summary         LoanPaymentSummary      `json:"summary"`          // Aggregated summary across all accounts
 }
@@ -90,6 +91,7 @@ func (e *Event) LoanPaymenSummary(
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with id: %s", *loanTransactionID)
 	}
+	now := userOrg.UserOrgTime()
 
 	accounts, err := e.core.AccountManager.Find(context, &core.Account{
 		BranchID:       *userOrg.BranchID,
@@ -100,6 +102,18 @@ func (e *Event) LoanPaymenSummary(
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction id: %s", *loanTransactionID)
 	}
 	accounts = append(accounts, loanTransaction.Account)
+
+	// Convert accounts to history responses
+	for i, account := range accounts {
+		history, err := e.core.GetAccountHistoryLatestByTime(
+			context, account.ID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID, loanTransaction.PrintedDate)
+		if err != nil {
+			return nil, eris.Wrapf(err, "failed to retrieve account history for account id: %s", account.ID)
+		}
+		accounts[i] = history
+	}
 
 	// ===============================================================================================
 	// STEP 2: INITIALIZE RESULT CONTAINERS AND SUMMARY TRACKERS
@@ -177,7 +191,6 @@ func (e *Event) LoanPaymenSummary(
 		var nextPaymentDate *time.Time
 		var lastPaymentDate *time.Time
 		lastPaymentAmount := 0.0 // Sum of all payments on the last payment date
-		now := userOrg.UserOrgTime()
 
 		if amortizationSchedule != nil && amortizationSchedule.Schedule != nil {
 			cumulativeExpected := 0.0
@@ -447,10 +460,16 @@ func (e *Event) LoanPaymenSummary(
 		IsLoanFullyPaid:         isOverallLoanFullyPaid,
 	}
 
+	currency := loanTransaction.Account.Currency
+	if err != nil {
+		return nil, eris.Wrapf(err, "failed to retrieve currency for loan transaction id: %s", *loanTransactionID)
+	}
+
 	// ===============================================================================================
 	// STEP 5: RETURN COMPREHENSIVE RESPONSE
 	// ===============================================================================================
 	return &LoanPaymentResponse{
+		Currency:        *e.core.CurrencyManager.ToModel(currency),
 		AccountPayments: accountPayments,
 		Summary:         summary,
 	}, nil
