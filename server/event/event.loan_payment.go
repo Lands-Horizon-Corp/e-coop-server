@@ -36,6 +36,7 @@ type LoanPaymentPerAccount struct {
 	LastPaymentAmount      float64               `json:"last_payment_amount"`   // Sum of all payments made on the last payment date
 	AdvancePaymentCount    int                   `json:"advance_payment_count"` // Number of advance payments made
 	OverduePaymentCount    int                   `json:"overdue_payment_count"` // Number of overdue payments
+	IsLoanFullyPaid        bool                  `json:"is_loan_fully_paid"`    // True if all scheduled payments for this account are completed
 }
 
 // LoanPaymentSummary represents aggregated summary across all accounts
@@ -57,6 +58,7 @@ type LoanPaymentSummary struct {
 	AccountsFullyPaid       int     `json:"accounts_fully_paid"`        // Number of accounts fully paid
 	AccountsWithAdvance     int     `json:"accounts_with_advance"`      // Number of accounts with advance payments
 	OverallPaymentStatus    string  `json:"overall_payment_status"`     // "current", "overdue", "advance", "mixed"
+	IsLoanFullyPaid         bool    `json:"is_loan_fully_paid"`         // True if all scheduled payments across all accounts are completed
 }
 
 // LoanPaymentResponse is the main response structure containing both details and summary
@@ -356,7 +358,8 @@ func (e *Event) LoanPaymenSummary(
 		}
 		// Account is fully paid if all scheduled payments are paid (no overdue, no upcoming unpaid)
 		totalScheduledForAccount := len(paymentSchedule)
-		if totalScheduledForAccount > 0 && paidPaymentCount == totalScheduledForAccount {
+		isAccountFullyPaid := totalScheduledForAccount > 0 && paidPaymentCount == totalScheduledForAccount
+		if isAccountFullyPaid {
 			summaryAccountsFullyPaid++
 		}
 
@@ -375,6 +378,7 @@ func (e *Event) LoanPaymenSummary(
 			LastPaymentAmount:      lastPaymentAmount,
 			AdvancePaymentCount:    advancePaymentCount,
 			OverduePaymentCount:    overduePaymentCount,
+			IsLoanFullyPaid:        isAccountFullyPaid,
 		})
 	}
 
@@ -401,6 +405,9 @@ func (e *Event) LoanPaymenSummary(
 		overallStatus = "mixed"
 	}
 
+	// Determine if the entire loan is fully paid (all accounts fully paid)
+	isOverallLoanFullyPaid := len(accountPayments) > 0 && summaryAccountsFullyPaid == len(accountPayments)
+
 	summary := LoanPaymentSummary{
 		TotalAccounts:           len(accountPayments),
 		TotalPaidAmount:         summaryTotalPaidAmount,
@@ -419,6 +426,7 @@ func (e *Event) LoanPaymenSummary(
 		AccountsFullyPaid:       summaryAccountsFullyPaid,
 		AccountsWithAdvance:     summaryAccountsWithAdvance,
 		OverallPaymentStatus:    overallStatus,
+		IsLoanFullyPaid:         isOverallLoanFullyPaid,
 	}
 
 	// ===============================================================================================
