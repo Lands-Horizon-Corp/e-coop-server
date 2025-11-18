@@ -2094,4 +2094,39 @@ func (c *Controller) loanTransactionController() {
 		}
 		return ctx.JSON(http.StatusOK, loanPayment)
 	})
+
+	// GET api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
+		Method:       "GET",
+		Note:         "Retrieves loan transactions for a specific member profile and account.",
+		ResponseType: []core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		loanTransactions, err := c.core.LoanTransactionManager.FindRaw(context, &core.LoanTransaction{
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+			MemberProfileID: memberProfileID,
+			AccountID:       accountID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, loanTransactions)
+	})
 }
