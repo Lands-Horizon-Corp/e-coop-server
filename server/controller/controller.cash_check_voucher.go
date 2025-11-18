@@ -229,7 +229,7 @@ func (c *Controller) cashCheckVoucherController() {
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
@@ -247,8 +247,8 @@ func (c *Controller) cashCheckVoucherController() {
 			Status:                        request.Status,
 			Description:                   request.Description,
 			CashVoucherNumber:             request.CashVoucherNumber,
-			TotalDebit:                    debit,
-			TotalCredit:                   credit,
+			TotalDebit:                    balance.Debit,
+			TotalCredit:                   balance.Credit,
 			PrintCount:                    request.PrintCount,
 			PrintedDate:                   request.PrintedDate,
 			ApprovedDate:                  request.ApprovedDate,
@@ -400,7 +400,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
@@ -421,8 +421,8 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.Status = request.Status
 		cashCheckVoucher.Description = request.Description
 		cashCheckVoucher.CashVoucherNumber = request.CashVoucherNumber
-		cashCheckVoucher.TotalDebit = debit
-		cashCheckVoucher.TotalCredit = credit
+		cashCheckVoucher.TotalDebit = balance.Debit
+		cashCheckVoucher.TotalCredit = balance.Credit
 		cashCheckVoucher.PrintCount = request.PrintCount
 		cashCheckVoucher.PrintedDate = request.PrintedDate
 		cashCheckVoucher.ApprovedDate = request.ApprovedDate

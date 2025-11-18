@@ -121,7 +121,7 @@ func (m *Event) TBDisbursementTransaction(context context.Context, transactionBa
 	return totalDisbursementTransaction, nil
 }
 
-func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	withdrawals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -129,14 +129,14 @@ func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, b
 		Source:             core.GeneralLedgerSourceWithdraw,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find withdrawals")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find withdrawals")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: withdrawals,
 	})
 }
 
-func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	deposits, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -144,14 +144,14 @@ func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, br
 		Source:             core.GeneralLedgerSourceDeposit,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find deposits")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find deposits")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: deposits,
 	})
 }
 
-func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	journals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -159,14 +159,14 @@ func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, br
 		Source:             core.GeneralLedgerSourceJournal,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find journals")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journals")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: journals,
 	})
 }
 
-func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	payments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -174,14 +174,14 @@ func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, br
 		Source:             core.GeneralLedgerSourcePayment,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find payments")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find payments")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: payments,
 	})
 }
 
-func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	adjustments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -189,14 +189,14 @@ func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID,
 		Source:             core.GeneralLedgerSourceAdjustment,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find adjustments")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find adjustments")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: adjustments,
 	})
 }
 
-func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	journalVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -204,14 +204,14 @@ func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, or
 		Source:             core.GeneralLedgerSourceJournalVoucher,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find journal vouchers")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journal vouchers")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: journalVouchers,
 	})
 }
 
-func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	checkVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -219,14 +219,14 @@ func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgI
 		Source:             core.GeneralLedgerSourceCheckVoucher,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find check vouchers")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find check vouchers")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: checkVouchers,
 	})
 }
 
-func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (credit, debit, balance float64, err error) {
+func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
 	loanVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -234,7 +234,7 @@ func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branc
 		Source:             core.GeneralLedgerSourceLoan,
 	})
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to find loan vouchers")
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find loan vouchers")
 	}
 	return m.usecase.Balance(usecase.Balance{
 		GeneralLedgers: loanVouchers,

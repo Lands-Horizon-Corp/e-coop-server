@@ -122,7 +122,7 @@ func (c *Controller) journalVoucherController() {
 		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -145,8 +145,8 @@ func (c *Controller) journalVoucherController() {
 			UpdatedByID:       userOrg.UserID,
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrg.OrganizationID,
-			TotalDebit:        debit,
-			TotalCredit:       credit,
+			TotalDebit:        balance.Debit,
+			TotalCredit:       balance.Credit,
 			CashVoucherNumber: request.CashVoucherNumber,
 			Name:              request.Name,
 			CurrencyID:        request.CurrencyID,
@@ -259,7 +259,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 
-		credit, debit, _, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := c.usecase.StrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -346,8 +346,8 @@ func (c *Controller) journalVoucherController() {
 
 			}
 		}
-		journalVoucher.TotalCredit = credit
-		journalVoucher.TotalDebit = debit
+		journalVoucher.TotalCredit = balance.Credit
+		journalVoucher.TotalDebit = balance.Debit
 		if err := c.core.JournalVoucherManager.UpdateByIDWithTx(context, tx, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

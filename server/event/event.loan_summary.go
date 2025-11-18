@@ -23,8 +23,8 @@ type LoanAccountSummaryResponse struct {
 
 	TotalNumberOfPayments int `json:"total_number_of_payments"`
 
-	TotalNumberOfDeductions int `json:"total_number_of_deductions"`
-	TotalNumberOfAdditions  int `json:"total_number_of_additions"`
+	TotalNumberOfDeductions float64 `json:"total_number_of_deductions"`
+	TotalNumberOfAdditions  float64 `json:"total_number_of_additions"`
 
 	TotalAccountPrincipal          float64   `json:"total_account_principal"`
 	TotalAccountAdvancedPayment    float64   `json:"total_account_advanced_payment"`
@@ -97,7 +97,7 @@ func (e *Event) LoanSummary(
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to retrieve account history: %s", err.Error())
 		}
-		credit, debit, balance, err := e.usecase.Balance(usecase.Balance{
+		balance, err := e.usecase.Balance(usecase.Balance{
 			GeneralLedgers: entries,
 			AccountID:      &entry.ID,
 		})
@@ -108,12 +108,12 @@ func (e *Event) LoanSummary(
 			AccountHistoryID: accountHistory.ID,
 			AccountHistory:   *e.core.AccountHistoryManager.ToModel(accountHistory),
 
-			TotalDebit:  debit,
-			TotalCredit: credit,
-			Balance:     balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
+			Balance:     balance.Balance,
 
-			TotalNumberOfDeductions: 0,
-			TotalNumberOfAdditions:  0,
+			TotalNumberOfDeductions: balance.Deductions,
+			TotalNumberOfAdditions:  balance.Added,
 
 			DueDate:               nil,
 			LastPayment:           nil,
@@ -160,13 +160,13 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to get latest general ledger for loan account id: %s", *loanTransaction.AccountID)
 		}
-		_, _, balance, err := e.usecase.Balance(usecase.Balance{
+		balance, err := e.usecase.Balance(usecase.Balance{
 			GeneralLedgers: generalLedgers,
 		})
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to compute balance for loan account id: %s", *loanTransaction.AccountID)
 		}
-		total = e.provider.Service.Decimal.Add(total, balance)
+		total = e.provider.Service.Decimal.Add(total, balance.Balance)
 	}
 	return &total, nil
 }

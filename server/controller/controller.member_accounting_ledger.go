@@ -67,16 +67,16 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		totalCredit, totalDebit, balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := c.usecase.Balance(usecase.Balance{
 			GeneralLedgers: entries,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute balance: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
-			Balance:     balance,
-			TotalDebit:  totalDebit,
-			TotalCredit: totalCredit,
+			Balance:     balance.Balance,
+			TotalDebit:  balance.Debit,
+			TotalCredit: balance.Credit,
 		})
 	})
 
