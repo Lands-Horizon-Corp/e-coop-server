@@ -12,19 +12,21 @@ import (
 )
 
 type LoanPaymentSchedule struct {
-	Date          string  `json:"date"`
-	Amount        float64 `json:"amount"`
-	Paid          bool    `json:"paid"`
-	Due           bool    `json:"due"`
-	IsAdvance     bool    `json:"is_advance"`     // Payment made before due date
-	IsFuture      bool    `json:"is_future"`      // Future scheduled payment
-	DaysEarly     int     `json:"days_early"`     // Days paid before schedule (if advance)
-	DaysOverdue   int     `json:"days_overdue"`   // Days overdue (if unpaid and past due)
-	PaymentStatus string  `json:"payment_status"` // "paid", "overdue", "upcoming", "advance"
+	Currency      core.CurrencyResponse `json:"currency"`
+	Date          string                `json:"date"`
+	Amount        float64               `json:"amount"`
+	Paid          bool                  `json:"paid"`
+	Due           bool                  `json:"due"`
+	IsAdvance     bool                  `json:"is_advance"`     // Payment made before due date
+	IsFuture      bool                  `json:"is_future"`      // Future scheduled payment
+	DaysEarly     int                   `json:"days_early"`     // Days paid before schedule (if advance)
+	DaysOverdue   int                   `json:"days_overdue"`   // Days overdue (if unpaid and past due)
+	PaymentStatus string                `json:"payment_status"` // "paid", "overdue", "upcoming", "advance"
 }
 
 // LoanPaymentPerAccount represents payment details for a single loan account
 type LoanPaymentPerAccount struct {
+	Currency               core.CurrencyResponse `json:"currency"`
 	Account                core.AccountResponse  `json:"account"`
 	LoanPaymentSchedule    []LoanPaymentSchedule `json:"loan_payment_schedule"`
 	TotalPrincipal         float64               `json:"total_principal"` // Total principal amount (sum of all scheduled payments for this account)
@@ -92,7 +94,10 @@ func (e *Event) LoanPaymenSummary(
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with id: %s", *loanTransactionID)
 	}
 	now := userOrg.UserOrgTime()
-
+	currency := loanTransaction.Account.Currency
+	if currency == nil {
+		return nil, eris.Wrapf(err, "failed to retrieve currency for loan transaction id: %s", *loanTransactionID)
+	}
 	accounts, err := e.core.AccountManager.Find(context, &core.Account{
 		BranchID:       *userOrg.BranchID,
 		OrganizationID: userOrg.OrganizationID,
@@ -310,6 +315,7 @@ func (e *Event) LoanPaymenSummary(
 					DaysEarly:     daysEarly,
 					DaysOverdue:   daysOverdue,
 					PaymentStatus: paymentStatus,
+					Currency:      *e.core.CurrencyManager.ToModel(currency),
 				})
 			}
 		}
@@ -405,6 +411,7 @@ func (e *Event) LoanPaymenSummary(
 			AdvancePaymentCount:    advancePaymentCount,
 			OverduePaymentCount:    overduePaymentCount,
 			IsLoanFullyPaid:        isAccountFullyPaid,
+			Currency:               *e.core.CurrencyManager.ToModel(currency),
 		})
 	}
 
@@ -438,6 +445,7 @@ func (e *Event) LoanPaymenSummary(
 	summaryTotalRemainingBalance := e.provider.Service.Decimal.Subtract(summaryTotalPrincipal, summaryTotalPaidAmount)
 
 	summary := LoanPaymentSummary{
+
 		TotalAccounts:           len(accountPayments),
 		TotalPrincipal:          summaryTotalPrincipal,
 		TotalPaidAmount:         summaryTotalPaidAmount,
@@ -458,11 +466,6 @@ func (e *Event) LoanPaymenSummary(
 		AccountsWithAdvance:     summaryAccountsWithAdvance,
 		OverallPaymentStatus:    overallStatus,
 		IsLoanFullyPaid:         isOverallLoanFullyPaid,
-	}
-
-	currency := loanTransaction.Account.Currency
-	if err != nil {
-		return nil, eris.Wrapf(err, "failed to retrieve currency for loan transaction id: %s", *loanTransactionID)
 	}
 
 	// ===============================================================================================
