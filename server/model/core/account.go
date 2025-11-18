@@ -407,6 +407,7 @@ type AccountResponse struct {
 	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
 	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
+	AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
 }
 
 // AccountRequest represents the request structure for creating/updating accounts
@@ -620,6 +621,7 @@ func (m *Core) account() {
 				CompassionFundAmount:        data.CompassionFundAmount,
 				CashAndCashEquivalence:      data.CashAndCashEquivalence,
 				InterestStandardComputation: data.InterestStandardComputation,
+				AccountHistoryID:            data.AccountHistoryID,
 			}
 		},
 		Created: func(data *Account) []string {
