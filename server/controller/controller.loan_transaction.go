@@ -2100,7 +2100,7 @@ func (c *Controller) loanTransactionController() {
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieves loan transactions for a specific member profile and account.",
-		ResponseType: []core.LoanTransaction{},
+		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
