@@ -119,8 +119,8 @@ func (e *Event) LoanSummary(
 			TotalNumberOfPayments:   balance.CountCredit,
 			LoanTransactionID:       loanTransaction.ID,
 
+			LastPayment: balance.LastPayment,
 			DueDate:     nil,
-			LastPayment: nil,
 
 			TotalAccountPrincipal:          0,
 			TotalAccountAdvancedPayment:    0,
