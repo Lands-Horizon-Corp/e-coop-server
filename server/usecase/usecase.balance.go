@@ -31,6 +31,11 @@ type BalanceResponse struct {
 
 	Deductions float64
 	Added      float64
+
+	CountDeductions int
+	CountAdded      int
+	CountDebit      int
+	CountCredit     int
 }
 
 func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
@@ -39,6 +44,10 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	balance := 0.0
 	added := 0.0
 	deductions := 0.0
+	countDeductions := 0
+	countAdded := 0
+	countDebit := 0
+	countCredit := 0
 	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
@@ -64,12 +73,20 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+				if entry.Credit > 0 {
+					countCredit++
+				}
+				if entry.Debit > 0 {
+					countDebit++
+				}
 
 				if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeDeduct {
 					deductions = t.provider.Service.Decimal.Add(deductions, entry.Debit+entry.Credit)
+					countDeductions++
 				}
 				if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeAdd {
 					added = t.provider.Service.Decimal.Add(added, entry.Credit+entry.Debit)
+					countAdded++
 				}
 			}
 
@@ -100,7 +117,12 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
-
+				if entry.Credit > 0 {
+					countCredit++
+				}
+				if entry.Debit > 0 {
+					countDebit++
+				}
 			}
 
 			switch entry.Account.GeneralLedgerType {
@@ -130,7 +152,12 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 			if data.CurrencyID == nil || handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 				debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
-
+				if entry.Credit > 0 {
+					countCredit++
+				}
+				if entry.Debit > 0 {
+					countDebit++
+				}
 			}
 
 			switch entry.Account.GeneralLedgerType {
@@ -156,6 +183,12 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 			}
 			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+			if entry.Credit > 0 {
+				countCredit++
+			}
+			if entry.Debit > 0 {
+				countDebit++
+			}
 			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 		}
 	}
@@ -171,14 +204,26 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 			}
 			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
 			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+			if entry.Credit > 0 {
+				countCredit++
+			}
+			if entry.Debit > 0 {
+				countDebit++
+			}
 			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
 		}
 	}
 
 	return BalanceResponse{
-		Credit:  credit,
-		Debit:   debit,
-		Balance: balance,
+		Credit:          credit,
+		Debit:           debit,
+		Balance:         balance,
+		Deductions:      deductions,
+		Added:           added,
+		CountDeductions: countDeductions,
+		CountAdded:      countAdded,
+		CountDebit:      countDebit,
+		CountCredit:     countCredit,
 	}, nil
 }
 

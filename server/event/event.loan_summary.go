@@ -23,8 +23,10 @@ type LoanAccountSummaryResponse struct {
 
 	TotalNumberOfPayments int `json:"total_number_of_payments"`
 
-	TotalNumberOfDeductions float64 `json:"total_number_of_deductions"`
-	TotalNumberOfAdditions  float64 `json:"total_number_of_additions"`
+	TotalNumberOfDeductions int     `json:"total_number_of_deductions"`
+	TotalDeductions         float64 `json:"total_deductions"`
+	TotalNumberOfAdditions  int     `json:"total_number_of_additions"`
+	TotalAdditions          float64 `json:"total_additions"`
 
 	TotalAccountPrincipal          float64   `json:"total_account_principal"`
 	TotalAccountAdvancedPayment    float64   `json:"total_account_advanced_payment"`
@@ -105,27 +107,28 @@ func (e *Event) LoanSummary(
 			return nil, eris.Wrapf(err, "failed to compute balance for account id: %s", entry.ID)
 		}
 		accountsummary = append(accountsummary, LoanAccountSummaryResponse{
-			AccountHistoryID: accountHistory.ID,
-			AccountHistory:   *e.core.AccountHistoryManager.ToModel(accountHistory),
+			AccountHistoryID:        accountHistory.ID,
+			AccountHistory:          *e.core.AccountHistoryManager.ToModel(accountHistory),
+			TotalDebit:              balance.Debit,
+			TotalCredit:             balance.Credit,
+			Balance:                 balance.Balance,
+			TotalNumberOfDeductions: balance.CountDeductions,
+			TotalDeductions:         balance.Deductions,
+			TotalNumberOfAdditions:  balance.CountAdded,
+			TotalAdditions:          balance.Added,
+			TotalNumberOfPayments:   balance.CountCredit,
+			LoanTransactionID:       loanTransaction.ID,
 
-			TotalDebit:  balance.Debit,
-			TotalCredit: balance.Credit,
-			Balance:     balance.Balance,
-
-			TotalNumberOfDeductions: balance.Deductions,
-			TotalNumberOfAdditions:  balance.Added,
-
-			DueDate:               nil,
-			LastPayment:           nil,
-			TotalNumberOfPayments: 0,
+			DueDate:     nil,
+			LastPayment: nil,
 
 			TotalAccountPrincipal:          0,
 			TotalAccountAdvancedPayment:    0,
 			TotalAccountPrincipalPaid:      0,
 			TotalAccountRemainingPrincipal: 0,
-			LoanTransactionID:              loanTransaction.ID,
 		})
 	}
+
 	return &LoanTransactionSummaryResponse{
 		GeneralLedger: e.core.GeneralLedgerManager.ToModels(
 			e.usecase.GeneralLedgerAddBalanceByAccount(entries),
