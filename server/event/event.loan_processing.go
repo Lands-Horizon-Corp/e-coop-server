@@ -9,7 +9,11 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (e *Event) LoanProcessing(context context.Context, userOrg *core.UserOrganization, loanTransactionID *uuid.UUID) (*core.LoanTransaction, error) {
+func (e *Event) LoanProcessing(
+	context context.Context,
+	userOrg *core.UserOrganization,
+	loanTransactionID *uuid.UUID,
+) (*core.LoanTransaction, error) {
 	// ===============================
 	// STEP 1: INITIALIZE TRANSACTION AND BASIC VALIDATION
 	// ===============================

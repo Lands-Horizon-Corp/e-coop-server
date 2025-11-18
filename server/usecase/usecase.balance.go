@@ -39,6 +39,8 @@ type BalanceResponse struct {
 	CountCredit     int
 
 	LastPayment *time.Time
+	LastCredit  *time.Time
+	LastDebit   *time.Time
 }
 
 func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
@@ -52,6 +54,8 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	countDebit := 0
 	countCredit := 0
 	var lastPayment *time.Time
+	var lastCredit *time.Time
+	var lastDebit *time.Time
 	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
@@ -87,9 +91,17 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 				if lastPayment == nil || entry.EntryDate.After(*lastPayment) {
 					lastPayment = &entry.EntryDate
 				}
+				// Track last credit date
+				if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
+					lastCredit = &entry.EntryDate
+				}
 			}
 			if entry.Debit > 0 {
 				countDebit++
+				// Track last debit date
+				if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
+					lastDebit = &entry.EntryDate
+				}
 			}
 
 			if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeDeduct {
@@ -135,9 +147,21 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 
 			if entry.Credit > 0 {
 				countCredit++
+				// Track last credit date
+				if entry.EntryDate != nil {
+					if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
+						lastCredit = entry.EntryDate
+					}
+				}
 			}
 			if entry.Debit > 0 {
 				countDebit++
+				// Track last debit date
+				if entry.EntryDate != nil {
+					if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
+						lastDebit = entry.EntryDate
+					}
+				}
 			}
 
 			switch entry.Account.GeneralLedgerType {
@@ -244,6 +268,8 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 		CountDebit:      countDebit,
 		CountCredit:     countCredit,
 		LastPayment:     lastPayment,
+		LastCredit:      lastCredit,
+		LastDebit:       lastDebit,
 	}, nil
 }
 

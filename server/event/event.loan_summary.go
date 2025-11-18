@@ -87,6 +87,7 @@ func (e *Event) LoanSummary(
 	}
 
 	arrears := 0.0
+	var lastPayment *time.Time
 	accountsummary := []LoanAccountSummaryResponse{}
 	for _, entry := range accounts {
 		accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
@@ -106,6 +107,12 @@ func (e *Event) LoanSummary(
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to compute balance for account id: %s", entry.ID)
 		}
+		arrears = e.provider.Service.Decimal.Add(arrears, balance.Balance)
+
+		if balance.LastPayment != nil && (lastPayment == nil || balance.LastPayment.After(*lastPayment)) {
+			lastPayment = balance.LastPayment
+		}
+
 		accountsummary = append(accountsummary, LoanAccountSummaryResponse{
 			AccountHistoryID:        accountHistory.ID,
 			AccountHistory:          *e.core.AccountHistoryManager.ToModel(accountHistory),
@@ -120,7 +127,8 @@ func (e *Event) LoanSummary(
 			LoanTransactionID:       loanTransaction.ID,
 
 			LastPayment: balance.LastPayment,
-			DueDate:     nil,
+
+			DueDate: nil,
 
 			TotalAccountPrincipal:          0,
 			TotalAccountAdvancedPayment:    0,
@@ -137,6 +145,15 @@ func (e *Event) LoanSummary(
 		Arrears:           arrears,
 		AmountGranted:     loanTransaction.Applied1,
 		LoanTransactionID: loanTransaction.ID,
+		LastPayment:       lastPayment,
+
+		// AddOnAmount
+		// FirstDeliquencyDate
+		// FirstIrregularityDate
+		// TotalPrincipal
+		// TotalAdvancedPayment
+		// TotalPrincipalPaid
+		// TotalRemainingPrincipal
 	}, nil
 }
 
