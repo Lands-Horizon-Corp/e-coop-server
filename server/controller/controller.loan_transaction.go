@@ -2037,7 +2037,7 @@ func (c *Controller) loanTransactionController() {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/summary",
 		Method:       "GET",
 		Note:         "Retrieves a summary of loan transactions based on query parameters.",
-		ResponseType: core.LoanTransactionSummaryResponse{},
+		ResponseType: event.LoanTransactionSummaryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -2051,68 +2051,10 @@ func (c *Controller) loanTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		loanSummary, err := c.event.LoanSummary(context, loanTransactionID, userOrg)
 		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan summary: " + err.Error()})
 		}
-		entries, err := c.core.GeneralLedgerByLoanTransaction(
-			context,
-			*loanTransactionID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-		)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
-		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-			LoanAccountID:  loanTransaction.AccountID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
-		}
-		arrears := 0.0
-		accountsummary := []core.LoanAccountSummaryResponse{}
-		for _, entry := range accounts {
-			accountHistory, err := c.core.GetAccountHistoryLatestByTimeHistory(
-				context,
-				entry.ID,
-				entry.OrganizationID,
-				entry.BranchID,
-				loanTransaction.PrintedDate,
-			)
-			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
-			}
-			accountsummary = append(accountsummary, core.LoanAccountSummaryResponse{
-				AccountHistoryID: accountHistory.ID,
-				AccountHistory:   *c.core.AccountHistoryManager.ToModel(accountHistory),
-
-				TotalDebit:  0, // sum of debits from general ledger
-				TotalCredit: 0, // sum of credit from general ledger
-				Balance:     0, // latest balance from account
-
-				DueDate:                        nil,
-				LastPayment:                    nil,
-				TotalNumberOfPayments:          0,
-				TotalNumberOfDeductions:        0,
-				TotalNumberOfAdditions:         0,
-				TotalAccountPrincipal:          0,
-				TotalAccountAdvancedPayment:    0,
-				TotalAccountPrincipalPaid:      0,
-				TotalAccountRemainingPrincipal: 0,
-				LoanTransactionID:              loanTransaction.ID,
-			})
-		}
-		return ctx.JSON(http.StatusOK, &core.LoanTransactionSummaryResponse{
-			GeneralLedger: c.core.GeneralLedgerManager.ToModels(
-				c.usecase.GeneralLedgerAddBalanceByAccount(entries),
-			),
-			AccountSummary:    accountsummary,
-			Arrears:           arrears,
-			AmountGranted:     loanTransaction.Applied1,
-			LoanTransactionID: loanTransaction.ID,
-		})
+		return ctx.JSON(http.StatusOK, loanSummary)
 	})
 }
