@@ -28,6 +28,7 @@ type LoanPaymentSchedule struct {
 type LoanPaymentPerAccount struct {
 	Currency               core.CurrencyResponse `json:"currency"`
 	Account                core.AccountResponse  `json:"account"`
+	AccountHistoryID       *uuid.UUID            `json:"account_history_id"`
 	LoanPaymentSchedule    []LoanPaymentSchedule `json:"loan_payment_schedule"`
 	TotalPrincipal         float64               `json:"total_principal"` // Total principal amount (sum of all scheduled payments for this account)
 	TotalPaidAmount        float64               `json:"total_paid_amount"`
@@ -400,6 +401,7 @@ func (e *Event) LoanPaymenSummary(
 		totalRemainingBalance := e.provider.Service.Decimal.Subtract(totalPrincipal, totalPaidAmount)
 		accountPayments = append(accountPayments, LoanPaymentPerAccount{
 			Account:                *e.core.AccountManager.ToModel(account),
+			AccountHistoryID:       &account.ID,
 			LoanPaymentSchedule:    paymentSchedule,
 			TotalPrincipal:         totalPrincipal,
 			TotalPaidAmount:        totalPaidAmount,

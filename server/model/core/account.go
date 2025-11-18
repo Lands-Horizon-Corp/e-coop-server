@@ -287,7 +287,7 @@ type (
 		// AccountResponse
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
-		// AccountResponse
+		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
 	}
 )
 
