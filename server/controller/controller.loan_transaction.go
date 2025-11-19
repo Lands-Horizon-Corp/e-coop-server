@@ -2095,4 +2095,66 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, loanPayment)
 	})
 
+	// GET api/v1/loan-transaction/all-members-summary
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/all-members-summary",
+		Method:       "GET",
+		Note:         "Retrieves comprehensive loan summaries for all members in the user's branch/organization. Includes totals, arrears, payment status, and member-level breakdowns. Results are cached daily.",
+		ResponseType: event.AllMembersLoanSummaryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view all members' loan summaries"})
+		}
+
+		allMembersSummary, err := c.event.AllMembersLoanSummary(context, userOrg)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve all members loan summary: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, allMembersSummary)
+	})
+
+	// DELETE api/v1/loan-transaction/all-members-summary/cache
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/loan-transaction/all-members-summary/cache",
+		Method: "DELETE",
+		Note:   "Clears the cached loan summary data for the current branch. Use this after posting payments or making loan changes to refresh the summary.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to clear cache"})
+		}
+
+		// Clear cache for current date
+		currentDate := userOrg.UserOrgTime().Format("2006-01-02")
+		cacheKey := fmt.Sprintf("loan_summary:all_members:%s:%s:%s",
+			userOrg.OrganizationID.String(),
+			userOrg.BranchID.String(),
+			currentDate,
+		)
+
+		if c.provider.Service.Cache != nil {
+			if err := c.provider.Service.Cache.Delete(context, cacheKey); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to clear cache: " + err.Error()})
+			}
+		}
+
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Cache cleared successfully"})
+	})
+
 }
