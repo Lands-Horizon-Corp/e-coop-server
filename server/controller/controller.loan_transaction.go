@@ -2157,4 +2157,54 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Cache cleared successfully"})
 	})
 
+	// GET api/v1/loan-transaction/stats-overtime
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/stats-overtime",
+		Method:       "GET",
+		Note:         "Retrieves loan statistics over time for graphing. Query params: start_date (YYYY-MM-DD), end_date (YYYY-MM-DD), period (daily/weekly/monthly/yearly). Returns earnings, profits, member counts, collection rates, and more. Results are cached daily.",
+		ResponseType: event.LoanStatsOverTimeResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan statistics"})
+		}
+
+		// Parse query parameters
+		startDateStr := ctx.QueryParam("start_date")
+		endDateStr := ctx.QueryParam("end_date")
+		period := ctx.QueryParam("period")
+
+		if startDateStr == "" || endDateStr == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "start_date and end_date query parameters are required (format: YYYY-MM-DD)"})
+		}
+
+		if period == "" {
+			period = "monthly" // Default to monthly
+		}
+
+		startDate, err := time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid start_date format. Use YYYY-MM-DD"})
+		}
+
+		endDate, err := time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid end_date format. Use YYYY-MM-DD"})
+		}
+
+		stats, err := c.event.LoanStatsOverTime(context, userOrg, startDate, endDate, period)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan statistics: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, stats)
+	})
+
 }
