@@ -338,18 +338,17 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 
 // MemberLoanSummary represents loan summary for a single member
 type MemberLoanSummary struct {
-	MemberProfileID   uuid.UUID                        `json:"member_profile_id"`
-	LoanTransactions  []LoanTransactionSummaryResponse `json:"loan_transactions"`
-	TotalLoans        int                              `json:"total_loans"`
-	TotalArrears      float64                          `json:"total_arrears"`
-	TotalPrincipal    float64                          `json:"total_principal"`
-	TotalPaid         float64                          `json:"total_paid"`
-	TotalRemaining    float64                          `json:"total_remaining"`
-	ActiveLoans       int                              `json:"active_loans"`
-	FullyPaidLoans    int                              `json:"fully_paid_loans"`
-	OverdueLoans      int                              `json:"overdue_loans"`
-	LastPaymentDate   *time.Time                       `json:"last_payment_date,omitempty"`
-	LastPaymentAmount float64                          `json:"last_payment_amount"`
+	MemberProfileID   uuid.UUID  `json:"member_profile_id"`
+	TotalLoans        int        `json:"total_loans"`
+	TotalArrears      float64    `json:"total_arrears"`
+	TotalPrincipal    float64    `json:"total_principal"`
+	TotalPaid         float64    `json:"total_paid"`
+	TotalRemaining    float64    `json:"total_remaining"`
+	ActiveLoans       int        `json:"active_loans"`
+	FullyPaidLoans    int        `json:"fully_paid_loans"`
+	OverdueLoans      int        `json:"overdue_loans"`
+	LastPaymentDate   *time.Time `json:"last_payment_date,omitempty"`
+	LastPaymentAmount float64    `json:"last_payment_amount"`
 }
 
 // AllMembersLoanSummaryResponse represents loan summaries for all members
@@ -515,7 +514,6 @@ func (e *Event) AllMembersLoanSummary(
 		// -------------------------------------------------------------------------------------------
 		memberSummary := MemberLoanSummary{
 			MemberProfileID:   memberProfileID,
-			LoanTransactions:  loanSummaries,
 			TotalLoans:        len(loans),
 			TotalArrears:      memberTotalArrears,
 			TotalPrincipal:    memberTotalPrincipal,
