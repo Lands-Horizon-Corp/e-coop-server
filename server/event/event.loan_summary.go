@@ -462,7 +462,6 @@ func (e *Event) AllMembersLoanSummary(
 		memberOverdueLoans := 0
 		var memberLastPaymentDate *time.Time
 		memberLastPaymentAmount := 0.0
-		loanSummaries := []LoanTransactionSummaryResponse{}
 
 		// -------------------------------------------------------------------------------------------
 		// 5.2: Process Each Loan Transaction for This Member
@@ -474,8 +473,6 @@ func (e *Event) AllMembersLoanSummary(
 				// Log error but continue processing other loans
 				continue
 			}
-
-			loanSummaries = append(loanSummaries, *loanSummary)
 
 			// Aggregate member-level metrics
 			memberTotalArrears = e.provider.Service.Decimal.Add(memberTotalArrears, loanSummary.Arrears)
