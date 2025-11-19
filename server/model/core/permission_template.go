@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -62,6 +63,28 @@ type (
 		Permissions []string `json:"permissions"`
 	}
 )
+
+func (m *Core) permissionTemplateSeed(
+	context context.Context,
+	tx *gorm.DB, userID uuid.UUID,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) error {
+	now := time.Now().UTC()
+	permissionsTemplates := []*PermissionTemplate{}
+	for _, permission := range permissionsTemplates {
+		permission.CreatedAt = now
+		permission.UpdatedAt = now
+		permission.OrganizationID = organizationID
+		permission.BranchID = branchID
+		permission.UpdatedByID = userID
+		permission.CreatedByID = userID
+		if err := m.PermissionTemplateManager.CreateWithTx(context, tx, permission); err != nil {
+			return eris.Wrapf(err, "failed to seed permission %s", permission.Name)
+		}
+	}
+	return nil
+}
 
 // PermissionTemplate initializes the permission template model and its repository manager
 func (m *Core) permissionTemplate() {
