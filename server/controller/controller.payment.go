@@ -73,20 +73,19 @@ func (c *Controller) paymentController() {
 			}
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "multipayment-db-error",
-				Description: "Multiple payment failed (/transaction/:transaction_id/multipayment), begin tx error: " + tx.Error.Error(),
-				Module:      "Transaction",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
-		}
-
 		var generalLedgers []*core.GeneralLedger
 
 		// Process each payment
 		for i, payment := range req {
+			tx, endTx := c.provider.Service.Database.StartTransaction(context)
+			if tx.Error != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-db-error",
+					Description: "Multiple payment failed (/transaction/:transaction_id/multipayment), begin tx error: " + tx.Error.Error(),
+					Module:      "Transaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
+			}
 			generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
 				// Will be filled by transaction
 				TransactionID:        &transaction.ID,
@@ -115,6 +114,14 @@ func (c *Controller) paymentController() {
 					Module:      "Transaction",
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Payment %d processing failed: %v", i+1, err.Error())})
+			}
+
+			if err := endTx(nil); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-commit-error",
+					Description: fmt.Sprintf("Multiple payment commit failed for payment %d: %v", i+1, err),
+					Module:      "Transaction",
+				})
 			}
 			generalLedgers = append(generalLedgers, generalLedger)
 		}
