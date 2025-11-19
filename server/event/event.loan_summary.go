@@ -339,7 +339,6 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 // MemberLoanSummary represents loan summary for a single member
 type MemberLoanSummary struct {
 	MemberProfileID   uuid.UUID                        `json:"member_profile_id"`
-	MemberProfile     *core.MemberProfileResponse      `json:"member_profile,omitempty"`
 	LoanTransactions  []LoanTransactionSummaryResponse `json:"loan_transactions"`
 	TotalLoans        int                              `json:"total_loans"`
 	TotalArrears      float64                          `json:"total_arrears"`
@@ -510,18 +509,12 @@ func (e *Event) AllMembersLoanSummary(
 		// -------------------------------------------------------------------------------------------
 		// 5.3: Fetch Member Profile Details
 		// -------------------------------------------------------------------------------------------
-		memberProfile, err := e.core.MemberProfileManager.GetByID(context, memberProfileID)
-		var memberProfileResponse *core.MemberProfileResponse
-		if err == nil {
-			memberProfileResponse = e.core.MemberProfileManager.ToModel(memberProfile)
-		}
 
 		// -------------------------------------------------------------------------------------------
 		// 5.4: Build Member Summary
 		// -------------------------------------------------------------------------------------------
 		memberSummary := MemberLoanSummary{
 			MemberProfileID:   memberProfileID,
-			MemberProfile:     memberProfileResponse,
 			LoanTransactions:  loanSummaries,
 			TotalLoans:        len(loans),
 			TotalArrears:      memberTotalArrears,
