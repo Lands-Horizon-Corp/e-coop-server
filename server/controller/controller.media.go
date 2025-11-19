@@ -144,7 +144,7 @@ func (c *Controller) mediaController() {
 		})
 		return ctx.JSON(http.StatusCreated, c.core.MediaManager.ToModel(completed))
 	})
-	
+
 	// PUT /media/:media_id: Update media file's name. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/media/:media_id",
