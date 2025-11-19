@@ -146,7 +146,6 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		if entry.IsAutomaticLoanDeductionDeleted {
 			continue
 		}
-
 		// Retrieve account history for the transaction entry at the specific time
 		accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 			context,
@@ -307,8 +306,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		straightInterestAmount := e.usecase.ComputeInterestStraight(
 			loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
 
-		credit := 0.0
-		debit := straightInterestAmount
+		credit := straightInterestAmount
+		debit := 0.0
 		// Create member interest ledger entry
 		memberInterestEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
