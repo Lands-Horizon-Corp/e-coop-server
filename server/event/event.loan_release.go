@@ -307,8 +307,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		straightInterestAmount := e.usecase.ComputeInterestStraight(
 			loanTransaction.TotalPrincipal, interestAccount.InterestStandard, loanTransaction.Terms)
 
-		credit := straightInterestAmount
-		debit := 0.0
+		credit := 0.0
+		debit := straightInterestAmount
 		// Create member interest ledger entry
 		memberInterestEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
