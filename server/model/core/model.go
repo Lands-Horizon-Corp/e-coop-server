@@ -362,6 +362,7 @@ func (m *Core) Start() error {
 	m.chargesRateSchemeModeOfPayment()
 	m.branchSetting()
 	m.company()
+	m.memberProfileArchive()
 	return nil
 }
 func (m *Core) GlobalSeeder(ctx context.Context) error {
