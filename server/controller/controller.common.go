@@ -574,14 +574,14 @@ func (c *Controller) commonController() {
 				{Name: "Swiss National ID Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^[A-Z0-9]{9}$`},                        // 9 alphanumeric
 				{Name: "Swiss Residence Permit", HasExpiryDate: true, FieldName: "Permit Number", HasNumber: true, Regex: `^[A-Z]{1}\d{9}$`},                  // S123456789
 				{Name: "AVS/AHV Social Security Number", HasExpiryDate: false, FieldName: "AHV Number", HasNumber: true, Regex: `^756\.\d{4}\.\d{4}\.\d{2}$`}, // 756.1234.5678.97
-				{Name: "Swiss Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{10}$`},                   // 10 alphanumeric
+				{Name: "Swiss Driver's License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{10}$`},                  // 10 alphanumeric
 			}
 		case "CHN": // China
 			result = []GovernmentIDResponse{
 				{Name: "Resident Identity Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^\d{17}[\dX]$`}, // 18 digits with possible X
 				{Name: "Chinese Passport", HasExpiryDate: true, FieldName: "Passport Number", HasNumber: true, Regex: `^[GDE]\d{8}$`},  // Example: G12345678
 				{Name: "Household Registration Booklet (Hukou)", HasExpiryDate: false, FieldName: "Hukou Number", HasNumber: true, Regex: `^[A-Z0-9]{5,20}$`},
-				{Name: "Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{8,16}$`},
+				{Name: "Driver's License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{8,16}$`},
 				{Name: "Foreigner's Permanent Residence ID", HasExpiryDate: true, FieldName: "Residence ID Number", HasNumber: true, Regex: `^[A-Z]{2}\d{8}$`},
 				{Name: "Birth Certificate (出生证明)", HasExpiryDate: false, FieldName: "Certificate Number", HasNumber: true, Regex: `^[A-Z]\d{9}$`},
 				{Name: "Marriage Certificate (结婚证)", HasExpiryDate: false, FieldName: "Certificate Number", HasNumber: true, Regex: `^[A-Z]\d{9}$`},
@@ -592,7 +592,7 @@ func (c *Controller) commonController() {
 				{Name: "Swedish Passport", HasExpiryDate: true, FieldName: "Passport Number", HasNumber: true, Regex: `^[A-Z0-9]{8,10}$`},
 				{Name: "Swedish National ID Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^[A-Z0-9]{10,12}$`},
 				{Name: "Personnummer (Personal Identity Number)", HasExpiryDate: false, FieldName: "Personnummer", HasNumber: true, Regex: `^\d{6}[-+]?\d{4}$`}, // e.g., 850709-9805
-				{Name: "Swedish Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{6,15}$`},
+				{Name: "Swedish Driver's License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{6,15}$`},
 				{Name: "Residence Permit Card", HasExpiryDate: true, FieldName: "Permit Number", HasNumber: true, Regex: `^[A-Z]{2}\d{6,8}$`},
 			}
 		case "NZL": // New Zealand
@@ -863,7 +863,7 @@ func (c *Controller) commonController() {
 					Regex:         `^[A-Z]{3}\d{7}$`, // Example: ABC1234567
 				},
 				{
-					Name:          "Driving License",
+					Name:          "Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
@@ -1092,7 +1092,7 @@ func (c *Controller) commonController() {
 					Regex:         `^[A-Z]\d{7}$`, // Example: P1234567
 				},
 				{
-					Name:          "Hong Kong Driving License",
+					Name:          "Hong Kong Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
@@ -1169,7 +1169,7 @@ func (c *Controller) commonController() {
 					HasExpiryDate: false,
 					FieldName:     "EPF Number",
 					HasNumber:     true,
-					Regex:         `^\d{8}$`,
+					Regex:         `^\d{8,12}$`,
 				},
 				{
 					Name:          "Birth Certificate (Sijil Kelahiran)",
@@ -1394,7 +1394,7 @@ func (c *Controller) commonController() {
 					Regex:         `^[A-Z]{1,2}\d{7,8}$`,
 				},
 				{
-					Name:          "Brunei Driving License",
+					Name:          "Brunei Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
@@ -1432,7 +1432,7 @@ func (c *Controller) commonController() {
 					Regex:         `^[A-Z]\d{7}$`, // Example: A1234567
 				},
 				{
-					Name:          "Saudi Driving License",
+					Name:          "Saudi Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
@@ -1470,7 +1470,7 @@ func (c *Controller) commonController() {
 					Regex:         `^[A-Z]{2}\d{7}$`, // Example: A1234567
 				},
 				{
-					Name:          "UAE Driving License",
+					Name:          "UAE Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
