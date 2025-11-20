@@ -336,7 +336,7 @@ func (c *Controller) memberProfileArchiveController() {
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
-		RequestType:  core.IDSRequest{},
+		RequestType:  core.MemberProfileArchiveBulkRequest{},
 		ResponseType: core.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -350,7 +350,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		var req core.IDSRequest
+		var req core.MemberProfileArchiveBulkRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
@@ -372,6 +372,7 @@ func (c *Controller) memberProfileArchiveController() {
 				MemberProfileID: memberProfileID,
 				Name:            media.FileName,
 				Description:     media.FileName + " at " + time.Now().Format(time.RFC3339),
+				Category:        req.Category,
 			}
 
 			if err := c.core.MemberProfileArchiveManager.Create(context, memberProfileArchive); err != nil {

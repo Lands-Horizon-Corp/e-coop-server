@@ -79,6 +79,10 @@ type (
 		Name  string `json:"name"`
 		Count int64  `json:"count"`
 	}
+	MemberProfileArchiveBulkRequest struct {
+		IDs      uuid.UUIDs `json:"ids"`
+		Category string     `json:"category" validate:"required,min=1,max=100"`
+	}
 )
 
 func (m *Core) memberProfileArchive() {

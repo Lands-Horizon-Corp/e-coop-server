@@ -1015,7 +1015,7 @@ func (c *Controller) accountController() {
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | validation errors",
 				Module:      "Account",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+			return ctx.JSON(http.StatusBadRequest, map[string]any{
 				"error":           "Some accounts cannot be deleted",
 				"failed_accounts": failedAccounts,
 			})
