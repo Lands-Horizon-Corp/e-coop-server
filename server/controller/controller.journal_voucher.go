@@ -166,20 +166,20 @@ func (c *Controller) journalVoucherController() {
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				entry := &core.JournalVoucherEntry{
-					AccountID:              entryReq.AccountID,
-					MemberProfileID:        entryReq.MemberProfileID,
-					EmployeeUserID:         entryReq.EmployeeUserID,
-					JournalVoucherID:       journalVoucher.ID,
-					Description:            entryReq.Description,
-					Debit:                  entryReq.Debit,
-					Credit:                 entryReq.Credit,
-					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            userOrg.UserID,
-					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            userOrg.UserID,
-					BranchID:               *userOrg.BranchID,
-					OrganizationID:         userOrg.OrganizationID,
-					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
+					AccountID:         entryReq.AccountID,
+					MemberProfileID:   entryReq.MemberProfileID,
+					EmployeeUserID:    entryReq.EmployeeUserID,
+					JournalVoucherID:  journalVoucher.ID,
+					Description:       entryReq.Description,
+					Debit:             entryReq.Debit,
+					Credit:            entryReq.Credit,
+					CreatedAt:         time.Now().UTC(),
+					CreatedByID:       userOrg.UserID,
+					UpdatedAt:         time.Now().UTC(),
+					UpdatedByID:       userOrg.UserID,
+					BranchID:          *userOrg.BranchID,
+					OrganizationID:    userOrg.OrganizationID,
+					LoanTransactionID: entryReq.LoanTransactionID,
 				}
 
 				if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -318,26 +318,26 @@ func (c *Controller) journalVoucherController() {
 					entry.Credit = entryReq.Credit
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = userOrg.UserID
-					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
+					entry.LoanTransactionID = entryReq.LoanTransactionID
 					if err := c.core.JournalVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
 					}
 				} else {
 					entry := &core.JournalVoucherEntry{
-						AccountID:              entryReq.AccountID,
-						MemberProfileID:        entryReq.MemberProfileID,
-						EmployeeUserID:         entryReq.EmployeeUserID,
-						JournalVoucherID:       journalVoucher.ID,
-						Description:            entryReq.Description,
-						Debit:                  entryReq.Debit,
-						Credit:                 entryReq.Credit,
-						CreatedAt:              time.Now().UTC(),
-						CreatedByID:            userOrg.UserID,
-						UpdatedAt:              time.Now().UTC(),
-						UpdatedByID:            userOrg.UserID,
-						BranchID:               *userOrg.BranchID,
-						OrganizationID:         userOrg.OrganizationID,
-						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
+						AccountID:         entryReq.AccountID,
+						MemberProfileID:   entryReq.MemberProfileID,
+						EmployeeUserID:    entryReq.EmployeeUserID,
+						JournalVoucherID:  journalVoucher.ID,
+						Description:       entryReq.Description,
+						Debit:             entryReq.Debit,
+						Credit:            entryReq.Credit,
+						CreatedAt:         time.Now().UTC(),
+						CreatedByID:       userOrg.UserID,
+						UpdatedAt:         time.Now().UTC(),
+						UpdatedByID:       userOrg.UserID,
+						BranchID:          *userOrg.BranchID,
+						OrganizationID:    userOrg.OrganizationID,
+						LoanTransactionID: entryReq.LoanTransactionID,
 					}
 					if err := c.core.JournalVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher entry: " + endTx(err).Error()})
@@ -955,6 +955,7 @@ func (c *Controller) journalVoucherController() {
 				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
 				BankID:                nil, // Not applicable for journal voucher entries
 				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries
+				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
 			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---

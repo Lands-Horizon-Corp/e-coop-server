@@ -859,6 +859,7 @@ func (c *Controller) cashCheckVoucherController() {
 				BankID:                nil,
 				ProofOfPaymentMediaID: nil,
 				TransactionBatchID:    transactionBatch.ID,
+				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
 			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---
