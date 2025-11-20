@@ -17,7 +17,7 @@ type GovernmentIDResponse struct {
 	Regex     string `json:"regex,omitempty"`
 }
 
-func (c *Controller) CommonController() {
+func (c *Controller)  () {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
@@ -554,21 +554,21 @@ func (c *Controller) CommonController() {
 					HasExpiryDate: true,
 					FieldName:     "Passport Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]\d{8}$`, // Example: P12345678
+					Regex:         `^[A-Z]{1,2}\d{7}[A-Z]?$`, // Example: P1234567 or EC1234567A (e-passport)
 				},
 				{
 					Name:          "Philippine Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]{1,2}\d{6,8}$`, // Varies by issuance
+					Regex:         `^[A-Z]\d{2}-\d{2}-\d{6}$`, // Example: N01-12-123456
 				},
 				{
 					Name:          "Philippine National ID (PhilSys ID)",
 					HasExpiryDate: false,
 					FieldName:     "PhilSys Number",
 					HasNumber:     true,
-					Regex:         `^\d{12}$`, // 12-digit PhilSys number
+					Regex:         `^\d{4}-\d{4}-\d{4}$`, // Format: 1234-5678-9012
 				},
 				{
 					Name:          "Social Security System (SSS) Number",
@@ -596,7 +596,7 @@ func (c *Controller) CommonController() {
 					HasExpiryDate: false,
 					FieldName:     "TIN",
 					HasNumber:     true,
-					Regex:         `^\d{3}-\d{3}-\d{3}-\d$`, // 12 digits with hyphens
+					Regex:         `^\d{3}-\d{3}-\d{3}(-\d{3,5})?$`, // 9 or 12-14 digits with optional branch code
 				},
 				{
 					Name:          "Voter's ID / Commission on Elections (COMELEC)",
@@ -645,17 +645,17 @@ func (c *Controller) CommonController() {
 					HasExpiryDate: true,
 					FieldName:     "UMID Number",
 					HasNumber:     true,
-					Regex:         `^\d{12}$`, // 12-digit UMID
+					Regex:         `^\d{4}-\d{7}-\d$`, // Format: 1234-1234567-1
 				},
 				{
 					Name:          "PRC License (Professional Regulation Commission)",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]{2,5}\d{4,6}$`,
+					Regex:         `^\d{7}$`, // 7 digits
 				},
 				{
-					Name:          "Police Clearance",
+					Name:          "NBI Clearance (National Bureau of Investigation)",
 					HasExpiryDate: true,
 					FieldName:     "Clearance Number",
 					HasNumber:     true,
@@ -770,28 +770,28 @@ func (c *Controller) CommonController() {
 		case "THA": // Thailand
 			result = []GovernmentIDResponse{
 				{
-					Name:          "Thai National ID Card",
+					Name:          "Thai National ID Card (Bat Pracham Tua)",
 					HasExpiryDate: true,
 					FieldName:     "ID Number",
 					HasNumber:     true,
-					Regex:         `^\d{13}$`, // 13 digits
+					Regex:         `^\d{1}-\d{4}-\d{5}-\d{2}-\d$`, // Format: 1-1234-12345-12-3
 				},
 				{
 					Name:          "Thai Passport",
 					HasExpiryDate: true,
 					FieldName:     "Passport Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]\d{8}$`, // Example: A12345678
+					Regex:         `^[A-Z]{2}\d{6,7}$`, // Example: AA1234567
 				},
 				{
 					Name:          "Thai Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
-					Regex:         `^\d{12,15}$`,
+					Regex:         `^\d{8}$`, // 8 digits
 				},
 				{
-					Name:          "Thai Social Security Card",
+					Name:          "Thai Social Security Number",
 					HasExpiryDate: true,
 					FieldName:     "SSO Number",
 					HasNumber:     true,
@@ -808,35 +808,35 @@ func (c *Controller) CommonController() {
 		case "SGP": // Singapore
 			result = []GovernmentIDResponse{
 				{
-					Name:          "Singapore NRIC (National Registration Identity Card)",
-					HasExpiryDate: true,
+					Name:          "Singapore NRIC (Citizens and PR)",
+					HasExpiryDate: false,
 					FieldName:     "NRIC Number",
 					HasNumber:     true,
-					Regex:         `^[STFG]\d{7}[A-Z]$`, // Example: S1234567D
+					Regex:         `^[STGM]\d{7}[A-JKLMNPQRTUWXZ]$`, // S/T for citizens/PR
 				},
 				{
 					Name:          "Singapore Passport",
 					HasExpiryDate: true,
 					FieldName:     "Passport Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]{2}\d{7}$`, // Example: MA1234567
+					Regex:         `^[KELMN]\d{7}$`, // Example: K1234567
 				},
 				{
 					Name:          "Singapore FIN (Foreign Identification Number)",
 					HasExpiryDate: true,
 					FieldName:     "FIN Number",
 					HasNumber:     true,
-					Regex:         `^[FTG]\d{7}[A-Z]$`, // Example: F1234567A
+					Regex:         `^[FGM]\d{7}[A-JKLMNPQRTUWXZ]$`, // F for old, G for new FIN
 				},
 				{
 					Name:          "Singapore Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
-					Regex:         `^[SFTG]\d{7}[A-Z]$`, // 8-character alphanumeric
+					Regex:         `^[STFGM]\d{7}[A-JKLMNPQRTUWXZ]$`, // Same as NRIC/FIN
 				},
 				{
-					Name:          "Employment Pass / Work Permit",
+					Name:          "Employment Pass / S Pass / Work Permit",
 					HasExpiryDate: true,
 					FieldName:     "Pass Number",
 					HasNumber:     true,
@@ -884,8 +884,8 @@ func (c *Controller) CommonController() {
 		case "MYS": // Malaysia
 			result = []GovernmentIDResponse{
 				{
-					Name:          "MyKad (National Identity Card)",
-					HasExpiryDate: true,
+					Name:          "MyKad / MyPR (National Identity Card)",
+					HasExpiryDate: false,
 					FieldName:     "MyKad Number",
 					HasNumber:     true,
 					Regex:         `^\d{6}-\d{2}-\d{4}$`, // Example: 800101-01-1234
@@ -895,10 +895,10 @@ func (c *Controller) CommonController() {
 					HasExpiryDate: true,
 					FieldName:     "Passport Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]{1,2}\d{7}$`, // Example: A1234567
+					Regex:         `^[A-Z]\d{8}$`, // Example: A12345678 (newer format)
 				},
 				{
-					Name:          "Driving License",
+					Name:          "Malaysian Driver's License",
 					HasExpiryDate: true,
 					FieldName:     "License Number",
 					HasNumber:     true,
@@ -922,9 +922,9 @@ func (c *Controller) CommonController() {
 		case "IDN": // Indonesia
 			result = []GovernmentIDResponse{
 				{
-					Name:          "KTP (Kartu Tanda Penduduk / National ID Card)",
-					HasExpiryDate: true,
-					FieldName:     "KTP Number",
+					Name:          "KTP (Kartu Tanda Penduduk / e-KTP)",
+					HasExpiryDate: false,
+					FieldName:     "NIK (Nomor Induk Kependudukan)",
 					HasNumber:     true,
 					Regex:         `^\d{16}$`, // 16 digits
 				},
@@ -943,11 +943,11 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1}\d{11}$`, // Example: B12345678901
 				},
 				{
-					Name:          "NPWP (Tax Identification Number)",
+					Name:          "NPWP (Nomor Pokok Wajib Pajak / Tax ID)",
 					HasExpiryDate: false,
 					FieldName:     "NPWP Number",
 					HasNumber:     true,
-					Regex:         `^\d{15}$`, // 15 digits
+					Regex:         `^\d{2}\.\d{3}\.\d{3}\.\d{1}-\d{3}\.\d{3}$`, // Format: 01.234.567.8-901.000
 				},
 				{
 					Name:          "Family Card (KK / Kartu Keluarga)",
@@ -960,11 +960,11 @@ func (c *Controller) CommonController() {
 		case "VNM": // Vietnam
 			result = []GovernmentIDResponse{
 				{
-					Name:          "Vietnamese Citizen Identity Card (CCCD / CMND)",
-					HasExpiryDate: true,
-					FieldName:     "ID Number",
+					Name:          "CCCD (Căn cước công dân / Citizen ID)",
+					HasExpiryDate: false,
+					FieldName:     "CCCD Number",
 					HasNumber:     true,
-					Regex:         `^\d{9,12}$`, // 9 or 12 digits depending on issuance year
+					Regex:         `^\d{12}$`, // 12 digits (new format since 2021)
 				},
 				{
 					Name:          "Vietnamese Passport",
@@ -981,11 +981,11 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1}\d{10,12}$`,
 				},
 				{
-					Name:          "Tax Identification Number (TIN)",
+					Name:          "MST (Mã số thuế / Tax Code)",
 					HasExpiryDate: false,
-					FieldName:     "TIN Number",
+					FieldName:     "Tax Code",
 					HasNumber:     true,
-					Regex:         `^\d{10,13}$`,
+					Regex:         `^\d{10}(-\d{3})?$`, // 10 or 13 digits (with branch code)
 				},
 				{
 					Name:          "Residence Booklet (Hộ khẩu)",
@@ -2254,10 +2254,10 @@ func (c *Controller) CommonController() {
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Myanmar National Registration Card (NRC)",
-					HasExpiryDate: true,
+					HasExpiryDate: false,
 					FieldName:     "NRC Number",
 					HasNumber:     true,
-					Regex:         `^\d{1,2}/[A-Z]{1,3}\(\w+\)\d{6}$`, // Example: 12/LAK(N)123456
+					Regex:         `^\d{1,2}/[A-Z]{3}\([NC]\)\d{6}$`, // Format: 12/MaHaNa(N)123456
 				},
 				{
 					Name:          "Myanmar Passport",
@@ -2291,11 +2291,11 @@ func (c *Controller) CommonController() {
 		case "KHM": // Cambodia
 			result = []GovernmentIDResponse{
 				{
-					Name:          "Cambodian National ID (NID / CID)",
+					Name:          "Cambodian National ID Card",
 					HasExpiryDate: true,
 					FieldName:     "ID Number",
 					HasNumber:     true,
-					Regex:         `^\d{9,12}$`,
+					Regex:         `^\d{9}$`, // 9 digits
 				},
 				{
 					Name:          "Cambodian Passport",
@@ -2329,18 +2329,18 @@ func (c *Controller) CommonController() {
 		case "LAO": // Laos
 			result = []GovernmentIDResponse{
 				{
-					Name:          "Laos National ID Card",
+					Name:          "Lao National ID Card",
 					HasExpiryDate: true,
 					FieldName:     "ID Number",
 					HasNumber:     true,
-					Regex:         `^\d{9,12}$`,
+					Regex:         `^\d{10}$`, // 10 digits
 				},
 				{
-					Name:          "Laotian Passport",
+					Name:          "Lao Passport",
 					HasExpiryDate: true,
 					FieldName:     "Passport Number",
 					HasNumber:     true,
-					Regex:         `^[A-Z]{2}\d{6}$`,
+					Regex:         `^[A-Z]\d{7}$`, // Example: P1234567
 				},
 				{
 					Name:          "Driver’s License",

@@ -160,6 +160,6 @@ func (c *Controller) Start() error {
 	c.fundsController()
 	c.chargesRateByTermController()
 	c.memberProfileArchiveController()
-	c.CommonController()
+	c.commonController()
 	return nil
 }
