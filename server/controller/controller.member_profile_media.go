@@ -211,16 +211,12 @@ func (c *Controller) memberProfileMediaController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 			}
 		}
+		memberProfileMedia.Name = req.Name
+		memberProfileMedia.Description = req.Description
+		memberProfileMedia.UpdatedAt = time.Now().UTC()
+		memberProfileMedia.UpdatedByID = userOrg.UserID
 
-		updateData := &core.MemberProfileMedia{
-			MediaID:     req.MediaID,
-			Name:        req.Name,
-			Description: req.Description,
-			UpdatedAt:   time.Now().UTC(),
-			UpdatedByID: userOrg.UserID,
-		}
-
-		if err := c.core.MemberProfileMediaManager.UpdateByID(context, *memberProfileMediaID, updateData); err != nil {
+		if err := c.core.MemberProfileMediaManager.UpdateByID(context, memberProfileMedia.ID, memberProfileMedia); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile media update failed (/member-profile-media/:member_profile_media_id), db error: " + err.Error(),
