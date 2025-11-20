@@ -247,12 +247,6 @@ type (
 		UserID *uuid.UUID `json:"user_id,omitempty"`
 	}
 
-	// MemberProfileMediasRequest represents the request structure for updating member profile media files
-	MemberProfileMediasRequest struct {
-		MediaID          *uuid.UUID `json:"media_id,omitempty"`
-		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
-	}
-
 	// AccountInfo represents the AccountInfo model.
 	AccountInfo struct {
 		UserName string `json:"user_name" validate:"required,min=1,max=255"`
