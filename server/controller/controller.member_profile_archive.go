@@ -381,7 +381,6 @@ func (c *Controller) memberProfileArchiveController() {
 
 			createdMedia = append(createdMedia, memberProfileArchive)
 		}
-
 		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager.ToModels(createdMedia))
 	})
 
@@ -416,27 +415,48 @@ func (c *Controller) memberProfileArchiveController() {
 		}
 
 		// Build counts per category, treating nil/empty as "Uncategorized"
-		counts := make(map[string]int)
+		// Normalize by trimming, collapsing spaces and lower-casing for case-insensitive grouping
+		normalize := func(s string) string {
+			trimmed := strings.Join(strings.Fields(strings.TrimSpace(s)), " ") // collapse multiple spaces
+			return strings.ToLower(trimmed)
+		}
+		titleize := func(s string) string {
+			// simple title case for display: capitalize first letter of each word
+			words := strings.Fields(s)
+			for i, w := range words {
+				if len(w) == 0 {
+					continue
+				}
+				words[i] = strings.ToUpper(w[:1]) + strings.ToLower(w[1:])
+			}
+			return strings.Join(words, " ")
+		}
+
+		counts := make(map[string]int)            // normalized -> count
+		displayVariant := make(map[string]string) // normalized -> first-seen trimmed display
+
 		for _, a := range memberProfileArchives {
 			if a == nil {
 				continue
 			}
-			category := "Uncategorized"
-			// handle both pointer and string types safely
+			var raw string
 			switch v := any(a.Category).(type) {
 			case *string:
-				if v != nil && strings.TrimSpace(*v) != "" {
-					category = strings.TrimSpace(*v)
+				if v != nil {
+					raw = *v
 				}
 			case string:
-				if strings.TrimSpace(v) != "" {
-					category = strings.TrimSpace(v)
-				}
-			default:
-				// fallback: if there's a Category field but unknown type, try fmt.Sprintf
-				// leave as Uncategorized otherwise
+				raw = v
 			}
-			counts[category]++
+			trimmed := strings.Join(strings.Fields(strings.TrimSpace(raw)), " ")
+			if trimmed == "" {
+				trimmed = "Uncategorized"
+			}
+			norm := normalize(trimmed)
+			if _, ok := displayVariant[norm]; !ok {
+				displayVariant[norm] = trimmed
+			}
+			counts[norm]++
 		}
 
 		// Default categories commonly used in cooperative bank member profiles
@@ -462,24 +482,40 @@ func (c *Controller) memberProfileArchiveController() {
 			"Uncategorized",
 		}
 
+		// prepare normalized map for defaults so we present canonical display names
+		normDefault := make(map[string]string)
+		for _, d := range defaultCategories {
+			normDefault[normalize(d)] = d
+		}
+
 		// Prepare result with defaults (preserve ordering) and include any additional categories found
 		result := make([]core.MemberProfileArchiveCategoryResponse, 0, len(defaultCategories))
 		seen := make(map[string]bool)
 		for _, name := range defaultCategories {
+			n := normalize(name)
 			result = append(result, core.MemberProfileArchiveCategoryResponse{
-				Name:  name,
-				Count: int64(counts[name]),
+				Name:  normDefault[n],
+				Count: int64(counts[n]),
 			})
-			seen[name] = true
+			seen[n] = true
 		}
 		// add any categories present in counts but not in defaults
-		for name, cnt := range counts {
-			if !seen[name] {
-				result = append(result, core.MemberProfileArchiveCategoryResponse{
-					Name:  name,
-					Count: int64(cnt),
-				})
+		for norm, cnt := range counts {
+			if seen[norm] {
+				continue
 			}
+			display := displayVariant[norm]
+			if display == "" {
+				// fallback: make a readable display from normalized key
+				display = titleize(strings.ReplaceAll(norm, "_", " "))
+			} else {
+				// use cleaned display (collapse spaces) and titleize for consistent casing
+				display = titleize(display)
+			}
+			result = append(result, core.MemberProfileArchiveCategoryResponse{
+				Name:  display,
+				Count: int64(cnt),
+			})
 		}
 
 		return ctx.JSON(http.StatusOK, result)
