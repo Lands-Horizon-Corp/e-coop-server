@@ -32,7 +32,7 @@ func (c *Controller) CommonController() {
 		}
 		result := []GovernmentIDResponse{}
 		switch countryCode {
-		case "USD": // United States
+		case "USA": // United States
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Social Security Number (SSN)",
@@ -119,7 +119,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^(\d{8}|[A-Z]{1}\d{7})$`,
 				},
 			}
-		case "EUR": // European Union (Germany as representative)
+		case "DEU": // European Union (Germany as representative)
 			result = []GovernmentIDResponse{
 				{
 					Name:          "National Identity Card (Personalausweis)",
@@ -192,7 +192,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1}[0-9]{7,10}$`,
 				},
 			}
-		case "JPY": // Japan
+		case "JPN": // Japan
 			result = []GovernmentIDResponse{
 				{
 					Name:          "My Number Card (Individual Number Card)",
@@ -258,7 +258,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{4,12}$`,
 				},
 			}
-		case "GBP": // United Kingdom
+		case "GBR": // United Kingdom
 			result = []GovernmentIDResponse{
 				{
 					Name:          "UK Passport",
@@ -331,7 +331,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{8,12}$`,
 				},
 			}
-		case "AUD": // Australia
+		case "AUS": // Australia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Australian Passport",
@@ -404,7 +404,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,10}$`,
 				},
 			}
-		case "CAD": // Canada
+		case "CAN": // Canada
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Canadian Passport",
@@ -477,7 +477,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[0-9]{9}$`,
 				},
 			}
-		case "CHF": // Switzerland
+		case "CHE": // Switzerland
 			result = []GovernmentIDResponse{
 				{Name: "Swiss Passport", HasExpiryDate: true, FieldName: "Passport Number", HasNumber: true, Regex: `^[A-Z]\d{7}$`},                           // Example: X1234567
 				{Name: "Swiss National ID Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^[A-Z0-9]{9}$`},                        // 9 alphanumeric
@@ -485,7 +485,7 @@ func (c *Controller) CommonController() {
 				{Name: "AVS/AHV Social Security Number", HasExpiryDate: false, FieldName: "AHV Number", HasNumber: true, Regex: `^756\.\d{4}\.\d{4}\.\d{2}$`}, // 756.1234.5678.97
 				{Name: "Swiss Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{10}$`},                   // 10 alphanumeric
 			}
-		case "CNY": // China
+		case "CHN": // China
 			result = []GovernmentIDResponse{
 				{Name: "Resident Identity Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^\d{17}[\dX]$`}, // 18 digits with possible X
 				{Name: "Chinese Passport", HasExpiryDate: true, FieldName: "Passport Number", HasNumber: true, Regex: `^[GDE]\d{8}$`},  // Example: G12345678
@@ -494,7 +494,7 @@ func (c *Controller) CommonController() {
 				{Name: "Foreigner's Permanent Residence ID", HasExpiryDate: true, FieldName: "Residence ID Number", HasNumber: true, Regex: `^[A-Z]{2}\d{8}$`},
 			}
 
-		case "SEK": // Sweden
+		case "SWE": // Sweden
 			result = []GovernmentIDResponse{
 				{Name: "Swedish Passport", HasExpiryDate: true, FieldName: "Passport Number", HasNumber: true, Regex: `^[A-Z0-9]{8,10}$`},
 				{Name: "Swedish National ID Card", HasExpiryDate: true, FieldName: "ID Number", HasNumber: true, Regex: `^[A-Z0-9]{10,12}$`},
@@ -502,7 +502,7 @@ func (c *Controller) CommonController() {
 				{Name: "Swedish Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{6,15}$`},
 				{Name: "Residence Permit Card", HasExpiryDate: true, FieldName: "Permit Number", HasNumber: true, Regex: `^[A-Z]{2}\d{6,8}$`},
 			}
-		case "NZD": // New Zealand
+		case "NZL": // New Zealand
 			result = []GovernmentIDResponse{
 				{
 					Name:          "New Zealand Passport",
@@ -547,7 +547,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1}\d{7,9}$`,
 				},
 			}
-		case "PHP": // Philippines
+		case "PHL": // Philippines
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Philippine Passport",
@@ -676,7 +676,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{4,12}$`,
 				},
 			}
-		case "INR": // India
+		case "IND": // India
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Aadhaar Card",
@@ -728,7 +728,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{9,18}$`, // Typical bank account number
 				},
 			}
-		case "KRW": // South Korea
+		case "KOR": // South Korea
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Resident Registration Number",
@@ -767,7 +767,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "THB": // Thailand
+		case "THA": // Thailand
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Thai National ID Card",
@@ -805,7 +805,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{2}\d{6,8}$`,
 				},
 			}
-		case "SGD": // Singapore
+		case "SGP": // Singapore
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Singapore NRIC (National Registration Identity Card)",
@@ -843,7 +843,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1,2}\d{7,8}$`,
 				},
 			}
-		case "HKD": // Hong Kong
+		case "HKG": // Hong Kong
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Hong Kong Identity Card (HKID)",
@@ -881,7 +881,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{5,12}$`,
 				},
 			}
-		case "MYR": // Malaysia
+		case "MYS": // Malaysia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "MyKad (National Identity Card)",
@@ -919,7 +919,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{5,12}$`,
 				},
 			}
-		case "IDR": // Indonesia
+		case "IDN": // Indonesia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "KTP (Kartu Tanda Penduduk / National ID Card)",
@@ -957,7 +957,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{16}$`,
 				},
 			}
-		case "VND": // Vietnam
+		case "VNM": // Vietnam
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Vietnamese Citizen Identity Card (CCCD / CMND)",
@@ -995,7 +995,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "TWD": // Taiwan
+		case "TWN": // Taiwan
 			result = []GovernmentIDResponse{
 				{
 					Name:          "National Identification Card",
@@ -1033,7 +1033,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{8,10}$`,
 				},
 			}
-		case "BND": // Brunei
+		case "BRN": // Brunei
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Brunei National Identity Card (NRIC / Kad Pengenalan)",
@@ -1071,7 +1071,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z]{1,2}\d{6,8}$`,
 				},
 			}
-		case "SAR": // Saudi Arabia
+		case "SAU": // Saudi Arabia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Saudi National ID (Iqama / Civil ID for citizens)",
@@ -1110,7 +1110,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "AED": // United Arab Emirates
+		case "ARE": // United Arab Emirates
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Emirates ID (National ID Card)",
@@ -1148,7 +1148,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[0-9]{8,12}$`,
 				},
 			}
-		case "ILS": // Israel
+		case "ISR": // Israel
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Israeli National ID (Teudat Zehut)",
@@ -1186,7 +1186,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{8,10}$`,
 				},
 			}
-		case "ZAR": // South Africa
+		case "ZAF": // South Africa
 			result = []GovernmentIDResponse{
 				{
 					Name:          "South African ID Card / Smart ID",
@@ -1224,7 +1224,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "EGP": // Egypt
+		case "EGY": // Egypt
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Egyptian National ID Card",
@@ -1262,7 +1262,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{10,12}$`,
 				},
 			}
-		case "TRY": // Turkey
+		case "TUR": // Turkey
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Turkish National ID Card (T.C. Kimlik Kartı)",
@@ -1300,7 +1300,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "XOF": // West African CFA Franc
+		case "SEN": // West African CFA Franc (Senegal as representative)
 			result = []GovernmentIDResponse{
 				{
 					Name:          "National Identity Card",
@@ -1338,7 +1338,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "XAF": // Central African CFA Franc
+		case "CMR": // Central African CFA Franc (Cameroon as representative)
 			result = []GovernmentIDResponse{
 				{
 					Name:          "National Identity Card",
@@ -1376,7 +1376,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "MUR": // Mauritius
+		case "MUS": // Mauritius
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Mauritian National ID Card",
@@ -1414,7 +1414,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "MVR": // Maldives
+		case "MDV": // Maldives
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Maldivian National ID Card",
@@ -1452,7 +1452,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "NOK": // Norway
+		case "NOR": // Norway
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Norwegian National ID Number (Fødselsnummer)",
@@ -1490,7 +1490,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{9}$`,
 				},
 			}
-		case "DKK": // Denmark
+		case "DNK": // Denmark
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Danish Personal Identification Number (CPR number)",
@@ -1528,7 +1528,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "PLN": // Poland
+		case "POL": // Poland
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Polish National ID Card (Dowód Osobisty)",
@@ -1566,7 +1566,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "CZK": // Czech Republic
+		case "CZE": // Czech Republic
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Czech National ID Card (Občanský průkaz)",
@@ -1604,7 +1604,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{9,12}$`,
 				},
 			}
-		case "HUF": // Hungary
+		case "HUN": // Hungary
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Hungarian Personal ID (Személyi Igazolvány)",
@@ -1642,7 +1642,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "RUB": // Russia
+		case "RUS": // Russia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Russian Internal Passport",
@@ -1680,7 +1680,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{10,12}$`,
 				},
 			}
-		case "EUR-HR": // Croatia (Euro)
+		case "HRV": // Croatia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Croatian National ID Card (Osobna iskaznica)",
@@ -1718,7 +1718,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
-		case "BRL": // Brazil
+		case "BRA": // Brazil
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Brazilian National ID Card (RG)",
@@ -1756,7 +1756,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{12}$`,
 				},
 			}
-		case "MXN": // Mexico
+		case "MEX": // Mexico
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Mexican National ID Card (CURP)",
@@ -1794,7 +1794,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{18}$`,
 				},
 			}
-		case "ARS": // Argentina
+		case "ARG": // Argentina
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Argentine National ID (DNI)",
@@ -1832,7 +1832,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "CLP": // Chile
+		case "CHL": // Chile
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Chilean National ID (RUN / RUT)",
@@ -1870,7 +1870,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "PEN": // Peru
+		case "PER": // Peru
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Peruvian National ID (DNI)",
@@ -1908,7 +1908,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "UYU": // Uruguay
+		case "URY": // Uruguay
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Uruguayan National ID (Cédula de Identidad)",
@@ -1946,7 +1946,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "DOP": // Dominican Republic
+		case "DOM": // Dominican Republic
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Dominican National ID (Cédula de Identidad)",
@@ -1984,7 +1984,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "PYG": // Paraguay
+		case "PRY": // Paraguay
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Paraguayan National ID (Cédula de Identidad)",
@@ -2022,7 +2022,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "BOB": // Bolivia
+		case "BOL": // Bolivia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Bolivian National ID (Cédula de Identidad)",
@@ -2060,7 +2060,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "VES": // Venezuela
+		case "VEN": // Venezuela
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Venezuelan National ID (Cédula de Identidad)",
@@ -2098,7 +2098,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "PKR": // Pakistan
+		case "PAK": // Pakistan
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Pakistani National Identity Card (CNIC)",
@@ -2136,7 +2136,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "BDT": // Bangladesh
+		case "BGD": // Bangladesh
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Bangladeshi National ID (NID)",
@@ -2174,7 +2174,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "LKR": // Sri Lanka
+		case "LKA": // Sri Lanka
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Sri Lankan National ID (NIC)",
@@ -2212,7 +2212,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "NPR": // Nepal
+		case "NPL": // Nepal
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Nepalese Citizenship Card",
@@ -2250,7 +2250,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "MMK": // Myanmar
+		case "MMR": // Myanmar
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Myanmar National Registration Card (NRC)",
@@ -2288,7 +2288,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "KHR": // Cambodia
+		case "KHM": // Cambodia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Cambodian National ID (NID / CID)",
@@ -2326,7 +2326,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "LAK": // Laos
+		case "LAO": // Laos
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Laos National ID Card",
@@ -2365,7 +2365,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "NGN": // Nigeria
+		case "NGA": // Nigeria
 			result = []GovernmentIDResponse{
 				{
 					Name:          "National Identity Number (NIN)",
@@ -2404,7 +2404,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "KES": // Kenya
+		case "KEN": // Kenya
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Kenyan National ID Card",
@@ -2443,7 +2443,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "GHS": // Ghana
+		case "GHA": // Ghana
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Ghanaian National ID Card",
@@ -2482,7 +2482,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "MAD": // Morocco
+		case "MAR": // Morocco
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Moroccan National ID Card (CIN)",
@@ -2521,7 +2521,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "TND": // Tunisia
+		case "TUN": // Tunisia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Tunisian National Identity Card (CIN)",
@@ -2560,7 +2560,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "ETB": // Ethiopia
+		case "ETH": // Ethiopia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Ethiopian National ID Card",
@@ -2599,7 +2599,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "DZD": // Algeria
+		case "DZA": // Algeria
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Algerian National ID Card (CIN)",
@@ -2638,7 +2638,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "UAH": // Ukraine
+		case "UKR": // Ukraine
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Ukrainian Passport (Internal ID Card)",
@@ -2677,7 +2677,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "RON": // Romania
+		case "ROU": // Romania
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Romanian National ID Card (CNP)",
@@ -2715,7 +2715,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "BGN": // Bulgaria
+		case "BGR": // Bulgaria
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Bulgarian Personal Number (EGN)",
@@ -2753,7 +2753,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "RSD": // Serbia
+		case "SRB": // Serbia
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Serbian National ID Card",
@@ -2792,7 +2792,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "ISK": // Iceland
+		case "ISL": // Iceland
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Icelandic National ID (Kennitala)",
@@ -2831,7 +2831,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "BYN": // Belarus
+		case "BLR": // Belarus
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Belarusian National ID Card (Internal Passport)",
@@ -2869,7 +2869,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "FJD": // Fiji
+		case "FJI": // Fiji
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Fijian National ID (Voter ID / NID)",
@@ -2907,7 +2907,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "PGK": // Papua New Guinea
+		case "PNG": // Papua New Guinea
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Papua New Guinea National ID",
@@ -2945,6 +2945,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
+
 		case "JMD": // Jamaica
 			result = []GovernmentIDResponse{
 				{
@@ -2983,6 +2984,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
+
 		case "CRC": // Costa Rica
 			result = []GovernmentIDResponse{
 				{
@@ -3021,7 +3023,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "GTQ": // Guatemala
+		case "GTM": // Guatemala
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Guatemalan Personal Identification Number (DPI)",
@@ -3059,7 +3061,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "XDR": // Special Drawing Rights (IMF)
+		case "IMF": // Special Drawing Rights (IMF)
 			result = []GovernmentIDResponse{
 				{
 					Name:          "No national ID applicable",
@@ -3070,7 +3072,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "KWD": // Kuwait
+		case "KWT": // Kuwait
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Kuwaiti Civil ID",
@@ -3109,7 +3111,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "QAR": // Qatar
+		case "QAT": // Qatar
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Qatari National ID",
@@ -3148,7 +3150,7 @@ func (c *Controller) CommonController() {
 				},
 			}
 
-		case "OMR": // Oman
+		case "OMN": // Oman
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Omani National ID",
@@ -3186,7 +3188,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "BHD": // Bahrain
+		case "BHR": // Bahrain
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Bahraini National ID",
@@ -3224,7 +3226,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "JOD": // Jordan
+		case "JOR": // Jordan
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Jordanian National ID",
@@ -3262,7 +3264,7 @@ func (c *Controller) CommonController() {
 					Regex:         `^\d{6,12}$`,
 				},
 			}
-		case "KZT": // Kazakhstan
+		case "KAZ": // Kazakhstan
 			result = []GovernmentIDResponse{
 				{
 					Name:          "Kazakh National ID (Internal Passport)",
