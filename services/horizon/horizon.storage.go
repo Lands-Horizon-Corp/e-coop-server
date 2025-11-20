@@ -559,5 +559,5 @@ func (h *StorageImpl) GenerateUniqueName(_ context.Context, original string, con
 		ext = handlers.GetExtensionFromContentType(contentType)
 	}
 
-	return fmt.Sprintf("%s%d-%s%s", h.prefix, time.Now().UnixNano(), base, ext), nil
+	return fmt.Sprintf("%s%s-%d%s", h.prefix, base, time.Now().UnixNano(), ext), nil
 }
