@@ -126,6 +126,11 @@ func (c *Controller) organizationController() {
 			SubscriptionPlanID:                  &subscription.ID,
 			SubscriptionStartDate:               time.Now().UTC(),
 			SubscriptionEndDate:                 subscriptionEndDate,
+			InstagramLink:                       req.InstagramLink,
+			FacebookLink:                        req.FacebookLink,
+			YoutubeLink:                         req.YoutubeLink,
+			PersonalWebsiteLink:                 req.PersonalWebsiteLink,
+			XLink:                               req.XLink,
 		}
 
 		if err := c.core.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
@@ -409,6 +414,11 @@ func (c *Controller) organizationController() {
 		organization.UpdatedAt = time.Now().UTC()
 		organization.UpdatedByID = user.ID
 		organization.IsPrivate = req.IsPrivate
+		organization.InstagramLink = req.InstagramLink
+		organization.FacebookLink = req.FacebookLink
+		organization.YoutubeLink = req.YoutubeLink
+		organization.PersonalWebsiteLink = req.PersonalWebsiteLink
+		organization.XLink = req.XLink
 		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

@@ -220,6 +220,11 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				SubscriptionPlanID:                  &sub.ID,
 				SubscriptionStartDate:               time.Now().UTC(),
 				SubscriptionEndDate:                 subscriptionEndDate,
+				InstagramLink:                       ptr(s.faker.Internet().URL()),
+				FacebookLink:                        ptr(s.faker.Internet().URL()),
+				YoutubeLink:                         ptr(s.faker.Internet().URL()),
+				PersonalWebsiteLink:                 ptr(s.faker.Internet().URL()),
+				XLink:                               ptr(s.faker.Internet().URL()),
 			}
 
 			if err := s.core.OrganizationManager.Create(ctx, organization); err != nil {
