@@ -17,7 +17,7 @@ type GovernmentIDResponse struct {
 	Regex     string `json:"regex,omitempty"`
 }
 
-func (c *Controller)  () {
+func (c *Controller) commonController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
