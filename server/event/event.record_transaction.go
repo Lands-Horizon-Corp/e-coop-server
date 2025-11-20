@@ -32,6 +32,7 @@ type RecordTransactionRequest struct {
 	Description           string     `json:"description"`
 	BankID                *uuid.UUID `json:"bank_id"`
 	ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id"`
+	LoanTransactionID     *uuid.UUID `json:"loan_transaction_id"`
 }
 
 // RecordTransaction handles the complete transaction recording process for both member and subsidiary accounts.
@@ -182,53 +183,30 @@ func (e Event) RecordTransaction(
 			return endTx(eris.New("member profile not found"))
 		}
 
-		// --- SUB-STEP 7B: MEMBER LEDGER RETRIEVAL ---
-		// Get current member account ledger with row-level locking
-		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-			context, tx, memberProfile.ID, account.ID, memberProfile.OrganizationID, memberProfile.BranchID,
-		)
-		if err != nil {
-			e.Footstep(echoCtx, FootstepEvent{
-				Activity:    "member-ledger-lock-failed",
-				Description: "Failed to lock member ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-				Module:      "Transaction Recording",
-			})
-			return endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
-		}
-
 		var loanTransactionID *uuid.UUID
-		var adjustmentType *core.LoanAdjustmentType
 
-		if generalLedger != nil && generalLedger.LoanTransactionID != nil {
-			loanTransactionID = generalLedger.LoanTransactionID
-			adjustmentType = generalLedger.LoanAdjustmentType
-			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
+		if transaction.LoanTransactionID != nil {
+			loanTransactionID = transaction.LoanTransactionID
+
+			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *transaction.LoanTransactionID)
 			if err != nil {
 				e.Footstep(echoCtx, FootstepEvent{
 					Activity:    "loan-transaction-retrieval-failed",
-					Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+					Description: "Failed to retrieve loan transaction " + transaction.LoanTransactionID.String() + ": " + err.Error(),
 					Module:      "Transaction Recording",
 				})
 				return endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
 			}
-			accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
-				context,
-				account.ID,
-				account.OrganizationID,
-				account.BranchID,
-				loanTransaction.PrintedDate,
-			)
-			if err != nil {
+
+			if loanTransaction == nil {
 				e.Footstep(echoCtx, FootstepEvent{
-					Activity:    "account-history-retrieval-failed",
-					Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
+					Activity:    "loan-transaction-not-found",
+					Description: "Loan transaction not found for ID: " + transaction.LoanTransactionID.String(),
 					Module:      "Transaction Recording",
 				})
-				return endTx(eris.Wrap(err, "failed to retrieve account history"))
+				return endTx(eris.New("loan transaction not found"))
 			}
-			if accountHistory != nil {
-				account = e.core.AccountHistoryToModel(accountHistory)
-			}
+
 		}
 		userOrgTime := userOrg.UserOrgTime()
 		if transaction.EntryDate != nil {
@@ -260,7 +238,6 @@ func (e Event) RecordTransaction(
 			Debit:                      transaction.Debit,
 			CurrencyID:                 account.CurrencyID,
 			LoanTransactionID:          loanTransactionID,
-			LoanAdjustmentType:         adjustmentType,
 		}
 
 		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
