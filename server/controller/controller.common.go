@@ -118,6 +118,20 @@ func (c *Controller) commonController() {
 					HasNumber:     true,
 					Regex:         `^(\d{8}|[A-Z]{1}\d{7})$`,
 				},
+				{
+					Name:          "Birth Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,15}$`,
+				},
+				{
+					Name:          "Marriage Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,15}$`,
+				},
 			}
 		case "DEU": // European Union (Germany as representative)
 			result = []GovernmentIDResponse{
@@ -190,6 +204,20 @@ func (c *Controller) commonController() {
 					FieldName:     "Card Number",
 					HasNumber:     true,
 					Regex:         `^[A-Z]{1}[0-9]{7,10}$`,
+				},
+				{
+					Name:          "Birth Certificate (Geburtsurkunde)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
+				},
+				{
+					Name:          "Marriage Certificate (Heiratsurkunde)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
 		case "JPN": // Japan
@@ -351,6 +379,20 @@ func (c *Controller) commonController() {
 					HasNumber:     true,
 					Regex:         `^[A-Z0-9]{8,12}$`,
 				},
+				{
+					Name:          "Birth Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
+				},
+				{
+					Name:          "Marriage Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
+				},
 			}
 		case "AUS": // Australia
 			result = []GovernmentIDResponse{
@@ -423,6 +465,20 @@ func (c *Controller) commonController() {
 					FieldName:     "Licence Number",
 					HasNumber:     true,
 					Regex:         `^[A-Z0-9]{6,10}$`,
+				},
+				{
+					Name:          "Birth Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Registration Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
+				},
+				{
+					Name:          "Marriage Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Registration Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
 				},
 			}
 		case "CAN": // Canada
@@ -497,6 +553,20 @@ func (c *Controller) commonController() {
 					HasNumber:     true,
 					Regex:         `^[0-9]{9}$`,
 				},
+				{
+					Name:          "Birth Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Registration Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,15}$`,
+				},
+				{
+					Name:          "Marriage Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Registration Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,15}$`,
+				},
 			}
 		case "CHE": // Switzerland
 			result = []GovernmentIDResponse{
@@ -513,6 +583,9 @@ func (c *Controller) commonController() {
 				{Name: "Household Registration Booklet (Hukou)", HasExpiryDate: false, FieldName: "Hukou Number", HasNumber: true, Regex: `^[A-Z0-9]{5,20}$`},
 				{Name: "Driving License", HasExpiryDate: true, FieldName: "License Number", HasNumber: true, Regex: `^[A-Z0-9]{8,16}$`},
 				{Name: "Foreigner's Permanent Residence ID", HasExpiryDate: true, FieldName: "Residence ID Number", HasNumber: true, Regex: `^[A-Z]{2}\d{8}$`},
+				{Name: "Birth Certificate (出生证明)", HasExpiryDate: false, FieldName: "Certificate Number", HasNumber: true, Regex: `^[A-Z]\d{9}$`},
+				{Name: "Marriage Certificate (结婚证)", HasExpiryDate: false, FieldName: "Certificate Number", HasNumber: true, Regex: `^[A-Z]\d{9}$`},
+				{Name: "Social Insurance Card (社保卡)", HasExpiryDate: false, FieldName: "Card Number", HasNumber: true, Regex: `^\d{18}$`},
 			}
 		case "SWE": // Sweden
 			result = []GovernmentIDResponse{
@@ -547,6 +620,13 @@ func (c *Controller) commonController() {
 				},
 				{
 					Name:          "Birth Certificate",
+					HasExpiryDate: false,
+					FieldName:     "Registration Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{6,12}$`,
+				},
+				{
+					Name:          "Marriage Certificate",
 					HasExpiryDate: false,
 					FieldName:     "Registration Number",
 					HasNumber:     true,
@@ -860,21 +940,21 @@ func (c *Controller) commonController() {
 					HasExpiryDate: false,
 					FieldName:     "Certificate Number",
 					HasNumber:     true,
-					Regex:         `^\\d{8,12}$`,
+					Regex:         `^\d{8,12}$`,
 				},
 				{
 					Name:          "Birth Certificate (출생증명서)",
 					HasExpiryDate: false,
 					FieldName:     "Certificate Number",
 					HasNumber:     true,
-					Regex:         `^\\d{8,12}$`,
+					Regex:         `^\d{8,12}$`,
 				},
 				{
 					Name:          "Marriage Certificate (혼인관계증명서)",
 					HasExpiryDate: false,
 					FieldName:     "Certificate Number",
 					HasNumber:     true,
-					Regex:         `^\\d{8,12}$`,
+					Regex:         `^\d{8,12}$`,
 				},
 			}
 		case "THA": // Thailand
@@ -2018,6 +2098,20 @@ func (c *Controller) commonController() {
 					HasNumber:     true,
 					Regex:         `^\d{12}$`,
 				},
+				{
+					Name:          "Birth Certificate (Certidão de Nascimento)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^\d{32}$`,
+				},
+				{
+					Name:          "Marriage Certificate (Certidão de Casamento)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^\d{32}$`,
+				},
 			}
 		case "MEX": // Mexico
 			result = []GovernmentIDResponse{
@@ -2055,6 +2149,20 @@ func (c *Controller) commonController() {
 					FieldName:     "Voter ID Number",
 					HasNumber:     true,
 					Regex:         `^\d{18}$`,
+				},
+				{
+					Name:          "Birth Certificate (Acta de Nacimiento)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{10,18}$`,
+				},
+				{
+					Name:          "Marriage Certificate (Acta de Matrimonio)",
+					HasExpiryDate: false,
+					FieldName:     "Certificate Number",
+					HasNumber:     true,
+					Regex:         `^[A-Z0-9]{10,18}$`,
 				},
 			}
 		case "ARG": // Argentina
