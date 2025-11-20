@@ -85,6 +85,7 @@ type (
 		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
 		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID" json:"member_close_remarks,omitempty"`
+		BirthPlace                   string                         `gorm:"type:varchar(255)" json:"birth_place,omitempty"`
 
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
