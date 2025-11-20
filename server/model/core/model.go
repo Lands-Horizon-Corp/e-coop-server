@@ -73,7 +73,7 @@ type (
 		UserManager                          registry.Registry[User, UserResponse, UserRegisterRequest]
 		UserRatingManager                    registry.Registry[UserRating, UserRatingResponse, UserRatingRequest]
 		MemberProfileMediaManager            registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
-
+		MemberProfileArchiveManager          registry.Registry[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]
 		// Members
 		MemberAddressManager                registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest]
 		MemberAssetManager                  registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest]

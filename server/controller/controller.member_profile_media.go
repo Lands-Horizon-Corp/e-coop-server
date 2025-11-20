@@ -88,7 +88,7 @@ func (c *Controller) memberProfileMediaController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		reqData, err := c.core.MemberProfileMediaManager.Validate(ctx)
+		req, err := c.core.MemberProfileMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -118,9 +118,9 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		memberProfileMedia := &core.MemberProfileMedia{
-			MediaID:        reqData.MediaID,
-			Name:           reqData.Name,
-			Description:    reqData.Description,
+			MediaID:        req.MediaID,
+			Name:           req.Name,
+			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),
@@ -172,7 +172,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media ID"})
 		}
 
-		reqData, err := c.core.MemberProfileMediaManager.Validate(ctx)
+		req, err := c.core.MemberProfileMediaManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -201,7 +201,7 @@ func (c *Controller) memberProfileMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile media not found"})
 		}
-		if memberProfileMedia.MediaID != reqData.MediaID {
+		if memberProfileMedia.MediaID != req.MediaID {
 			if err := c.core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "delete-error",
@@ -213,9 +213,9 @@ func (c *Controller) memberProfileMediaController() {
 		}
 
 		updateData := &core.MemberProfileMedia{
-			MediaID:     reqData.MediaID,
-			Name:        reqData.Name,
-			Description: reqData.Description,
+			MediaID:     req.MediaID,
+			Name:        req.Name,
+			Description: req.Description,
 			UpdatedAt:   time.Now().UTC(),
 			UpdatedByID: userOrg.UserID,
 		}
@@ -333,7 +333,7 @@ func (c *Controller) memberProfileMediaController() {
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile media for a specific member profile.",
-		RequestType:  core.MemberProfileBulkMediaRequest{},
+		RequestType:  core.IDSRequest{},
 		ResponseType: core.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -347,13 +347,13 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		var reqData core.MemberProfileBulkMediaRequest
-		if err := ctx.Bind(&reqData); err != nil {
+		var req core.IDSRequest
+		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
 
 		var createdMedia []*core.MemberProfileMedia
-		for _, mediaID := range *reqData.MediaIDs {
+		for _, mediaID := range req.IDs {
 			media, err := c.core.MediaManager.GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})

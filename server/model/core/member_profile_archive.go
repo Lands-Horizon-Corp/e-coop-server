@@ -12,7 +12,7 @@ import (
 
 type (
 	// MemberProfileMedia represents the MemberProfileMedia model.
-	MemberProfileMedia struct {
+	MemberProfileArchive struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
@@ -37,12 +37,13 @@ type (
 
 		Name        string `gorm:"type:varchar(255);not null" json:"name"`
 		Description string `gorm:"type:text" json:"description"`
+		Category    string `gorm:"type:varchar(100);index" json:"category"`
 	}
 
 	// MemberProfileMediaResponse represents the response structure for memberprofilemedia data
 
 	// MemberProfileMediaResponse represents the response structure for MemberProfileMedia.
-	MemberProfileMediaResponse struct {
+	MemberProfileArchiveResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
 		CreatedByID     uuid.UUID              `json:"created_by_id"`
@@ -60,29 +61,31 @@ type (
 		Media           *MediaResponse         `json:"media,omitempty"`
 		Name            string                 `json:"name"`
 		Description     string                 `json:"description"`
+		Category        string                 `json:"category"`
 	}
 
-	// MemberProfileMediaRequest represents the request structure for creating/updating memberprofilemedia
-	MemberProfileMediaRequest struct {
+	// MemberProfileArchiveRequest represents the request structure for creating/updating memberprofilearchive
+	MemberProfileArchiveRequest struct {
 		Name            string     `json:"name" validate:"required,min=1,max=255"`
 		Description     string     `json:"description,omitempty"`
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
 		MediaID         *uuid.UUID `json:"media_id,omitempty"`
 		OrganizationID  *uuid.UUID `json:"organization_id,omitempty"`
 		BranchID        *uuid.UUID `json:"branch_id,omitempty"`
+		Category        string     `json:"category,omitempty"`
 	}
 )
 
-func (m *Core) memberProfileMedia() {
-	m.Migration = append(m.Migration, &MemberProfileMedia{})
-	m.MemberProfileMediaManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+func (m *Core) memberProfileArchive() {
+	m.Migration = append(m.Migration, &MemberProfileArchive{})
+	m.MemberProfileArchiveManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Service:  m.provider.Service,
-		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {
+		Resource: func(data *MemberProfileArchive) *MemberProfileArchiveResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberProfileMediaResponse{
+			return &MemberProfileArchiveResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -100,53 +103,54 @@ func (m *Core) memberProfileMedia() {
 				Media:           m.MediaManager.ToModel(data.Media),
 				Name:            data.Name,
 				Description:     data.Description,
+				Category:        data.Category,
 			}
 		},
-		Created: func(data *MemberProfileMedia) []string {
+		Created: func(data *MemberProfileArchive) []string {
 			events := []string{
-				"member_profile_media.create",
-				fmt.Sprintf("member_profile_media.create.%s", data.ID),
+				"member_profile_archive.create",
+				fmt.Sprintf("member_profile_archive.create.%s", data.ID),
 			}
 			if data.BranchID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.create.branch.%s", *data.BranchID))
+				events = append(events, fmt.Sprintf("member_profile_archive.create.branch.%s", *data.BranchID))
 			}
 			if data.OrganizationID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.create.organization.%s", *data.OrganizationID))
+				events = append(events, fmt.Sprintf("member_profile_archive.create.organization.%s", *data.OrganizationID))
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileMedia) []string {
+		Updated: func(data *MemberProfileArchive) []string {
 			events := []string{
-				"member_profile_media.update",
-				fmt.Sprintf("member_profile_media.update.%s", data.ID),
+				"member_profile_archive.update",
+				fmt.Sprintf("member_profile_archive.update.%s", data.ID),
 			}
 			if data.BranchID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.update.branch.%s", *data.BranchID))
+				events = append(events, fmt.Sprintf("member_profile_archive.update.branch.%s", *data.BranchID))
 			}
 			if data.OrganizationID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.update.organization.%s", *data.OrganizationID))
+				events = append(events, fmt.Sprintf("member_profile_archive.update.organization.%s", *data.OrganizationID))
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileMedia) []string {
+		Deleted: func(data *MemberProfileArchive) []string {
 			events := []string{
-				"member_profile_media.delete",
-				fmt.Sprintf("member_profile_media.delete.%s", data.ID),
+				"member_profile_archive.delete",
+				fmt.Sprintf("member_profile_archive.delete.%s", data.ID),
 			}
 			if data.BranchID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.delete.branch.%s", *data.BranchID))
+				events = append(events, fmt.Sprintf("member_profile_archive.delete.branch.%s", *data.BranchID))
 			}
 			if data.OrganizationID != nil {
-				events = append(events, fmt.Sprintf("member_profile_media.delete.organization.%s", *data.OrganizationID))
+				events = append(events, fmt.Sprintf("member_profile_archive.delete.organization.%s", *data.OrganizationID))
 			}
 			return events
 		},
 	})
 }
 
-// MemberProfileMediaCurrentBranch returns MemberProfileMediaCurrentBranch for the current branch or organization where applicable.
-func (m *Core) MemberProfileMediaCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
-	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
+// MemberProfileArchiveCurrentBranch returns MemberProfileArchiveCurrentBranch for the current branch or organization where applicable.
+func (m *Core) MemberProfileArchiveCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileArchive, error) {
+	return m.MemberProfileArchiveManager.Find(context, &MemberProfileArchive{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
