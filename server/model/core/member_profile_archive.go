@@ -74,6 +74,11 @@ type (
 		BranchID        *uuid.UUID `json:"branch_id,omitempty"`
 		Category        string     `json:"category,omitempty"`
 	}
+
+	MemberProfileArchiveCategoryResponse struct {
+		Name  string `json:"name"`
+		Count int64  `json:"count"`
+	}
 )
 
 func (m *Core) memberProfileArchive() {

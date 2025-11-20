@@ -3,6 +3,7 @@ package v1
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -381,5 +382,105 @@ func (c *Controller) memberProfileArchiveController() {
 		}
 
 		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager.ToModels(createdMedia))
+	})
+
+	// GET api/v1/member-profile-archive/member-profile/:member_profile_id/category
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
+		Method:       "GET",
+		Note:         "Get distinct categories of member profile archive for a specific member profile.",
+		ResponseType: core.MemberProfileArchiveCategoryResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+
+		memberProfileArchives, err := c.core.MemberProfileArchiveManager.Find(context, &core.MemberProfileArchive{
+			MemberProfileID: memberProfileID,
+			OrganizationID:  &userOrg.OrganizationID,
+			BranchID:        userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
+		}
+
+		// Build counts per category, treating nil/empty as "Uncategorized"
+		counts := make(map[string]int)
+		for _, a := range memberProfileArchives {
+			if a == nil {
+				continue
+			}
+			category := "Uncategorized"
+			// handle both pointer and string types safely
+			switch v := any(a.Category).(type) {
+			case *string:
+				if v != nil && strings.TrimSpace(*v) != "" {
+					category = strings.TrimSpace(*v)
+				}
+			case string:
+				if strings.TrimSpace(v) != "" {
+					category = strings.TrimSpace(v)
+				}
+			default:
+				// fallback: if there's a Category field but unknown type, try fmt.Sprintf
+				// leave as Uncategorized otherwise
+			}
+			counts[category]++
+		}
+
+		// Default categories commonly used in cooperative bank member profiles
+		defaultCategories := []string{
+			"Identity Documents",
+			"Passports",
+			"Driver's License",
+			"KYC Documents",
+			"Proof of Address",
+			"Financial Documents",
+			"Loans & Mortgages",
+			"Tax Documents",
+			"Insurance",
+			"Agreements & Contracts",
+			"Certificates (Birth/Marriage)",
+			"Employment Records",
+			"Medical Records",
+			"Photos & Signatures",
+			"Correspondence",
+			"Legal Documents",
+			"Education / Qualifications",
+			"Miscellaneous",
+			"Uncategorized",
+		}
+
+		// Prepare result with defaults (preserve ordering) and include any additional categories found
+		result := make([]core.MemberProfileArchiveCategoryResponse, 0, len(defaultCategories))
+		seen := make(map[string]bool)
+		for _, name := range defaultCategories {
+			result = append(result, core.MemberProfileArchiveCategoryResponse{
+				Name:  name,
+				Count: int64(counts[name]),
+			})
+			seen[name] = true
+		}
+		// add any categories present in counts but not in defaults
+		for name, cnt := range counts {
+			if !seen[name] {
+				result = append(result, core.MemberProfileArchiveCategoryResponse{
+					Name:  name,
+					Count: int64(cnt),
+				})
+			}
+		}
+
+		return ctx.JSON(http.StatusOK, result)
 	})
 }
