@@ -3303,6 +3303,6 @@ func (c *Controller) commonController() {
 				},
 			}
 		}
-		return ctx.JSON(http.StatusNoContent, result)
+		return ctx.JSON(http.StatusOK, result)
 	})
 }
