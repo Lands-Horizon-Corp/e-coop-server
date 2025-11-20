@@ -276,13 +276,17 @@ func (c *Controller) memberProfileMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile media not found"})
 		}
-		if err := c.core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
-				Module:      "Media",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+
+		if memberProfileMedia.MediaID != nil {
+			if err := c.core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "delete-error",
+					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
+					Module:      "Media",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
+			}
+
 		}
 
 		if err := c.core.MemberProfileMediaManager.Delete(context, memberProfileMedia.ID); err != nil {
