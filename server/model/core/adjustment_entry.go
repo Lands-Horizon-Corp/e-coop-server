@@ -119,6 +119,7 @@ type (
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 		Balance     float64 `json:"balance"`
+		IsBalanced  bool    `json:"is_balanced"`
 	}
 
 	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary

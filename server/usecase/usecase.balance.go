@@ -45,6 +45,8 @@ type BalanceResponse struct {
 	LastDebit   *time.Time
 
 	AddOnAmount float64
+
+	IsBalanced bool
 }
 
 func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
@@ -266,6 +268,7 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	}
 
 	return BalanceResponse{
+		IsBalanced:      t.provider.Service.Decimal.IsEqual(credit, debit),
 		Credit:          credit,
 		Debit:           debit,
 		Balance:         balance,
