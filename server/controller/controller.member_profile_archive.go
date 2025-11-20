@@ -203,27 +203,22 @@ func (c *Controller) memberProfileArchiveController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
-		if memberProfileArchive.MediaID != req.MediaID {
-			if err := c.core.MediaDelete(context, *memberProfileArchive.MediaID); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
-					Activity:    "delete-error",
-					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
-					Module:      "Media",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
-			}
-		}
 
-		updateData := &core.MemberProfileArchive{
-			MediaID:     req.MediaID,
-			Name:        req.Name,
-			Description: req.Description,
-			Category:    req.Category,
-			UpdatedAt:   time.Now().UTC(),
-			UpdatedByID: userOrg.UserID,
-		}
+		// updateData := &core.MemberProfileArchive{
+		// 	MediaID:     req.MediaID,
+		// 	Name:        req.Name,
+		// 	Description: req.Description,
+		// 	Category:    req.Category,
+		// 	UpdatedAt:   time.Now().UTC(),
+		// 	UpdatedByID: userOrg.UserID,
+		memberProfileArchive.MediaID = req.MediaID
+		memberProfileArchive.Name = req.Name
+		memberProfileArchive.Description = req.Description
+		memberProfileArchive.Category = req.Category
+		memberProfileArchive.UpdatedAt = time.Now().UTC()
+		memberProfileArchive.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileArchiveManager.UpdateByID(context, *memberProfileArchiveID, updateData); err != nil {
+		if err := c.core.MemberProfileArchiveManager.UpdateByID(context, memberProfileArchive.ID, memberProfileArchive); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), db error: " + err.Error(),
