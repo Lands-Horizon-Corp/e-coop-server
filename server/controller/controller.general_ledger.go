@@ -2644,7 +2644,7 @@ func (c *Controller) generalLedgerController() {
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/transaction/:transaction_id/search",
+		Route:        "/api/v1/general-ledger/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: core.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
