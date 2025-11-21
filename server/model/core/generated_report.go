@@ -61,8 +61,8 @@ type (
 
 		PaperSize string  `gorm:"type:text;default:''" json:"paper_size,omitempty"`
 		Template  string  `gorm:"type:text;default:''" json:"template,omitempty"`
-		Width     float32 `gorm:"type:real" json:"width,omitempty"`
-		Height    float32 `gorm:"type:real" json:"height,omitempty"`
+		Width     float64 `gorm:"type:real" json:"width,omitempty"`
+		Height    float64 `gorm:"type:real" json:"height,omitempty"`
 		Unit      string  `gorm:"type:varchar(50)" json:"unit,omitempty"`
 		Landscape bool    `gorm:"type:boolean;default:false" json:"landscape,omitempty"`
 
@@ -99,8 +99,8 @@ type (
 		URL           string                `json:"url,omitempty"`
 		PaperSize     string                `json:"paper_size,omitempty"`
 		Template      string                `json:"template,omitempty"`
-		Width         float32               `json:"width,omitempty"`
-		Height        float32               `json:"height,omitempty"`
+		Width         float64               `json:"width,omitempty"`
+		Height        float64               `json:"height,omitempty"`
 		Unit          string                `json:"unit,omitempty"`
 		SystemMessage string                `json:"system_message,omitempty"`
 
@@ -121,8 +121,8 @@ type (
 		// Optional fields for report customization
 		PaperSize string  `json:"paper_size,omitempty"`
 		Template  string  `json:"template,omitempty"`
-		Width     float32 `json:"width,omitempty"`
-		Height    float32 `json:"height,omitempty"`
+		Width     float64 `json:"width,omitempty"`
+		Height    float64 `json:"height,omitempty"`
 		Unit      string  `json:"unit,omitempty"`
 		Landscape bool    `json:"landscape,omitempty"`
 	}

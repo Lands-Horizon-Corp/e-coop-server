@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )
@@ -44,8 +45,14 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 		// Upload the generated data to media storage
 		if data != nil {
-			fileName := fmt.Sprintf("report_%s.csv", generatedReport.Name)
+			// choose file extension / content type based on generated report type
+			fileExt := "csv"
 			contentType := "text/csv"
+			if generatedReport.GeneratedReportType == core.GeneratedReportTypePDF {
+				fileExt = "pdf"
+				contentType = "application/pdf"
+			}
+			fileName := fmt.Sprintf("report_%s.%s", generatedReport.Name, fileExt)
 
 			// Create initial media record
 			initial := &core.Media{
@@ -143,9 +150,10 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 func (e *Event) processReportGeneration(ctx context.Context, generatedReport *core.GeneratedReport) ([]byte, error) {
 	var data []byte
 	var err error
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
+
 	switch generatedReport.GeneratedReportType {
 	case core.GeneratedReportTypeExcel:
-		extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
 		// [Start Reports Excel] ===============================================================================================
 		data, err = extractor.MatchableRoute("/api/v1/bank/search", func(params ...string) ([]byte, error) {
 			return e.core.BankManager.FilterFieldsCSV(ctx, generatedReport.FilterSearch, &core.Bank{
@@ -155,8 +163,33 @@ func (e *Event) processReportGeneration(ctx context.Context, generatedReport *co
 		})
 		// [End Reports Excel] ===============================================================================================
 	case core.GeneratedReportTypePDF:
-		// api/v1/payment/general-ledger/:general-ledger_id
+		// [Start Reports PDF] ===============================================================================================
+		report := handlers.PDFOptions[any]{
+			Name:      generatedReport.Name,
+			Template:  generatedReport.Template,
+			Height:    generatedReport.Height,
+			Width:     generatedReport.Width,
+			Unit:      generatedReport.Unit,
+			Landscape: generatedReport.Landscape,
+		}
 
+		// api/v1/payment/general-ledger/:general-ledger_id
+		data, err = extractor.MatchableRoute("/api/v1/loan-transaction/:loan_transaction_id", func(params ...string) ([]byte, error) {
+			loanTransactionID, err := uuid.Parse(params[0])
+			if err != nil {
+				return nil, eris.Wrapf(err, "Invalid loan transaction ID: %s", params[0])
+			}
+			loanTransaction, getErr := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID)
+			if getErr != nil {
+				return nil, eris.Wrapf(getErr, "Failed to get loan transaction by ID: %s", loanTransactionID)
+			}
+			pdfBytes, genErr := report.Generate(ctx, loanTransaction)
+			if genErr != nil {
+				return nil, eris.Wrapf(genErr, "Failed to generate PDF for loan transaction: %s", loanTransactionID)
+			}
+			return pdfBytes, nil
+		})
+		// [End Reports PDF] ===============================================================================================
 	default:
 	}
 	return data, err
