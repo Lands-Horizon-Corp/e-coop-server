@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/base64"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/aymerick/raymond"
@@ -21,13 +21,24 @@ type PDFOptions[T any] struct {
 }
 
 func (p PDFOptions[T]) convertToInches() (width, height float64, err error) {
+	// basic validation
+	if p.Unit == "" {
+		return 0, 0, fmt.Errorf("unit is required")
+	}
+	if p.Width <= 0 {
+		return 0, 0, fmt.Errorf("invalid width: %v (must be > 0)", p.Width)
+	}
+	if p.Height <= 0 {
+		return 0, 0, fmt.Errorf("invalid height: %v (must be > 0)", p.Height)
+	}
+
 	w, err := UnitToInches(p.Width, p.Unit)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, fmt.Errorf("failed to convert width to inches: %w", err)
 	}
 	h, err := UnitToInches(p.Height, p.Unit)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, fmt.Errorf("failed to convert height to inches: %w", err)
 	}
 	if p.Landscape {
 		return h, w, nil
@@ -35,22 +46,35 @@ func (p PDFOptions[T]) convertToInches() (width, height float64, err error) {
 	return w, h, nil
 }
 
-func (p PDFOptions[T]) processTemplate(data T) string {
+func (p PDFOptions[T]) processTemplate(data T) (string, error) {
+	if p.Template == "" {
+		return "", fmt.Errorf("template is empty")
+	}
 	out, err := raymond.Render(p.Template, data)
 	if err != nil {
-		log.Fatalf("render error: %v", err)
+		return "", fmt.Errorf("render error: %w", err)
 	}
-	return out
+	return out, nil
 }
 
 func (p PDFOptions[T]) saveHTMLToPDFBytesWithSize(parentContext context.Context, data T) ([]byte, error) {
-	template := p.processTemplate(data)
+	if parentContext == nil {
+		return nil, fmt.Errorf("parent context is nil")
+	}
+
+	template, err := p.processTemplate(data)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := chromedp.NewContext(parentContext)
 	defer cancel()
+
 	width, height, err := p.convertToInches()
 	if err != nil {
 		return nil, err
 	}
+
 	dataURL := "data:text/html;charset=utf-8;base64," + base64.StdEncoding.EncodeToString([]byte(template))
 	var pdfBuf []byte
 	if err := chromedp.Run(ctx,
@@ -72,10 +96,14 @@ func (p PDFOptions[T]) saveHTMLToPDFBytesWithSize(parentContext context.Context,
 	); err != nil {
 		return nil, err
 	}
+
+	if len(pdfBuf) == 0 {
+		return nil, fmt.Errorf("generated PDF is empty")
+	}
+
 	return pdfBuf, nil
 }
 
-func (p PDFOptions[T]) Generate(cotnext context.Context, data T) ([]byte, error) {
-
-	return p.saveHTMLToPDFBytesWithSize(cotnext, data)
+func (p PDFOptions[T]) Generate(ctx context.Context, data T) ([]byte, error) {
+	return p.saveHTMLToPDFBytesWithSize(ctx, data)
 }
