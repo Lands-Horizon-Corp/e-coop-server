@@ -2,6 +2,7 @@ package report
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -48,7 +49,9 @@ func NewReports(
 	}, nil
 }
 
-func (r *Reports) Generate(context context.Context, generatedReport core.GeneratedReport) (result []byte, err error) {
+// Generate now returns a slice of results (one entry per handler that produced output).
+// Callers that only expect one result can pick the first element of the returned slice.
+func (r *Reports) Generate(ctx context.Context, generatedReport core.GeneratedReport) (results []byte, err error) {
 	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
 	report := handlers.PDFOptions[any]{
 		Name:      generatedReport.Name,
@@ -63,7 +66,25 @@ func (r *Reports) Generate(context context.Context, generatedReport core.Generat
 		extractor: extractor,
 		report:    report,
 	}
-	result, err = r.bankReport(context, data)
-	result, err = r.loanTransactionReport(context, data)
-	return result, err
+
+	type handlerEntry struct {
+		name string
+		fn   func(context.Context, ReportData) ([]byte, error)
+	}
+
+	handlersList := []handlerEntry{
+		{name: "bankReport", fn: r.bankReport},
+		{name: "loanTransactionReport", fn: r.loanTransactionReport},
+	}
+
+	for _, h := range handlersList {
+		res, err := h.fn(ctx, data)
+		if err != nil {
+			return nil, fmt.Errorf("handler %s error: %w", h.name, err)
+		}
+		if res != nil {
+			return res, nil
+		}
+	}
+	return nil, nil
 }
