@@ -183,16 +183,26 @@ func (c *Currency) AmountInWordsSimple(amount float64) string {
 	if !ok {
 		minorDigits = 2
 	}
+
+	// Work with exact decimal scaled to minor-units to avoid float/truncate rounding issues.
 	d := decimal.NewFromFloat(amount).Abs()
-	intPart := d.Truncate(0).IntPart()
+	scale := decimal.NewFromInt(1).Shift(int32(minorDigits)) // 10^minorDigits
+	scaled := d.Mul(scale).Round(0)                          // total minor-units rounded to integer
+	scaledInt := scaled.IntPart()
+
+	// Compute major (intPart) and fractional minor units (fracInt) using integer arithmetic
+	pow := int64(1)
+	for i := 0; i < minorDigits; i++ {
+		pow *= 10
+	}
+	intPart := scaledInt / pow
 	var fracInt int64
 	if minorDigits > 0 {
-		scale := decimal.NewFromInt(1).Shift(int32(minorDigits)) // 10^minorDigits
-		frac := d.Sub(decimal.NewFromInt(intPart)).Mul(scale).Round(0)
-		fracInt = frac.IntPart()
+		fracInt = scaledInt % pow
 	} else {
 		fracInt = 0
 	}
+
 	// Expanded major/minor names (singular forms; extend as needed). Fallback to currency name/code.
 	majorNames := map[string]string{
 		"USD": "Dollar", "EUR": "Euro", "PHP": "Peso", "JPY": "Yen",
@@ -272,6 +282,7 @@ func pluralize(word string, n int64) string {
 	}
 	return word + "s"
 }
+
 func (m *Core) currencySeed(context context.Context) error {
 	now := time.Now().UTC()
 	currencies := []*Currency{
