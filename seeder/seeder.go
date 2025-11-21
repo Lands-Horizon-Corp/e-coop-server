@@ -279,8 +279,9 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					ContactNumber:  ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
 					MediaID:        &branchMedia.ID,
 					// Random coordinates for Philippines (approximately between 4°-21°N, 116°-127°E)
-					Latitude:  ptr(4.0 + float64(s.faker.IntBetween(0, 1700))/100.0),
-					Longitude: ptr(116.0 + float64(s.faker.IntBetween(0, 1100))/100.0),
+					Latitude:                ptr(4.0 + float64(s.faker.IntBetween(0, 1700))/100.0),
+					Longitude:               ptr(116.0 + float64(s.faker.IntBetween(0, 1100))/100.0),
+					TaxIdentificationNumber: ptr(fmt.Sprintf("%09d", s.faker.IntBetween(100000000, 999999999))),
 				}
 				if err := s.core.BranchManager.Create(ctx, branch); err != nil {
 					return err

@@ -55,6 +55,8 @@ type (
 		InvitationCodes     []*InvitationCode     `gorm:"foreignKey:BranchID" json:"invitation_codes,omitempty"`
 		PermissionTemplates []*PermissionTemplate `gorm:"foreignKey:BranchID" json:"permission_templates,omitempty"`
 		UserOrganizations   []*UserOrganization   `gorm:"foreignKey:BranchID" json:"user_organizations,omitempty"`
+
+		TaxIdentificationNumber *string `gorm:"type:varchar(100)" json:"tax_identification_number,omitempty"`
 	}
 
 	// BranchRequest represents the request structure for creating/updating branch
@@ -79,7 +81,8 @@ type (
 		Latitude      *float64   `json:"latitude,omitempty"`
 		Longitude     *float64   `json:"longitude,omitempty"`
 
-		IsMainBranch bool `json:"is_main_branch,omitempty"`
+		IsMainBranch            bool    `json:"is_main_branch,omitempty"`
+		TaxIdentificationNumber *string `json:"tax_identification_number,omitempty"`
 	}
 
 	// BranchResponse represents the response structure for branch data
@@ -113,7 +116,8 @@ type (
 		Latitude      *float64          `json:"latitude,omitempty"`
 		Longitude     *float64          `json:"longitude,omitempty"`
 
-		IsMainBranch bool `json:"is_main_branch,omitempty"`
+		IsMainBranch            bool    `json:"is_main_branch,omitempty"`
+		TaxIdentificationNumber *string `json:"tax_identification_number,omitempty"`
 
 		BranchSetting *BranchSettingResponse `json:"branch_setting,omitempty"`
 
@@ -186,6 +190,8 @@ func (m *Core) branch() {
 				InvitationCodes:     m.InvitationCodeManager.ToModels(data.InvitationCodes),
 				PermissionTemplates: m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
 				UserOrganizations:   m.UserOrganizationManager.ToModels(data.UserOrganizations),
+
+				TaxIdentificationNumber: data.TaxIdentificationNumber,
 			}
 		},
 		Created: func(data *Branch) []string {
