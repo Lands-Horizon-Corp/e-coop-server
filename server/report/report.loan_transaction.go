@@ -57,7 +57,7 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			}
 			amount := total_credit - total_debit
 
-			loanReleaseVoucher := map[string]interface{}{
+			loanReleaseVoucher := map[string]any{
 				"header_title":   branch.Name,
 				"header_address": branch.Address,
 				"tax_number":     branch.TaxIdentificationNumber,
