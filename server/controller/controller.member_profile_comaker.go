@@ -32,6 +32,9 @@ func (c *Controller) memberProfileComaker() {
 			OrganizationID:  userOrg.OrganizationID,
 			MemberProfileID: memberProfileID,
 		}, "Account")
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
+		}
 		comakerResponse := []core.ComakerMemberProfileResponse{}
 		for _, lt := range loanTransactions {
 			comakers, err := c.core.ComakerMemberProfileManager.Find(context, &core.ComakerMemberProfile{
