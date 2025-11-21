@@ -13,6 +13,12 @@ require (
 )
 
 require (
+	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327 // indirect
+	github.com/chromedp/sysutil v1.1.0 // indirect
+	github.com/go-json-experiment/json v0.0.0-20250725192818-e39067aee2d2 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
@@ -70,6 +76,8 @@ require (
 )
 
 require (
+	github.com/aymerick/raymond v2.0.2+incompatible
+	github.com/chromedp/chromedp v0.14.2
 	github.com/fatih/color v1.18.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-jwt/jwt/v5 v5.3.0
