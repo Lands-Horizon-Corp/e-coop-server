@@ -14,19 +14,23 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 	switch data.generated.GeneratedReportType {
 	case core.GeneratedReportTypeExcel:
 	case core.GeneratedReportTypePDF:
-		fmt.Printf("[DEBUG] loanTransactionReport: entering PDF branch\n")
+		fmt.Printf("[DEBUG] loanTransactionReport: entering PDF handler for URL=%s\n", data.generated.URL)
 		result, err = data.extractor.MatchableRoute("/api/v1/loan-transaction/:loan_transaction_id", func(params ...string) ([]byte, error) {
 			fmt.Printf("[DEBUG] handler: params=%#v\n", params)
 
 			// validate params
 			if len(params) == 0 || params[0] == "" {
+				fmt.Printf("[DEBUG] handler: missing loan transaction id in route params\n")
 				return nil, eris.New("missing loan transaction id in route params")
 			}
 
+			fmt.Printf("[DEBUG] handler: parsing uuid %s\n", params[0])
 			loanTransactionID, err := uuid.Parse(params[0])
 			if err != nil {
+				fmt.Printf("[DEBUG] handler: uuid parse error: %v\n", err)
 				return nil, eris.Wrapf(err, "invalid loan transaction ID: %s", params[0])
 			}
+			fmt.Printf("[DEBUG] handler: parsed loanTransactionID=%s\n", loanTransactionID)
 
 			loanTransaction, getErr := r.core.LoanTransactionManager.GetByID(
 				ctx, loanTransactionID,
@@ -34,26 +38,34 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 				"Account.Currency",
 			)
 			if getErr != nil {
+				fmt.Printf("[DEBUG] handler: GetByID error: %v\n", getErr)
 				return nil, eris.Wrapf(getErr, "Failed to get loan transaction by ID: %s", loanTransactionID)
 			}
+			fmt.Printf("[DEBUG] handler: fetched loanTransaction=%#v\n", loanTransaction)
 
 			// ensure we have a member profile id before dereferencing
 			if loanTransaction == nil {
+				fmt.Printf("[DEBUG] handler: loanTransaction is nil -> returning error\n")
 				return nil, eris.Wrapf(nil, "loan transaction %s not found", loanTransactionID)
 			}
 			if loanTransaction.MemberProfileID == nil {
+				fmt.Printf("[DEBUG] handler: loanTransaction.MemberProfileID is nil -> returning error\n")
 				return nil, eris.Wrapf(nil, "loan transaction %s has no member profile id", loanTransactionID)
 			}
 
 			branch, err := r.core.BranchManager.GetByID(ctx, loanTransaction.BranchID)
 			if err != nil {
+				fmt.Printf("[DEBUG] handler: BranchManager.GetByID error: %v\n", err)
 				return nil, eris.Wrapf(err, "Failed to get branch by ID: %s", loanTransaction.BranchID)
 			}
+			fmt.Printf("[DEBUG] handler: fetched branch=%#v\n", branch)
 
 			memberProfile, err := r.core.MemberProfileManager.GetByID(ctx, *loanTransaction.MemberProfileID)
 			if err != nil {
+				fmt.Printf("[DEBUG] handler: MemberProfileManager.GetByID error: %v\n", err)
 				return nil, eris.Wrapf(err, "Failed to get member profile by ID: %s", loanTransaction.MemberProfileID)
 			}
+			fmt.Printf("[DEBUG] handler: fetched memberProfile=%#v\n", memberProfile)
 
 			loanTransactionEntries, err := r.core.LoanTransactionEntryManager.Find(ctx, &core.LoanTransactionEntry{
 				BranchID:          loanTransaction.BranchID,
@@ -61,8 +73,10 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 				LoanTransactionID: loanTransaction.ID,
 			}, "Account.Currency")
 			if err != nil {
+				fmt.Printf("[DEBUG] handler: LoanTransactionEntryManager.Find error: %v\n", err)
 				return nil, eris.Wrapf(err, "Failed to find loan transaction entries for loan transaction ID: %s", loanTransaction.ID)
 			}
+			fmt.Printf("[DEBUG] handler: found %d entries\n", len(loanTransactionEntries))
 
 			loan_transaction_entries := make([]map[string]any, 0)
 			var total_debit float64
@@ -88,6 +102,7 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			}
 
 			amount := total_credit - total_debit
+			fmt.Printf("[DEBUG] handler: totals computed debit=%f credit=%f amount=%f\n", total_debit, total_credit, amount)
 
 			// defensive access for nested LoanTransaction fields used below
 			var processorName string
@@ -130,10 +145,13 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 
 			res, genErr := data.report.Generate(ctx, loanReleaseVoucher)
 			if genErr != nil {
+				fmt.Printf("[DEBUG] handler: report.Generate error: %v\n", genErr)
 				return nil, genErr
 			}
+			fmt.Printf("[DEBUG] handler: report.Generate succeeded (bytes=%d)\n", len(res))
 			return res, nil
 		})
+		fmt.Printf("[DEBUG] loanTransactionReport: MatchableRoute returned err=%v len(result)=%d\n", err, len(result))
 	}
 	return result, err
 }
