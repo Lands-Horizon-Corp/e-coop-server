@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"regexp"
+	"runtime/debug"
 	"strings"
 )
 
@@ -77,5 +78,21 @@ func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params .
 			return zeroValue, nil
 		}
 	}
-	return fn(params...)
+
+	// call handler safely: recover from panics inside fn and return an error instead of crashing
+	var res T
+	var err error
+	func() {
+		defer func() {
+			if rcv := recover(); rcv != nil {
+				err = fmt.Errorf("panic in route handler: %v\n%s", rcv, debug.Stack())
+			}
+		}()
+		res, err = fn(params...)
+	}()
+	if err != nil {
+		// if the handler returned an error or we recovered from panic, propagate it
+		return zeroValue, err
+	}
+	return res, nil
 }
