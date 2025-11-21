@@ -76,5 +76,6 @@ func (p PDFOptions[T]) saveHTMLToPDFBytesWithSize(parentContext context.Context,
 }
 
 func (p PDFOptions[T]) Generate(cotnext context.Context, data T) ([]byte, error) {
+
 	return p.saveHTMLToPDFBytesWithSize(cotnext, data)
 }

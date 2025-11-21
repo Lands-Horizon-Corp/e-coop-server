@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
@@ -581,6 +582,114 @@ type (
 		Terms int `json:"terms"`
 	}
 )
+
+func (m *LoanTransaction) ReadableReleaseDate() string {
+	if m.ReleasedDate != nil {
+		return handlers.ToReadableDate(*m.ReleasedDate)
+	}
+	return ""
+}
+
+// ReadableDueDate returns the next payment (due) date as a human readable string.
+// It computes the next due date based on ReleasedDate, ModeOfPayment and related fields.
+func (m *LoanTransaction) ReadableDueDate() string {
+	if m.ReleasedDate == nil {
+		return ""
+	}
+	due := m.nextDueDate(*m.ReleasedDate)
+	return handlers.ToReadableDate(due)
+}
+
+func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
+	// start from the release moment; compute the next payment date strictly after it
+	var due time.Time
+	switch m.ModeOfPayment {
+	case LoanModeOfPaymentDaily:
+		due = from.AddDate(0, 0, 1)
+	case LoanModeOfPaymentWeekly:
+		// map stored weekday to time.Weekday and find next occurrence
+		var target time.Weekday
+		switch m.ModeOfPaymentWeekly {
+		case WeekdaySunday:
+			target = time.Sunday
+		case WeekdayMonday:
+			target = time.Monday
+		case WeekdayTuesday:
+			target = time.Tuesday
+		case WeekdayWednesday:
+			target = time.Wednesday
+		case WeekdayThursday:
+			target = time.Thursday
+		case WeekdayFriday:
+			target = time.Friday
+		case WeekdaySaturday:
+			target = time.Saturday
+		default:
+			// fallback to same weekday next week
+			target = from.Weekday()
+		}
+		d := from.AddDate(0, 0, 1)
+		for d.Weekday() != target {
+			d = d.AddDate(0, 0, 1)
+		}
+		due = d
+
+	case LoanModeOfPaymentSemiMonthly:
+		day := from.Day()
+		year, month := from.Year(), from.Month()
+		if day < 15 {
+			due = time.Date(year, month, 15, from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
+		} else {
+			// last day of current month
+			firstNext := time.Date(year, month+1, 1, from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
+			last := firstNext.AddDate(0, 0, -1)
+			due = time.Date(last.Year(), last.Month(), last.Day(), from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
+		}
+
+	case LoanModeOfPaymentMonthly:
+		due = handlers.AddMonthsPreserveDay(from, 1)
+
+	case LoanModeOfPaymentQuarterly:
+		due = handlers.AddMonthsPreserveDay(from, 3)
+
+	case LoanModeOfPaymentSemiAnnual:
+		due = handlers.AddMonthsPreserveDay(from, 6)
+
+	case LoanModeOfPaymentLumpsum:
+		// due at end of term (terms interpreted as months)
+		if m.Terms > 0 {
+			due = handlers.AddMonthsPreserveDay(from, m.Terms)
+		} else {
+			due = handlers.AddMonthsPreserveDay(from, 1)
+		}
+
+	case LoanModeOfPaymentFixedDays:
+		if m.ModeOfPaymentFixedDays > 0 {
+			due = from.AddDate(0, 0, m.ModeOfPaymentFixedDays)
+		} else {
+			due = from.AddDate(0, 0, 1)
+		}
+
+	default:
+		// safe fallback: next day
+		due = from.AddDate(0, 0, 1)
+	}
+
+	// Skip weekend days if configured
+	for {
+		if m.ExcludeSaturday && due.Weekday() == time.Saturday {
+			due = due.AddDate(0, 0, 1)
+			continue
+		}
+		if m.ExcludeSunday && due.Weekday() == time.Sunday {
+			due = due.AddDate(0, 0, 1)
+			continue
+		}
+		break
+	}
+
+	return due
+}
 
 func (m *Core) LoanWeeklyIota(weekday Weekdays) int {
 	switch weekday {

@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -292,6 +293,46 @@ type (
 		BirthDate     *time.Time `json:"birthdate" validate:"required"`
 	}
 )
+
+func (m *MemberProfile) Address() string {
+	address := ""
+	if len(m.MemberAddresses) > 0 {
+		addr := m.MemberAddresses[0]
+
+		var b strings.Builder
+		write := func(s string) {
+			if s == "" {
+				return
+			}
+			if b.Len() > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(s)
+		}
+
+		write(addr.Label)
+		write(addr.Address)
+		write(addr.Barangay)
+		write(addr.ProvinceState)
+		write(addr.City)
+		if addr.PostalCode != "" {
+			write(fmt.Sprintf("%s", addr.PostalCode))
+		}
+		if addr.CountryCode != "" {
+			write(addr.CountryCode)
+		}
+		// optional landmark appended in parentheses
+		if addr.Landmark != "" {
+			if b.Len() > 0 {
+				b.WriteString(" ")
+			}
+			b.WriteString(fmt.Sprintf("(Landmark: %s)", addr.Landmark))
+		}
+
+		address = b.String()
+	}
+	return address
+}
 
 func (m *Core) memberProfile() {
 	m.Migration = append(m.Migration, &MemberProfile{})
