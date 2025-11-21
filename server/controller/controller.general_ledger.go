@@ -2666,7 +2666,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, entries)
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModels(entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
