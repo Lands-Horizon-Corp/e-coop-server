@@ -49,8 +49,23 @@ func NewReports(
 	}, nil
 }
 
-// Generate now returns a slice of results (one entry per handler that produced output).
-// Callers that only expect one result can pick the first element of the returned slice.
+// handlerEntry is package-level so the handler registration function can return it.
+type handlerEntry struct {
+	name string
+	fn   func(context.Context, ReportData) ([]byte, error)
+}
+
+// reportHandlers returns the ordered list of handlers to run for reports.
+// Edit this function to add/remove report handlers — only the list needs updating.
+func reportHandlers(r *Reports) []handlerEntry {
+	return []handlerEntry{
+		{name: "bankReport", fn: r.bankReport},
+		{name: "loanTransactionReport", fn: r.loanTransactionReport},
+	}
+}
+
+// Generate now returns one or more results produced by handlers.
+// The handler list is defined in reportHandlers so you only need to edit that.
 func (r *Reports) Generate(ctx context.Context, generatedReport core.GeneratedReport) (results []byte, err error) {
 	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
 	report := handlers.PDFOptions[any]{
@@ -67,22 +82,12 @@ func (r *Reports) Generate(ctx context.Context, generatedReport core.GeneratedRe
 		report:    report,
 	}
 
-	type handlerEntry struct {
-		name string
-		fn   func(context.Context, ReportData) ([]byte, error)
-	}
-
-	handlersList := []handlerEntry{
-		{name: "bankReport", fn: r.bankReport},
-		{name: "loanTransactionReport", fn: r.loanTransactionReport},
-	}
-
-	for _, h := range handlersList {
+	for _, h := range reportHandlers(r) {
 		res, err := h.fn(ctx, data)
 		if err != nil {
 			return nil, fmt.Errorf("handler %s error: %w", h.name, err)
 		}
-		if res != nil {
+		if len(res) != 0 {
 			return res, nil
 		}
 	}
