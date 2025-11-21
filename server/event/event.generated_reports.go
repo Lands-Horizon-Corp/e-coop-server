@@ -6,9 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )
@@ -31,7 +29,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			}
 			return
 		}
-		data, err := e.processReportGeneration(ctx, generatedReport)
+		data, err := e.report.Generate(ctx, *generatedReport)
 
 		// Get the latest report data
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
@@ -144,53 +142,4 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 	}()
 	return generatedReport, nil
-}
-
-// Add your background processing logic here
-func (e *Event) processReportGeneration(ctx context.Context, generatedReport *core.GeneratedReport) ([]byte, error) {
-	var data []byte
-	var err error
-	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
-
-	switch generatedReport.GeneratedReportType {
-	case core.GeneratedReportTypeExcel:
-		// [Start Reports Excel] ===============================================================================================
-		data, err = extractor.MatchableRoute("/api/v1/bank/search", func(params ...string) ([]byte, error) {
-			return e.core.BankManager.FilterFieldsCSV(ctx, generatedReport.FilterSearch, &core.Bank{
-				OrganizationID: generatedReport.OrganizationID,
-				BranchID:       generatedReport.BranchID,
-			})
-		})
-		// [End Reports Excel] ===============================================================================================
-	case core.GeneratedReportTypePDF:
-		// [Start Reports PDF] ===============================================================================================
-		report := handlers.PDFOptions[any]{
-			Name:      generatedReport.Name,
-			Template:  generatedReport.Template,
-			Height:    generatedReport.Height,
-			Width:     generatedReport.Width,
-			Unit:      generatedReport.Unit,
-			Landscape: generatedReport.Landscape,
-		}
-
-		// api/v1/payment/general-ledger/:general-ledger_id
-		data, err = extractor.MatchableRoute("/api/v1/loan-transaction/:loan_transaction_id", func(params ...string) ([]byte, error) {
-			loanTransactionID, err := uuid.Parse(params[0])
-			if err != nil {
-				return nil, eris.Wrapf(err, "Invalid loan transaction ID: %s", params[0])
-			}
-			loanTransaction, getErr := e.core.LoanTransactionManager.GetByID(ctx, loanTransactionID)
-			if getErr != nil {
-				return nil, eris.Wrapf(getErr, "Failed to get loan transaction by ID: %s", loanTransactionID)
-			}
-			pdfBytes, genErr := report.Generate(ctx, loanTransaction)
-			if genErr != nil {
-				return nil, eris.Wrapf(genErr, "Failed to generate PDF for loan transaction: %s", loanTransactionID)
-			}
-			return pdfBytes, nil
-		})
-		// [End Reports PDF] ===============================================================================================
-	default:
-	}
-	return data, err
 }

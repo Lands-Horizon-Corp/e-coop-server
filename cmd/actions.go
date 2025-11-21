@@ -13,6 +13,7 @@ import (
 	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/fatih/color"
@@ -22,7 +23,10 @@ import (
 func migrateDatabase() {
 	color.Blue("Migrating database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.NewCore),
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+		),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -48,7 +52,11 @@ func seedDatabase() {
 	color.Blue("Seeding database...")
 	app := fx.New(
 		fx.StartTimeout(3*time.Hour), // Longer timeout for seeding
-		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+			seeder.NewSeeder,
+		),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
@@ -88,7 +96,11 @@ func seedDatabase() {
 func seedDatabasePerformance(multiplier int32) {
 	color.Blue("Seeding database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+			seeder.NewSeeder,
+		),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
@@ -128,7 +140,10 @@ func seedDatabasePerformance(multiplier int32) {
 func resetDatabase() {
 	color.Blue("Resetting database...")
 	app := fx.New(
-		fx.Provide(server.NewProvider, core.NewCore),
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+		),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -169,6 +184,7 @@ func startServer() {
 			core.NewCore,
 			v1.NewController,
 			event.NewEvent,
+			report.NewReports,
 			seeder.NewSeeder,
 			tokens.NewUserToken,
 			tokens.NewUserOrganizationToken,
@@ -202,7 +218,9 @@ func startServer() {
 func cleanCache() {
 	color.Blue("Cleaning cache...")
 	app := fx.New(
-		fx.Provide(server.NewProvider),
+		fx.Provide(
+			server.NewProvider,
+		),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -226,7 +244,11 @@ func refreshDatabase() {
 	color.Blue("Refreshing database...")
 	app := fx.New(
 		fx.StartTimeout(3*time.Hour), // Longer timeout for full refresh
-		fx.Provide(server.NewProvider, core.NewCore, seeder.NewSeeder),
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+			seeder.NewSeeder,
+			report.NewReports),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core, seed *seeder.Seeder) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
