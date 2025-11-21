@@ -117,9 +117,14 @@ func (c *Controller) generatedReports() {
 			Status:              core.GeneratedReportStatusPending,
 			GeneratedReportType: req.GeneratedReportType,
 			URL:                 req.URL,
-			Template:            req.Template,
-			PaperSize:           req.PaperSize,
 			UserID:              &userOrg.UserID,
+
+			Template:  req.Template,
+			PaperSize: req.PaperSize,
+			Width:     req.Width,
+			Height:    req.Height,
+			Unit:      req.Unit,
+			Landscape: req.Landscape,
 		}
 		data, err := c.event.GeneratedReportDownload(context, generatedReport)
 		if err != nil {
