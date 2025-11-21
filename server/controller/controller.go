@@ -161,5 +161,6 @@ func (c *Controller) Start() error {
 	c.chargesRateByTermController()
 	c.memberProfileArchiveController()
 	c.commonController()
+	c.memberProfileComaker()
 	return nil
 }
