@@ -14,9 +14,13 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 	case core.GeneratedReportTypeExcel:
 	case core.GeneratedReportTypePDF:
 		result, err = data.extractor.MatchableRoute("/api/v1/loan-transaction/:loan_transaction_id", func(params ...string) ([]byte, error) {
+			// validate params
+			if len(params) == 0 || params[0] == "" {
+				return nil, eris.New("missing loan transaction id in route params")
+			}
 			loanTransactionID, err := uuid.Parse(params[0])
 			if err != nil {
-				return nil, eris.Wrapf(err, "Invalid loan transaction ID: %s", params[0])
+				return nil, eris.Wrapf(err, "invalid loan transaction ID: %s", params[0])
 			}
 			loanTransaction, getErr := r.core.LoanTransactionManager.GetByID(
 				ctx, loanTransactionID,
@@ -25,6 +29,10 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			)
 			if getErr != nil {
 				return nil, eris.Wrapf(getErr, "Failed to get loan transaction by ID: %s", loanTransactionID)
+			}
+			// ensure we have a member profile id before dereferencing
+			if loanTransaction.MemberProfileID == nil {
+				return nil, eris.Wrapf(nil, "loan transaction %s has no member profile id", loanTransactionID)
 			}
 			branch, err := r.core.BranchManager.GetByID(ctx, loanTransaction.BranchID)
 			if err != nil {
