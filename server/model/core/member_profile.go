@@ -316,7 +316,7 @@ func (m *MemberProfile) Address() string {
 		write(addr.ProvinceState)
 		write(addr.City)
 		if addr.PostalCode != "" {
-			write(fmt.Sprintf("%s", addr.PostalCode))
+			write(addr.PostalCode)
 		}
 		if addr.CountryCode != "" {
 			write(addr.CountryCode)
