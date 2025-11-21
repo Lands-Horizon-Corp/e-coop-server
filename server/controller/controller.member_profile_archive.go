@@ -203,14 +203,6 @@ func (c *Controller) memberProfileArchiveController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
-
-		// updateData := &core.MemberProfileArchive{
-		// 	MediaID:     req.MediaID,
-		// 	Name:        req.Name,
-		// 	Description: req.Description,
-		// 	Category:    req.Category,
-		// 	UpdatedAt:   time.Now().UTC(),
-		// 	UpdatedByID: userOrg.UserID,
 		memberProfileArchive.MediaID = req.MediaID
 		memberProfileArchive.Name = req.Name
 		memberProfileArchive.Description = req.Description

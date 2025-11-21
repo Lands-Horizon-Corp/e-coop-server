@@ -147,9 +147,7 @@ func (e *Event) processReportGeneration(ctx context.Context, generatedReport *co
 	case core.GeneratedReportTypeExcel:
 		extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
 		// [Start Reports Excel] ===============================================================================================
-
 		data, err = extractor.MatchableRoute("/api/v1/bank/search", func(params ...string) ([]byte, error) {
-
 			return e.core.BankManager.FilterFieldsCSV(ctx, generatedReport.FilterSearch, &core.Bank{
 				OrganizationID: generatedReport.OrganizationID,
 				BranchID:       generatedReport.BranchID,
@@ -157,6 +155,8 @@ func (e *Event) processReportGeneration(ctx context.Context, generatedReport *co
 		})
 		// [End Reports Excel] ===============================================================================================
 	case core.GeneratedReportTypePDF:
+		// api/v1/payment/general-ledger/:general-ledger_id
+
 	default:
 	}
 	return data, err
