@@ -67,7 +67,7 @@ func (c *Controller) accountHistory() {
 		Route:        "/api/v1/account-history/:account_history_id/restore",
 		ResponseType: core.AccountHistory{},
 		Note:         "Restore account history by account ID",
-	}, 
+	},
 		func(ctx echo.Context) error {
 			context := ctx.Request().Context()
 			accountHistoryID, err := handlers.EngineUUIDParam(ctx, "account_history_id")

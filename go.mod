@@ -4,6 +4,7 @@ go 1.25.4
 
 require (
 	github.com/Lands-Horizon-Corp/golang-filtering v1.2.7
+	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/robfig/cron/v3 v3.0.1
@@ -13,10 +14,9 @@ require (
 )
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20250724212937-08a3db8b4327 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
-	github.com/go-json-experiment/json v0.0.0-20250725192818-e39067aee2d2 // indirect
+	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.4.0 // indirect
@@ -29,6 +29,7 @@ require (
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/term v0.37.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
@@ -70,7 +71,7 @@ require (
 	github.com/tinylib/msgp v1.5.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.18.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -95,15 +96,15 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/nats-io/nats.go v1.47.0
-	github.com/redis/go-redis/v9 v9.16.0
+	github.com/redis/go-redis/v9 v9.17.0
 	github.com/rotisserie/eris v0.5.4
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/twilio/twilio-go v1.28.6
+	github.com/twilio/twilio-go v1.28.7
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/fx v1.24.0
-	golang.org/x/crypto v0.44.0
+	golang.org/x/crypto v0.45.0
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
