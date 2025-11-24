@@ -1972,4 +1972,55 @@ func (c *Controller) loanTransactionController() {
 		return ctx.NoContent(http.StatusCreated)
 	})
 
+	// POST /api/v1/loan-transaction/:loan_transaction_id/process
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
+		Method:       "POST",
+		Note:         "Processes a loan transaction by ID.",
+		ResponseType: core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(processedLoanTransaction))
+	})
+
+	// POST /api/v1/loan-transaction/process
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/process",
+		Method:       "POST",
+		Note:         "All Loan transactions that are pending to be processed will be processed",
+		ResponseType: core.LoanTransaction{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "loan-processing-started",
+			Description: "Loan processing started",
+			Module:      "Loan Processing",
+		})
+		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+			Title:       "Loan Processing",
+			Description: "Loan processing started",
+		})
+
+		if err := c.event.ProcessAllLoans(context, userOrg); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
 }
