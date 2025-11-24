@@ -160,6 +160,20 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 6: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
 	// ================================================================================
 
+	addOnEntry := &core.LoanTransactionEntry{
+		Account:           nil,
+		Credit:            0,
+		Debit:             0,
+		Name:              "ADD ON INTEREST",
+		Type:              core.LoanTransactionAddOn,
+		LoanTransactionID: loanTransaction.ID,
+		IsAddOn:           true,
+	}
+
+	// ================================================================================
+	// STEP 7: PROCESS EXISTING DEDUCTIONS & CALCULATE TOTALS
+	// ================================================================================
+
 	totalNonAddOns, totalAddOns := 0.0, 0.0
 	// Add existing deduction entries and calculate running totals using precise decimal arithmetic
 	for _, entry := range deduction {
@@ -321,10 +335,10 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result[1].Name = loanTransaction.Account.Name + " - CURRENT"
 	}
 
-	// Add add-on indicator to loan account name and adjust debit amount if applicable
+	// Add the add-on interest entry if applicable
 	if loanTransaction.IsAddOn && totalAddOns > 0 {
-		result[1].Name += " + Add On"
-		result[1].Debit = e.provider.Service.Decimal.Add(result[1].Debit, totalAddOns)
+		addOnEntry.Debit = totalAddOns
+		result = append(result, addOnEntry)
 	}
 
 	// Create new loan transaction entries and calculate totals

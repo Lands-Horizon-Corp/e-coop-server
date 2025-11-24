@@ -490,6 +490,56 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to process transaction"))
 	}
 
+	// ================================================================================
+	// STEP 6.5: UPDATE LOAN ACCOUNT IF LOAN TRANSACTION EXISTS
+	// ================================================================================
+	if loanTransactionID != nil {
+		loanAccount, err := e.core.GetLoanAccountByLoanTransaction(
+			context,
+			tx,
+			*loanTransactionID,
+			account.ID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			e.Footstep(ctx, FootstepEvent{
+				Activity:    "loan-account-retrieval-failed",
+				Description: "Failed to retrieve loan account for loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+				Module:      "Transaction",
+			})
+			return nil, endTx(eris.Wrap(err, "failed to retrieve loan account"))
+		}
+
+		if loanAccount != nil {
+			// Handle Credit (Payment)
+			if credit > 0 {
+				loanAccount.TotalPaymentCount += 1
+				loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
+					loanAccount.TotalPayment, credit)
+			}
+
+			// Handle Debit (Deduction/Add-on)
+			if debit > 0 {
+				loanAccount.TotalDeductionCount += 1
+				loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
+					loanAccount.TotalDeduction, debit)
+			}
+			loanAccount.UpdatedByID = userOrg.UserID
+			loanAccount.UpdatedAt = now
+
+			if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
+				e.Footstep(ctx, FootstepEvent{
+					Activity: "loan-account-update-failed",
+					Description: "Failed to update loan account " +
+						loanAccount.ID.String() + ": " + err.Error(),
+					Module: "Transaction",
+				})
+				return nil, endTx(eris.Wrap(err, "failed to update loan account"))
+			}
+		}
+	}
+
 	userOrgTime := userOrg.UserOrgTime()
 	if data.EntryDate != nil {
 		userOrgTime = *data.EntryDate

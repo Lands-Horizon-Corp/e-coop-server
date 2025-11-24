@@ -1942,4 +1942,34 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, schedule)
 	})
 
+	// POST /api/v1/loan-transaction/adjustment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/adjustment",
+		Method:       "POST",
+		RequestType:  core.LoanTransactionAdjustmentRequest{},
+		ResponseType: core.LoanTransaction{},
+		Note:         "Creates a loan transaction adjustment.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req core.LoanTransactionAdjustmentRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction adjustment request: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transaction adjustments"})
+		}
+
+		if err := c.event.LoanAdjustment(context, *userOrg, req); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction adjustment: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusCreated)
+	})
+
 }

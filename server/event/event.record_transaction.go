@@ -273,6 +273,59 @@ func (e Event) RecordTransaction(
 			})
 			return endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 		}
+		if loanTransactionID != nil {
+			loanAccount, err := e.core.GetLoanAccountByLoanTransaction(
+				context,
+				tx,
+				*loanTransactionID,
+				account.ID,
+				userOrg.OrganizationID,
+				*userOrg.BranchID,
+			)
+			if err != nil {
+				e.Footstep(echoCtx, FootstepEvent{
+					Activity:    "loan-account-retrieval-failed",
+					Description: "Failed to retrieve loan account for loan transaction " + loanTransactionID.String() + ": " + err.Error(),
+					Module:      "Transaction Recording",
+				})
+				return endTx(eris.Wrap(err, "failed to retrieve loan account"))
+			}
+
+			if loanAccount == nil {
+				e.Footstep(echoCtx, FootstepEvent{
+					Activity:    "loan-account-not-found",
+					Description: "Loan account not found for loan transaction ID: " + loanTransactionID.String(),
+					Module:      "Transaction Recording",
+				})
+				return endTx(eris.New("loan account not found"))
+			}
+
+			// Handle Credit (Payment)
+			if transaction.Credit > 0 {
+				loanAccount.TotalPaymentCount += 1
+				loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
+					loanAccount.TotalPayment, transaction.Credit)
+			}
+
+			// Handle Debit (Deduction/Add-on)
+			if transaction.Debit > 0 {
+				loanAccount.TotalDeductionCount += 1
+				loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
+					loanAccount.TotalDeduction, transaction.Debit)
+			}
+			loanAccount.UpdatedByID = userOrg.UserID
+			loanAccount.UpdatedAt = now
+
+			if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
+				e.Footstep(echoCtx, FootstepEvent{
+					Activity: "loan-account-update-failed",
+					Description: "Failed to update loan account " +
+						loanAccount.ID.String() + ": " + err.Error(),
+					Module: "Transaction Recording",
+				})
+				return endTx(eris.Wrap(err, "failed to update loan account"))
+			}
+		}
 
 		// Log successful member transaction completion
 		e.Footstep(echoCtx, FootstepEvent{

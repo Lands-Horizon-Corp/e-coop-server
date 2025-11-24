@@ -38,7 +38,23 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to compute balance for loan account id: %s", *loanTransaction.AccountID)
 		}
+
+		loanAccounts, err := e.core.LoanAccountManager.Find(context, &core.LoanAccount{
+			LoanTransactionID: loanTransaction.ID,
+			OrganizationID:    memberProfile.OrganizationID,
+			BranchID:          memberProfile.BranchID,
+		})
+		if err != nil {
+			return nil, eris.Wrapf(err, "failed to find loan accounts for loan transaction id: %s", loanTransaction.ID)
+		}
+		for _, loanAccount := range loanAccounts {
+			balance := e.provider.Service.Decimal.ClampMin(
+				e.provider.Service.Decimal.Add(loanAccount.Amount, loanAccount.TotalPayment), 0)
+			total = e.provider.Service.Decimal.Add(total, balance)
+		}
+
 		total = e.provider.Service.Decimal.Add(total, balance.Balance)
 	}
+
 	return &total, nil
 }

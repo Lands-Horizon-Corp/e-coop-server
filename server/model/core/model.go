@@ -171,6 +171,7 @@ type (
 		LoanTermsAndConditionSuggestedPaymentManager registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
 		LoanTermsAndConditionAmountReceiptManager    registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
 		LoanPurposeManager                           registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
+		LoanAccountManager                           registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest]
 
 		// Maintenance
 		CollateralManager                                                   registry.Registry[Collateral, CollateralResponse, CollateralRequest]
@@ -297,6 +298,7 @@ func (m *Core) Start() error {
 	m.loanTermsAndConditionSuggestedPayment()
 	m.loanTransactionEntry()
 	m.loanTransaction()
+	m.loanAccount()
 	m.media()
 	m.memberAccountingLedger()
 	m.memberAddress()
@@ -363,6 +365,7 @@ func (m *Core) Start() error {
 	m.branchSetting()
 	m.company()
 	m.memberProfileArchive()
+
 	return nil
 }
 func (m *Core) GlobalSeeder(ctx context.Context) error {
