@@ -87,9 +87,7 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 				processorName = loanTransaction.ReleasedBy.FullName
 			}
 			var currencyAmountWords string
-			if loanTransaction.Account != nil && loanTransaction.Account.Currency != nil {
-				currencyAmountWords = loanTransaction.Account.Currency.AmountInWordsSimple(amount)
-			}
+			currencyAmountWords = loanTransaction.Account.Currency.AmountInWordsSimple(amount)
 
 			loanReleaseVoucher := map[string]any{
 				"header_title":   branch.Name,
