@@ -180,7 +180,7 @@ func parseStringQuery(query string) (filter.Root, int, int, error) {
 	return filterRoot, pageIndex, pageSize, nil
 }
 
-func parseUUIDArrayFromQuery(query string) ([]uuid.UUID, bool) {
+func parseUUIDArrayFromQuery(query string) (uuid.UUIDs, bool) {
 	if query == "" {
 		return nil, false
 	}
@@ -192,7 +192,7 @@ func parseUUIDArrayFromQuery(query string) ([]uuid.UUID, bool) {
 	if len(values) == 0 {
 		return nil, false
 	}
-	var uuids []uuid.UUID
+	var uuids uuid.UUIDs
 	for _, value := range values {
 		value = strings.TrimSpace(value)
 		value = strings.Trim(value, `"'`)

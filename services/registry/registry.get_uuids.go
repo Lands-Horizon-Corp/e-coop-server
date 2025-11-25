@@ -38,7 +38,7 @@ func (r *Registry[TData, TResponse, TRequest]) GetByUUIDs(
 
 func (r *Registry[TData, TResponse, TRequest]) FilterByUUIDsCSV(
 	context context.Context,
-	uuids []uuid.UUID,
+	uuids uuid.UUIDs,
 	preloads []string,
 ) ([]byte, error) {
 	fieldFilters := []filter.FieldFilter{}

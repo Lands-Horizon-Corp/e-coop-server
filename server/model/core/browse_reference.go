@@ -77,18 +77,19 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		Name                  string                          `json:"name"`
-		Description           string                          `json:"description"`
-		InterestRate          float64                         `json:"interest_rate"`
-		MinimumBalance        float64                         `json:"minimum_balance"`
-		Charges               float64                         `json:"charges"`
-		AccountID             *uuid.UUID                      `json:"account_id,omitempty"`
-		Account               *AccountResponse                `json:"account,omitempty"`
-		MemberTypeID          *uuid.UUID                      `json:"member_type_id,omitempty"`
-		MemberType            *MemberTypeResponse             `json:"member_type,omitempty"`
-		InterestType          InterestType                    `json:"interest_type"`
-		DefaultMinimumBalance float64                         `json:"default_minimum_balance"`
-		DefaultInterestRate   float64                         `json:"default_interest_rate"`
+		Name                  string              `json:"name"`
+		Description           string              `json:"description"`
+		InterestRate          float64             `json:"interest_rate"`
+		MinimumBalance        float64             `json:"minimum_balance"`
+		Charges               float64             `json:"charges"`
+		AccountID             *uuid.UUID          `json:"account_id,omitempty"`
+		Account               *AccountResponse    `json:"account,omitempty"`
+		MemberTypeID          *uuid.UUID          `json:"member_type_id,omitempty"`
+		MemberType            *MemberTypeResponse `json:"member_type,omitempty"`
+		InterestType          InterestType        `json:"interest_type"`
+		DefaultMinimumBalance float64             `json:"default_minimum_balance"`
+		DefaultInterestRate   float64             `json:"default_interest_rate"`
+
 		InterestRatesByYear   []*InterestRateByYearResponse   `json:"interest_rates_by_year,omitempty"`
 		InterestRatesByDate   []*InterestRateByDateResponse   `json:"interest_rates_by_date,omitempty"`
 		InterestRatesByAmount []*InterestRateByAmountResponse `json:"interest_rates_by_amount,omitempty"`
@@ -110,6 +111,16 @@ type (
 
 		DefaultMinimumBalance float64 `json:"default_minimum_balance"`
 		DefaultInterestRate   float64 `json:"default_interest_rate"`
+
+		// Nested relationships for creation/update
+		InterestRatesByYear   []*InterestRateByYearRequest   `json:"interest_rates_by_year,omitempty"`
+		InterestRatesByDate   []*InterestRateByDateRequest   `json:"interest_rates_by_date,omitempty"`
+		InterestRatesByAmount []*InterestRateByAmountRequest `json:"interest_rates_by_amount,omitempty"`
+
+		// Delete IDs for nested relationships
+		InterestRatesByYearDeleted   uuid.UUIDs `json:"interest_rates_by_year_deleted,omitempty"`
+		InterestRatesByDateDeleted   uuid.UUIDs `json:"interest_rates_by_date_deleted,omitempty"`
+		InterestRatesByAmountDeleted uuid.UUIDs `json:"interest_rates_by_amount_deleted,omitempty"`
 	}
 )
 
