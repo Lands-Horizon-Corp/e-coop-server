@@ -13,17 +13,19 @@ func (e *Event) GenerateSavingsInterestComputation(context context.Context, useO
 		return nil, eris.New("savings is nil")
 	}
 
-	memberAccountingLedger, err := e.core.MemberAccountingLedgerFilterByCriteria(
-		context,
-		useOrg.OrganizationID,
-		*useOrg.BranchID,
-		// Criteria
-		savings.AccountID,
-		savings.MemberTypeID,
-	)
-	if err != nil {
-		return nil, eris.Wrap(err, "failed to filter member accounting ledger")
-	}
+	// memberAccountingLedger, err := e.core.MemberAccountingLedgerFilterByCriteria(
+	// 	context,
+	// 	useOrg.OrganizationID,
+	// 	*useOrg.BranchID,
+	// 	// Criteria
+	// 	savings.AccountID,
+	// 	savings.MemberTypeID,
+	// )
+	// if err != nil {
+	// 	return nil, eris.Wrap(err, "failed to filter member accounting ledger")
+	// }
+
+	// get general ledger
 
 	return []*core.GeneratedSavingsInterestEntry{}, nil
 }

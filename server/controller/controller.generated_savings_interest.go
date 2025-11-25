@@ -20,21 +20,22 @@ func (c *Controller) generateSavingsInterest() {
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		request, err := c.core.BrowseReferenceManager.Validate(ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
-		}
+		// context := ctx.Request().Context()
+		// request, err := c.core.BrowseReferenceManager.Validate(ctx)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		// }
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
-		}
+		// userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		// if err != nil {
+		// 	return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		// }
+		// if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		// 	return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
+		// }
 
-		data := &core.GeneratedSavingsInterest{}
+		// data := &core.GeneratedSavingsInterest{}
+		return nil
 
 	})
 
