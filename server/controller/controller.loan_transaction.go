@@ -1995,6 +1995,35 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(processedLoanTransaction))
 	})
 
+	// GET /api/v1/loan-transaction/:loan_transaction_id/guide
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/guide",
+		Method:       "GET",
+		ResponseType: event.LoanGuideResponse{},
+		Note:         "Returns comprehensive loan payment guide with schedules, statuses, and real-time balance tracking for a specific loan transaction.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan guides"})
+		}
+
+		loanGuide, err := c.event.LoanGuide(context, userOrg, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan guide: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, loanGuide)
+	})
+
 	// POST /api/v1/loan-transaction/process
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/process",

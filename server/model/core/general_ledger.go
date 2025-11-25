@@ -68,7 +68,6 @@ type (
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
 		LoanTransactionID          *uuid.UUID          `gorm:"type:uuid"`
 		LoanTransaction            *LoanTransaction    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
-		LoanAdjustmentType         *LoanAdjustmentType `gorm:"type:varchar(20)" json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
@@ -121,14 +120,13 @@ type (
 		PaymentTypeID *uuid.UUID           `json:"payment_type_id,omitempty"`
 		PaymentType   *PaymentTypeResponse `json:"payment_type,omitempty"`
 
-		Source             GeneralLedgerSource      `json:"source"`
-		JournalVoucherID   *uuid.UUID               `json:"journal_voucher_id,omitempty"`
-		AdjustmentEntryID  *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
-		AdjustmentEntry    *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
-		LoanTransactionID  *uuid.UUID               `json:"loan_transaction_id,omitempty"`
-		LoanTransaction    *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		LoanAdjustmentType *LoanAdjustmentType      `json:"loan_adjustment_type,omitempty"`
-		TypeOfPaymentType  TypeOfPaymentType        `json:"type_of_payment_type"`
+		Source            GeneralLedgerSource      `json:"source"`
+		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
+		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
+		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
+		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
+		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
 
 		Credit  float64 `json:"credit"`
 		Debit   float64 `json:"debit"`
@@ -175,17 +173,17 @@ type (
 		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
 		LoanTransactionID          *uuid.UUID          `json:"loan_transaction_id,omitempty"`
-		LoanAdjustmentType         *LoanAdjustmentType `json:"loan_adjustment_type,omitempty"`
-		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
-		Credit                     float64             `json:"credit,omitempty"`
-		Debit                      float64             `json:"debit,omitempty"`
-		SignatureMediaID           *uuid.UUID          `json:"signature_media_id,omitempty"`
-		EntryDate                  *time.Time          `json:"entry_date,omitempty"`
-		BankID                     *uuid.UUID          `json:"bank_id,omitempty"`
-		ProofOfPaymentMediaID      *uuid.UUID          `json:"proof_of_payment_media_id,omitempty"`
-		CurrencyID                 *uuid.UUID          `json:"currency_id,omitempty"`
-		BankReferenceNumber        string              `json:"bank_reference_number,omitempty"`
-		Description                string              `json:"description,omitempty"`
+
+		TypeOfPaymentType     TypeOfPaymentType `json:"type_of_payment_type,omitempty"`
+		Credit                float64           `json:"credit,omitempty"`
+		Debit                 float64           `json:"debit,omitempty"`
+		SignatureMediaID      *uuid.UUID        `json:"signature_media_id,omitempty"`
+		EntryDate             *time.Time        `json:"entry_date,omitempty"`
+		BankID                *uuid.UUID        `json:"bank_id,omitempty"`
+		ProofOfPaymentMediaID *uuid.UUID        `json:"proof_of_payment_media_id,omitempty"`
+		CurrencyID            *uuid.UUID        `json:"currency_id,omitempty"`
+		BankReferenceNumber   string            `json:"bank_reference_number,omitempty"`
+		Description           string            `json:"description,omitempty"`
 	}
 
 	// PaymentRequest represents the request structure for creating/updating payment
@@ -302,7 +300,6 @@ func (m *Core) generalLedger() {
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
-				LoanAdjustmentType:         data.LoanAdjustmentType,
 				SignatureMediaID:           data.SignatureMediaID,
 				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
 

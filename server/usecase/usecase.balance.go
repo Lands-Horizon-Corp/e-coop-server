@@ -111,15 +111,6 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 				}
 			}
 
-			if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeDeduct {
-				deductions = t.provider.Service.Decimal.Add(deductions, entry.Debit+entry.Credit)
-				countDeductions++
-			}
-			if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeAdd {
-				added = t.provider.Service.Decimal.Add(added, entry.Credit+entry.Debit)
-				countAdded++
-			}
-
 			switch entry.Account.GeneralLedgerType {
 			case core.GLTypeAssets, core.GLTypeExpenses:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
