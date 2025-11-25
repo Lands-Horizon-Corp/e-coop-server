@@ -13,7 +13,7 @@ func (c *Controller) memberProfileComaker() {
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/comaker
 	req.RegisterRoute(handlers.Route{
-		Route:        "	",
+		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/comaker",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",
 		ResponseType: core.ComakerMemberProfileResponse{},
