@@ -69,6 +69,7 @@ type (
 		CheckVoucherORIteration    int    `gorm:"not null;default:1" json:"check_voucher_or_iteration"`
 		CheckVoucherORUnique       bool   `gorm:"not null;default:true" json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"check_voucher_use_date_or"`
+		AnnualDivisor              int    `gorm:"not null;default:360" json:"annual_divisor"`
 
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`

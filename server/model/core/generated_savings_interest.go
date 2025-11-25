@@ -14,13 +14,49 @@ type SavingsComputationType string
 
 // Computation type constants
 const (
-	SavingsComputationTypeDailyLowestBalance          SavingsComputationType = "daily_lowest_balance"
-	SavingsComputationTypeAverageDailyBalance         SavingsComputationType = "average_daily_balance"
-	SavingsComputationTypeMonthlyEndLowestBalance     SavingsComputationType = "monthly_end_lowest_balance"
-	SavingsComputationTypeADBEndBalance               SavingsComputationType = "adb_end_balance"
+	// Daily Lowest Balance - Uses the lowest balance found during the computation period
+	// Formula: Interest = Lowest_Balance × Interest_Rate × (Days_in_Period ÷ 365)
+	// Notes:
+	// - If period deposited is less than 30 days, NO INTEREST
+	// - If lowest balance is below maintaining balance, NO INTEREST
+	SavingsComputationTypeDailyLowestBalance SavingsComputationType = "daily_lowest_balance"
+
+	// Average Daily Balance (ADB) - Calculates the average of all daily balances in the period
+	// Formula:
+	// Step 1: ADB = (Sum of all daily balances) ÷ Number_of_Days_in_Period
+	// Step 2: Interest = ADB × Interest_Rate × (Days_in_Period ÷ 365)
+	// Notes:
+	// - Records balance every day and calculates average
+	// - If ADB is below maintaining balance, NO INTEREST
+	SavingsComputationTypeAverageDailyBalance SavingsComputationType = "average_daily_balance"
+
+	// Monthly End Lowest Balance - Uses the lowest balance at month end for the period
+	// Formula: Interest = Month_End_Lowest_Balance × Interest_Rate × (Days_in_Period ÷ 365)
+	// Notes:
+	// - If period deposited is less than 30 days, NO INTEREST
+	// - If month end balance is below maintaining balance, NO INTEREST
+	SavingsComputationTypeMonthlyEndLowestBalance SavingsComputationType = "monthly_end_lowest_balance"
+
+	// ADB End Balance - Average Daily Balance calculated at the end of the period
+	// Formula: Same as ADB but computed at period end
+	// Interest = ADB_at_Period_End × Interest_Rate × (Days_in_Period ÷ 365)
+	SavingsComputationTypeADBEndBalance SavingsComputationType = "adb_end_balance"
+
+	// Monthly Lowest Balance Average - Average of the lowest balances for each month
+	// Formula: Interest = (Sum of monthly lowest balances ÷ Number_of_Months) × Interest_Rate × (Days_in_Period ÷ 365)
 	SavingsComputationTypeMonthlyLowestBalanceAverage SavingsComputationType = "monthly_lowest_balance_average"
-	SavingsComputationTypeMonthlyEndBalanceAverage    SavingsComputationType = "monthly_end_balance_average"
-	SavingsComputationTypeMonthlyEndBalanceTotal      SavingsComputationType = "monthly_end_balance_total"
+
+	// Monthly End Balance Average - Average of month-end balances across the period
+	// Formula: Interest = (Sum of month-end balances ÷ Number_of_Months) × Interest_Rate × (Days_in_Period ÷ 365)
+	SavingsComputationTypeMonthlyEndBalanceAverage SavingsComputationType = "monthly_end_balance_average"
+
+	// Monthly End Balance Total - Uses the final month-end balance for the entire period
+	// Formula: Interest = Final_Month_End_Balance × Interest_Rate × (Days_in_Period ÷ 365)
+	// Notes:
+	// - Only the last day's balance of the final month matters
+	// - If period deposited is less than 30 days, NO INTEREST
+	// - If final month end balance is below maintaining balance, NO INTEREST
+	SavingsComputationTypeMonthlyEndBalanceTotal SavingsComputationType = "monthly_end_balance_total"
 )
 
 type (
@@ -61,7 +97,7 @@ type (
 
 		PrintedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PrintedByUser   *User      `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:SET NULL;" json:"printed_by_user,omitempty"`
-		PrintedDate     time.Time  `gorm:"not null" json:"printed_date"`
+		PrintedDate     *time.Time `gorm:"" json:"printed_date,omitempty"`
 
 		PostedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
@@ -105,7 +141,7 @@ type (
 		TotalTax                        float64                                  `json:"total_tax"`
 		PrintedByUserID                 *uuid.UUID                               `json:"printed_by_user_id,omitempty"`
 		PrintedByUser                   *UserResponse                            `json:"printed_by_user,omitempty"`
-		PrintedDate                     string                                   `json:"printed_date"`
+		PrintedDate                     *string                                  `json:"printed_date,omitempty"`
 		PostedByUserID                  *uuid.UUID                               `json:"posted_by_user_id,omitempty"`
 		PostedByUser                    *UserResponse                            `json:"posted_by_user,omitempty"`
 		PostedDate                      *string                                  `json:"posted_date,omitempty"`
@@ -129,7 +165,7 @@ type (
 		TotalInterest                   float64                `json:"total_interest"`
 		TotalTax                        float64                `json:"total_tax"`
 		PrintedByUserID                 *uuid.UUID             `json:"printed_by_user_id"`
-		PrintedDate                     time.Time              `json:"printed_date"`
+		PrintedDate                     *time.Time             `json:"printed_date"`
 		PostedByUserID                  *uuid.UUID             `json:"posted_by_user_id"`
 		PostedDate                      *time.Time             `json:"posted_date"`
 	}
@@ -166,6 +202,12 @@ func (m *Core) generatedSavingsInterest() {
 				postedDate = &formatted
 			}
 
+			var printedDate *string
+			if data.PrintedDate != nil {
+				formatted := data.PrintedDate.Format(time.RFC3339)
+				printedDate = &formatted
+			}
+
 			return &GeneratedSavingsInterestResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
@@ -194,7 +236,7 @@ func (m *Core) generatedSavingsInterest() {
 				TotalTax:                        data.TotalTax,
 				PrintedByUserID:                 data.PrintedByUserID,
 				PrintedByUser:                   m.UserManager.ToModel(data.PrintedByUser),
-				PrintedDate:                     data.PrintedDate.Format(time.RFC3339),
+				PrintedDate:                     printedDate,
 				PostedByUserID:                  data.PostedByUserID,
 				PostedByUser:                    m.UserManager.ToModel(data.PostedByUser),
 				PostedDate:                      postedDate,

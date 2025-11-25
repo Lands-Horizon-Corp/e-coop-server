@@ -117,7 +117,7 @@ func (m *Core) memberAccountingLedger() {
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Account", "MemberProfile", "Account",
+			"MemberProfile",
 			"Account.Currency",
 		},
 		Service: m.provider.Service,
@@ -314,4 +314,71 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	}
 
 	return ledger, nil
+}
+
+// MemberAccountingLedgerFilterByCriteria filters member accounting ledgers based on account and member type criteria
+func (m *Core) MemberAccountingLedgerFilterByCriteria(
+	ctx context.Context,
+	organizationID,
+	branchID uuid.UUID,
+	accountID,
+	memberTypeID *uuid.UUID,
+) ([]*MemberAccountingLedger, error) {
+	memberAccountingLedger := []*MemberAccountingLedger{}
+
+	if accountID != nil && memberTypeID != nil {
+		// Find ledgers for specific account and filter by member type
+		accountingLedger, err := m.MemberAccountingLedgerManager.Find(ctx, &MemberAccountingLedger{
+			AccountID:      *accountID,
+			BranchID:       branchID,
+			OrganizationID: organizationID,
+		})
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to find member accounting ledger")
+		}
+		for _, ledger := range accountingLedger {
+			if ledger.MemberProfile != nil && ledger.MemberProfile.MemberTypeID != nil &&
+				*ledger.MemberProfile.MemberTypeID == *memberTypeID {
+				memberAccountingLedger = append(memberAccountingLedger, ledger)
+			}
+		}
+	} else if accountID != nil {
+		// Find all ledgers for specific account
+		accountingLedger, err := m.MemberAccountingLedgerManager.Find(ctx, &MemberAccountingLedger{
+			AccountID:      *accountID,
+			BranchID:       branchID,
+			OrganizationID: organizationID,
+		})
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to find member accounting ledger")
+		}
+		memberAccountingLedger = accountingLedger
+	} else if memberTypeID != nil {
+		// Find all ledgers and filter by member type
+		accountingLedger, err := m.MemberAccountingLedgerManager.Find(ctx, &MemberAccountingLedger{
+			BranchID:       branchID,
+			OrganizationID: organizationID,
+		})
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to find member accounting ledger")
+		}
+		for _, ledger := range accountingLedger {
+			if ledger.MemberProfile != nil && ledger.MemberProfile.MemberTypeID != nil &&
+				*ledger.MemberProfile.MemberTypeID == *memberTypeID {
+				memberAccountingLedger = append(memberAccountingLedger, ledger)
+			}
+		}
+	} else {
+		// No specific criteria - return all ledgers for the branch
+		accountingLedger, err := m.MemberAccountingLedgerManager.Find(ctx, &MemberAccountingLedger{
+			BranchID:       branchID,
+			OrganizationID: organizationID,
+		})
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to find member accounting ledger")
+		}
+		memberAccountingLedger = accountingLedger
+	}
+
+	return memberAccountingLedger, nil
 }
