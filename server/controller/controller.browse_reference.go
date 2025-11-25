@@ -287,7 +287,6 @@ func (c *Controller) browseReferenceController() {
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},
-		RequestType:  nil,
 		Note:         "Retrieves a specific browse reference by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -319,7 +318,6 @@ func (c *Controller) browseReferenceController() {
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},
-		RequestType:  nil,
 		Note:         "Retrieves all browse references for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -478,11 +476,9 @@ func (c *Controller) browseReferenceController() {
 
 	// DELETE /api/v1/browse-reference/:id
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/browse-reference/:browse_reference_id",
-		Method:       "DELETE",
-		ResponseType: map[string]string{},
-		RequestType:  nil,
-		Note:         "Deletes a browse reference and all related interest rates.",
+		Route:  "/api/v1/browse-reference/:browse_reference_id",
+		Method: "DELETE",
+		Note:   "Deletes a browse reference and all related interest rates.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		browseReferenceID, err := handlers.EngineUUIDParam(ctx, "browse_reference_id")
@@ -527,7 +523,6 @@ func (c *Controller) browseReferenceController() {
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},
-		RequestType:  nil,
 		Note:         "Retrieves browse references for a specific member type.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
