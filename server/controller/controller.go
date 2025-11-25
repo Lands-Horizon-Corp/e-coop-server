@@ -162,5 +162,6 @@ func (c *Controller) Start() error {
 	c.memberProfileArchiveController()
 	c.commonController()
 	c.memberProfileComaker()
+	c.browseReferenceController()
 	return nil
 }
