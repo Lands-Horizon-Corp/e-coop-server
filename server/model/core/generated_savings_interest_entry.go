@@ -11,8 +11,8 @@ import (
 )
 
 type (
-	// GenerateSavingsInterestEntry represents individual savings interest computation entries
-	GenerateSavingsInterestEntry struct {
+	// GeneratedSavingsInterestEntry represents individual savings interest computation entries
+	GeneratedSavingsInterestEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -43,8 +43,8 @@ type (
 		InterestTax    float64 `gorm:"type:decimal(15,2);not null" json:"interest_tax" validate:"required"`
 	}
 
-	// GenerateSavingsInterestEntryResponse represents the response structure for generate savings interest entry data
-	GenerateSavingsInterestEntryResponse struct {
+	// GeneratedSavingsInterestEntryResponse represents the response structure for generated savings interest entry data
+	GeneratedSavingsInterestEntryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
 		CreatedByID    uuid.UUID             `json:"created_by_id"`
@@ -69,7 +69,7 @@ type (
 	}
 
 	// GenerateSavingsInterestEntryRequest represents the request structure for creating/updating generate savings interest entry
-	GenerateSavingsInterestEntryRequest struct {
+	GeneratedSavingsInterestEntryRequest struct {
 		ID                         *uuid.UUID `json:"id"`
 		GeneratedSavingsInterestID uuid.UUID  `json:"generated_savings_interest_id" validate:"required"`
 		AccountID                  uuid.UUID  `json:"account_id" validate:"required"`
@@ -81,19 +81,19 @@ type (
 )
 
 func (m *Core) generateSavingsInterestEntry() {
-	m.Migration = append(m.Migration, &GenerateSavingsInterestEntry{})
-	m.GenerateSavingsInterestEntryManager = *registry.NewRegistry(registry.RegistryParams[
-		GenerateSavingsInterestEntry, GenerateSavingsInterestEntryResponse, GenerateSavingsInterestEntryRequest,
+	m.Migration = append(m.Migration, &GeneratedSavingsInterestEntry{})
+	m.GeneratedSavingsInterestEntryManager = *registry.NewRegistry(registry.RegistryParams[
+		GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "GeneratedSavingsInterest", "Account", "MemberProfile",
 		},
 		Service: m.provider.Service,
-		Resource: func(data *GenerateSavingsInterestEntry) *GenerateSavingsInterestEntryResponse {
+		Resource: func(data *GeneratedSavingsInterestEntry) *GeneratedSavingsInterestEntryResponse {
 			if data == nil {
 				return nil
 			}
-			return &GenerateSavingsInterestEntryResponse{
+			return &GeneratedSavingsInterestEntryResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -118,18 +118,18 @@ func (m *Core) generateSavingsInterestEntry() {
 			}
 		},
 
-		Created: func(data *GenerateSavingsInterestEntry) []string {
+		Created: func(data *GeneratedSavingsInterestEntry) []string {
 			return []string{
-				"generate_savings_interest_entry.create",
-				fmt.Sprintf("generate_savings_interest_entry.create.%s", data.ID),
-				fmt.Sprintf("generate_savings_interest_entry.create.generated_savings_interest.%s", data.GeneratedSavingsInterestID),
-				fmt.Sprintf("generate_savings_interest_entry.create.account.%s", data.AccountID),
-				fmt.Sprintf("generate_savings_interest_entry.create.member_profile.%s", data.MemberProfileID),
-				fmt.Sprintf("generate_savings_interest_entry.create.branch.%s", data.BranchID),
-				fmt.Sprintf("generate_savings_interest_entry.create.organization.%s", data.OrganizationID),
+				"generated_savings_interest_entry.create",
+				fmt.Sprintf("generated_savings_interest_entry.create.%s", data.ID),
+				fmt.Sprintf("generated_savings_interest_entry.create.generated_savings_interest.%s", data.GeneratedSavingsInterestID),
+				fmt.Sprintf("generated_savings_interest_entry.create.account.%s", data.AccountID),
+				fmt.Sprintf("generated_savings_interest_entry.create.member_profile.%s", data.MemberProfileID),
+				fmt.Sprintf("generated_savings_interest_entry.create.branch.%s", data.BranchID),
+				fmt.Sprintf("generated_savings_interest_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GenerateSavingsInterestEntry) []string {
+		Updated: func(data *GeneratedSavingsInterestEntry) []string {
 			return []string{
 				"generate_savings_interest_entry.update",
 				fmt.Sprintf("generate_savings_interest_entry.update.%s", data.ID),
@@ -140,63 +140,70 @@ func (m *Core) generateSavingsInterestEntry() {
 				fmt.Sprintf("generate_savings_interest_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GenerateSavingsInterestEntry) []string {
+		Deleted: func(data *GeneratedSavingsInterestEntry) []string {
 			return []string{
-				"generate_savings_interest_entry.delete",
-				fmt.Sprintf("generate_savings_interest_entry.delete.%s", data.ID),
-				fmt.Sprintf("generate_savings_interest_entry.delete.generated_savings_interest.%s", data.GeneratedSavingsInterestID),
-				fmt.Sprintf("generate_savings_interest_entry.delete.account.%s", data.AccountID),
-				fmt.Sprintf("generate_savings_interest_entry.delete.member_profile.%s", data.MemberProfileID),
-				fmt.Sprintf("generate_savings_interest_entry.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("generate_savings_interest_entry.delete.organization.%s", data.OrganizationID),
+				"generated_savings_interest_entry.delete",
+				fmt.Sprintf("generated_savings_interest_entry.delete.%s", data.ID),
+				fmt.Sprintf("generated_savings_interest_entry.delete.generated_savings_interest.%s", data.GeneratedSavingsInterestID),
+				fmt.Sprintf("generated_savings_interest_entry.delete.account.%s", data.AccountID),
+				fmt.Sprintf("generated_savings_interest_entry.delete.member_profile.%s", data.MemberProfileID),
+				fmt.Sprintf("generated_savings_interest_entry.delete.branch.%s", data.BranchID),
+				fmt.Sprintf("generated_savings_interest_entry.delete.organization.%s", data.OrganizationID),
 			}
 		},
 	})
 }
 
 // GenerateSavingsInterestEntryCurrentBranch retrieves entries for the specified branch and organization
-func (m *Core) GenerateSavingsInterestEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GenerateSavingsInterestEntry, error) {
+func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
+	context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.GenerateSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByGeneratedSavingsInterest retrieves entries for a specific generated savings interest
-func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(context context.Context, generatedSavingsInterestID uuid.UUID) ([]*GenerateSavingsInterestEntry, error) {
+func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
+	context context.Context, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "generated_savings_interest_id", Op: registry.OpEq, Value: generatedSavingsInterestID},
 	}
 
-	return m.GenerateSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByAccount retrieves entries for a specific account
-func (m *Core) GenerateSavingsInterestEntryByAccount(context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*GenerateSavingsInterestEntry, error) {
+func (m *Core) GenerateSavingsInterestEntryByAccount(
+	context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 	}
 
-	return m.GenerateSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByMemberProfile retrieves entries for a specific member profile
-func (m *Core) GenerateSavingsInterestEntryByMemberProfile(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*GenerateSavingsInterestEntry, error) {
+func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
+	context context.Context, memberProfileID, organizationID, branchID uuid.UUID) (
+	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
 	}
 
-	return m.GenerateSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByAmountRange retrieves entries within a specific amount range
-func (m *Core) GenerateSavingsInterestEntryByAmountRange(context context.Context, minAmount, maxAmount float64, organizationID, branchID uuid.UUID) ([]*GenerateSavingsInterestEntry, error) {
+func (m *Core) GenerateSavingsInterestEntryByAmountRange(
+	context context.Context, minAmount, maxAmount float64, organizationID, branchID uuid.UUID) (
+	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
@@ -204,7 +211,7 @@ func (m *Core) GenerateSavingsInterestEntryByAmountRange(context context.Context
 		{Field: "amount", Op: registry.OpLte, Value: maxAmount},
 	}
 
-	return m.GenerateSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest calculates totals for a generated savings interest
