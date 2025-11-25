@@ -115,42 +115,42 @@ func (c *Controller) generateSavingsInterest() {
 	})
 
 	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/post
-	req.RegisterRoute(handlers.Route{
-		Method:      "PUT",
-		Route:       "/api/v1/generate-savings-interest/:generated_savings_interest_id/post",
-		RequestType: core.GenerateSavingsInterestPostRequest{},
-		Note:        "Posts generated savings interest entries.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
-		}
-		var req core.GenerateSavingsInterestPostRequest
-		if err := ctx.Bind(&req); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid post request payload: " + err.Error()})
-		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
-		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, *generatedSavingsInterestID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
-		}
-		if generateSavingsInterest.PrintedDate == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Generated savings interest must be printed before posting"})
-		}
+	// req.RegisterRoute(handlers.Route{
+	// 	Method:      "PUT",
+	// 	Route:       "/api/v1/generate-savings-interest/:generated_savings_interest_id/post",
+	// 	RequestType: core.GenerateSavingsInterestPostRequest{},
+	// 	Note:        "Posts generated savings interest entries.",
+	// }, func(ctx echo.Context) error {
+	// 	context := ctx.Request().Context()
+	// 	generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+	// 	if err != nil {
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
+	// 	}
+	// 	var req core.GenerateSavingsInterestPostRequest
+	// 	if err := ctx.Bind(&req); err != nil {
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid post request payload: " + err.Error()})
+	// 	}
+	// 	if err := c.provider.Service.Validator.Struct(req); err != nil {
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+	// 	}
+	// 	userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	// 	if err != nil {
+	// 		return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+	// 	}
+	// 	if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+	// 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
+	// 	}
+	// 	generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, *generatedSavingsInterestID)
+	// 	if err != nil {
+	// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
+	// 	}
+	// 	if generateSavingsInterest.PrintedDate == nil {
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Generated savings interest must be printed before posting"})
+	// 	}
 
-		if err := c.event.GenerateSavingsInterestPost(context, userOrg, *generatedSavingsInterestID); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post generated savings interest entries: " + err.Error()})
-		}
-		return ctx.NoContent(http.StatusNoContent)
-	})
+	// 	if err := c.event.GenerateSavingsInterestPost(context, userOrg, *generatedSavingsInterestID); err != nil {
+	// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post generated savings interest entries: " + err.Error()})
+	// 	}
+	// 	return ctx.NoContent(http.StatusNoContent)
+	// })
 }

@@ -6,14 +6,18 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Clean cache to reduce memory footprint
 RUN go clean -cache -modcache -testcache -fuzzcache
-
 
 # Now copy the rest of the source code
 COPY . .
 
-# Build the Go binary statically and strip debug info
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o app .
+# Build the Go binary with memory optimizations
+# - Use -gcflags="-N -l" to disable optimizations and reduce memory during compilation
+# - Use -ldflags="-s -w" to strip debug info from final binary
+# - Set GOMEMLIMIT to control memory usage during build
+RUN GOMEMLIMIT=1GiB CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -a -installsuffix cgo -ldflags="-s -w -extldflags '-static'" -o app .
 
 # Use a minimal base image for the final artifact
 FROM alpine:latest

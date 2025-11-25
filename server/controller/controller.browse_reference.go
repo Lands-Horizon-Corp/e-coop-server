@@ -318,7 +318,7 @@ func (c *Controller) browseReferenceController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
-		ResponseType: []core.BrowseReferenceResponse{},
+		ResponseType: core.BrowseReferenceResponse{},
 		RequestType:  nil,
 		Note:         "Retrieves all browse references for the current branch.",
 	}, func(ctx echo.Context) error {
@@ -351,7 +351,7 @@ func (c *Controller) browseReferenceController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		
+
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
@@ -526,7 +526,7 @@ func (c *Controller) browseReferenceController() {
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
-		ResponseType: []core.BrowseReferenceResponse{},
+		ResponseType: core.BrowseReferenceResponse{},
 		RequestType:  nil,
 		Note:         "Retrieves browse references for a specific member type.",
 	}, func(ctx echo.Context) error {
