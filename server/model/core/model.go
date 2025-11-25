@@ -213,6 +213,10 @@ type (
 
 		FundsManager                          registry.Registry[Funds, FundsResponse, FundsRequest]
 		ChargesRateSchemeModeOfPaymentManager registry.Registry[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest]
+		BrowseReferenceManager                registry.Registry[BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest]
+		InterestRateByYearManager             registry.Registry[InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest]
+		InterestRateByDateManager             registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest]
+		InterestRateByAmountManager           registry.Registry[InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest]
 	}
 )
 
@@ -237,6 +241,7 @@ func (m *Core) Start() error {
 	m.billAndCoins()
 	m.branch()
 	m.browseExcludeIncludeAccounts()
+	m.browseReference()
 	m.cashCheckVoucher()
 	m.cashCheckVoucherEntry()
 	m.cashCheckVoucherTag()
@@ -277,6 +282,9 @@ func (m *Core) Start() error {
 	m.includeNegativeAccount()
 	m.interestMaturity()
 	m.interestRateByTerm()
+	m.interestRateByYear()
+	m.interestRateByDate()
+	m.interestRateByAmount()
 	m.interestRateByTermsHeader()
 	m.interestRatePercentage()
 	m.interestRateScheme()

@@ -30,42 +30,51 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_type"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		Prefix      string `gorm:"type:varchar(255)"`
-		Name        string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:text"`
+		Prefix                     string `gorm:"type:varchar(255)"`
+		Name                       string `gorm:"type:varchar(255)"`
+		Description                string `gorm:"type:text"`
+		BrowseReferenceDescription string `gorm:"type:text"`
 	}
 
 	// MemberTypeResponse represents the response structure for member type data
 	MemberTypeResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Prefix         string                `json:"prefix"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
+		ID                         uuid.UUID             `json:"id"`
+		CreatedAt                  string                `json:"created_at"`
+		CreatedByID                uuid.UUID             `json:"created_by_id"`
+		CreatedBy                  *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt                  string                `json:"updated_at"`
+		UpdatedByID                uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy                  *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID             uuid.UUID             `json:"organization_id"`
+		Organization               *OrganizationResponse `json:"organization,omitempty"`
+		BranchID                   uuid.UUID             `json:"branch_id"`
+		Branch                     *BranchResponse       `json:"branch,omitempty"`
+		Prefix                     string                `json:"prefix"`
+		Name                       string                `json:"name"`
+		Description                string                `json:"description"`
+		BrowseReferenceDescription string                `json:"browse_reference_description"`
 	}
 
 	// MemberTypeRequest represents the request structure for creating/updating member types
 	MemberTypeRequest struct {
-		Prefix      string `json:"prefix,omitempty"`
-		Name        string `json:"name,omitempty"`
-		Description string `json:"description,omitempty"`
+		Prefix                     string `json:"prefix,omitempty"`
+		Name                       string `json:"name,omitempty"`
+		Description                string `json:"description,omitempty"`
+		BrowseReferenceDescription string `json:"browse_reference_description,omitempty"`
 	}
 )
 
 func (m *Core) memberType() {
 	m.Migration = append(m.Migration, &MemberType{})
 	m.MemberTypeManager = *registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Branch",
+			"Organization",
+			"BrowseReferenceDescription",
+		},
+		Service: m.provider.Service,
 		Resource: func(data *MemberType) *MemberTypeResponse {
 			if data == nil {
 				return nil
