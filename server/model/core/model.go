@@ -61,6 +61,7 @@ type (
 		GeneratedReportManager               registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
 		GeneratedReportsDownloadUsersManager registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]
 		GeneratedSavingsInterestManager      registry.Registry[GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest]
+		GenerateSavingsInterestEntryManager  registry.Registry[GenerateSavingsInterestEntry, GenerateSavingsInterestEntryResponse, GenerateSavingsInterestEntryRequest]
 		InvitationCodeManager                registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
 		MediaManager                         registry.Registry[Media, MediaResponse, MediaRequest]
 		NotificationManager                  registry.Registry[Notification, NotificationResponse, any]
@@ -274,6 +275,7 @@ func (m *Core) Start() error {
 	m.generatedReport()
 	m.generatedReportsDownloadUsers()
 	m.generatedSavingsInterest()
+	m.generateSavingsInterestEntry()
 	m.generalLedgerDefinition()
 	m.account()
 	m.accountTag()

@@ -71,6 +71,9 @@ type (
 
 		PostAccountID uuid.UUID `gorm:"type:uuid;not null"`
 		PostAccount   *Account  `gorm:"foreignKey:PostAccountID;constraint:OnDelete:RESTRICT;" json:"post_account,omitempty"`
+
+		// Relationships
+		Entries []*GenerateSavingsInterestEntry `gorm:"foreignKey:GeneratedSavingsInterestID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"entries,omitempty"`
 	}
 
 	// GeneratedSavingsInterestResponse represents the response structure for generated savings interest data
@@ -87,28 +90,29 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		DocumentNo                      string                 `json:"document_no"`
-		LastComputationDate             string                 `json:"last_computation_date"`
-		NewComputationDate              string                 `json:"new_computation_date"`
-		AccountID                       *uuid.UUID             `json:"account_id,omitempty"`
-		Account                         *AccountResponse       `json:"account,omitempty"`
-		MemberTypeID                    *uuid.UUID             `json:"member_type_id,omitempty"`
-		MemberType                      *MemberTypeResponse    `json:"member_type,omitempty"`
-		SavingsComputationType          SavingsComputationType `json:"savings_computation_type"`
-		IncludeClosedAccount            bool                   `json:"include_closed_account"`
-		IncludeExistingComputedInterest bool                   `json:"include_existing_computed_interest"`
-		InterestTaxRate                 float64                `json:"interest_tax_rate"`
-		TotalInterest                   float64                `json:"total_interest"`
-		TotalTax                        float64                `json:"total_tax"`
-		PrintedByUserID                 *uuid.UUID             `json:"printed_by_user_id,omitempty"`
-		PrintedByUser                   *UserResponse          `json:"printed_by_user,omitempty"`
-		PrintedDate                     string                 `json:"printed_date"`
-		PostedByUserID                  *uuid.UUID             `json:"posted_by_user_id,omitempty"`
-		PostedByUser                    *UserResponse          `json:"posted_by_user,omitempty"`
-		PostedDate                      *string                `json:"posted_date,omitempty"`
-		CheckVoucherNumber              *string                `json:"check_voucher_number,omitempty"`
-		PostAccountID                   uuid.UUID              `json:"post_account_id"`
-		PostAccount                     *AccountResponse       `json:"post_account,omitempty"`
+		DocumentNo                      string                                  `json:"document_no"`
+		LastComputationDate             string                                  `json:"last_computation_date"`
+		NewComputationDate              string                                  `json:"new_computation_date"`
+		AccountID                       *uuid.UUID                              `json:"account_id,omitempty"`
+		Account                         *AccountResponse                        `json:"account,omitempty"`
+		MemberTypeID                    *uuid.UUID                              `json:"member_type_id,omitempty"`
+		MemberType                      *MemberTypeResponse                     `json:"member_type,omitempty"`
+		SavingsComputationType          SavingsComputationType                  `json:"savings_computation_type"`
+		IncludeClosedAccount            bool                                    `json:"include_closed_account"`
+		IncludeExistingComputedInterest bool                                    `json:"include_existing_computed_interest"`
+		InterestTaxRate                 float64                                 `json:"interest_tax_rate"`
+		TotalInterest                   float64                                 `json:"total_interest"`
+		TotalTax                        float64                                 `json:"total_tax"`
+		PrintedByUserID                 *uuid.UUID                              `json:"printed_by_user_id,omitempty"`
+		PrintedByUser                   *UserResponse                           `json:"printed_by_user,omitempty"`
+		PrintedDate                     string                                  `json:"printed_date"`
+		PostedByUserID                  *uuid.UUID                              `json:"posted_by_user_id,omitempty"`
+		PostedByUser                    *UserResponse                           `json:"posted_by_user,omitempty"`
+		PostedDate                      *string                                 `json:"posted_date,omitempty"`
+		CheckVoucherNumber              *string                                 `json:"check_voucher_number,omitempty"`
+		PostAccountID                   uuid.UUID                               `json:"post_account_id"`
+		PostAccount                     *AccountResponse                        `json:"post_account,omitempty"`
+		Entries                         []*GenerateSavingsInterestEntryResponse `json:"entries,omitempty"`
 	}
 
 	// GeneratedSavingsInterestRequest represents the request structure for creating/updating generated savings interest
@@ -141,7 +145,12 @@ func (m *Core) generatedSavingsInterest() {
 	]{
 		Preloads: []string{
 			"CreatedBy",
-			"UpdatedBy", "Account", "MemberType", "PrintedByUser", "PostedByUser", "PostAccount",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+			"Account",
+			"MemberType",
+			"PrintedByUser", "PostedByUser", "PostAccount",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *GeneratedSavingsInterest) *GeneratedSavingsInterestResponse {
@@ -190,6 +199,7 @@ func (m *Core) generatedSavingsInterest() {
 				CheckVoucherNumber:              data.CheckVoucherNumber,
 				PostAccountID:                   data.PostAccountID,
 				PostAccount:                     m.AccountManager.ToModel(data.PostAccount),
+				Entries:                         m.GenerateSavingsInterestEntryManager.ToModels(data.Entries),
 			}
 		},
 
