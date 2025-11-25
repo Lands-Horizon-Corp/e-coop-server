@@ -163,5 +163,6 @@ func (c *Controller) Start() error {
 	c.commonController()
 	c.memberProfileComaker()
 	c.browseReferenceController()
+	c.generateSavingsInterest()
 	return nil
 }

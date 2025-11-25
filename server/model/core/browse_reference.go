@@ -205,12 +205,12 @@ func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizatio
 	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
 }
 
-// BrowseReferenceByAccount retrieves browse references for a specific account
-func (m *Core) BrowseReferenceByAccount(context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
+// BrowseReferenceByMemberType retrieves browse references for a specific member type
+func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "member_type_id", Op: registry.OpEq, Value: memberTypeID},
 	}
 
 	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)

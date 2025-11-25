@@ -521,4 +521,31 @@ func (c *Controller) browseReferenceController() {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Browse reference deleted successfully"})
 	})
+
+	// GET /api/v1/browse-reference/by-member-type/:member_type_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
+		Method:       "GET",
+		ResponseType: []core.BrowseReferenceResponse{},
+		RequestType:  nil,
+		Note:         "Retrieves browse references for a specific member type.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member type ID"})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+
+		browseReferences, err := c.core.BrowseReferenceByMemberType(context, *memberTypeID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve browse references: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
+	})
 }
