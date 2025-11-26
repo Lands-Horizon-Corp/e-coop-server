@@ -780,6 +780,7 @@ func (c *Controller) loanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
 		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.ComakerType = request.ComakerType
 		loanTransaction.PreviousLoanID = request.PreviousLoanID
 
 		// Handle deletions first (same as before)
