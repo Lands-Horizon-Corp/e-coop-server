@@ -1188,16 +1188,25 @@ func (c *Controller) memberProfileController() {
 		Method:       "POST",
 		RequestType:  core.MemberCloseRemarkRequest{},
 		ResponseType: core.MemberCloseRemarkResponse{},
-		Note:         "Close the specified member profile by member_profile_id. Requires a remark for closing.",
+		Note:         "Close the specified member profile by member_profile_id. Accepts multiple remarks for closing.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.MemberCloseRemarkRequest
+		var req []core.MemberCloseRemarkRequest
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+
+		// Validate each request in the array
+		for i, remark := range req {
+			if err := c.provider.Service.Validator.Struct(remark); err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Validation failed for remark %d: %s", i+1, err.Error()))
+			}
 		}
+
+		if len(req) == 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, "At least one close remark is required")
+		}
+
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
@@ -1210,25 +1219,43 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNoContent, map[string]string{"error": "Current user organization not found"})
 		}
+
+		// Start transaction for multiple operations
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+
+		// Close the member profile first
 		memberProfile.IsClosed = true
-		value := &core.MemberCloseRemark{
-			MemberProfileID: &memberProfile.ID,
-			Reason:          req.Reason,
-			Description:     req.Description,
-			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     userOrg.UserID,
-			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     userOrg.UserID,
-			BranchID:        *userOrg.BranchID,
-			OrganizationID:  userOrg.OrganizationID,
+		if err := c.core.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+endTx(err).Error())
 		}
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
+
+		// Create all close remarks
+		var createdRemarks []*core.MemberCloseRemark
+		for _, remarkReq := range req {
+			value := &core.MemberCloseRemark{
+				MemberProfileID: &memberProfile.ID,
+				Reason:          remarkReq.Reason,
+				Description:     remarkReq.Description,
+				CreatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedAt:       time.Now().UTC(),
+				UpdatedByID:     userOrg.UserID,
+				BranchID:        *userOrg.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+			}
+
+			if err := c.core.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to create member close remark: " + endTx(err).Error()})
+			}
+			createdRemarks = append(createdRemarks, value)
 		}
-		if err := c.core.MemberCloseRemarkManager.Create(context, value); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to create member close remark: " + err.Error()})
+
+		// Commit transaction
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberCloseRemarkManager.ToModel(value))
+
+		return ctx.JSON(http.StatusOK, c.core.MemberCloseRemarkManager.ToModels(createdRemarks))
 	})
 
 	req.RegisterRoute(handlers.Route{
