@@ -262,12 +262,6 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
-		// Check Entry Fields
-		CheckEntryAmount      float64    `json:"check_entry_amount,omitempty"`
-		CheckEntryCheckNumber string     `json:"check_entry_check_number,omitempty"`
-		CheckEntryCheckDate   *time.Time `json:"check_entry_check_date,omitempty"`
-		CheckEntryAccountID   *uuid.UUID `json:"check_entry_account_id,omitempty"`
-
 		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
 		CashCheckVoucherEntriesDeleted uuid.UUIDs                      `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
@@ -290,7 +284,7 @@ func (m *Core) cashCheckVoucher() {
 			"EmployeeUser", "TransactionBatch",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
-			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
+			"CashCheckVoucherTags", "CashCheckVoucherEntries",
 			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
 			"CashCheckVoucherEntries.Account.Currency",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
