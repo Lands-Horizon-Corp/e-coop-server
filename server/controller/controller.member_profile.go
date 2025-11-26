@@ -1184,7 +1184,7 @@ func (c *Controller) memberProfileController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/member-profile/:member_profile_id/closer",
+		Route:        "/api/v1/member-profile/:member_profile_id/close",
 		Method:       "POST",
 		RequestType:  core.MemberCloseRemarkRequest{},
 		ResponseType: core.MemberCloseRemarkResponse{},
