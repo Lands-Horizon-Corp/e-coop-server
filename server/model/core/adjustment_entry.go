@@ -59,7 +59,7 @@ type (
 		AdjustmentTags []*AdjustmentTag `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_tags,omitempty"`
 
 		LoanTransactionID *uuid.UUID       `gorm:"type:uuid" json:"loan_transaction_id"`
-		LoanTnransaction  *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
+		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 	}
 
 	// AdjustmentEntryResponse represents the response structure for adjustmententry data
@@ -196,7 +196,7 @@ func (m *Core) adjustmentEntry() {
 				Credit:             data.Credit,
 				AdjustmentTags:     m.AdjustmentTagManager.ToModels(data.AdjustmentTags),
 				LoanTransactionID:  data.LoanTransactionID,
-				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTnransaction),
+				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
 			}
 		},
 		Created: func(data *AdjustmentEntry) []string {
