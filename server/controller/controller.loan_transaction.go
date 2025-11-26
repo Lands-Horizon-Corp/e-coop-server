@@ -489,6 +489,7 @@ func (c *Controller) loanTransactionController() {
 			TotalCredit:                      request.Applied1,
 			TotalDebit:                       request.Applied1,
 			ModeOfPaymentMonthlyExactDay:     request.ModeOfPaymentMonthlyExactDay,
+			ComakerType:                      request.ComakerType,
 		}
 
 		if err := c.core.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
