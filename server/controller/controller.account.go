@@ -602,6 +602,8 @@ func (c *Controller) accountController() {
 
 			Icon:                        req.Icon,
 			InterestStandardComputation: req.InterestStandardComputation,
+			InterestMaturity:            req.InterestMaturity,
+			InterestAmortization:        req.InterestAmortization,
 		}
 
 		if err := c.core.AccountManager.Create(context, account); err != nil {
@@ -811,6 +813,8 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
+		account.InterestAmortization = req.InterestAmortization
+		account.InterestMaturity = req.InterestMaturity
 
 		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {

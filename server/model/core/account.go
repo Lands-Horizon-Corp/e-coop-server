@@ -288,6 +288,8 @@ type (
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
 		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
+		InterestAmortization        float64                     `gorm:"type:decimal;default:0" json:"interest_amortization,omitempty"`
+		InterestMaturity            float64                     `gorm:"type:decimal;default:0" json:"interest_maturity,omitempty"`
 	}
 )
 
@@ -408,6 +410,9 @@ type AccountResponse struct {
 	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
 	AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
+
+	InterestAmortization float64 `json:"interest_amortization,omitempty"`
+	InterestMaturity     float64 `json:"interest_maturity,omitempty"`
 }
 
 // AccountRequest represents the request structure for creating/updating accounts
@@ -501,6 +506,8 @@ type AccountRequest struct {
 	CompassionFundAmount        float64                     `json:"compassion_fund_amount,omitempty"`
 	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence,omitempty"`
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
+	InterestAmortization        float64                     `json:"interest_amortization,omitempty"`
+	InterestMaturity            float64                     `json:"interest_maturity,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -622,6 +629,8 @@ func (m *Core) account() {
 				CashAndCashEquivalence:      data.CashAndCashEquivalence,
 				InterestStandardComputation: data.InterestStandardComputation,
 				AccountHistoryID:            data.AccountHistoryID,
+				InterestAmortization:        data.InterestAmortization,
+				InterestMaturity:            data.InterestMaturity,
 			}
 		},
 		Created: func(data *Account) []string {

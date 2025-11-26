@@ -107,9 +107,9 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 
 				"loan_transaction_entries": loan_transaction_entries,
 
-				"cash_on_hand_total_debit":  total_debit,
-				"cash_on_hand_total_credit": total_credit,
-				"total_amount_in_words":     currencyAmountWords,
+				"total_debit":           total_debit,
+				"total_credit":          total_credit,
+				"total_amount_in_words": currencyAmountWords,
 
 				"prepared_by":          loanTransaction.PreparedByName,
 				"payeee":               memberProfile.FullName,
