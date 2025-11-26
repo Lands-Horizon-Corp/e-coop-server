@@ -676,6 +676,7 @@ func (c *Controller) branchController() {
 
 				// Default Member Type
 				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
+				TaxInterest:         settingsReq.TaxInterest,
 			}
 
 			if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
@@ -734,6 +735,7 @@ func (c *Controller) branchController() {
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
+			branchSetting.TaxInterest = settingsReq.TaxInterest
 
 			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{

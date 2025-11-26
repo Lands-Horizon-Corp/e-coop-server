@@ -61,15 +61,16 @@ type (
 		LoanAppliedEqualToBalance bool   `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
 
 		// Check Voucher Settings
-		CheckVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"check_voucher_allow_user_input"`
-		CheckVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'CV'" json:"check_voucher_prefix"`
-		CheckVoucherORStart        int    `gorm:"not null;default:1" json:"check_voucher_or_start"`
-		CheckVoucherORCurrent      int    `gorm:"not null;default:1" json:"check_voucher_or_current"`
-		CheckVoucherOREnd          int    `gorm:"not null;default:999999" json:"check_voucher_or_end"`
-		CheckVoucherORIteration    int    `gorm:"not null;default:1" json:"check_voucher_or_iteration"`
-		CheckVoucherORUnique       bool   `gorm:"not null;default:true" json:"check_voucher_or_unique"`
-		CheckVoucherUseDateOR      bool   `gorm:"not null;default:false" json:"check_voucher_use_date_or"`
-		AnnualDivisor              int    `gorm:"not null;default:360" json:"annual_divisor"`
+		CheckVoucherAllowUserInput bool    `gorm:"not null;default:true" json:"check_voucher_allow_user_input"`
+		CheckVoucherPrefix         string  `gorm:"type:varchar(50);not null;default:'CV'" json:"check_voucher_prefix"`
+		CheckVoucherORStart        int     `gorm:"not null;default:1" json:"check_voucher_or_start"`
+		CheckVoucherORCurrent      int     `gorm:"not null;default:1" json:"check_voucher_or_current"`
+		CheckVoucherOREnd          int     `gorm:"not null;default:999999" json:"check_voucher_or_end"`
+		CheckVoucherORIteration    int     `gorm:"not null;default:1" json:"check_voucher_or_iteration"`
+		CheckVoucherORUnique       bool    `gorm:"not null;default:true" json:"check_voucher_or_unique"`
+		CheckVoucherUseDateOR      bool    `gorm:"not null;default:false" json:"check_voucher_use_date_or"`
+		AnnualDivisor              int     `gorm:"not null;default:360" json:"annual_divisor"`
+		TaxInterest                float64 `gorm:"not null;default:0" json:"tax_interest"`
 
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
@@ -128,6 +129,7 @@ type (
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
 		AnnualDivisor       int        `json:"annual_divisor" validate:"min=0"`
+		TaxInterest         float64    `json:"tax_interest" validate:"min=0"`
 	}
 
 	// BranchSettingsCurrencyRequest represents the request structure for creating/updating branchsettingscurrency
