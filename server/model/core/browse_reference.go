@@ -18,6 +18,7 @@ const (
 	InterestTypeYear   InterestType = "year"
 	InterestTypeDate   InterestType = "date"
 	InterestTypeAmount InterestType = "amount"
+	InterestTypeNone   InterestType = "none"
 )
 
 type (
