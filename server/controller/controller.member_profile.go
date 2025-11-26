@@ -1184,6 +1184,54 @@ func (c *Controller) memberProfileController() {
 	})
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/closer",
+		Method:       "POST",
+		RequestType:  core.MemberCloseRemarkRequest{},
+		ResponseType: core.MemberCloseRemarkResponse{},
+		Note:         "Close the specified member profile by member_profile_id. Requires a remark for closing.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req core.MemberCloseRemarkRequest
+		if err := ctx.Bind(&req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusNoContent, map[string]string{"error": "Current user organization not found"})
+		}
+		memberProfile.IsClosed = true
+		value := &core.MemberCloseRemark{
+			MemberProfileID: &memberProfile.ID,
+			Reason:          req.Reason,
+			Description:     req.Description,
+			CreatedAt:       time.Now().UTC(),
+			CreatedByID:     userOrg.UserID,
+			UpdatedAt:       time.Now().UTC(),
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+		}
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+err.Error())
+		}
+		if err := c.core.MemberCloseRemarkManager.Create(context, value); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to create member close remark: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MemberCloseRemarkManager.ToModel(value))
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/member-profile/:member_profile_id/connect",
 		Method:       "POST",
 		RequestType:  core.MemberProfileAccountRequest{},
