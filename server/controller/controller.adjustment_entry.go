@@ -409,6 +409,7 @@ func (c *Controller) adjustmentEntryController() {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
+			IsBalanced:  balance.IsBalanced,
 		})
 	})
 
@@ -498,6 +499,7 @@ func (c *Controller) adjustmentEntryController() {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
+			IsBalanced:  balance.IsBalanced,
 		})
 	})
 

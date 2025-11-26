@@ -126,9 +126,10 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 		for _, entry := range data.AdjustmentEntries {
 			if entry == nil {
 				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
+					Credit:     credit,
+					Debit:      debit,
+					Balance:    balance,
+					IsBalanced: true,
 				}, eris.New("nil adjustment entry")
 			}
 			// Skip if AccountID filter is set and doesn't match
