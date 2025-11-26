@@ -40,15 +40,12 @@ func (c *Controller) memberProfileComaker() {
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: lt.ID,
-			}, "MemberProfile", "MemberProfile.Media")
+			}, "MemberProfile", "MemberProfile.Media", "LoanTransaction")
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve comaker details: " + err.Error()})
 			}
 			for _, cm := range comakers {
-				comakerResponse = append(comakerResponse, core.ComakerMemberProfileResponse{
-					LoanTransaction: c.core.LoanTransactionManager.ToModel(lt),
-					MemberProfile:   c.core.MemberProfileManager.ToModel(cm.MemberProfile),
-				})
+				comakerResponse = append(comakerResponse, *c.core.ComakerMemberProfileManager.ToModel(cm))
 			}
 		}
 		return ctx.JSON(http.StatusOK, comakerResponse)
