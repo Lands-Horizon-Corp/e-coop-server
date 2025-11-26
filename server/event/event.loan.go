@@ -397,6 +397,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// ================================================================================
 	// Update the loan transaction with calculated totals
 	loanTransaction.Amortization = amort
+	loanTransaction.AmountGranted = totalCredit
+	loanTransaction.TotalAddOn = totalAddOns
 	loanTransaction.TotalPrincipal = totalCredit
 	loanTransaction.Balance = totalCredit
 	loanTransaction.TotalCredit = totalCredit

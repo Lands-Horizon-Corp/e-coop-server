@@ -239,8 +239,9 @@ type (
 		TotalDebit     float64    `gorm:"total_debit;type:decimal;default:0" json:"total_debit"`
 		TotalCredit    float64    `gorm:"total_credit;type:decimal;default:0" json:"total_credit"`
 		TotalPrincipal float64    `gorm:"total_principal;type:decimal;default:0" json:"total_principal"`
-
-		Processing bool `gorm:"default:false" json:"processing"`
+		TotalAddOn     float64    `gorm:"total_add_on;type:decimal;default:0" json:"total_add_on"`
+		AmountGranted  float64    `gorm:"amount_granted;type:decimal;default:0" json:"amount_granted"`
+		Processing     bool       `gorm:"default:false" json:"processing"`
 	}
 
 	// LoanTransactionResponse represents the response structure for LoanTransaction.
