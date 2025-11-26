@@ -127,6 +127,7 @@ type (
 
 		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
+		AnnualDivisor       int        `json:"annual_divisor" validate:"min=0"`
 	}
 
 	// BranchSettingsCurrencyRequest represents the request structure for creating/updating branchsettingscurrency

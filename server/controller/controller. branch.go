@@ -672,6 +672,7 @@ func (c *Controller) branchController() {
 				CheckVoucherORIteration:    settingsReq.CheckVoucherORIteration,
 				CheckVoucherORUnique:       settingsReq.CheckVoucherORUnique,
 				CheckVoucherUseDateOR:      settingsReq.CheckVoucherUseDateOR,
+				AnnualDivisor:              settingsReq.AnnualDivisor,
 
 				// Default Member Type
 				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
@@ -732,6 +733,7 @@ func (c *Controller) branchController() {
 			// Default Member Type
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
+			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
 
 			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
