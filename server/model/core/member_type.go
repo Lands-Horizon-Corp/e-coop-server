@@ -34,25 +34,29 @@ type (
 		Name                       string `gorm:"type:varchar(255)"`
 		Description                string `gorm:"type:text"`
 		BrowseReferenceDescription string `gorm:"type:text"`
+
+		// Relationships
+		BrowseReferences []*BrowseReference `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"browse_references,omitempty"`
 	}
 
 	// MemberTypeResponse represents the response structure for member type data
 	MemberTypeResponse struct {
-		ID                         uuid.UUID             `json:"id"`
-		CreatedAt                  string                `json:"created_at"`
-		CreatedByID                uuid.UUID             `json:"created_by_id"`
-		CreatedBy                  *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt                  string                `json:"updated_at"`
-		UpdatedByID                uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy                  *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID             uuid.UUID             `json:"organization_id"`
-		Organization               *OrganizationResponse `json:"organization,omitempty"`
-		BranchID                   uuid.UUID             `json:"branch_id"`
-		Branch                     *BranchResponse       `json:"branch,omitempty"`
-		Prefix                     string                `json:"prefix"`
-		Name                       string                `json:"name"`
-		Description                string                `json:"description"`
-		BrowseReferenceDescription string                `json:"browse_reference_description"`
+		ID                         uuid.UUID                  `json:"id"`
+		CreatedAt                  string                     `json:"created_at"`
+		CreatedByID                uuid.UUID                  `json:"created_by_id"`
+		CreatedBy                  *UserResponse              `json:"created_by,omitempty"`
+		UpdatedAt                  string                     `json:"updated_at"`
+		UpdatedByID                uuid.UUID                  `json:"updated_by_id"`
+		UpdatedBy                  *UserResponse              `json:"updated_by,omitempty"`
+		OrganizationID             uuid.UUID                  `json:"organization_id"`
+		Organization               *OrganizationResponse      `json:"organization,omitempty"`
+		BranchID                   uuid.UUID                  `json:"branch_id"`
+		Branch                     *BranchResponse            `json:"branch,omitempty"`
+		Prefix                     string                     `json:"prefix"`
+		Name                       string                     `json:"name"`
+		Description                string                     `json:"description"`
+		BrowseReferenceDescription string                     `json:"browse_reference_description"`
+		BrowseReferences           []*BrowseReferenceResponse `json:"browse_references,omitempty"`
 	}
 
 	// MemberTypeRequest represents the request structure for creating/updating member types
@@ -72,6 +76,7 @@ func (m *Core) memberType() {
 			"UpdatedBy",
 			"Branch",
 			"Organization",
+			"BrowseReferences",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberType) *MemberTypeResponse {
@@ -79,20 +84,22 @@ func (m *Core) memberType() {
 				return nil
 			}
 			return &MemberTypeResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
-				Prefix:         data.Prefix,
-				Name:           data.Name,
-				Description:    data.Description,
+				ID:                         data.ID,
+				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:                data.CreatedByID,
+				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:                data.UpdatedByID,
+				UpdatedBy:                  m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:             data.OrganizationID,
+				Organization:               m.OrganizationManager.ToModel(data.Organization),
+				BranchID:                   data.BranchID,
+				Branch:                     m.BranchManager.ToModel(data.Branch),
+				Prefix:                     data.Prefix,
+				Name:                       data.Name,
+				Description:                data.Description,
+				BrowseReferenceDescription: data.BrowseReferenceDescription,
+				BrowseReferences:           m.BrowseReferenceManager.ToModels(data.BrowseReferences),
 			}
 		},
 
