@@ -381,8 +381,13 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 
+	var amountGranted float64 = 0
+	if loanTransaction.IsAddOn {
+		amountGranted = e.provider.Service.Decimal.Add(totalCredit, totalAddOns)
+	}
+
 	// Calculate loan amortization
-	amort, err := e.usecase.LoanModeOfPayment(loanTransaction)
+	amort, err := e.usecase.LoanModeOfPayment(amountGranted, loanTransaction)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
@@ -396,8 +401,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	// STEP 10: UPDATE LOAN TRANSACTION TOTALS & COMMIT CHANGES
 	// ================================================================================
 	// Update the loan transaction with calculated totals
+
 	loanTransaction.Amortization = amort
-	loanTransaction.AmountGranted = totalCredit
+	loanTransaction.AmountGranted = amountGranted
 	loanTransaction.TotalAddOn = totalAddOns
 	loanTransaction.TotalPrincipal = totalCredit
 	loanTransaction.Balance = totalCredit
