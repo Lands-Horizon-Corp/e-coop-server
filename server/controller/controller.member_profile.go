@@ -1361,4 +1361,115 @@ func (c *Controller) memberProfileController() {
 		})
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
+
+	// GET api/v1/member-profile/member-type/:member_type_id/search
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/member-type/:member_type_id/search",
+		Method:       "GET",
+		ResponseType: core.MemberProfileArchiveResponse{},
+		Note:         "Searches member profiles by member type ID with optional query parameters.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		memberProfiles, err := c.core.MemberProfileManager.PaginationWithFields(context, ctx, &core.MemberProfile{
+			OrganizationID: userOrg.OrganizationID,
+			MemberTypeID:   memberTypeID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch member profiles: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, memberProfiles)
+	})
+
+	// PUT api/v1/member-profile/:member_profile_id/member-type/member_type_id/link
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/member-type/:member_type_id/link",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
+		Note:         "Links a member profile to a member type by their IDs.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
+		}
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if !handlers.UUIDPtrEqual(memberProfile.MemberTypeID, memberTypeID) {
+			data := &core.MemberTypeHistory{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				CreatedByID:     userOrg.UserID,
+				UpdatedByID:     userOrg.UserID,
+				MemberProfileID: *memberProfileID,
+				MemberTypeID:    *memberTypeID,
+			}
+			if err := c.core.MemberTypeHistoryManager.Create(context, data); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "update-error",
+					Description: "Update member profile membership info failed: update member type history error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member type history: " + err.Error()})
+			}
+		}
+		memberProfile.MemberTypeID = memberTypeID
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = userOrg.UserID
+
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+	})
+
+	// PUT api/v1/member-profile/:member_profile_id/unlink
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/unlink",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
+		Note:         "Unlinks a member profile from its member type by member_profile_id.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
+		}
+		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		memberProfile.MemberTypeID = nil
+		memberProfile.UpdatedAt = time.Now().UTC()
+		memberProfile.UpdatedByID = userOrg.UserID
+
+		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+	})
 }
