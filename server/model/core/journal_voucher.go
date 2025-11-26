@@ -161,7 +161,7 @@ func (m *Core) journalVoucher() {
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",
-			"JournalVoucherEntries", "JournalVoucherEntries.Account",
+			"JournalVoucherEntries", "JournalVoucherEntries.Account", "JournalVoucherEntries.LoanTransaction",
 			"JournalVoucherEntries.Account.Currency",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
