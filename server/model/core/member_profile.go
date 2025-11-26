@@ -199,6 +199,7 @@ type (
 		BusinessAddress                string     `json:"business_address,omitempty"`
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
+		BirthPlace                     string     `json:"birth_place,omitempty"`
 	}
 
 	// MemberProfileCoordinatesRequest represents the request structure for updating member profile coordinates
@@ -278,6 +279,7 @@ type (
 		IsMicroFinanceMember bool         `json:"is_micro_finance_member"`
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
+		BirthPlace           string       `json:"birth_place,omitempty" validate:"max=255"`
 	}
 
 	// MemberProfileUserAccountRequest represents the request structure for member user account operations
