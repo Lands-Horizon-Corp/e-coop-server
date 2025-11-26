@@ -41,8 +41,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModels(memberProfile))
 	})
 
-
-
+	// Quickly create a new user account and link it to a member profile by ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
+		Method:       "POST",
+		RequestType:  core.MemberProfileUserAccountRequest{},
 		ResponseType: core.MemberProfileResponse{},
 		Note:         "Links a minimal user account to a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -209,7 +212,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-
+	// Approve a member profile by ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/approve",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Approve a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -266,7 +273,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-
+	// Reject a member profile by ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/reject",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -363,7 +374,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-
+	// Retrieve a specific member profile by member_profile_id
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id",
+		Method:       "GET",
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Returns a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -378,7 +393,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
-
+	// Delete a specific member profile by its member_profile_id
+	req.RegisterRoute(handlers.Route{
+		Route:  "/api/v1/member-profile/:member_profile_id",
+		Method: "DELETE",
+		Note:   "Deletes a specific member profile and all its connections by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
@@ -481,7 +500,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-
+	// Connect the specified member profile to a user account
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/connect-user",
+		Method:       "POST",
+		RequestType:  core.MemberProfileAccountRequest{},
 		ResponseType: core.MemberProfileResponse{},
 		Note:         "Connects the specified member profile to a user account by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -603,7 +626,6 @@ func (c *Controller) memberProfileController() {
 				CreatedAt:         time.Now().UTC(),
 				UpdatedAt:         time.Now().UTC(),
 				Birthdate:         req.BirthDate,
-				BirthPlace:        req.BirthPlace,
 			}
 			if err := c.core.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -648,6 +670,7 @@ func (c *Controller) memberProfileController() {
 			IsMutualFundMember:   req.IsMutualFundMember,
 			IsMicroFinanceMember: req.IsMicroFinanceMember,
 			MemberTypeID:         req.MemberTypeID,
+			BirthPlace:           req.BirthPlace,
 		}
 		if err := c.core.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -722,7 +745,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
-
+	// Update the personal information of a member profile by ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/personal-info",
+		Method:       "PUT",
+		RequestType:  core.MemberProfilePersonalInfoRequest{},
 		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the personal information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -848,7 +875,11 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
-
+	// Update the membership information of a member profile by ID
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
+		Method:       "PUT",
+		RequestType:  core.MemberProfileMembershipInfoRequest{},
 		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the membership information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
@@ -1031,6 +1062,10 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/disconnect",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
@@ -1060,6 +1095,10 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_id",
+		Method:       "PUT",
+		ResponseType: core.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user organization by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1172,7 +1211,13 @@ func (c *Controller) memberProfileController() {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+	})
 
+	// PUT /api/v1/member-profile/:member_profile_id/coordinates
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
+		Method:       "PUT",
+		RequestType:  core.MemberProfileCoordinatesRequest{},
 		ResponseType: core.MemberProfileResponse{},
 		Note:         "Updates the coordinates (latitude and longitude) of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
