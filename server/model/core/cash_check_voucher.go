@@ -285,7 +285,7 @@ func (m *Core) cashCheckVoucher() {
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"CashCheckVoucherTags", "CashCheckVoucherEntries",
-			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
+			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.LoanTransaction", "CashCheckVoucherEntries.MemberProfile.Media",
 			"CashCheckVoucherEntries.Account.Currency",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
