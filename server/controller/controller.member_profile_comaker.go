@@ -11,9 +11,8 @@ import (
 func (c *Controller) memberProfileComaker() {
 	req := c.provider.Service.Request
 
-	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/comaker
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/comaker",
+		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",
 		ResponseType: core.ComakerMemberProfileResponse{},
