@@ -40,7 +40,7 @@ func (c *Controller) memberProfileComaker() {
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: lt.ID,
-			})
+			}, "MemberProfile", "MemberProfile.Media")
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve comaker details: " + err.Error()})
 			}
