@@ -140,3 +140,21 @@ func (m *Core) MemberTypeHistoryMemberProfileID(context context.Context, memberP
 		MemberProfileID: memberProfileID,
 	})
 }
+
+func (m *Core) GetMemberTypeHistoryLatest(
+	context context.Context,
+	memberProfileID, memberTypeID, organizationID, branchID uuid.UUID,
+) (*MemberTypeHistory, error) {
+	filters := []registry.FilterSQL{
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "member_type_id", Op: registry.OpEq, Value: memberTypeID},
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	sorts := []registry.FilterSortSQL{
+		{Field: "created_at", Order: "DESC"},
+	}
+
+	return m.MemberTypeHistoryManager.FindOneWithSQL(context, filters, sorts)
+}
