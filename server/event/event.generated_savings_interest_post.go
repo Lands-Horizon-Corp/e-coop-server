@@ -69,6 +69,13 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
+		newGeneralLedger.Credit = debit
+		newGeneralLedger.Debit = credit
+		newGeneralLedger.AccountID = &generateSavingsInterest.PostAccountID
+		newGeneralLedger.Account = generateSavingsInterest.PostAccount
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
+			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
+		}
 	}
 	generateSavingsInterest.PostedDate = &now
 	generateSavingsInterest.PostedByUserID = &userOrg.UserID
