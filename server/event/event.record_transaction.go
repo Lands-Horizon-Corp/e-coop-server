@@ -240,7 +240,7 @@ func (e Event) RecordTransaction(
 			LoanTransactionID:          loanTransactionID,
 		}
 
-		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-ledger-creation-failed",
 				Description: "Failed to create member general ledger entry for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
@@ -378,7 +378,7 @@ func (e Event) RecordTransaction(
 
 		// --- SUB-STEP 8D: SUBSIDIARY LEDGER ENTRY CREATION ---
 		// Create the subsidiary general ledger entry in the database
-		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity: "subsidiary-ledger-creation-failed",
 				Description: "Failed to create subsidiary general ledger entry for account " +

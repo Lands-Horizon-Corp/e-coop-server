@@ -14,6 +14,11 @@ func NewDecimalHelper() *DecimalOperations {
 	return &DecimalOperations{}
 }
 
+// NewFromFloat converts float64 to decimal.Decimal for precise calculations
+func (d *DecimalOperations) NewFromFloat(value float64) decimal.Decimal {
+	return decimal.NewFromFloat(value)
+}
+
 // NewDecimal converts float64 to decimal.Decimal for precise calculations
 func (d *DecimalOperations) NewDecimal(value float64) decimal.Decimal {
 	return decimal.NewFromFloat(value)

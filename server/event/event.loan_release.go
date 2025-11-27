@@ -209,7 +209,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		}
 
 		// Save member ledger entry to database
-		if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, memberLedgerEntry); err != nil {
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, memberLedgerEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "member-ledger-creation-failed",
 				Description: "Failed to create member ledger entry for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),

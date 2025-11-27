@@ -277,52 +277,6 @@ func (e *Event) TransactionPayment(
 
 	// --- CHECK FOR LOAN ACCOUNT LEDGER ---
 	// Get current member account ledger with row-level locking if member profile exists
-	loanTransactionID := data.LoanTransactionID
-
-	if memberProfileID != nil {
-		generalLedger, err := e.core.GeneralLedgerCurrentMemberAccountForUpdate(
-			context, tx, *memberProfileID, account.ID, userOrg.OrganizationID, *userOrg.BranchID,
-		)
-		if err != nil {
-			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-ledger-lock-failed",
-				Description: "Failed to lock member ledger for account " + account.ID.String() + " and member " + memberProfileID.String() + ": " + err.Error(),
-				Module:      "Transaction",
-			})
-			return nil, endTx(eris.Wrap(err, "failed to retrieve member ledger for update"))
-		}
-
-		if data.LoanTransactionID != nil && generalLedger != nil && generalLedger.LoanTransactionID != nil {
-			loanTransactionID = generalLedger.LoanTransactionID
-			loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *loanTransactionID)
-			if err != nil {
-				e.Footstep(ctx, FootstepEvent{
-					Activity:    "loan-transaction-retrieval-failed",
-					Description: "Failed to retrieve loan transaction " + loanTransactionID.String() + ": " + err.Error(),
-					Module:      "Transaction",
-				})
-				return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction"))
-			}
-			accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
-				context,
-				account.ID,
-				account.OrganizationID,
-				account.BranchID,
-				loanTransaction.PrintedDate,
-			)
-			if err != nil {
-				e.Footstep(ctx, FootstepEvent{
-					Activity:    "account-history-retrieval-failed",
-					Description: "Failed to retrieve account history for account " + account.ID.String() + " at time " + loanTransaction.PrintedDate.String() + ": " + err.Error(),
-					Module:      "Transaction",
-				})
-				return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
-			}
-			if accountHistory != nil {
-				account = e.core.AccountHistoryToModel(accountHistory)
-			}
-		}
-	}
 
 	if account.BranchID != *userOrg.BranchID {
 		e.Footstep(ctx, FootstepEvent{
@@ -493,6 +447,7 @@ func (e *Event) TransactionPayment(
 	// ================================================================================
 	// STEP 6.5: UPDATE LOAN ACCOUNT IF LOAN TRANSACTION EXISTS
 	// ================================================================================
+	loanTransactionID := data.LoanTransactionID
 	if loanTransactionID != nil {
 		loanAccount, err := e.core.GetLoanAccountByLoanTransaction(
 			context,
@@ -572,8 +527,10 @@ func (e *Event) TransactionPayment(
 		Debit:                      debit,
 		CurrencyID:                 account.CurrencyID,
 		LoanTransactionID:          loanTransactionID,
+
+		Account: account,
 	}
-	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, newGeneralLedger); err != nil {
+	if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "ledger-create-error",
 			Description: "Failed to create general ledger entry (/transaction/payment/:transaction_id): " + err.Error(),
@@ -708,7 +665,7 @@ func (e *Event) TransactionPayment(
 		Debit:                      credit,
 		CurrencyID:                 account.CurrencyID,
 	}
-	if err := e.core.GeneralLedgerManager.CreateWithTx(context, tx, cashOnHandGeneralLedger); err != nil {
+	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "ledger-create-error",
 			Description: "Failed to create general ledger entry (/transaction/payment/:transaction_id): " + err.Error(),

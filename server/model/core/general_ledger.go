@@ -342,79 +342,60 @@ func (m *Core) generalLedger() {
 	})
 }
 
-// GeneralLedgerCurrentMemberAccountForUpdate retrieves the general ledger entry for a member account with row locking for updates
-func (m *Core) GeneralLedgerCurrentMemberAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, memberProfileID, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
+func (m *Core) CreateGeneralLedgerEntry(
+	context context.Context, tx *gorm.DB, data *GeneralLedger,
+) error {
+	// Get previous balance
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: data.OrganizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: data.BranchID},
+		{Field: "account_id", Op: registry.OpEq, Value: data.AccountID},
 	}
-	sorts := []registry.FilterSortSQL{
-		{Field: "created_at", Order: "DESC"},
-	}
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return ledger, nil
-}
-
-// GeneralLedgerCurrentSubsidiaryAccountForUpdate retrieves the general ledger entry for a subsidiary account with row locking for updates
-func (m *Core) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpIsNull, Value: nil},
+	if data.Account.Type != AccountTypeOther {
+		filters = append(filters, registry.FilterSQL{
+			Field: "member_profile_id", Op: registry.OpIsNull, Value: data.MemberProfileID,
+		})
 	}
 	sorts := []registry.FilterSortSQL{
 		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
+	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(context, tx, filters, sorts)
+
+	// Use decimal for accurate computation
+	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
 		}
-		return nil, err
+	} else {
+		previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
 	}
-	return ledger, nil
+
+	// Convert debit and credit to decimal
+	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
+	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
+
+	var balanceChange = m.provider.Service.Decimal.NewFromFloat(0)
+	switch data.Account.GeneralLedgerType {
+	case GLTypeAssets, GLTypeExpenses:
+		balanceChange = debitDecimal.Sub(creditDecimal)
+	case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
+		balanceChange = creditDecimal.Sub(debitDecimal)
+	default:
+		balanceChange = debitDecimal.Sub(creditDecimal)
+	}
+
+	// Calculate new balance and convert back to float64
+	newBalance := previousBalance.Add(balanceChange)
+	data.Balance, _ = newBalance.Float64()
+
+	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
+		return eris.Wrap(err, "failed to create general ledger entry")
+	}
+	return nil
 }
 
-// GeneralLedgerCashOnHandOnUpdate retrieves the general ledger entry for a cash on hand account with row locking for updates
-func (m *Core) GeneralLedgerCashOnHandOnUpdate(
-	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-	}
-
-	sorts := []registry.FilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
-		{Field: "created_at", Order: "DESC"},
-	}
-
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return ledger, nil
-}
-
-// GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 // GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 func (m *Core) GeneralLedgerPrintMaxNumber(
 	ctx context.Context,
