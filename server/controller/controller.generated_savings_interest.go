@@ -13,6 +13,51 @@ import (
 func (c *Controller) generateSavingsInterest() {
 
 	req := c.provider.Service.Request
+
+	// GET /api/v1/generate-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generate-savings-interest",
+		Method:       "GET",
+		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
+		ResponseType: core.GeneratedSavingsInterestResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.Find(context, &core.GeneratedSavingsInterest{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated savings interest found for the current branch"})
+		}
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
+	})
+
+	// GET /api/v1/generate-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/generate-savings-interest/:generated_savings_interest_id",
+		Method:       "GET",
+		Note:         "Returns a single generated savings interest by its ID.",
+		ResponseType: core.GeneratedSavingsInterestResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
+		}
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByIDRaw(context, *generatedSavingsInterestID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest not found"})
+		}
+		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
+	})
+
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generate-savings-interest/view",
@@ -47,6 +92,51 @@ func (c *Controller) generateSavingsInterest() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(data))
+	})
+
+	req.RegisterRoute(handlers.Route{
+		Method:       "POST",
+		Route:        "/api/v1/generate-savings-interest",
+		ResponseType: core.GeneratedSavingsInterestEntry{},
+		RequestType:  core.GeneratedSavingsInterestRequest{},
+		Note:         "Generates savings interest for all applicable accounts.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		request, err := c.core.GeneratedSavingsInterestManager.Validate(ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
+		}
+		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+			LastComputationDate:             request.LastComputationDate,
+			NewComputationDate:              request.NewComputationDate,
+			AccountID:                       request.AccountID,
+			MemberTypeID:                    request.MemberTypeID,
+			SavingsComputationType:          request.SavingsComputationType,
+			IncludeClosedAccount:            request.IncludeClosedAccount,
+			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
+			InterestTaxRate:                 request.InterestTaxRate,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
+		}
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		for _, entry := range entries {
+			if err := c.core.GeneratedSavingsInterestEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
+			}
+		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
 	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/print

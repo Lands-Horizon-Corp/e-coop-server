@@ -82,13 +82,22 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 
 	// POST /generated-savings-interest-entry: Create a new generated savings interest entry. (WITH footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generated-savings-interest-entry",
+		Route:        "/api/v1/generated-savings-interest-entry/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "POST",
 		Note:         "Creates a new generated savings interest entry for the current user's organization and branch.",
 		RequestType:  core.GeneratedSavingsInterestEntryRequest{},
 		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Generated savings interest entry creation failed (/generated-savings-interest-entry), invalid generated savings interest ID.",
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
+		}
 		req, err := c.core.GeneratedSavingsInterestEntryManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -117,7 +126,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		}
 
 		entry := &core.GeneratedSavingsInterestEntry{
-			GeneratedSavingsInterestID: req.GeneratedSavingsInterestID,
+			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			AccountID:                  req.AccountID,
 			MemberProfileID:            req.MemberProfileID,
 			Amount:                     req.Amount,
@@ -193,7 +202,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest entry not found"})
 		}
-		entry.GeneratedSavingsInterestID = req.GeneratedSavingsInterestID
 		entry.AccountID = req.AccountID
 		entry.MemberProfileID = req.MemberProfileID
 		entry.Amount = req.Amount
