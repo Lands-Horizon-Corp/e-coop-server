@@ -38,7 +38,7 @@ type (
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null;index:idx_account_member_profile_entry"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT;" json:"member_profile,omitempty"`
 
-		Amount         float64 `gorm:"type:decimal(15,2);not null" json:"amount" validate:"required"`
+		EndingBalance  float64 `gorm:"type:decimal(15,2);not null" json:"ending_balance" validate:"required"`
 		InterestAmount float64 `gorm:"type:decimal(15,2);not null" json:"interest_amount" validate:"required"`
 		InterestTax    float64 `gorm:"type:decimal(15,2);not null" json:"interest_tax" validate:"required"`
 	}
@@ -63,7 +63,7 @@ type (
 		Account                    *AccountResponse                  `json:"account,omitempty"`
 		MemberProfileID            uuid.UUID                         `json:"member_profile_id"`
 		MemberProfile              *MemberProfileResponse            `json:"member_profile,omitempty"`
-		Amount                     float64                           `json:"amount"`
+		EndingBalance              float64                           `json:"ending_balance"`
 		InterestAmount             float64                           `json:"interest_amount"`
 		InterestTax                float64                           `json:"interest_tax"`
 	}
@@ -73,7 +73,6 @@ type (
 		ID              *uuid.UUID `json:"id"`
 		AccountID       uuid.UUID  `json:"account_id" validate:"required"`
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
-		Amount          float64    `json:"amount" validate:"required"`
 		InterestAmount  float64    `json:"interest_amount" validate:"required"`
 		InterestTax     float64    `json:"interest_tax" validate:"required"`
 	}
@@ -111,7 +110,7 @@ func (m *Core) generateSavingsInterestEntry() {
 				Account:                    m.AccountManager.ToModel(data.Account),
 				MemberProfileID:            data.MemberProfileID,
 				MemberProfile:              m.MemberProfileManager.ToModel(data.MemberProfile),
-				Amount:                     data.Amount,
+				EndingBalance:              data.EndingBalance,
 				InterestAmount:             data.InterestAmount,
 				InterestTax:                data.InterestTax,
 			}
@@ -199,32 +198,32 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryByAmountRange retrieves entries within a specific amount range
-func (m *Core) GenerateSavingsInterestEntryByAmountRange(
-	context context.Context, minAmount, maxAmount float64, organizationID, branchID uuid.UUID) (
+// GenerateSavingsInterestEntryByEndingBalanceRange retrieves entries within a specific ending balance range
+func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
+	context context.Context, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "amount", Op: registry.OpGte, Value: minAmount},
-		{Field: "amount", Op: registry.OpLte, Value: maxAmount},
+		{Field: "ending_balance", Op: registry.OpGte, Value: minEndingBalance},
+		{Field: "ending_balance", Op: registry.OpLte, Value: maxEndingBalance},
 	}
 
 	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest calculates totals for a generated savings interest
-func (m *Core) GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest(context context.Context, generatedSavingsInterestID uuid.UUID) (totalAmount, totalInterest, totalTax float64, err error) {
+func (m *Core) GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest(context context.Context, generatedSavingsInterestID uuid.UUID) (totalEndingBalance, totalInterest, totalTax float64, err error) {
 	entries, err := m.GenerateSavingsInterestEntryByGeneratedSavingsInterest(context, generatedSavingsInterestID)
 	if err != nil {
 		return 0, 0, 0, err
 	}
 
 	for _, entry := range entries {
-		totalAmount += entry.Amount
+		totalEndingBalance += entry.EndingBalance
 		totalInterest += entry.InterestAmount
 		totalTax += entry.InterestTax
 	}
 
-	return totalAmount, totalInterest, totalTax, nil
+	return totalEndingBalance, totalInterest, totalTax, nil
 }

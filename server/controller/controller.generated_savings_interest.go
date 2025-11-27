@@ -78,7 +78,15 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
-		data, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+		branch, err := c.core.BranchManager.GetByID(context, *userOrg.BranchID, "BranchSetting")
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
+		}
+		if branch.BranchSetting == nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
+		}
+		annualDivisor := branch.BranchSetting.AnnualDivisor
+		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -87,11 +95,11 @@ func (c *Controller) generateSavingsInterest() {
 			IncludeClosedAccount:            request.IncludeClosedAccount,
 			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
 			InterestTaxRate:                 request.InterestTaxRate,
-		})
+		}, annualDivisor)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(data))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
 	req.RegisterRoute(handlers.Route{
@@ -114,6 +122,14 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
+		branch, err := c.core.BranchManager.GetByID(context, *userOrg.BranchID, "BranchSetting")
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
+		}
+		if branch.BranchSetting == nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
+		}
+		annualDivisor := branch.BranchSetting.AnnualDivisor
 		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
@@ -123,7 +139,7 @@ func (c *Controller) generateSavingsInterest() {
 			IncludeClosedAccount:            request.IncludeClosedAccount,
 			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
 			InterestTaxRate:                 request.InterestTaxRate,
-		})
+		}, annualDivisor)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}

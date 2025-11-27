@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
@@ -125,13 +126,78 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(
+			context, *generatedSavingsInterestID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), parent generated savings interest not found.",
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Parent generated savings interest not found"})
+		}
+		if generatedSavingsInterest.PostedDate != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), parent generated savings interest is already posted.",
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot update entry because the parent generated savings interest is already posted"})
+		}
+		// Get daily ending balances for the computation period
+		dailyBalances, err := c.core.GetDailyEndingBalances(
+			context,
+			generatedSavingsInterest.LastComputationDate,
+			generatedSavingsInterest.NewComputationDate,
+			req.AccountID,
+			req.MemberProfileID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), failed to get daily balances: " + err.Error(),
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get daily balances: " + err.Error()})
+		}
+
+		// Compute interest using the usecase
+		var savingsType usecase.SavingsType
+		switch generatedSavingsInterest.SavingsComputationType {
+		case core.SavingsComputationTypeDailyLowestBalance:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeAverageDailyBalance:
+			savingsType = usecase.SavingsTypeAverage
+		case core.SavingsComputationTypeMonthlyEndLowestBalance:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeADBEndBalance:
+			savingsType = usecase.SavingsTypeEnd
+		case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+			savingsType = usecase.SavingsTypeAverage
+		case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+			savingsType = usecase.SavingsTypeEnd
+		default:
+			savingsType = usecase.SavingsTypeLowest
+		}
+
+		result := c.usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
+			DailyBalance:   dailyBalances,
+			SavingsType:    savingsType,
+			InterestAmount: req.InterestAmount,
+			InterestTax:    req.InterestTax,
+		})
+
 		entry := &core.GeneratedSavingsInterestEntry{
 			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			AccountID:                  req.AccountID,
 			MemberProfileID:            req.MemberProfileID,
-			Amount:                     req.Amount,
-			InterestAmount:             req.InterestAmount,
-			InterestTax:                req.InterestTax,
+			EndingBalance:              result.Balance,
+			InterestAmount:             result.InterestAmount,
+			InterestTax:                result.InterestTax,
 			CreatedAt:                  time.Now().UTC(),
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  time.Now().UTC(),
@@ -202,13 +268,74 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest entry not found"})
 		}
+
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, entry.GeneratedSavingsInterestID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), parent generated savings interest not found.",
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Parent generated savings interest not found"})
+		}
+		if generatedSavingsInterest.PostedDate != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), parent generated savings interest is already posted.",
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot update entry because the parent generated savings interest is already posted"})
+		}
+
+		// Get daily ending balances for the computation period to get the final balance
+		dailyBalances, err := c.core.GetDailyEndingBalances(
+			context,
+			generatedSavingsInterest.LastComputationDate,
+			generatedSavingsInterest.NewComputationDate,
+			req.AccountID,
+			req.MemberProfileID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), failed to get daily balances: " + err.Error(),
+				Module:      "GeneratedSavingsInterestEntry",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get daily balances: " + err.Error()})
+		}
+		var savingsType usecase.SavingsType
+		switch generatedSavingsInterest.SavingsComputationType {
+		case core.SavingsComputationTypeDailyLowestBalance:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeAverageDailyBalance:
+			savingsType = usecase.SavingsTypeAverage
+		case core.SavingsComputationTypeMonthlyEndLowestBalance:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeADBEndBalance:
+			savingsType = usecase.SavingsTypeEnd
+		case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
+			savingsType = usecase.SavingsTypeLowest
+		case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+			savingsType = usecase.SavingsTypeAverage
+		case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+			savingsType = usecase.SavingsTypeEnd
+		default:
+			savingsType = usecase.SavingsTypeLowest
+		}
+		result := c.usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
+			DailyBalance:   dailyBalances,
+			SavingsType:    savingsType,
+			InterestAmount: req.InterestAmount,
+			InterestTax:    req.InterestTax,
+		})
 		entry.AccountID = req.AccountID
 		entry.MemberProfileID = req.MemberProfileID
-		entry.Amount = req.Amount
-		entry.InterestAmount = req.InterestAmount
-		entry.InterestTax = req.InterestTax
+		entry.EndingBalance = result.Balance
+		entry.InterestAmount = result.InterestAmount
+		entry.InterestTax = result.InterestTax
 		entry.UpdatedAt = time.Now().UTC()
-		entry.UpdatedByID = userOrg.UserID
 		if err := c.core.GeneratedSavingsInterestEntryManager.UpdateByID(context, entry.ID, entry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

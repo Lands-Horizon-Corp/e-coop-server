@@ -227,3 +227,27 @@ func (m *Core) BrowseReferenceByInterestType(context context.Context, interestTy
 
 	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
 }
+
+func (m *Core) BrowseReferenceByField(
+	context context.Context, organizationID, branchID uuid.UUID, accountID, memberTypeID *uuid.UUID,
+) ([]*BrowseReference, error) {
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+	}
+
+	// Add filters based on provided parameters
+	if memberTypeID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "member_type_id", Op: registry.OpEq, Value: *memberTypeID,
+		})
+	}
+
+	if accountID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "account_id", Op: registry.OpEq, Value: *accountID,
+		})
+	}
+
+	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+}
