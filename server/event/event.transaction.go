@@ -595,48 +595,8 @@ func (e *Event) TransactionPayment(
 	}
 
 	// ================================================================================
-	// STEP 8: UPDATE/CREATE MEMBER ACCOUNTING PROFILE UPDATE
-	// ================================================================================
-	if memberProfileID != nil {
-		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
-			context,
-			tx,
-			core.MemberAccountingLedgerUpdateOrCreateParams{
-				MemberProfileID: *memberProfileID,
-				AccountID:       account.ID,
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				UserID:          userOrg.UserID,
-				DebitAmount:     debit,
-				CreditAmount:    credit,
-				LastPayTime:     now,
-			},
-		)
-		if err != nil {
-			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-accounting-ledger-error",
-				Description: "Failed to update member accounting ledger (/transaction/payment/:transaction_id): " + err.Error(),
-				Module:      "Transaction",
-			})
-			block("Failed to update member accounting ledger: " + err.Error())
-			return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
-		}
-	}
-
-	// ================================================================================
 	// STEP 9: Adding Cash on Hand Account
 	// ================================================================================
-
-	if err != nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "transaction-process-error",
-			Description: "Failed to process transaction (/transaction/payment/:transaction_id): " + err.Error(),
-			Module:      "Transaction",
-		})
-		block("Failed to process transaction: " + err.Error())
-		return nil, endTx(eris.Wrap(err, "failed to process transaction"))
-	}
-
 	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -664,6 +624,7 @@ func (e *Event) TransactionPayment(
 		Credit:                     debit,
 		Debit:                      credit,
 		CurrencyID:                 account.CurrencyID,
+		Account:                    cashOnHandAccount,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
 		e.Footstep(ctx, FootstepEvent{

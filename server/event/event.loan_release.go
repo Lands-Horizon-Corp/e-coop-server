@@ -206,6 +206,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			Debit:                      entry.Debit,
 			CurrencyID:                 &loanAccountCurrency.ID,
 			LoanTransactionID:          &loanTransaction.ID,
+
+			Account: account,
 		}
 
 		// Save member ledger entry to database
@@ -216,30 +218,6 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				Module:      "Loan Release",
 			})
 			return nil, endTx(eris.Wrap(err, "failed to create member ledger entry"))
-		}
-
-		// STEP 5: Fix in member ledger update
-		_, err = e.core.MemberAccountingLedgerUpdateOrCreate(
-			context,
-			tx,
-			core.MemberAccountingLedgerUpdateOrCreateParams{
-				MemberProfileID: *loanTransaction.MemberProfileID,
-				AccountID:       account.ID,
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				UserID:          userOrg.UserID,
-				DebitAmount:     entry.Debit,
-				CreditAmount:    entry.Credit,
-				LastPayTime:     now,
-			},
-		)
-		if err != nil {
-			e.Footstep(ctx, FootstepEvent{
-				Activity:    "member-accounting-ledger-failed",
-				Description: "Failed to update member accounting ledger for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-				Module:      "Loan Release",
-			})
-			return nil, endTx(eris.Wrap(err, "failed to update member accounting ledger"))
 		}
 
 	}

@@ -351,7 +351,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 		{Field: "branch_id", Op: registry.OpEq, Value: data.BranchID},
 		{Field: "account_id", Op: registry.OpEq, Value: data.AccountID},
 	}
-	if data.Account.Type != AccountTypeOther {
+	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "member_profile_id", Op: registry.OpIsNull, Value: data.MemberProfileID,
 		})
@@ -392,6 +392,26 @@ func (m *Core) CreateGeneralLedgerEntry(
 
 	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
+	}
+	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+		_, err = m.MemberAccountingLedgerUpdateOrCreate(
+			context,
+			tx,
+			data.Balance,
+			MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: *data.MemberProfileID,
+				AccountID:       *data.AccountID,
+				OrganizationID:  data.OrganizationID,
+				BranchID:        data.BranchID,
+				UserID:          data.CreatedByID,
+				DebitAmount:     data.Debit,
+				CreditAmount:    data.Credit,
+				LastPayTime:     data.EntryDate,
+			},
+		)
+		if err != nil {
+			return eris.Wrap(err, "failed to update or create member accounting ledger")
+		}
 	}
 	return nil
 }

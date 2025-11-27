@@ -251,6 +251,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
+	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
 	// Validate: Either debit or credit must be non-zero, but not both
@@ -270,9 +271,6 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
-	// Calculate balance change: debit increases balance, credit decreases balance
-	balanceChange := params.DebitAmount - params.CreditAmount
-
 	if ledger == nil {
 		// Create new member accounting ledger
 		ledger = &MemberAccountingLedger{
@@ -284,7 +282,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			BranchID:            params.BranchID,
 			MemberProfileID:     params.MemberProfileID,
 			AccountID:           params.AccountID,
-			Balance:             balanceChange,
+			Balance:             balance,
 			LastPay:             &params.LastPayTime,
 			Count:               1,
 			Interest:            0,
@@ -301,7 +299,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		}
 	} else {
 		// Update existing member accounting ledger
-		ledger.Balance += balanceChange
+		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
