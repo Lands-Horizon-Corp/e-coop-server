@@ -162,17 +162,12 @@ type (
 		IncludeClosedAccount            bool                   `json:"include_closed_account"`
 		IncludeExistingComputedInterest bool                   `json:"include_existing_computed_interest"`
 		InterestTaxRate                 float64                `json:"interest_tax_rate"`
-		TotalInterest                   float64                `json:"total_interest"`
-		TotalTax                        float64                `json:"total_tax"`
-		PrintedByUserID                 *uuid.UUID             `json:"printed_by_user_id"`
-		PrintedDate                     *time.Time             `json:"printed_date"`
-		PostedByUserID                  *uuid.UUID             `json:"posted_by_user_id"`
-		PostedDate                      *time.Time             `json:"posted_date"`
 	}
 
 	GenerateSavingsInterestPostRequest struct {
-		CheckVoucherNumber *string   `json:"check_voucher_number"`
-		PostAccountID      uuid.UUID `json:"post_account_id" validate:"required"`
+		CheckVoucherNumber *string    `json:"check_voucher_number"`
+		PostAccountID      uuid.UUID  `json:"post_account_id" validate:"required"`
+		EntryDate          *time.Time `json:"entry_date"`
 	}
 )
 

@@ -164,5 +164,6 @@ func (c *Controller) Start() error {
 	c.memberProfileComaker()
 	c.browseReferenceController()
 	c.generateSavingsInterest()
+	c.generatedSavingsInterestEntryController()
 	return nil
 }

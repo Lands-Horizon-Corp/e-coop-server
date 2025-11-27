@@ -22,6 +22,8 @@ const (
 	PaymentTypeOnline TypeOfPaymentType = "online"
 	// PaymentTypeAdjustment represents adjustment payment type
 	PaymentTypeAdjustment TypeOfPaymentType = "adjustment"
+	// PaymentTypeAdjustment represents adjustment payment type
+	PaymentTypeSystem TypeOfPaymentType = "system"
 )
 
 type (
