@@ -58,6 +58,8 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if len(dailyBalances) == 0 {
 			continue
 		}
+		interestRate := memberBrowseRef.BrowseReference.InterestRate
+
 		var savingsComputed *usecase.SavingsInterestComputationResult
 
 		lastBalance := dailyBalances[len(dailyBalances)-1]
@@ -76,17 +78,25 @@ func (e *Event) GenerateSavingsInterestEntries(
 					memberBrowseRef.BrowseReference.Charges),
 			}
 		} else {
-			// switch memberBrowseRef.BrowseReference.InterestType {
-			// case core.InterestTypeYear:
-			// case core.InterestTypeDate:
-			// case core.InterestTypeAmount:
-			// case core.InterestTypeNone:
-			// }
+			switch memberBrowseRef.BrowseReference.InterestType {
+			case core.InterestTypeYear:
+				// If you are member of the year from and to then good
+			case core.InterestTypeDate:
+				// If you are member of the date from and to then good
+			case core.InterestTypeAmount:
+				for _, rateByAmount := range memberBrowseRef.BrowseReference.InterestRatesByAmount {
+					if e.provider.Service.Decimal.IsGreaterThanOrEqual(lastBalance, rateByAmount.FromAmount) &&
+						(e.provider.Service.Decimal.IsLessThanOrEqual(lastBalance, rateByAmount.ToAmount)) {
+						interestRate = rateByAmount.InterestRate
+						break
+					}
+				}
+			}
 			switch generatedSavingsInterest.SavingsComputationType {
 			case core.SavingsComputationTypeDailyLowestBalance:
 				computation := usecase.SavingsInterestComputation{
 					DailyBalance:    dailyBalances,
-					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeLowest,
 					AnnualDivisor:   annualDivisor,
@@ -97,7 +107,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 			case core.SavingsComputationTypeAverageDailyBalance:
 				computation := usecase.SavingsInterestComputation{
 					DailyBalance:    dailyBalances,
-					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeAverage,
 					AnnualDivisor:   annualDivisor,
@@ -108,7 +118,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
 				computation := usecase.SavingsInterestComputation{
 					DailyBalance:    dailyBalances,
-					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeEnd,
 					AnnualDivisor:   annualDivisor,

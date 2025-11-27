@@ -194,6 +194,20 @@ func (d *DecimalOperations) IsLessThan(a, b float64) bool {
 	return decA.LessThan(decB)
 }
 
+// IsGreaterThanOrEqual checks if a >= b with decimal precision
+func (d *DecimalOperations) IsGreaterThanOrEqual(a, b float64) bool {
+	decA := decimal.NewFromFloat(a)
+	decB := decimal.NewFromFloat(b)
+	return decA.GreaterThanOrEqual(decB)
+}
+
+// IsLessThanOrEqual checks if a <= b with decimal precision
+func (d *DecimalOperations) IsLessThanOrEqual(a, b float64) bool {
+	decA := decimal.NewFromFloat(a)
+	decB := decimal.NewFromFloat(b)
+	return decA.LessThanOrEqual(decB)
+}
+
 // Abs returns the absolute value
 func (d *DecimalOperations) Abs(value float64) float64 {
 	dec := decimal.NewFromFloat(value)
