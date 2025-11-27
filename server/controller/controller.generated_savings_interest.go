@@ -144,10 +144,36 @@ func (c *Controller) generateSavingsInterest() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		totalTax, totalInterest := 0.0, 0.0
+
 		for _, entry := range entries {
+			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
+			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+
 			if err := c.core.GeneratedSavingsInterestEntryManager.CreateWithTx(context, tx, entry); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
 			}
+		}
+		generatedSavingsInterest := &core.GeneratedSavingsInterest{
+			CreatedAt:                       time.Now().UTC(),
+			CreatedByID:                     userOrg.UserID,
+			UpdatedAt:                       time.Now().UTC(),
+			UpdatedByID:                     userOrg.UserID,
+			OrganizationID:                  userOrg.OrganizationID,
+			BranchID:                        *userOrg.BranchID,
+			LastComputationDate:             request.LastComputationDate,
+			NewComputationDate:              request.NewComputationDate,
+			AccountID:                       request.AccountID,
+			MemberTypeID:                    request.MemberTypeID,
+			SavingsComputationType:          request.SavingsComputationType,
+			IncludeClosedAccount:            request.IncludeClosedAccount,
+			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
+			InterestTaxRate:                 request.InterestTaxRate,
+			TotalInterest:                   totalInterest,
+			TotalTax:                        totalTax,
+		}
+		if err := c.core.GeneratedSavingsInterestManager.CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})

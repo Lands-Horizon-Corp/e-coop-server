@@ -327,6 +327,7 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	branchID uuid.UUID,
 	accountID,
 	memberTypeID *uuid.UUID,
+	includeClosedAccounts bool,
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
 	memberAccountingLedger, err := m.MemberAccountingLedgerManager.FindWithSQL(ctx, []registry.FilterSQL{
@@ -338,6 +339,9 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 		return nil, eris.Wrap(err, "failed to find member accounting ledgers by account")
 	}
 	for _, ledger := range memberAccountingLedger {
+		if includeClosedAccounts == false && ledger.MemberProfile.IsClosed {
+			continue
+		}
 		if handlers.UUIDPtrEqual(ledger.MemberProfile.MemberTypeID, memberTypeID) {
 			result = append(result, ledger)
 		}
@@ -346,13 +350,13 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	return result, nil
 }
 
-func (m *Core) MemberAccountingLedgerByBrowseReference(ctx context.Context, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
+func (m *Core) MemberAccountingLedgerByBrowseReference(ctx context.Context, includeClosedAccounts bool, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
 	memberAccountingLedger := []*MemberAccountingLedgerBrowseReference{}
 	for _, browseRef := range data {
 		ledgers, err := m.MemberAccountingLedgerFilterByCriteria(
 			ctx, browseRef.OrganizationID, browseRef.BranchID,
 			browseRef.AccountID,
-			browseRef.MemberTypeID)
+			browseRef.MemberTypeID, includeClosedAccounts)
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to filter member accounting ledgers by browse reference")
 		}

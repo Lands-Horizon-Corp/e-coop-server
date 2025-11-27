@@ -30,7 +30,8 @@ func (e *Event) GenerateSavingsInterestEntries(
 		return nil, eris.Wrap(err, "failed to get browse references")
 	}
 	// Step 2: Get member accounting ledgers using the browse references
-	memberBrowseReferences, err := e.core.MemberAccountingLedgerByBrowseReference(context, browseReferences)
+	memberBrowseReferences, err := e.core.MemberAccountingLedgerByBrowseReference(
+		context, generatedSavingsInterest.IncludeClosedAccount, browseReferences)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get member accounting ledgers by browse reference")
 	}
