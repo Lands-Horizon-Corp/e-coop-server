@@ -94,13 +94,34 @@ func (e *Event) GenerateSavingsInterestEntries(
 
 				result := e.usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
-
 			case core.SavingsComputationTypeAverageDailyBalance:
-			case core.SavingsComputationTypeMonthlyEndLowestBalance:
+				computation := usecase.SavingsInterestComputation{
+					DailyBalance:    dailyBalances,
+					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
+					SavingsType:     usecase.SavingsTypeAverage,
+					AnnualDivisor:   annualDivisor,
+				}
+
+				result := e.usecase.SavingsInterestComputation(computation)
+				savingsComputed = &result
+			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+				computation := usecase.SavingsInterestComputation{
+					DailyBalance:    dailyBalances,
+					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
+					SavingsType:     usecase.SavingsTypeEnd,
+					AnnualDivisor:   annualDivisor,
+				}
+
+				result := e.usecase.SavingsInterestComputation(computation)
+				savingsComputed = &result
+
+			// This finds previous users ADB End
 			case core.SavingsComputationTypeADBEndBalance:
+			case core.SavingsComputationTypeMonthlyEndLowestBalance:
 			case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
 			case core.SavingsComputationTypeMonthlyEndBalanceAverage:
-			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
 			}
 		}
 
