@@ -58,33 +58,52 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if len(dailyBalances) == 0 {
 			continue
 		}
-		// switch memberBrowseRef.BrowseReference.InterestType {
-		// case core.InterestTypeYear:
-		// case core.InterestTypeDate:
-		// case core.InterestTypeAmount:
-		// case core.InterestTypeNone:
-		// }
 		var savingsComputed *usecase.SavingsInterestComputationResult
-		switch generatedSavingsInterest.SavingsComputationType {
-		case core.SavingsComputationTypeDailyLowestBalance:
-			computation := usecase.SavingsInterestComputation{
-				DailyBalance:    dailyBalances,
-				InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
-				InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
-				SavingsType:     usecase.SavingsTypeLowest,
-				AnnualDivisor:   annualDivisor,
-			}
 
-			result := e.usecase.SavingsInterestComputation(computation)
-			savingsComputed = &result
-
-		case core.SavingsComputationTypeAverageDailyBalance:
-		case core.SavingsComputationTypeMonthlyEndLowestBalance:
-		case core.SavingsComputationTypeADBEndBalance:
-		case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
-		case core.SavingsComputationTypeMonthlyEndBalanceAverage:
-		case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+		lastBalance := dailyBalances[len(dailyBalances)-1]
+		if e.provider.Service.Decimal.IsEqual(lastBalance, 0) {
+			continue
 		}
+		if e.provider.Service.Decimal.IsLessThan(lastBalance, memberBrowseRef.BrowseReference.MinimumBalance) {
+			if memberBrowseRef.BrowseReference.Charges == 0 {
+				continue
+			}
+			savingsComputed = &usecase.SavingsInterestComputationResult{
+				Interest:    e.provider.Service.Decimal.Negate(memberBrowseRef.BrowseReference.Charges),
+				InterestTax: 0,
+				EndingBalance: e.provider.Service.Decimal.Subtract(
+					lastBalance,
+					memberBrowseRef.BrowseReference.Charges),
+			}
+		} else {
+			// switch memberBrowseRef.BrowseReference.InterestType {
+			// case core.InterestTypeYear:
+			// case core.InterestTypeDate:
+			// case core.InterestTypeAmount:
+			// case core.InterestTypeNone:
+			// }
+			switch generatedSavingsInterest.SavingsComputationType {
+			case core.SavingsComputationTypeDailyLowestBalance:
+				computation := usecase.SavingsInterestComputation{
+					DailyBalance:    dailyBalances,
+					InterestRate:    memberBrowseRef.BrowseReference.InterestRate,
+					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
+					SavingsType:     usecase.SavingsTypeLowest,
+					AnnualDivisor:   annualDivisor,
+				}
+
+				result := e.usecase.SavingsInterestComputation(computation)
+				savingsComputed = &result
+
+			case core.SavingsComputationTypeAverageDailyBalance:
+			case core.SavingsComputationTypeMonthlyEndLowestBalance:
+			case core.SavingsComputationTypeADBEndBalance:
+			case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
+			case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+			}
+		}
+
 		if savingsComputed == nil {
 			continue
 		}

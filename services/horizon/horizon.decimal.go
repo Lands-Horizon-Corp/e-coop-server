@@ -278,3 +278,19 @@ func (d *DecimalOperations) ClampMax(value, max float64) float64 {
 	}
 	return value
 }
+
+// Negate returns the negative value of a float64
+func (d *DecimalOperations) Negate(value float64) float64 {
+	dec := decimal.NewFromFloat(value)
+	result := dec.Neg()
+	resultFloat, _ := result.Float64()
+	return resultFloat
+}
+
+// NegateInt returns the negative value of an int as float64
+func (d *DecimalOperations) NegateInt(value int) float64 {
+	dec := decimal.NewFromInt(int64(value))
+	result := dec.Neg()
+	resultFloat, _ := result.Float64()
+	return resultFloat
+}
