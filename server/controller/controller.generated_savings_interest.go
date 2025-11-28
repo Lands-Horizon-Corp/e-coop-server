@@ -58,6 +58,37 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
 	})
 
+	// GET /api/v1/generated-savings-interest/:genereated_savings_interest/view
+	req.RegisterRoute(handlers.Route{
+		Method:       "GET",
+		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
+		ResponseType: core.GeneratedSavingsInterestViewResponse{},
+		Note:         "Returns generated savings interest entries for a specific generated savings interest ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
+		}
+		entries, err := c.core.GeneratedSavingsInterestEntryManager.Find(context, &core.GeneratedSavingsInterestEntry{
+			GeneratedSavingsInterestID: *generatedSavingsInterestID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest entries: " + err.Error()})
+		}
+		totalTax, totalInterest := 0.0, 0.0
+
+		for _, entry := range entries {
+			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
+			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+
+		}
+		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
+			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
+			TotalTax:      totalTax,      // You might want to calculate this value
+			TotalInterest: totalInterest, // You might want to calculate this value
+		})
+	})
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generate-savings-interest/view",
