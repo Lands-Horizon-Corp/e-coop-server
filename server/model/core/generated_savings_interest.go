@@ -188,6 +188,7 @@ func (m *Core) generatedSavingsInterest() {
 			"Organization",
 			"Branch",
 			"Account",
+			"Account.Currency",
 			"MemberType",
 			"PrintedByUser", "PostedByUser", "PostAccount",
 		},
