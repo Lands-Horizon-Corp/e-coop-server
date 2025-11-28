@@ -44,8 +44,10 @@ func (t *TransactionService) SavingsInterestComputation(data SavingsInterestComp
 	}
 
 	var balanceForCalculation float64
+	// Get the actual ending balance (last day's balance)
+	actualEndingBalance := data.DailyBalance[len(data.DailyBalance)-1]
 
-	// Determine which balance to use based on SavingsType
+	// Determine which balance to use based on SavingsType for CALCULATION only
 	switch data.SavingsType {
 	case SavingsTypeLowest:
 		// Find the lowest balance in the period using precise decimal comparison
@@ -103,6 +105,7 @@ func (t *TransactionService) SavingsInterestComputation(data SavingsInterestComp
 
 	result.Interest = totalInterest
 	result.InterestTax = totalTax
-	result.EndingBalance = t.provider.Service.Decimal.Add(balanceForCalculation, totalInterest)
+	// EndingBalance = Last day's actual balance + Interest earned
+	result.EndingBalance = t.provider.Service.Decimal.Add(actualEndingBalance, totalInterest)
 	return result
 }

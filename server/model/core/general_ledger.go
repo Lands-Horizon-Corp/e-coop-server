@@ -241,6 +241,7 @@ func (m *Core) generalLedger() {
 			"Account",
 			"Account.Currency",
 			"EmployeeUser",
+			"EmployeeUser.Media",
 			"MemberProfile",
 			"MemberJointAccount",
 			"PaymentType",
@@ -354,7 +355,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 	}
 	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
 		filters = append(filters, registry.FilterSQL{
-			Field: "member_profile_id", Op: registry.OpIsNull, Value: data.MemberProfileID,
+			Field: "member_profile_id", Op: registry.OpEq, Value: data.MemberProfileID,
 		})
 	}
 	sorts := []registry.FilterSortSQL{

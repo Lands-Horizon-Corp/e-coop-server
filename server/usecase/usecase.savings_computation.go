@@ -50,12 +50,15 @@ func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputat
 		balanceForCalculation = highestBalance
 
 	case SavingsTypeAverage:
+		// Calculate average daily balance using precise decimal arithmetic
 		balanceForCalculation = t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) / float64(len(data.DailyBalance))
 
 	case SavingsTypeStart:
+		// Use the first day's balance
 		balanceForCalculation = data.DailyBalance[0]
 
 	case SavingsTypeEnd:
+		// Use the last day's balance
 		balanceForCalculation = data.DailyBalance[len(data.DailyBalance)-1]
 
 	default:
