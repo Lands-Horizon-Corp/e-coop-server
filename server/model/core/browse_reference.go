@@ -108,7 +108,7 @@ type (
 
 		AccountID    *uuid.UUID   `json:"account_id"`
 		MemberTypeID *uuid.UUID   `json:"member_type_id"`
-		InterestType InterestType `json:"interest_type" validate:"required,oneof=year date amount"`
+		InterestType InterestType `json:"interest_type" validate:"required,oneof=year date amount none"`
 
 		DefaultMinimumBalance float64 `json:"default_minimum_balance"`
 		DefaultInterestRate   float64 `json:"default_interest_rate"`
