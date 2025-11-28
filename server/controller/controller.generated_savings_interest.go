@@ -61,7 +61,7 @@ func (c *Controller) generateSavingsInterest() {
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generate-savings-interest/view",
-		ResponseType: core.GeneratedSavingsInterestEntry{},
+		ResponseType: core.GeneratedSavingsInterestViewResponse{},
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
@@ -99,7 +99,18 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
+		totalTax, totalInterest := 0.0, 0.0
+
+		for _, entry := range entries {
+			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
+			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+
+		}
+		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
+			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
+			TotalTax:      totalTax,      // You might want to calculate this value
+			TotalInterest: totalInterest, // You might want to calculate this value
+		})
 	})
 
 	req.RegisterRoute(handlers.Route{

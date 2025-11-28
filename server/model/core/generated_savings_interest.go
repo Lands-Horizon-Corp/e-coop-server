@@ -169,6 +169,12 @@ type (
 		PostAccountID      *uuid.UUID `json:"post_account_id"`
 		EntryDate          *time.Time `json:"entry_date"`
 	}
+
+	GeneratedSavingsInterestViewResponse struct {
+		Entries       []*GeneratedSavingsInterestEntryResponse `json:"entries,omitempty"`
+		TotalTax      float64                                  `json:"total_tax"`
+		TotalInterest float64                                  `json:"total_interest"`
+	}
 )
 
 func (m *Core) generatedSavingsInterest() {
