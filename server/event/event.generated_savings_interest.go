@@ -48,6 +48,8 @@ func (e *Event) GenerateSavingsInterestEntries(
 		//===== STEP 3.1: SETUP TIMEZONE AND DATE RANGE =====
 		currency := memberBrowseRef.MemberAccountingLedger.Account.Currency
 		memberProfile := memberBrowseRef.MemberAccountingLedger.MemberProfile
+		account := memberBrowseRef.MemberAccountingLedger.Account
+
 		loc, err := time.LoadLocation(currency.Timezone)
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to load location")
@@ -231,6 +233,9 @@ func (e *Event) GenerateSavingsInterestEntries(
 		// Skip accounts where no computation was performed
 		if savingsComputed == nil {
 			continue
+		}
+		if account.IsTaxable == false {
+			savingsComputed.InterestTax = 0
 		}
 
 		//===== STEP 3.8: CREATE GENERATED SAVINGS INTEREST ENTRY =====

@@ -290,6 +290,8 @@ type (
 		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
 		InterestAmortization        float64                     `gorm:"type:decimal;default:0" json:"interest_amortization,omitempty"`
 		InterestMaturity            float64                     `gorm:"type:decimal;default:0" json:"interest_maturity,omitempty"`
+
+		IsTaxable bool `gorm:"default:true" json:"is_taxable"`
 	}
 )
 
@@ -413,6 +415,7 @@ type AccountResponse struct {
 
 	InterestAmortization float64 `json:"interest_amortization,omitempty"`
 	InterestMaturity     float64 `json:"interest_maturity,omitempty"`
+	IsTaxable            bool    `json:"is_taxable"`
 }
 
 // AccountRequest represents the request structure for creating/updating accounts
@@ -508,6 +511,7 @@ type AccountRequest struct {
 	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
 	InterestAmortization        float64                     `json:"interest_amortization,omitempty"`
 	InterestMaturity            float64                     `json:"interest_maturity,omitempty"`
+	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
 }
 
 // --- REGISTRATION ---
@@ -631,6 +635,7 @@ func (m *Core) account() {
 				AccountHistoryID:            data.AccountHistoryID,
 				InterestAmortization:        data.InterestAmortization,
 				InterestMaturity:            data.InterestMaturity,
+				IsTaxable:                   data.IsTaxable,
 			}
 		},
 		Created: func(data *Account) []string {
