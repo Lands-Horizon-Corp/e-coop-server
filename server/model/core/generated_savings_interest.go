@@ -105,8 +105,8 @@ type (
 
 		CheckVoucherNumber *string `gorm:"type:varchar(255)" json:"check_voucher_number,omitempty"`
 
-		PostAccountID uuid.UUID `gorm:"type:uuid;not null"`
-		PostAccount   *Account  `gorm:"foreignKey:PostAccountID;constraint:OnDelete:RESTRICT;" json:"post_account,omitempty"`
+		PostAccountID *uuid.UUID `json:"post_account_id,omitempty"`
+		PostAccount   *Account   `json:"post_account,omitempty"`
 
 		// Relationships
 		Entries []*GeneratedSavingsInterestEntry `gorm:"foreignKey:GeneratedSavingsInterestID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"entries,omitempty"`
@@ -146,7 +146,7 @@ type (
 		PostedByUser                    *UserResponse                            `json:"posted_by_user,omitempty"`
 		PostedDate                      *string                                  `json:"posted_date,omitempty"`
 		CheckVoucherNumber              *string                                  `json:"check_voucher_number,omitempty"`
-		PostAccountID                   uuid.UUID                                `json:"post_account_id"`
+		PostAccountID                   *uuid.UUID                               `json:"post_account_id"`
 		PostAccount                     *AccountResponse                         `json:"post_account,omitempty"`
 		Entries                         []*GeneratedSavingsInterestEntryResponse `json:"entries,omitempty"`
 	}
@@ -166,7 +166,7 @@ type (
 
 	GenerateSavingsInterestPostRequest struct {
 		CheckVoucherNumber *string    `json:"check_voucher_number"`
-		PostAccountID      uuid.UUID  `json:"post_account_id" validate:"required"`
+		PostAccountID      *uuid.UUID `json:"post_account_id"`
 		EntryDate          *time.Time `json:"entry_date"`
 	}
 )
