@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -85,6 +86,7 @@ type (
 		MemberEducationalAttainments []*MemberEducationalAttainment `gorm:"foreignKey:MemberProfileID" json:"member_educational_attainments,omitempty"`
 		MemberContactReferences      []*MemberContactReference      `gorm:"foreignKey:MemberProfileID" json:"member_contact_references,omitempty"`
 		MemberCloseRemarks           []*MemberCloseRemark           `gorm:"foreignKey:MemberProfileID" json:"member_close_remarks,omitempty"`
+		BirthPlace                   string                         `gorm:"type:varchar(255)" json:"birth_place,omitempty"`
 
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
@@ -197,6 +199,7 @@ type (
 		BusinessAddress                string     `json:"business_address,omitempty"`
 		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
 		CivilStatus                    string     `json:"civil_status,omitempty"`
+		BirthPlace                     string     `json:"birth_place,omitempty"`
 	}
 
 	// MemberProfileCoordinatesRequest represents the request structure for updating member profile coordinates
@@ -214,6 +217,7 @@ type (
 		Suffix         string     `json:"suffix,omitempty" validate:"max=50"`
 		MemberGenderID *uuid.UUID `json:"member_gender_id,omitempty"`
 		BirthDate      *time.Time `json:"birthdate" validate:"required"`
+		BirthPlace     string     `json:"birth_place,omitempty" validate:"max=255"`
 		ContactNumber  string     `json:"contact_number,omitempty" validate:"max=255"`
 
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
@@ -247,12 +251,6 @@ type (
 		UserID *uuid.UUID `json:"user_id,omitempty"`
 	}
 
-	// MemberProfileMediasRequest represents the request structure for updating member profile media files
-	MemberProfileMediasRequest struct {
-		MediaID          *uuid.UUID `json:"media_id,omitempty"`
-		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
-	}
-
 	// AccountInfo represents the AccountInfo model.
 	AccountInfo struct {
 		UserName string `json:"user_name" validate:"required,min=1,max=255"`
@@ -281,6 +279,7 @@ type (
 		IsMicroFinanceMember bool         `json:"is_micro_finance_member"`
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
+		BirthPlace           string       `json:"birth_place,omitempty" validate:"max=255"`
 	}
 
 	// MemberProfileUserAccountRequest represents the request structure for member user account operations
@@ -297,6 +296,46 @@ type (
 		BirthDate     *time.Time `json:"birthdate" validate:"required"`
 	}
 )
+
+func (m *MemberProfile) Address() string {
+	address := ""
+	if len(m.MemberAddresses) > 0 {
+		addr := m.MemberAddresses[0]
+
+		var b strings.Builder
+		write := func(s string) {
+			if s == "" {
+				return
+			}
+			if b.Len() > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(s)
+		}
+
+		write(addr.Label)
+		write(addr.Address)
+		write(addr.Barangay)
+		write(addr.ProvinceState)
+		write(addr.City)
+		if addr.PostalCode != "" {
+			write(addr.PostalCode)
+		}
+		if addr.CountryCode != "" {
+			write(addr.CountryCode)
+		}
+		// optional landmark appended in parentheses
+		if addr.Landmark != "" {
+			if b.Len() > 0 {
+				b.WriteString(" ")
+			}
+			b.WriteString(fmt.Sprintf("(Landmark: %s)", addr.Landmark))
+		}
+
+		address = b.String()
+	}
+	return address
+}
 
 func (m *Core) memberProfile() {
 	m.Migration = append(m.Migration, &MemberProfile{})

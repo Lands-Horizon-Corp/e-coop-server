@@ -3,11 +3,16 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/divan/num2words"
+
 	"github.com/google/uuid"
+	"github.com/leekchan/accounting"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -121,6 +126,161 @@ func (m *Core) currency() {
 			}
 		},
 	})
+}
+
+func (c *Currency) FormatValue(value float64) string {
+	if c == nil {
+		return fmt.Sprintf("%.2f", value)
+	}
+
+	// currencies that commonly have no decimal places
+	zeroDecimal := map[string]bool{
+		"JPY": true, "KRW": true, "VND": true, "IDR": true,
+	}
+
+	prec := 2
+	if zeroDecimal[c.CurrencyCode] {
+		prec = 0
+	}
+
+	ac := accounting.Accounting{
+		Symbol:    c.Symbol,
+		Precision: prec,
+		Thousand:  ",",
+		Decimal:   ".",
+	}
+	formatted := ac.FormatMoney(value)
+
+	// If symbol is empty, show amount followed by currency code.
+	if c.Symbol == "" {
+		return fmt.Sprintf("%s %s", formatted, c.CurrencyCode)
+	}
+	// Otherwise show symbol (accounting puts symbol in front) and also append currency code for clarity.
+	return fmt.Sprintf("%s %s", formatted, c.CurrencyCode)
+}
+
+// AmountInWordsSimple converts an amount to an English phrase suitable for invoices/receipts.
+// - Uses precise decimal arithmetic.
+// - Handles variable decimal places (0, 2, 3) for global currencies.
+// - Supports special plural rules for accuracy.
+// - Falls back to currency name / code when specific unit names are not known.
+func (c *Currency) AmountInWordsSimple(amount float64) string {
+	if c == nil {
+		i := decimal.NewFromFloat(amount).Abs().Truncate(0).IntPart()
+		words := num2words.Convert(int(i))
+		return strings.Title(words)
+	}
+	// Map for minor digits (decimals); default to 2 if not listed
+	minorDigitsMap := map[string]int{
+		// 0 decimals
+		"BIF": 0, "CLF": 0, "CVE": 0, "DJF": 0, "GNF": 0, "IDR": 0, "ISK": 0, "JPY": 0,
+		"KMF": 0, "KRW": 0, "PYG": 0, "RWF": 0, "UGX": 0, "UYI": 0, "VND": 0, "VUV": 0,
+		"XAF": 0, "XOF": 0, "XPF": 0,
+		// 3 decimals
+		"BHD": 3, "IQD": 3, "JOD": 3, "KWD": 3, "LYD": 3, "OMR": 3, "TND": 3,
+	}
+	minorDigits, ok := minorDigitsMap[c.CurrencyCode]
+	if !ok {
+		minorDigits = 2
+	}
+
+	// Work with exact decimal scaled to minor-units to avoid float/truncate rounding issues.
+	d := decimal.NewFromFloat(amount).Abs()
+	scale := decimal.NewFromInt(1).Shift(int32(minorDigits)) // 10^minorDigits
+	scaled := d.Mul(scale).Round(0)                          // total minor-units rounded to integer
+	scaledInt := scaled.IntPart()
+
+	// Compute major (intPart) and fractional minor units (fracInt) using integer arithmetic
+	pow := int64(1)
+	for i := 0; i < minorDigits; i++ {
+		pow *= 10
+	}
+	intPart := scaledInt / pow
+	var fracInt int64
+	if minorDigits > 0 {
+		fracInt = scaledInt % pow
+	} else {
+		fracInt = 0
+	}
+
+	// Expanded major/minor names (singular forms; extend as needed). Fallback to currency name/code.
+	majorNames := map[string]string{
+		"USD": "Dollar", "EUR": "Euro", "PHP": "Peso", "JPY": "Yen",
+		"GBP": "Pound", "AUD": "Dollar", "CAD": "Dollar", "CHF": "Franc",
+		"CNY": "Yuan", "INR": "Rupee", "SGD": "Dollar",
+		"NZD": "Dollar", "ZAR": "Rand", "NOK": "Krone", "DKK": "Krone",
+		"RUB": "Ruble", "TRY": "Lira", "BND": "Dollar", "CLP": "Peso",
+		"XAF": "Franc", "XOF": "Franc", "XPF": "Franc", "XCD": "Dollar",
+		"FKP": "Pound", "SHP": "Pound", "XCG": "Guilder",
+		"BHD": "Dinar", "IQD": "Dinar", "JOD": "Dinar", "KWD": "Dinar",
+		"LYD": "Dinar", "OMR": "Rial", "TND": "Dinar",
+		// Add more as needed for full coverage
+	}
+	minorNames := map[string]string{
+		"USD": "Cent", "EUR": "Cent", "PHP": "Centavo", "JPY": "Sen",
+		"GBP": "Penny", "AUD": "Cent", "CAD": "Cent", "CHF": "Rappen",
+		"CNY": "Fen", "INR": "Paisa", "SGD": "Cent",
+		"NZD": "Cent", "ZAR": "Cent", "NOK": "Øre", "DKK": "Øre",
+		"RUB": "Kopeck", "TRY": "Kuruş", "BND": "Sen", "CLP": "Centavo",
+		"XAF": "Centime", "XOF": "Centime", "XPF": "Centime", "XCD": "Cent",
+		"FKP": "Penny", "SHP": "Penny", "XCG": "Cent",
+		"BHD": "Fils", "IQD": "Fils", "JOD": "Fils", "KWD": "Fils",
+		"LYD": "Dirham", "OMR": "Baisa", "TND": "Millime",
+		// Add more as needed
+	}
+	majorName := majorNames[c.CurrencyCode]
+	if majorName == "" {
+		// fallback to readable currency name or currency code
+		if c.Name != "" {
+			majorName = c.Name
+		} else {
+			majorName = c.CurrencyCode
+		}
+	}
+	minorName := minorNames[c.CurrencyCode]
+	if minorName == "" {
+		minorName = "Cent"
+	}
+	intWords := num2words.Convert(int(intPart))
+	intWords = strings.Title(intWords)
+	majorLabel := pluralize(majorName, intPart)
+	if minorDigits == 0 || fracInt == 0 {
+		// no minor units or zero fraction
+		return fmt.Sprintf("%s %s Only", intWords, majorLabel)
+	}
+	fracWords := num2words.Convert(int(fracInt))
+	fracWords = strings.Title(fracWords)
+	minorLabel := pluralize(minorName, fracInt)
+	return fmt.Sprintf("%s %s and %s %s", intWords, majorLabel, fracWords, minorLabel)
+}
+
+func pluralize(word string, n int64) string {
+	if n == 1 {
+		return word
+	}
+	lower := strings.ToLower(word)
+	switch lower {
+	case "yen", "fen", "sen", "rappen", "øre", "kuruş", "fils", "baisa", "dirham":
+		return word // invariant plurals
+	case "penny":
+		return "Pence"
+	case "paisa":
+		return "Paise"
+	case "kopeck":
+		return "Kopecks"
+	case "centime":
+		return "Centimes"
+	case "centavo":
+		return "Centavos"
+	case "millime":
+		return "Millimes"
+	case "money", "moneys":
+		return word
+	}
+	if strings.HasSuffix(lower, "y") && !strings.HasSuffix(lower, "ay") && !strings.HasSuffix(lower, "ey") {
+		return strings.TrimSuffix(word, "y") + "ies"
+	}
+	return word + "s"
 }
 
 func (m *Core) currencySeed(context context.Context) error {

@@ -60,6 +60,8 @@ type (
 		FootstepManager                      registry.Registry[Footstep, FootstepResponse, FootstepRequest]
 		GeneratedReportManager               registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]
 		GeneratedReportsDownloadUsersManager registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]
+		GeneratedSavingsInterestManager      registry.Registry[GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest]
+		GeneratedSavingsInterestEntryManager registry.Registry[GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest]
 		InvitationCodeManager                registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]
 		MediaManager                         registry.Registry[Media, MediaResponse, MediaRequest]
 		NotificationManager                  registry.Registry[Notification, NotificationResponse, any]
@@ -73,7 +75,7 @@ type (
 		UserManager                          registry.Registry[User, UserResponse, UserRegisterRequest]
 		UserRatingManager                    registry.Registry[UserRating, UserRatingResponse, UserRatingRequest]
 		MemberProfileMediaManager            registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
-
+		MemberProfileArchiveManager          registry.Registry[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]
 		// Members
 		MemberAddressManager                registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest]
 		MemberAssetManager                  registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest]
@@ -171,23 +173,21 @@ type (
 		LoanTermsAndConditionSuggestedPaymentManager registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest]
 		LoanTermsAndConditionAmountReceiptManager    registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest]
 		LoanPurposeManager                           registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
+		LoanAccountManager                           registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest]
 
 		// Maintenance
-		CollateralManager                                                   registry.Registry[Collateral, CollateralResponse, CollateralRequest]
-		TagTemplateManager                                                  registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest]
-		HolidayManager                                                      registry.Registry[Holiday, HolidayResponse, HolidayRequest]
-		GroceryComputationSheetManager                                      registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
-		GroceryComputationSheetMonthlyManager                               registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
-		InterestRateSchemeManager                                           registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
-		InterestRateByTermsHeaderManager                                    registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
-		InterestRateByTermManager                                           registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
-		InterestRatePercentageManager                                       registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
-		MemberTypeReferenceManager                                          registry.Registry[MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest]
-		MemberTypeReferenceByAmountManager                                  registry.Registry[MemberTypeReferenceByAmount, MemberTypeReferenceByAmountResponse, MemberTypeReferenceByAmountRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDateManager        registry.Registry[MemberTypeReferenceInterestRateByUltimaMembershipDate, MemberTypeReferenceInterestRateByUltimaMembershipDateResponse, MemberTypeReferenceInterestRateByUltimaMembershipDateRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager registry.Registry[MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest]
-		MemberDeductionEntryManager                                         registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
-		PostDatedCheckManager                                               registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
+		CollateralManager                     registry.Registry[Collateral, CollateralResponse, CollateralRequest]
+		TagTemplateManager                    registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest]
+		HolidayManager                        registry.Registry[Holiday, HolidayResponse, HolidayRequest]
+		GroceryComputationSheetManager        registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
+		GroceryComputationSheetMonthlyManager registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
+		InterestRateSchemeManager             registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
+		InterestRateByTermsHeaderManager      registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
+		InterestRateByTermManager             registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
+		InterestRatePercentageManager         registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
+
+		MemberDeductionEntryManager registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
+		PostDatedCheckManager       registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
 
 		// TIME DEPOSIT
 		TimeDepositTypeManager                   registry.Registry[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
@@ -212,6 +212,10 @@ type (
 
 		FundsManager                          registry.Registry[Funds, FundsResponse, FundsRequest]
 		ChargesRateSchemeModeOfPaymentManager registry.Registry[ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest]
+		BrowseReferenceManager                registry.Registry[BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest]
+		InterestRateByYearManager             registry.Registry[InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest]
+		InterestRateByDateManager             registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest]
+		InterestRateByAmountManager           registry.Registry[InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest]
 	}
 )
 
@@ -236,6 +240,7 @@ func (m *Core) Start() error {
 	m.billAndCoins()
 	m.branch()
 	m.browseExcludeIncludeAccounts()
+	m.browseReference()
 	m.cashCheckVoucher()
 	m.cashCheckVoucherEntry()
 	m.cashCheckVoucherTag()
@@ -266,6 +271,8 @@ func (m *Core) Start() error {
 	m.generalLedgerAccountsGrouping()
 	m.generatedReport()
 	m.generatedReportsDownloadUsers()
+	m.generatedSavingsInterest()
+	m.generateSavingsInterestEntry()
 	m.generalLedgerDefinition()
 	m.account()
 	m.accountTag()
@@ -276,6 +283,9 @@ func (m *Core) Start() error {
 	m.includeNegativeAccount()
 	m.interestMaturity()
 	m.interestRateByTerm()
+	m.interestRateByYear()
+	m.interestRateByDate()
+	m.interestRateByAmount()
 	m.interestRateByTermsHeader()
 	m.interestRatePercentage()
 	m.interestRateScheme()
@@ -297,6 +307,7 @@ func (m *Core) Start() error {
 	m.loanTermsAndConditionSuggestedPayment()
 	m.loanTransactionEntry()
 	m.loanTransaction()
+	m.loanAccount()
 	m.media()
 	m.memberAccountingLedger()
 	m.memberAddress()
@@ -328,10 +339,7 @@ func (m *Core) Start() error {
 	m.memberRelativeAccount()
 	m.memberType()
 	m.memberTypeHistory()
-	m.memberTypeReferenceByAmount()
-	m.memberTypeReference()
-	m.memberTypeReferenceInterestRateByUltimaMembershipDate()
-	m.memberTypeReferenceInterestRateByUltimaMembershipDatePerYear()
+
 	m.memberVerification()
 	m.notification()
 	m.onlineRemittance()
@@ -362,6 +370,8 @@ func (m *Core) Start() error {
 	m.chargesRateSchemeModeOfPayment()
 	m.branchSetting()
 	m.company()
+	m.memberProfileArchive()
+
 	return nil
 }
 func (m *Core) GlobalSeeder(ctx context.Context) error {
@@ -440,6 +450,9 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 		return err
 	}
 	if err := m.loanStatusSeed(context, tx, userID, organizationID, branchID); err != nil {
+		return err
+	}
+	if err := m.permissionTemplateSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	userOrg, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{

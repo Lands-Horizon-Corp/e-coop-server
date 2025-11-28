@@ -45,7 +45,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsWithTx(ctx context.Context,
 
 // ExistsByID checks if a record exists by its ID.
 // Most optimal for single ID lookups.
-func (r *Registry[TData, TResponse, TRequest]) ExistsByID(ctx context.Context, id interface{}) (bool, error) {
+func (r *Registry[TData, TResponse, TRequest]) ExistsByID(ctx context.Context, id any) (bool, error) {
 	var exists bool
 
 	subQuery := r.Client(ctx).Model(new(TData)).Select("1").Where("id = ?", id).Limit(1)
@@ -59,7 +59,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsByID(ctx context.Context, i
 }
 
 // ExistsByIDWithTx checks if a record exists by its ID using a transaction.
-func (r *Registry[TData, TResponse, TRequest]) ExistsByIDWithTx(ctx context.Context, tx *gorm.DB, id interface{}) (bool, error) {
+func (r *Registry[TData, TResponse, TRequest]) ExistsByIDWithTx(ctx context.Context, tx *gorm.DB, id any) (bool, error) {
 	var exists bool
 
 	subQuery := tx.WithContext(ctx).Model(new(TData)).Select("1").Where("id = ?", id).Limit(1)

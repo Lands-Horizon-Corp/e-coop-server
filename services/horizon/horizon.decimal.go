@@ -14,6 +14,11 @@ func NewDecimalHelper() *DecimalOperations {
 	return &DecimalOperations{}
 }
 
+// NewFromFloat converts float64 to decimal.Decimal for precise calculations
+func (d *DecimalOperations) NewFromFloat(value float64) decimal.Decimal {
+	return decimal.NewFromFloat(value)
+}
+
 // NewDecimal converts float64 to decimal.Decimal for precise calculations
 func (d *DecimalOperations) NewDecimal(value float64) decimal.Decimal {
 	return decimal.NewFromFloat(value)
@@ -189,6 +194,20 @@ func (d *DecimalOperations) IsLessThan(a, b float64) bool {
 	return decA.LessThan(decB)
 }
 
+// IsGreaterThanOrEqual checks if a >= b with decimal precision
+func (d *DecimalOperations) IsGreaterThanOrEqual(a, b float64) bool {
+	decA := decimal.NewFromFloat(a)
+	decB := decimal.NewFromFloat(b)
+	return decA.GreaterThanOrEqual(decB)
+}
+
+// IsLessThanOrEqual checks if a <= b with decimal precision
+func (d *DecimalOperations) IsLessThanOrEqual(a, b float64) bool {
+	decA := decimal.NewFromFloat(a)
+	decB := decimal.NewFromFloat(b)
+	return decA.LessThanOrEqual(decB)
+}
+
 // Abs returns the absolute value
 func (d *DecimalOperations) Abs(value float64) float64 {
 	dec := decimal.NewFromFloat(value)
@@ -272,4 +291,20 @@ func (d *DecimalOperations) ClampMax(value, max float64) float64 {
 		return max
 	}
 	return value
+}
+
+// Negate returns the negative value of a float64
+func (d *DecimalOperations) Negate(value float64) float64 {
+	dec := decimal.NewFromFloat(value)
+	result := dec.Neg()
+	resultFloat, _ := result.Float64()
+	return resultFloat
+}
+
+// NegateInt returns the negative value of an int as float64
+func (d *DecimalOperations) NegateInt(value int) float64 {
+	dec := decimal.NewFromInt(int64(value))
+	result := dec.Neg()
+	resultFloat, _ := result.Float64()
+	return resultFloat
 }

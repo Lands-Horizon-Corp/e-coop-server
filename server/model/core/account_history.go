@@ -402,10 +402,11 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		return nil
 	}
 	return &Account{
-		ID:        data.AccountID, // Use the original account ID
-		CreatedAt: data.CreatedAt,
-		UpdatedAt: data.UpdatedAt,
-		DeletedAt: gorm.DeletedAt{}, // History doesn't track deletion state of original
+		ID:               data.AccountID, // Use the original account ID
+		AccountHistoryID: &data.ID,       // Use the original account ID
+		CreatedAt:        data.CreatedAt,
+		UpdatedAt:        data.UpdatedAt,
+		DeletedAt:        gorm.DeletedAt{}, // History doesn't track deletion state of original
 
 		// Organization and branch references
 		OrganizationID: data.OrganizationID,

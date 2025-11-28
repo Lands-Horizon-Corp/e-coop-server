@@ -119,24 +119,30 @@ func (e *Event) ComputationSheetCalculator(
 			continue
 		}
 		entry := &core.LoanTransactionEntry{
-			Credit:  0,
-			Debit:   0,
-			Name:    ald.Name,
-			Type:    core.LoanTransactionDeduction,
-			IsAddOn: ald.AddOn,
-			Account: ald.Account,
+			Credit:                 0,
+			Debit:                  0,
+			Name:                   ald.Name,
+			Type:                   core.LoanTransactionDeduction,
+			IsAddOn:                ald.AddOn,
+			Account:                ald.Account,
+			AutomaticLoanDeduction: ald,
 		}
-		if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-			chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(context, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+		if ald.ChargesRateSchemeID != nil { // Use ald instead of entry.AutomaticLoanDeduction
+			chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(context, *ald.ChargesRateSchemeID)
 			if err != nil {
 				return nil, eris.Wrap(err, fmt.Sprintf("failed to get charges rate scheme for automatic loan deduction ID %s", ald.ID))
 			}
+
+			// Create MemberProfile with proper nil handling
+			memberProfile := &core.MemberProfile{}
+			if lcscr.MemberTypeID != nil {
+				memberProfile.MemberTypeID = lcscr.MemberTypeID
+			}
+
 			entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, core.LoanTransaction{
-				Applied1: lcscr.Applied1,
-				Terms:    lcscr.Terms,
-				MemberProfile: &core.MemberProfile{
-					MemberTypeID: lcscr.MemberTypeID,
-				},
+				Applied1:      lcscr.Applied1,
+				Terms:         lcscr.Terms,
+				MemberProfile: memberProfile,
 			})
 
 		}

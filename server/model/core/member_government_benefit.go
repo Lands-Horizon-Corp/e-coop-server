@@ -41,11 +41,9 @@ type (
 		CountryCode string     `gorm:"type:varchar(4)"`
 		Description string     `gorm:"type:text"`
 		Name        string     `gorm:"type:varchar(254)"`
-		Value       string     `gorm:"type:varchar(254);unique;not null"`
+		Value       string     `gorm:"type:varchar(254);default:''"`
 		ExpiryDate  *time.Time `gorm:"type:date"`
 	}
-
-	// MemberGovernmentBenefitResponse represents the response structure for membergovernmentbenefit data
 
 	// MemberGovernmentBenefitResponse represents the response structure for MemberGovernmentBenefit.
 	MemberGovernmentBenefitResponse struct {

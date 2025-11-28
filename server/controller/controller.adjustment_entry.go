@@ -165,6 +165,8 @@ func (c *Controller) adjustmentEntryController() {
 			AccountID:          req.AccountID,
 			MemberProfileID:    req.MemberProfileID,
 			TransactionBatchID: transactionBatch.ID,
+
+			LoanTransactionID: req.LoanTransactionID,
 			// Transaction metadata
 			ReferenceNumber:       req.ReferenceNumber,
 			Description:           req.Description,
@@ -326,6 +328,7 @@ func (c *Controller) adjustmentEntryController() {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
+			IsBalanced:  balance.IsBalanced,
 		})
 	})
 
@@ -406,6 +409,7 @@ func (c *Controller) adjustmentEntryController() {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
+			IsBalanced:  balance.IsBalanced,
 		})
 	})
 
@@ -495,6 +499,7 @@ func (c *Controller) adjustmentEntryController() {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
+			IsBalanced:  balance.IsBalanced,
 		})
 	})
 

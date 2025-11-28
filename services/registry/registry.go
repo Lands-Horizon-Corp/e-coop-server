@@ -34,7 +34,7 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 func NewRegistry[TData any, TResponse any, TRequest any](
 	params RegistryParams[TData, TResponse, TRequest],
 ) *Registry[TData, TResponse, TRequest] {
-	maxDepth := 2
+	maxDepth := 1
 	return &Registry[TData, TResponse, TRequest]{
 		service:  params.Service,
 		created:  params.Created,

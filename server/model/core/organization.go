@@ -39,6 +39,12 @@ type (
 		UserAgreement      *string `gorm:"type:text" json:"user_agreement,omitempty"`
 		IsPrivate          bool    `gorm:"default:false" json:"is_private"`
 
+		InstagramLink       *string `gorm:"type:varchar(255)" json:"instagram_link,omitempty"`
+		FacebookLink        *string `gorm:"type:varchar(255)" json:"facebook_link,omitempty"`
+		YoutubeLink         *string `gorm:"type:varchar(255)" json:"youtube_link,omitempty"`
+		PersonalWebsiteLink *string `gorm:"type:varchar(255)" json:"personal_website_link,omitempty"`
+		XLink               *string `gorm:"type:varchar(255)" json:"x_link,omitempty"`
+
 		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id,omitempty"`
 		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 
@@ -87,6 +93,12 @@ type (
 		UserAgreement      *string `json:"user_agreement,omitempty"`
 		IsPrivate          bool    `json:"is_private,omitempty"`
 
+		InstagramLink       *string `json:"instagram_link,omitempty"`
+		FacebookLink        *string `json:"facebook_link,omitempty"`
+		YoutubeLink         *string `json:"youtube_link,omitempty"`
+		PersonalWebsiteLink *string `json:"personal_website_link,omitempty"`
+		XLink               *string `json:"x_link,omitempty"`
+
 		MediaID      *uuid.UUID     `json:"media_id,omitempty"`
 		Media        *MediaResponse `json:"media,omitempty"`
 		CoverMediaID *uuid.UUID     `json:"cover_media_id,omitempty"`
@@ -128,6 +140,12 @@ type (
 		RefundPolicy       *string `json:"refund_policy,omitempty"`
 		UserAgreement      *string `json:"user_agreement,omitempty"`
 		IsPrivate          bool    `json:"is_private,omitempty"`
+
+		InstagramLink       *string `json:"instagram_link,omitempty" validate:"omitempty,url"`
+		FacebookLink        *string `json:"facebook_link,omitempty" validate:"omitempty,url"`
+		YoutubeLink         *string `json:"youtube_link,omitempty" validate:"omitempty,url"`
+		PersonalWebsiteLink *string `json:"personal_website_link,omitempty" validate:"omitempty,url"`
+		XLink               *string `json:"x_link,omitempty" validate:"omitempty,url"`
 
 		MediaID      *uuid.UUID `json:"media_id,omitempty"`
 		CoverMediaID *uuid.UUID `json:"cover_media_id,omitempty"`
@@ -195,6 +213,12 @@ func (m *Core) organization() {
 				RefundPolicy:       data.RefundPolicy,
 				UserAgreement:      data.UserAgreement,
 				IsPrivate:          data.IsPrivate,
+
+				InstagramLink:       data.InstagramLink,
+				FacebookLink:        data.FacebookLink,
+				YoutubeLink:         data.YoutubeLink,
+				PersonalWebsiteLink: data.PersonalWebsiteLink,
+				XLink:               data.XLink,
 
 				MediaID:    data.MediaID,
 				Media:      m.MediaManager.ToModel(data.Media),

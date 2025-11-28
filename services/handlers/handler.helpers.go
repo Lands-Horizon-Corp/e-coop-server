@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"math"
 	"math/big"
 	"net"
 	"net/http"
@@ -613,4 +614,76 @@ func SetID[T any](entity *T, id uuid.UUID) error {
 
 	idField.Set(reflect.ValueOf(id))
 	return nil
+}
+
+func UnitToInches(value float64, unit string) (float64, error) {
+	unit = strings.ToLower(strings.TrimSpace(unit))
+	switch unit {
+	case "mm":
+		return value / 25.4, nil
+	case "cm":
+		return value / 2.54, nil
+	case "m", "meter", "meters":
+		return value * 39.3701, nil
+	case "km", "kilometer", "kilometers":
+		return value * 39370.1, nil
+	case "in", "inch", "inches":
+		return value, nil
+	case "ft", "foot", "feet":
+		return value * 12, nil
+	case "yd", "yard", "yards":
+		return value * 36, nil
+	case "mi", "mile", "miles":
+		return value * 63360, nil
+	case "px", "pixel", "pixels":
+		return value / 96.0, nil
+	case "pt", "point", "points":
+		return value / 72.0, nil
+	case "pc", "pica", "picas":
+		return value / 6.0, nil
+	case "dp", "dip", "density-independent-pixel":
+		return value / 96.0, nil
+	case "twip", "twips":
+		return value / 1440.0, nil
+	case "em":
+		return (value * 16.0) / 96.0, nil
+	case "rem":
+		return (value * 16.0) / 96.0, nil
+	case "f", "ftin", "feet-inches", "foot-inch":
+		feet := math.Floor(value)
+		inches := (value - feet) * 12
+		return feet*12 + inches, nil
+	default:
+		return 0, errors.New("unsupported unit: " + unit)
+	}
+}
+func ToReadableDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	// If time component is zero, return date only; otherwise include time
+	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
+		return t.Format("January 2, 2006")
+	}
+	return t.Format("January 2, 2006 3:04 PM")
+}
+
+func AddMonthsPreserveDay(t time.Time, months int) time.Time {
+	year := t.Year()
+	month := int(t.Month())
+	day := t.Day()
+
+	month += months
+	year += (month - 1) / 12
+	month = (month-1)%12 + 1
+
+	loc := t.Location()
+	// first day of target month
+	firstOfTarget := time.Date(year, time.Month(month), 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
+	// last day of target month
+	lastOfTarget := firstOfTarget.AddDate(0, 1, -1).Day()
+	if day > lastOfTarget {
+		day = lastOfTarget
+	}
+	return time.Date(year, time.Month(month), day, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
 }

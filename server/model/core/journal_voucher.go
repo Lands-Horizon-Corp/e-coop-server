@@ -161,7 +161,7 @@ func (m *Core) journalVoucher() {
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"JournalVoucherTags",
-			"JournalVoucherEntries", "JournalVoucherEntries.Account",
+			"JournalVoucherEntries", "JournalVoucherEntries.Account", "JournalVoucherEntries.LoanTransaction",
 			"JournalVoucherEntries.Account.Currency",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
@@ -169,14 +169,6 @@ func (m *Core) journalVoucher() {
 		Resource: func(data *JournalVoucher) *JournalVoucherResponse {
 			if data == nil {
 				return nil
-			}
-
-			// Calculate totals
-			totalDebit := 0.0
-			totalCredit := 0.0
-			for _, entry := range data.JournalVoucherEntries {
-				totalDebit = m.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-				totalCredit = m.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 			}
 
 			var postedAt *string
@@ -237,9 +229,9 @@ func (m *Core) journalVoucher() {
 				ReleasedByID:          data.ReleasedByID,
 				ReleasedBy:            m.UserManager.ToModel(data.ReleasedBy),
 				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
-				JournalVoucherEntries: m.mapJournalVoucherEntries(data.JournalVoucherEntries),
-				TotalDebit:            totalDebit,
-				TotalCredit:           totalCredit,
+				JournalVoucherEntries: m.JournalVoucherEntryManager.ToModels(data.JournalVoucherEntries),
+				TotalDebit:            data.TotalDebit,
+				TotalCredit:           data.TotalCredit,
 			}
 		},
 		Created: func(data *JournalVoucher) []string {
@@ -275,21 +267,6 @@ func (m *Core) JournalVoucherCurrentBranch(context context.Context, organization
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
-}
-
-// Helper function to map journal voucher entries
-func (m *Core) mapJournalVoucherEntries(entries []*JournalVoucherEntry) []*JournalVoucherEntryResponse {
-	if entries == nil {
-		return nil
-	}
-
-	var result []*JournalVoucherEntryResponse
-	for _, entry := range entries {
-		if entry != nil {
-			result = append(result, m.JournalVoucherEntryManager.ToModel(entry))
-		}
-	}
-	return result
 }
 
 // ValidateJournalVoucherBalance validates that journal voucher entries are balanced (debits equal credits)

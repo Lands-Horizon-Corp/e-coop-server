@@ -45,6 +45,8 @@ type BalanceResponse struct {
 	LastDebit   *time.Time
 
 	AddOnAmount float64
+
+	IsBalanced bool
 }
 
 func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
@@ -109,15 +111,6 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 				}
 			}
 
-			if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeDeduct {
-				deductions = t.provider.Service.Decimal.Add(deductions, entry.Debit+entry.Credit)
-				countDeductions++
-			}
-			if entry.LoanAdjustmentType != nil && *entry.LoanAdjustmentType == core.LoanAdjustmentTypeAdd {
-				added = t.provider.Service.Decimal.Add(added, entry.Credit+entry.Debit)
-				countAdded++
-			}
-
 			switch entry.Account.GeneralLedgerType {
 			case core.GLTypeAssets, core.GLTypeExpenses:
 				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
@@ -133,9 +126,10 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 		for _, entry := range data.AdjustmentEntries {
 			if entry == nil {
 				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
+					Credit:     credit,
+					Debit:      debit,
+					Balance:    balance,
+					IsBalanced: true,
 				}, eris.New("nil adjustment entry")
 			}
 			// Skip if AccountID filter is set and doesn't match
@@ -266,6 +260,7 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	}
 
 	return BalanceResponse{
+		IsBalanced:      t.provider.Service.Decimal.IsEqual(credit, debit),
 		Credit:          credit,
 		Debit:           debit,
 		Balance:         balance,

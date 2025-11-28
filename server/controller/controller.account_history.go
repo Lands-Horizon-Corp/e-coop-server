@@ -168,7 +168,7 @@ func (c *Controller) accountHistory() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 			}
 
-			return ctx.JSON(http.StatusOK, account)
+			return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 		})
 
 }

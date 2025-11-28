@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"regexp"
+	"runtime/debug"
 	"strings"
 )
 
@@ -14,13 +16,50 @@ func NewRouteHandlerExtractor[T any](url string) *RouteHandlerExtractor[T] {
 	return &RouteHandlerExtractor[T]{URL: url}
 }
 
-func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params ...string) (T, error)) (T, error) {
-	pathParts := strings.Split(strings.Trim(r.URL, "/"), "/")
-	patternParts := strings.Split(strings.Trim(route, "/"), "/")
-	regexMatch := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+var allowedSegment = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
+// splitPath normalizes a URL/route by removing query/fragment, trimming slashes
+// and returning path segments. It handles values with or without a leading slash,
+// and the root path "/" becomes an empty slice.
+func splitPath(s string) []string {
+	if s == "" {
+		return []string{}
+	}
+	// remove query and fragment if present
+	if idx := strings.IndexAny(s, "?#"); idx != -1 {
+		s = s[:idx]
+	}
+	// trim whitespace and slashes
+	s = strings.TrimSpace(s)
+	s = strings.Trim(s, "/")
+	if s == "" {
+		return []string{}
+	}
+	return strings.Split(s, "/")
+}
+
+func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params ...string) (T, error)) (T, error) {
 	var zeroValue T
+
+	// defensive checks to avoid nil deref panics
+	if r == nil {
+		return zeroValue, fmt.Errorf("RouteHandlerExtractor receiver is nil")
+	}
+	if r.URL == "" {
+		return zeroValue, fmt.Errorf("extractor URL is empty")
+	}
+	if route == "" {
+		return zeroValue, fmt.Errorf("route is empty")
+	}
+	if fn == nil {
+		return zeroValue, fmt.Errorf("handler function is nil")
+	}
+
+	pathParts := splitPath(r.URL)
+	patternParts := splitPath(route)
+
 	if len(patternParts) != len(pathParts) {
+		// not a match (preserve previous behavior of returning zero value and no error)
 		return zeroValue, nil
 	}
 
@@ -29,7 +68,7 @@ func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params .
 		pp := patternParts[i]
 		mp := pathParts[i]
 		if strings.HasPrefix(pp, ":") {
-			if !regexMatch.MatchString(mp) {
+			if !allowedSegment.MatchString(mp) {
 				return zeroValue, nil
 			}
 			params = append(params, mp)
@@ -39,5 +78,21 @@ func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params .
 			return zeroValue, nil
 		}
 	}
-	return fn(params...)
+
+	// call handler safely: recover from panics inside fn and return an error instead of crashing
+	var res T
+	var err error
+	func() {
+		defer func() {
+			if rcv := recover(); rcv != nil {
+				err = fmt.Errorf("panic in route handler: %v\n%s", rcv, debug.Stack())
+			}
+		}()
+		res, err = fn(params...)
+	}()
+	if err != nil {
+		// if the handler returned an error or we recovered from panic, propagate it
+		return zeroValue, err
+	}
+	return res, nil
 }

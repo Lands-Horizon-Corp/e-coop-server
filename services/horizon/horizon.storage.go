@@ -205,6 +205,11 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 		return nil, eris.Wrapf(err, "failed to stat %s", path)
 	}
 
+	// Validate file size
+	if h.maxFileSize > 0 && info.Size() > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", info.Size(), h.maxFileSize)
+	}
+
 	buf := make([]byte, 512)
 	_, err = file.Read(buf)
 	if err != nil && err != io.EOF {
@@ -252,6 +257,11 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 
 // UploadFromBinary uploads a file from binary data to the storage service
 func (h *StorageImpl) UploadFromBinary(ctx context.Context, data []byte, cb ProgressCallback) (*Storage, error) {
+	// Validate file size
+	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
+	}
+
 	contentType := http.DetectContentType(data)
 	fileName, err := h.GenerateUniqueName(ctx, "file", contentType)
 	if err != nil {
@@ -330,6 +340,11 @@ func (h *StorageImpl) UploadFromURL(ctx context.Context, url string, cb Progress
 		return nil, eris.Wrap(err, "failed to read file data from URL response")
 	}
 
+	// Validate file size
+	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
+	}
+
 	fileName, err = h.GenerateUniqueName(ctx, fileName, contentType)
 	if err != nil {
 		return nil, err
@@ -369,6 +384,11 @@ func (h *StorageImpl) UploadFromURL(ctx context.Context, url string, cb Progress
 
 // UploadFromHeader uploads a file from a multipart header to the storage service
 func (h *StorageImpl) UploadFromHeader(ctx context.Context, header *multipart.FileHeader, cb ProgressCallback) (*Storage, error) {
+	// Validate file size
+	if h.maxFileSize > 0 && header.Size > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", header.Size, h.maxFileSize)
+	}
+
 	file, err := header.Open()
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to open multipart file")
@@ -445,6 +465,11 @@ func (h *StorageImpl) DeleteFile(ctx context.Context, storage *Storage) error {
 
 // Add new method implementation
 func (h *StorageImpl) UploadFromBinaryWithContentType(ctx context.Context, data []byte, fileName string, contentType string, cb ProgressCallback) (*Storage, error) {
+	// Validate file size
+	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
+		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
+	}
+
 	uniqueFileName, err := h.GenerateUniqueName(ctx, fileName, contentType)
 	if err != nil {
 		return nil, err
@@ -534,5 +559,5 @@ func (h *StorageImpl) GenerateUniqueName(_ context.Context, original string, con
 		ext = handlers.GetExtensionFromContentType(contentType)
 	}
 
-	return fmt.Sprintf("%s%d-%s%s", h.prefix, time.Now().UnixNano(), base, ext), nil
+	return fmt.Sprintf("%s%s-%d%s", h.prefix, base, time.Now().UnixNano(), ext), nil
 }

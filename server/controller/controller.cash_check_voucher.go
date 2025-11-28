@@ -281,18 +281,15 @@ func (c *Controller) cashCheckVoucherController() {
 			PaidBySignatureMediaID:        request.PaidBySignatureMediaID,
 			PaidByName:                    request.PaidByName,
 			PaidByPosition:                request.PaidByPosition,
-			CheckEntryAmount:              request.CheckEntryAmount,
-			CheckEntryCheckNumber:         request.CheckEntryCheckNumber,
-			CheckEntryCheckDate:           request.CheckEntryCheckDate,
-			CheckEntryAccountID:           request.CheckEntryAccountID,
-			CreatedAt:                     time.Now().UTC(),
-			CreatedByID:                   userOrg.UserID,
-			UpdatedAt:                     time.Now().UTC(),
-			UpdatedByID:                   userOrg.UserID,
-			BranchID:                      *userOrg.BranchID,
-			OrganizationID:                userOrg.OrganizationID,
-			Name:                          request.Name,
-			CurrencyID:                    request.CurrencyID,
+
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    userOrg.UserID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    userOrg.UserID,
+			BranchID:       *userOrg.BranchID,
+			OrganizationID: userOrg.OrganizationID,
+			Name:           request.Name,
+			CurrencyID:     request.CurrencyID,
 		}
 
 		// Save cash check voucher first
@@ -308,20 +305,20 @@ func (c *Controller) cashCheckVoucherController() {
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				entry := &core.CashCheckVoucherEntry{
-					AccountID:              entryReq.AccountID,
-					EmployeeUserID:         &userOrg.UserID,
-					CashCheckVoucherID:     cashCheckVoucher.ID,
-					Debit:                  entryReq.Debit,
-					Credit:                 entryReq.Credit,
-					Description:            entryReq.Description,
-					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            userOrg.UserID,
-					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            userOrg.UserID,
-					BranchID:               *userOrg.BranchID,
-					OrganizationID:         userOrg.OrganizationID,
-					CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
-					MemberProfileID:        entryReq.MemberProfileID,
+					AccountID:          entryReq.AccountID,
+					EmployeeUserID:     &userOrg.UserID,
+					CashCheckVoucherID: cashCheckVoucher.ID,
+					Debit:              entryReq.Debit,
+					Credit:             entryReq.Credit,
+					Description:        entryReq.Description,
+					CreatedAt:          time.Now().UTC(),
+					CreatedByID:        userOrg.UserID,
+					UpdatedAt:          time.Now().UTC(),
+					UpdatedByID:        userOrg.UserID,
+					BranchID:           *userOrg.BranchID,
+					OrganizationID:     userOrg.OrganizationID,
+					LoanTransactionID:  entryReq.LoanTransactionID,
+					MemberProfileID:    entryReq.MemberProfileID,
 				}
 
 				if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -455,10 +452,6 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.PaidBySignatureMediaID = request.PaidBySignatureMediaID
 		cashCheckVoucher.PaidByName = request.PaidByName
 		cashCheckVoucher.PaidByPosition = request.PaidByPosition
-		cashCheckVoucher.CheckEntryAmount = request.CheckEntryAmount
-		cashCheckVoucher.CheckEntryCheckNumber = request.CheckEntryCheckNumber
-		cashCheckVoucher.CheckEntryCheckDate = request.CheckEntryCheckDate
-		cashCheckVoucher.CheckEntryAccountID = request.CheckEntryAccountID
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.Name = request.Name
@@ -507,7 +500,7 @@ func (c *Controller) cashCheckVoucherController() {
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = userOrg.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
-					entry.CashCheckVoucherNumber = entryReq.CashCheckVoucherNumber
+					entry.LoanTransactionID = entryReq.LoanTransactionID
 					if err := c.core.CashCheckVoucherEntryManager.UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						c.event.Footstep(ctx, event.FootstepEvent{
 							Activity:    "update-error",
@@ -518,20 +511,20 @@ func (c *Controller) cashCheckVoucherController() {
 					}
 				} else {
 					entry := &core.CashCheckVoucherEntry{
-						AccountID:              entryReq.AccountID,
-						EmployeeUserID:         &userOrg.UserID,
-						CashCheckVoucherID:     cashCheckVoucher.ID,
-						Debit:                  entryReq.Debit,
-						Credit:                 entryReq.Credit,
-						Description:            entryReq.Description,
-						CreatedAt:              time.Now().UTC(),
-						CreatedByID:            userOrg.UserID,
-						UpdatedAt:              time.Now().UTC(),
-						UpdatedByID:            userOrg.UserID,
-						BranchID:               *userOrg.BranchID,
-						OrganizationID:         userOrg.OrganizationID,
-						CashCheckVoucherNumber: entryReq.CashCheckVoucherNumber,
-						MemberProfileID:        entryReq.MemberProfileID,
+						AccountID:          entryReq.AccountID,
+						EmployeeUserID:     &userOrg.UserID,
+						CashCheckVoucherID: cashCheckVoucher.ID,
+						Debit:              entryReq.Debit,
+						Credit:             entryReq.Credit,
+						Description:        entryReq.Description,
+						CreatedAt:          time.Now().UTC(),
+						CreatedByID:        userOrg.UserID,
+						UpdatedAt:          time.Now().UTC(),
+						UpdatedByID:        userOrg.UserID,
+						BranchID:           *userOrg.BranchID,
+						OrganizationID:     userOrg.OrganizationID,
+						LoanTransactionID:  entryReq.LoanTransactionID,
+						MemberProfileID:    entryReq.MemberProfileID,
 					}
 
 					if err := c.core.CashCheckVoucherEntryManager.CreateWithTx(context, tx, entry); err != nil {
@@ -866,6 +859,7 @@ func (c *Controller) cashCheckVoucherController() {
 				BankID:                nil,
 				ProofOfPaymentMediaID: nil,
 				TransactionBatchID:    transactionBatch.ID,
+				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
 			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---

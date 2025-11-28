@@ -152,27 +152,28 @@ func (c *Controller) branchController() {
 		}
 
 		branch := &core.Branch{
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    user.ID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    user.ID,
-			OrganizationID: userOrganization.OrganizationID,
-			MediaID:        req.MediaID,
-			Type:           req.Type,
-			Name:           req.Name,
-			Email:          req.Email,
-			Description:    req.Description,
-			CurrencyID:     req.CurrencyID,
-			ContactNumber:  req.ContactNumber,
-			Address:        req.Address,
-			Province:       req.Province,
-			City:           req.City,
-			Region:         req.Region,
-			Barangay:       req.Barangay,
-			PostalCode:     req.PostalCode,
-			Latitude:       req.Latitude,
-			Longitude:      req.Longitude,
-			IsMainBranch:   req.IsMainBranch,
+			CreatedAt:               time.Now().UTC(),
+			CreatedByID:             user.ID,
+			UpdatedAt:               time.Now().UTC(),
+			UpdatedByID:             user.ID,
+			OrganizationID:          userOrganization.OrganizationID,
+			MediaID:                 req.MediaID,
+			Type:                    req.Type,
+			Name:                    req.Name,
+			Email:                   req.Email,
+			Description:             req.Description,
+			CurrencyID:              req.CurrencyID,
+			ContactNumber:           req.ContactNumber,
+			Address:                 req.Address,
+			Province:                req.Province,
+			City:                    req.City,
+			Region:                  req.Region,
+			Barangay:                req.Barangay,
+			PostalCode:              req.PostalCode,
+			Latitude:                req.Latitude,
+			Longitude:               req.Longitude,
+			IsMainBranch:            req.IsMainBranch,
+			TaxIdentificationNumber: req.TaxIdentificationNumber,
 		}
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
@@ -429,6 +430,7 @@ func (c *Controller) branchController() {
 		branch.Latitude = req.Latitude
 		branch.Longitude = req.Longitude
 		branch.IsMainBranch = req.IsMainBranch
+		branch.TaxIdentificationNumber = req.TaxIdentificationNumber
 
 		if err := c.core.BranchManager.UpdateByID(context, branch.ID, branch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -670,9 +672,11 @@ func (c *Controller) branchController() {
 				CheckVoucherORIteration:    settingsReq.CheckVoucherORIteration,
 				CheckVoucherORUnique:       settingsReq.CheckVoucherORUnique,
 				CheckVoucherUseDateOR:      settingsReq.CheckVoucherUseDateOR,
+				AnnualDivisor:              settingsReq.AnnualDivisor,
 
 				// Default Member Type
 				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
+				TaxInterest:         settingsReq.TaxInterest,
 			}
 
 			if err := c.core.BranchSettingManager.CreateWithTx(context, tx, branchSetting); err != nil {
@@ -730,6 +734,8 @@ func (c *Controller) branchController() {
 			// Default Member Type
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
+			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
+			branchSetting.TaxInterest = settingsReq.TaxInterest
 
 			if err := c.core.BranchSettingManager.UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{

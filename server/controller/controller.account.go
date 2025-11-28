@@ -602,6 +602,9 @@ func (c *Controller) accountController() {
 
 			Icon:                        req.Icon,
 			InterestStandardComputation: req.InterestStandardComputation,
+			InterestMaturity:            req.InterestMaturity,
+			InterestAmortization:        req.InterestAmortization,
+			IsTaxable:                   req.IsTaxable,
 		}
 
 		if err := c.core.AccountManager.Create(context, account); err != nil {
@@ -811,6 +814,9 @@ func (c *Controller) accountController() {
 		account.CashAndCashEquivalence = req.CashAndCashEquivalence
 		account.InterestStandardComputation = req.InterestStandardComputation
 		account.CurrencyID = req.CurrencyID
+		account.InterestAmortization = req.InterestAmortization
+		account.InterestMaturity = req.InterestMaturity
+		account.IsTaxable = req.IsTaxable
 
 		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
@@ -1015,7 +1021,7 @@ func (c *Controller) accountController() {
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | validation errors",
 				Module:      "Account",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+			return ctx.JSON(http.StatusBadRequest, map[string]any{
 				"error":           "Some accounts cannot be deleted",
 				"failed_accounts": failedAccounts,
 			})

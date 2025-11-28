@@ -17,14 +17,15 @@ type GeneralLedgerSource string
 
 // General ledger source constants
 const (
-	GeneralLedgerSourceWithdraw       GeneralLedgerSource = "withdraw"
-	GeneralLedgerSourceDeposit        GeneralLedgerSource = "deposit"
-	GeneralLedgerSourceJournal        GeneralLedgerSource = "journal"
-	GeneralLedgerSourcePayment        GeneralLedgerSource = "payment"
-	GeneralLedgerSourceAdjustment     GeneralLedgerSource = "adjustment"
-	GeneralLedgerSourceJournalVoucher GeneralLedgerSource = "journal voucher"
-	GeneralLedgerSourceCheckVoucher   GeneralLedgerSource = "check voucher"
-	GeneralLedgerSourceLoan           GeneralLedgerSource = "loan"
+	GeneralLedgerSourceWithdraw        GeneralLedgerSource = "withdraw"
+	GeneralLedgerSourceDeposit         GeneralLedgerSource = "deposit"
+	GeneralLedgerSourceJournal         GeneralLedgerSource = "journal"
+	GeneralLedgerSourcePayment         GeneralLedgerSource = "payment"
+	GeneralLedgerSourceAdjustment      GeneralLedgerSource = "adjustment"
+	GeneralLedgerSourceJournalVoucher  GeneralLedgerSource = "journal voucher"
+	GeneralLedgerSourceCheckVoucher    GeneralLedgerSource = "check voucher"
+	GeneralLedgerSourceLoan            GeneralLedgerSource = "loan"
+	GeneralLedgerSourceSavingsInterest GeneralLedgerSource = "savings interest"
 )
 
 // Assumes you have TypeOfPaymentType defined elsewhere, as in your payment_type model
@@ -68,7 +69,6 @@ type (
 		AdjustmentEntry            *AdjustmentEntry    `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
 		LoanTransactionID          *uuid.UUID          `gorm:"type:uuid"`
 		LoanTransaction            *LoanTransaction    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
-		LoanAdjustmentType         *LoanAdjustmentType `gorm:"type:varchar(20)" json:"loan_adjustment_type,omitempty"`
 		TypeOfPaymentType          TypeOfPaymentType   `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
 		Credit                     float64             `gorm:"type:decimal"`
 		Debit                      float64             `gorm:"type:decimal"`
@@ -121,14 +121,13 @@ type (
 		PaymentTypeID *uuid.UUID           `json:"payment_type_id,omitempty"`
 		PaymentType   *PaymentTypeResponse `json:"payment_type,omitempty"`
 
-		Source             GeneralLedgerSource      `json:"source"`
-		JournalVoucherID   *uuid.UUID               `json:"journal_voucher_id,omitempty"`
-		AdjustmentEntryID  *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
-		AdjustmentEntry    *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
-		LoanTransactionID  *uuid.UUID               `json:"loan_transaction_id,omitempty"`
-		LoanTransaction    *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		LoanAdjustmentType *LoanAdjustmentType      `json:"loan_adjustment_type,omitempty"`
-		TypeOfPaymentType  TypeOfPaymentType        `json:"type_of_payment_type"`
+		Source            GeneralLedgerSource      `json:"source"`
+		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
+		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
+		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
+		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
+		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
+		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
 
 		Credit  float64 `json:"credit"`
 		Debit   float64 `json:"debit"`
@@ -175,17 +174,17 @@ type (
 		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
 		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
 		LoanTransactionID          *uuid.UUID          `json:"loan_transaction_id,omitempty"`
-		LoanAdjustmentType         *LoanAdjustmentType `json:"loan_adjustment_type,omitempty"`
-		TypeOfPaymentType          TypeOfPaymentType   `json:"type_of_payment_type,omitempty"`
-		Credit                     float64             `json:"credit,omitempty"`
-		Debit                      float64             `json:"debit,omitempty"`
-		SignatureMediaID           *uuid.UUID          `json:"signature_media_id,omitempty"`
-		EntryDate                  *time.Time          `json:"entry_date,omitempty"`
-		BankID                     *uuid.UUID          `json:"bank_id,omitempty"`
-		ProofOfPaymentMediaID      *uuid.UUID          `json:"proof_of_payment_media_id,omitempty"`
-		CurrencyID                 *uuid.UUID          `json:"currency_id,omitempty"`
-		BankReferenceNumber        string              `json:"bank_reference_number,omitempty"`
-		Description                string              `json:"description,omitempty"`
+
+		TypeOfPaymentType     TypeOfPaymentType `json:"type_of_payment_type,omitempty"`
+		Credit                float64           `json:"credit,omitempty"`
+		Debit                 float64           `json:"debit,omitempty"`
+		SignatureMediaID      *uuid.UUID        `json:"signature_media_id,omitempty"`
+		EntryDate             *time.Time        `json:"entry_date,omitempty"`
+		BankID                *uuid.UUID        `json:"bank_id,omitempty"`
+		ProofOfPaymentMediaID *uuid.UUID        `json:"proof_of_payment_media_id,omitempty"`
+		CurrencyID            *uuid.UUID        `json:"currency_id,omitempty"`
+		BankReferenceNumber   string            `json:"bank_reference_number,omitempty"`
+		Description           string            `json:"description,omitempty"`
 	}
 
 	// PaymentRequest represents the request structure for creating/updating payment
@@ -242,6 +241,7 @@ func (m *Core) generalLedger() {
 			"Account",
 			"Account.Currency",
 			"EmployeeUser",
+			"EmployeeUser.Media",
 			"MemberProfile",
 			"MemberJointAccount",
 			"PaymentType",
@@ -302,7 +302,6 @@ func (m *Core) generalLedger() {
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
-				LoanAdjustmentType:         data.LoanAdjustmentType,
 				SignatureMediaID:           data.SignatureMediaID,
 				SignatureMedia:             m.MediaManager.ToModel(data.SignatureMedia),
 
@@ -345,79 +344,80 @@ func (m *Core) generalLedger() {
 	})
 }
 
-// GeneralLedgerCurrentMemberAccountForUpdate retrieves the general ledger entry for a member account with row locking for updates
-func (m *Core) GeneralLedgerCurrentMemberAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, memberProfileID, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
+func (m *Core) CreateGeneralLedgerEntry(
+	context context.Context, tx *gorm.DB, data *GeneralLedger,
+) error {
+	// Get previous balance
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: registry.OpEq, Value: data.OrganizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: data.BranchID},
+		{Field: "account_id", Op: registry.OpEq, Value: data.AccountID},
 	}
-	sorts := []registry.FilterSortSQL{
-		{Field: "created_at", Order: "DESC"},
-	}
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return ledger, nil
-}
-
-// GeneralLedgerCurrentSubsidiaryAccountForUpdate retrieves the general ledger entry for a subsidiary account with row locking for updates
-func (m *Core) GeneralLedgerCurrentSubsidiaryAccountForUpdate(
-	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpIsNull, Value: nil},
+	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+		filters = append(filters, registry.FilterSQL{
+			Field: "member_profile_id", Op: registry.OpEq, Value: data.MemberProfileID,
+		})
 	}
 	sorts := []registry.FilterSortSQL{
 		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
+	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(context, tx, filters, sorts)
+
+	// Use decimal for accurate computation
+	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
 		}
-		return nil, err
+	} else {
+		previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
 	}
-	return ledger, nil
+
+	// Convert debit and credit to decimal
+	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
+	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
+
+	var balanceChange = m.provider.Service.Decimal.NewFromFloat(0)
+	switch data.Account.GeneralLedgerType {
+	case GLTypeAssets, GLTypeExpenses:
+		balanceChange = debitDecimal.Sub(creditDecimal)
+	case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
+		balanceChange = creditDecimal.Sub(debitDecimal)
+	default:
+		balanceChange = debitDecimal.Sub(creditDecimal)
+	}
+
+	// Calculate new balance and convert back to float64
+	newBalance := previousBalance.Add(balanceChange)
+	data.Balance, _ = newBalance.Float64()
+
+	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
+		return eris.Wrap(err, "failed to create general ledger entry")
+	}
+	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+		_, err = m.MemberAccountingLedgerUpdateOrCreate(
+			context,
+			tx,
+			data.Balance,
+			MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: *data.MemberProfileID,
+				AccountID:       *data.AccountID,
+				OrganizationID:  data.OrganizationID,
+				BranchID:        data.BranchID,
+				UserID:          data.CreatedByID,
+				DebitAmount:     data.Debit,
+				CreditAmount:    data.Credit,
+				LastPayTime:     data.EntryDate,
+			},
+		)
+		if err != nil {
+			return eris.Wrap(err, "failed to update or create member accounting ledger")
+		}
+	}
+	return nil
 }
 
-// GeneralLedgerCashOnHandOnUpdate retrieves the general ledger entry for a cash on hand account with row locking for updates
-func (m *Core) GeneralLedgerCashOnHandOnUpdate(
-	ctx context.Context, tx *gorm.DB, accountID, organizationID, branchID uuid.UUID,
-) (*GeneralLedger, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-	}
-
-	sorts := []registry.FilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
-		{Field: "created_at", Order: "DESC"},
-	}
-
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(ctx, tx, filters, sorts)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return ledger, nil
-}
-
-// GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 // GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 func (m *Core) GeneralLedgerPrintMaxNumber(
 	ctx context.Context,
@@ -765,4 +765,156 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 		result = append(result, entry)
 	}
 	return result, nil
+}
+
+// GetGeneralLedgerOfMemberByEndOfDay retrieves general ledger entries for a member by end of day for average daily balance calculations
+// Automatically sets time range from start of day (00:00:00.000) to end of day (23:59:59.999)
+func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
+	ctx context.Context,
+	from, to time.Time,
+	accountID, memberProfileID,
+	organizationID,
+	branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+	fromStartOfDay := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location()).UTC()
+	toEndOfDay := time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, 999999999, to.Location()).UTC()
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "created_at", Op: registry.OpGte, Value: fromStartOfDay},
+		{Field: "created_at", Op: registry.OpLte, Value: toEndOfDay},
+	}
+
+	sorts := []registry.FilterSortSQL{
+		{Field: "created_at", Order: "DESC"},
+		{Field: "entry_date", Order: "DESC"},
+	}
+
+	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account")
+}
+
+// GetDailyEndingBalances retrieves daily ending balances for ADB calculations
+// Returns one balance per day, handling multiple entries per day and missing days
+func (m *Core) GetDailyEndingBalances(
+	ctx context.Context,
+	from, to time.Time,
+	accountID, memberProfileID, organizationID, branchID uuid.UUID,
+) ([]float64, error) {
+	// Edge case: Invalid date range
+	if to.Before(from) {
+		return nil, eris.New("invalid date range: 'to' date cannot be before 'from' date")
+	}
+
+	// Normalize dates to remove time components for consistent comparison
+	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
+	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
+
+	// Edge case: Same day range
+	if fromDate.Equal(toDate) {
+		// Handle single day case
+		entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(entries) == 0 {
+			// No entries for this day, get previous balance
+			filters := []registry.FilterSQL{
+				{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+				{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+				{Field: "account_id", Op: registry.OpEq, Value: accountID},
+				{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+				{Field: "created_at", Op: registry.OpLt, Value: fromDate},
+			}
+			sorts := []registry.FilterSortSQL{
+				{Field: "created_at", Order: "DESC"},
+				{Field: "entry_date", Order: "DESC"},
+			}
+
+			lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account")
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			}
+
+			balance := 0.0
+			if err == nil {
+				balance = lastEntry.Balance
+			}
+			return []float64{balance}, nil
+		}
+
+		// Find the last entry for the day
+		var lastEntry *GeneralLedger
+		for _, entry := range entries {
+			if lastEntry == nil || entry.CreatedAt.After(lastEntry.CreatedAt) {
+				lastEntry = entry
+			}
+		}
+		return []float64{lastEntry.Balance}, nil
+	}
+
+	// Get all ledger entries in the date range
+	entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Group entries by date and find the last entry for each day
+	entriesByDate := make(map[string]*GeneralLedger)
+
+	for _, entry := range entries {
+		// Format date as YYYY-MM-DD using UTC to avoid timezone issues
+		entryDate := entry.CreatedAt.UTC().Format("2006-01-02")
+
+		// Keep only the latest entry for each day (entries are sorted DESC by created_at)
+		if existing, exists := entriesByDate[entryDate]; !exists || entry.CreatedAt.After(existing.CreatedAt) {
+			entriesByDate[entryDate] = entry
+		}
+	}
+
+	// Get the starting balance (balance before the from date)
+	var startingBalance float64 = 0
+
+	// Always try to get starting balance, regardless of whether we have entries in range
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "created_at", Op: registry.OpLt, Value: fromDate},
+	}
+	sorts := []registry.FilterSortSQL{
+		{Field: "created_at", Order: "DESC"},
+		{Field: "entry_date", Order: "DESC"},
+	}
+
+	lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account")
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if err == nil {
+		startingBalance = lastEntry.Balance
+	}
+
+	// Create slice to store daily balances in chronological order
+	var dailyBalances []float64
+	currentBalance := startingBalance
+	currentDate := fromDate
+
+	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
+		dateStr := currentDate.Format("2006-01-02")
+
+		if entry, hasEntry := entriesByDate[dateStr]; hasEntry {
+			// Day has ledger entries, use the last entry's balance
+			currentBalance = entry.Balance
+		}
+		// If no entry for this day, currentBalance carries forward from previous day
+
+		dailyBalances = append(dailyBalances, currentBalance)
+		currentDate = currentDate.AddDate(0, 0, 1) // Move to next day
+	}
+
+	return dailyBalances, nil
 }

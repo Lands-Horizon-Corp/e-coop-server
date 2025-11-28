@@ -3,6 +3,7 @@ package event
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
@@ -16,6 +17,7 @@ type Event struct {
 	userToken             *tokens.UserToken
 	provider              *server.Provider
 	usecase               *usecase.TransactionService
+	report                *report.Reports
 }
 
 // NewEvent constructs a new Event instance wiring domain services used
@@ -26,6 +28,7 @@ func NewEvent(
 	userToken *tokens.UserToken,
 	provider *server.Provider,
 	usecase *usecase.TransactionService,
+	report *report.Reports,
 ) (*Event, error) {
 	return &Event{
 		userOrganizationToken: userOrganizationToken,
@@ -33,5 +36,6 @@ func NewEvent(
 		core:                  core,
 		provider:              provider,
 		usecase:               usecase,
+		report:                report,
 	}, nil
 }

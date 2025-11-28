@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -30,7 +29,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			}
 			return
 		}
-		data, err := e.processReportGeneration(ctx, generatedReport)
+		data, err := e.report.Generate(ctx, *generatedReport)
 
 		// Get the latest report data
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
@@ -44,8 +43,14 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 		// Upload the generated data to media storage
 		if data != nil {
-			fileName := fmt.Sprintf("report_%s.csv", generatedReport.Name)
+			// choose file extension / content type based on generated report type
+			fileExt := "csv"
 			contentType := "text/csv"
+			if generatedReport.GeneratedReportType == core.GeneratedReportTypePDF {
+				fileExt = "pdf"
+				contentType = "application/pdf"
+			}
+			fileName := fmt.Sprintf("report_%s.%s", generatedReport.Name, fileExt)
 
 			// Create initial media record
 			initial := &core.Media{
@@ -137,27 +142,4 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 	}()
 	return generatedReport, nil
-}
-
-// Add your background processing logic here
-func (e *Event) processReportGeneration(ctx context.Context, generatedReport *core.GeneratedReport) ([]byte, error) {
-	var data []byte
-	var err error
-	switch generatedReport.GeneratedReportType {
-	case core.GeneratedReportTypeExcel:
-		extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
-		// [Start Reports Excel] ===============================================================================================
-
-		data, err = extractor.MatchableRoute("/api/v1/bank/search", func(params ...string) ([]byte, error) {
-
-			return e.core.BankManager.FilterFieldsCSV(ctx, generatedReport.FilterSearch, &core.Bank{
-				OrganizationID: generatedReport.OrganizationID,
-				BranchID:       generatedReport.BranchID,
-			})
-		})
-		// [End Reports Excel] ===============================================================================================
-	case core.GeneratedReportTypePDF:
-	default:
-	}
-	return data, err
 }

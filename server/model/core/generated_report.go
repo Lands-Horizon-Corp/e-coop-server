@@ -58,8 +58,13 @@ type (
 		IsFavorite   bool   `gorm:"type:boolean;default:false" json:"is_favorite"`
 		Model        string `gorm:"type:varchar(255)" json:"model,omitempty"`
 		URL          string `gorm:"type:text" json:"url,omitempty"`
-		PaperSize    string `gorm:"type:text;default:''" json:"paper_size,omitempty"`
-		Template     string `gorm:"type:text;default:''" json:"template,omitempty"`
+
+		PaperSize string  `gorm:"type:text;default:''" json:"paper_size,omitempty"`
+		Template  string  `gorm:"type:text;default:''" json:"template,omitempty"`
+		Width     float64 `gorm:"type:real" json:"width,omitempty"`
+		Height    float64 `gorm:"type:real" json:"height,omitempty"`
+		Unit      string  `gorm:"type:varchar(50)" json:"unit,omitempty"`
+		Landscape bool    `gorm:"type:boolean;default:false" json:"landscape,omitempty"`
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
@@ -94,10 +99,14 @@ type (
 		URL           string                `json:"url,omitempty"`
 		PaperSize     string                `json:"paper_size,omitempty"`
 		Template      string                `json:"template,omitempty"`
+		Width         float64               `json:"width,omitempty"`
+		Height        float64               `json:"height,omitempty"`
+		Unit          string                `json:"unit,omitempty"`
 		SystemMessage string                `json:"system_message,omitempty"`
 
 		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsersResponse `json:"download_users,omitempty"`
+		Landscape     bool                                     `json:"landscape,omitempty"`
 	}
 
 	// GeneratedReportRequest represents the request structure for GeneratedReport.
@@ -107,9 +116,15 @@ type (
 		FilterSearch        string              `json:"filter_search,omitempty"`
 		URL                 string              `json:"url,omitempty"`
 		Model               string              `json:"model,omitempty"`
-		PaperSize           string              `json:"paper_size,omitempty"`
-		Template            string              `json:"template,omitempty"`
 		GeneratedReportType GeneratedReportType `json:"generated_report_type" validate:"required,oneof=pdf excel"`
+
+		// Optional fields for report customization
+		PaperSize string  `json:"paper_size,omitempty"`
+		Template  string  `json:"template,omitempty"`
+		Width     float64 `json:"width,omitempty"`
+		Height    float64 `json:"height,omitempty"`
+		Unit      string  `json:"unit,omitempty"`
+		Landscape bool    `json:"landscape,omitempty"`
 	}
 
 	GeneratedReportUpdateRequest struct {
@@ -172,6 +187,10 @@ func (m *Core) generatedReport() {
 				URL:                 data.URL,
 				PaperSize:           data.PaperSize,
 				Template:            data.Template,
+				Width:               data.Width,
+				Height:              data.Height,
+				Unit:                data.Unit,
+				Landscape:           data.Landscape,
 
 				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}

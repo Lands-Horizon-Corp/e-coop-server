@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -109,6 +110,11 @@ type (
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 	}
+
+	MemberAccountingLedgerBrowseReference struct {
+		MemberAccountingLedger *MemberAccountingLedger
+		BrowseReference        *BrowseReference
+	}
 )
 
 func (m *Core) memberAccountingLedger() {
@@ -117,7 +123,7 @@ func (m *Core) memberAccountingLedger() {
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Account", "MemberProfile", "Account",
+			"MemberProfile",
 			"Account.Currency",
 		},
 		Service: m.provider.Service,
@@ -251,6 +257,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
 	tx *gorm.DB,
+	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
 	// Validate: Either debit or credit must be non-zero, but not both
@@ -270,9 +277,6 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
-	// Calculate balance change: debit increases balance, credit decreases balance
-	balanceChange := params.DebitAmount - params.CreditAmount
-
 	if ledger == nil {
 		// Create new member accounting ledger
 		ledger = &MemberAccountingLedger{
@@ -284,7 +288,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			BranchID:            params.BranchID,
 			MemberProfileID:     params.MemberProfileID,
 			AccountID:           params.AccountID,
-			Balance:             balanceChange,
+			Balance:             balance,
 			LastPay:             &params.LastPayTime,
 			Count:               1,
 			Interest:            0,
@@ -301,7 +305,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		}
 	} else {
 		// Update existing member accounting ledger
-		ledger.Balance += balanceChange
+		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
@@ -314,4 +318,57 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	}
 
 	return ledger, nil
+}
+
+// MemberAccountingLedgerFilterByCriteria filters member accounting ledgers based on account and member type criteria
+func (m *Core) MemberAccountingLedgerFilterByCriteria(
+	ctx context.Context,
+	organizationID,
+	branchID uuid.UUID,
+	accountID,
+	memberTypeID *uuid.UUID,
+	includeClosedAccounts bool,
+) ([]*MemberAccountingLedger, error) {
+	result := []*MemberAccountingLedger{}
+	memberAccountingLedger, err := m.MemberAccountingLedgerManager.FindWithSQL(ctx, []registry.FilterSQL{
+		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	}, nil, "MemberProfile", "Account.Currency")
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to find member accounting ledgers by account")
+	}
+	for _, ledger := range memberAccountingLedger {
+		if includeClosedAccounts == false && ledger.MemberProfile.IsClosed {
+			continue
+		}
+		if handlers.UUIDPtrEqual(ledger.MemberProfile.MemberTypeID, memberTypeID) {
+			result = append(result, ledger)
+		}
+	}
+
+	return result, nil
+}
+
+func (m *Core) MemberAccountingLedgerByBrowseReference(ctx context.Context, includeClosedAccounts bool, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
+	memberAccountingLedger := []*MemberAccountingLedgerBrowseReference{}
+	for _, browseRef := range data {
+		ledgers, err := m.MemberAccountingLedgerFilterByCriteria(
+			ctx, browseRef.OrganizationID, browseRef.BranchID,
+			browseRef.AccountID,
+			browseRef.MemberTypeID, includeClosedAccounts)
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to filter member accounting ledgers by browse reference")
+		}
+
+		// Create MemberAccountingLedgerBrowseReference for each ledger
+		for _, ledger := range ledgers {
+			memberAccountingLedger = append(memberAccountingLedger, &MemberAccountingLedgerBrowseReference{
+				MemberAccountingLedger: ledger,
+				BrowseReference:        browseRef,
+			})
+		}
+	}
+
+	return memberAccountingLedger, nil
 }

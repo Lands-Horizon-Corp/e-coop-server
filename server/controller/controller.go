@@ -84,7 +84,6 @@ func (c *Controller) Start() error {
 	c.memberOccupationController()
 	c.memberGroupController()
 	c.memberProfileController()
-	c.memberTypeReferenceController()
 
 	// member profile properties
 	c.memberEducationalAttainmentController()
@@ -159,5 +158,11 @@ func (c *Controller) Start() error {
 	c.organizationMediaController()
 	c.fundsController()
 	c.chargesRateByTermController()
+	c.memberProfileArchiveController()
+	c.commonController()
+	c.memberProfileComaker()
+	c.browseReferenceController()
+	c.generateSavingsInterest()
+	c.generatedSavingsInterestEntryController()
 	return nil
 }

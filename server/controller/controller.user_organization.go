@@ -1007,7 +1007,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot accept your own application"})
 		}
 
-		userOrg.ApplicationStatus = "accepted"
+		userOrganization.ApplicationStatus = "accepted"
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrganization.ID, userOrganization); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -1019,12 +1019,12 @@ func (c *Controller) userOrganinzationController() {
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "approve-success",
-			Description: "Accepted user organization application for user " + userOrg.UserID.String(),
+			Description: "Accepted user organization application for user " + userOrganization.UserID.String(),
 			Module:      "UserOrganization",
 		})
 
-		c.event.OrganizationDirectNotification(ctx, userOrg.OrganizationID, event.NotificationEvent{
-			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrg.UserType)),
+		c.event.OrganizationDirectNotification(ctx, userOrganization.OrganizationID, event.NotificationEvent{
+			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrganization.UserType)),
 			Title:            "Application Accepted",
 			NotificationType: core.NotificationSuccess,
 		})

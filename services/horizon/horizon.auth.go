@@ -77,9 +77,22 @@ func (h *AuthServiceImpl[T]) getTokenFromContext(c echo.Context) string {
 	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
 		return token
 	}
-	if cookie, err := c.Cookie(h.csrfHeader); err == nil {
+	if auth := c.Request().Header.Get("Authorization"); auth != "" {
+		const bearer = "Bearer "
+		if strings.HasPrefix(auth, bearer) {
+			return strings.TrimSpace(auth[len(bearer):])
+		}
+	}
+	if cookie, err := c.Cookie(h.csrfHeader); err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
+	if fv := c.FormValue(h.csrfHeader); fv != "" {
+		return fv
+	}
+	if fv := c.FormValue("token"); fv != "" {
+		return fv
+	}
+
 	return ""
 }
 

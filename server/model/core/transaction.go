@@ -103,10 +103,10 @@ type (
 		MemberProfileID      *uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberJointAccountID *uuid.UUID `json:"member_joint_account_id,omitempty"`
 
-		ReferenceNumber          string     `json:"reference_number" validate:"required"`
-		IsReferenceNumberChecked bool       `json:"is_reference_number_checked,omitempty"`
-		Description              string     `json:"description,omitempty"`
-		AccountID                *uuid.UUID `json:"account_id" validate:"required"`
+		ReferenceNumber          string    `json:"reference_number" validate:"required"`
+		IsReferenceNumberChecked bool      `json:"is_reference_number_checked,omitempty"`
+		Description              string    `json:"description,omitempty"`
+		CurrencyID               uuid.UUID `json:"currency_id" validate:"required"`
 	}
 
 	// TransactionRequestEdit represents the request structure for editing transactions

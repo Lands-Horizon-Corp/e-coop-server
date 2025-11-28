@@ -57,6 +57,9 @@ type (
 		Credit float64 `gorm:"type:decimal" json:"credit"`
 
 		AdjustmentTags []*AdjustmentTag `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"adjustment_tags,omitempty"`
+
+		LoanTransactionID *uuid.UUID       `gorm:"type:uuid" json:"loan_transaction_id"`
+		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 	}
 
 	// AdjustmentEntryResponse represents the response structure for adjustmententry data
@@ -93,6 +96,8 @@ type (
 		Debit              float64                   `json:"debit"`
 		Credit             float64                   `json:"credit"`
 		AdjustmentTags     []*AdjustmentTagResponse  `json:"adjustment_tags,omitempty"`
+		LoanTransactionID  *uuid.UUID                `json:"loan_transaction_id,omitempty"`
+		LoanTransaction    *LoanTransactionResponse  `json:"loan_transaction,omitempty"`
 	}
 
 	// AdjustmentEntryRequest represents the request structure for creating/updating adjustmententry
@@ -110,6 +115,7 @@ type (
 		EntryDate          *time.Time `json:"entry_date,omitempty"`
 		Debit              float64    `json:"debit,omitempty"`
 		Credit             float64    `json:"credit,omitempty"`
+		LoanTransactionID  *uuid.UUID `json:"loan_transaction_id,omitempty"`
 	}
 
 	// AdjustmentEntryTotalResponse represents the response structure for adjustmententrytotal data
@@ -119,6 +125,7 @@ type (
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 		Balance     float64 `json:"balance"`
+		IsBalanced  bool    `json:"is_balanced"`
 	}
 
 	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary
@@ -138,7 +145,13 @@ func (m *Core) adjustmentEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"TransactionBatch",
-			"SignatureMedia", "Account", "MemberProfile", "EmployeeUser", "PaymentType", "AdjustmentTags",
+			"SignatureMedia",
+			"Account",
+			"MemberProfile",
+			"EmployeeUser",
+			"PaymentType",
+			"AdjustmentTags",
+			"LoanTransaction",
 			"Account.Currency",
 		},
 		Service: m.provider.Service,
@@ -182,6 +195,8 @@ func (m *Core) adjustmentEntry() {
 				Debit:              data.Debit,
 				Credit:             data.Credit,
 				AdjustmentTags:     m.AdjustmentTagManager.ToModels(data.AdjustmentTags),
+				LoanTransactionID:  data.LoanTransactionID,
+				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
 			}
 		},
 		Created: func(data *AdjustmentEntry) []string {

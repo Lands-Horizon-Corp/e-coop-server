@@ -86,7 +86,7 @@ func (c *Controller) permissionTemplateController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		reqData, err := c.core.PermissionTemplateManager.Validate(ctx)
+		req, err := c.core.PermissionTemplateManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -113,9 +113,9 @@ func (c *Controller) permissionTemplateController() {
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Name:           reqData.Name,
-			Description:    reqData.Description,
-			Permissions:    reqData.Permissions,
+			Name:           req.Name,
+			Description:    req.Description,
+			Permissions:    req.Permissions,
 		}
 
 		if err := c.core.PermissionTemplateManager.Create(context, newTemplate); err != nil {
@@ -156,7 +156,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		reqData, err := c.core.PermissionTemplateManager.Validate(ctx)
+		req, err := c.core.PermissionTemplateManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -190,9 +190,9 @@ func (c *Controller) permissionTemplateController() {
 		template.UpdatedByID = userOrg.UserID
 		template.OrganizationID = userOrg.OrganizationID
 		template.BranchID = *userOrg.BranchID
-		template.Name = reqData.Name
-		template.Description = reqData.Description
-		template.Permissions = reqData.Permissions
+		template.Name = req.Name
+		template.Description = req.Description
+		template.Permissions = req.Permissions
 
 		if err := c.core.PermissionTemplateManager.UpdateByID(context, template.ID, template); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

@@ -115,13 +115,6 @@ type (
 
 		CashCheckVoucherTags    []*CashCheckVoucherTag   `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_tags,omitempty"`
 		CashCheckVoucherEntries []*CashCheckVoucherEntry `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_entries,omitempty"`
-
-		// Check Entry Fields
-		CheckEntryAmount      float64    `gorm:"type:decimal;default:0" json:"check_entry_amount,omitempty"`
-		CheckEntryCheckNumber string     `gorm:"type:varchar(255)" json:"check_entry_check_number,omitempty"`
-		CheckEntryCheckDate   *time.Time `json:"check_entry_check_date,omitempty"`
-		CheckEntryAccountID   *uuid.UUID `gorm:"type:uuid" json:"check_entry_account_id,omitempty"`
-		CheckEntryAccount     *Account   `gorm:"foreignKey:CheckEntryAccountID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"check_entry_account,omitempty"`
 	}
 
 	// CashCheckVoucherResponse represents the response structure for cashcheckvoucher data
@@ -214,13 +207,6 @@ type (
 
 		CashCheckVoucherTags    []*CashCheckVoucherTagResponse   `json:"cash_check_voucher_tags,omitempty"`
 		CashCheckVoucherEntries []*CashCheckVoucherEntryResponse `json:"cash_check_voucher_entries,omitempty"`
-
-		// Check Entry Fields
-		CheckEntryAmount      float64          `json:"check_entry_amount"`
-		CheckEntryCheckNumber string           `json:"check_entry_check_number"`
-		CheckEntryCheckDate   *time.Time       `json:"check_entry_check_date,omitempty"`
-		CheckEntryAccountID   *uuid.UUID       `json:"check_entry_account_id,omitempty"`
-		CheckEntryAccount     *AccountResponse `json:"check_entry_account,omitempty"`
 	}
 
 	// CashCheckVoucherRequest represents the request structure for creating/updating cashcheckvoucher
@@ -276,12 +262,6 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
-		// Check Entry Fields
-		CheckEntryAmount      float64    `json:"check_entry_amount,omitempty"`
-		CheckEntryCheckNumber string     `json:"check_entry_check_number,omitempty"`
-		CheckEntryCheckDate   *time.Time `json:"check_entry_check_date,omitempty"`
-		CheckEntryAccountID   *uuid.UUID `json:"check_entry_account_id,omitempty"`
-
 		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
 		CashCheckVoucherEntriesDeleted uuid.UUIDs                      `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
@@ -304,8 +284,8 @@ func (m *Core) cashCheckVoucher() {
 			"EmployeeUser", "TransactionBatch",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
-			"CashCheckVoucherTags", "CashCheckVoucherEntries", "CheckEntryAccount",
-			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.MemberProfile.Media",
+			"CashCheckVoucherTags", "CashCheckVoucherEntries",
+			"CashCheckVoucherEntries.MemberProfile", "CashCheckVoucherEntries.Account", "CashCheckVoucherEntries.LoanTransaction", "CashCheckVoucherEntries.MemberProfile.Media",
 			"CashCheckVoucherEntries.Account.Currency",
 			"ApprovedBySignatureMedia", "PreparedBySignatureMedia", "CertifiedBySignatureMedia",
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
@@ -419,13 +399,6 @@ func (m *Core) cashCheckVoucher() {
 
 				CashCheckVoucherTags:    m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
 				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager.ToModels(data.CashCheckVoucherEntries),
-
-				// Check Entry Fields
-				CheckEntryAmount:      data.CheckEntryAmount,
-				CheckEntryCheckNumber: data.CheckEntryCheckNumber,
-				CheckEntryCheckDate:   data.CheckEntryCheckDate,
-				CheckEntryAccountID:   data.CheckEntryAccountID,
-				CheckEntryAccount:     m.AccountManager.ToModel(data.CheckEntryAccount),
 
 				Name: data.Name,
 			}

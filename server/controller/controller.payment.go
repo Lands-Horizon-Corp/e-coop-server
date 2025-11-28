@@ -14,6 +14,134 @@ func (c *Controller) paymentController() {
 	req := c.provider.Service.Request
 
 	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/transaction/:transaction_id/multipayment",
+		Method:       "POST",
+		Note:         "Processes multiple payments for the specified transaction by transaction_id and records them in the general ledger.",
+		ResponseType: core.GeneralLedgerResponse{},
+		RequestType:  core.PaymentRequest{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "multipayment-param-error",
+				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/multipayment: %v", err),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
+		}
+
+		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "multipayment-transaction-not-found",
+				Description: fmt.Sprintf("Transaction not found for ID %v: %v", transactionID, err),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
+		}
+
+		var req []core.PaymentRequest
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "multipayment-bind-error",
+				Description: "Multiple payment failed: invalid payload: " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid multipayment payload: " + err.Error()})
+		}
+
+		if len(req) == 0 {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "multipayment-empty-error",
+				Description: "Multiple payment failed: no payment entries provided",
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No payment entries provided"})
+		}
+
+		// Validate each payment request
+		for i, payment := range req {
+			if err := c.provider.Service.Validator.Struct(payment); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-validation-error",
+					Description: fmt.Sprintf("Multiple payment failed: validation error for payment %d: %v", i+1, err),
+					Module:      "Transaction",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Payment %d validation failed: %v", i+1, err.Error())})
+			}
+		}
+
+		var generalLedgers []*core.GeneralLedger
+
+		// Process each payment
+		for i, payment := range req {
+			tx, endTx := c.provider.Service.Database.StartTransaction(context)
+			if tx.Error != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-db-error",
+					Description: "Multiple payment failed (/transaction/:transaction_id/multipayment), begin tx error: " + tx.Error.Error(),
+					Module:      "Transaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
+			}
+			generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+				// Will be filled by transaction
+				TransactionID:        &transaction.ID,
+				MemberProfileID:      transaction.MemberProfileID,
+				MemberJointAccountID: transaction.MemberJointAccountID,
+				ReferenceNumber:      transaction.ReferenceNumber,
+
+				// On Request
+				Source:                core.GeneralLedgerSourcePayment,
+				Amount:                payment.Amount,
+				AccountID:             payment.AccountID,
+				PaymentTypeID:         payment.PaymentTypeID,
+				SignatureMediaID:      payment.SignatureMediaID,
+				EntryDate:             payment.EntryDate,
+				BankID:                payment.BankID,
+				ProofOfPaymentMediaID: payment.ProofOfPaymentMediaID,
+				Description:           payment.Description,
+				BankReferenceNumber:   payment.BankReferenceNumber,
+
+				LoanTransactionID: payment.LoanTransactionID,
+			})
+			if err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-error",
+					Description: fmt.Sprintf("Multiple payment processing failed for payment %d: %v", i+1, err),
+					Module:      "Transaction",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Payment %d processing failed: %v", i+1, err.Error())})
+			}
+
+			if err := endTx(nil); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "multipayment-commit-error",
+					Description: fmt.Sprintf("Multiple payment commit failed for payment %d: %v", i+1, err),
+					Module:      "Transaction",
+				})
+			}
+			generalLedgers = append(generalLedgers, generalLedger)
+		}
+
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "multipayment-success",
+			Description: fmt.Sprintf("Successfully processed %d payments for transaction %v", len(generalLedgers), transactionID),
+			Module:      "Transaction",
+		})
+
+		// Convert to response models
+		var response []core.GeneralLedgerResponse
+		for _, gl := range generalLedgers {
+			response = append(response, *c.core.GeneralLedgerManager.ToModel(gl))
+		}
+
+		return ctx.JSON(http.StatusOK, response)
+	})
+
+	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
 		Method:       "POST",
 		Note:         "Processes print number for the specified general ledger by general_ledger_id.",

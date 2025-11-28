@@ -417,79 +417,79 @@ func (c *Controller) loanTransactionController() {
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
 
-			CreatedByID:                            userOrg.UserID,
-			UpdatedByID:                            userOrg.UserID,
-			OrganizationID:                         userOrg.OrganizationID,
-			BranchID:                               *userOrg.BranchID,
-			OfficialReceiptNumber:                  request.OfficialReceiptNumber,
-			Voucher:                                request.Voucher,
-			EmployeeUserID:                         &userOrg.UserID,
-			LoanPurposeID:                          request.LoanPurposeID,
-			LoanStatusID:                           request.LoanStatusID,
-			ModeOfPayment:                          request.ModeOfPayment,
-			ModeOfPaymentWeekly:                    request.ModeOfPaymentWeekly,
-			ModeOfPaymentSemiMonthlyPay1:           request.ModeOfPaymentSemiMonthlyPay1,
-			ModeOfPaymentSemiMonthlyPay2:           request.ModeOfPaymentSemiMonthlyPay2,
-			ComakerType:                            request.ComakerType,
-			ComakerDepositMemberAccountingLedgerID: request.ComakerDepositMemberAccountingLedgerID,
-			CollectorPlace:                         request.CollectorPlace,
-			LoanType:                               request.LoanType,
-			PreviousLoanID:                         request.PreviousLoanID,
-			Terms:                                  request.Terms,
-			IsAddOn:                                request.IsAddOn,
-			Applied1:                               request.Applied1,
-			Applied2:                               request.Applied2,
-			AccountID:                              request.AccountID,
-			MemberProfileID:                        request.MemberProfileID,
-			MemberJointAccountID:                   request.MemberJointAccountID,
-			SignatureMediaID:                       request.SignatureMediaID,
-			MountToBeClosed:                        request.MountToBeClosed,
-			DamayanFund:                            request.DamayanFund,
-			ShareCapital:                           request.ShareCapital,
-			LengthOfService:                        request.LengthOfService,
-			ExcludeSunday:                          request.ExcludeSunday,
-			ExcludeHoliday:                         request.ExcludeHoliday,
-			ExcludeSaturday:                        request.ExcludeSaturday,
-			RemarksOtherTerms:                      request.RemarksOtherTerms,
-			RemarksPayrollDeduction:                request.RemarksPayrollDeduction,
-			RecordOfLoanPaymentsOrLoanStatus:       request.RecordOfLoanPaymentsOrLoanStatus,
-			CollateralOffered:                      request.CollateralOffered,
-			AppraisedValue:                         request.AppraisedValue,
-			AppraisedValueDescription:              request.AppraisedValueDescription,
-			PrintedDate:                            request.PrintedDate,
-			ApprovedDate:                           request.ApprovedDate,
-			ReleasedDate:                           request.ReleasedDate,
-			ApprovedBySignatureMediaID:             request.ApprovedBySignatureMediaID,
-			ApprovedByName:                         request.ApprovedByName,
-			ApprovedByPosition:                     request.ApprovedByPosition,
-			PreparedBySignatureMediaID:             request.PreparedBySignatureMediaID,
-			PreparedByName:                         request.PreparedByName,
-			PreparedByPosition:                     request.PreparedByPosition,
-			CertifiedBySignatureMediaID:            request.CertifiedBySignatureMediaID,
-			CertifiedByName:                        request.CertifiedByName,
-			CertifiedByPosition:                    request.CertifiedByPosition,
-			VerifiedBySignatureMediaID:             request.VerifiedBySignatureMediaID,
-			VerifiedByName:                         request.VerifiedByName,
-			VerifiedByPosition:                     request.VerifiedByPosition,
-			CheckBySignatureMediaID:                request.CheckBySignatureMediaID,
-			CheckByName:                            request.CheckByName,
-			CheckByPosition:                        request.CheckByPosition,
-			AcknowledgeBySignatureMediaID:          request.AcknowledgeBySignatureMediaID,
-			AcknowledgeByName:                      request.AcknowledgeByName,
-			AcknowledgeByPosition:                  request.AcknowledgeByPosition,
-			NotedBySignatureMediaID:                request.NotedBySignatureMediaID,
-			NotedByName:                            request.NotedByName,
-			NotedByPosition:                        request.NotedByPosition,
-			PostedBySignatureMediaID:               request.PostedBySignatureMediaID,
-			PostedByName:                           request.PostedByName,
-			PostedByPosition:                       request.PostedByPosition,
-			PaidBySignatureMediaID:                 request.PaidBySignatureMediaID,
-			PaidByName:                             request.PaidByName,
-			PaidByPosition:                         request.PaidByPosition,
-			ModeOfPaymentFixedDays:                 request.ModeOfPaymentFixedDays,
-			TotalCredit:                            request.Applied1,
-			TotalDebit:                             request.Applied1,
-			ModeOfPaymentMonthlyExactDay:           request.ModeOfPaymentMonthlyExactDay,
+			CreatedByID:                  userOrg.UserID,
+			UpdatedByID:                  userOrg.UserID,
+			OrganizationID:               userOrg.OrganizationID,
+			BranchID:                     *userOrg.BranchID,
+			OfficialReceiptNumber:        request.OfficialReceiptNumber,
+			Voucher:                      request.Voucher,
+			EmployeeUserID:               &userOrg.UserID,
+			LoanPurposeID:                request.LoanPurposeID,
+			LoanStatusID:                 request.LoanStatusID,
+			ModeOfPayment:                request.ModeOfPayment,
+			ModeOfPaymentWeekly:          request.ModeOfPaymentWeekly,
+			ModeOfPaymentSemiMonthlyPay1: request.ModeOfPaymentSemiMonthlyPay1,
+			ModeOfPaymentSemiMonthlyPay2: request.ModeOfPaymentSemiMonthlyPay2,
+
+			CollectorPlace:                   request.CollectorPlace,
+			LoanType:                         request.LoanType,
+			PreviousLoanID:                   request.PreviousLoanID,
+			Terms:                            request.Terms,
+			IsAddOn:                          request.IsAddOn,
+			Applied1:                         request.Applied1,
+			Applied2:                         request.Applied2,
+			AccountID:                        request.AccountID,
+			MemberProfileID:                  request.MemberProfileID,
+			MemberJointAccountID:             request.MemberJointAccountID,
+			SignatureMediaID:                 request.SignatureMediaID,
+			MountToBeClosed:                  request.MountToBeClosed,
+			DamayanFund:                      request.DamayanFund,
+			ShareCapital:                     request.ShareCapital,
+			LengthOfService:                  request.LengthOfService,
+			ExcludeSunday:                    request.ExcludeSunday,
+			ExcludeHoliday:                   request.ExcludeHoliday,
+			ExcludeSaturday:                  request.ExcludeSaturday,
+			RemarksOtherTerms:                request.RemarksOtherTerms,
+			RemarksPayrollDeduction:          request.RemarksPayrollDeduction,
+			RecordOfLoanPaymentsOrLoanStatus: request.RecordOfLoanPaymentsOrLoanStatus,
+			CollateralOffered:                request.CollateralOffered,
+			AppraisedValue:                   request.AppraisedValue,
+			AppraisedValueDescription:        request.AppraisedValueDescription,
+			PrintedDate:                      request.PrintedDate,
+			ApprovedDate:                     request.ApprovedDate,
+			ReleasedDate:                     request.ReleasedDate,
+			ApprovedBySignatureMediaID:       request.ApprovedBySignatureMediaID,
+			ApprovedByName:                   request.ApprovedByName,
+			ApprovedByPosition:               request.ApprovedByPosition,
+			PreparedBySignatureMediaID:       request.PreparedBySignatureMediaID,
+			PreparedByName:                   request.PreparedByName,
+			PreparedByPosition:               request.PreparedByPosition,
+			CertifiedBySignatureMediaID:      request.CertifiedBySignatureMediaID,
+			CertifiedByName:                  request.CertifiedByName,
+			CertifiedByPosition:              request.CertifiedByPosition,
+			VerifiedBySignatureMediaID:       request.VerifiedBySignatureMediaID,
+			VerifiedByName:                   request.VerifiedByName,
+			VerifiedByPosition:               request.VerifiedByPosition,
+			CheckBySignatureMediaID:          request.CheckBySignatureMediaID,
+			CheckByName:                      request.CheckByName,
+			CheckByPosition:                  request.CheckByPosition,
+			AcknowledgeBySignatureMediaID:    request.AcknowledgeBySignatureMediaID,
+			AcknowledgeByName:                request.AcknowledgeByName,
+			AcknowledgeByPosition:            request.AcknowledgeByPosition,
+			NotedBySignatureMediaID:          request.NotedBySignatureMediaID,
+			NotedByName:                      request.NotedByName,
+			NotedByPosition:                  request.NotedByPosition,
+			PostedBySignatureMediaID:         request.PostedBySignatureMediaID,
+			PostedByName:                     request.PostedByName,
+			PostedByPosition:                 request.PostedByPosition,
+			PaidBySignatureMediaID:           request.PaidBySignatureMediaID,
+			PaidByName:                       request.PaidByName,
+			PaidByPosition:                   request.PaidByPosition,
+			ModeOfPaymentFixedDays:           request.ModeOfPaymentFixedDays,
+			TotalCredit:                      request.Applied1,
+			TotalDebit:                       request.Applied1,
+			ModeOfPaymentMonthlyExactDay:     request.ModeOfPaymentMonthlyExactDay,
+			ComakerType:                      request.ComakerType,
 		}
 
 		if err := c.core.LoanTransactionManager.CreateWithTx(context, tx, loanTransaction); err != nil {
@@ -725,8 +725,6 @@ func (c *Controller) loanTransactionController() {
 		loanTransaction.ModeOfPaymentWeekly = request.ModeOfPaymentWeekly
 		loanTransaction.ModeOfPaymentSemiMonthlyPay1 = request.ModeOfPaymentSemiMonthlyPay1
 		loanTransaction.ModeOfPaymentSemiMonthlyPay2 = request.ModeOfPaymentSemiMonthlyPay2
-		loanTransaction.ComakerType = request.ComakerType
-		loanTransaction.ComakerDepositMemberAccountingLedgerID = request.ComakerDepositMemberAccountingLedgerID
 		loanTransaction.CollectorPlace = request.CollectorPlace
 		loanTransaction.LoanType = request.LoanType
 		loanTransaction.PreviousLoanID = request.PreviousLoanID
@@ -783,6 +781,7 @@ func (c *Controller) loanTransactionController() {
 		loanTransaction.ModeOfPaymentFixedDays = request.ModeOfPaymentFixedDays
 		loanTransaction.ModeOfPaymentMonthlyExactDay = request.ModeOfPaymentMonthlyExactDay
 		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.ComakerType = request.ComakerType
 		loanTransaction.PreviousLoanID = request.PreviousLoanID
 
 		// Handle deletions first (same as before)
@@ -1945,6 +1944,36 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, schedule)
 	})
 
+	// POST /api/v1/loan-transaction/adjustment
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/adjustment",
+		Method:       "POST",
+		RequestType:  core.LoanTransactionAdjustmentRequest{},
+		ResponseType: core.LoanTransaction{},
+		Note:         "Creates a loan transaction adjustment.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req core.LoanTransactionAdjustmentRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction adjustment request: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transaction adjustments"})
+		}
+
+		if err := c.event.LoanAdjustment(context, *userOrg, req); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction adjustment: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusCreated)
+	})
+
 	// POST /api/v1/loan-transaction/:loan_transaction_id/process
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
@@ -1966,6 +1995,35 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(processedLoanTransaction))
+	})
+
+	// GET /api/v1/loan-transaction/:loan_transaction_id/guide
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/loan-transaction/:loan_transaction_id/guide",
+		Method:       "GET",
+		ResponseType: event.LoanGuideResponse{},
+		Note:         "Returns comprehensive loan payment guide with schedules, statuses, and real-time balance tracking for a specific loan transaction.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
+		}
+
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan guides"})
+		}
+
+		loanGuide, err := c.event.LoanGuide(context, userOrg, *loanTransactionID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan guide: " + err.Error()})
+		}
+
+		return ctx.JSON(http.StatusOK, loanGuide)
 	})
 
 	// POST /api/v1/loan-transaction/process
@@ -1994,105 +2052,6 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transactions: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
-	})
-
-	// POST /api/v1/loan-transaction/:loan_transaction_id/adjustment
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/:loan_transaction_id/adjustment",
-		Method:       "POST",
-		Note:         "Creates an adjustment for a loan transaction by ID.",
-		ResponseType: core.LoanTransactionAdjustmentRequest{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-
-		var req core.LoanTransactionAdjustmentRequest
-		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "adjustment-create-error",
-				Description: "Loan transaction adjustment creation failed: invalid payload: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction adjustment payload: " + err.Error()})
-		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "adjustment-create-error",
-				Description: "Loan transaction adjustment creation failed: validation error: " + err.Error(),
-				Module:      "LoanTransaction",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
-		}
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transaction adjustments"})
-		}
-		processedLoanTransaction, err := c.event.LoanProcessing(context, userOrg, loanTransactionID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
-		}
-		if err := c.event.LoanAdjustment(context, *userOrg, processedLoanTransaction.ID, req); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction adjustment: " + err.Error()})
-		}
-		return ctx.NoContent(http.StatusNoContent)
-	})
-
-	// GET api/v1/loan-transaction/:loan_transaction/summary
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/:loan_transaction_id/summary",
-		Method:       "GET",
-		Note:         "Retrieves a summary of loan transactions based on query parameters.",
-		ResponseType: event.LoanTransactionSummaryResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		if userOrg.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		loanSummary, err := c.event.LoanSummary(context, loanTransactionID, userOrg)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan summary: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, loanSummary)
-	})
-
-	// GET api/v1/loan-transaction/:loan_transaction_id/payment
-	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/loan-transaction/:loan_transaction_id/payment",
-		Method:       "GET",
-		Note:         "Retrieves payment details for a specific loan transaction by ID.",
-		ResponseType: event.LoanPaymentResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
-		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		if userOrg.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		loanPayment, err := c.event.LoanPaymenSummary(context, loanTransactionID, userOrg)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan payment details: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, loanPayment)
 	})
 
 }

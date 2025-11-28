@@ -2644,7 +2644,7 @@ func (c *Controller) generalLedgerController() {
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/search
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/general-ledger/transaction/:transaction_id/search",
+		Route:        "/api/v1/general-ledger/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: core.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
@@ -2666,7 +2666,7 @@ func (c *Controller) generalLedgerController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, entries)
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModels(entries))
 	})
 
 	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
