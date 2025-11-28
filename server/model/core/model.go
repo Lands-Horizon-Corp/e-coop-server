@@ -176,21 +176,18 @@ type (
 		LoanAccountManager                           registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest]
 
 		// Maintenance
-		CollateralManager                                                   registry.Registry[Collateral, CollateralResponse, CollateralRequest]
-		TagTemplateManager                                                  registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest]
-		HolidayManager                                                      registry.Registry[Holiday, HolidayResponse, HolidayRequest]
-		GroceryComputationSheetManager                                      registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
-		GroceryComputationSheetMonthlyManager                               registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
-		InterestRateSchemeManager                                           registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
-		InterestRateByTermsHeaderManager                                    registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
-		InterestRateByTermManager                                           registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
-		InterestRatePercentageManager                                       registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
-		MemberTypeReferenceManager                                          registry.Registry[MemberTypeReference, MemberTypeReferenceResponse, MemberTypeReferenceRequest]
-		MemberTypeReferenceByAmountManager                                  registry.Registry[MemberTypeReferenceByAmount, MemberTypeReferenceByAmountResponse, MemberTypeReferenceByAmountRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDateManager        registry.Registry[MemberTypeReferenceInterestRateByUltimaMembershipDate, MemberTypeReferenceInterestRateByUltimaMembershipDateResponse, MemberTypeReferenceInterestRateByUltimaMembershipDateRequest]
-		MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearManager registry.Registry[MemberTypeReferenceInterestRateByUltimaMembershipDatePerYear, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearResponse, MemberTypeReferenceInterestRateByUltimaMembershipDatePerYearRequest]
-		MemberDeductionEntryManager                                         registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
-		PostDatedCheckManager                                               registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
+		CollateralManager                     registry.Registry[Collateral, CollateralResponse, CollateralRequest]
+		TagTemplateManager                    registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest]
+		HolidayManager                        registry.Registry[Holiday, HolidayResponse, HolidayRequest]
+		GroceryComputationSheetManager        registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
+		GroceryComputationSheetMonthlyManager registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
+		InterestRateSchemeManager             registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
+		InterestRateByTermsHeaderManager      registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
+		InterestRateByTermManager             registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
+		InterestRatePercentageManager         registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
+
+		MemberDeductionEntryManager registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
+		PostDatedCheckManager       registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
 
 		// TIME DEPOSIT
 		TimeDepositTypeManager                   registry.Registry[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
@@ -342,10 +339,7 @@ func (m *Core) Start() error {
 	m.memberRelativeAccount()
 	m.memberType()
 	m.memberTypeHistory()
-	m.memberTypeReferenceByAmount()
-	m.memberTypeReference()
-	m.memberTypeReferenceInterestRateByUltimaMembershipDate()
-	m.memberTypeReferenceInterestRateByUltimaMembershipDatePerYear()
+
 	m.memberVerification()
 	m.notification()
 	m.onlineRemittance()
