@@ -77,6 +77,7 @@ func (m *Core) memberType() {
 			"Branch",
 			"Organization",
 			"BrowseReferences",
+			"BrowseReferences.Account",
 		},
 		Service: m.provider.Service,
 		Resource: func(data *MemberType) *MemberTypeResponse {
