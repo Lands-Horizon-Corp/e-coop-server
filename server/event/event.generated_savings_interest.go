@@ -234,7 +234,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if savingsComputed == nil {
 			continue
 		}
-		if account.IsTaxable == false {
+		if !account.IsTaxable {
 			savingsComputed.InterestTax = 0
 		}
 

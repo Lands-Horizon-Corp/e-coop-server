@@ -339,7 +339,7 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 		return nil, eris.Wrap(err, "failed to find member accounting ledgers by account")
 	}
 	for _, ledger := range memberAccountingLedger {
-		if includeClosedAccounts == false && ledger.MemberProfile.IsClosed {
+		if !includeClosedAccounts && ledger.MemberProfile.IsClosed {
 			continue
 		}
 		if handlers.UUIDPtrEqual(ledger.MemberProfile.MemberTypeID, memberTypeID) {
