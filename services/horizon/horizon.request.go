@@ -116,7 +116,7 @@ func NewHorizonAPIService(
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Enhanced IP extraction for Fly.io and other proxies
-			clientIP := getClientIP(c)
+			clientIP := GetClientIP(c)
 
 			// Validate IP format
 			if net.ParseIP(clientIP) == nil {
@@ -159,7 +159,7 @@ func NewHorizonAPIService(
 
 			if handlers.IsSuspiciousPath(path) {
 				logger.Warn("Suspicious path blocked",
-					zap.String("ip", c.RealIP()),
+					zap.String("ip", GetClientIP(c)),
 					zap.String("path", path),
 				)
 				return c.String(http.StatusForbidden, "Access forbidden")
@@ -268,7 +268,7 @@ func NewHorizonAPIService(
 		Skipper: middleware.DefaultSkipper,
 		Store:   rateLimitStore,
 		IdentifierExtractor: func(ctx echo.Context) (string, error) {
-			ip := ctx.RealIP()
+			ip := GetClientIP(ctx)
 			if secured {
 				if forwardedIP := ctx.Request().Header.Get("Fly-Client-IP"); forwardedIP != "" {
 					ip = forwardedIP
@@ -535,31 +535,21 @@ func (h *APIServiceImpl) Stop(ctx context.Context) error {
 	return nil
 }
 
-// getClientIP extracts the real client IP from various proxy headers
-// Prioritizes Fly.io specific headers for accurate IP detection
-func getClientIP(c echo.Context) string {
-	// Check Fly.io specific headers first
+func GetClientIP(c echo.Context) string {
 	if ip := c.Request().Header.Get("Fly-Client-IP"); ip != "" {
 		return strings.TrimSpace(ip)
 	}
-
-	// Standard proxy headers
 	if ip := c.Request().Header.Get("X-Forwarded-For"); ip != "" {
-		// X-Forwarded-For can contain multiple IPs, take the first one
 		ips := strings.Split(ip, ",")
 		if len(ips) > 0 {
 			return strings.TrimSpace(ips[0])
 		}
 	}
-
 	if ip := c.Request().Header.Get("X-Real-IP"); ip != "" {
 		return strings.TrimSpace(ip)
 	}
-
 	if ip := c.Request().Header.Get("CF-Connecting-IP"); ip != "" {
 		return strings.TrimSpace(ip)
 	}
-
-	// Fallback to Echo's RealIP method
 	return c.RealIP()
 }
