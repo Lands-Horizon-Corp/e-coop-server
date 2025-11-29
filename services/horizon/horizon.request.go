@@ -351,6 +351,45 @@ func NewHorizonAPIService(
 		AllowCredentials: true,
 		MaxAge:           3600,
 	}))
+
+	// Additional CORS debugging and preflight handling
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Request().Method == http.MethodOptions {
+				origin := c.Request().Header.Get("Origin")
+				logger.Info("CORS Preflight Request",
+					zap.String("origin", origin),
+					zap.String("path", c.Request().URL.Path),
+					zap.String("method", c.Request().Header.Get("Access-Control-Request-Method")),
+					zap.String("headers", c.Request().Header.Get("Access-Control-Request-Headers")),
+				)
+
+				// Verify origin is allowed before setting headers
+				isAllowed := false
+				for _, allowedOrigin := range origins {
+					if origin == allowedOrigin {
+						isAllowed = true
+						break
+					}
+				}
+
+				if isAllowed {
+					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+					c.Response().Header().Set("Access-Control-Max-Age", "3600")
+				} else {
+					logger.Warn("CORS request from unauthorized origin",
+						zap.String("origin", origin),
+						zap.String("path", c.Request().URL.Path),
+					)
+				}
+
+				return c.NoContent(http.StatusNoContent)
+			}
+			return next(c)
+		}
+	})
+
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
