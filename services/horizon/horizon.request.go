@@ -323,7 +323,10 @@ func NewHorizonAPIService(
 			http.MethodGet,
 			http.MethodPost,
 			http.MethodPut,
+			http.MethodPatch,
 			http.MethodDelete,
+			http.MethodOptions, // Required for preflight requests
+			http.MethodHead,
 		},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
@@ -332,13 +335,19 @@ func NewHorizonAPIService(
 			echo.HeaderAuthorization,
 			echo.HeaderXRequestedWith,
 			echo.HeaderXCSRFToken,
+			echo.HeaderAccessControlRequestMethod,
+			echo.HeaderAccessControlRequestHeaders,
 			"X-Longitude",
 			"X-Latitude",
 			"Location",
 			"X-Device-Type",
 			"X-User-Agent",
 		},
-		ExposeHeaders:    []string{echo.HeaderContentLength},
+		ExposeHeaders: []string{
+			echo.HeaderContentLength,
+			echo.HeaderContentType,
+			echo.HeaderAuthorization,
+		},
 		AllowCredentials: true,
 		MaxAge:           3600,
 	}))

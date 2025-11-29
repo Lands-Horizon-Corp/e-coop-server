@@ -187,6 +187,19 @@ func IsSuspiciousPath(path string) bool {
 		return false
 	}
 
+	// Allow legitimate API endpoints
+	if strings.HasPrefix(path, "/api/") {
+		// Still check for obvious attacks in API paths
+		if strings.Contains(path, "..") || strings.Contains(path, "%2e%2e") {
+			return true
+		}
+		// Check for null bytes and control characters
+		if NullByteRegex.MatchString(path) || ControlCharsRegex.MatchString(path) {
+			return true
+		}
+		return false
+	}
+
 	// Input length validation (prevent DOS)
 	if len(path) > 4096 {
 		return true
