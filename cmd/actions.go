@@ -20,6 +20,78 @@ import (
 	"go.uber.org/fx"
 )
 
+func enforceBlocklist() {
+	color.Blue("Enforcing HaGeZi blocklist...")
+	app := fx.New(
+		fx.Provide(
+			server.NewProvider,
+			core.NewCore,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunCache(ctx); err != nil {
+						return err
+					}
+					if err := prov.Service.Security.Firewall(ctx, func(ip, host string) {
+						cacheKey := "blocked_ip:" + ip
+						if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
+							color.Red("Failed to cache IP %s: %v", ip, err)
+						}
+						color.Yellow("Cached blocked IP %s from host %s", ip, host)
+					}); err != nil {
+						return err
+					}
+					return nil
+				},
+			})
+		}),
+	)
+	executeLifecycle(app)
+	color.Green("HaGeZi blocklist enforced and cached successfully.")
+}
+
+// clearBlockedIPs removes all blocked IP entries from Redis cache
+func clearBlockedIPs() {
+	color.Blue("Clearing blocked IPs from cache...")
+	app := fx.New(
+		fx.Provide(
+			server.NewProvider,
+		),
+		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider) {
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := prov.Service.RunCache(ctx); err != nil {
+						return err
+					}
+
+					// Get all blocked IP keys
+					keys, err := prov.Service.Cache.Keys(ctx, "blocked_ip:*")
+					if err != nil {
+						color.Red("Failed to get blocked IP keys: %v", err)
+						return err
+					}
+
+					// Delete each blocked IP key
+					count := 0
+					for _, key := range keys {
+						if err := prov.Service.Cache.Delete(ctx, key); err != nil {
+							color.Red("Failed to delete key %s: %v", key, err)
+						} else {
+							count++
+						}
+					}
+
+					color.Green("Cleared %d blocked IP entries from cache", count)
+					return nil
+				},
+			})
+		}),
+	)
+	executeLifecycle(app)
+	color.Green("Blocked IPs cleared successfully.")
+}
+
 func migrateDatabase() {
 	color.Blue("Migrating database...")
 	app := fx.New(

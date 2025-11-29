@@ -19,6 +19,12 @@ var apiPort = handlers.GetFreePort()
 
 func TestMain(m *testing.M) {
 	env := NewEnvironmentService("../../.env")
+	cache := NewHorizonCache(
+		env.GetString("REDIS_HOST", "localhost"),
+		env.GetString("REDIS_PASSWORD", ""),
+		env.GetString("REDIS_USERNAME", ""),
+		env.GetInt("REDIS_PORT", 6379),
+	)
 
 	metricsPort := handlers.GetFreePort()
 	clientURL := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
@@ -28,7 +34,7 @@ func TestMain(m *testing.M) {
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := NewHorizonAPIService(apiPort, metricsPort, clientURL, clientName, false)
+	service := NewHorizonAPIService(cache, apiPort, metricsPort, clientURL, clientName, false)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())
