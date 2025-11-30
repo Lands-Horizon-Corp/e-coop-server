@@ -44,7 +44,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		errChan := make(chan error, 1)
 
 		// Subscribe to topic
-		err = broker.Subscribe(ctx, topic, func(payload any) error {
+		err = broker.Subscribe(topic, func(payload any) error {
 			data, ok := payload.(map[string]any)
 			if !ok {
 				errChan <- eris.Errorf("expected map payload, got %T", payload)
@@ -60,7 +60,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		require.NoError(t, err)
 
 		// Publish message
-		err = broker.Publish(ctx, topic, map[string]string{"message": "hello"})
+		err = broker.Publish(topic, map[string]string{"message": "hello"})
 		require.NoError(t, err)
 
 		// Wait for result
@@ -93,7 +93,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		errChan := make(chan error, 2)
 
 		// Subscribe to topic1
-		err = broker.Subscribe(ctx, topic1, func(payload any) error {
+		err = broker.Subscribe(topic1, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
 				errChan <- eris.New("topic1: expected map payload")
@@ -104,7 +104,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		require.NoError(t, err)
 
 		// Subscribe to topic2
-		err = broker.Subscribe(ctx, topic2, func(payload any) error {
+		err = broker.Subscribe(topic2, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
 				errChan <- eris.New("topic2: expected map payload")
@@ -115,7 +115,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		require.NoError(t, err)
 
 		// Dispatch to both topics
-		err = broker.Dispatch(ctx, []string{topic1, topic2}, map[string]string{"data": "value"})
+		err = broker.Dispatch([]string{topic1, topic2}, map[string]string{"data": "value"})
 		require.NoError(t, err)
 
 		// Wait for both messages or timeout
@@ -143,7 +143,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		broker := NewHorizonMessageBroker(host, port, "test-client", "", "")
 		// Intentionally not calling Run
 
-		err := broker.Publish(ctx, "test.topic", "payload")
+		err := broker.Publish("test.topic", "payload")
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "NATS connection not initialized")
 	})
@@ -152,7 +152,7 @@ func TestHorizonMessageBroker(t *testing.T) {
 		broker := NewHorizonMessageBroker(host, port, "test-client", "", "")
 		// Intentionally not calling Run
 
-		err := broker.Subscribe(ctx, "test.topic", func(any) error { return nil })
+		err := broker.Subscribe("test.topic", func(any) error { return nil })
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "NATS connection not initialized")
 	})

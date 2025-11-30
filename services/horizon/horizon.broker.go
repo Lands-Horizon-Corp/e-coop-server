@@ -13,9 +13,9 @@ import (
 type MessageBrokerService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
-	Publish(ctx context.Context, topic string, payload any) error
-	Dispatch(ctx context.Context, topics []string, payload any) error
-	Subscribe(ctx context.Context, topic string, handler func(any) error) error
+	Publish(topic string, payload any) error
+	Dispatch(topics []string, payload any) error
+	Subscribe(topic string, handler func(any) error) error
 }
 
 // MessageBroker provides a NATS-based implementation of MessageBrokerService.
@@ -28,9 +28,7 @@ type MessageBroker struct {
 	natsPass string
 }
 
-// NewHorizonMessageBroker initializes the broker with optional TLS cert paths
 func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass string) MessageBrokerService {
-
 	return &MessageBroker{
 		host:     host,
 		port:     port,
@@ -67,27 +65,32 @@ func (h *MessageBroker) Stop(_ context.Context) error {
 	return nil
 }
 
-// Dispatch publishes a payload to multiple topics simultaneously.
-func (h *MessageBroker) Dispatch(_ context.Context, topics []string, payload any) error {
+// Dispatch publishes the same payload to multiple topics efficiently.
+func (h *MessageBroker) Dispatch(topics []string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
 
+	// Marshal payload once, reuse for all topics
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
+	msg := &nats.Msg{Data: data}
+
 	for _, topic := range topics {
-		if err := h.nc.Publish(topic, data); err != nil {
+		msg.Subject = h.clientID + topic
+		if err := h.nc.PublishMsg(msg); err != nil {
 			return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 		}
 	}
+
 	return nil
 }
 
-// Publish sends a payload to a single topic.
-func (h *MessageBroker) Publish(_ context.Context, topic string, payload any) error {
+// Publish sends a payload to a single topic (high performance).
+func (h *MessageBroker) Publish(topic string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
@@ -97,7 +100,12 @@ func (h *MessageBroker) Publish(_ context.Context, topic string, payload any) er
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
-	if err := h.nc.Publish(h.clientID+topic, data); err != nil {
+	msg := &nats.Msg{
+		Subject: h.formatTopic(topic),
+		Data:    data,
+	}
+
+	if err := h.nc.PublishMsg(msg); err != nil {
 		return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 	}
 
@@ -105,12 +113,12 @@ func (h *MessageBroker) Publish(_ context.Context, topic string, payload any) er
 }
 
 // Subscribe registers a handler function for messages on a specific topic.
-func (h *MessageBroker) Subscribe(_ context.Context, topic string, handler func(any) error) error {
+func (h *MessageBroker) Subscribe(topic string, handler func(any) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
 
-	_, err := h.nc.Subscribe(h.clientID+topic, func(msg *nats.Msg) {
+	_, err := h.nc.Subscribe(h.formatTopic(topic), func(msg *nats.Msg) {
 		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			fmt.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)
@@ -127,4 +135,8 @@ func (h *MessageBroker) Subscribe(_ context.Context, topic string, handler func(
 	}
 
 	return nil
+}
+
+func (h *MessageBroker) formatTopic(topic string) string {
+	return fmt.Sprintf("%s.%s", h.clientID, topic)
 }

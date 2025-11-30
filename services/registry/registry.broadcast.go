@@ -23,7 +23,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnCreate(context context.Context,
 				zap.Strings("topics", topics))
 		}
 
-		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
+		if err := r.service.Broker.Dispatch(topics, payload); err != nil {
 			if r.service.Logger != nil {
 				r.service.Logger.Error("[BROADCAST] OnCreate dispatch failed",
 					zap.Error(err),
@@ -57,7 +57,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnUpdate(context context.Context,
 				zap.Strings("topics", topics))
 		}
 
-		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
+		if err := r.service.Broker.Dispatch(topics, payload); err != nil {
 			if r.service.Logger != nil {
 				r.service.Logger.Error("[BROADCAST] OnUpdate dispatch failed",
 					zap.Error(err),
@@ -91,7 +91,7 @@ func (r *Registry[TData, TResponse, TRequest]) OnDelete(context context.Context,
 				zap.Strings("topics", topics))
 		}
 
-		if err := r.service.Broker.Dispatch(context, topics, payload); err != nil {
+		if err := r.service.Broker.Dispatch(topics, payload); err != nil {
 			if r.service.Logger != nil {
 				r.service.Logger.Error("[BROADCAST] OnDelete dispatch failed",
 					zap.Error(err),

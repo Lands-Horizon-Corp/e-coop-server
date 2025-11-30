@@ -46,7 +46,7 @@ func (c *Controller) heartbeat() {
 			Description: "User set online status",
 			Module:      "User",
 		})
-		if err := c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {
@@ -87,7 +87,7 @@ func (c *Controller) heartbeat() {
 			Description: "User set offline status",
 			Module:      "User",
 		})
-		if err := c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {
@@ -122,7 +122,7 @@ func (c *Controller) heartbeat() {
 		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		if err := c.provider.Service.Broker.Dispatch(context, []string{
+		if err := c.provider.Service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {
