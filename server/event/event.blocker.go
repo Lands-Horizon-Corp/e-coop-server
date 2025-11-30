@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -18,7 +18,7 @@ const maxBlockedAttempts = 25
 // returns a block function, a boolean indicating whether the IP is
 // already blocked, and an error if the check failed.
 func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (blockFn func(reason string), isBlocked bool, err error) {
-	realIP := horizon.GetClientIP(ctx)
+	realIP := handlers.GetClientIP(ctx)
 	cache := e.provider.Service.Cache
 
 	blockKey := fmt.Sprintf("block:%s", realIP)

@@ -190,7 +190,7 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 		Language:           ctx.Request().Header.Get("Accept-Language"),
 		Location:           location,
 		UserAgent:          ctx.Request().Header.Get("X-User-Agent"),
-		IPAddress:          horizon.GetClientIP(ctx),
+		IPAddress:          handlers.GetClientIP(ctx),
 		DeviceType:         ctx.Request().Header.Get("X-Device-Type"),
 		Longitude:          longitude,
 		Latitude:           latitude,

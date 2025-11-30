@@ -36,14 +36,15 @@ type APIServiceImpl struct {
 	cache       CacheService
 }
 
-// NewHorizonAPIService creates a new API service with sensible defaults.
+// NewHorizonAPIService creates a new API service with comprehensive security middleware.
+// The secured flag indicates if the server is in production mode (HTTPS enforced)
 func NewHorizonAPIService(
 	cache CacheService,
 	serverPort, metricsPort int,
 	clientURL, clientName string,
 	secured bool,
 ) APIService {
-	// the secured flag indicates if the server is in production mode (HTTPS enforced)
+	//===== ECHO INSTANCE AND LOGGER SETUP =====
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
@@ -56,32 +57,58 @@ func NewHorizonAPIService(
 		}
 	}()
 
+	//===== CORS ORIGINS CONFIGURATION =====
+	// Production domains that are allowed to make requests
+	origins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://www.ecoop-suite.com",
+		"https://development.ecoop-suite.com",
+		"https://www.development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+		"https://www.staging.ecoop-suite.com",
+		"https://cooperatives-development.fly.dev",
+		"https://cooperatives-staging.fly.dev",
+		"https://cooperatives-production.fly.dev",
+	}
+
+	// Add development origins when not in secured mode
+	if !secured {
+		origins = append(origins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+		)
+	}
+
+	// Extract hostnames from origins for host validation
+	allowedHosts := make([]string, 0, len(origins))
+	for _, origin := range origins {
+		hostname := strings.TrimPrefix(origin, "https://")
+		hostname = strings.TrimPrefix(hostname, "http://")
+		allowedHosts = append(allowedHosts, hostname)
+	}
+
+	//===== BASIC MIDDLEWARE SETUP =====
+	// Panic recovery middleware
 	e.Use(middleware.Recover())
 
+	// Remove trailing slashes from URLs
 	e.Pre(middleware.RemoveTrailingSlash())
 
+	// Force HTTPS redirect in production
 	if secured {
 		e.Pre(middleware.HTTPSRedirect())
 	}
 
+	//===== HOST VALIDATION MIDDLEWARE =====
+	// Only allow requests from approved domains
 	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			host := c.Request().Host
-			allowedHosts := []string{
-				"ecoop-suite.com",
-				"www.ecoop-suite.com",
-				"staging.ecoop-suite.com",
-				"www.staging.ecoop-suite.com",
-				"development.ecoop-suite.com",
-				"www.development.ecoop-suite.com",
-				"cooperatives-development.fly.dev",
-				"cooperatives-staging.fly.dev",
-				"cooperatives-production.fly.dev",
-			}
-
-			if !secured {
-				allowedHosts = append(allowedHosts, "localhost:8000", "localhost:8001", "localhost:8080", "localhost:3000", "localhost:3001", "localhost:3002", "localhost:3003")
-			}
+			host := handlers.GetHost(c)
 			if slices.Contains(allowedHosts, host) {
 				return next(c)
 			}
@@ -89,7 +116,8 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// HTTP Method restrictions - only allow safe methods
+	//===== HTTP METHOD RESTRICTION MIDDLEWARE =====
+	// Only allow standard HTTP methods, reject unusual ones
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			allowedMethods := map[string]bool{
@@ -109,20 +137,16 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// Firewall middleware - check blocked IPs from Redis cache
-	// This middleware checks if the client IP is blocked.
-	// You can populate the cache with IPs resolved from HaGeZi blocklists
-	// so that requests from known malicious domains/IPs are automatically denied.
+	//===== IP FIREWALL MIDDLEWARE =====
+	// Check blocked IPs from Redis cache
+	// Blocks IPs from HaGeZi blocklists and manually flagged malicious IPs
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Enhanced IP extraction for Fly.io and other proxies
-			clientIP := GetClientIP(c)
-
-			// Validate IP format
+			clientIP := handlers.GetClientIP(c)
 			if net.ParseIP(clientIP) == nil {
 				logger.Warn("Invalid IP format detected",
 					zap.String("raw_ip", clientIP),
-					zap.String("user_agent", c.Request().UserAgent()),
+					zap.String("user_agent", handlers.GetUserAgent(c)),
 				)
 				return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format")
 			}
@@ -152,14 +176,36 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ✅ NEW: Enhanced suspicious path blocking for dotfiles/hidden files
+	//===== SUSPICIOUS PATH DETECTION MIDDLEWARE =====
+	// Detect and block injection attempts, directory traversal, etc.
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			path := c.Request().URL.Path
+			path := handlers.GetPath(c)
 
+			suspiciousCacheKey := "suspicious_path:" + path
+
+			cachedResult, err := cache.Get(c.Request().Context(), suspiciousCacheKey)
+			if err == nil && cachedResult != nil {
+				logger.Warn("Suspicious path blocked (cached)",
+					zap.String("ip", handlers.GetClientIP(c)),
+					zap.String("path", path),
+				)
+				return c.String(http.StatusForbidden, "Access forbidden")
+			}
 			if handlers.IsSuspiciousPath(path) {
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+
+					if err := cache.Set(ctx, suspiciousCacheKey, []byte("blocked"), 5*time.Minute); err != nil {
+						logger.Error("Failed to cache suspicious path",
+							zap.String("path", path),
+							zap.Error(err),
+						)
+					}
+				}()
 				logger.Warn("Suspicious path blocked",
-					zap.String("ip", GetClientIP(c)),
+					zap.String("ip", handlers.GetClientIP(c)),
 					zap.String("path", path),
 				)
 				return c.String(http.StatusForbidden, "Access forbidden")
@@ -170,10 +216,14 @@ func NewHorizonAPIService(
 			return next(c)
 		}
 	})
+
+	//===== REQUEST SIZE LIMIT MIDDLEWARE =====
+	// Limit request body size to prevent DoS attacks
 	e.Use(middleware.BodyLimit("10mb"))
 
+	//===== SECURITY HEADERS MIDDLEWARE =====
 	if secured {
-		// Production security headers
+		// Comprehensive security headers for production
 		e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 			XSSProtection:         "1; mode=block",
 			ContentTypeNosniff:    "nosniff",
@@ -200,7 +250,7 @@ func NewHorizonAPIService(
 				"report-to csp-endpoint;",
 		}))
 
-		// Additional security headers for production
+		// Extended security headers for production (Permissions Policy, CT, CORP, etc.)
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				// Permissions Policy (comprehensive security controls)
@@ -231,7 +281,7 @@ func NewHorizonAPIService(
 			}
 		})
 	} else {
-		// Development security headers (more lenient)
+		// Relaxed security headers for development environment
 		e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 			XSSProtection:         "1; mode=block",
 			ContentTypeNosniff:    "nosniff",
@@ -240,45 +290,28 @@ func NewHorizonAPIService(
 			HSTSExcludeSubdomains: true,         // OK for development
 			HSTSPreloadEnabled:    false,
 			ReferrerPolicy:        "strict-origin-when-cross-origin",
-			// Development CSP - allows unsafe-inline/unsafe-eval for dev tools
 			ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
 				"img-src 'self' data: https: http:; " +
 				"connect-src 'self' ws: wss: http: https:; " +
 				"frame-src 'self';",
 		}))
 	}
-	// ✅ IMPROVED: Enhanced rate limiting with Redis support and secure error handling
-	var rateLimitStore middleware.RateLimiterStore
-	if cache != nil && secured {
-		// Use Redis-backed rate limiter for production/distributed setup
-		// Use in-memory rate limiting for now - can be enhanced with Redis-backed store later
-		rateLimitStore = middleware.NewRateLimiterMemoryStore(rate.Limit(20))
-	} else {
-		// Use in-memory store for development
-		rateLimitStore = middleware.NewRateLimiterMemoryStoreWithConfig(
-			middleware.RateLimiterMemoryStoreConfig{
-				Rate:      rate.Limit(20),
-				Burst:     100_000,
-				ExpiresIn: 5 * time.Minute,
-			},
-		)
-	}
 
+	//===== RATE LIMITING MIDDLEWARE =====
+	// Prevent abuse with IP + User-Agent based rate limiting
 	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
-		Store:   rateLimitStore,
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{
+				Rate:      rate.Limit(20),
+				Burst:     100,
+				ExpiresIn: 5 * time.Minute,
+			},
+		),
 		IdentifierExtractor: func(ctx echo.Context) (string, error) {
-			ip := GetClientIP(ctx)
-			if secured {
-				if forwardedIP := ctx.Request().Header.Get("Fly-Client-IP"); forwardedIP != "" {
-					ip = forwardedIP
-				} else if forwardedIP := ctx.Request().Header.Get("X-Forwarded-For"); forwardedIP != "" {
-					if ips := strings.Split(forwardedIP, ","); len(ips) > 0 {
-						ip = strings.TrimSpace(ips[0])
-					}
-				}
-			}
-			return ip, nil
+			ip := handlers.GetClientIP(ctx)
+			userAgent := handlers.GetUserAgent(ctx)
+			return fmt.Sprintf("%s:%s", ip, userAgent), nil
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
 			if secured {
@@ -294,29 +327,8 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	origins := []string{
-		"https://ecoop-suite.netlify.app",
-		"https://ecoop-suite.com",
-		"https://www.ecoop-suite.com",
-		"https://development.ecoop-suite.com",
-		"https://www.development.ecoop-suite.com",
-		"https://staging.ecoop-suite.com",
-		"https://www.staging.ecoop-suite.com",
-		"https://cooperatives-development.fly.dev",
-		"https://cooperatives-staging.fly.dev",
-		"https://cooperatives-production.fly.dev",
-	}
-	if !secured {
-		origins = append(origins,
-			"http://localhost:8000",
-			"http://localhost:8001",
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"http://localhost:3002",
-			"http://localhost:3003",
-		)
-	}
-
+	//===== CORS MIDDLEWARE =====
+	// Configure Cross-Origin Resource Sharing for allowed domains
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: origins,
 		AllowMethods: []string{
@@ -325,7 +337,7 @@ func NewHorizonAPIService(
 			http.MethodPut,
 			http.MethodPatch,
 			http.MethodDelete,
-			http.MethodOptions, // Required for preflight requests
+			http.MethodOptions,
 			http.MethodHead,
 		},
 		AllowHeaders: []string{
@@ -352,7 +364,8 @@ func NewHorizonAPIService(
 		MaxAge:           3600,
 	}))
 
-	// Additional CORS debugging and preflight handling
+	//===== CORS PREFLIGHT DEBUGGING MIDDLEWARE =====
+	// Enhanced CORS preflight handling with detailed logging
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if c.Request().Method == http.MethodOptions {
@@ -365,15 +378,7 @@ func NewHorizonAPIService(
 				)
 
 				// Verify origin is allowed before setting headers
-				isAllowed := false
-				for _, allowedOrigin := range origins {
-					if origin == allowedOrigin {
-						isAllowed = true
-						break
-					}
-				}
-
-				if isAllowed {
+				if slices.Contains(origins, origin) {
 					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
 					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
 					c.Response().Header().Set("Access-Control-Max-Age", "3600")
@@ -390,6 +395,8 @@ func NewHorizonAPIService(
 		}
 	})
 
+	//===== REQUEST LOGGING MIDDLEWARE =====
+	// Log all incoming requests with status and error details
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
@@ -411,6 +418,9 @@ func NewHorizonAPIService(
 			return nil
 		},
 	}))
+
+	//===== COMPRESSION MIDDLEWARE =====
+	// Gzip compression for text-based responses (skips binary content)
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6,
 		Skipper: func(c echo.Context) bool {
@@ -422,6 +432,9 @@ func NewHorizonAPIService(
 				strings.HasPrefix(ct, "application/pdf")
 		},
 	}))
+
+	//===== TIMEOUT MIDDLEWARE =====
+	// Prevent long-running requests from consuming resources
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Skipper:      middleware.DefaultSkipper,
 		ErrorMessage: "Request timed out. Please try again later.",
@@ -434,10 +447,13 @@ func NewHorizonAPIService(
 		Timeout: 1 * time.Minute,
 	}))
 
+	//===== DEFAULT ENDPOINTS =====
+	// Health check endpoint for monitoring
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
+	// Root welcome endpoint
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
@@ -486,37 +502,6 @@ func (h *APIServiceImpl) Run(_ context.Context) error {
 		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"
 
-	// CSP violation reporting endpoint
-	h.service.POST("/api/csp-violations", func(c echo.Context) error {
-		type CSPViolation struct {
-			DocumentURI        string `json:"document-uri"`
-			Referrer           string `json:"referrer"`
-			ViolatedDirective  string `json:"violated-directive"`
-			EffectiveDirective string `json:"effective-directive"`
-			OriginalPolicy     string `json:"original-policy"`
-			Disposition        string `json:"disposition"`
-			BlockedURI         string `json:"blocked-uri"`
-			LineNumber         int    `json:"line-number"`
-			ColumnNumber       int    `json:"column-number"`
-			SourceFile         string `json:"source-file"`
-			StatusCode         int    `json:"status-code"`
-			ScriptSample       string `json:"script-sample"`
-		}
-
-		var report struct {
-			CSPReport CSPViolation `json:"csp-report"`
-		}
-
-		if err := c.Bind(&report); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid CSP report format"})
-		}
-
-		// Log the violation for monitoring
-		c.Logger().Warnf("CSP Violation: %+v", report.CSPReport)
-
-		return c.JSON(http.StatusOK, map[string]string{"status": "reported"})
-	}).Name = "csp-violations"
-
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
 	})
@@ -533,23 +518,4 @@ func (h *APIServiceImpl) Stop(ctx context.Context) error {
 		return eris.New("failed to gracefully shutdown server")
 	}
 	return nil
-}
-
-func GetClientIP(c echo.Context) string {
-	if ip := c.Request().Header.Get("Fly-Client-IP"); ip != "" {
-		return strings.TrimSpace(ip)
-	}
-	if ip := c.Request().Header.Get("X-Forwarded-For"); ip != "" {
-		ips := strings.Split(ip, ",")
-		if len(ips) > 0 {
-			return strings.TrimSpace(ips[0])
-		}
-	}
-	if ip := c.Request().Header.Get("X-Real-IP"); ip != "" {
-		return strings.TrimSpace(ip)
-	}
-	if ip := c.Request().Header.Get("CF-Connecting-IP"); ip != "" {
-		return strings.TrimSpace(ip)
-	}
-	return c.RealIP()
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 )
 
@@ -59,8 +58,8 @@ func (c *Controller) footstepController() {
 			Description:    req.Description,
 			Latitude:       &latitude,
 			Longitude:      &longitude,
-			IPAddress:      horizon.GetClientIP(ctx),
-			UserAgent:      ctx.Request().UserAgent(),
+			IPAddress:      handlers.GetClientIP(ctx),
+			UserAgent:      handlers.GetUserAgent(ctx),
 			Referer:        ctx.Request().Referer(),
 			Location:       ctx.Request().Header.Get("Location"),
 			AcceptLanguage: ctx.Request().Header.Get("Accept-Language"),
