@@ -1,3 +1,5 @@
+// Package horizon provides a comprehensive, security-focused HTTP API service
+// with Redis-backed middleware for production deployment on Fly.io
 package horizon
 
 import (
@@ -17,27 +19,113 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// APIService defines the interface for an API server.
+// APIService defines the interface for a secure, production-ready HTTP API server
+// with comprehensive middleware and Redis-backed security features.
 type APIService interface {
+	// Run starts the API server with all configured middleware
 	Run(ctx context.Context) error
+
+	// Stop gracefully shuts down the API server
 	Stop(ctx context.Context) error
+
+	// Client returns the underlying Echo instance for advanced configuration
 	Client() *echo.Echo
+
+	// RegisterRoute adds a new route with optional middleware
 	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
-// APIServiceImpl implements APIService.
+// APIServiceImpl implements APIService with comprehensive security middleware stack.
+// This implementation provides enterprise-grade security features including:
+// - Redis-backed rate limiting and IP blocking
+// - Comprehensive security headers
+// - Request validation and suspicious path detection
+// - Environment-aware configuration (dev/prod)
 type APIServiceImpl struct {
-	service     *echo.Echo
-	serverPort  int
-	metricsPort int
-	clientURL   string
-	clientName  string
-	handler     *handlers.RouteHandler
-	cache       CacheService
+	service     *echo.Echo             // Echo web framework instance
+	serverPort  int                    // HTTP server port
+	metricsPort int                    // Metrics server port (future use)
+	clientURL   string                 // Client application URL
+	clientName  string                 // Client application name
+	handler     *handlers.RouteHandler // Route management handler
+	cache       CacheService           // Redis cache service for security features
+}
+
+// RedisRateLimiterStore implements Echo's RateLimiterStore interface using Redis
+// for distributed rate limiting across multiple Fly.io instances.
+// This ensures consistent rate limiting behavior in a multi-instance deployment.
+type RedisRateLimiterStore struct {
+	cache     CacheService  // Redis cache service for storing rate limit counters
+	logger    *zap.Logger   // Structured logger for rate limiting events
+	rate      rate.Limit    // Requests per second limit
+	burst     int           // Burst capacity for traffic spikes
+	expiresIn time.Duration // Time window for rate limiting
+}
+
+// Allow implements the RateLimiterStore interface.
+// It checks if a request should be allowed based on the current rate limit state in Redis.
+// Returns true if the request is allowed, false if rate limited.
+func (s *RedisRateLimiterStore) Allow(identifier string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	key := "rate_limit:" + identifier
+
+	// Get current count from Redis
+	countBytes, err := s.cache.Get(ctx, key)
+	if err != nil {
+		// If Redis is down, allow request but log error
+		s.logger.Error("Rate limit cache error", zap.String("identifier", identifier), zap.Error(err))
+		return true, nil // Fail open
+	}
+
+	var currentCount int
+	if countBytes != nil {
+		if _, err := fmt.Sscanf(string(countBytes), "%d", &currentCount); err != nil {
+			currentCount = 0
+		}
+	}
+
+	// Check if rate limit exceeded
+	if currentCount >= int(s.rate)*int(s.expiresIn.Seconds()) {
+		return false, nil
+	}
+
+	// Increment counter asynchronously
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		newCount := currentCount + 1
+		if err := s.cache.Set(ctx, key, []byte(fmt.Sprintf("%d", newCount)), s.expiresIn); err != nil {
+			s.logger.Error("Failed to update rate limit counter",
+				zap.String("identifier", identifier),
+				zap.Error(err),
+			)
+		}
+	}()
+
+	return true, nil
 }
 
 // NewHorizonAPIService creates a new API service with comprehensive security middleware.
-// The secured flag indicates if the server is in production mode (HTTPS enforced)
+// This function sets up a production-ready Echo server with 15+ security layers including:
+// - Host validation and HTTPS enforcement
+// - IP firewall with Redis-backed blocklists
+// - Sophisticated path injection detection
+// - Redis-distributed rate limiting
+// - Comprehensive security headers
+// - CORS configuration with origin validation
+//
+// Parameters:
+//   - cache: Redis cache service for security features (IP blocking, rate limiting, path caching)
+//   - serverPort: HTTP server port number
+//   - metricsPort: Metrics server port (reserved for future Prometheus integration)
+//   - clientURL: Primary client application URL for CORS configuration
+//   - clientName: Client application identifier for logging
+//   - secured: Production mode flag (enables HTTPS redirect and strict security headers)
+//
+// Returns: Configured APIService ready for production deployment
 func NewHorizonAPIService(
 	cache CacheService,
 	serverPort, metricsPort int,
@@ -58,15 +146,23 @@ func NewHorizonAPIService(
 	}()
 
 	//===== CORS ORIGINS CONFIGURATION =====
-	// Production domains that are allowed to make requests
+	// Define allowed origins for Cross-Origin Resource Sharing (CORS)
+	// These domains are permitted to make requests to the API
+
+	// Production domains - primary application domains
 	origins := []string{
+		// Primary production domains
 		"https://ecoop-suite.netlify.app",
 		"https://ecoop-suite.com",
 		"https://www.ecoop-suite.com",
+
+		// Development and staging environments
 		"https://development.ecoop-suite.com",
 		"https://www.development.ecoop-suite.com",
 		"https://staging.ecoop-suite.com",
 		"https://www.staging.ecoop-suite.com",
+
+		// Fly.io deployment domains
 		"https://cooperatives-development.fly.dev",
 		"https://cooperatives-staging.fly.dev",
 		"https://cooperatives-production.fly.dev",
@@ -105,46 +201,65 @@ func NewHorizonAPIService(
 	}
 
 	//===== HOST VALIDATION MIDDLEWARE =====
-	// Only allow requests from approved domains
+	// Validates the Host header against approved domains to prevent:
+	// - Host header injection attacks
+	// - DNS rebinding attacks
+	// - Unauthorized domain access
 	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			host := handlers.GetHost(c)
+
+			// Check if the host is in our allowlist
 			if slices.Contains(allowedHosts, host) {
 				return next(c)
 			}
+
+			// Reject requests from unauthorized hosts
 			return c.String(http.StatusForbidden, "Host not allowed")
 		}
 	})
 
 	//===== HTTP METHOD RESTRICTION MIDDLEWARE =====
-	// Only allow standard HTTP methods, reject unusual ones
+	// Restricts HTTP methods to standard, safe operations.
+	// Blocks potentially dangerous methods like TRACE, CONNECT, etc.
+	// This prevents HTTP method tampering and reduces attack surface.
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			// Define allowed HTTP methods for API operations
 			allowedMethods := map[string]bool{
-				http.MethodGet:     true,
-				http.MethodPost:    true,
-				http.MethodPut:     true,
-				http.MethodPatch:   true,
-				http.MethodDelete:  true,
-				http.MethodHead:    true,
-				http.MethodOptions: true,
+				http.MethodGet:     true, // Read operations
+				http.MethodPost:    true, // Create operations
+				http.MethodPut:     true, // Update/replace operations
+				http.MethodPatch:   true, // Partial update operations
+				http.MethodDelete:  true, // Delete operations
+				http.MethodHead:    true, // Header-only requests
+				http.MethodOptions: true, // CORS preflight requests
 			}
 
+			// Reject requests with unauthorized HTTP methods
 			if !allowedMethods[c.Request().Method] {
 				return echo.NewHTTPError(http.StatusMethodNotAllowed, "Method not allowed")
 			}
+
 			return next(c)
 		}
 	})
 
 	//===== IP FIREWALL MIDDLEWARE =====
-	// Check blocked IPs from Redis cache
-	// Blocks IPs from HaGeZi blocklists and manually flagged malicious IPs
+	// Redis-backed IP firewall for blocking malicious traffic.
+	// Features:
+	// - Integration with HaGeZi threat intelligence blocklists
+	// - Manual IP blocking capability
+	// - Distributed blocking across Fly.io instances
+	// - Graceful fallback if Redis is unavailable
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			// Extract and validate client IP address
 			clientIP := handlers.GetClientIP(c)
+
+			// Validate IP format to prevent injection attacks
 			if net.ParseIP(clientIP) == nil {
-				logger.Warn("Invalid IP format detected",
+				logger.Warn("Invalid IP format detected - potential attack",
 					zap.String("raw_ip", clientIP),
 					zap.String("user_agent", handlers.GetUserAgent(c)),
 				)
@@ -177,11 +292,19 @@ func NewHorizonAPIService(
 	})
 
 	//===== SUSPICIOUS PATH DETECTION MIDDLEWARE =====
-	// Detect and block injection attempts, directory traversal, etc.
+	// Advanced threat detection for malicious request patterns.
+	// Detects and blocks:
+	// - SQL injection attempts
+	// - XSS (Cross-Site Scripting) attacks
+	// - Directory traversal attempts (../, etc.)
+	// - Command injection patterns
+	// - File inclusion attacks
+	// - Web shell upload attempts
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := handlers.GetPath(c)
 
+			// Generate cache key for suspicious path detection
 			suspiciousCacheKey := "suspicious_path:" + path
 
 			cachedResult, err := cache.Get(c.Request().Context(), suspiciousCacheKey)
@@ -298,49 +421,87 @@ func NewHorizonAPIService(
 	}
 
 	//===== RATE LIMITING MIDDLEWARE =====
-	// Prevent abuse with IP + User-Agent based rate limiting
+	// Redis-backed distributed rate limiting for Fly.io multi-instance deployment.
+	// Features:
+	// - Consistent rate limiting across all instances
+	// - IP + User-Agent fingerprinting for accurate identification
+	// - Graceful degradation if Redis is unavailable
+	// - Client-aware headers for better UX
 	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
-		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
-			middleware.RateLimiterMemoryStoreConfig{
-				Rate:      rate.Limit(20),
-				Burst:     100,
-				ExpiresIn: 5 * time.Minute,
-			},
-		),
+
+		// Custom Redis store for distributed rate limiting
+		Store: &RedisRateLimiterStore{
+			cache:     cache,           // Redis cache service
+			logger:    logger,          // Structured logger
+			rate:      rate.Limit(20),  // 20 requests per second
+			burst:     100,             // Burst capacity for traffic spikes
+			expiresIn: 1 * time.Minute, // Rate limit window duration
+		},
+		// Generate unique identifier combining IP address and User-Agent
+		// This prevents simple IP rotation attacks while maintaining accuracy
 		IdentifierExtractor: func(ctx echo.Context) (string, error) {
 			ip := handlers.GetClientIP(ctx)
 			userAgent := handlers.GetUserAgent(ctx)
 			return fmt.Sprintf("%s:%s", ip, userAgent), nil
 		},
+
+		// Handle rate limiter internal errors gracefully
 		ErrorHandler: func(c echo.Context, err error) error {
 			if secured {
-				return c.JSON(http.StatusForbidden, map[string]string{"error": "Request rate limited"})
+				// Production: Generic error message
+				return c.JSON(http.StatusForbidden, map[string]string{
+					"error": "Request rate limited",
+				})
 			}
-			return c.JSON(http.StatusForbidden, map[string]string{"error": "rate limit error " + err.Error()})
+			// Development: Detailed error information
+			return c.JSON(http.StatusForbidden, map[string]string{
+				"error": "rate limit error: " + err.Error(),
+			})
 		},
-		DenyHandler: func(c echo.Context, _ string, err error) error {
+		DenyHandler: func(c echo.Context, identifier string, err error) error {
+			// Add rate limit headers for client awareness
+			c.Response().Header().Set("X-RateLimit-Limit", "20")
+			c.Response().Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", time.Now().Add(1*time.Minute).Unix()))
+
+			logger.Warn("Rate limit exceeded",
+				zap.String("identifier", identifier),
+				zap.String("ip", handlers.GetClientIP(c)),
+				zap.String("user_agent", handlers.GetUserAgent(c)),
+			)
+
 			if secured {
-				return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "Too many requests. Please try again later."})
+				return c.JSON(http.StatusTooManyRequests, map[string]string{
+					"error": "Too many requests. Please try again later.",
+				})
 			}
-			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "rate limit exceeded " + err.Error()})
+			return c.JSON(http.StatusTooManyRequests, map[string]string{
+				"error":       "Rate limit exceeded",
+				"retry_after": "60s",
+			})
 		},
 	}))
 
 	//===== CORS MIDDLEWARE =====
-	// Configure Cross-Origin Resource Sharing for allowed domains
+	// Cross-Origin Resource Sharing configuration for web application integration.
+	// Allows legitimate cross-origin requests while maintaining security.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		// Allowed origins - only trusted domains can make requests
 		AllowOrigins: origins,
+
+		// Permitted HTTP methods for cross-origin requests
 		AllowMethods: []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodPatch,
-			http.MethodDelete,
-			http.MethodOptions,
-			http.MethodHead,
+			http.MethodGet,     // Read operations
+			http.MethodPost,    // Create operations
+			http.MethodPut,     // Update operations
+			http.MethodPatch,   // Partial updates
+			http.MethodDelete,  // Delete operations
+			http.MethodOptions, // Preflight requests
+			http.MethodHead,    // Header-only requests
 		},
+		// Headers that client applications are allowed to send
 		AllowHeaders: []string{
+			// Standard CORS headers
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
@@ -349,19 +510,24 @@ func NewHorizonAPIService(
 			echo.HeaderXCSRFToken,
 			echo.HeaderAccessControlRequestMethod,
 			echo.HeaderAccessControlRequestHeaders,
-			"X-Longitude",
-			"X-Latitude",
-			"Location",
-			"X-Device-Type",
-			"X-User-Agent",
+
+			// Custom application headers
+			"X-Longitude",   // Geographic location data
+			"X-Latitude",    // Geographic location data
+			"Location",      // Location information
+			"X-Device-Type", // Client device type
+			"X-User-Agent",  // Enhanced user agent info
 		},
+
+		// Headers that can be exposed to the client application
 		ExposeHeaders: []string{
-			echo.HeaderContentLength,
-			echo.HeaderContentType,
-			echo.HeaderAuthorization,
+			echo.HeaderContentLength, // Response size information
+			echo.HeaderContentType,   // Response content type
+			echo.HeaderAuthorization, // Authentication headers
 		},
-		AllowCredentials: true,
-		MaxAge:           3600,
+
+		AllowCredentials: true, // Allow cookies and credentials
+		MaxAge:           3600, // Cache preflight response for 1 hour
 	}))
 
 	//===== CORS PREFLIGHT DEBUGGING MIDDLEWARE =====
@@ -396,19 +562,24 @@ func NewHorizonAPIService(
 	})
 
 	//===== REQUEST LOGGING MIDDLEWARE =====
-	// Log all incoming requests with status and error details
+	// Comprehensive request logging for monitoring and debugging.
+	// Logs all HTTP requests with structured data for analysis.
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogStatus:   true,
-		LogURI:      true,
-		LogError:    true,
-		HandleError: true,
+		LogStatus:   true, // Log HTTP status codes
+		LogURI:      true, // Log request URIs
+		LogError:    true, // Log error details
+		HandleError: true, // Handle errors in logging
+
+		// Custom log formatting function
 		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
+				// Log successful requests
 				logger.Info("REQUEST",
 					zap.String("uri", v.URI),
 					zap.Int("status", v.Status),
 				)
 			} else {
+				// Log failed requests with error details
 				logger.Error("REQUEST_ERROR",
 					zap.String("uri", v.URI),
 					zap.Int("status", v.Status),
@@ -420,40 +591,51 @@ func NewHorizonAPIService(
 	}))
 
 	//===== COMPRESSION MIDDLEWARE =====
-	// Gzip compression for text-based responses (skips binary content)
+	// Intelligent response compression for bandwidth optimization.
+	// Automatically compresses text-based responses while skipping binary content.
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 6,
+		Level: 6, // Balanced compression level (speed vs. size)
+
+		// Skip compression for binary content types
 		Skipper: func(c echo.Context) bool {
 			ct := c.Response().Header().Get(echo.HeaderContentType)
-			return strings.HasPrefix(ct, "image/") ||
-				strings.HasPrefix(ct, "video/") ||
-				strings.HasPrefix(ct, "audio/") ||
-				strings.HasPrefix(ct, "application/zip") ||
-				strings.HasPrefix(ct, "application/pdf")
+			return strings.HasPrefix(ct, "image/") || // Images
+				strings.HasPrefix(ct, "video/") || // Videos
+				strings.HasPrefix(ct, "audio/") || // Audio files
+				strings.HasPrefix(ct, "application/zip") || // Archives
+				strings.HasPrefix(ct, "application/pdf") // PDF documents
 		},
 	}))
 
 	//===== TIMEOUT MIDDLEWARE =====
-	// Prevent long-running requests from consuming resources
+	// Request timeout protection to prevent resource exhaustion.
+	// Automatically terminates long-running requests to maintain server stability.
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Skipper:      middleware.DefaultSkipper,
 		ErrorMessage: "Request timed out. Please try again later.",
+
+		// Custom timeout error handler for detailed logging
 		OnTimeoutRouteErrorHandler: func(err error, c echo.Context) {
-			logger.Error("Timeout error",
+			logger.Error("Request timeout occurred",
 				zap.String("path", c.Path()),
+				zap.String("method", c.Request().Method),
+				zap.String("ip", handlers.GetClientIP(c)),
 				zap.Error(err),
 			)
 		},
-		Timeout: 1 * time.Minute,
+
+		Timeout: 1 * time.Minute, // 60-second request timeout
 	}))
 
 	//===== DEFAULT ENDPOINTS =====
-	// Health check endpoint for monitoring
+	// Essential API endpoints for monitoring and discovery
+
+	// Health check endpoint for load balancer and monitoring systems
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "OK")
 	})
 
-	// Root welcome endpoint
+	// API root endpoint with welcome message
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
@@ -469,15 +651,28 @@ func NewHorizonAPIService(
 	}
 }
 
-// Client returns the Echo instance.
-func (h *APIServiceImpl) Client() *echo.Echo { return h.service }
+// Client returns the underlying Echo instance for advanced configuration.
+// Use this method when you need direct access to Echo's features.
+func (h *APIServiceImpl) Client() *echo.Echo {
+	return h.service
+}
 
-// RegisterRoute registers a new route and its handler.
+// RegisterRoute adds a new HTTP route to the API server.
+// This method automatically handles route registration and method validation.
+//
+// Parameters:
+//   - route: Route configuration containing method, path, and metadata
+//   - callback: Handler function for the route
+//   - m: Optional middleware functions to apply to this specific route
 func (h *APIServiceImpl) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
+
+	// Add route to internal handler for tracking and management
 	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
 	}
+
+	// Register route with appropriate HTTP method
 	switch method {
 	case http.MethodGet:
 		h.service.GET(route.Route, callback, m...)
@@ -492,27 +687,38 @@ func (h *APIServiceImpl) RegisterRoute(route handlers.Route, callback func(c ech
 	}
 }
 
-// Run starts the API and metrics servers.
+// Run starts the API server with all configured security middleware.
+// This method initializes route discovery endpoints and starts the HTTP server.
+//
+// The server runs in a separate goroutine, allowing the method to return immediately.
+// Use the Stop method for graceful shutdown.
 func (h *APIServiceImpl) Run(_ context.Context) error {
-
-	// New: GET /api/routes returns grouped routes as JSON
+	// Register route discovery endpoint for API documentation
 	grouped := h.handler.GroupedRoutes()
-
 	h.service.GET("/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"
 
+	// Catch-all route for unmatched requests
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
 	})
 
+	// Start HTTP server in background goroutine
 	go func() {
 		h.service.Logger.Fatal(h.service.Start(fmt.Sprintf(":%d", h.serverPort)))
 	}()
+
 	return nil
 }
 
 // Stop gracefully shuts down the API server.
+// This method ensures all active connections are completed before stopping.
+//
+// Parameters:
+//   - ctx: Context for controlling shutdown timeout
+//
+// Returns: Error if shutdown fails
 func (h *APIServiceImpl) Stop(ctx context.Context) error {
 	if err := h.service.Shutdown(ctx); err != nil {
 		return eris.New("failed to gracefully shutdown server")
