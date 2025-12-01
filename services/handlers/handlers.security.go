@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // Security patterns - compiled once for performance
@@ -25,6 +27,14 @@ var (
 		"ldap_injection":    regexp.MustCompile(`(?i)(\*\)|\)\(|\|\(|\&\(|objectclass=|cn=|uid=|ou=|dc=)`),
 		"xpath_injection":   regexp.MustCompile(`(?i)(or\s+1\s*=\s*1|and\s+1\s*=\s*1|\[|\]|/\*|\*/|count\(|string\(|substring\()`),
 		"xml_injection":     regexp.MustCompile(`(?i)(<!DOCTYPE|<!ENTITY|&[a-z]+;|SYSTEM\s|PUBLIC\s|file://|ftp://|gopher://|dict://)`),
+
+		// Enhanced patterns for modern threats - CRITICAL FIX
+		"nosql_injection":    regexp.MustCompile(`(?i)(\$where|\$regex|\$ne|\$gt|\$lt|\$in|\$nin|\$or|\$and|\$project|\$group|\$match|\$skip|\$limit|\$unwind)`),
+		"ssrf_protocols":     regexp.MustCompile(`(?i)(file://|ftp://|gopher://|dict://|jar://|ldap://|tftp://|http://0\.0\.0\.0|http://127\.0\.0\.1)`),
+		"log4shell":          regexp.MustCompile(`(?i)(\$\{jndi:(ldap|rmi|dns|iiop|corba|nds):[^{}]+\})`),
+		"graphql_injection":  regexp.MustCompile(`(?i)(__schema|__type|__typename|query\{|\*/|\*/)`),
+		"deserialization":    regexp.MustCompile(`(?i)(java\.util\.HashMap|ysoserial|commons-collections|Serializable\.class)`),
+		"template_injection": regexp.MustCompile(`(?i)(\{\{|\}\}|\$\%\{|\#\{|\$\{|\{\%|\}\%|\{\{7\*7\}\}|\{\%7\*7\%\})`),
 	}
 
 	// Dangerous file extensions
@@ -71,9 +81,13 @@ func IsSuspiciousPath(path string) bool {
 
 // hasInjectionPattern checks for code injection patterns
 func hasInjectionPattern(path string) bool {
-	injectionTypes := []string{"script_injection", "sql_injection", "command_injection",
+	injectionTypes := []string{
+		"script_injection", "sql_injection", "command_injection",
 		"ldap_injection", "xpath_injection", "xml_injection",
-		"null_byte", "control_chars"}
+		"nosql_injection", "ssrf_protocols", "log4shell",
+		"graphql_injection", "deserialization", "template_injection",
+		"null_byte", "control_chars",
+	}
 
 	for _, pattern := range injectionTypes {
 		if regex := securityRegexes[pattern]; regex != nil && regex.MatchString(path) {
@@ -184,16 +198,33 @@ func SafePathJoin(base string, elements ...string) (string, error) {
 	return result, nil
 }
 
+// ThreatInfo contains detailed threat analysis information
+type ThreatInfo struct {
+	IsThreat    bool
+	ThreatType  string
+	Severity    int // 1=Low, 5=Critical
+	Pattern     string
+	Description string
+}
+
+// IsSecurityThreat performs comprehensive threat analysis with severity scoring
 func IsSecurityThreat(input string) (bool, string) {
 	threats := map[string]string{
-		"script_injection":  "SCRIPT_INJECTION",
-		"sql_injection":     "SQL_INJECTION",
-		"command_injection": "COMMAND_INJECTION",
-		"ldap_injection":    "LDAP_INJECTION",
-		"xpath_injection":   "XPATH_INJECTION",
-		"xml_injection":     "XML_INJECTION",
-		"path_traversal":    "PATH_TRAVERSAL",
+		"script_injection":   "SCRIPT_INJECTION",
+		"sql_injection":      "SQL_INJECTION",
+		"command_injection":  "COMMAND_INJECTION",
+		"ldap_injection":     "LDAP_INJECTION",
+		"xpath_injection":    "XPATH_INJECTION",
+		"xml_injection":      "XML_INJECTION",
+		"nosql_injection":    "NOSQL_INJECTION",
+		"ssrf_protocols":     "SSRF_ATTEMPT",
+		"log4shell":          "LOG4SHELL_EXPLOIT",
+		"graphql_injection":  "GRAPHQL_INJECTION",
+		"deserialization":    "DESERIALIZATION_ATTACK",
+		"template_injection": "TEMPLATE_INJECTION",
+		"path_traversal":     "PATH_TRAVERSAL",
 	}
+
 	for pattern, threatType := range threats {
 		if regex := securityRegexes[pattern]; regex != nil && regex.MatchString(input) {
 			return true, threatType
@@ -202,9 +233,275 @@ func IsSecurityThreat(input string) (bool, string) {
 	return false, ""
 }
 
+// AnalyzeThreat provides detailed threat analysis with severity scoring
+func AnalyzeThreat(input string) ThreatInfo {
+	threatSeverity := map[string]int{
+		"LOG4SHELL_EXPLOIT":      5, // Critical
+		"COMMAND_INJECTION":      5, // Critical
+		"DESERIALIZATION_ATTACK": 5, // Critical
+		"SQL_INJECTION":          4, // High
+		"SCRIPT_INJECTION":       4, // High
+		"SSRF_ATTEMPT":           4, // High
+		"NOSQL_INJECTION":        4, // High
+		"PATH_TRAVERSAL":         3, // Medium
+		"XML_INJECTION":          3, // Medium
+		"TEMPLATE_INJECTION":     3, // Medium
+		"GRAPHQL_INJECTION":      2, // Low
+		"LDAP_INJECTION":         2, // Low
+		"XPATH_INJECTION":        2, // Low
+	}
+
+	threatDescriptions := map[string]string{
+		"LOG4SHELL_EXPLOIT":      "Critical Log4j JNDI lookup vulnerability",
+		"COMMAND_INJECTION":      "Operating system command execution attempt",
+		"DESERIALIZATION_ATTACK": "Malicious object deserialization attempt",
+		"SQL_INJECTION":          "Database query manipulation attempt",
+		"SCRIPT_INJECTION":       "Client-side script injection attempt",
+		"SSRF_ATTEMPT":           "Server-side request forgery attempt",
+		"NOSQL_INJECTION":        "NoSQL database injection attempt",
+		"PATH_TRAVERSAL":         "Directory traversal attempt",
+		"XML_INJECTION":          "XML external entity injection attempt",
+		"TEMPLATE_INJECTION":     "Server-side template injection attempt",
+		"GRAPHQL_INJECTION":      "GraphQL introspection or injection attempt",
+		"LDAP_INJECTION":         "LDAP query injection attempt",
+		"XPATH_INJECTION":        "XPath query injection attempt",
+	}
+
+	isThreat, threatType := IsSecurityThreat(input)
+	if !isThreat {
+		return ThreatInfo{IsThreat: false}
+	}
+
+	return ThreatInfo{
+		IsThreat:    true,
+		ThreatType:  threatType,
+		Severity:    threatSeverity[threatType],
+		Description: threatDescriptions[threatType],
+	}
+}
+
 var (
-	PathTraversalRegex    = securityRegexes["path_traversal"]
-	ScriptInjectionRegex  = securityRegexes["script_injection"]
-	SqlInjectionRegex     = securityRegexes["sql_injection"]
-	CommandInjectionRegex = securityRegexes["command_injection"]
+	PathTraversalRegex     = securityRegexes["path_traversal"]
+	ScriptInjectionRegex   = securityRegexes["script_injection"]
+	SqlInjectionRegex      = securityRegexes["sql_injection"]
+	CommandInjectionRegex  = securityRegexes["command_injection"]
+	NoSqlInjectionRegex    = securityRegexes["nosql_injection"]
+	SSRFProtocolsRegex     = securityRegexes["ssrf_protocols"]
+	Log4ShellRegex         = securityRegexes["log4shell"]
+	GraphQLInjectionRegex  = securityRegexes["graphql_injection"]
+	DeserializationRegex   = securityRegexes["deserialization"]
+	TemplateInjectionRegex = securityRegexes["template_injection"]
 )
+
+// ValidateRequest performs comprehensive security validation on HTTP request components
+func ValidateRequest(method, path, queryString, userAgent, body string) (bool, []ThreatInfo) {
+	var threats []ThreatInfo
+
+	// Validate path
+	if threat := AnalyzeThreat(path); threat.IsThreat {
+		threats = append(threats, threat)
+	}
+
+	// Validate query parameters
+	if queryString != "" {
+		if threat := AnalyzeThreat(queryString); threat.IsThreat {
+			threats = append(threats, threat)
+		}
+	}
+
+	// Validate user agent for injection attempts
+	if userAgent != "" {
+		if threat := AnalyzeThreat(userAgent); threat.IsThreat {
+			threats = append(threats, threat)
+		}
+	}
+
+	// Enhanced body validation with JSON parsing
+	if body != "" && len(body) < 1048576 { // Only check bodies under 1MB
+		bodyThreats := validateRequestBody(body)
+		threats = append(threats, bodyThreats...)
+	}
+
+	return len(threats) == 0, threats
+}
+
+// ValidateRequestWithHeaders performs comprehensive validation including HTTP headers
+func ValidateRequestWithHeaders(method, path, queryString, userAgent, body string, headers map[string][]string) (bool, []ThreatInfo) {
+	var threats []ThreatInfo
+
+	// Basic request validation
+	_, requestThreats := ValidateRequest(method, path, queryString, userAgent, body)
+	threats = append(threats, requestThreats...)
+
+	// Validate critical headers
+	headerThreats := validateHeaders(headers)
+	threats = append(threats, headerThreats...)
+
+	return len(threats) == 0, threats
+}
+
+// validateRequestBody performs deep validation of request body with JSON parsing
+func validateRequestBody(body string) []ThreatInfo {
+	var threats []ThreatInfo
+
+	// Raw body validation
+	if threat := AnalyzeThreat(body); threat.IsThreat {
+		threats = append(threats, threat)
+	}
+
+	// Try to parse as JSON and validate nested fields
+	if strings.HasPrefix(strings.TrimSpace(body), "{") {
+		var jsonData map[string]any
+		if err := json.Unmarshal([]byte(body), &jsonData); err == nil {
+			jsonThreats := validateJSONRecursive(jsonData, "")
+			threats = append(threats, jsonThreats...)
+		}
+	}
+
+	return threats
+}
+
+// validateJSONRecursive recursively validates JSON fields for threats
+func validateJSONRecursive(data any, path string) []ThreatInfo {
+	var threats []ThreatInfo
+
+	switch v := data.(type) {
+	case string:
+		if threat := AnalyzeThreat(v); threat.IsThreat {
+			threats = append(threats, threat)
+		}
+	case map[string]any:
+		for key, value := range v {
+			newPath := path + "." + key
+			if threat := AnalyzeThreat(key); threat.IsThreat {
+				threats = append(threats, threat)
+			}
+			nested := validateJSONRecursive(value, newPath)
+			threats = append(threats, nested...)
+		}
+	case []any:
+		for i, item := range v {
+			newPath := fmt.Sprintf("%s[%d]", path, i)
+			nested := validateJSONRecursive(item, newPath)
+			threats = append(threats, nested...)
+		}
+	}
+
+	return threats
+}
+
+// validateHeaders validates HTTP headers for security threats
+func validateHeaders(headers map[string][]string) []ThreatInfo {
+	var threats []ThreatInfo
+
+	// Critical headers to validate
+	criticalHeaders := []string{
+		"Authorization",
+		"X-Forwarded-For",
+		"X-Real-IP",
+		"X-Forwarded-Host",
+		"Host",
+		"Referer",
+		"Origin",
+		"Cookie",
+	}
+
+	for _, headerName := range criticalHeaders {
+		if values, exists := headers[headerName]; exists {
+			for _, value := range values {
+				if threat := AnalyzeThreat(value); threat.IsThreat {
+					threats = append(threats, threat)
+				}
+			}
+		}
+	}
+
+	return threats
+}
+
+// IsWhitelistedPath checks if a path should bypass security checks
+func IsWhitelistedPath(path string) bool {
+	whitelistedPaths := []string{
+		"/health",
+		"/metrics",
+		"/api/routes",
+		"/favicon.ico",
+		"/.well-known/",
+	}
+
+	for _, whitelist := range whitelistedPaths {
+		if strings.HasPrefix(path, whitelist) {
+			return true
+		}
+	}
+
+	// API route pattern validation (positive validation)
+	if strings.HasPrefix(path, "/api/") {
+		// Valid API path pattern: /api/v1/resource or /api/resource
+		validAPIPattern := regexp.MustCompile(`^/api(/v\d+)?/[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*(/\d+)?/?$`)
+		return validAPIPattern.MatchString(path)
+	}
+
+	return false
+}
+
+// GetThreatScore calculates overall threat score for risk assessment
+func GetThreatScore(threats []ThreatInfo) int {
+	totalScore := 0
+	for _, threat := range threats {
+		totalScore += threat.Severity
+	}
+	return totalScore
+}
+
+// ShouldBlockRequest determines if a request should be blocked based on threat analysis
+func ShouldBlockRequest(threats []ThreatInfo) bool {
+	// Block if any critical (severity 5) threats found
+	for _, threat := range threats {
+		if threat.Severity >= 5 {
+			return true
+		}
+	}
+
+	// Block if total threat score exceeds threshold
+	return GetThreatScore(threats) >= 8
+}
+
+// ValidateRequestWithTimeout performs validation with timeout protection
+func ValidateRequestWithTimeout(method, path, queryString, userAgent, body string, headers map[string][]string, timeout time.Duration) (bool, []ThreatInfo, error) {
+	done := make(chan struct{})
+	var isSecure bool
+	var threats []ThreatInfo
+
+	go func() {
+		defer close(done)
+		isSecure, threats = ValidateRequestWithHeaders(method, path, queryString, userAgent, body, headers)
+	}()
+
+	select {
+	case <-done:
+		return isSecure, threats, nil
+	case <-time.After(timeout):
+		return false, []ThreatInfo{{IsThreat: true, ThreatType: "VALIDATION_TIMEOUT", Severity: 3, Description: "Security validation timed out"}}, errors.New("validation timeout")
+	}
+}
+
+// IsContextuallyAllowed checks if a threat should be allowed based on context
+func IsContextuallyAllowed(threat ThreatInfo, isAuthenticated bool, userRole string, path string) bool {
+	// Allow some NoSQL/GraphQL operations for authenticated admin users
+	if isAuthenticated && userRole == "admin" {
+		if threat.ThreatType == "NOSQL_INJECTION" || threat.ThreatType == "GRAPHQL_INJECTION" {
+			// Allow legitimate admin operations on admin paths
+			if strings.HasPrefix(path, "/api/admin/") {
+				return true
+			}
+		}
+	}
+
+	// Never allow critical threats regardless of context
+	if threat.Severity >= 5 {
+		return false
+	}
+
+	return false
+}

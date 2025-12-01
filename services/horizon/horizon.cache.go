@@ -22,6 +22,14 @@ type CacheService interface {
 	Delete(ctx context.Context, key string) error
 	Keys(ctx context.Context, pattern string) ([]string, error)
 	Flush(ctx context.Context) error
+
+	// Sorted Set operations
+	ZAdd(ctx context.Context, key string, score float64, member any) error
+	ZRange(ctx context.Context, key string, start, stop int64) ([]string, error)
+	ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error)
+	ZCard(ctx context.Context, key string) (int64, error)
+	ZRem(ctx context.Context, key string, members ...any) (int64, error)
+	ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error)
 }
 
 // Cache provides a Redis-based implementation of CacheService.
@@ -227,4 +235,110 @@ func (h *Cache) Keys(ctx context.Context, pattern string) ([]string, error) {
 		}
 	}
 	return keys, nil
+}
+
+// ZAdd adds one or more members to a sorted set, or updates the score if the member already exists.
+func (h *Cache) ZAdd(ctx context.Context, key string, score float64, member any) error {
+	if h.client == nil {
+		return eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	// Create a Z struct with score and member
+	z := redis.Z{
+		Score:  score,
+		Member: member,
+	}
+
+	return eris.Wrap(
+		h.client.ZAdd(ctx, prefixedKey, z).Err(),
+		"failed to add member to sorted set",
+	)
+}
+
+// ZRange returns a range of members from a sorted set, by index.
+func (h *Cache) ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
+	if h.client == nil {
+		return nil, eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	result, err := h.client.ZRange(ctx, prefixedKey, start, stop).Result()
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get range from sorted set")
+	}
+
+	return result, nil
+}
+
+// ZRangeWithScores returns a range of members from a sorted set, by index, with scores.
+func (h *Cache) ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error) {
+	if h.client == nil {
+		return nil, eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	result, err := h.client.ZRangeWithScores(ctx, prefixedKey, start, stop).Result()
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get range with scores from sorted set")
+	}
+
+	return result, nil
+}
+
+// ZCard returns the number of members in a sorted set.
+func (h *Cache) ZCard(ctx context.Context, key string) (int64, error) {
+	if h.client == nil {
+		return 0, eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	result, err := h.client.ZCard(ctx, prefixedKey).Result()
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to get sorted set cardinality")
+	}
+
+	return result, nil
+}
+
+// ZRem removes one or more members from a sorted set.
+func (h *Cache) ZRem(ctx context.Context, key string, members ...any) (int64, error) {
+	if h.client == nil {
+		return 0, eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	result, err := h.client.ZRem(ctx, prefixedKey, members...).Result()
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to remove members from sorted set")
+	}
+
+	return result, nil
+}
+
+// ZRemRangeByScore removes all members in a sorted set within the given scores.
+func (h *Cache) ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error) {
+	if h.client == nil {
+		return 0, eris.New("redis client is not initialized")
+	}
+
+	// Add prefix to the key
+	prefixedKey := h.applyPrefix(key)
+
+	result, err := h.client.ZRemRangeByScore(ctx, prefixedKey, min, max).Result()
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to remove members by score from sorted set")
+	}
+
+	return result, nil
 }

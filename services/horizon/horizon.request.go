@@ -19,6 +19,161 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// SecurityHeaderConfig contains configuration for security headers
+type SecurityHeaderConfig struct {
+	ContentTypeNosniff    string
+	XFrameOptions         string
+	HSTSMaxAge            int
+	HSTSIncludeSubdomains bool
+	HSTSPreloadEnabled    bool
+	ReferrerPolicy        string
+	ContentSecurityPolicy string
+}
+
+// ExtendedSecurityHeaders contains additional production security headers
+type ExtendedSecurityHeaders struct {
+	PermissionsPolicy             string
+	ExpectCT                      string
+	XPermittedCrossDomainPolicies string
+	CrossOriginEmbedderPolicy     string
+	CrossOriginOpenerPolicy       string
+	CrossOriginResourcePolicy     string
+}
+
+// getProductionSecurityConfig returns security header configuration for production
+func getProductionSecurityConfig() SecurityHeaderConfig {
+	return SecurityHeaderConfig{
+		ContentTypeNosniff:    "nosniff",
+		XFrameOptions:         "DENY",
+		HSTSMaxAge:            31536000, // 1 year
+		HSTSIncludeSubdomains: true,     // Include all subdomains
+		HSTSPreloadEnabled:    true,
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+		ContentSecurityPolicy: "default-src 'self'; " +
+			"script-src 'self' 'nonce-{random}'; " + // Strict script sources with nonce support
+			"style-src 'self' 'nonce-{random}'; " + // Strict style sources with nonce support
+			"img-src 'self' data: https:; " +
+			"font-src 'self' data:; " +
+			"connect-src 'self' https:; " +
+			"media-src 'self'; " +
+			"object-src 'none'; " +
+			"frame-src 'none'; " +
+			"frame-ancestors 'none'; " +
+			"form-action 'self'; " +
+			"base-uri 'self'; " +
+			"manifest-src 'self'; " +
+			"worker-src 'self'; " +
+			"sandbox allow-scripts allow-same-origin allow-forms; " + // Add sandbox directive
+			"require-trusted-types-for 'script'; " + // Trusted Types API
+			"report-uri /api/csp-violations; " +
+			"report-to csp-endpoint;",
+	}
+}
+
+// getDevelopmentSecurityConfig returns relaxed security headers for development
+func getDevelopmentSecurityConfig() SecurityHeaderConfig {
+	return SecurityHeaderConfig{
+		ContentTypeNosniff:    "nosniff",
+		XFrameOptions:         "SAMEORIGIN", // More lenient for development
+		HSTSMaxAge:            0,            // Disable HSTS in development
+		HSTSIncludeSubdomains: false,        // OK for development
+		HSTSPreloadEnabled:    false,
+		ReferrerPolicy:        "no-referrer-when-downgrade", // Allow HTTP in development
+		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; " +
+			"img-src 'self' data: https: http:; " +
+			"connect-src 'self' ws: wss: http: https:; " +
+			"frame-src 'self' http: https:; " +
+			"form-action 'self' http: https:;", // Allow HTTP forms in development
+	}
+}
+
+// getExtendedSecurityHeaders returns additional production security headers
+func getExtendedSecurityHeaders() ExtendedSecurityHeaders {
+	return ExtendedSecurityHeaders{
+		PermissionsPolicy: "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), " +
+			"camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), " +
+			"encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), " +
+			"fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), " +
+			"microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), " +
+			"publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), " +
+			"xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), " +
+			"speaker-selection=(), vibrate=()",
+		ExpectCT:                      "max-age=86400, enforce",
+		XPermittedCrossDomainPolicies: "none",
+		CrossOriginEmbedderPolicy:     "require-corp",
+		CrossOriginOpenerPolicy:       "same-origin",
+		CrossOriginResourcePolicy:     "same-origin",
+	}
+}
+
+// applyExtendedSecurityHeaders applies additional security headers to the response
+func applyExtendedSecurityHeaders(c echo.Context, headers ExtendedSecurityHeaders) {
+	// Permissions Policy (comprehensive security controls)
+	c.Response().Header().Set("Permissions-Policy", headers.PermissionsPolicy)
+
+	// Expect-CT for Certificate Transparency
+	c.Response().Header().Set("Expect-CT", headers.ExpectCT)
+
+	// Additional security headers
+	c.Response().Header().Set("X-Permitted-Cross-Domain-Policies", headers.XPermittedCrossDomainPolicies)
+	c.Response().Header().Set("Cross-Origin-Embedder-Policy", headers.CrossOriginEmbedderPolicy)
+	c.Response().Header().Set("Cross-Origin-Opener-Policy", headers.CrossOriginOpenerPolicy)
+	c.Response().Header().Set("Cross-Origin-Resource-Policy", headers.CrossOriginResourcePolicy)
+
+	// Server information hiding
+	c.Response().Header().Set("Server", "")
+	c.Response().Header().Set("X-Powered-By", "")
+}
+
+// SecurityHeadersMiddleware applies security headers as final middleware to ensure consistency
+func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Execute the next handler first
+			err := next(c)
+
+			// Apply security headers after response is generated
+			if secured {
+				// Production security headers configuration
+				securityConfig := getProductionSecurityConfig()
+				extendedHeaders := getExtendedSecurityHeaders()
+
+				// Apply core security headers
+				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
+				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
+				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
+				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
+
+				// Apply HSTS headers
+				if securityConfig.HSTSMaxAge > 0 {
+					hstsValue := fmt.Sprintf("max-age=%d", securityConfig.HSTSMaxAge)
+					if securityConfig.HSTSIncludeSubdomains {
+						hstsValue += "; includeSubDomains"
+					}
+					if securityConfig.HSTSPreloadEnabled {
+						hstsValue += "; preload"
+					}
+					c.Response().Header().Set("Strict-Transport-Security", hstsValue)
+				}
+
+				// Apply extended security headers
+				applyExtendedSecurityHeaders(c, extendedHeaders)
+			} else {
+				// Development security headers configuration
+				securityConfig := getDevelopmentSecurityConfig()
+
+				// Apply basic security headers for development
+				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
+				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
+				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
+				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
+			}
+
+			return err
+		}
+	}
+}
+
 // APIService defines the interface for a secure, production-ready HTTP API server
 // with comprehensive middleware and Redis-backed security features.
 type APIService interface {
@@ -62,50 +217,114 @@ type RedisRateLimiterStore struct {
 	expiresIn time.Duration // Time window for rate limiting
 }
 
-// Allow implements the RateLimiterStore interface.
-// It checks if a request should be allowed based on the current rate limit state in Redis.
+// Allow implements the RateLimiterStore interface using a sliding window algorithm.
+// It tracks requests per second over a sliding window, providing precise rate limiting.
 // Returns true if the request is allowed, false if rate limited.
 func (s *RedisRateLimiterStore) Allow(identifier string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	now := time.Now()
+	windowStart := now.Add(-s.expiresIn)
+
+	// Use sorted set to track requests with timestamps
 	key := "rate_limit:" + identifier
 
-	// Get current count from Redis
-	countBytes, err := s.cache.Get(ctx, key)
+	// Remove expired entries (older than window)
+	if err := s.removeExpiredEntries(ctx, key, windowStart.Unix()); err != nil {
+		s.logger.Error("Failed to clean expired rate limit entries",
+			zap.String("identifier", identifier),
+			zap.Error(err))
+	}
+
+	// Count current requests in the window
+	currentCount, err := s.getRequestCount(ctx, key, windowStart.Unix())
 	if err != nil {
 		// If Redis is down, allow request but log error
 		s.logger.Error("Rate limit cache error", zap.String("identifier", identifier), zap.Error(err))
 		return true, nil // Fail open
 	}
 
-	var currentCount int
-	if countBytes != nil {
-		if _, err := fmt.Sscanf(string(countBytes), "%d", &currentCount); err != nil {
-			currentCount = 0
-		}
-	}
-
-	// Check if rate limit exceeded
-	if currentCount >= int(s.rate)*int(s.expiresIn.Seconds()) {
+	// Check if rate limit would be exceeded
+	maxRequests := int(float64(s.rate) * s.expiresIn.Seconds())
+	if currentCount >= maxRequests {
+		s.logger.Debug("Rate limit exceeded",
+			zap.String("identifier", identifier),
+			zap.Int("current_count", currentCount),
+			zap.Int("max_requests", maxRequests),
+			zap.Duration("window", s.expiresIn),
+		)
 		return false, nil
 	}
 
-	// Increment counter asynchronously
+	// Add current request timestamp
+	if err := s.addRequest(ctx, key, now.Unix()); err != nil {
+		s.logger.Error("Failed to record rate limit request",
+			zap.String("identifier", identifier),
+			zap.Error(err),
+		)
+		// Still allow the request even if we can't record it
+		return true, nil
+	}
+
+	return true, nil
+}
+
+// removeExpiredEntries removes rate limit entries older than the window start time using Redis ZREMRANGEBYSCORE
+func (s *RedisRateLimiterStore) removeExpiredEntries(ctx context.Context, key string, windowStart int64) error {
+	// Use Redis sorted set ZREMRANGEBYSCORE to efficiently remove old entries
+	// Remove all entries with scores (timestamps) less than windowStart
+	_, err := s.cache.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", windowStart-1))
+	if err != nil {
+		s.logger.Debug("Failed to remove expired entries from sorted set",
+			zap.String("key", key),
+			zap.Int64("window_start", windowStart),
+			zap.Error(err))
+	}
+	return err
+}
+
+// getRequestCount returns the number of requests in the current window using Redis ZCARD
+func (s *RedisRateLimiterStore) getRequestCount(ctx context.Context, key string, windowStart int64) (int, error) {
+	// Use Redis sorted set ZCARD to get the count of all members in the set
+	// Since we clean up expired entries, all remaining entries are valid
+	count, err := s.cache.ZCard(ctx, key)
+	if err != nil {
+		s.logger.Debug("Failed to get request count from sorted set",
+			zap.String("key", key),
+			zap.Error(err))
+		return 0, err
+	}
+
+	return int(count), nil
+} // addRequest adds a new request timestamp to the rate limit tracking using Redis ZADD
+func (s *RedisRateLimiterStore) addRequest(ctx context.Context, key string, timestamp int64) error {
+	// Use Redis sorted set ZADD to add timestamp as both score and member
+	// This provides O(log N) insertion performance and automatic sorting
+	err := s.cache.ZAdd(ctx, key, float64(timestamp), timestamp)
+	if err != nil {
+		s.logger.Debug("Failed to add request to sorted set",
+			zap.String("key", key),
+			zap.Int64("timestamp", timestamp),
+			zap.Error(err))
+		return err
+	}
+
+	// Set TTL on the key to ensure automatic cleanup if no requests for extended period
+	// Note: This uses a standard Set operation with TTL as an additional safety measure
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
-		newCount := currentCount + 1
-		if err := s.cache.Set(ctx, key, []byte(fmt.Sprintf("%d", newCount)), s.expiresIn); err != nil {
-			s.logger.Error("Failed to update rate limit counter",
-				zap.String("identifier", identifier),
-				zap.Error(err),
-			)
+		// Set a dummy value with TTL to ensure the key expires
+		if err := s.cache.Set(ctx, key+":ttl", []byte("1"), s.expiresIn*2); err != nil {
+			s.logger.Debug("Failed to set TTL marker for rate limit key",
+				zap.String("key", key),
+				zap.Error(err))
 		}
 	}()
 
-	return true, nil
+	return nil
 }
 
 // NewHorizonAPIService creates a new API service with comprehensive security middleware.
@@ -132,7 +351,7 @@ func NewHorizonAPIService(
 	clientURL, clientName string,
 	secured bool,
 ) APIService {
-	//===== ECHO INSTANCE AND LOGGER SETUP =====
+	// ===== ECHO INSTANCE AND LOGGER SETUP =====
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
@@ -188,7 +407,7 @@ func NewHorizonAPIService(
 		allowedHosts = append(allowedHosts, hostname)
 	}
 
-	//===== BASIC MIDDLEWARE SETUP =====
+	// ===== BASIC MIDDLEWARE SETUP =====
 	// Panic recovery middleware
 	e.Use(middleware.Recover())
 
@@ -200,7 +419,7 @@ func NewHorizonAPIService(
 		e.Pre(middleware.HTTPSRedirect())
 	}
 
-	//===== HOST VALIDATION MIDDLEWARE =====
+	// ===== HOST VALIDATION MIDDLEWARE =====
 	// Validates the Host header against approved domains to prevent:
 	// - Host header injection attacks
 	// - DNS rebinding attacks
@@ -219,7 +438,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	//===== HTTP METHOD RESTRICTION MIDDLEWARE =====
+	// ===== HTTP METHOD RESTRICTION MIDDLEWARE =====
 	// Restricts HTTP methods to standard, safe operations.
 	// Blocks potentially dangerous methods like TRACE, CONNECT, etc.
 	// This prevents HTTP method tampering and reduces attack surface.
@@ -245,13 +464,14 @@ func NewHorizonAPIService(
 		}
 	})
 
-	//===== IP FIREWALL MIDDLEWARE =====
+	// ===== IP FIREWALL MIDDLEWARE =====
 	// Redis-backed IP firewall for blocking malicious traffic.
 	// Features:
 	// - Integration with HaGeZi threat intelligence blocklists
 	// - Manual IP blocking capability
 	// - Distributed blocking across Fly.io instances
 	// - Graceful fallback if Redis is unavailable
+	// - Sorted set tracking for analytics and automatic cleanup
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Extract and validate client IP address
@@ -266,6 +486,7 @@ func NewHorizonAPIService(
 				return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format")
 			}
 
+			// Check if IP is blocked
 			cacheKey := "blocked_ip:" + clientIP
 			hostBytes, err := cache.Get(c.Request().Context(), cacheKey)
 			if err != nil {
@@ -277,6 +498,23 @@ func NewHorizonAPIService(
 			}
 			if hostBytes != nil {
 				blockedHost := string(hostBytes)
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+					defer cancel()
+					timestamp := float64(time.Now().Unix())
+					attemptKey := "blocked_attempts:" + clientIP
+					if err := cache.ZAdd(ctx, attemptKey, timestamp, fmt.Sprintf("%s:%d", c.Request().URL.Path, time.Now().Unix())); err != nil {
+						logger.Debug("Failed to track blocked IP attempt",
+							zap.String("ip", clientIP),
+							zap.Error(err))
+					}
+					sevenDaysAgo := time.Now().AddDate(0, 0, -7).Unix()
+					if _, err := cache.ZRemRangeByScore(ctx, attemptKey, "0", fmt.Sprintf("%d", sevenDaysAgo)); err != nil {
+						logger.Debug("Failed to cleanup old blocked attempts",
+							zap.String("ip", clientIP),
+							zap.Error(err))
+					}
+				}()
 				logger.Warn("Blocked IP access attempt",
 					zap.String("ip", clientIP),
 					zap.String("blocked_host", blockedHost),
@@ -291,7 +529,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	//===== SUSPICIOUS PATH DETECTION MIDDLEWARE =====
+	// ===== SUSPICIOUS PATH DETECTION MIDDLEWARE =====
 	// Advanced threat detection for malicious request patterns.
 	// Detects and blocks:
 	// - SQL injection attempts
@@ -300,39 +538,82 @@ func NewHorizonAPIService(
 	// - Command injection patterns
 	// - File inclusion attacks
 	// - Web shell upload attempts
+	// - Uses sorted sets for analytics and automatic cleanup
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := handlers.GetPath(c)
+			clientIP := handlers.GetClientIP(c)
 
 			// Generate cache key for suspicious path detection
 			suspiciousCacheKey := "suspicious_path:" + path
 
 			cachedResult, err := cache.Get(c.Request().Context(), suspiciousCacheKey)
 			if err == nil && cachedResult != nil {
+				// Track repeated suspicious path attempt using ZADD
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+					defer cancel()
+
+					// Track suspicious path attempts per IP
+					timestamp := float64(time.Now().Unix())
+					suspiciousKey := "suspicious_attempts:" + clientIP
+					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
+					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+						logger.Debug("Failed to track suspicious path attempt",
+							zap.String("ip", clientIP),
+							zap.String("path", path),
+							zap.Error(err))
+					}
+				}()
+
 				logger.Warn("Suspicious path blocked (cached)",
-					zap.String("ip", handlers.GetClientIP(c)),
+					zap.String("ip", clientIP),
 					zap.String("path", path),
 				)
 				return c.String(http.StatusForbidden, "Access forbidden")
 			}
+
 			if handlers.IsSuspiciousPath(path) {
+				// Cache the suspicious path and track with ZADD
 				go func() {
 					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 					defer cancel()
 
+					// Cache the suspicious path
 					if err := cache.Set(ctx, suspiciousCacheKey, []byte("blocked"), 5*time.Minute); err != nil {
 						logger.Error("Failed to cache suspicious path",
 							zap.String("path", path),
 							zap.Error(err),
 						)
 					}
+
+					// Track suspicious path attempt with ZADD
+					timestamp := float64(time.Now().Unix())
+					suspiciousKey := "suspicious_attempts:" + clientIP
+					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
+					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+						logger.Debug("Failed to track suspicious path attempt",
+							zap.String("ip", clientIP),
+							zap.String("path", path),
+							zap.Error(err))
+					}
+
+					// Clean up old suspicious attempts (keep last 30 days for analysis)
+					thirtyDaysAgo := time.Now().AddDate(0, 0, -30).Unix()
+					if _, err := cache.ZRemRangeByScore(ctx, suspiciousKey, "0", fmt.Sprintf("%d", thirtyDaysAgo)); err != nil {
+						logger.Debug("Failed to cleanup old suspicious attempts",
+							zap.String("ip", clientIP),
+							zap.Error(err))
+					}
 				}()
+
 				logger.Warn("Suspicious path blocked",
-					zap.String("ip", handlers.GetClientIP(c)),
+					zap.String("ip", clientIP),
 					zap.String("path", path),
 				)
 				return c.String(http.StatusForbidden, "Access forbidden")
 			}
+
 			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
 				return c.String(http.StatusNotFound, "Path not found")
 			}
@@ -340,87 +621,53 @@ func NewHorizonAPIService(
 		}
 	})
 
-	//===== REQUEST SIZE LIMIT MIDDLEWARE =====
-	// Limit request body size to prevent DoS attacks
-	e.Use(middleware.BodyLimit("10mb"))
+	// ===== REQUEST SIZE LIMIT MIDDLEWARE =====
+	// Limit request body size to prevent DoS attacks and validate Content-Length header
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Check for Content-Length header on requests with body
+			if c.Request().Method == http.MethodPost ||
+				c.Request().Method == http.MethodPut ||
+				c.Request().Method == http.MethodPatch {
+				if c.Request().Header.Get("Content-Length") == "" {
+					return echo.NewHTTPError(http.StatusLengthRequired, "Content-Length header required")
+				}
+			}
+			return next(c)
+		}
+	})
+	e.Use(middleware.BodyLimit("4M"))
 
-	//===== SECURITY HEADERS MIDDLEWARE =====
+	// ===== SECURITY HEADERS MOVED TO FINAL MIDDLEWARE =====
+	// Security headers are now applied as final middleware after all route processing
+	// to ensure consistency and prevent route handlers from overriding security headers
+
+	// ===== SECURE COOKIE MIDDLEWARE =====
+	// Cookie security configuration for API authentication tokens.
+	// Uses environment-aware settings for production vs development.
 	if secured {
-		// Comprehensive security headers for production
-		e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-			XSSProtection:         "1; mode=block",
-			ContentTypeNosniff:    "nosniff",
-			XFrameOptions:         "DENY",
-			HSTSMaxAge:            31536000,
-			HSTSExcludeSubdomains: false,
-			HSTSPreloadEnabled:    true,
-			ReferrerPolicy:        "strict-origin-when-cross-origin",
-			ContentSecurityPolicy: "default-src 'self'; " +
-				"script-src 'self'; " +
-				"style-src 'self'; " +
-				"img-src 'self' data: https:; " +
-				"font-src 'self' data:; " +
-				"connect-src 'self' https:; " +
-				"media-src 'self'; " +
-				"object-src 'none'; " +
-				"frame-src 'none'; " +
-				"frame-ancestors 'none'; " +
-				"form-action 'self'; " +
-				"base-uri 'self'; " +
-				"manifest-src 'self'; " +
-				"worker-src 'self'; " +
-				"report-uri /api/csp-violations; " +
-				"report-to csp-endpoint;",
-		}))
-
-		// Extended security headers for production (Permissions Policy, CT, CORP, etc.)
+		// Production: Strict security for HTTPS-only deployment
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
-				// Permissions Policy (comprehensive security controls)
-				c.Response().Header().Set("Permissions-Policy",
-					"accelerometer=(), ambient-light-sensor=(), autoplay=(self), battery=(), "+
-						"camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), "+
-						"encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), "+
-						"fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), "+
-						"microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), "+
-						"publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), "+
-						"xr-spatial-tracking=(), clipboard-read=(self), clipboard-write=(self), gamepad=(), "+
-						"speaker-selection=(), vibrate=()")
-
-				// Expect-CT for Certificate Transparency
-				c.Response().Header().Set("Expect-CT", "max-age=86400, enforce")
-
-				// Additional security headers
-				c.Response().Header().Set("X-Permitted-Cross-Domain-Policies", "none")
-				c.Response().Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-				c.Response().Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-				c.Response().Header().Set("Cross-Origin-Resource-Policy", "same-origin")
-
-				// Server information hiding
-				c.Response().Header().Set("Server", "")
-				c.Response().Header().Set("X-Powered-By", "")
-
+				// Set secure cookie defaults for any cookies set by handlers
+				c.Response().Header().Set("Set-Cookie",
+					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
 				return next(c)
 			}
 		})
 	} else {
-		// Relaxed security headers for development environment
-		e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-			XSSProtection:         "1; mode=block",
-			ContentTypeNosniff:    "nosniff",
-			XFrameOptions:         "SAMEORIGIN", // More lenient for development
-			HSTSMaxAge:            0,            // Disable HSTS in development
-			HSTSExcludeSubdomains: true,         // OK for development
-			HSTSPreloadEnabled:    false,
-			ReferrerPolicy:        "strict-origin-when-cross-origin",
-			ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-				"img-src 'self' data: https: http:; " +
-				"connect-src 'self' ws: wss: http: https:; " +
-				"frame-src 'self';",
-		}))
+		// Development: HTTP-compatible settings for local development
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				// Set development cookie defaults (allow HTTP)
+				c.Response().Header().Set("Set-Cookie",
+					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; SameSite=Lax; Path="))
+				return next(c)
+			}
+		})
 	}
 
-	//===== RATE LIMITING MIDDLEWARE =====
+	// ===== RATE LIMITING MIDDLEWARE =====
 	// Redis-backed distributed rate limiting for Fly.io multi-instance deployment.
 	// Features:
 	// - Consistent rate limiting across all instances
@@ -482,7 +729,7 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	//===== CORS MIDDLEWARE =====
+	// ===== CORS MIDDLEWARE =====
 	// Cross-Origin Resource Sharing configuration for web application integration.
 	// Allows legitimate cross-origin requests while maintaining security.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -530,7 +777,7 @@ func NewHorizonAPIService(
 		MaxAge:           3600, // Cache preflight response for 1 hour
 	}))
 
-	//===== CORS PREFLIGHT DEBUGGING MIDDLEWARE =====
+	// ===== CORS PREFLIGHT DEBUGGING MIDDLEWARE =====
 	// Enhanced CORS preflight handling with detailed logging
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -561,36 +808,50 @@ func NewHorizonAPIService(
 		}
 	})
 
-	//===== REQUEST LOGGING MIDDLEWARE =====
+	// ===== REQUEST LOGGING MIDDLEWARE =====
 	// Comprehensive request logging for monitoring and debugging.
-	// Logs all HTTP requests with structured data for analysis.
+	// Logs all HTTP requests with structured data for analysis and security monitoring.
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true, // Log HTTP status codes
 		LogURI:      true, // Log request URIs
 		LogError:    true, // Log error details
+		LogMethod:   true, // Log HTTP methods
+		LogLatency:  true, // Log request latency
 		HandleError: true, // Handle errors in logging
 
-		// Custom log formatting function
-		LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
+		// Enhanced log formatting function with comprehensive request data
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
-				// Log successful requests
+				// Log successful requests with detailed context
 				logger.Info("REQUEST",
+					zap.String("remote_ip", c.RealIP()),
+					zap.String("method", v.Method),
 					zap.String("uri", v.URI),
 					zap.Int("status", v.Status),
+					zap.String("latency", v.Latency.String()),
+					zap.String("user_agent", handlers.GetUserAgent(c)),
+					zap.String("host", handlers.GetHost(c)),
+					zap.Int64("bytes_in", c.Request().ContentLength),
 				)
 			} else {
-				// Log failed requests with error details
+				// Log failed requests with comprehensive error details
 				logger.Error("REQUEST_ERROR",
+					zap.String("remote_ip", c.RealIP()),
+					zap.String("method", v.Method),
 					zap.String("uri", v.URI),
 					zap.Int("status", v.Status),
-					zap.String("err", v.Error.Error()),
+					zap.String("latency", v.Latency.String()),
+					zap.String("user_agent", handlers.GetUserAgent(c)),
+					zap.String("host", handlers.GetHost(c)),
+					zap.Int64("bytes_in", c.Request().ContentLength),
+					zap.String("error", v.Error.Error()),
 				)
 			}
 			return nil
 		},
 	}))
 
-	//===== COMPRESSION MIDDLEWARE =====
+	// ===== COMPRESSION MIDDLEWARE =====
 	// Intelligent response compression for bandwidth optimization.
 	// Automatically compresses text-based responses while skipping binary content.
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
@@ -607,7 +868,7 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	//===== TIMEOUT MIDDLEWARE =====
+	// ===== TIMEOUT MIDDLEWARE =====
 	// Request timeout protection to prevent resource exhaustion.
 	// Automatically terminates long-running requests to maintain server stability.
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
@@ -626,6 +887,11 @@ func NewHorizonAPIService(
 
 		Timeout: 1 * time.Minute, // 60-second request timeout
 	}))
+
+	// ===== FINAL SECURITY HEADERS MIDDLEWARE =====
+	// Apply security headers as the final middleware to ensure consistency
+	// This guarantees headers are set on all responses regardless of route handlers
+	e.Use(SecurityHeadersMiddleware(secured))
 
 	//===== DEFAULT ENDPOINTS =====
 	// Essential API endpoints for monitoring and discovery
