@@ -40,6 +40,49 @@ type ExtendedSecurityHeaders struct {
 	CrossOriginResourcePolicy     string
 }
 
+// APIServiceImpl implements APIService with comprehensive security middleware stack.
+// This implementation provides enterprise-grade security features including:
+// - Redis-backed rate limiting and IP blocking
+// - Comprehensive security headers
+// - Request validation and suspicious path detection
+// - Environment-aware configuration (dev/prod)
+type APIServiceImpl struct {
+	service     *echo.Echo             // Echo web framework instance
+	serverPort  int                    // HTTP server port
+	metricsPort int                    // Metrics server port (future use)
+	clientURL   string                 // Client application URL
+	clientName  string                 // Client application name
+	handler     *handlers.RouteHandler // Route management handler
+	cache       CacheService           // Redis cache service for security features
+}
+
+// RedisRateLimiterStore implements Echo's RateLimiterStore interface using Redis
+// for distributed rate limiting across multiple Fly.io instances.
+// This ensures consistent rate limiting behavior in a multi-instance deployment.
+type RedisRateLimiterStore struct {
+	cache     CacheService  // Redis cache service for storing rate limit counters
+	logger    *zap.Logger   // Structured logger for rate limiting events
+	rate      rate.Limit    // Requests per second limit
+	burst     int           // Burst capacity for traffic spikes
+	expiresIn time.Duration // Time window for rate limiting
+}
+
+// APIService defines the interface for a secure, production-ready HTTP API server
+// with comprehensive middleware and Redis-backed security features.
+type APIService interface {
+	// Run starts the API server with all configured middleware
+	Run(ctx context.Context) error
+
+	// Stop gracefully shuts down the API server
+	Stop(ctx context.Context) error
+
+	// Client returns the underlying Echo instance for advanced configuration
+	Client() *echo.Echo
+
+	// RegisterRoute adds a new route with optional middleware
+	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
+}
+
 // getProductionSecurityConfig returns security header configuration for production
 func getProductionSecurityConfig() SecurityHeaderConfig {
 	return SecurityHeaderConfig{
@@ -174,49 +217,6 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 	}
 }
 
-// APIService defines the interface for a secure, production-ready HTTP API server
-// with comprehensive middleware and Redis-backed security features.
-type APIService interface {
-	// Run starts the API server with all configured middleware
-	Run(ctx context.Context) error
-
-	// Stop gracefully shuts down the API server
-	Stop(ctx context.Context) error
-
-	// Client returns the underlying Echo instance for advanced configuration
-	Client() *echo.Echo
-
-	// RegisterRoute adds a new route with optional middleware
-	RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
-}
-
-// APIServiceImpl implements APIService with comprehensive security middleware stack.
-// This implementation provides enterprise-grade security features including:
-// - Redis-backed rate limiting and IP blocking
-// - Comprehensive security headers
-// - Request validation and suspicious path detection
-// - Environment-aware configuration (dev/prod)
-type APIServiceImpl struct {
-	service     *echo.Echo             // Echo web framework instance
-	serverPort  int                    // HTTP server port
-	metricsPort int                    // Metrics server port (future use)
-	clientURL   string                 // Client application URL
-	clientName  string                 // Client application name
-	handler     *handlers.RouteHandler // Route management handler
-	cache       CacheService           // Redis cache service for security features
-}
-
-// RedisRateLimiterStore implements Echo's RateLimiterStore interface using Redis
-// for distributed rate limiting across multiple Fly.io instances.
-// This ensures consistent rate limiting behavior in a multi-instance deployment.
-type RedisRateLimiterStore struct {
-	cache     CacheService  // Redis cache service for storing rate limit counters
-	logger    *zap.Logger   // Structured logger for rate limiting events
-	rate      rate.Limit    // Requests per second limit
-	burst     int           // Burst capacity for traffic spikes
-	expiresIn time.Duration // Time window for rate limiting
-}
-
 // Allow implements the RateLimiterStore interface using a sliding window algorithm.
 // It tracks requests per second over a sliding window, providing precise rate limiting.
 // Returns true if the request is allowed, false if rate limited.
@@ -238,7 +238,7 @@ func (s *RedisRateLimiterStore) Allow(identifier string) (bool, error) {
 	}
 
 	// Count current requests in the window
-	currentCount, err := s.getRequestCount(ctx, key, windowStart.Unix())
+	currentCount, err := s.getRequestCount(ctx, key)
 	if err != nil {
 		// If Redis is down, allow request but log error
 		s.logger.Error("Rate limit cache error", zap.String("identifier", identifier), zap.Error(err))
@@ -285,7 +285,7 @@ func (s *RedisRateLimiterStore) removeExpiredEntries(ctx context.Context, key st
 }
 
 // getRequestCount returns the number of requests in the current window using Redis ZCARD
-func (s *RedisRateLimiterStore) getRequestCount(ctx context.Context, key string, windowStart int64) (int, error) {
+func (s *RedisRateLimiterStore) getRequestCount(ctx context.Context, key string) (int, error) {
 	// Use Redis sorted set ZCARD to get the count of all members in the set
 	// Since we clean up expired entries, all remaining entries are valid
 	count, err := s.cache.ZCard(ctx, key)
@@ -297,7 +297,9 @@ func (s *RedisRateLimiterStore) getRequestCount(ctx context.Context, key string,
 	}
 
 	return int(count), nil
-} // addRequest adds a new request timestamp to the rate limit tracking using Redis ZADD
+}
+
+// addRequest adds a new request timestamp to the rate limit tracking using Redis ZADD
 func (s *RedisRateLimiterStore) addRequest(ctx context.Context, key string, timestamp int64) error {
 	// Use Redis sorted set ZADD to add timestamp as both score and member
 	// This provides O(log N) insertion performance and automatic sorting
