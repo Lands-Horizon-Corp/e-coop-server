@@ -3,8 +3,6 @@ package event
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -22,7 +20,7 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 	cache := e.provider.Service.Cache
 
 	blockKey := fmt.Sprintf("block:%s", realIP)
-	errorKey := fmt.Sprintf("errorcount:%s", realIP)
+	errorKey := fmt.Sprintf("transaction_errors:%s", realIP)
 
 	// Check if already blocked
 	blockedVal, err := cache.Get(context, blockKey)
@@ -36,44 +34,48 @@ func (e *Event) HandleIPBlocker(context context.Context, ctx echo.Context) (bloc
 	// Return the blocking function
 	blockFn = func(reason string) {
 		now := time.Now().UTC()
+		timestamp := float64(now.Unix())
 
-		// Get current count and timestamp
-		count := 0
-		var firstErrorTime time.Time
-		countVal, _ := cache.Get(context, errorKey)
-
-		if countVal != nil {
-			// Parse stored value: "count:timestamp"
-			parts := strings.Split(string(countVal), ":")
-			if len(parts) == 2 {
-				count, _ = strconv.Atoi(parts[0])
-				if timestamp, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
-					firstErrorTime = time.Unix(timestamp, 0)
-				}
-			}
+		// Add error attempt to sorted set with timestamp
+		if err := cache.ZAdd(context, errorKey, timestamp, fmt.Sprintf("%s:%d", reason, now.Unix())); err != nil {
+			return
 		}
 
-		// Reset count if more than 5 minutes have passed since first error
-		if !firstErrorTime.IsZero() && now.Sub(firstErrorTime) > 5*time.Minute {
-			count = 0
-			firstErrorTime = now
-		} else if firstErrorTime.IsZero() {
-			// First error ever
-			firstErrorTime = now
+		// Clean up old errors (keep last 5 minutes for threshold calculation)
+		fiveMinutesAgo := now.Add(-5 * time.Minute).Unix()
+		if _, err := cache.ZRemRangeByScore(context, errorKey, "0", fmt.Sprintf("%d", fiveMinutesAgo-1)); err != nil {
+			// Log but continue
 		}
 
-		count++
-
-		// Store count with timestamp: "count:firstErrorTimestamp"
-		value := fmt.Sprintf("%d:%d", count, firstErrorTime.Unix())
-		if err := cache.Set(context, errorKey, []byte(value), 10*time.Minute); err != nil {
+		// Count errors in the last 5 minutes
+		count, err := cache.ZCard(context, errorKey)
+		if err != nil {
 			return
 		}
 
 		// Block if threshold reached
-		if count >= maxBlockedAttempts {
+		if int(count) >= maxBlockedAttempts {
+			// Set block status
 			if err := cache.Set(context, blockKey, []byte(reason), 5*time.Minute); err != nil {
 				return
+			}
+
+			// Track in global transaction blocks registry
+			if err := cache.ZAdd(context, "transaction_blocks_registry", timestamp, realIP); err != nil {
+				// Log but continue
+			}
+
+			// Track block event with details
+			blockEventKey := fmt.Sprintf("transaction_block_events:%s", realIP)
+			blockData := fmt.Sprintf("%s:%d:%d", reason, count, now.Unix())
+			if err := cache.ZAdd(context, blockEventKey, timestamp, blockData); err != nil {
+				// Log but continue
+			}
+
+			// Clean up old block events (keep last 30 days for analysis)
+			thirtyDaysAgo := now.AddDate(0, 0, -30).Unix()
+			if _, err := cache.ZRemRangeByScore(context, blockEventKey, "0", fmt.Sprintf("%d", thirtyDaysAgo)); err != nil {
+				// Log but continue
 			}
 		}
 	}

@@ -35,6 +35,14 @@ func enforceBlocklist() {
 					}
 					if err := prov.Service.Security.Firewall(ctx, func(ip, host string) {
 						cacheKey := "blocked_ip:" + ip
+						timestamp := float64(time.Now().Unix())
+
+						// Use ZAdd for consistent sorted set tracking
+						if err := prov.Service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
+							color.Red("Failed to add IP %s to registry: %v", ip, err)
+						}
+
+						// Keep the original Set for backward compatibility with middleware
 						if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
 							color.Red("Failed to cache IP %s: %v", ip, err)
 						}

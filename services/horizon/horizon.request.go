@@ -502,12 +502,23 @@ func NewHorizonAPIService(
 					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 					defer cancel()
 					timestamp := float64(time.Now().Unix())
+
+					// Track blocked IP attempts in sorted set
 					attemptKey := "blocked_attempts:" + clientIP
 					if err := cache.ZAdd(ctx, attemptKey, timestamp, fmt.Sprintf("%s:%d", c.Request().URL.Path, time.Now().Unix())); err != nil {
 						logger.Debug("Failed to track blocked IP attempt",
 							zap.String("ip", clientIP),
 							zap.Error(err))
 					}
+
+					// Also track in global blocked IPs registry for analytics
+					if err := cache.ZAdd(ctx, "blocked_ips_registry", timestamp, clientIP); err != nil {
+						logger.Debug("Failed to update blocked IPs registry",
+							zap.String("ip", clientIP),
+							zap.Error(err))
+					}
+
+					// Cleanup old attempts (keep last 7 days)
 					sevenDaysAgo := time.Now().AddDate(0, 0, -7).Unix()
 					if _, err := cache.ZRemRangeByScore(ctx, attemptKey, "0", fmt.Sprintf("%d", sevenDaysAgo)); err != nil {
 						logger.Debug("Failed to cleanup old blocked attempts",
