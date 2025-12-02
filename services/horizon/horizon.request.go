@@ -353,7 +353,7 @@ func NewHorizonAPIService(
 	clientURL, clientName string,
 	secured bool,
 ) APIService {
-	// ===== ECHO INSTANCE AND LOGGER SETUP =====
+
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
