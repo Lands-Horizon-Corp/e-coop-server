@@ -1,196 +1,110 @@
 # E-Coop Server Makefile
-# A comprehensive build system for the financial cooperative management system
+# Based on cmd/actions.go functionality
 
-# Go parameters
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
-GOMOD=$(GOCMD) mod
-GORUN=$(GOCMD) run
-BINARY_NAME=e-coop-server
-MAIN_PATH=main.go
-
-# Docker parameters
-DOCKER_COMPOSE=docker compose
+.PHONY: help build clean run server test docker compose
 
 # Default target
-.PHONY: help
+.DEFAULT_GOAL := help
+
+# Variables
+BINARY_NAME := e-coop-server
+BUILD_DIR := ./bin
+GO_FILES := $(shell find . -type f -name '*.go')
+
+# Colors for output
+RED := \033[0;31m
+GREEN := \033[0;32m
+YELLOW := \033[1;33m
+BLUE := \033[0;34m
+NC := \033[0m # No Color
+
+## Help
 help: ## Show this help message
-	@echo "E-Coop Server - Available Commands:"
-	@echo ""
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "$(BLUE)E-Coop Server Makefile$(NC)"
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Development Commands
-.PHONY: dev
-dev: ## Start development server
-	$(GORUN) $(MAIN_PATH) server
-
-.PHONY: build
+## Build
 build: ## Build the application binary
-	$(GOBUILD) -o $(BINARY_NAME) $(MAIN_PATH)
+	@echo "$(BLUE)Building application...$(NC)"
+	go build -o $(BUILD_DIR)/$(BINARY_NAME) .
+	@echo "$(GREEN)Build completed: $(BUILD_DIR)/$(BINARY_NAME)$(NC)"
 
-.PHONY: clean
-clean: ## Clean build artifacts and caches
-	$(GOCLEAN)
-	rm -f $(BINARY_NAME)
-	$(GORUN) $(MAIN_PATH) cache clean
+build-linux: ## Build for Linux
+	@echo "$(BLUE)Building for Linux...$(NC)"
+	GOOS=linux GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-linux .
+	@echo "$(GREEN)Linux build completed: $(BUILD_DIR)/$(BINARY_NAME)-linux$(NC)"
 
-# Database Commands
-.PHONY: db-migrate
+clean: ## Clean build artifacts
+	@echo "$(YELLOW)Cleaning build artifacts...$(NC)"
+	rm -rf $(BUILD_DIR)
+	go clean
+	@echo "$(GREEN)Clean completed$(NC)"
+
+go-clean-caches: ## Clean all Go caches (build, mod, test, fuzz)
+	@echo "$(YELLOW)Cleaning Go caches...$(NC)"
+	go clean -cache -modcache -testcache -fuzzcache
+	@echo "$(GREEN)Go caches cleaned$(NC)"
+
+## Development
+dev: ## Run in development mode (build and run server)
+	@echo "$(BLUE)Starting development server...$(NC)"
+	go run . server
+
+run: dev ## Alias for dev
+
+## Server Management
+server: build ## Build and start the server
+	@echo "$(BLUE)Starting server...$(NC)"
+	$(BUILD_DIR)/$(BINARY_NAME) server
+
+## Database Commands
 db-migrate: ## Migrate database schema
-	$(GORUN) $(MAIN_PATH) db migrate
+	@echo "$(BLUE)Migrating database...$(NC)"
+	go run . db migrate
 
-.PHONY: db-seed
 db-seed: ## Seed database with initial data
-	$(GORUN) $(MAIN_PATH) db seed
+	@echo "$(BLUE)Seeding database...$(NC)"
+	go run . db seed
 
-.PHONY: db-reset
-db-reset: ## Reset database (drops all tables)
-	$(GORUN) $(MAIN_PATH) db reset
+db-reset: ## Reset database (drops and recreates)
+	@echo "$(YELLOW)Resetting database...$(NC)"
+	go run . db reset
 
-.PHONY: db-refresh
-db-refresh: ## Reset database and seed with fresh data
-	$(GORUN) $(MAIN_PATH) db refresh
+db-refresh: ## Reset and seed database
+	@echo "$(BLUE)Refreshing database...$(NC)"
+	go run . db refresh
 
-.PHONY: db-setup
-db-setup: db-migrate db-seed ## Complete database setup (migrate + seed)
+db-seed: ## Run performance seed (default multiplier: 1)
+	@echo "$(BLUE)Running performance seed...$(NC)"
+	go run . db performance-seed
 
-# Cache Commands
-.PHONY: cache-clean
-cache-clean: ## Clean application cache
-	$(GORUN) $(MAIN_PATH) cache clean
 
-# Docker Commands
-.PHONY: docker-up
-docker-up: ## Start all services with Docker Compose
-	$(DOCKER_COMPOSE) up --build -d
+cache-clean:
+	@echo "$(YELLOW)Cleaning cache...$(NC)"
+	go run . cache clean
 
-.PHONY: docker-down
-docker-down: ## Stop all Docker services
-	$(DOCKER_COMPOSE) down
+## Security Commands
+security-enforce: ## Update HaGeZi blocklist
+	@echo "$(BLUE)Enforcing HaGeZi blocklist...$(NC)"
+	go run . security enforce
 
-.PHONY: docker-restart
-docker-restart: docker-down docker-up ## Restart all Docker services
+security-clear: ## Clear all blocked IPs from cache
+	@echo "$(YELLOW)Clearing blocked IPs...$(NC)"
+	go run . security clear
 
-.PHONY: docker-logs
-docker-logs: ## Show Docker container logs
-	$(DOCKER_COMPOSE) logs -f
+## Setup Commands
+setup: db-migrate db-seed
+	@echo "$(GREEN)Setup completed$(NC)"
 
-# Testing Commands
-.PHONY: test
-test: ## Run all tests
-	$(GOTEST) -v ./services/horizon_test
+fresh-start: db-refresh cache-clean
+	@echo "$(GREEN)Fresh start completed$(NC)"
 
-.PHONY: test-clean
-test-clean: ## Run tests with clean cache
-	$(GOCLEAN) -cache
-	$(GOTEST) -v ./services/horizon_test
+full-reset-and-run: go-clean-caches tidy cache-clean security-enforce db-reset db-migrate db-seed server
+	@echo "$(GREEN)Full reset and server start completed$(NC)"
 
-# Code Quality Commands
-.PHONY: format
-format: ## Format code with goimports and gofmt
-	goimports -w .
-	gofmt -w .
-
-.PHONY: lint
-lint: ## Run golangci-lint
-	golangci-lint run
-
-.PHONY: quality
-quality: format lint ## Run all code quality checks
-
-# Environment Commands
-.PHONY: env-setup
-env-setup: ## Setup environment file
-	cp .env.example .env
-	@echo "Please edit .env file with your configuration"
-
-# Port Management
-.PHONY: kill-ports
-kill-ports: ## Kill processes using conflicting ports
-	chmod +x kill_ports.sh
-	./kill_ports.sh
-
-# Dependencies
-.PHONY: deps
-deps: ## Download and tidy dependencies
-	$(GOGET) -d ./...
-	$(GOMOD) tidy
-
-.PHONY: deps-update
-deps-update: ## Update all dependencies
-	$(GOGET) -u ./...
-	$(GOMOD) tidy
-
-# Installation Commands
-.PHONY: install
-install: build ## Install binary to system
-	sudo cp $(BINARY_NAME) /usr/local/bin/
-
-.PHONY: uninstall
-uninstall: ## Remove binary from system
-	sudo rm -f /usr/local/bin/$(BINARY_NAME)
-
-# Development Setup
-.PHONY: setup
-setup: env-setup deps docker-up db-setup ## Complete development environment setup
-
-# Production Build
-.PHONY: build-prod
-build-prod: ## Build production binary
-	CGO_ENABLED=0 GOOS=linux $(GOBUILD) -a -installsuffix cgo -o $(BINARY_NAME) $(MAIN_PATH)
-
-# Deployment Commands
-.PHONY: deploy-check
-deploy-check: quality test ## Pre-deployment checks
-	@echo "All checks passed! Ready for deployment."
-
-.PHONY: deploy-fly
-deploy-fly: deploy-check ## Deploy to Fly.io
-	fly deploy
-	fly machine restart 148e4d55f36278
-	fly machine restart 90802d3ea0ed38
-
-.PHONY: deploy-logs
-deploy-logs: ## Show deployment logs
-	fly logs
-
-# Quick Commands
-.PHONY: start
-start: docker-up db-setup dev ## Quick start (setup + run)
-
-.PHONY: reset
-reset: docker-down clean docker-up db-refresh dev ## Complete reset and restart
-
-# Utility Commands
-.PHONY: version
-version: ## Show version information
-	$(GORUN) $(MAIN_PATH) version
-
-.PHONY: routes
-routes: ## Show available API routes (requires server to be running)
-	@echo "API routes available at: http://localhost:8000/routes"
-	@echo "Make sure the server is running first!"
-
-# Advanced Commands
-.PHONY: benchmark
-benchmark: ## Run benchmarks
-	$(GOTEST) -bench=. -benchmem ./...
-
-.PHONY: coverage
-coverage: ## Generate test coverage report
-	$(GOTEST) -coverprofile=coverage.out ./...
-	$(GOCMD) tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-.PHONY: mod-graph
-mod-graph: ## Show module dependency graph
-	$(GOMOD) graph
-
-# Clean everything
-.PHONY: clean-all
-clean-all: clean docker-down ## Clean everything (build artifacts, Docker, cache)
-	docker system prune -f
-	$(GOCLEAN) -modcache
+hesoyam:
+	@echo "$(BLUE)Pulling latest changes from git...$(NC)"
+	git pull
+	@echo "$(GREEN)Git pull completed$(NC)"
+	@$(MAKE) full-reset-and-run
