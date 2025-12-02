@@ -203,18 +203,12 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		service.Request = horizon.NewHorizonAPIService(
 			service.Cache,
 			cfg.RequestServiceConfig.AppPort,
-			cfg.RequestServiceConfig.MetricsPort,
-			cfg.RequestServiceConfig.ClientURL,
-			cfg.RequestServiceConfig.ClientName,
 			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
 			service.Cache,
 			service.Environment.GetInt("APP_PORT", 8000),
-			service.Environment.GetInt("APP_METRICS_PORT", 8001),
-			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
-			service.Environment.GetString("APP_CLIENT_NAME", "horizon"),
 			isStaging,
 		)
 	}

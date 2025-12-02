@@ -26,15 +26,12 @@ func TestMain(m *testing.M) {
 		env.GetInt("REDIS_PORT", 6379),
 	)
 
-	metricsPort := handlers.GetFreePort()
-	clientURL := env.GetString("APP_CLIENT_URL", "http://localhost:3000")
-	clientName := env.GetString("APP_CLIENT_NAME", "test-client")
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
 	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
-	service := NewHorizonAPIService(cache, apiPort, metricsPort, clientURL, clientName, false)
+	service := NewHorizonAPIService(cache, apiPort, false)
 	go func() {
 		if err := service.Run(testCtx); err != nil {
 			println("Server exited with error:", err.Error())

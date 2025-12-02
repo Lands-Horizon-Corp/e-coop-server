@@ -47,13 +47,10 @@ type ExtendedSecurityHeaders struct {
 // - Request validation and suspicious path detection
 // - Environment-aware configuration (dev/prod)
 type APIServiceImpl struct {
-	service     *echo.Echo             // Echo web framework instance
-	serverPort  int                    // HTTP server port
-	metricsPort int                    // Metrics server port (future use)
-	clientURL   string                 // Client application URL
-	clientName  string                 // Client application name
-	handler     *handlers.RouteHandler // Route management handler
-	cache       CacheService           // Redis cache service for security features
+	service    *echo.Echo             // Echo web framework instance
+	serverPort int                    // HTTP server port
+	handler    *handlers.RouteHandler // Route management handler
+	cache      CacheService           // Redis cache service for security features
 }
 
 // RedisRateLimiterStore implements Echo's RateLimiterStore interface using Redis
@@ -312,20 +309,6 @@ func (s *RedisRateLimiterStore) addRequest(ctx context.Context, key string, time
 		return err
 	}
 
-	// Set TTL on the key to ensure automatic cleanup if no requests for extended period
-	// Note: This uses a standard Set operation with TTL as an additional safety measure
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-
-		// Set a dummy value with TTL to ensure the key expires
-		if err := s.cache.Set(ctx, key+":ttl", []byte("1"), s.expiresIn*2); err != nil {
-			s.logger.Debug("Failed to set TTL marker for rate limit key",
-				zap.String("key", key),
-				zap.Error(err))
-		}
-	}()
-
 	return nil
 }
 
@@ -341,16 +324,12 @@ func (s *RedisRateLimiterStore) addRequest(ctx context.Context, key string, time
 // Parameters:
 //   - cache: Redis cache service for security features (IP blocking, rate limiting, path caching)
 //   - serverPort: HTTP server port number
-//   - metricsPort: Metrics server port (reserved for future Prometheus integration)
-//   - clientURL: Primary client application URL for CORS configuration
-//   - clientName: Client application identifier for logging
 //   - secured: Production mode flag (enables HTTPS redirect and strict security headers)
 //
 // Returns: Configured APIService ready for production deployment
 func NewHorizonAPIService(
 	cache CacheService,
-	serverPort, metricsPort int,
-	clientURL, clientName string,
+	serverPort int,
 	secured bool,
 ) APIService {
 
@@ -366,11 +345,7 @@ func NewHorizonAPIService(
 		}
 	}()
 
-	//===== CORS ORIGINS CONFIGURATION =====
-	// Define allowed origins for Cross-Origin Resource Sharing (CORS)
-	// These domains are permitted to make requests to the API
-
-	// Production domains - primary application domains
+	// Production domains
 	origins := []string{
 		// Primary production domains
 		"https://ecoop-suite.netlify.app",
@@ -409,11 +384,7 @@ func NewHorizonAPIService(
 		allowedHosts = append(allowedHosts, hostname)
 	}
 
-	// ===== BASIC MIDDLEWARE SETUP =====
-	// Panic recovery middleware
 	e.Use(middleware.Recover())
-
-	// Remove trailing slashes from URLs
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	// Force HTTPS redirect in production
@@ -421,11 +392,7 @@ func NewHorizonAPIService(
 		e.Pre(middleware.HTTPSRedirect())
 	}
 
-	// ===== HOST VALIDATION MIDDLEWARE =====
-	// Validates the Host header against approved domains to prevent:
-	// - Host header injection attacks
-	// - DNS rebinding attacks
-	// - Unauthorized domain access
+	// Host validation middleware
 	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			host := handlers.GetHost(c)
@@ -440,10 +407,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ===== HTTP METHOD RESTRICTION MIDDLEWARE =====
-	// Restricts HTTP methods to standard, safe operations.
-	// Blocks potentially dangerous methods like TRACE, CONNECT, etc.
-	// This prevents HTTP method tampering and reduces attack surface.
+	// HTTP method restriction middleware
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Define allowed HTTP methods for API operations
@@ -466,14 +430,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ===== IP FIREWALL MIDDLEWARE =====
-	// Redis-backed IP firewall for blocking malicious traffic.
-	// Features:
-	// - Integration with HaGeZi threat intelligence blocklists
-	// - Manual IP blocking capability
-	// - Distributed blocking across Fly.io instances
-	// - Graceful fallback if Redis is unavailable
-	// - Sorted set tracking for analytics and automatic cleanup
+	// IP firewall middleware
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Extract and validate client IP address
@@ -542,16 +499,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ===== SUSPICIOUS PATH DETECTION MIDDLEWARE =====
-	// Advanced threat detection for malicious request patterns.
-	// Detects and blocks:
-	// - SQL injection attempts
-	// - XSS (Cross-Site Scripting) attacks
-	// - Directory traversal attempts (../, etc.)
-	// - Command injection patterns
-	// - File inclusion attacks
-	// - Web shell upload attempts
-	// - Uses sorted sets for analytics and automatic cleanup
+	// Suspicious path detection middleware
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := handlers.GetPath(c)
@@ -634,8 +582,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ===== REQUEST SIZE LIMIT MIDDLEWARE =====
-	// Limit request body size to prevent DoS attacks and validate Content-Length header
+	// Request size limit middleware
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Check for Content-Length header on requests with body
@@ -651,13 +598,7 @@ func NewHorizonAPIService(
 	})
 	e.Use(middleware.BodyLimit("4M"))
 
-	// ===== SECURITY HEADERS MOVED TO FINAL MIDDLEWARE =====
-	// Security headers are now applied as final middleware after all route processing
-	// to ensure consistency and prevent route handlers from overriding security headers
-
-	// ===== SECURE COOKIE MIDDLEWARE =====
-	// Cookie security configuration for API authentication tokens.
-	// Uses environment-aware settings for production vs development.
+	// Secure cookie middleware
 	if secured {
 		// Production: Strict security for HTTPS-only deployment
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -674,19 +615,17 @@ func NewHorizonAPIService(
 			return func(c echo.Context) error {
 				// Set development cookie defaults (allow HTTP)
 				c.Response().Header().Set("Set-Cookie",
-					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; SameSite=Lax; Path="))
+					strings.ReplaceAll(
+						c.Response().Header().Get("Set-Cookie"),
+						"; Path=",
+						"; HttpOnly; SameSite=Lax; Path=",
+					))
 				return next(c)
 			}
 		})
 	}
 
-	// ===== RATE LIMITING MIDDLEWARE =====
-	// Redis-backed distributed rate limiting for Fly.io multi-instance deployment.
-	// Features:
-	// - Consistent rate limiting across all instances
-	// - IP + User-Agent fingerprinting for accurate identification
-	// - Graceful degradation if Redis is unavailable
-	// - Client-aware headers for better UX
+	// Rate limiting middleware
 	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
 
@@ -742,9 +681,7 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	// ===== CORS MIDDLEWARE =====
-	// Cross-Origin Resource Sharing configuration for web application integration.
-	// Allows legitimate cross-origin requests while maintaining security.
+	// CORS middleware
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// Allowed origins - only trusted domains can make requests
 		AllowOrigins: origins,
@@ -790,8 +727,7 @@ func NewHorizonAPIService(
 		MaxAge:           3600, // Cache preflight response for 1 hour
 	}))
 
-	// ===== CORS PREFLIGHT DEBUGGING MIDDLEWARE =====
-	// Enhanced CORS preflight handling with detailed logging
+	// CORS preflight debugging middleware
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if c.Request().Method == http.MethodOptions {
@@ -821,9 +757,7 @@ func NewHorizonAPIService(
 		}
 	})
 
-	// ===== REQUEST LOGGING MIDDLEWARE =====
-	// Comprehensive request logging for monitoring and debugging.
-	// Logs all HTTP requests with structured data for analysis and security monitoring.
+	// Request logging middleware
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true, // Log HTTP status codes
 		LogURI:      true, // Log request URIs
@@ -864,9 +798,7 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	// ===== COMPRESSION MIDDLEWARE =====
-	// Intelligent response compression for bandwidth optimization.
-	// Automatically compresses text-based responses while skipping binary content.
+	// Compression middleware
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6, // Balanced compression level (speed vs. size)
 
@@ -881,9 +813,7 @@ func NewHorizonAPIService(
 		},
 	}))
 
-	// ===== TIMEOUT MIDDLEWARE =====
-	// Request timeout protection to prevent resource exhaustion.
-	// Automatically terminates long-running requests to maintain server stability.
+	// Timeout middleware
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Skipper:      middleware.DefaultSkipper,
 		ErrorMessage: "Request timed out. Please try again later.",
@@ -901,32 +831,18 @@ func NewHorizonAPIService(
 		Timeout: 1 * time.Minute, // 60-second request timeout
 	}))
 
-	// ===== FINAL SECURITY HEADERS MIDDLEWARE =====
-	// Apply security headers as the final middleware to ensure consistency
-	// This guarantees headers are set on all responses regardless of route handlers
+	// Security headers middleware
 	e.Use(SecurityHeadersMiddleware(secured))
 
-	//===== DEFAULT ENDPOINTS =====
-	// Essential API endpoints for monitoring and discovery
-
-	// Health check endpoint for load balancer and monitoring systems
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-
-	// API root endpoint with welcome message
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
 
 	return &APIServiceImpl{
-		service:     e,
-		serverPort:  serverPort,
-		metricsPort: metricsPort,
-		clientURL:   clientURL,
-		clientName:  clientName,
-		handler:     handlers.NewRouteHandler(),
-		cache:       cache,
+		service:    e,
+		serverPort: serverPort,
+		handler:    handlers.NewRouteHandler(),
+		cache:      cache,
 	}
 }
 
