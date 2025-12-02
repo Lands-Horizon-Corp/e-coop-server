@@ -234,15 +234,12 @@ func (s *RedisRateLimiterStore) Allow(identifier string) (bool, error) {
 			zap.Error(err))
 	}
 
-	// Count current requests in the window
 	currentCount, err := s.getRequestCount(ctx, key)
 	if err != nil {
-		// If Redis is down, allow request but log error
 		s.logger.Error("Rate limit cache error", zap.String("identifier", identifier), zap.Error(err))
-		return true, nil // Fail open
+		return true, nil
 	}
 
-	// Check if rate limit would be exceeded
 	maxRequests := int(float64(s.rate) * s.expiresIn.Seconds())
 	if currentCount >= maxRequests {
 		s.logger.Debug("Rate limit exceeded",
@@ -596,6 +593,7 @@ func NewHorizonAPIService(
 			return next(c)
 		}
 	})
+
 	e.Use(middleware.BodyLimit("4M"))
 
 	// Secure cookie middleware
@@ -603,7 +601,6 @@ func NewHorizonAPIService(
 		// Production: Strict security for HTTPS-only deployment
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
-				// Set secure cookie defaults for any cookies set by handlers
 				c.Response().Header().Set("Set-Cookie",
 					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
 				return next(c)
@@ -862,7 +859,6 @@ func (h *APIServiceImpl) Client() *echo.Echo {
 func (h *APIServiceImpl) RegisterRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 
-	// Add route to internal handler for tracking and management
 	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
 	}

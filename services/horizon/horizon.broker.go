@@ -80,7 +80,7 @@ func (h *MessageBroker) Dispatch(topics []string, payload any) error {
 	msg := &nats.Msg{Data: data}
 
 	for _, topic := range topics {
-		msg.Subject = h.clientID + topic
+		msg.Subject = h.formatTopic(topic)
 		if err := h.nc.PublishMsg(msg); err != nil {
 			return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 		}
