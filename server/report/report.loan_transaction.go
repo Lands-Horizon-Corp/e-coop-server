@@ -67,8 +67,8 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 				if entry.Account != nil {
 					accountName = entry.Account.Name
 					if entry.Account.Currency != nil {
-						debitFmt = entry.Account.Currency.FormatValue(entry.Debit)
-						creditFmt = entry.Account.Currency.FormatValue(entry.Credit)
+						debitFmt = entry.Account.Currency.ToFormat(entry.Debit)
+						creditFmt = entry.Account.Currency.ToFormat(entry.Credit)
 					}
 				}
 				loan_transaction_entries = append(loan_transaction_entries, map[string]any{
@@ -87,7 +87,7 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 				processorName = loanTransaction.ReleasedBy.FullName
 			}
 			var currencyAmountWords string
-			currencyAmountWords = loanTransaction.Account.Currency.AmountInWordsSimple(amount)
+			currencyAmountWords = loanTransaction.Account.Currency.ToWords(amount)
 
 			loanReleaseVoucher := map[string]any{
 				"header_title":   branch.Name,
