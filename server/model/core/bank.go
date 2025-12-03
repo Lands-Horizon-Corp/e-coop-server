@@ -170,8 +170,8 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch %s for bank seeding", branchID)
 	}
-	switch branch.Currency.CurrencyCode {
-	case "USD": // United States
+	switch branch.Currency.ISO3166Alpha3 {
+	case "USA": // United States
 		banks = append(banks,
 			// === Major National Banks ===
 			&Bank{Name: "Chase Bank", Description: "One of the largest US banks offering retail, commercial, and investment banking services."},
@@ -212,7 +212,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Current", Description: "A mobile-first US banking platform offering instant notifications and budgeting tools."},
 			&Bank{Name: "Green Dot Bank", Description: "A branchless US bank providing prepaid cards and online financial services."},
 		)
-	case "EUR": // European Union (Germany as representative)
+	case "DEU": // Germany (Euro representative)
 		banks = append(banks,
 			// Major EU & Global Banks
 			&Bank{Name: "Deutsche Bank", Description: "Germany’s largest bank with global investment and corporate banking operations."},
@@ -233,7 +233,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Bunq", Description: "A Dutch fully digital bank providing innovative mobile banking services across Europe."},
 		)
 
-	case "JPY": // Japan
+	case "JPN": // Japan
 		banks = append(banks,
 			// Major Japanese Banks
 			&Bank{Name: "MUFG Bank", Description: "Japan’s largest bank offering global corporate, retail, and investment banking."},
@@ -250,7 +250,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Rakuten Bank", Description: "Japan’s largest online bank offering digital accounts and payment services."},
 		)
 
-	case "GBP": // United Kingdom
+	case "GBR": // United Kingdom
 		banks = append(banks,
 			// Major UK Banks
 			&Bank{Name: "HSBC UK", Description: "One of the largest UK banks offering full retail and corporate banking services."},
@@ -271,7 +271,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Atom Bank", Description: "A UK-based online bank specializing in savings and mortgage products."},
 		)
 
-	case "AUD": // Australia
+	case "AUS": // Australia
 		banks = append(banks,
 			// Big Four Australian Banks
 			&Bank{Name: "Commonwealth Bank", Description: "Australia’s largest bank offering retail, business, and institutional banking."},
@@ -289,7 +289,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "86 400", Description: "A digital neobank in Australia offering smart mobile banking solutions."},
 		)
 
-	case "CAD": // Canada
+	case "CAN": // Canada
 		banks = append(banks,
 			// Big Five Canadian Banks
 			&Bank{Name: "Royal Bank of Canada (RBC)", Description: "Canada’s largest bank offering comprehensive financial services worldwide."},
@@ -308,7 +308,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "EQ Bank", Description: "A Canadian online bank providing high-interest savings and digital banking."},
 		)
 
-	case "CHF": // Switzerland
+	case "CHE": // Switzerland
 		banks = append(banks,
 			// Major Swiss Banks
 			&Bank{Name: "UBS", Description: "Switzerland’s largest bank offering global wealth, retail, and investment banking services."},
@@ -324,7 +324,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Yapeal", Description: "A digital banking platform in Switzerland providing modern mobile banking services."},
 		)
 
-	case "CNY": // China
+	case "CHN": // China
 		banks = append(banks,
 			// Major State-Owned Banks (Big Four)
 			&Bank{Name: "Industrial and Commercial Bank of China (ICBC)", Description: "The largest bank in China and one of the biggest globally, offering retail and corporate banking."},
@@ -345,7 +345,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "MyBank", Description: "An online-only bank backed by Ant Group offering digital financial services."},
 			&Bank{Name: "WeBank", Description: "China’s first fully digital bank, owned by Tencent, offering mobile-first banking."},
 		)
-	case "SEK": // Sweden
+	case "SWE": // Sweden
 		banks = append(banks,
 			// Major Swedish Banks
 			&Bank{Name: "Swedbank", Description: "One of Sweden’s largest banks offering retail, private, and corporate banking."},
@@ -365,7 +365,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Swish", Description: "Sweden’s widely used mobile payment system linked to Swedish banks."},
 		)
 
-	case "NZD": // New Zealand
+	case "NZL": // New Zealand
 		banks = append(banks,
 			// Major New Zealand Banks
 			&Bank{Name: "ANZ New Zealand", Description: "New Zealand’s largest bank providing retail, business, and wealth banking."},
@@ -385,7 +385,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "A widely used mobile wallet supporting NZ contactless payments."},
 			&Bank{Name: "Google Pay", Description: "A digital wallet for online and contactless payments in New Zealand."},
 		)
-	case "PHP": // Philippines
+	case "PHL": // Philippines
 		banks = append(banks,
 
 			// Major Universal & Commercial Banks
@@ -441,7 +441,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Producers Bank", Description: "A growing rural bank offering retail loans and microfinance."},
 			&Bank{Name: "Rizal Rural Bank", Description: "A rural bank offering traditional deposit and loan services."},
 		)
-	case "INR": // India
+	case "IND": // India
 		banks = append(banks,
 			&Bank{Name: "State Bank of India (SBI)", Description: "India’s largest public sector bank offering extensive nationwide and international banking services."},
 			&Bank{Name: "HDFC Bank", Description: "A top private bank in India known for retail banking, loans, and digital banking services."},
@@ -456,7 +456,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay India", Description: "UPI-based digital payment service widely used for instant transfers and payments."},
 		)
 
-	case "KRW": // South Korea
+	case "KOR": // South Korea
 		banks = append(banks,
 			&Bank{Name: "KB Kookmin Bank", Description: "South Korea’s largest bank, offering retail, corporate, and global banking services."},
 			&Bank{Name: "Shinhan Bank", Description: "A major bank in Korea providing comprehensive financial and global banking services."},
@@ -470,7 +470,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Samsung Pay", Description: "A mobile payment system widely used in Korea for contactless and online payments."},
 		)
 
-	case "THB": // Thailand
+	case "THA": // Thailand
 		banks = append(banks,
 			&Bank{Name: "Bangkok Bank", Description: "Thailand’s largest bank offering retail, commercial, and international banking."},
 			&Bank{Name: "Kasikornbank (KBank)", Description: "A major Thai bank known for digital banking and SME support."},
@@ -484,7 +484,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "AirPay / ShopeePay", Description: "A widely used digital wallet integrated with Shopee for payments and promotions."},
 		)
 
-	case "SGD": // Singapore
+	case "SGP": // Singapore
 		banks = append(banks,
 			&Bank{Name: "DBS Bank", Description: "Singapore’s largest bank known for strong digital banking and global financial operations."},
 			&Bank{Name: "OCBC Bank", Description: "A major Singaporean multinational bank offering corporate, retail, and investment services."},
@@ -498,7 +498,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "NETS", Description: "Singapore’s popular electronic payment system used nationwide."},
 		)
 
-	case "HKD": // Hong Kong
+	case "HKG": // Hong Kong
 		banks = append(banks,
 			&Bank{Name: "HSBC Hong Kong", Description: "One of Hong Kong’s most dominant banks offering personal and commercial banking services."},
 			&Bank{Name: "Bank of China (Hong Kong)", Description: "A major state-backed bank offering corporate, personal, and cross-border banking services."},
@@ -512,7 +512,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Octopus Wallet", Description: "Hong Kong’s iconic stored-value e-payment card and digital wallet used in transport and retail."},
 		)
 
-	case "MYR": // Malaysia
+	case "MYS": // Malaysia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Maybank", Description: "Malaysia’s largest bank offering retail, corporate, and international banking services."},
@@ -527,7 +527,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "GrabPay Malaysia", Description: "A widely adopted mobile wallet integrated with Grab's ecosystem."},
 		)
 
-	case "IDR": // Indonesia
+	case "IDN": // Indonesia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank Rakyat Indonesia (BRI)", Description: "Indonesia’s largest bank serving retail, microfinance, and corporate sectors."},
@@ -543,7 +543,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "ShopeePay Indonesia", Description: "An e-wallet integrated with Shopee and used widely for QRIS payments."},
 		)
 
-	case "VND": // Vietnam
+	case "VNM": // Vietnam
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Vietcombank", Description: "Vietnam’s largest commercial bank offering a wide range of retail and corporate services."},
@@ -559,7 +559,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "VNPay", Description: "A major Vietnamese QR payment platform used across shops nationwide."},
 		)
 
-	case "TWD": // Taiwan
+	case "TWN": // Taiwan
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank of Taiwan", Description: "Taiwan’s largest state-owned bank offering comprehensive financial services."},
@@ -575,7 +575,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Taiwan Pay", Description: "A government-backed QR and mobile payment solution."},
 		)
 
-	case "BND": // Brunei
+	case "BRN": // Brunei
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank Islam Brunei Darussalam (BIBD)", Description: "Brunei’s largest bank offering Sharia-compliant retail and corporate banking."},
@@ -588,7 +588,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Beep Digital Wallet", Description: "A local e-wallet used for QR payments and small retail transactions."},
 		)
 
-	case "SAR": // Saudi Arabia
+	case "SAU": // Saudi Arabia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "National Commercial Bank (NCB)", Description: "Saudi Arabia’s largest bank, also known as AlAhli Bank, offering retail and corporate banking."},
@@ -604,7 +604,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "UrPay", Description: "A rising Saudi digital wallet for payments and bill transactions."},
 		)
 
-	case "AED": // United Arab Emirates
+	case "ARE": // United Arab Emirates
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Emirates NBD", Description: "Dubai’s largest banking group offering retail, corporate, and international banking."},
@@ -620,7 +620,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Careem Pay", Description: "A growing wallet integrated with Careem services and ride-hailing."},
 		)
 
-	case "ILS": // Israel
+	case "ISR": // Israel
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank Hapoalim", Description: "Israel’s largest bank offering comprehensive retail and corporate banking."},
@@ -635,7 +635,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "PayBox", Description: "A widely used mobile wallet for group payments and transfers."},
 		)
 
-	case "ZAR": // South Africa
+	case "ZAF": // South Africa
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Standard Bank", Description: "Africa’s largest bank offering retail, corporate, and investment banking services."},
@@ -650,7 +650,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Vodapay", Description: "A mobile wallet by Vodacom for online and in-store payments."},
 		)
 
-	case "EGP": // Egypt
+	case "EGY": // Egypt
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "National Bank of Egypt (NBE)", Description: "Egypt’s oldest and largest bank offering comprehensive financial services."},
@@ -666,7 +666,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Meeza Digital Wallet", Description: "Egypt’s national payment wallet supporting QR and online payments."},
 		)
 
-	case "TRY": // Turkey
+	case "TUR": // Turkey
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Ziraat Bankası", Description: "Turkey’s largest state-owned bank offering comprehensive financial services nationwide."},
@@ -682,7 +682,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Tosla", Description: "A modern e-wallet by Akbank for online payments and transfers."},
 		)
 
-	case "XOF": // West African CFA Franc (Senegal, Côte d'Ivoire, Mali, Benin, Togo, etc.)
+	case "SEN": // Senegal (West African CFA Franc representative)
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Ecobank", Description: "A major pan-African bank with strong presence in West Africa offering retail and corporate banking."},
@@ -697,7 +697,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Wave Mobile Money", Description: "A fast-growing mobile money platform focused on low-cost transfers."},
 		)
 
-	case "XAF": // Central African CFA Franc (Cameroon, Gabon, Chad, CAR, Congo, Equatorial Guinea)
+	case "CMR": // Cameroon (Central African CFA Franc representative)
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Afriland First Bank", Description: "A leading bank in Central Africa offering retail and business banking."},
@@ -712,7 +712,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Orange Money Central Africa", Description: "A widely used mobile money service for payments and everyday transactions."},
 		)
 
-	case "MUR": // Mauritius
+	case "MUS": // Mauritius
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Mauritius Commercial Bank (MCB)", Description: "The largest bank in Mauritius offering retail, corporate, and international services."},
@@ -727,7 +727,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "SBM EasyPay", Description: "A mobile payment service by SBM Bank."},
 		)
 
-	case "MVR": // Maldives
+	case "MDV": // Maldives
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank of Maldives (BML)", Description: "The largest bank in the Maldives offering extensive financial services."},
@@ -741,7 +741,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "DhiraaguPay", Description: "A mobile payment service for QR transactions and online payments."},
 		)
 
-	case "NOK": // Norway
+	case "NOR": // Norway
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "DNB ASA", Description: "Norway’s largest financial services group offering retail, corporate, and investment banking."},
@@ -756,7 +756,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Norway", Description: "Mobile payment solution for online and in-store payments."},
 		)
 
-	case "DKK": // Denmark
+	case "DNK": // Denmark
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Danske Bank", Description: "Denmark’s largest bank offering retail, corporate, and international banking."},
@@ -771,7 +771,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Denmark", Description: "Mobile wallet used for in-store and online payments."},
 		)
 
-	case "PLN": // Poland
+	case "POL": // Poland
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "PKO Bank Polski", Description: "Poland’s largest bank offering retail, corporate, and investment banking."},
@@ -786,7 +786,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Poland", Description: "Mobile wallet used for payments and digital purchases."},
 		)
 
-	case "CZK": // Czech Republic
+	case "CZE": // Czech Republic
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Česká spořitelna", Description: "One of the largest Czech banks offering retail, corporate, and investment banking."},
@@ -801,7 +801,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Czech Republic", Description: "Mobile wallet for payments, transfers, and online purchases."},
 		)
 
-	case "HUF": // Hungary
+	case "HUN": // Hungary
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "OTP Bank", Description: "Hungary’s largest bank offering retail, corporate, and digital banking services."},
@@ -816,7 +816,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Hungary", Description: "Mobile wallet for in-store and online payments."},
 		)
 
-	case "RUB": // Russia
+	case "RUS": // Russia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Sberbank", Description: "Russia’s largest bank offering retail, corporate, and investment banking nationwide."},
@@ -831,7 +831,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "SberPay", Description: "Digital wallet service offered by Sberbank for QR and online payments."},
 		)
 
-	case "EUR-HR": // Croatia (Euro)
+	case "HRV": // Croatia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Zagrebačka banka", Description: "Croatia’s largest bank offering retail, corporate, and investment services."},
@@ -846,7 +846,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Google Pay Croatia", Description: "Mobile wallet for online and in-store payments."},
 		)
 
-	case "BRL": // Brazil
+	case "BRA": // Brazil
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco do Brasil", Description: "Brazil’s largest bank providing retail, corporate, and investment banking services."},
@@ -861,7 +861,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Nubank Wallet", Description: "Digital bank and wallet providing online payments and transfers in Brazil."},
 		)
 
-	case "MXN": // Mexico
+	case "MEX": // Mexico
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "BBVA México", Description: "A major bank in Mexico providing retail, corporate, and digital banking services."},
@@ -876,7 +876,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "BBVA Wallet Mexico", Description: "Digital wallet provided by BBVA for online and contactless payments."},
 		)
 
-	case "ARS": // Argentina
+	case "ARG": // Argentina
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco de la Nación Argentina", Description: "Argentina’s largest state-owned bank offering retail and corporate banking."},
@@ -891,7 +891,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Todo Pago", Description: "A digital payment platform enabling QR, online, and in-store transactions in Argentina."},
 		)
 
-	case "CLP": // Chile
+	case "CHL": // Chile
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco de Chile", Description: "One of Chile’s largest banks offering retail, corporate, and investment banking services."},
@@ -906,7 +906,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Flow Chile", Description: "A widely used e-wallet for online payments and QR transactions."},
 		)
 
-	case "COP": // Colombia
+	case "COL": // Colombia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bancolombia", Description: "Colombia’s largest bank offering retail, corporate, and investment banking."},
@@ -921,7 +921,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Movii", Description: "A Colombian e-wallet offering payments, transfers, and online transactions."},
 		)
 
-	case "PEN": // Peru
+	case "PER": // Peru
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco de Crédito del Perú (BCP)", Description: "The largest bank in Peru offering retail, corporate, and investment banking services."},
@@ -936,7 +936,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Tunki", Description: "A mobile banking and wallet app offered by BBVA Peru for payments and money transfers."},
 		)
 
-	case "UYU": // Uruguay
+	case "URY": // Uruguay
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco República (BROU)", Description: "Uruguay’s largest state-owned bank offering retail and corporate banking."},
@@ -951,7 +951,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Mercado Pago Uruguay", Description: "A widely used digital wallet integrated with Mercado Libre for payments."},
 		)
 
-	case "DOP": // Dominican Republic
+	case "DOM": // Dominican Republic
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco Popular Dominicano", Description: "The largest bank in the Dominican Republic offering retail and corporate banking."},
@@ -966,7 +966,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Mercado Pago DR", Description: "Digital wallet integrated with Mercado Libre for payments and purchases."},
 		)
 
-	case "PYG": // Paraguay
+	case "PRY": // Paraguay
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco Nacional de Fomento (BNF)", Description: "Paraguay’s state-owned bank providing retail, agricultural, and corporate banking."},
@@ -981,7 +981,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Bancard Wallet", Description: "Digital wallet for online and merchant payments in Paraguay."},
 		)
 
-	case "BOB": // Bolivia
+	case "BOL": // Bolivia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco de Crédito de Bolivia", Description: "A major Bolivian bank offering retail and corporate banking services."},
@@ -996,7 +996,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "PagoMovil Bolivia", Description: "A mobile wallet for digital transactions and QR payments."},
 		)
 
-	case "VES": // Venezuela
+	case "VEN": // Venezuela
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco de Venezuela", Description: "State-owned bank providing retail and corporate banking services across Venezuela."},
@@ -1011,7 +1011,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Zelle Venezuela", Description: "Popular international digital wallet for P2P transfers in USD via local banks."},
 		)
 
-	case "PKR": // Pakistan
+	case "PAK": // Pakistan
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Habib Bank Limited (HBL)", Description: "Pakistan’s largest bank offering retail, corporate, and international banking."},
@@ -1026,7 +1026,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "UPaisa", Description: "Digital wallet offering online payments and P2P transfers in Pakistan."},
 		)
 
-	case "BDT": // Bangladesh
+	case "BGD": // Bangladesh
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "BRAC Bank", Description: "A leading private bank in Bangladesh offering retail, SME, and corporate banking."},
@@ -1041,7 +1041,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Rocket by Dutch-Bangla Bank", Description: "A popular mobile wallet and branchless banking service in Bangladesh."},
 		)
 
-	case "LKR": // Sri Lanka
+	case "LKA": // Sri Lanka
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank of Ceylon", Description: "Sri Lanka’s largest state-owned bank providing retail and corporate banking services."},
@@ -1056,7 +1056,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "FriMi", Description: "Digital banking and wallet app offering payments and transfers in Sri Lanka."},
 		)
 
-	case "NPR": // Nepal
+	case "NPL": // Nepal
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Nepal Investment Bank", Description: "One of Nepal’s largest banks offering retail and corporate banking services."},
@@ -1071,7 +1071,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Khalti", Description: "Digital payment platform for QR payments, bills, and top-ups in Nepal."},
 		)
 
-	case "MMK": // Myanmar
+	case "MMR": // Myanmar
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Kanbawza Bank (KBZ)", Description: "Myanmar’s largest private bank offering retail, corporate, and digital banking services."},
@@ -1086,7 +1086,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "AYA Pay", Description: "Mobile wallet service provided by AYA Bank for digital payments."},
 		)
 
-	case "KHR": // Cambodia
+	case "KHM": // Cambodia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "ACLEDA Bank", Description: "Cambodia’s largest commercial bank offering retail, SME, and corporate banking services."},
@@ -1101,7 +1101,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Wing Money", Description: "Mobile wallet and payment service widely used in Cambodia for transfers and bills."},
 		)
 
-	case "LAK": // Laos
+	case "LAO": // Laos
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banque pour le Commerce Extérieur Lao (BCEL)", Description: "The largest bank in Laos providing retail, corporate, and trade banking."},
@@ -1116,7 +1116,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "ACLEDA Unity Mobile", Description: "Mobile banking app for payments and digital transactions in Laos."},
 		)
 
-	case "NGN": // Nigeria
+	case "NGA": // Nigeria
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Access Bank", Description: "One of Nigeria’s largest banks offering retail, corporate, and digital banking services."},
@@ -1131,7 +1131,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Kuda Bank Wallet", Description: "A fully digital bank and wallet service providing easy online payments."},
 		)
 
-	case "KES": // Kenya
+	case "KEN": // Kenya
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Equity Bank", Description: "Kenya’s largest bank providing retail, corporate, and digital banking services."},
@@ -1146,7 +1146,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "KCB Mobi", Description: "Digital wallet provided by KCB for payments, transfers, and online banking."},
 		)
 
-	case "GHS": // Ghana
+	case "GHA": // Ghana
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "GCB Bank", Description: "One of Ghana’s largest state-owned banks providing retail and corporate banking."},
@@ -1161,7 +1161,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Zeepay Wallet", Description: "Digital wallet for remittances, payments, and QR-based transactions in Ghana."},
 		)
 
-	case "MAD": // Morocco
+	case "MAR": // Morocco
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Attijariwafa Bank", Description: "Morocco’s largest bank offering retail, corporate, and international banking services."},
@@ -1176,7 +1176,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Orange Money Morocco", Description: "Mobile wallet service for sending money, paying bills, and online payments."},
 		)
 
-	case "TND": // Tunisia
+	case "TUN": // Tunisia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banque de Tunisie", Description: "One of Tunisia’s oldest banks providing retail and corporate banking services."},
@@ -1191,7 +1191,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Orange Money Tunisia", Description: "Mobile wallet solution for payments and money transfers."},
 		)
 
-	case "ETB": // Ethiopia
+	case "ETH": // Ethiopia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Commercial Bank of Ethiopia (CBE)", Description: "Ethiopia’s largest state-owned bank providing retail, corporate, and trade banking services."},
@@ -1206,7 +1206,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Amole", Description: "Digital wallet offered by Commercial Bank of Ethiopia for online payments and transfers."},
 		)
 
-	case "DZD": // Algeria
+	case "DZA": // Algeria
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banque Nationale d’Algérie (BNA)", Description: "State-owned bank offering retail and corporate banking services across Algeria."},
@@ -1221,7 +1221,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Mobilis Wallet", Description: "Telecom-based mobile wallet widely used for payments and transfers in Algeria."},
 		)
 
-	case "UAH": // Ukraine
+	case "UKR": // Ukraine
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "PrivatBank", Description: "Ukraine’s largest bank offering retail, corporate, and digital banking services."},
@@ -1236,7 +1236,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Portmone", Description: "Digital wallet used for online payments, bills, and transfers in Ukraine."},
 		)
 
-	case "RON": // Romania
+	case "ROU": // Romania
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banca Transilvania", Description: "Romania’s largest bank offering retail, corporate, and digital banking services."},
@@ -1251,7 +1251,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "PayU Wallet", Description: "Digital payment platform for online purchases and mobile payments in Romania."},
 		)
 
-	case "BGN": // Bulgaria
+	case "BGR": // Bulgaria
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "UniCredit Bulbank", Description: "The largest bank in Bulgaria providing retail, corporate, and investment banking services."},
@@ -1266,7 +1266,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut Bulgaria", Description: "Digital wallet app offering payments, transfers, and multi-currency support."},
 		)
 
-	case "RSD": // Serbia
+	case "SRB": // Serbia
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banca Intesa Beograd", Description: "One of Serbia’s largest banks offering retail, corporate, and digital banking services."},
@@ -1281,7 +1281,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital bank and wallet offering international banking and money transfers."},
 		)
 
-	case "ISK": // Iceland
+	case "ISL": // Iceland
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Landsbankinn", Description: "One of Iceland’s largest banks offering retail, corporate, and digital banking."},
@@ -1295,7 +1295,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "Mobile payment and digital wallet available in Iceland for iOS users."},
 		)
 
-	case "BYN": // Belarus
+	case "BLR": // Belarus
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Belinvestbank", Description: "One of Belarus’s largest banks providing retail, corporate, and investment banking services."},
@@ -1309,7 +1309,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital banking and wallet service offering international transfers for Belarusian users."},
 		)
 
-	case "FJD": // Fiji
+	case "FJI": // Fiji
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank of Fiji", Description: "The central bank of Fiji providing regulatory and limited banking services."},
@@ -1323,7 +1323,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital bank and wallet for international money transfers and payments."},
 		)
 
-	case "PGK": // Papua New Guinea
+	case "PNG": // Papua New Guinea
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank of Papua New Guinea", Description: "Central bank of Papua New Guinea providing regulatory and limited banking services."},
@@ -1337,7 +1337,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital banking and wallet service offering international transfers and payments for PNG users."},
 		)
 
-	case "JMD": // Jamaica
+	case "JAM": // Jamaica
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "National Commercial Bank (NCB)", Description: "Jamaica’s largest bank offering retail, corporate, and digital banking services."},
@@ -1351,7 +1351,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital banking and wallet service offering international transfers and payments."},
 		)
 
-	case "CRC": // Costa Rica
+	case "CRI": // Costa Rica
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco Nacional de Costa Rica", Description: "State-owned bank providing retail, corporate, and international banking services."},
@@ -1365,7 +1365,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital banking and wallet service offering international transfers and payments."},
 		)
 
-	case "GTQ": // Guatemala
+	case "GTM": // Guatemala
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Banco Industrial", Description: "Guatemala’s largest private bank offering retail, corporate, and digital banking services."},
@@ -1379,7 +1379,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Revolut", Description: "Digital banking and wallet service for international transfers and payments."},
 		)
 
-	case "XDR": // Special Drawing Rights (IMF)
+	case "IMF": // Special Drawing Rights (IMF)
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "International Monetary Fund (IMF)", Description: "An international organization that issues SDRs and provides financial support and policy advice globally."},
@@ -1389,7 +1389,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "No direct e-wallets", Description: "SDRs are a reserve asset, not used in consumer e-wallets; they are managed through IMF accounts."},
 		)
 
-	case "KWD": // Kuwait
+	case "KWT": // Kuwait
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "National Bank of Kuwait (NBK)", Description: "Kuwait’s largest bank offering retail, corporate, and international banking services."},
@@ -1405,7 +1405,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "PayPal", Description: "Global digital wallet for international and online payments."},
 		)
 
-	case "QAR": // Qatar
+	case "QAT": // Qatar
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Qatar National Bank (QNB)", Description: "Qatar’s largest bank offering retail, corporate, and international banking services."},
@@ -1421,7 +1421,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "Digital wallet service accessible for iOS users in Qatar."},
 		)
 
-	case "OMR": // Oman
+	case "OMN": // Oman
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Bank Muscat", Description: "Oman’s largest bank offering retail, corporate, and investment banking services."},
@@ -1435,7 +1435,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "Digital wallet for iOS users in Oman for payments and transfers."},
 		)
 
-	case "BHD": // Bahrain
+	case "BHR": // Bahrain
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "National Bank of Bahrain (NBB)", Description: "One of Bahrain’s largest banks offering retail, corporate, and investment banking services."},
@@ -1449,7 +1449,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "Digital wallet for iOS users in Bahrain for online and in-store payments."},
 		)
 
-	case "JOD": // Jordan
+	case "JOR": // Jordan
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Arab Bank", Description: "Jordan’s largest bank and one of the biggest in the Middle East, providing retail, corporate, and digital banking services."},
@@ -1463,7 +1463,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 			&Bank{Name: "Apple Pay", Description: "Digital wallet for iOS users in Jordan for payments and transfers."},
 		)
 
-	case "KZT": // Kazakhstan
+	case "KAZ": // Kazakhstan
 		banks = append(banks,
 			// Banks
 			&Bank{Name: "Halyk Bank", Description: "Largest bank in Kazakhstan providing retail, corporate, and investment banking services."},

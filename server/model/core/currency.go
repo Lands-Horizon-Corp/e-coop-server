@@ -184,7 +184,7 @@ func (m *Core) currencySeed(context context.Context) error {
 			Timezone:       strings.Join(locale.NumI18Identifier.Timezone, ","),
 		}
 		if err := m.CurrencyManager.Create(context, currency); err != nil {
-			return eris.Wrapf(err, "failed to seed currency %s (%s)", currency.Name, currency.CurrencyCode)
+			return eris.Wrapf(err, "failed to seed currency %s (%s)", currency.Name, currency.ISO3166Alpha3)
 		}
 	}
 	return nil

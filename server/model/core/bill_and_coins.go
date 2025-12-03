@@ -144,8 +144,8 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 	}
 	for _, currency := range curency {
 		billAndCoins := []*BillAndCoins{}
-		switch currency.CurrencyCode {
-		case "PHP":
+		switch currency.ISO3166Alpha3 {
+		case "PHL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (New Generation Currency Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1000 Bill", Value: 1000.00, CurrencyID: currency.ID},
@@ -164,7 +164,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.05 Sentimo Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.1 Sentimo Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "USD":
+		case "USA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (US Dollar)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 100 Bill", Value: 100.00, CurrencyID: currency.ID},
@@ -183,7 +183,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 0.05 Nickel Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 0.01 Penny Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "EUR":
+		case "DEU":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Euro - Europa series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -204,7 +204,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€0.02 Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€0.01 Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "EUR-HR":
+		case "HRV":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Euro - Croatia)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -225,7 +225,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €0.02 Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €0.01 Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "JPY":
+		case "JPN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Japanese Yen - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -241,7 +241,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "GBP":
+		case "GBR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (British Pound Sterling - Polymer Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "£50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -259,7 +259,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2p Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1p Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "AUD":
+		case "AUS":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Australian Dollar - Polymer Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "A$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -276,7 +276,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AUD 10c Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AUD 5c Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "CAD":
+		case "CAN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Canadian Dollar - Polymer Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "C$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -292,7 +292,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10¢ Coin (Dime)", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5¢ Coin (Nickel)", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "CHF":
+		case "CHE":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Swiss Franc - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -311,7 +311,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Rappen Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Rappen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "CNY":
+		case "CHN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Chinese Yuan - Fifth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY ¥100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -328,7 +328,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY 5 Fen Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY 1 Fen Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "SEK":
+		case "SWE":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Swedish Krona - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -344,7 +344,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "NZD":
+		case "NZL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (New Zealand Dollar - Series 7)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZ$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -360,7 +360,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZD 20c Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZD 10c Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "INR":
+		case "IND":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Indian Rupee - Mahatma Gandhi New Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -378,7 +378,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "KRW":
+		case "KOR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (South Korean Won - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
@@ -392,7 +392,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩50 Coin", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
-		case "THB":
+		case "THA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Thai Baht - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "฿1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -409,7 +409,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "THB 50 Satang Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "THB 25 Satang Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
-		case "SGD":
+		case "SGP":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Singapore Dollar - Portrait Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -426,7 +426,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SGD 10¢ Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SGD 5¢ Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "HKD":
+		case "HKG":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Hong Kong Dollar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HK$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -445,7 +445,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HKD 20¢ Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HKD 10¢ Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "MYR":
+		case "MYS":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Malaysian Ringgit - Fourth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RM100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -462,7 +462,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "IDR":
+		case "IDN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Indonesian Rupiah - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -479,7 +479,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp200 Coin", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp100 Coin", Value: 100.00, CurrencyID: currency.ID},
 			}
-		case "VND":
+		case "VNM":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Vietnamese Dong - Polymer Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫500,000 Banknote", Value: 500000.00, CurrencyID: currency.ID},
@@ -495,7 +495,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫1,000 Coin", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫500 Coin", Value: 500.00, CurrencyID: currency.ID},
 			}
-		case "TWD":
+		case "TWN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Taiwan Dollar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -510,7 +510,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$5 Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "BND":
+		case "BRN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Brunei Dollar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "B$10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -529,7 +529,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 10 Sen Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "SAR":
+		case "SAU":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Saudi Riyal - Fifth Issue)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.س 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -549,7 +549,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Halala Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Halala Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "AED":
+		case "ARE":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (UAE Dirham - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.إ 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -567,7 +567,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AED 25 Fils Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AED 10 Fils Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "ILS":
+		case "ISR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Israeli New Shekel - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₪200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -583,7 +583,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Agorot Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Agorot Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "ZAR":
+		case "ZAF":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (South African Rand - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "R200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -600,7 +600,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ZAR 20c Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ZAR 10c Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "EGP":
+		case "EGY":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Egyptian Pound - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ج.م 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -618,7 +618,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Piastres Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Piastres Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "TRY":
+		case "TUR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Turkish Lira - Ninth Emission Group)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₺200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -635,7 +635,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Kuruş Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Kuruş Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "XOF":
+		case "BFA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (West African CFA Franc - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -652,7 +652,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 25 Coin", Value: 25.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
-		case "XAF":
+		case "CMR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Central African CFA Franc - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -669,7 +669,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
-		case "MUR":
+		case "MUS":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Mauritian Rupee - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -688,7 +688,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR 20 Cents Coin", Value: 0.20, CurrencyID: currency.ID},
 			}
-		case "MVR":
+		case "MDV":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Maldivian Rufiyaa - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rf1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -706,7 +706,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Laari Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Laari Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "NOK":
+		case "NOR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Norwegian Krone - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -721,7 +721,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "DKK":
+		case "DNK":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Danish Krone - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -738,7 +738,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 50 øre Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
-		case "PLN":
+		case "POL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Polish Zloty - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 zł Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -759,7 +759,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 groszy Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 grosz Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "CZK":
+		case "CZE":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Czech Koruna - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5000 Kč Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -777,7 +777,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Kč Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kč Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "HUF":
+		case "HUN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Hungarian Forint - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20,000 Ft Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -795,7 +795,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Ft Coin", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Ft Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
-		case "RUB":
+		case "RUS":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Russian Ruble - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₽5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -817,7 +817,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Kopecks Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "BRL":
+		case "BRA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Brazilian Real - Second Family)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL R$200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -835,7 +835,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "MXN":
+		case "MEX":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Mexican Peso - Type F Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -855,7 +855,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "ARS":
+		case "ARG":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Argentine Peso - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -875,7 +875,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "CLP":
+		case "CHL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Chilean Peso - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -890,7 +890,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$50 Coin", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
-		case "COP":
+		case "COL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Colombian Peso - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -907,7 +907,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$100 Coin", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
-		case "PEN":
+		case "PER":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Peruvian Sol - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -924,7 +924,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 20 Céntimos Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "UYU":
+		case "URY":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Uruguayan Peso - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "$U2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -942,7 +942,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "$U1 Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centésimos Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
-		case "DOP":
+		case "DOM":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Dominican Peso - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -961,7 +961,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DOP 50 Centavos Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DOP 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
-		case "PYG":
+		case "PRY":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Paraguayan Guarani - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -977,7 +977,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲100 Coin", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
-		case "BOB":
+		case "BOL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Bolivian Boliviano - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -994,7 +994,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 20 Centavos Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "VES":
+		case "VEN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Venezuelan Bolívar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs.S 1,000,000 Banknote", Value: 1000000.00, CurrencyID: currency.ID},
@@ -1012,7 +1012,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Céntimos Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "PKR":
+		case "PAK":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Pakistani Rupee - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1029,7 +1029,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨1 Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
-		case "BDT":
+		case "BGD":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Bangladeshi Taka - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1048,7 +1048,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
-		case "LKR":
+		case "LKA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Sri Lankan Rupee - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1067,7 +1067,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR 25 Cents Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
-		case "NPR":
+		case "NPL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Nepalese Rupee - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1086,7 +1086,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
-		case "MMK":
+		case "MMR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Myanmar Kyat - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K10,000 PG Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -1104,7 +1104,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K5 PG Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K1 PG Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "KHR":
+		case "KHM":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Cambodian Riel - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -1122,7 +1122,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛100 Coin", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
-		case "LAK":
+		case "LAO":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Laotian Kip - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -1141,7 +1141,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭100 Coin", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
-		case "NGN":
+		case "NGA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Nigerian Naira - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₦1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1158,7 +1158,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₦1 Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Kobo Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
-		case "KES":
+		case "KEN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Kenyan Shilling - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KSh1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1175,7 +1175,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KSh1 Coin", Value: 1.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KES 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
-		case "GHS":
+		case "GHA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Ghanaian Cedi - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₵200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1195,7 +1195,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Pesewas Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Pesewas Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "MAD":
+		case "MAR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Moroccan Dirham - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.م.200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1212,7 +1212,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20 Centimes Coin", Value: 0.20, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centimes Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "TND":
+		case "TUN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Tunisian Dinar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ت50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1229,7 +1229,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "100 Millimes Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Millimes Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "ETB":
+		case "ETH":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Ethiopian Birr - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1247,7 +1247,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Bir Santim Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Bir Santim Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "DZD":
+		case "DZA":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Algerian Dinar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -1264,7 +1264,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج10 Coin", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
-		case "UAH":
+		case "UKR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Ukrainian Hryvnia - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₴1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1287,7 +1287,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Kopiyky Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kopiyky Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "RON":
+		case "ROU":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Romanian Leu - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 lei Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -1304,7 +1304,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 bani Coin", Value: 0.05, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 ban Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "BGN":
+		case "BGR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Bulgarian Lev - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "лв100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -1323,7 +1323,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 стотинки Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 стотинка Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "RSD":
+		case "SRB":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Serbian Dinar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1343,7 +1343,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин2 Coin", Value: 2.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "ISK":
+		case "ISL":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Icelandic Krona - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10,000 kr Banknote", Value: 10000.00, CurrencyID: currency.ID},
@@ -1359,7 +1359,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 kr Coin", Value: 5.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
-		case "BYN":
+		case "BLR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Belarusian Ruble - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -1380,7 +1380,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2 Br Kopecks Coin", Value: 0.02, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Br Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "FJD":
+		case "FJI":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Fijian Dollar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJ$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -1397,7 +1397,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJD 10 Cents Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJD 5 Cents Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "PGK":
+		case "PNG":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Papua New Guinea Kina - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -1414,7 +1414,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Toea Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Toea Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "JMD":
+		case "JAM":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Jamaican Dollar - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "J$5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1432,7 +1432,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JMD 25 Cents Coin", Value: 0.25, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JMD 10 Cents Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
-		case "CRC":
+		case "CRI":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Costa Rican Colon - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -1449,7 +1449,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡10 Coin", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
-		case "GTQ":
+		case "GTM":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Guatemalan Quetzal - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Q200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1467,17 +1467,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "GTQ 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "XDR":
-			billAndCoins = []*BillAndCoins{
-				// Special Drawing Rights (IMF - Virtual Currency - theoretical denominations)
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 100 Unit", Value: 100.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 50 Unit", Value: 50.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 20 Unit", Value: 20.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 10 Unit", Value: 10.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 5 Unit", Value: 5.00, CurrencyID: currency.ID},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SDR 1 Unit", Value: 1.00, CurrencyID: currency.ID},
-			}
-		case "KWD":
+		case "KWT":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Kuwaiti Dinar - Sixth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ك 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1494,7 +1484,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KWD 10 Fils Coin", Value: 0.01, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KWD 5 Fils Coin", Value: 0.005, CurrencyID: currency.ID},
 			}
-		case "QAR":
+		case "QAT":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Qatari Riyal - Fifth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ق 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -1510,7 +1500,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Dirhams Coin", Value: 0.10, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Dirhams Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
-		case "OMR":
+		case "OMN":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Omani Rial - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ع 50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1526,7 +1516,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "25 Baisa Coin", Value: 0.025, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Baisa Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "BHD":
+		case "BHR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Bahraini Dinar - Fifth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ب.د 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1542,7 +1532,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BHD 10 Fils Coin", Value: 0.01, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BHD 5 Fils Coin", Value: 0.005, CurrencyID: currency.ID},
 			}
-		case "JOD":
+		case "JOR":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Jordanian Dinar - Sixth Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ا 50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1559,7 +1549,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JOD 25 Fils Coin", Value: 0.025, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JOD 10 Fils Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
-		case "KZT":
+		case "KAZ":
 			billAndCoins = []*BillAndCoins{
 				// Banknotes (Kazakhstani Tenge - Current Series)
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₸20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
