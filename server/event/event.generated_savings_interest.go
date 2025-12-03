@@ -237,6 +237,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if !account.IsTaxable {
 			savingsComputed.InterestTax = 0
 		}
+		memberProfile = memberBrowseRef.MemberAccountingLedger.MemberProfile
 
 		//===== STEP 3.8: CREATE GENERATED SAVINGS INTEREST ENTRY =====
 		// Create database entry with computed interest and tax amounts
@@ -249,6 +250,8 @@ func (e *Event) GenerateSavingsInterestEntries(
 			BranchID:                   *userOrg.BranchID,
 			GeneratedSavingsInterestID: generatedSavingsInterest.ID,
 			MemberProfileID:            memberBrowseRef.MemberAccountingLedger.MemberProfileID,
+			MemberProfile:              memberProfile,
+			Account:                    account,
 			AccountID:                  *memberBrowseRef.BrowseReference.AccountID,
 			InterestAmount:             savingsComputed.Interest,
 			InterestTax:                savingsComputed.InterestTax,
