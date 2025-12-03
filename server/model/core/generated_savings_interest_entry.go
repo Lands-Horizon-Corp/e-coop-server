@@ -70,11 +70,10 @@ type (
 
 	// GenerateSavingsInterestEntryRequest represents the request structure for creating/updating generate savings interest entry
 	GeneratedSavingsInterestEntryRequest struct {
-		ID              *uuid.UUID `json:"id"`
-		AccountID       uuid.UUID  `json:"account_id" validate:"required"`
-		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
-		InterestAmount  float64    `json:"interest_amount" validate:"required"`
-		InterestTax     float64    `json:"interest_tax" validate:"required"`
+		AccountID       uuid.UUID `json:"account_id" validate:"required"`
+		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
+		InterestAmount  float64   `json:"interest_amount" validate:"required"`
+		InterestTax     float64   `json:"interest_tax" validate:"required"`
 	}
 )
 
