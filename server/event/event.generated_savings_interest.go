@@ -6,7 +6,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
-	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
@@ -254,13 +253,6 @@ func (e *Event) GenerateSavingsInterestEntries(
 			InterestAmount:             savingsComputed.Interest,
 			InterestTax:                savingsComputed.InterestTax,
 			EndingBalance:              savingsComputed.EndingBalance,
-		}
-
-		if generatedSavingsInterest.ID != uuid.Nil {
-			//===== STEP 3.9: SAVE ENTRY TO DATABASE =====
-			if err := e.core.GeneratedSavingsInterestEntryManager.Create(context, entry); err != nil {
-				return nil, eris.Wrap(err, "failed to create generated savings interest entry")
-			}
 		}
 
 		//===== STEP 3.10: ADD TO RESULT COLLECTION =====
