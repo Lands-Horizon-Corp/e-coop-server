@@ -14,9 +14,9 @@ func (c *Controller) generateSavingsInterest() {
 
 	req := c.provider.Service.Request
 
-	// GET /api/v1/generate-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
+	// GET /api/v1/generated-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generate-savings-interest",
+		Route:        "/api/v1/generated-savings-interest",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -39,9 +39,9 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
 	})
 
-	// GET /api/v1/generate-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
+	// GET /api/v1/generated-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generate-savings-interest/:generated_savings_interest_id",
+		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest by its ID.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -97,7 +97,7 @@ func (c *Controller) generateSavingsInterest() {
 	})
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
-		Route:        "/api/v1/generate-savings-interest/view",
+		Route:        "/api/v1/generated-savings-interest/view",
 		ResponseType: core.GeneratedSavingsInterestViewResponse{},
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
@@ -152,7 +152,7 @@ func (c *Controller) generateSavingsInterest() {
 
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
-		Route:        "/api/v1/generate-savings-interest",
+		Route:        "/api/v1/generated-savings-interest",
 		ResponseType: core.GeneratedSavingsInterestEntry{},
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
@@ -242,10 +242,10 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/print
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print
 	req.RegisterRoute(handlers.Route{
 		Method: "PUT",
-		Route:  "/api/v1/generate-savings-interest/:generated_savings_interest_id/print",
+		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
 		Note:   "Prints generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -278,10 +278,10 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/print-undo
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo
 	req.RegisterRoute(handlers.Route{
 		Method: "PUT",
-		Route:  "/api/v1/generate-savings-interest/:generated_savings_interest_id/print-undo",
+		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
 		Note:   "Undoes the print status of generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -317,10 +317,10 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
 
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/post
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/post
 	req.RegisterRoute(handlers.Route{
 		Method:      "PUT",
-		Route:       "/api/v1/generate-savings-interest/:generated_savings_interest_id/post",
+		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",
 		RequestType: core.GenerateSavingsInterestPostRequest{},
 		Note:        "Posts generated savings interest entries.",
 	}, func(ctx echo.Context) error {
