@@ -178,8 +178,8 @@ func (m *Core) currencySeed(context context.Context) error {
 			ISO3166Alpha2:  locale.NumI18Identifier.ISO3166Alpha2,
 			ISO3166Alpha3:  locale.NumI18Identifier.ISO3166Alpha3,
 			ISO3166Numeric: locale.NumI18Identifier.ISO3166Numeric,
-			PhoneCode:      "", // Not available in numi18n
-			Domain:         "", // Not available in numi18n
+			PhoneCode:      locale.NumI18Identifier.PhoneCode,
+			Domain:         locale.NumI18Identifier.Domain,
 			Locale:         locale.NumI18Identifier.Locale,
 			Timezone:       strings.Join(locale.NumI18Identifier.Timezone, ","),
 		}
