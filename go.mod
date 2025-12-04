@@ -10,7 +10,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shopspring/decimal v1.4.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 )
 
 require (
@@ -77,7 +77,7 @@ require (
 )
 
 require (
-	github.com/Lands-Horizon-Corp/numi18n v1.1.0
+	github.com/Lands-Horizon-Corp/numi18n v1.3.0
 	github.com/aymerick/raymond v2.0.2+incompatible
 	github.com/chromedp/chromedp v0.14.2
 	github.com/fatih/color v1.18.0
@@ -98,7 +98,7 @@ require (
 	github.com/rotisserie/eris v0.5.4
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/twilio/twilio-go v1.28.7
+	github.com/twilio/twilio-go v1.28.8
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/fx v1.24.0

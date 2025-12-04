@@ -8,7 +8,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/Lands-Horizon-Corp/numi18n/numi18n"
-	"github.com/Lands-Horizon-Corp/numi18n/numi18n/locale"
 
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -166,24 +165,11 @@ func (c *Currency) ToWords(amount float64) string {
 
 func (m *Core) currencySeed(context context.Context) error {
 	now := time.Now().UTC()
-	availableLocales := numi18n.Locales()
-	localesByCountry := make(map[string][]locale.NumI18NLocale)
-	for _, locale := range availableLocales {
-		if len(locale.NumI18Identifier.ISO3166Alpha2) != 2 {
-			continue
-		}
-		alpha2 := locale.NumI18Identifier.ISO3166Alpha2
-		localesByCountry[alpha2] = append(localesByCountry[alpha2], locale)
-	}
+	availableLocales := numi18n.PerCountryLocales()
 
-	for _, locales := range localesByCountry {
-		selectedLocale := prioritizeLocale(locales)
-		if selectedLocale == nil {
-			continue
-		}
-
+	for _, locales := range availableLocales {
 		// Check if currency with this name already exists
-		existingCurrency, _ := m.CurrencyManager.FindOne(context, &Currency{Name: selectedLocale.Currency.Name})
+		existingCurrency, _ := m.CurrencyManager.FindOne(context, &Currency{Name: locales.Currency.Name})
 		if existingCurrency != nil {
 			continue
 		}
@@ -191,79 +177,24 @@ func (m *Core) currencySeed(context context.Context) error {
 		currency := &Currency{
 			CreatedAt:      now,
 			UpdatedAt:      now,
-			Name:           selectedLocale.Currency.Name,
-			Country:        selectedLocale.NumI18Identifier.CountryName,
-			CurrencyCode:   selectedLocale.NumI18Identifier.Currency,
-			Symbol:         selectedLocale.Currency.Symbol,
-			Emoji:          selectedLocale.NumI18Identifier.Emoji,
-			ISO3166Alpha2:  selectedLocale.NumI18Identifier.ISO3166Alpha2,
-			ISO3166Alpha3:  selectedLocale.NumI18Identifier.ISO3166Alpha3,
-			ISO3166Numeric: selectedLocale.NumI18Identifier.ISO3166Numeric,
-			PhoneCode:      selectedLocale.NumI18Identifier.PhoneCode,
-			Domain:         selectedLocale.NumI18Identifier.Domain,
-			Locale:         selectedLocale.NumI18Identifier.Locale,
-			Timezone:       strings.Join(selectedLocale.NumI18Identifier.Timezone, ","),
+			Name:           locales.Currency.Name,
+			Country:        locales.NumI18Identifier.CountryName,
+			CurrencyCode:   locales.NumI18Identifier.Currency,
+			Symbol:         locales.Currency.Symbol,
+			Emoji:          locales.NumI18Identifier.Emoji,
+			ISO3166Alpha2:  locales.NumI18Identifier.ISO3166Alpha2,
+			ISO3166Alpha3:  locales.NumI18Identifier.ISO3166Alpha3,
+			ISO3166Numeric: locales.NumI18Identifier.ISO3166Numeric,
+			PhoneCode:      locales.NumI18Identifier.PhoneCode,
+			Domain:         locales.NumI18Identifier.Domain,
+			Locale:         locales.NumI18Identifier.Locale,
+			Timezone:       strings.Join(locales.NumI18Identifier.Timezone, ","),
 		}
 		if err := m.CurrencyManager.Create(context, currency); err != nil {
 			return eris.Wrapf(err, "failed to seed currency %s (%s)", currency.Name, currency.ISO3166Alpha3)
 		}
 	}
 	return nil
-}
-
-// prioritizeLocale returns the most preferred locale from a list based on language priority
-func prioritizeLocale(locales []locale.NumI18NLocale) *locale.NumI18NLocale {
-	if len(locales) == 0 {
-		return nil
-	}
-	if len(locales) == 1 {
-		return &locales[0]
-	}
-
-	// Language priority order (most common/preferred first)
-	languagePriority := []string{
-		"en", // English (most common international language)
-		"es", // Spanish
-		"fr", // French
-		"de", // German
-		"it", // Italian
-		"pt", // Portuguese
-		"ru", // Russian
-		"zh", // Chinese
-		"ja", // Japanese
-		"ko", // Korean
-		"ar", // Arabic
-		"hi", // Hindi
-		"nl", // Dutch
-		"sv", // Swedish
-		"no", // Norwegian
-		"da", // Danish
-		"fi", // Finnish
-		"pl", // Polish
-		"tr", // Turkish
-		"cs", // Czech
-		"hu", // Hungarian
-		"ro", // Romanian
-		"bg", // Bulgarian
-		"hr", // Croatian
-		"sk", // Slovak
-		"sl", // Slovenian
-		"et", // Estonian
-		"lv", // Latvian
-		"lt", // Lithuanian
-	}
-
-	// Find highest priority language
-	for _, priorityLang := range languagePriority {
-		for _, locale := range locales {
-			if strings.ToLower(locale.NumI18Identifier.Language) == priorityLang {
-				return &locale
-			}
-		}
-	}
-
-	// If no prioritized language found, return first locale
-	return &locales[0]
 }
 
 // CurrencyFindByAlpha2 retrieves a currency by its ISO 3166-1 alpha-2 code
