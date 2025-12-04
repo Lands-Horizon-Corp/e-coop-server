@@ -802,82 +802,27 @@ func (m *Core) GetDailyEndingBalances(
 	from, to time.Time,
 	accountID, memberProfileID, organizationID, branchID uuid.UUID,
 ) ([]float64, error) {
-	// Edge case: Invalid date range
 	if to.Before(from) {
 		return nil, eris.New("invalid date range: 'to' date cannot be before 'from' date")
 	}
 
-	// Normalize dates to remove time components for consistent comparison
+	// Normalize dates to start/end of day in UTC
 	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
 
-	// Edge case: Same day range
-	if fromDate.Equal(toDate) {
-		// Handle single day case
-		entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(entries) == 0 {
-			// No entries for this day, get previous balance
-			filters := []registry.FilterSQL{
-				{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-				{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-				{Field: "account_id", Op: registry.OpEq, Value: accountID},
-				{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-				{Field: "created_at", Op: registry.OpLt, Value: fromDate},
-			}
-			sorts := []registry.FilterSortSQL{
-				{Field: "created_at", Order: "DESC"},
-				{Field: "entry_date", Order: "DESC"},
-			}
-
-			lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account")
-			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, err
-			}
-
-			balance := 0.0
-			if err == nil {
-				balance = lastEntry.Balance
-			}
-			return []float64{balance}, nil
-		}
-
-		// Find the last entry for the day
-		var lastEntry *GeneralLedger
-		for _, entry := range entries {
-			if lastEntry == nil || entry.CreatedAt.After(lastEntry.CreatedAt) {
-				lastEntry = entry
-			}
-		}
-		return []float64{lastEntry.Balance}, nil
-	}
-
-	// Get all ledger entries in the date range
 	entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
 	if err != nil {
 		return nil, err
 	}
-
-	// Group entries by date and find the last entry for each day
 	entriesByDate := make(map[string]*GeneralLedger)
-
 	for _, entry := range entries {
-		// Format date as YYYY-MM-DD using UTC to avoid timezone issues
-		entryDate := entry.CreatedAt.UTC().Format("2006-01-02")
-
-		// Keep only the latest entry for each day (entries are sorted DESC by created_at)
-		if existing, exists := entriesByDate[entryDate]; !exists || entry.CreatedAt.After(existing.CreatedAt) {
-			entriesByDate[entryDate] = entry
+		dateStr := entry.CreatedAt.UTC().Format("2006-01-02")
+		if existing, exists := entriesByDate[dateStr]; !exists || entry.CreatedAt.After(existing.CreatedAt) {
+			entriesByDate[dateStr] = entry
 		}
 	}
 
-	// Get the starting balance (balance before the from date)
-	var startingBalance float64 = 0
-
-	// Always try to get starting balance, regardless of whether we have entries in range
+	// Get starting balance (balance before the from date)
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
@@ -890,30 +835,23 @@ func (m *Core) GetDailyEndingBalances(
 		{Field: "entry_date", Order: "DESC"},
 	}
 
-	lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account")
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	startingBalance := 0.0
+	if lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account"); err == nil {
+		startingBalance = lastEntry.Balance
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
-	if err == nil {
-		startingBalance = lastEntry.Balance
-	}
 
-	// Create slice to store daily balances in chronological order
+	// Build daily balances array
 	var dailyBalances []float64
 	currentBalance := startingBalance
-	currentDate := fromDate
 
-	for currentDate.Before(toDate) || currentDate.Equal(toDate) {
+	for currentDate := fromDate; currentDate.Before(toDate) || currentDate.Equal(toDate); currentDate = currentDate.AddDate(0, 0, 1) {
 		dateStr := currentDate.Format("2006-01-02")
-
 		if entry, hasEntry := entriesByDate[dateStr]; hasEntry {
-			// Day has ledger entries, use the last entry's balance
 			currentBalance = entry.Balance
 		}
-		// If no entry for this day, currentBalance carries forward from previous day
-
 		dailyBalances = append(dailyBalances, currentBalance)
-		currentDate = currentDate.AddDate(0, 0, 1) // Move to next day
 	}
 
 	return dailyBalances, nil
