@@ -166,14 +166,7 @@ func (c *Currency) ToWords(amount float64) string {
 func (m *Core) currencySeed(context context.Context) error {
 	now := time.Now().UTC()
 	availableLocales := numi18n.PerCountryLocales()
-
 	for _, locales := range availableLocales {
-		// Check if currency with this name already exists
-		existingCurrency, _ := m.CurrencyManager.FindOne(context, &Currency{Name: locales.Currency.Name})
-		if existingCurrency != nil {
-			continue
-		}
-
 		currency := &Currency{
 			CreatedAt:      now,
 			UpdatedAt:      now,
