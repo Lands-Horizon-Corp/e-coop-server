@@ -296,8 +296,8 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 				Date:    dateStr,
 			})
 
-			// Update statistics
-			totalBalanceSum += balance
+			// Update statistics using decimal operations for precision
+			totalBalanceSum = m.provider.Service.Decimal.Add(totalBalanceSum, balance)
 			totalDays++
 
 			// Track starting balance (first balance encountered)
@@ -307,19 +307,19 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 			// Track ending balance (last balance will be the ending balance)
 			endingBalance = balance
 
-			if minBalance == -1 || balance < minBalance {
+			if minBalance == -1 || m.provider.Service.Decimal.IsLessThan(balance, minBalance) {
 				minBalance = balance
 			}
-			if balance > maxBalance {
+			if m.provider.Service.Decimal.IsGreaterThan(balance, maxBalance) {
 				maxBalance = balance
 			}
 		}
 	}
 
-	// Calculate average daily balance
+	// Calculate average daily balance using decimal operations
 	averageDailyBalance := float64(0)
 	if totalDays > 0 {
-		averageDailyBalance = totalBalanceSum / float64(totalDays)
+		averageDailyBalance = m.provider.Service.Decimal.Divide(totalBalanceSum, float64(totalDays))
 	}
 
 	// Handle case where no balances were found
