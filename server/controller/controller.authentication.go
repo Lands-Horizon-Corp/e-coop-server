@@ -16,6 +16,19 @@ import (
 
 func (c *Controller) authenticationController() {
 	req := c.provider.Service.Request
+
+	// Rate limiting middleware using the reusable RateLimiter
+	rateLimiterConfig := horizon.RateLimiterConfig{
+		RequestsPerSecond: 1,               // 1 request per second baseline
+		BurstCapacity:     3,               // Allow 3 attempts quickly in burst
+		WindowDuration:    1 * time.Minute, // Track attempts per minute window
+		KeyPrefix:         "auth_api",      // Specific prefix for auth endpoints
+	}
+	rateLimiter := horizon.NewRateLimiter(
+		c.provider.Service.Cache,
+		c.provider.Service.Logger,
+		rateLimiterConfig)
+
 	// Returns the current authenticated user and their user organization, if any.
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/authentication/current",
@@ -118,7 +131,9 @@ func (c *Controller) authenticationController() {
 			UserID: user.ID,
 			User:   c.core.UserManager.ToModel(user),
 		})
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Logout the current user
 	req.RegisterRoute(handlers.Route{
@@ -205,7 +220,9 @@ func (c *Controller) authenticationController() {
 			UserID: user.ID,
 			User:   c.core.UserManager.ToModel(user),
 		})
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Forgot password flow
 	req.RegisterRoute(handlers.Route{
@@ -282,7 +299,9 @@ func (c *Controller) authenticationController() {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Verify password reset link
 	req.RegisterRoute(handlers.Route{
@@ -382,7 +401,9 @@ func (c *Controller) authenticationController() {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Send OTP for contact number verification
 	req.RegisterRoute(handlers.Route{
@@ -426,7 +447,9 @@ func (c *Controller) authenticationController() {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Verify OTP for contact number
 	req.RegisterRoute(handlers.Route{
@@ -560,7 +583,9 @@ func (c *Controller) authenticationController() {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	})
+	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		return handlers.GetClientIP(c)
+	}))
 
 	// Verify user with password for self-protected actions
 	req.RegisterRoute(handlers.Route{

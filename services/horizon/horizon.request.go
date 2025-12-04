@@ -16,7 +16,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
-	"golang.org/x/time/rate"
 )
 
 // SecurityHeaderConfig contains configuration for security headers
@@ -51,17 +50,6 @@ type APIServiceImpl struct {
 	serverPort int                    // HTTP server port
 	handler    *handlers.RouteHandler // Route management handler
 	cache      CacheService           // Redis cache service for security features
-}
-
-// RedisRateLimiterStore implements Echo's RateLimiterStore interface using Redis
-// for distributed rate limiting across multiple Fly.io instances.
-// This ensures consistent rate limiting behavior in a multi-instance deployment.
-type RedisRateLimiterStore struct {
-	cache     CacheService  // Redis cache service for storing rate limit counters
-	logger    *zap.Logger   // Structured logger for rate limiting events
-	rate      rate.Limit    // Requests per second limit
-	burst     int           // Burst capacity for traffic spikes
-	expiresIn time.Duration // Time window for rate limiting
 }
 
 // APIService defines the interface for a secure, production-ready HTTP API server
@@ -212,101 +200,6 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 			return err
 		}
 	}
-}
-
-// Allow implements the RateLimiterStore interface using a sliding window algorithm.
-// It tracks requests per second over a sliding window, providing precise rate limiting.
-// Returns true if the request is allowed, false if rate limited.
-func (s *RedisRateLimiterStore) Allow(identifier string) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	now := time.Now()
-	windowStart := now.Add(-s.expiresIn)
-
-	// Use sorted set to track requests with timestamps
-	key := "rate_limit:" + identifier
-
-	// Remove expired entries (older than window)
-	if err := s.removeExpiredEntries(ctx, key, windowStart.Unix()); err != nil {
-		s.logger.Error("Failed to clean expired rate limit entries",
-			zap.String("identifier", identifier),
-			zap.Error(err))
-	}
-
-	currentCount, err := s.getRequestCount(ctx, key)
-	if err != nil {
-		s.logger.Error("Rate limit cache error", zap.String("identifier", identifier), zap.Error(err))
-		return true, nil
-	}
-
-	maxRequests := int(float64(s.rate) * s.expiresIn.Seconds())
-	if currentCount >= maxRequests {
-		s.logger.Debug("Rate limit exceeded",
-			zap.String("identifier", identifier),
-			zap.Int("current_count", currentCount),
-			zap.Int("max_requests", maxRequests),
-			zap.Duration("window", s.expiresIn),
-		)
-		return false, nil
-	}
-
-	// Add current request timestamp
-	if err := s.addRequest(ctx, key, now.Unix()); err != nil {
-		s.logger.Error("Failed to record rate limit request",
-			zap.String("identifier", identifier),
-			zap.Error(err),
-		)
-		// Still allow the request even if we can't record it
-		return true, nil
-	}
-
-	return true, nil
-}
-
-// removeExpiredEntries removes rate limit entries older than the window start time using Redis ZREMRANGEBYSCORE
-func (s *RedisRateLimiterStore) removeExpiredEntries(ctx context.Context, key string, windowStart int64) error {
-	// Use Redis sorted set ZREMRANGEBYSCORE to efficiently remove old entries
-	// Remove all entries with scores (timestamps) less than windowStart
-	_, err := s.cache.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", windowStart-1))
-	if err != nil {
-		s.logger.Debug("Failed to remove expired entries from sorted set",
-			zap.String("key", key),
-			zap.Int64("window_start", windowStart),
-			zap.Error(err))
-	}
-	return err
-}
-
-// getRequestCount returns the number of requests in the current window using Redis ZCARD
-func (s *RedisRateLimiterStore) getRequestCount(ctx context.Context, key string) (int, error) {
-	// Use Redis sorted set ZCARD to get the count of all members in the set
-	// Since we clean up expired entries, all remaining entries are valid
-	count, err := s.cache.ZCard(ctx, key)
-	if err != nil {
-		s.logger.Debug("Failed to get request count from sorted set",
-			zap.String("key", key),
-			zap.Error(err))
-		return 0, err
-	}
-
-	return int(count), nil
-}
-
-// addRequest adds a new request timestamp to the rate limit tracking using Redis ZADD
-func (s *RedisRateLimiterStore) addRequest(ctx context.Context, key string, timestamp int64) error {
-	// Use Redis sorted set ZADD to add timestamp as both score and member
-	// This provides O(log N) insertion performance and automatic sorting
-	err := s.cache.ZAdd(ctx, key, float64(timestamp), timestamp)
-	if err != nil {
-		s.logger.Debug("Failed to add request to sorted set",
-			zap.String("key", key),
-			zap.Int64("timestamp", timestamp),
-			zap.Error(err))
-		return err
-	}
-
-	return nil
 }
 
 // NewHorizonAPIService creates a new API service with comprehensive security middleware.
@@ -622,60 +515,20 @@ func NewHorizonAPIService(
 		})
 	}
 
-	// Rate limiting middleware
-	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
-		Skipper: middleware.DefaultSkipper,
+	// Rate limiting middleware using the reusable RateLimiter
+	rateLimiterConfig := RateLimiterConfig{
+		RequestsPerSecond: 20,              // 20 requests per second
+		BurstCapacity:     100,             // Burst capacity for traffic spikes
+		WindowDuration:    1 * time.Minute, // Rate limit window duration
+		KeyPrefix:         "horizon_api",   // Namespace for horizon API rate limits
+	}
+	rateLimiter := NewRateLimiter(cache, logger, rateLimiterConfig)
 
-		// Custom Redis store for distributed rate limiting
-		Store: &RedisRateLimiterStore{
-			cache:     cache,           // Redis cache service
-			logger:    logger,          // Structured logger
-			rate:      rate.Limit(20),  // 20 requests per second
-			burst:     100,             // Burst capacity for traffic spikes
-			expiresIn: 1 * time.Minute, // Rate limit window duration
-		},
-		// Generate unique identifier combining IP address and User-Agent
-		// This prevents simple IP rotation attacks while maintaining accuracy
-		IdentifierExtractor: func(ctx echo.Context) (string, error) {
-			ip := handlers.GetClientIP(ctx)
-			userAgent := handlers.GetUserAgent(ctx)
-			return fmt.Sprintf("%s:%s", ip, userAgent), nil
-		},
-
-		// Handle rate limiter internal errors gracefully
-		ErrorHandler: func(c echo.Context, err error) error {
-			if secured {
-				// Production: Generic error message
-				return c.JSON(http.StatusForbidden, map[string]string{
-					"error": "Request rate limited",
-				})
-			}
-			// Development: Detailed error information
-			return c.JSON(http.StatusForbidden, map[string]string{
-				"error": "rate limit error: " + err.Error(),
-			})
-		},
-		DenyHandler: func(c echo.Context, identifier string, err error) error {
-			// Add rate limit headers for client awareness
-			c.Response().Header().Set("X-RateLimit-Limit", "20")
-			c.Response().Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", time.Now().Add(1*time.Minute).Unix()))
-
-			logger.Warn("Rate limit exceeded",
-				zap.String("identifier", identifier),
-				zap.String("ip", handlers.GetClientIP(c)),
-				zap.String("user_agent", handlers.GetUserAgent(c)),
-			)
-
-			if secured {
-				return c.JSON(http.StatusTooManyRequests, map[string]string{
-					"error": "Too many requests. Please try again later.",
-				})
-			}
-			return c.JSON(http.StatusTooManyRequests, map[string]string{
-				"error":       "Rate limit exceeded",
-				"retry_after": "60s",
-			})
-		},
+	// Use the custom rate limiter middleware with IP + User-Agent identifier
+	e.Use(rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
+		ip := handlers.GetClientIP(c)
+		userAgent := handlers.GetUserAgent(c)
+		return fmt.Sprintf("%s:%s", ip, userAgent)
 	}))
 
 	// CORS middleware
