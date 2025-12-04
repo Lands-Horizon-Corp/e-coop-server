@@ -81,13 +81,14 @@ type (
 		Date    string  `json:"date"`
 	}
 	GeneratedSavingsInterestEntryDailyBalanceResponse struct {
-		StartingBalance     float64                                     `json:"starting_balance"`
+		BeginningBalance    float64                                     `json:"beginning_balance"`
 		EndingBalance       float64                                     `json:"ending_balance"`
 		AverageDailyBalance float64                                     `json:"average_daily_balance"`
-		MinimumDailyBalance float64                                     `json:"minimum_daily_balance"`
-		MaximumDailyBalance float64                                     `json:"maximum_daily_balance"`
+		LowestBalance       float64                                     `json:"lowest_balance"`
+		HighestBalance      float64                                     `json:"highest_balance"`
 		DailyBalance        []GeneratedSavingsInterestEntryDailyBalance `json:"daily_balance"`
 		Account             *AccountResponse                            `json:"account,omitempty"`
+		MemberProfile       *MemberProfileResponse                      `json:"member_profile,omitempty"`
 	}
 )
 
@@ -225,41 +226,37 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest calculates totals for a generated savings interest
-func (m *Core) GenerateSavingsInterestEntryTotalsByGeneratedSavingsInterest(context context.Context, generatedSavingsInterestID uuid.UUID) (totalEndingBalance, totalInterest, totalTax float64, err error) {
-	entries, err := m.GenerateSavingsInterestEntryByGeneratedSavingsInterest(context, generatedSavingsInterestID)
+func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEntryID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
+	generatedSavingsInterestEntry, err := m.GeneratedSavingsInterestEntryManager.GetByID(context, generatedSavingsInterestEntryID)
 	if err != nil {
-		return 0, 0, 0, err
+		return nil, err
 	}
-
-	for _, entry := range entries {
-		totalEndingBalance += entry.EndingBalance
-		totalInterest += entry.InterestAmount
-		totalTax += entry.InterestTax
-	}
-
-	return totalEndingBalance, totalInterest, totalTax, nil
-}
-
-func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
-	generatedSavingsInterest, err := m.GeneratedSavingsInterestManager.GetByID(context, generatedSavingsInterestID)
+	generatedSavingsInterest, err := m.GeneratedSavingsInterestManager.GetByID(context, generatedSavingsInterestEntry.GeneratedSavingsInterestID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get all entries for this generated savings interest
-	entries, err := m.GenerateSavingsInterestEntryByGeneratedSavingsInterest(context, generatedSavingsInterestID)
+	// Get daily balances for this specific entry's account and member profile
+	dailyBalances, err := m.GetDailyEndingBalances(
+		context,
+		generatedSavingsInterest.NewComputationDate,
+		generatedSavingsInterest.LastComputationDate,
+		generatedSavingsInterestEntry.AccountID,
+		generatedSavingsInterestEntry.MemberProfileID,
+		generatedSavingsInterestEntry.OrganizationID,
+		generatedSavingsInterestEntry.BranchID,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(entries) == 0 {
+	if len(dailyBalances) == 0 {
 		return &GeneratedSavingsInterestEntryDailyBalanceResponse{
-			StartingBalance:     0,
+			BeginningBalance:    0,
 			EndingBalance:       0,
 			AverageDailyBalance: 0,
-			MinimumDailyBalance: 0,
-			MaximumDailyBalance: 0,
+			LowestBalance:       0,
+			HighestBalance:      0,
 			DailyBalance:        []GeneratedSavingsInterestEntryDailyBalance{},
 		}, nil
 	}
@@ -267,53 +264,37 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 	var allDailyBalances []GeneratedSavingsInterestEntryDailyBalance
 	var totalBalanceSum float64
 	var totalDays int
-	var minBalance float64 = -1 // Use -1 to indicate not set
-	var maxBalance float64
-	var startingBalance float64 = -1 // Use -1 to indicate not set
+	var lowestBalance float64 = -1 // Use -1 to indicate not set
+	var highestBalance float64
+	var beginningBalance float64 = -1 // Use -1 to indicate not set
 	var endingBalance float64
 
-	// Process each entry to get its daily balances
-	for _, entry := range entries {
-		dailyBalances, err := m.GetDailyEndingBalances(
-			context,
-			generatedSavingsInterest.NewComputationDate,
-			generatedSavingsInterest.LastComputationDate,
-			entry.AccountID,
-			entry.MemberProfileID,
-			entry.OrganizationID,
-			entry.BranchID,
-		)
-		if err != nil {
-			return nil, err
+	// Convert daily balances to response format
+	currentDate := generatedSavingsInterest.NewComputationDate
+	for i, balance := range dailyBalances {
+		dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
+
+		allDailyBalances = append(allDailyBalances, GeneratedSavingsInterestEntryDailyBalance{
+			Balance: balance,
+			Date:    dateStr,
+		})
+
+		// Update statistics using decimal operations for precision
+		totalBalanceSum = m.provider.Service.Decimal.Add(totalBalanceSum, balance)
+		totalDays++
+
+		// Track beginning balance (first balance encountered)
+		if beginningBalance == -1 {
+			beginningBalance = balance
 		}
+		// Track ending balance (last balance will be the ending balance)
+		endingBalance = balance
 
-		// Convert daily balances to response format
-		currentDate := generatedSavingsInterest.NewComputationDate
-		for i, balance := range dailyBalances {
-			dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
-
-			allDailyBalances = append(allDailyBalances, GeneratedSavingsInterestEntryDailyBalance{
-				Balance: balance,
-				Date:    dateStr,
-			})
-
-			// Update statistics using decimal operations for precision
-			totalBalanceSum = m.provider.Service.Decimal.Add(totalBalanceSum, balance)
-			totalDays++
-
-			// Track starting balance (first balance encountered)
-			if startingBalance == -1 {
-				startingBalance = balance
-			}
-			// Track ending balance (last balance will be the ending balance)
-			endingBalance = balance
-
-			if minBalance == -1 || m.provider.Service.Decimal.IsLessThan(balance, minBalance) {
-				minBalance = balance
-			}
-			if m.provider.Service.Decimal.IsGreaterThan(balance, maxBalance) {
-				maxBalance = balance
-			}
+		if lowestBalance == -1 || m.provider.Service.Decimal.IsLessThan(balance, lowestBalance) {
+			lowestBalance = balance
+		}
+		if m.provider.Service.Decimal.IsGreaterThan(balance, highestBalance) {
+			highestBalance = balance
 		}
 	}
 
@@ -323,26 +304,27 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 		averageDailyBalance = m.provider.Service.Decimal.Divide(totalBalanceSum, float64(totalDays))
 	}
 
-	// Handle case where no balances were found
-	if minBalance == -1 {
-		minBalance = 0
-	}
-	if startingBalance == -1 {
-		startingBalance = 0
+	if beginningBalance == -1 {
+		beginningBalance = 0
 	}
 
-	account, err := m.AccountManager.GetByID(context, *generatedSavingsInterest.AccountID, "Currency")
+	account, err := m.AccountManager.GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
+	if err != nil {
+		return nil, err
+	}
+	memberProfile, err := m.MemberProfileManager.GetByID(context, generatedSavingsInterestEntry.MemberProfileID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &GeneratedSavingsInterestEntryDailyBalanceResponse{
-		StartingBalance:     startingBalance,
+		BeginningBalance:    beginningBalance,
 		EndingBalance:       endingBalance,
 		AverageDailyBalance: averageDailyBalance,
-		MinimumDailyBalance: minBalance,
-		MaximumDailyBalance: maxBalance,
+		LowestBalance:       lowestBalance,
+		HighestBalance:      highestBalance,
 		DailyBalance:        allDailyBalances,
 		Account:             m.AccountManager.ToModel(account),
+		MemberProfile:       m.MemberProfileManager.ToModel(memberProfile),
 	}, nil
 }

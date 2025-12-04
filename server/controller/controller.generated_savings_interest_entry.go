@@ -435,19 +435,19 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /api/v1//generated-savings-interest-entry/:generated_savings_interest_id/daily-balance
+	// GET /api/v1//generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generated-savings-interest-entry/:generated_savings_interest_id/daily-balance",
+		Route:        "/api/v1/generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance",
 		Method:       "GET",
 		Note:         "Fetches daily ending balances for all entries under a specific generated savings interest record.",
 		ResponseType: core.GeneratedSavingsInterestEntryDailyBalanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestEntryID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_entry_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		dailyBalances, err := c.core.DailyBalances(context, *generatedSavingsInterestID)
+		dailyBalances, err := c.core.DailyBalances(context, *generatedSavingsInterestEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch daily ending balances: " + err.Error()})
 		}
