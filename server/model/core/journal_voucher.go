@@ -67,8 +67,8 @@ type (
 		JournalVoucherEntries []*JournalVoucherEntry `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_entries,omitempty"`
 
 		// Computed fields
-		TotalDebit  float64 `gorm:"-" json:"total_debit"`
-		TotalCredit float64 `gorm:"-" json:"total_credit"`
+		TotalDebit  float64 `gorm:"type:decimal" json:"total_debit"`
+		TotalCredit float64 `gorm:"type:decimal" json:"total_credit"`
 	}
 
 	// JournalVoucherResponse represents the response structure for JournalVoucher.

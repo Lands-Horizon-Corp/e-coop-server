@@ -343,7 +343,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 			}
 
 			// Dispatch progress event
-			if err := e.provider.Service.Broker.Dispatch(timeoutContext, []string{
+			if err := e.provider.Service.Broker.Dispatch([]string{
 				fmt.Sprintf("loan.process.branch.%s", userOrg.BranchID),
 				fmt.Sprintf("loan.process.organization.%s", userOrg.OrganizationID),
 			}, LoanProcessEventResponse{
@@ -392,10 +392,10 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 		}
 
 		// Send completion event
-		if err := e.provider.Service.Broker.Dispatch(timeoutContext, []string{
+		if err := e.provider.Service.Broker.Dispatch([]string{
 			fmt.Sprintf("loan.process.completed.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("loan.process.completed.organization.%s", userOrg.OrganizationID),
-		}, map[string]interface{}{
+		}, map[string]any{
 			"total_processed": len(loanTransactions),
 			"start_time":      currentTime,
 			"end_time":        time.Now().UTC(),

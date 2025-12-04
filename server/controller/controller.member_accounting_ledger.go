@@ -202,4 +202,44 @@ func (c *Controller) memberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
+	// GET /api/v1/member-accounting-ledger/member-profile/:member-profile-id/compassion-fund-account
+	req.RegisterRoute(handlers.Route{
+		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/compassion-fund-account",
+		Method:       "GET",
+		ResponseType: core.MemberAccountingLedger{},
+		Note:         "Returns single account for member accounting ledger compassion fund.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
+		}
+		if userOrg.Branch.BranchSetting.CompassionFundAccountID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Compassion fund account not set for branch"})
+		}
+		ledger, err := c.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			AccountID:       *userOrg.Branch.BranchSetting.CompassionFundAccountID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entry: " + err.Error()})
+		}
+		if ledger == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member accounting ledger entry not found"})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.ToModel(ledger))
+	})
+
 }

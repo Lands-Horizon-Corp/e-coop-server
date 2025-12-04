@@ -14,9 +14,9 @@ func (c *Controller) generateSavingsInterest() {
 
 	req := c.provider.Service.Request
 
-	// GET /api/v1/generate-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
+	// GET /api/v1/generated-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generate-savings-interest",
+		Route:        "/api/v1/generated-savings-interest",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -39,9 +39,9 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
 	})
 
-	// GET /api/v1/generate-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
+	// GET /api/v1/generated-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
 	req.RegisterRoute(handlers.Route{
-		Route:        "/api/v1/generate-savings-interest/:generated_savings_interest_id",
+		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest by its ID.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -97,7 +97,7 @@ func (c *Controller) generateSavingsInterest() {
 	})
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
-		Route:        "/api/v1/generate-savings-interest/view",
+		Route:        "/api/v1/generated-savings-interest/view",
 		ResponseType: core.GeneratedSavingsInterestViewResponse{},
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
@@ -152,7 +152,7 @@ func (c *Controller) generateSavingsInterest() {
 
 	req.RegisterRoute(handlers.Route{
 		Method:       "POST",
-		Route:        "/api/v1/generate-savings-interest",
+		Route:        "/api/v1/generated-savings-interest",
 		ResponseType: core.GeneratedSavingsInterestEntry{},
 		RequestType:  core.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
@@ -177,31 +177,8 @@ func (c *Controller) generateSavingsInterest() {
 		if branch.BranchSetting == nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
-		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
-			LastComputationDate:             request.LastComputationDate,
-			NewComputationDate:              request.NewComputationDate,
-			AccountID:                       request.AccountID,
-			MemberTypeID:                    request.MemberTypeID,
-			SavingsComputationType:          request.SavingsComputationType,
-			IncludeClosedAccount:            request.IncludeClosedAccount,
-			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
-			InterestTaxRate:                 request.InterestTaxRate,
-		}, annualDivisor)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
-		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		totalTax, totalInterest := 0.0, 0.0
-
-		for _, entry := range entries {
-			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
-
-			if err := c.core.GeneratedSavingsInterestEntryManager.CreateWithTx(context, tx, entry); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
-			}
-		}
 		generatedSavingsInterest := &core.GeneratedSavingsInterest{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
@@ -223,16 +200,52 @@ func (c *Controller) generateSavingsInterest() {
 		if err := c.core.GeneratedSavingsInterestManager.CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
+		annualDivisor := branch.BranchSetting.AnnualDivisor
+		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+			LastComputationDate:             request.LastComputationDate,
+			NewComputationDate:              request.NewComputationDate,
+			AccountID:                       request.AccountID,
+			MemberTypeID:                    request.MemberTypeID,
+			SavingsComputationType:          request.SavingsComputationType,
+			IncludeClosedAccount:            request.IncludeClosedAccount,
+			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
+			InterestTaxRate:                 request.InterestTaxRate,
+		}, annualDivisor)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
+		}
+
+		for _, entry := range entries {
+			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
+			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+
+			entry.GeneratedSavingsInterestID = generatedSavingsInterest.ID
+			entry.OrganizationID = userOrg.OrganizationID
+			entry.BranchID = *userOrg.BranchID
+			entry.CreatedAt = time.Now().UTC()
+			entry.CreatedByID = userOrg.UserID
+			entry.UpdatedAt = time.Now().UTC()
+			entry.UpdatedByID = userOrg.UserID
+			if err := c.core.GeneratedSavingsInterestEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
+			}
+		}
+		generatedSavingsInterest.TotalTax = totalTax
+		generatedSavingsInterest.TotalInterest = totalInterest
+		if err := c.core.GeneratedSavingsInterestManager.UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest: " + err.Error()})
+		}
+
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/print
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print
 	req.RegisterRoute(handlers.Route{
 		Method: "PUT",
-		Route:  "/api/v1/generate-savings-interest/:generated_savings_interest_id/print",
+		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
 		Note:   "Prints generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -265,10 +278,10 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/print-undo
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo
 	req.RegisterRoute(handlers.Route{
 		Method: "PUT",
-		Route:  "/api/v1/generate-savings-interest/:generated_savings_interest_id/print-undo",
+		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
 		Note:   "Undoes the print status of generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -304,10 +317,10 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
 
-	// PUT /api/v1/generate-savings-interest/:generated_savings_interest_id/post
+	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/post
 	req.RegisterRoute(handlers.Route{
 		Method:      "PUT",
-		Route:       "/api/v1/generate-savings-interest/:generated_savings_interest_id/post",
+		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",
 		RequestType: core.GenerateSavingsInterestPostRequest{},
 		Note:        "Posts generated savings interest entries.",
 	}, func(ctx echo.Context) error {
@@ -346,4 +359,5 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
 }

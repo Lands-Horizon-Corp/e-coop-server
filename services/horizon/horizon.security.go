@@ -1,6 +1,7 @@
 package horizon
 
 import (
+	"bufio"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -10,7 +11,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
@@ -36,6 +40,9 @@ type SecurityService interface {
 	Decrypt(ctx context.Context, ciphertext string) (string, error)
 
 	GenerateUUIDv5(ctx context.Context, name string) (string, error)
+
+	// Firewall fetches HaGeZi Ultimate blocklist and calls callback for each resolved domain
+	Firewall(ctx context.Context, callback func(ip, host string)) error
 }
 
 // Security is a concrete implementation of SecurityService
@@ -46,6 +53,7 @@ type Security struct {
 	saltLength  uint32
 	keyLength   uint32
 	secret      []byte
+	mu          sync.RWMutex
 }
 
 // NewSecurityService returns a new instance of SecurityUtils
@@ -64,6 +72,7 @@ func NewSecurityService(
 		saltLength:  saltLength,
 		keyLength:   keyLength,
 		secret:      secret,
+		mu:          sync.RWMutex{},
 	}
 }
 
@@ -190,4 +199,88 @@ func (h *Security) GenerateUUIDv5(_ context.Context, name string) (string, error
 
 	uuid5 := uuid.NewSHA1(namespace, []byte(name))
 	return uuid5.String(), nil
+}
+
+// Firewall fetches HaGeZi Ultimate blocklist and calls callback for each resolved domain
+func (h *Security) Firewall(ctx context.Context, callback func(ip, host string)) error {
+	url := "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return eris.Wrap(err, "failed to create HTTP request")
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return eris.Wrap(err, "failed to fetch HaGeZi Ultimate list")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return eris.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	domains := []string{}
+	for scanner.Scan() {
+		// Check for context cancellation
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		domains = append(domains, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return eris.Wrap(err, "error reading response body")
+	}
+
+	domainToIPs := make(map[string][]string)
+	var mu sync.Mutex // To safely write to the map
+	var wg sync.WaitGroup
+
+	count := 0
+	for _, domain := range domains {
+		wg.Add(1)
+
+		go func(d string) {
+			defer wg.Done()
+
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			ips, err := net.LookupIP(d)
+			if err != nil {
+				return
+			}
+
+			ipStrs := []string{}
+			for _, ip := range ips {
+				ipStrs = append(ipStrs, ip.String())
+			}
+
+			mu.Lock()
+			domainToIPs[d] = ipStrs
+			count++
+			for _, ip := range ipStrs {
+				callback(ip, d)
+			}
+			mu.Unlock()
+		}(domain)
+	}
+
+	wg.Wait()
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	return nil
 }

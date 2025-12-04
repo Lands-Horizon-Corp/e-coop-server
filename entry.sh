@@ -3,6 +3,9 @@
 # Clean cache first
 ./app cache clean
 
+# Enforce security blocklist
+./app security enforce
+
 # Reset database (drops all tables)
 ./app db reset
 

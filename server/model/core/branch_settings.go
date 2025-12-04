@@ -29,6 +29,9 @@ type (
 		PaidUpSharedCapitalAccountID *uuid.UUID `gorm:"type:uuid" json:"paid_up_shared_capital_account_id,omitempty"`
 		PaidUpSharedCapitalAccount   *Account   `gorm:"foreignKey:PaidUpSharedCapitalAccountID;constraint:OnDelete:SET NULL;" json:"paid_up_shared_capital_account,omitempty"`
 
+		CompassionFundAccountID *uuid.UUID `gorm:"type:uuid" json:"compassion_fund_account_id,omitempty"`
+		CompassionFundAccount   *Account   `gorm:"foreignKey:CompassionFundAccountID;constraint:OnDelete:SET NULL;" json:"compassion_fund_account,omitempty"`
+
 		// Withdraw Settings
 		WithdrawAllowUserInput bool   `gorm:"not null;default:true" json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `gorm:"type:varchar(50);not null;default:'WD'" json:"withdraw_prefix"`
@@ -136,9 +139,10 @@ type (
 
 	// BranchSettingsCurrencyRequest represents the request structure for BranchSettingsCurrency.
 	BranchSettingsCurrencyRequest struct {
-		CurrencyID                   uuid.UUID `json:"currency_id" validate:"required"`
-		PaidUpSharedCapitalAccountID uuid.UUID `json:"paid_up_shared_capital_account_id" validate:"required"`
-		CashOnHandAccountID          uuid.UUID `json:"cash_on_hand_account_id" validate:"required"`
+		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
+		PaidUpSharedCapitalAccountID uuid.UUID  `json:"paid_up_shared_capital_account_id" validate:"required"`
+		CashOnHandAccountID          uuid.UUID  `json:"cash_on_hand_account_id" validate:"required"`
+		CompassionFundAccountID      *uuid.UUID `json:"compassion_fund_account_id,omitempty"`
 
 		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
 		UnbalancedAccountDeleteIDs uuid.UUIDs                 `json:"unbalanced_account_delete_ids,omitempty"`
@@ -204,6 +208,8 @@ type (
 		CashOnHandAccount            *AccountResponse `json:"cash_on_hand_account,omitempty"`
 		PaidUpSharedCapitalAccountID *uuid.UUID       `json:"paid_up_shared_capital_account_id,omitempty"`
 		PaidUpSharedCapitalAccount   *AccountResponse `json:"paid_up_shared_capital_account,omitempty"`
+		CompassionFundAccountID      *uuid.UUID       `json:"compassion_fund_account_id,omitempty"`
+		CompassionFundAccount        *AccountResponse `json:"compassion_fund_account,omitempty"`
 
 		// One-to-many relationship with UnbalancedAccount
 		UnbalancedAccounts []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
@@ -219,6 +225,7 @@ func (m *Core) branchSetting() {
 			"DefaultMemberType",
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
+			"CompassionFundAccount",
 			"UnbalancedAccounts",
 			"UnbalancedAccounts.Currency",
 
@@ -284,6 +291,8 @@ func (m *Core) branchSetting() {
 				CashOnHandAccount:            m.AccountManager.ToModel(data.CashOnHandAccount),
 				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
 				PaidUpSharedCapitalAccount:   m.AccountManager.ToModel(data.PaidUpSharedCapitalAccount),
+				CompassionFundAccountID:      data.CompassionFundAccountID,
+				CompassionFundAccount:        m.AccountManager.ToModel(data.CompassionFundAccount),
 
 				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
 			}

@@ -184,63 +184,6 @@ func GetFreePort() int {
 
 // Security helpers -----------------------------------------------------------
 
-var (
-	forbiddenExtensions = []string{
-		".exe", ".bat", ".sh", ".php", ".asp", ".aspx", ".jsp", ".cgi", ".go",
-		".env", ".yaml", ".yml", ".ini", ".config", ".conf", ".xml", ".git",
-		".htaccess", ".htpasswd", ".backup", ".secret", ".credential", ".password",
-		".private", ".key", ".token", ".dump", ".database", ".db", ".logs", ".debug",
-		".pem", ".crt", ".cert", ".pfx", ".p12", ".bak", ".swp", ".tmp", ".cache",
-		".session", ".sqlite", ".sqlite3", ".mdf", ".ldf", ".rdb", ".ldb", ".log",
-		".old", ".orig", ".example", ".sample", ".test", ".spec", ".out", ".core",
-	}
-	forbiddenSubstrings = []string{
-		"etc/passwd",
-		"boot.ini",
-		"win.ini",
-		"web.config",
-		"dockerfile",
-		"credentials",
-		"secrets",
-		"backup",
-		"hidden",
-	}
-)
-
-// IsSuspiciousPath detects potential path traversal attacks
-func IsSuspiciousPath(path string) bool {
-	lower := strings.ToLower(path)
-	decoded, _ := url.PathUnescape(lower)
-
-	// Check for directory traversal
-	if strings.Contains(lower, "../") || strings.Contains(decoded, "../") ||
-		strings.Contains(lower, "..\\") || strings.Contains(decoded, "..\\") {
-		return true
-	}
-
-	// Check for encoded traversal
-	if strings.Contains(lower, "%2e%2e%2f") || strings.Contains(lower, "%2e%2e%5c") ||
-		strings.Contains(decoded, "%2e%2e%2f") || strings.Contains(decoded, "%2e%2e%5c") {
-		return true
-	}
-
-	// Check dangerous extensions
-	for _, ext := range forbiddenExtensions {
-		if strings.HasSuffix(lower, ext) || strings.HasSuffix(decoded, ext) {
-			return true
-		}
-	}
-
-	// Check dangerous substrings
-	for _, substr := range forbiddenSubstrings {
-		if strings.Contains(lower, substr) || strings.Contains(decoded, substr) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // GenerateToken creates random UUID token
 func GenerateToken() (string, error) {
 	id, err := uuid.NewRandom()

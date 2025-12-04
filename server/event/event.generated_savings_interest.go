@@ -234,10 +234,14 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if savingsComputed == nil {
 			continue
 		}
-		if account.IsTaxable == false {
+		if !account.IsTaxable {
 			savingsComputed.InterestTax = 0
 		}
-
+		memberProfile = memberBrowseRef.MemberAccountingLedger.MemberProfile
+		account, err = e.core.AccountManager.GetByID(context, account.ID)
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to get account by ID")
+		}
 		//===== STEP 3.8: CREATE GENERATED SAVINGS INTEREST ENTRY =====
 		// Create database entry with computed interest and tax amounts
 		entry := &core.GeneratedSavingsInterestEntry{
@@ -249,15 +253,12 @@ func (e *Event) GenerateSavingsInterestEntries(
 			BranchID:                   *userOrg.BranchID,
 			GeneratedSavingsInterestID: generatedSavingsInterest.ID,
 			MemberProfileID:            memberBrowseRef.MemberAccountingLedger.MemberProfileID,
+			MemberProfile:              memberProfile,
+			Account:                    account,
 			AccountID:                  *memberBrowseRef.BrowseReference.AccountID,
 			InterestAmount:             savingsComputed.Interest,
 			InterestTax:                savingsComputed.InterestTax,
 			EndingBalance:              savingsComputed.EndingBalance,
-		}
-
-		//===== STEP 3.9: SAVE ENTRY TO DATABASE =====
-		if err := e.core.GeneratedSavingsInterestEntryManager.Create(context, entry); err != nil {
-			return nil, eris.Wrap(err, "failed to create generated savings interest entry")
 		}
 
 		//===== STEP 3.10: ADD TO RESULT COLLECTION =====

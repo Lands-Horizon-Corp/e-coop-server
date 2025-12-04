@@ -149,8 +149,8 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	for _, currency := range currencies {
 		var holidays []*Holiday
 
-		switch currency.CurrencyCode {
-		case "USD": // United States
+		switch currency.ISO3166Alpha3 {
+		case "USA": // United States
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 15, 0, 0, 0, 0, time.UTC), Name: "Martin Luther King Jr. Day", Description: "Birthday of Martin Luther King Jr."},
@@ -167,7 +167,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 24, 0, 0, 0, 0, time.UTC), Name: "Christmas Eve", Description: "Day before Christmas (some states)"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
-		case "EUR": // European Union (Germany as representative)
+		case "DEU": // Germany (Euro representative)
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -179,7 +179,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
 			}
-		case "JPY": // Japan
+		case "JPN": // Japan
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Ganjitsu - First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Bank Holiday", Description: "New Year Bank Holiday"},
@@ -201,7 +201,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 23, 0, 0, 0, 0, time.UTC), Name: "Labor Thanksgiving Day", Description: "Kinro Kansha no Hi"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
-		case "GBP": // United Kingdom
+		case "GBR": // United Kingdom
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -212,7 +212,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
-		case "AUD": // Australia
+		case "AUS": // Australia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 26, 0, 0, 0, 0, time.UTC), Name: "Australia Day", Description: "National day of Australia"},
@@ -223,7 +223,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
 
-		case "CAD": // Canada
+		case "CAN": // Canada
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 19, 0, 0, 0, 0, time.UTC), Name: "Family Day", Description: "Third Monday in February"},
@@ -238,7 +238,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
 
-		case "CHF": // Switzerland
+		case "CHE": // Switzerland
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Berchtold's Day", Description: "Swiss holiday"},
@@ -251,7 +251,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
 			}
 
-		case "CNY": // China
+		case "CHN": // China
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Eve", Description: "Spring Festival Eve"},
@@ -267,7 +267,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 3, 0, 0, 0, 0, time.UTC), Name: "National Day Holiday", Description: "Third day of National Day"},
 			}
 
-		case "SEK": // Sweden
+		case "SWE": // Sweden
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -285,7 +285,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
 
-		case "NZD": // New Zealand
+		case "NZL": // New Zealand
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Day after New Year's Day", Description: "Second day of the year"},
@@ -299,7 +299,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
 
-		case "PHP": // Philippines
+		case "PHL": // Philippines
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
@@ -322,7 +322,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 30, 0, 0, 0, 0, time.UTC), Name: "Rizal Day", Description: "Commemorates national hero José Rizal"},
 			}
 
-		case "INR": // India
+		case "IND": // India
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 26, 0, 0, 0, 0, time.UTC), Name: "Republic Day", Description: "Commemorates adoption of the Constitution"},
@@ -337,7 +337,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "KRW": // South Korea
+		case "KOR": // South Korea
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Seollal", Description: "Korean New Year - First day"},
@@ -356,7 +356,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "THB": // Thailand
+		case "THA": // Thailand
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 26, 0, 0, 0, 0, time.UTC), Name: "Makha Bucha Day", Description: "Buddhist holy day"},
@@ -379,7 +379,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
 
-		case "SGD": // Singapore
+		case "SGP": // Singapore
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year - First day"},
@@ -392,7 +392,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "HKD": // Hong Kong
+		case "HKG": // Hong Kong
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Day", Description: "Lunar New Year - First day"},
@@ -412,7 +412,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
 
-		case "MYR": // Malaysia
+		case "MYS": // Malaysia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 25, 0, 0, 0, 0, time.UTC), Name: "Thaipusam", Description: "Tamil Hindu festival"},
@@ -433,7 +433,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "IDR": // Indonesia
+		case "IDN": // Indonesia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
@@ -446,7 +446,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "VND": // Vietnam
+		case "VNM": // Vietnam
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 9, 0, 0, 0, 0, time.UTC), Name: "Tet Holiday", Description: "Vietnamese New Year - Eve"},
@@ -461,7 +461,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 17, 0, 0, 0, 0, time.UTC), Name: "Mid-Autumn Festival", Description: "Traditional harvest festival"},
 			}
 
-		case "TWD": // Taiwan
+		case "TWN": // Taiwan
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 9, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Eve", Description: "Lunar New Year's Eve"},
@@ -475,7 +475,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 10, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Double Ten Day - Republic of China"},
 			}
 
-		case "BND": // Brunei
+		case "BRN": // Brunei
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
@@ -486,7 +486,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "SAR": // Saudi Arabia
+		case "SAU": // Saudi Arabia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 22, 0, 0, 0, 0, time.UTC), Name: "Founding Day", Description: "Founding of the First Saudi State"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -500,7 +500,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 16, 0, 0, 0, 0, time.UTC), Name: "Prophet Muhammad's Birthday", Description: "Mawlid al-Nabi"},
 			}
 
-		case "AED": // United Arab Emirates
+		case "ARE": // United Arab Emirates
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Lailat al Miraj", Description: "Night Journey of Prophet Muhammad"},
@@ -518,7 +518,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 3, 0, 0, 0, 0, time.UTC), Name: "UAE National Day", Description: "Second day of National Day"},
 			}
 
-		case "ILS": // Israel
+		case "ISR": // Israel
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 13, 0, 0, 0, 0, time.UTC), Name: "Passover", Description: "Pesach - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 19, 0, 0, 0, 0, time.UTC), Name: "Passover", Description: "Pesach - Last day"},
@@ -534,7 +534,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 7, 0, 0, 0, 0, time.UTC), Name: "Simchat Torah", Description: "Rejoicing with the Torah"},
 			}
 
-		case "ZAR": // South Africa
+		case "ZAF": // South Africa
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 21, 0, 0, 0, 0, time.UTC), Name: "Human Rights Day", Description: "Commemorates Sharpeville massacre"},
@@ -550,7 +550,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Day of Goodwill", Description: "Day after Christmas"},
 			}
 
-		case "EGP": // Egypt
+		case "EGY": // Egypt
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 25, 0, 0, 0, 0, time.UTC), Name: "Revolution Day", Description: "January 25 Revolution"},
@@ -568,7 +568,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 16, 0, 0, 0, 0, time.UTC), Name: "Prophet Muhammad's Birthday", Description: "Mawlid al-Nabi"},
 			}
 
-		case "TRY": // Turkey
+		case "TUR": // Turkey
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "Ramazan Bayramı - First day"},
@@ -586,7 +586,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 29, 0, 0, 0, 0, time.UTC), Name: "Republic Day", Description: "Proclamation of the Republic"},
 			}
 
-		case "XOF": // West African CFA Franc
+		case "SEN": // Senegal (West African CFA Franc representative)
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Senegal Independence (representative)"},
@@ -598,7 +598,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "XAF": // Central African CFA Franc
+		case "CMR": // Cameroon (Central African CFA Franc representative)
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Cameroon Independence (representative)"},
@@ -611,7 +611,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "MUR": // Mauritius
+		case "MUS": // Mauritius
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year Holiday", Description: "Second day of the year"},
@@ -627,7 +627,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "MVR": // Maldives
+		case "MDV": // Maldives
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -641,7 +641,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 11, 0, 0, 0, 0, time.UTC), Name: "Republic Day", Description: "Establishment of the Republic"},
 			}
 
-		case "NOK": // Norway
+		case "NOR": // Norway
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
@@ -657,7 +657,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "DKK": // Denmark
+		case "DNK": // Denmark
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
@@ -674,7 +674,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "PLN": // Poland
+		case "POL": // Poland
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -691,7 +691,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "CZK": // Czech Republic
+		case "CZE": // Czech Republic
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
@@ -708,7 +708,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
 			}
 
-		case "HUF": // Hungary
+		case "HUN": // Hungary
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 15, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "1848 Revolution and War of Independence"},
@@ -724,7 +724,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "RUB": // Russia
+		case "RUS": // Russia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year Holidays", Description: "Second day of New Year holidays"},
@@ -737,7 +737,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 4, 0, 0, 0, 0, time.UTC), Name: "Unity Day", Description: "Day of People's Unity"},
 			}
 
-		case "EUR-HR": // Croatia (Euro)
+		case "HRV": // Croatia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -755,7 +755,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
 			}
 
-		case "BRL": // Brazil
+		case "BRA": // Brazil
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
@@ -771,7 +771,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "MXN": // Mexico
+		case "MEX": // Mexico
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 5, 0, 0, 0, 0, time.UTC), Name: "Constitution Day", Description: "Mexican Constitution of 1917"},
@@ -785,7 +785,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "ARS": // Argentina
+		case "ARG": // Argentina
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
@@ -804,7 +804,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "CLP": // Chile
+		case "CHL": // Chile
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -823,7 +823,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "COP": // Colombia
+		case "COL": // Colombia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 8, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -845,7 +845,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "PEN": // Peru
+		case "PER": // Peru
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
@@ -862,7 +862,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "UYU": // Uruguay
+		case "URY": // Uruguay
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -881,7 +881,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "DOP": // Dominican Republic
+		case "DOM": // Dominican Republic
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
@@ -897,7 +897,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "PYG": // Paraguay
+		case "PRY": // Paraguay
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 1, 0, 0, 0, 0, time.UTC), Name: "Heroes' Day", Description: "Day of Heroes of the Fatherland"},
@@ -912,7 +912,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "BOB": // Bolivia
+		case "BOL": // Bolivia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 22, 0, 0, 0, 0, time.UTC), Name: "Plurinational State Day", Description: "Foundation of the Plurinational State"},
@@ -927,7 +927,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "VES": // Venezuela
+		case "VEN": // Venezuela
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
@@ -944,7 +944,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "PKR": // Pakistan
+		case "PAK": // Pakistan
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 5, 0, 0, 0, 0, time.UTC), Name: "Kashmir Solidarity Day", Description: "Support for Kashmir"},
@@ -961,7 +961,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Quaid-e-Azam's Birthday", Description: "Muhammad Ali Jinnah's Birthday"},
 			}
 
-		case "BDT": // Bangladesh
+		case "BGD": // Bangladesh
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 21, 0, 0, 0, 0, time.UTC), Name: "International Mother Language Day", Description: "Language Movement Day"},
@@ -979,7 +979,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "LKR": // Sri Lanka
+		case "LKA": // Sri Lanka
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Sri Lankan Independence from Britain"},
@@ -994,7 +994,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "NPR": // Nepal
+		case "NPL": // Nepal
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 11, 0, 0, 0, 0, time.UTC), Name: "Prithvi Jayanti", Description: "National Unity Day"},
@@ -1010,7 +1010,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "MMK": // Myanmar
+		case "MMR": // Myanmar
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Myanmar Independence from Britain"},
@@ -1028,7 +1028,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "KHR": // Cambodia
+		case "KHM": // Cambodia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Victory Day", Description: "Victory over Khmer Rouge"},
@@ -1047,7 +1047,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 16, 0, 0, 0, 0, time.UTC), Name: "Water Festival", Description: "Bon Om Touk - Third day"},
 			}
 
-		case "LAK": // Laos
+		case "LAO": // Laos
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 20, 0, 0, 0, 0, time.UTC), Name: "Army Day", Description: "Pathet Lao Day"},
@@ -1063,7 +1063,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 2, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Lao People's Democratic Republic founding"},
 			}
 
-		case "NGN": // Nigeria
+		case "NGA": // Nigeria
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -1079,7 +1079,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "KES": // Kenya
+		case "KEN": // Kenya
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -1096,7 +1096,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "GHS": // Ghana
+		case "GHA": // Ghana
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 6, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Ghanaian Independence from Britain"},
@@ -1112,7 +1112,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "MAD": // Morocco
+		case "MAR": // Morocco
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 11, 0, 0, 0, 0, time.UTC), Name: "Independence Manifesto Day", Description: "Independence movement commemoration"},
@@ -1131,7 +1131,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 18, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Moroccan Independence from France"},
 			}
 
-		case "TND": // Tunisia
+		case "TUN": // Tunisia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 14, 0, 0, 0, 0, time.UTC), Name: "Revolution Day", Description: "Tunisian Revolution anniversary"},
@@ -1149,7 +1149,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 15, 0, 0, 0, 0, time.UTC), Name: "Evacuation Day", Description: "Evacuation of French troops"},
 			}
 
-		case "ETB": // Ethiopia
+		case "ETH": // Ethiopia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Ethiopian Christmas", Description: "Orthodox Christmas - Genna"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 19, 0, 0, 0, 0, time.UTC), Name: "Timkat", Description: "Ethiopian Orthodox Epiphany"},
@@ -1165,7 +1165,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 27, 0, 0, 0, 0, time.UTC), Name: "Meskel", Description: "Finding of the True Cross"},
 			}
 
-		case "DZD": // Algeria
+		case "DZA": // Algeria
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 12, 0, 0, 0, 0, time.UTC), Name: "Amazigh New Year", Description: "Berber New Year - Yennayer"},
@@ -1180,7 +1180,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 1, 0, 0, 0, 0, time.UTC), Name: "Revolution Day", Description: "Start of Algerian Revolution"},
 			}
 
-		case "UAH": // Ukraine
+		case "UKR": // Ukraine
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Orthodox Christmas celebration"},
@@ -1194,7 +1194,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Western Christmas celebration"},
 			}
 
-		case "RON": // Romania
+		case "ROU": // Romania
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
@@ -1212,7 +1212,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "BGN": // Bulgaria
+		case "BGR": // Bulgaria
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 3, 0, 0, 0, 0, time.UTC), Name: "Liberation Day", Description: "Liberation from Ottoman rule"},
@@ -1229,7 +1229,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "RSD": // Serbia
+		case "SRB": // Serbia
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
@@ -1243,7 +1243,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 11, 0, 0, 0, 0, time.UTC), Name: "Armistice Day", Description: "End of World War I"},
 			}
 
-		case "ISK": // Iceland
+		case "ISL": // Iceland
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Thursday before Easter"},
@@ -1263,7 +1263,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
 
-		case "BYN": // Belarus
+		case "BLR": // Belarus
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
@@ -1277,7 +1277,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Western Christmas celebration"},
 			}
 
-		case "FJD": // Fiji
+		case "FJI": // Fiji
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1291,7 +1291,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "PGK": // Papua New Guinea
+		case "PNG": // Papua New Guinea
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1304,7 +1304,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "JMD": // Jamaica
+		case "JAM": // Jamaica
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 14, 0, 0, 0, 0, time.UTC), Name: "Ash Wednesday", Description: "Beginning of Lent"},
@@ -1318,7 +1318,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Second day of Christmas"},
 			}
 
-		case "CRC": // Costa Rica
+		case "CRI": // Costa Rica
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 19, 0, 0, 0, 0, time.UTC), Name: "St. Joseph's Day", Description: "Patron saint of Costa Rica"},
@@ -1332,7 +1332,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 
-		case "GTQ": // Guatemala
+		case "GTM": // Guatemala
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1347,16 +1347,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
 
-		case "XDR": // Special Drawing Rights (IMF)
-			holidays = []*Holiday{
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "International New Year"},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 7, 0, 0, 0, 0, time.UTC), Name: "World Health Day", Description: "WHO Global Health Day"},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 5, 1, 0, 0, 0, 0, time.UTC), Name: "International Labour Day", Description: "Global Workers' Day"},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 10, 24, 0, 0, 0, 0, time.UTC), Name: "UN Day", Description: "United Nations Day"},
-				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 10, 0, 0, 0, 0, time.UTC), Name: "Human Rights Day", Description: "International Human Rights Day"},
-			}
-
-		case "KWD": // Kuwait
+		case "KWT": // Kuwait
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 25, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Kuwaiti National Day"},
@@ -1371,7 +1362,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 16, 0, 0, 0, 0, time.UTC), Name: "Mawlid", Description: "Prophet Muhammad's Birthday"},
 			}
 
-		case "QAR": // Qatar
+		case "QAT": // Qatar
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1385,7 +1376,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 18, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Qatari National Day"},
 			}
 
-		case "OMR": // Oman
+		case "OMN": // Oman
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1401,7 +1392,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 11, 19, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Omani National Day - Second day"},
 			}
 
-		case "BHD": // Bahrain
+		case "BHR": // Bahrain
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1417,7 +1408,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 17, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Bahraini National Day - Second day"},
 			}
 
-		case "JOD": // Jordan
+		case "JOR": // Jordan
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 30, 0, 0, 0, 0, time.UTC), Name: "King Abdullah II Birthday", Description: "King's Birthday"},
@@ -1432,7 +1423,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 9, 16, 0, 0, 0, 0, time.UTC), Name: "Mawlid", Description: "Prophet Muhammad's Birthday"},
 			}
 
-		case "KZT": // Kazakhstan
+		case "KAZ": // Kazakhstan
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
@@ -1462,7 +1453,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		for _, holiday := range holidays {
 			holiday.CurrencyID = currency.ID
 			if err := m.HolidayManager.CreateWithTx(context, tx, holiday); err != nil {
-				return eris.Wrapf(err, "failed to seed holiday %s for currency %s", holiday.Name, currency.CurrencyCode)
+				return eris.Wrapf(err, "failed to seed holiday %s for currency %s", holiday.Name, currency.ISO3166Alpha3)
 			}
 		}
 	}

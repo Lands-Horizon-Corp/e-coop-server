@@ -260,8 +260,8 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	switch branch.Currency.CurrencyCode {
-	case "USD": // United States
+	switch branch.Currency.ISO3166Alpha3 {
+	case "USA": // United States
 		companies = append(companies,
 			// Electricity / Energy Companies
 			&Company{
@@ -349,7 +349,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "EUR": // European Union (Germany as representative)
+	case "DEU": // Germany
 		companies = append(companies,
 			&Company{
 
@@ -378,7 +378,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "JPY": // Japan
+	case "JPN": // Japan
 		companies = append(companies,
 			&Company{
 
@@ -407,7 +407,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "GBP": // United Kingdom
+	case "GBR": // United Kingdom
 		companies = append(companies,
 			&Company{
 
@@ -436,7 +436,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "AUD": // Australia
+	case "AUS": // Australia
 		companies = append(companies,
 			&Company{
 
@@ -470,7 +470,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CAD": // Canada
+	case "CAN": // Canada
 		companies = append(companies,
 			&Company{
 
@@ -503,7 +503,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CHF": // Switzerland
+	case "CHE": // Switzerland
 		companies = append(companies,
 			&Company{
 
@@ -547,7 +547,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CNY": // China
+	case "CHN": // China
 		companies = append(companies,
 			&Company{
 
@@ -602,7 +602,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "SEK": // Sweden
+	case "SWE": // Sweden
 		companies = append(companies,
 			&Company{
 				Name:        "Vattenfall AB",
@@ -634,7 +634,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "NZD": // New Zealand
+	case "NZL": // New Zealand
 		companies = append(companies,
 			&Company{
 				Name:        "Genesis Energy Limited",
@@ -662,7 +662,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PHP": // Philippines
+	case "PHL": // Philippines
 		companies = append(companies,
 			&Company{
 				Name:        "Manila Electric Company (Meralco)",
@@ -698,7 +698,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "INR": // India
+	case "IND": // India
 		companies = append(companies,
 			&Company{
 				Name:        "Tata Power Company Limited",
@@ -730,7 +730,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "KRW": // South Korea
+	case "KOR": // South Korea
 		companies = append(companies,
 			&Company{
 				Name:        "Korea Electric Power Corporation (KEPCO)",
@@ -761,7 +761,8 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Facility and project management firm offering maintenance and engineering services.",
 			},
 		)
-	case "THB": // Thailand
+
+	case "THA": // Thailand
 		companies = append(companies,
 			&Company{
 				Name:        "Metropolitan Electricity Authority (MEA)",
@@ -792,7 +793,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Facilities and property management company providing maintenance and cleaning services.",
 			},
 		)
-	case "SGD": // Singapore
+	case "SGP": // Singapore
 		companies = append(companies,
 			&Company{
 				Name:        "SP Group",
@@ -824,7 +825,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "HKD": // Hong Kong
+	case "HKG": // Hong Kong
 		companies = append(companies,
 			&Company{
 				Name:        "CLP Power Hong Kong Limited",
@@ -856,7 +857,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MYR": // Malaysia
+	case "MYS": // Malaysia
 		companies = append(companies,
 			&Company{
 				Name:        "Tenaga Nasional Berhad (TNB)",
@@ -884,7 +885,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "IDR": // Indonesia
+	case "IDN": // Indonesia
 		companies = append(companies,
 			&Company{
 				Name:        "Perusahaan Listrik Negara (PLN)",
@@ -912,7 +913,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "VND": // Vietnam
+	case "VNM": // Vietnam
 		companies = append(companies,
 			&Company{
 				Name:        "Vietnam Electricity (EVN)",
@@ -940,7 +941,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "TWD": // Taiwan
+	case "TWN": // Taiwan
 		companies = append(companies,
 			&Company{
 				Name:        "Taiwan Power Company (Taipower)",
@@ -968,7 +969,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BND": // Brunei
+	case "BRN": // Brunei
 		companies = append(companies,
 			&Company{
 				Name:        "Department of Electrical Services (DES)",
@@ -996,7 +997,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "SAR": // Saudi Arabia
+	case "SAU": // Saudi Arabia
 		companies = append(companies,
 			&Company{
 				Name:        "Saudi Electricity Company (SEC)",
@@ -1024,7 +1025,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "AED": // United Arab Emirates
+	case "ARE": // United Arab Emirates
 		companies = append(companies,
 			&Company{
 				Name:        "Dubai Electricity and Water Authority (DEWA)",
@@ -1052,7 +1053,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "ILS": // Israel
+	case "ISR": // Israel
 		companies = append(companies,
 			&Company{
 				Name:        "Israel Electric Corporation (IEC)",
@@ -1080,7 +1081,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "ZAR": // South Africa
+	case "ZAF": // South Africa
 		companies = append(companies,
 			&Company{
 				Name:        "Eskom Holdings SOC Ltd",
@@ -1108,7 +1109,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "EGP": // Egypt
+	case "EGY": // Egypt
 		companies = append(companies,
 			&Company{
 				Name:        "Egyptian Electricity Holding Company (EEHC)",
@@ -1136,7 +1137,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "TRY": // Turkey
+	case "TUR": // Turkey
 		companies = append(companies,
 			&Company{
 				Name:        "Turkish Electricity Distribution Corporation (TEDAŞ)",
@@ -1164,7 +1165,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "XOF": // West African CFA Franc (e.g., Senegal, Côte d'Ivoire)
+	case "SEN": // Senegal (West African CFA)
 		companies = append(companies,
 			&Company{
 				Name:        "Compagnie Ivoirienne d'Électricité (CIE)",
@@ -1192,7 +1193,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "XAF": // Central African CFA Franc (e.g., Cameroon, Gabon)
+	case "CMR": // Cameroon (Central African CFA)
 		companies = append(companies,
 			&Company{
 				Name:        "Eneo Cameroon S.A.",
@@ -1220,7 +1221,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MUR": // Mauritius
+	case "MUS": // Mauritius
 		companies = append(companies,
 			&Company{
 				Name:        "Central Electricity Board (CEB)",
@@ -1244,7 +1245,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MVR": // Maldives
+	case "MDV": // Maldives
 		companies = append(companies,
 			&Company{
 				Name:        "State Electric Company Limited (STELCO)",
@@ -1268,7 +1269,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "NOK": // Norway
+	case "NOR": // Norway
 		companies = append(companies,
 			&Company{
 				Name:        "Statkraft AS",
@@ -1296,7 +1297,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "DKK": // Denmark
+	case "DNK": // Denmark
 		companies = append(companies,
 			&Company{
 				Name:        "Ørsted A/S",
@@ -1324,7 +1325,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PLN": // Poland
+	case "POL": // Poland
 		companies = append(companies,
 			&Company{
 				Name:        "PGE Polska Grupa Energetyczna",
@@ -1352,7 +1353,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CZK": // Czech Republic
+	case "CZE": // Czech Republic
 		companies = append(companies,
 			&Company{
 				Name:        "ČEZ Group",
@@ -1376,7 +1377,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "HUF": // Hungary
+	case "HUN": // Hungary
 		companies = append(companies,
 			&Company{
 				Name:        "MVM Group",
@@ -1400,7 +1401,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "RUB": // Russia
+	case "RUS": // Russia
 		companies = append(companies,
 			&Company{
 				Name:        "Gazprom",
@@ -1424,7 +1425,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "EUR-HR": // Croatia (Euro)
+	case "HRV": // Croatia
 		companies = append(companies,
 			&Company{
 				Name:        "HEP Group (Hrvatska elektroprivreda)",
@@ -1444,7 +1445,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BRL": // Brazil
+	case "BRA": // Brazil
 		companies = append(companies,
 			&Company{
 				Name:        "Eletrobras",
@@ -1468,7 +1469,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MXN": // Mexico
+	case "MEX": // Mexico
 		companies = append(companies,
 			&Company{
 				Name:        "Comisión Federal de Electricidad (CFE)",
@@ -1492,7 +1493,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "ARS": // Argentina
+	case "ARG": // Argentina
 		companies = append(companies,
 			&Company{
 				Name:        "Edesur",
@@ -1516,7 +1517,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CLP": // Chile
+	case "CHL": // Chile
 		companies = append(companies,
 			&Company{
 				Name:        "Enel Distribución Chile",
@@ -1540,7 +1541,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "COP": // Colombia
+	case "COL": // Colombia
 		companies = append(companies,
 			&Company{
 				Name:        "Grupo Energía Bogotá",
@@ -1560,7 +1561,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PEN": // Peru
+	case "PER": // Peru
 		companies = append(companies,
 			&Company{
 				Name:        "Enel Distribución Perú",
@@ -1584,7 +1585,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "UYU": // Uruguay
+	case "URY": // Uruguay
 		companies = append(companies,
 			&Company{
 				Name:        "UTE (Administración Nacional de Usinas y Trasmisiones Eléctricas)",
@@ -1608,7 +1609,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "DOP": // Dominican Republic
+	case "DOM": // Dominican Republic
 		companies = append(companies,
 			&Company{
 				Name:        "Edesur Dominicana",
@@ -1632,7 +1633,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PYG": // Paraguay
+	case "PRY": // Paraguay
 		companies = append(companies,
 			&Company{
 				Name:        "ANDE (Administración Nacional de Electricidad)",
@@ -1656,7 +1657,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BOB": // Bolivia
+	case "BOL": // Bolivia
 		companies = append(companies,
 			&Company{
 				Name:        "ENDE (Empresa Nacional de Electricidad)",
@@ -1680,7 +1681,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "VES": // Venezuela
+	case "VEN": // Venezuela
 		companies = append(companies,
 			&Company{
 				Name:        "CORPOELEC",
@@ -1704,7 +1705,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PKR": // Pakistan
+	case "PAK": // Pakistan
 		companies = append(companies,
 			&Company{
 				Name:        "K-Electric",
@@ -1728,7 +1729,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BDT": // Bangladesh
+	case "BGD": // Bangladesh
 		companies = append(companies,
 			&Company{
 				Name:        "Dhaka Electric Supply Company (DESCO)",
@@ -1752,7 +1753,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "LKR": // Sri Lanka
+	case "LKA": // Sri Lanka
 		companies = append(companies,
 			&Company{
 				Name:        "Ceylon Electricity Board (CEB)",
@@ -1776,7 +1777,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "NPR": // Nepal
+	case "NPL": // Nepal
 		companies = append(companies,
 			&Company{
 				Name:        "Nepal Electricity Authority (NEA)",
@@ -1800,7 +1801,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MMK": // Myanmar
+	case "MMR": // Myanmar
 		companies = append(companies,
 			&Company{
 				Name:        "Yangon Electricity Supply Corporation (YESC)",
@@ -1824,7 +1825,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "KHR": // Cambodia
+	case "KHM": // Cambodia
 		companies = append(companies,
 			&Company{
 				Name:        "Electricité du Cambodge (EDC)",
@@ -1848,7 +1849,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "LAK": // Laos
+	case "LAO": // Laos
 		companies = append(companies,
 			&Company{
 				Name:        "Électricité du Laos (EDL)",
@@ -1872,7 +1873,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "NGN": // Nigeria
+	case "NGA": // Nigeria
 		companies = append(companies,
 			&Company{
 				Name:        "Ikeja Electric",
@@ -1896,7 +1897,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "KES": // Kenya
+	case "KEN": // Kenya
 		companies = append(companies,
 			&Company{
 				Name:        "Kenya Power and Lighting Company (KPLC)",
@@ -1920,7 +1921,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "GHS": // Ghana
+	case "GHA": // Ghana
 		companies = append(companies,
 			&Company{
 				Name:        "Electricity Company of Ghana (ECG)",
@@ -1944,7 +1945,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "MAD": // Morocco
+	case "MAR": // Morocco
 		companies = append(companies,
 			&Company{
 				Name:        "ONEE (Office National de l'Électricité et de l'Eau Potable)",
@@ -1968,7 +1969,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "TND": // Tunisia
+	case "TUN": // Tunisia
 		companies = append(companies,
 			&Company{
 				Name:        "STEG (Société Tunisienne de l'Électricité et du Gaz)",
@@ -1992,7 +1993,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "ETB": // Ethiopia
+	case "ETH": // Ethiopia
 		companies = append(companies,
 			&Company{
 				Name:        "Ethiopian Electric Utility (EEU)",
@@ -2016,7 +2017,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "DZD": // Algeria
+	case "DZA": // Algeria
 		companies = append(companies,
 			&Company{
 				Name:        "Sonelgaz",
@@ -2040,7 +2041,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "UAH": // Ukraine
+	case "UKR": // Ukraine
 		companies = append(companies,
 			&Company{
 				Name:        "DTEK",
@@ -2064,7 +2065,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "RON": // Romania
+	case "ROU": // Romania
 		companies = append(companies,
 			&Company{
 				Name:        "Electrica SA",
@@ -2088,7 +2089,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BGN": // Bulgaria
+	case "BGR": // Bulgaria
 		companies = append(companies,
 			&Company{
 				Name:        "CEZ Bulgaria",
@@ -2112,7 +2113,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "RSD": // Serbia
+	case "SRB": // Serbia
 		companies = append(companies,
 			&Company{
 				Name:        "EPS (Elektroprivreda Srbije)",
@@ -2136,7 +2137,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "ISK": // Iceland
+	case "ISL": // Iceland
 		companies = append(companies,
 			&Company{
 				Name:        "Landsvirkjun",
@@ -2160,7 +2161,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "BYN": // Belarus
+	case "BLR": // Belarus
 		companies = append(companies,
 			&Company{
 				Name:        "Belenergo",
@@ -2184,7 +2185,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "FJD": // Fiji
+	case "FJI": // Fiji
 		companies = append(companies,
 			&Company{
 				Name:        "Energy Fiji Limited (EFL)",
@@ -2208,7 +2209,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "PGK": // Papua New Guinea
+	case "PNG": // Papua New Guinea
 		companies = append(companies,
 			&Company{
 				Name:        "PNG Power Limited",
@@ -2228,7 +2229,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "JMD": // Jamaica
+	case "JAM": // Jamaica
 		companies = append(companies,
 			&Company{
 				Name:        "Jamaica Public Service Company (JPS)",
@@ -2252,7 +2253,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "CRC": // Costa Rica
+	case "CRI": // Costa Rica
 		companies = append(companies,
 			&Company{
 				Name:        "Instituto Costarricense de Electricidad (ICE)",
@@ -2276,7 +2277,7 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			},
 		)
 
-	case "GTQ": // Guatemala
+	case "GTM": // Guatemala
 		companies = append(companies,
 			&Company{
 				Name:        "Energuate",
@@ -2299,14 +2300,13 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Maintenance and cleaning services provider for businesses and households.",
 			},
 		)
-
-	case "XDR": // Special Drawing Rights (IMF)
-	case "KWD": // Kuwait
-	case "QAR": // Qatar
-	case "OMR": // Oman
-	case "BHD": // Bahrain
-	case "JOD": // Jordan
-	case "KZT": // Kazakhstan
+	// case "XDR": // Special Drawing Rights (IMF) - No specific country
+	case "KWT": // Kuwait
+	case "QAT": // Qatar
+	case "OMN": // Oman
+	case "BHR": // Bahrain
+	case "JOR": // Jordan
+	case "KAZ": // Kazakhstan
 	}
 
 	for _, data := range companies {

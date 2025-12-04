@@ -70,8 +70,6 @@ type (
 		Name               string                    `json:"name"`
 	}
 
-	// CashCountRequest represents the request structure for creating/updating cashcount
-
 	// CashCountRequest represents the request structure for CashCount.
 	CashCountRequest struct {
 		ID                 *uuid.UUID `json:"id,omitempty"`

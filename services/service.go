@@ -184,20 +184,31 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("NATS_PASSWORD", ""),
 		)
 	}
+	if cfg.CacheConfig != nil {
+		service.Cache = horizon.NewHorizonCache(
+			cfg.CacheConfig.Host,
+			cfg.CacheConfig.Password,
+			cfg.CacheConfig.Username,
+			cfg.CacheConfig.Port,
+		)
+	} else {
+		service.Cache = horizon.NewHorizonCache(
+			service.Environment.GetString("REDIS_HOST", "127.0.0.1"),
+			service.Environment.GetString("REDIS_PASSWORD", "password"),
+			service.Environment.GetString("REDIS_USERNAME", "default"),
+			service.Environment.GetInt("REDIS_PORT", 6379),
+		)
+	}
 	if cfg.RequestServiceConfig != nil {
 		service.Request = horizon.NewHorizonAPIService(
+			service.Cache,
 			cfg.RequestServiceConfig.AppPort,
-			cfg.RequestServiceConfig.MetricsPort,
-			cfg.RequestServiceConfig.ClientURL,
-			cfg.RequestServiceConfig.ClientName,
 			isStaging,
 		)
 	} else {
 		service.Request = horizon.NewHorizonAPIService(
+			service.Cache,
 			service.Environment.GetInt("APP_PORT", 8000),
-			service.Environment.GetInt("APP_METRICS_PORT", 8001),
-			service.Environment.GetString("APP_CLIENT_URL", "http://127.0.0.1:3000"),
-			service.Environment.GetString("APP_CLIENT_NAME", "horizon"),
 			isStaging,
 		)
 	}
@@ -264,22 +275,6 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("DB_MAX_IDLE_CONN", 10),
 			service.Environment.GetInt("DB_MAX_OPEN_CONN", 100),
 			service.Environment.GetDuration("DB_MAX_LIFETIME", 0),
-		)
-	}
-
-	if cfg.CacheConfig != nil {
-		service.Cache = horizon.NewHorizonCache(
-			cfg.CacheConfig.Host,
-			cfg.CacheConfig.Password,
-			cfg.CacheConfig.Username,
-			cfg.CacheConfig.Port,
-		)
-	} else {
-		service.Cache = horizon.NewHorizonCache(
-			service.Environment.GetString("REDIS_HOST", "127.0.0.1"),
-			service.Environment.GetString("REDIS_PASSWORD", "password"),
-			service.Environment.GetString("REDIS_USERNAME", "default"),
-			service.Environment.GetInt("REDIS_PORT", 6379),
 		)
 	}
 

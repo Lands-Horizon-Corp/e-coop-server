@@ -3678,7 +3678,30 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
+	compassionFund := &Account{
+		CreatedAt:         now,
+		CreatedByID:       userID,
+		UpdatedAt:         now,
+		UpdatedByID:       userID,
+		OrganizationID:    organizationID,
+		BranchID:          branchID,
+		Name:              "Compassion Fund",
+		Description:       "Special deposit account for emergency assistance and member welfare support.",
+		Type:              AccountTypeDeposit,
+		MinAmount:         100.00,
+		MaxAmount:         1000000.00,
+		InterestStandard:  2.5,
+		GeneralLedgerType: GLTypeLiabilities,
+		ComputationType:   Straight,
+		Index:             10,
+		CurrencyID:        branch.CurrencyID,
+		Icon:              "Heart",
+	}
+	if err := m.AccountManager.CreateWithTx(context, tx, compassionFund); err != nil {
+		return eris.Wrap(err, "failed to create compassion fund account")
+	}
 
+	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
 	if err := m.BranchSettingManager.UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
@@ -3723,6 +3746,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	}
+
 	return nil
 }
 

@@ -16,8 +16,6 @@ This tool provides commands for database management, cache operations,
 and server operations for your financial cooperative system.`,
 	Run: func(_ *cobra.Command, _ []string) {
 		handlers.PrintASCIIArt()
-		// ignore errors from Help display in CLI invocation
-		// (non-critical for printing help)
 	},
 }
 
@@ -45,6 +43,28 @@ var commandGroups = map[string]struct {
 				Short: "Clean the application cache",
 				RunFunc: func(_ *cobra.Command, _ []string) {
 					cleanCache()
+				},
+			},
+		},
+	},
+	"security": {
+		Parent: &cobra.Command{
+			Use:   "security",
+			Short: "Security utilities like HaGeZi blocklist",
+		},
+		Children: []CommandConfig{
+			{
+				Use:   "enforce",
+				Short: "Update HaGeZi blocklist",
+				RunFunc: func(_ *cobra.Command, _ []string) {
+					enforceBlocklist()
+				},
+			},
+			{
+				Use:   "clear",
+				Short: "Clear all blocked IPs from cache",
+				RunFunc: func(_ *cobra.Command, _ []string) {
+					clearBlockedIPs()
 				},
 			},
 		},

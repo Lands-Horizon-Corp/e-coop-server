@@ -250,9 +250,6 @@ func (c *Controller) cashCheckVoucherController() {
 			TotalDebit:                    balance.Debit,
 			TotalCredit:                   balance.Credit,
 			PrintCount:                    request.PrintCount,
-			PrintedDate:                   request.PrintedDate,
-			ApprovedDate:                  request.ApprovedDate,
-			ReleasedDate:                  request.ReleasedDate,
 			EmployeeUserID:                &userOrg.UserID,
 			ApprovedBySignatureMediaID:    request.ApprovedBySignatureMediaID,
 			ApprovedByName:                request.ApprovedByName,
@@ -421,9 +418,6 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.TotalDebit = balance.Debit
 		cashCheckVoucher.TotalCredit = balance.Credit
 		cashCheckVoucher.PrintCount = request.PrintCount
-		cashCheckVoucher.PrintedDate = request.PrintedDate
-		cashCheckVoucher.ApprovedDate = request.ApprovedDate
-		cashCheckVoucher.ReleasedDate = request.ReleasedDate
 		cashCheckVoucher.EmployeeUserID = &userOrg.UserID
 		cashCheckVoucher.ApprovedBySignatureMediaID = request.ApprovedBySignatureMediaID
 		cashCheckVoucher.ApprovedByName = request.ApprovedByName
