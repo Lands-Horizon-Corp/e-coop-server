@@ -87,6 +87,7 @@ type (
 		MinimumDailyBalance float64                                     `json:"minimum_daily_balance"`
 		MaximumDailyBalance float64                                     `json:"maximum_daily_balance"`
 		DailyBalance        []GeneratedSavingsInterestEntryDailyBalance `json:"daily_balance"`
+		Account             *AccountResponse                            `json:"account,omitempty"`
 	}
 )
 
@@ -330,6 +331,11 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 		startingBalance = 0
 	}
 
+	account, err := m.AccountManager.GetByID(context, *generatedSavingsInterest.AccountID, "Currency")
+	if err != nil {
+		return nil, err
+	}
+
 	return &GeneratedSavingsInterestEntryDailyBalanceResponse{
 		StartingBalance:     startingBalance,
 		EndingBalance:       endingBalance,
@@ -337,5 +343,6 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 		MinimumDailyBalance: minBalance,
 		MaximumDailyBalance: maxBalance,
 		DailyBalance:        allDailyBalances,
+		Account:             m.AccountManager.ToModel(account),
 	}, nil
 }
