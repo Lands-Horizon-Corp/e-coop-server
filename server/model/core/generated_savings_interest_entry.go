@@ -79,6 +79,7 @@ type (
 	GeneratedSavingsInterestEntryDailyBalance struct {
 		Balance float64 `json:"balance"`
 		Date    string  `json:"date"`
+		Type    string  `json:"type"` // "increase", "decrease", "no_change"
 	}
 	GeneratedSavingsInterestEntryDailyBalanceResponse struct {
 		BeginningBalance    float64                                     `json:"beginning_balance"`
@@ -271,12 +272,24 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 
 	// Convert daily balances to response format
 	currentDate := generatedSavingsInterest.NewComputationDate
+	var previousBalance float64 = -1 // Use -1 to indicate first entry
 	for i, balance := range dailyBalances {
 		dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
+		var changeType string
+		if previousBalance == -1 {
+			changeType = "no_change"
+		} else if m.provider.Service.Decimal.IsGreaterThan(balance, previousBalance) {
+			changeType = "increase"
+		} else if m.provider.Service.Decimal.IsLessThan(balance, previousBalance) {
+			changeType = "decrease"
+		} else {
+			changeType = "no_change"
+		}
 
 		allDailyBalances = append(allDailyBalances, GeneratedSavingsInterestEntryDailyBalance{
 			Balance: balance,
 			Date:    dateStr,
+			Type:    changeType,
 		})
 
 		// Update statistics using decimal operations for precision
@@ -296,6 +309,9 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 		if m.provider.Service.Decimal.IsGreaterThan(balance, highestBalance) {
 			highestBalance = balance
 		}
+
+		// Update previous balance for next iteration
+		previousBalance = balance
 	}
 
 	// Calculate average daily balance using decimal operations
