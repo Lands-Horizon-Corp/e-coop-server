@@ -238,7 +238,10 @@ func (e *Event) GenerateSavingsInterestEntries(
 			savingsComputed.InterestTax = 0
 		}
 		memberProfile = memberBrowseRef.MemberAccountingLedger.MemberProfile
-
+		account, err = e.core.AccountManager.GetByID(context, account.ID)
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to get account by ID")
+		}
 		//===== STEP 3.8: CREATE GENERATED SAVINGS INTEREST ENTRY =====
 		// Create database entry with computed interest and tax amounts
 		entry := &core.GeneratedSavingsInterestEntry{
