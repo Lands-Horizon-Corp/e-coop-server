@@ -81,6 +81,8 @@ type (
 		Date    string  `json:"date"`
 	}
 	GeneratedSavingsInterestEntryDailyBalanceResponse struct {
+		StartingBalance     float64                                     `json:"starting_balance"`
+		EndingBalance       float64                                     `json:"ending_balance"`
 		AverageDailyBalance float64                                     `json:"average_daily_balance"`
 		MinimumDailyBalance float64                                     `json:"minimum_daily_balance"`
 		MaximumDailyBalance float64                                     `json:"maximum_daily_balance"`
@@ -252,6 +254,8 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 
 	if len(entries) == 0 {
 		return &GeneratedSavingsInterestEntryDailyBalanceResponse{
+			StartingBalance:     0,
+			EndingBalance:       0,
 			AverageDailyBalance: 0,
 			MinimumDailyBalance: 0,
 			MaximumDailyBalance: 0,
@@ -264,6 +268,8 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 	var totalDays int
 	var minBalance float64 = -1 // Use -1 to indicate not set
 	var maxBalance float64
+	var startingBalance float64 = -1 // Use -1 to indicate not set
+	var endingBalance float64
 
 	// Process each entry to get its daily balances
 	for _, entry := range entries {
@@ -294,6 +300,13 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 			totalBalanceSum += balance
 			totalDays++
 
+			// Track starting balance (first balance encountered)
+			if startingBalance == -1 {
+				startingBalance = balance
+			}
+			// Track ending balance (last balance will be the ending balance)
+			endingBalance = balance
+
 			if minBalance == -1 || balance < minBalance {
 				minBalance = balance
 			}
@@ -313,8 +326,13 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestID
 	if minBalance == -1 {
 		minBalance = 0
 	}
+	if startingBalance == -1 {
+		startingBalance = 0
+	}
 
 	return &GeneratedSavingsInterestEntryDailyBalanceResponse{
+		StartingBalance:     startingBalance,
+		EndingBalance:       endingBalance,
 		AverageDailyBalance: averageDailyBalance,
 		MinimumDailyBalance: minBalance,
 		MaximumDailyBalance: maxBalance,
