@@ -52,7 +52,7 @@ type (
 
 		Name            string                    `gorm:"type:varchar(255);not null" json:"name"`
 		Description     string                    `gorm:"type:text" json:"description"`
-		DateOfDate      time.Time                 `gorm:"not null" json:"date_of_date"`
+		DateOfDeath     time.Time                 `gorm:"not null" json:"date_of_death"`
 		ExtensionOnly   bool                      `gorm:"not null;default:false" json:"extension_only"`
 		Amount          float64                   `gorm:"type:decimal;not null" json:"amount"`
 		ComputationType MutualFundComputationType `gorm:"type:varchar(50);not null" json:"computation_type"`
@@ -78,7 +78,7 @@ type (
 		AdditionalMembers       []*MutualFundAdditionalMembersResponse `json:"additional_members,omitempty"`
 		Name                    string                                 `json:"name"`
 		Description             string                                 `json:"description"`
-		DateOfDate              string                                 `json:"date_of_date"`
+		DateOfDeath             string                                 `json:"date_of_death"`
 		ExtensionOnly           bool                                   `json:"extension_only"`
 		Amount                  float64                                `json:"amount"`
 		ComputationType         MutualFundComputationType              `json:"computation_type"`
@@ -90,7 +90,7 @@ type (
 		MutualAidContributionID *uuid.UUID                `json:"mutual_aid_contribution_id,omitempty"`
 		Name                    string                    `json:"name" validate:"required,min=1,max=255"`
 		Description             string                    `json:"description,omitempty"`
-		DateOfDate              time.Time                 `json:"date_of_date" validate:"required"`
+		DateOfDeath             time.Time                 `json:"date_of_death" validate:"required"`
 		ExtensionOnly           bool                      `json:"extension_only"`
 		Amount                  float64                   `json:"amount" validate:"required,gte=0"`
 		ComputationType         MutualFundComputationType `json:"computation_type" validate:"required"`
@@ -125,7 +125,7 @@ func (m *Core) mutualFund() {
 				AdditionalMembers:       m.MutualFundAdditionalMembersManager.ToModels(data.AdditionalMembers),
 				Name:                    data.Name,
 				Description:             data.Description,
-				DateOfDate:              data.DateOfDate.Format(time.RFC3339),
+				DateOfDeath:             data.DateOfDeath.Format(time.RFC3339),
 				ExtensionOnly:           data.ExtensionOnly,
 				Amount:                  data.Amount,
 				ComputationType:         data.ComputationType,
