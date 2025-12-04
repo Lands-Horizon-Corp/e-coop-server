@@ -359,4 +359,5 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
 }
