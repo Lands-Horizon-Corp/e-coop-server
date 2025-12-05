@@ -61,10 +61,11 @@ type (
 
 	// MutualFundAdditionalMembersRequest represents the request structure for MutualFundAdditionalMembers.
 	MutualFundAdditionalMembersRequest struct {
-		MutualFundID    uuid.UUID `json:"mutual_fund_id" validate:"required"`
-		MemberTypeID    uuid.UUID `json:"member_type_id" validate:"required"`
-		NumberOfMembers int       `json:"number_of_members" validate:"required,min=1"`
-		Ratio           float64   `json:"ratio" validate:"required,min=0,max=100"`
+		ID              *uuid.UUID `json:"id"`
+		MutualFundID    uuid.UUID  `json:"mutual_fund_id" validate:"required"`
+		MemberTypeID    uuid.UUID  `json:"member_type_id" validate:"required"`
+		NumberOfMembers int        `json:"number_of_members" validate:"required,min=1"`
+		Ratio           float64    `json:"ratio" validate:"required,min=0,max=100"`
 	}
 )
 

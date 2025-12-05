@@ -44,11 +44,8 @@ type (
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null" json:"member_profile_id"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
-		MutualAidContributionID *uuid.UUID             `gorm:"type:uuid;index:idx_mutual_fund_aid_contribution" json:"mutual_aid_contribution_id"`
-		MutualAidContribution   *MutualAidContribution `gorm:"foreignKey:MutualAidContributionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"mutual_aid_contribution,omitempty"`
-
-		// One-to-many relationship: one mutual fund can have many additional members
 		AdditionalMembers []*MutualFundAdditionalMembers `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"additional_members,omitempty"`
+		MutualFundTables  []*MutualFundTable             `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"mutual_fund_tables,omitempty"`
 
 		Name            string                    `gorm:"type:varchar(255);not null" json:"name"`
 		Description     string                    `gorm:"type:text" json:"description"`
@@ -60,28 +57,29 @@ type (
 
 	// MutualFundResponse represents the response structure for mutual fund data
 	MutualFundResponse struct {
-		ID                      uuid.UUID                              `json:"id"`
-		CreatedAt               string                                 `json:"created_at"`
-		CreatedByID             uuid.UUID                              `json:"created_by_id"`
-		CreatedBy               *UserResponse                          `json:"created_by,omitempty"`
-		UpdatedAt               string                                 `json:"updated_at"`
-		UpdatedByID             uuid.UUID                              `json:"updated_by_id"`
-		UpdatedBy               *UserResponse                          `json:"updated_by,omitempty"`
-		OrganizationID          uuid.UUID                              `json:"organization_id"`
-		Organization            *OrganizationResponse                  `json:"organization,omitempty"`
-		BranchID                uuid.UUID                              `json:"branch_id"`
-		Branch                  *BranchResponse                        `json:"branch,omitempty"`
-		MemberProfileID         uuid.UUID                              `json:"member_profile_id"`
-		MemberProfile           *MemberProfileResponse                 `json:"member_profile,omitempty"`
-		MutualAidContributionID *uuid.UUID                             `json:"mutual_aid_contribution_id,omitempty"`
-		MutualAidContribution   *MutualAidContributionResponse         `json:"mutual_aid_contribution,omitempty"`
-		AdditionalMembers       []*MutualFundAdditionalMembersResponse `json:"additional_members,omitempty"`
-		Name                    string                                 `json:"name"`
-		Description             string                                 `json:"description"`
-		DateOfDeath             string                                 `json:"date_of_death"`
-		ExtensionOnly           bool                                   `json:"extension_only"`
-		Amount                  float64                                `json:"amount"`
-		ComputationType         MutualFundComputationType              `json:"computation_type"`
+		ID                      uuid.UUID              `json:"id"`
+		CreatedAt               string                 `json:"created_at"`
+		CreatedByID             uuid.UUID              `json:"created_by_id"`
+		CreatedBy               *UserResponse          `json:"created_by,omitempty"`
+		UpdatedAt               string                 `json:"updated_at"`
+		UpdatedByID             uuid.UUID              `json:"updated_by_id"`
+		UpdatedBy               *UserResponse          `json:"updated_by,omitempty"`
+		OrganizationID          uuid.UUID              `json:"organization_id"`
+		Organization            *OrganizationResponse  `json:"organization,omitempty"`
+		BranchID                uuid.UUID              `json:"branch_id"`
+		Branch                  *BranchResponse        `json:"branch,omitempty"`
+		MemberProfileID         uuid.UUID              `json:"member_profile_id"`
+		MemberProfile           *MemberProfileResponse `json:"member_profile,omitempty"`
+		MutualAidContributionID *uuid.UUID             `json:"mutual_aid_contribution_id,omitempty"`
+
+		AdditionalMembers []*MutualFundAdditionalMembersResponse `json:"additional_members,omitempty"`
+		MutualFundTables  []*MutualFundTableResponse             `json:"mutual_fund_tables,omitempty"`
+		Name              string                                 `json:"name"`
+		Description       string                                 `json:"description"`
+		DateOfDeath       string                                 `json:"date_of_death"`
+		ExtensionOnly     bool                                   `json:"extension_only"`
+		Amount            float64                                `json:"amount"`
+		ComputationType   MutualFundComputationType              `json:"computation_type"`
 	}
 
 	// MutualFundRequest represents the request structure for creating/updating mutual fund
@@ -94,41 +92,47 @@ type (
 		ExtensionOnly           bool                      `json:"extension_only"`
 		Amount                  float64                   `json:"amount" validate:"required,gte=0"`
 		ComputationType         MutualFundComputationType `json:"computation_type" validate:"required"`
+
+		MutualFundAdditionalMembers []MutualFundAdditionalMembersRequest `json:"mutual_fund_additional_members,omitempty" validate:"dive"`
+		MutualFundTables            []MutualFundTableRequest             `json:"mutual_fund_tables,omitempty" validate:"dive"`
+
+		MutualFundAdditionalMembersDeleteIDs uuid.UUIDs `json:"mutual_fund_additional_members_delete_ids,omitempty" validate:"dive"`
+		MutualFundTableDeleteIDs             uuid.UUIDs `json:"mutual_fund_table_delete_ids,omitempty" validate:"dive"`
 	}
 )
 
 func (m *Core) mutualFund() {
 	m.Migration = append(m.Migration, &MutualFund{})
 	m.MutualFundManager = *registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MemberProfile", "MutualAidContribution", "AdditionalMembers", "AdditionalMembers.MemberType"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MemberProfile", "MutualAidContribution", "AdditionalMembers", "AdditionalMembers.MemberType", "MutualFundTables"},
 		Service:  m.provider.Service,
 		Resource: func(data *MutualFund) *MutualFundResponse {
 			if data == nil {
 				return nil
 			}
 			return &MutualFundResponse{
-				ID:                      data.ID,
-				CreatedAt:               data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:             data.CreatedByID,
-				CreatedBy:               m.UserManager.ToModel(data.CreatedBy),
-				UpdatedAt:               data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:             data.UpdatedByID,
-				UpdatedBy:               m.UserManager.ToModel(data.UpdatedBy),
-				OrganizationID:          data.OrganizationID,
-				Organization:            m.OrganizationManager.ToModel(data.Organization),
-				BranchID:                data.BranchID,
-				Branch:                  m.BranchManager.ToModel(data.Branch),
-				MemberProfileID:         data.MemberProfileID,
-				MemberProfile:           m.MemberProfileManager.ToModel(data.MemberProfile),
-				MutualAidContributionID: data.MutualAidContributionID,
-				MutualAidContribution:   m.MutualAidContributionManager.ToModel(data.MutualAidContribution),
-				AdditionalMembers:       m.MutualFundAdditionalMembersManager.ToModels(data.AdditionalMembers),
-				Name:                    data.Name,
-				Description:             data.Description,
-				DateOfDeath:             data.DateOfDeath.Format(time.RFC3339),
-				ExtensionOnly:           data.ExtensionOnly,
-				Amount:                  data.Amount,
-				ComputationType:         data.ComputationType,
+				ID:              data.ID,
+				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:     data.CreatedByID,
+				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:     data.UpdatedByID,
+				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				OrganizationID:  data.OrganizationID,
+				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				BranchID:        data.BranchID,
+				Branch:          m.BranchManager.ToModel(data.Branch),
+				MemberProfileID: data.MemberProfileID,
+				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+
+				AdditionalMembers: m.MutualFundAdditionalMembersManager.ToModels(data.AdditionalMembers),
+				MutualFundTables:  m.MutualFundTableManager.ToModels(data.MutualFundTables),
+				Name:              data.Name,
+				Description:       data.Description,
+				DateOfDeath:       data.DateOfDeath.Format(time.RFC3339),
+				ExtensionOnly:     data.ExtensionOnly,
+				Amount:            data.Amount,
+				ComputationType:   data.ComputationType,
 			}
 		},
 		Created: func(data *MutualFund) []string {
