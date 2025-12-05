@@ -57,20 +57,19 @@ type (
 
 	// MutualFundResponse represents the response structure for mutual fund data
 	MutualFundResponse struct {
-		ID                      uuid.UUID              `json:"id"`
-		CreatedAt               string                 `json:"created_at"`
-		CreatedByID             uuid.UUID              `json:"created_by_id"`
-		CreatedBy               *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt               string                 `json:"updated_at"`
-		UpdatedByID             uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy               *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID          uuid.UUID              `json:"organization_id"`
-		Organization            *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID                uuid.UUID              `json:"branch_id"`
-		Branch                  *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID         uuid.UUID              `json:"member_profile_id"`
-		MemberProfile           *MemberProfileResponse `json:"member_profile,omitempty"`
-		MutualAidContributionID *uuid.UUID             `json:"mutual_aid_contribution_id,omitempty"`
+		ID              uuid.UUID              `json:"id"`
+		CreatedAt       string                 `json:"created_at"`
+		CreatedByID     uuid.UUID              `json:"created_by_id"`
+		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
+		UpdatedAt       string                 `json:"updated_at"`
+		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
+		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
+		OrganizationID  uuid.UUID              `json:"organization_id"`
+		Organization    *OrganizationResponse  `json:"organization,omitempty"`
+		BranchID        uuid.UUID              `json:"branch_id"`
+		Branch          *BranchResponse        `json:"branch,omitempty"`
+		MemberProfileID uuid.UUID              `json:"member_profile_id"`
+		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 
 		AdditionalMembers []*MutualFundAdditionalMembersResponse `json:"additional_members,omitempty"`
 		MutualFundTables  []*MutualFundTableResponse             `json:"mutual_fund_tables,omitempty"`
@@ -84,14 +83,13 @@ type (
 
 	// MutualFundRequest represents the request structure for creating/updating mutual fund
 	MutualFundRequest struct {
-		MemberProfileID         uuid.UUID                 `json:"member_profile_id" validate:"required"`
-		MutualAidContributionID *uuid.UUID                `json:"mutual_aid_contribution_id,omitempty"`
-		Name                    string                    `json:"name" validate:"required,min=1,max=255"`
-		Description             string                    `json:"description,omitempty"`
-		DateOfDeath             time.Time                 `json:"date_of_death" validate:"required"`
-		ExtensionOnly           bool                      `json:"extension_only"`
-		Amount                  float64                   `json:"amount" validate:"required,gte=0"`
-		ComputationType         MutualFundComputationType `json:"computation_type" validate:"required"`
+		MemberProfileID uuid.UUID                 `json:"member_profile_id" validate:"required"`
+		Name            string                    `json:"name" validate:"required,min=1,max=255"`
+		Description     string                    `json:"description,omitempty"`
+		DateOfDeath     time.Time                 `json:"date_of_death" validate:"required"`
+		ExtensionOnly   bool                      `json:"extension_only"`
+		Amount          float64                   `json:"amount" validate:"required,gte=0"`
+		ComputationType MutualFundComputationType `json:"computation_type" validate:"required"`
 
 		MutualFundAdditionalMembers []MutualFundAdditionalMembersRequest `json:"mutual_fund_additional_members,omitempty" validate:"dive"`
 		MutualFundTables            []MutualFundTableRequest             `json:"mutual_fund_tables,omitempty" validate:"dive"`

@@ -61,7 +61,7 @@ type (
 
 	// MutualFundAdditionalMembersRequest represents the request structure for MutualFundAdditionalMembers.
 	MutualFundAdditionalMembersRequest struct {
-		ID              *uuid.UUID `json:"id"`
+		ID              *uuid.UUID `json:"id,omitempty"`
 		MutualFundID    uuid.UUID  `json:"mutual_fund_id" validate:"required"`
 		MemberTypeID    uuid.UUID  `json:"member_type_id" validate:"required"`
 		NumberOfMembers int        `json:"number_of_members" validate:"required,min=1"`

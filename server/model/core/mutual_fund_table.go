@@ -59,7 +59,7 @@ type (
 
 	// MutualFundTableRequest represents the request structure for MutualFundTable.
 	MutualFundTableRequest struct {
-		ID           *uuid.UUID `json:"id"`
+		ID           *uuid.UUID `json:"id,omitempty"`
 		MutualFundID uuid.UUID  `json:"mutual_fund_id" validate:"required"`
 		MonthFrom    time.Time  `json:"month_from" validate:"required"`
 		MonthTo      time.Time  `json:"month_to" validate:"required"`
