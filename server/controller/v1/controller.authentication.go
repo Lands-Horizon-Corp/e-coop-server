@@ -20,8 +20,8 @@ func (c *Controller) authenticationController() {
 	// Rate limiting middleware using the reusable RateLimiter
 	rateLimiterConfig := horizon.RateLimiterConfig{
 		RequestsPerSecond: 0,               // Use requests per minute instead
-		RequestsPerMinute: 3,               // 3 requests per minute for auth endpoints
-		BurstCapacity:     5,               // Allow 5 attempts quickly in burst
+		RequestsPerMinute: 5,               // 3 requests per minute for auth endpoints
+		BurstCapacity:     1,               // Allow 1 attempts quickly in burst
 		WindowDuration:    1 * time.Minute, // Track attempts per minute window
 		KeyPrefix:         "auth_api",      // Specific prefix for auth endpoints
 	}
