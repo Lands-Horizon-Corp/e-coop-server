@@ -10,7 +10,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller"
+	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
