@@ -173,7 +173,7 @@ func (m *Core) currencySeed(context context.Context) error {
 		currency := &Currency{
 			CreatedAt:      now,
 			UpdatedAt:      now,
-			Name:           locales.Currency.Name,
+			Name:           locales.NumI18Identifier.Locale + " " + locales.Currency.Name,
 			Country:        locales.NumI18Identifier.CountryName,
 			CurrencyCode:   locales.NumI18Identifier.Currency,
 			Symbol:         locales.Currency.Symbol,
