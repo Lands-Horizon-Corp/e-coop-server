@@ -62,6 +62,13 @@ type (
 
 		AccountID *uuid.UUID `gorm:"type:uuid" json:"account_id,omitempty"`
 		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
+
+		PostAccountID *uuid.UUID `json:"post_account_id,omitempty"`
+		PostAccount   *Account   `json:"post_account,omitempty"`
+
+		PostedDate     *time.Time `json:"posted_date,omitempty"`
+		PostedByUserID *uuid.UUID `gorm:"type:uuid" json:"posted_by_user_id,omitempty"`
+		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
 	}
 
 	// MutualFundResponse represents the response structure for mutual fund data
@@ -93,6 +100,12 @@ type (
 		ComputationType   MutualFundComputationType              `json:"computation_type"`
 		AccountID         *uuid.UUID                             `json:"account_id,omitempty"`
 		Account           *Account                               `json:"account,omitempty"`
+
+		PostedDate     *time.Time    `json:"posted_date,omitempty"`
+		PostAccountID  *uuid.UUID    `json:"post_account_id,omitempty"`
+		PostAccount    *Account      `json:"post_account,omitempty"`
+		PostedByUserID *uuid.UUID    `json:"posted_by_user_id,omitempty"`
+		PostedByUser   *UserResponse `json:"posted_by_user,omitempty"`
 	}
 
 	// MutualFundRequest represents the request structure for creating/updating mutual fund
@@ -117,6 +130,11 @@ type (
 	MutualFundView struct {
 		TotalAmount       float64                    `json:"total_amount"`
 		MutualFundEntries []*MutualFundEntryResponse `json:"mutual_fund_entries"`
+	}
+	MutualFundViewPostRequest struct {
+		CheckVoucherNumber *string    `json:"check_voucher_number"`
+		PostAccountID      *uuid.UUID `json:"post_account_id"`
+		EntryDate          *time.Time `json:"entry_date"`
 	}
 )
 
@@ -164,6 +182,13 @@ func (m *Core) mutualFund() {
 				ExtensionOnly:     data.ExtensionOnly,
 				Amount:            data.Amount,
 				ComputationType:   data.ComputationType,
+				AccountID:         data.AccountID,
+				Account:           data.Account,
+
+				PostAccountID:  data.PostAccountID,
+				PostAccount:    data.PostAccount,
+				PostedDate:     data.PostedDate,
+				PostedByUserID: data.PostedByUserID,
 			}
 		},
 		Created: func(data *MutualFund) []string {

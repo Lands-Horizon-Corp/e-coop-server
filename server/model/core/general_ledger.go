@@ -17,15 +17,16 @@ type GeneralLedgerSource string
 
 // General ledger source constants
 const (
-	GeneralLedgerSourceWithdraw        GeneralLedgerSource = "withdraw"
-	GeneralLedgerSourceDeposit         GeneralLedgerSource = "deposit"
-	GeneralLedgerSourceJournal         GeneralLedgerSource = "journal"
-	GeneralLedgerSourcePayment         GeneralLedgerSource = "payment"
-	GeneralLedgerSourceAdjustment      GeneralLedgerSource = "adjustment"
-	GeneralLedgerSourceJournalVoucher  GeneralLedgerSource = "journal voucher"
-	GeneralLedgerSourceCheckVoucher    GeneralLedgerSource = "check voucher"
-	GeneralLedgerSourceLoan            GeneralLedgerSource = "loan"
-	GeneralLedgerSourceSavingsInterest GeneralLedgerSource = "savings interest"
+	GeneralLedgerSourceWithdraw           GeneralLedgerSource = "withdraw"
+	GeneralLedgerSourceDeposit            GeneralLedgerSource = "deposit"
+	GeneralLedgerSourceJournal            GeneralLedgerSource = "journal"
+	GeneralLedgerSourcePayment            GeneralLedgerSource = "payment"
+	GeneralLedgerSourceAdjustment         GeneralLedgerSource = "adjustment"
+	GeneralLedgerSourceJournalVoucher     GeneralLedgerSource = "journal voucher"
+	GeneralLedgerSourceCheckVoucher       GeneralLedgerSource = "check voucher"
+	GeneralLedgerSourceLoan               GeneralLedgerSource = "loan"
+	GeneralLedgerSourceSavingsInterest    GeneralLedgerSource = "savings interest"
+	GeneralLedgerSourceMutualContribution GeneralLedgerSource = "mutual contribution"
 )
 
 // Assumes you have TypeOfPaymentType defined elsewhere, as in your payment_type model
