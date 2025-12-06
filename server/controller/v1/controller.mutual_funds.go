@@ -568,6 +568,125 @@ func (c *Controller) mutualFundsController() {
 		return ctx.JSON(http.StatusOK, mutualFundView)
 	})
 
+	// PUT /api/v1/mutual-fund/:mutual_fund_id/print
+	req.RegisterRoute(handlers.Route{
+		Method: "PUT",
+		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print",
+		Note:   "Prints mutual fund entries.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		mutualFundID, err := handlers.EngineUUIDParam(ctx, "mutual_fund_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to print mutual fund entries"})
+		}
+		mutualFund, err := c.core.MutualFundManager.GetByID(context, *mutualFundID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
+		}
+		if mutualFund == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund not found"})
+		}
+		if mutualFund.PrintedDate != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund has already been printed"})
+		}
+		now := time.Now().UTC()
+		mutualFund.PrintedByUserID = &userOrg.UserID
+		mutualFund.PrintedDate = &now
+		if err := c.core.MutualFundManager.UpdateByID(context, mutualFund.ID, mutualFund); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund as printed: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MutualFundManager.ToModel(mutualFund))
+	})
+
+	// PUT /api/v1/mutual-fund/:mutual_fund_id/print-undo
+	req.RegisterRoute(handlers.Route{
+		Method: "PUT",
+		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print-undo",
+		Note:   "Undoes the print status of mutual fund entries.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		mutualFundID, err := handlers.EngineUUIDParam(ctx, "mutual_fund_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo print status of mutual fund entries"})
+		}
+		mutualFund, err := c.core.MutualFundManager.GetByID(context, *mutualFundID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
+		}
+		if mutualFund == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund not found"})
+		}
+		if mutualFund.PrintedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund has not been printed yet"})
+		}
+		if mutualFund.PostedDate != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot undo print status - mutual fund has already been posted"})
+		}
+		mutualFund.PrintedByUserID = nil
+		mutualFund.PrintedDate = nil
+		if err := c.core.MutualFundManager.UpdateByID(context, mutualFund.ID, mutualFund); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print status of mutual fund: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MutualFundManager.ToModel(mutualFund))
+	})
+
+	// PUT /api/v1/mutual-fund/:mutual_fund_id/post
+	req.RegisterRoute(handlers.Route{
+		Method:      "PUT",
+		Route:       "/api/v1/mutual-fund/:mutual_fund_id/post",
+		RequestType: core.MutualFundViewPostRequest{},
+		Note:        "Posts mutual fund entries.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		mutualFundID, err := handlers.EngineUUIDParam(ctx, "mutual_fund_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund ID"})
+		}
+		var req core.MutualFundViewPostRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid post request payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post mutual fund entries"})
+		}
+		mutualFund, err := c.core.MutualFundManager.GetByID(context, *mutualFundID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
+		}
+		if mutualFund.PrintedDate == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund must be printed before posting"})
+		}
+		if mutualFund.PostedDate != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund has already been posted"})
+		}
+		if err := c.event.GenerateMutualFundEntriesPost(
+			context, userOrg, mutualFundID, req); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post mutual fund entries: " + err.Error()})
+		}
+		return ctx.NoContent(http.StatusNoContent)
+	})
+
 	//
 
 }
