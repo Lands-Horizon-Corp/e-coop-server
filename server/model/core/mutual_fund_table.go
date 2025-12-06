@@ -32,9 +32,9 @@ type (
 		MutualFundID uuid.UUID   `gorm:"type:uuid;not null;index:idx_mutual_fund_table" json:"mutual_fund_id"`
 		MutualFund   *MutualFund `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"mutual_fund,omitempty"`
 
-		MonthFrom time.Time `gorm:"not null" json:"month_from"`
-		MonthTo   time.Time `gorm:"not null" json:"month_to"`
-		Amount    float64   `gorm:"type:decimal(15,4);not null" json:"amount"`
+		MonthFrom int     `gorm:"not null" json:"month_from"`
+		MonthTo   int     `gorm:"not null" json:"month_to"`
+		Amount    float64 `gorm:"type:decimal(15,4);not null" json:"amount"`
 	}
 
 	// MutualFundTableResponse represents the response structure for MutualFundTable.
@@ -52,8 +52,8 @@ type (
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 		MutualFundID   uuid.UUID             `json:"mutual_fund_id"`
 		MutualFund     *MutualFundResponse   `json:"mutual_fund,omitempty"`
-		MonthFrom      string                `json:"month_from"`
-		MonthTo        string                `json:"month_to"`
+		MonthFrom      int                   `json:"month_from"`
+		MonthTo        int                   `json:"month_to"`
 		Amount         float64               `json:"amount"`
 	}
 
@@ -61,8 +61,8 @@ type (
 	MutualFundTableRequest struct {
 		ID           *uuid.UUID `json:"id,omitempty"`
 		MutualFundID uuid.UUID  `json:"mutual_fund_id" validate:"required"`
-		MonthFrom    time.Time  `json:"month_from" validate:"required"`
-		MonthTo      time.Time  `json:"month_to" validate:"required"`
+		MonthFrom    int        `json:"month_from" validate:"required,gte=1"`
+		MonthTo      int        `json:"month_to" validate:"required,gte=1"`
 		Amount       float64    `json:"amount" validate:"required,gte=0"`
 	}
 )
@@ -90,8 +90,8 @@ func (m *Core) mutualFundTable() {
 				Branch:         m.BranchManager.ToModel(data.Branch),
 				MutualFundID:   data.MutualFundID,
 				MutualFund:     m.MutualFundManager.ToModel(data.MutualFund),
-				MonthFrom:      data.MonthFrom.Format(time.RFC3339),
-				MonthTo:        data.MonthTo.Format(time.RFC3339),
+				MonthFrom:      data.MonthFrom,
+				MonthTo:        data.MonthTo,
 				Amount:         data.Amount,
 			}
 		},
