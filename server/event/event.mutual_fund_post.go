@@ -9,43 +9,40 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (e *Event) GenerateSavingsInterestEntriesPost(
+func (e *Event) GenerateMutualFundEntriesPost(
 	context context.Context,
 	userOrg *core.UserOrganization,
-	generateSavingsInterestID *uuid.UUID,
-	request core.GenerateSavingsInterestPostRequest,
+	mutualFundID *uuid.UUID,
+	request core.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	generateSavingsInterest, err := e.core.GeneratedSavingsInterestManager.GetByID(context, *generateSavingsInterestID)
+	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID)
 	if err != nil {
-		return endTx(eris.Wrap(err, "failed to get generated savings interest"))
+		return endTx(err)
 	}
-	generatedSavinggEntry, err := e.core.GeneratedSavingsInterestEntryManager.Find(context, &core.GeneratedSavingsInterestEntry{
-		OrganizationID:             userOrg.OrganizationID,
-		BranchID:                   *userOrg.BranchID,
-		GeneratedSavingsInterestID: *generateSavingsInterestID,
-	}, "Account")
+	mutualFundEntries, err := e.core.MutualFundEntryManager.Find(context, &core.MutualFundEntry{
+		OrganizationID: userOrg.OrganizationID,
+		BranchID:       *userOrg.BranchID,
+		MutualFundID:   mutualFund.ID,
+	}, "MemberProfile", "Account.Currency")
 	if err != nil {
-		return endTx(eris.Wrap(err, "failed to find generated savings interest entries"))
+		return endTx(err)
 	}
 	now := time.Now().UTC()
 	userOrgTime := userOrg.UserOrgTime()
-	totalTax, totalInterest := 0.0, 0.0
-
 	if request.EntryDate != nil {
 		userOrgTime = *request.EntryDate
 	}
-	for _, entry := range generatedSavinggEntry {
-
+	totalAmount := 0.0
+	for _, entry := range mutualFundEntries {
 		var credit, debit float64
-		if e.provider.Service.Decimal.IsGreaterThan(entry.InterestAmount, 0) {
-			credit = e.provider.Service.Decimal.Subtract(entry.InterestAmount, entry.InterestTax)
+		if e.provider.Service.Decimal.IsGreaterThan(entry.Amount, 0) {
+			credit = e.provider.Service.Decimal.Subtract(entry.Amount, entry.Amount)
 			debit = 0
 		} else {
 			credit = 0
-			debit = e.provider.Service.Decimal.Abs(entry.InterestAmount)
+			debit = e.provider.Service.Decimal.Abs(entry.Amount)
 		}
-
 		newGeneralLedger := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
@@ -58,9 +55,9 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 			AccountID:                  &entry.AccountID,
 			MemberProfileID:            &entry.MemberProfileID,
 			TransactionReferenceNumber: *request.CheckVoucherNumber,
-			Source:                     core.GeneralLedgerSourceSavingsInterest,
+			Source:                     core.GeneralLedgerSourceMutualContribution,
 			EmployeeUserID:             &userOrg.UserID,
-			Description:                entry.Account.Description + " - Generated in Savings Interest",
+			Description:                entry.Account.Description + " - Generated in mutual fund post",
 			TypeOfPaymentType:          core.PaymentTypeSystem,
 			Credit:                     credit,
 			Debit:                      debit,
@@ -71,27 +68,25 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
-		if generateSavingsInterest.PostAccountID != nil {
+		if mutualFund.PostAccountID != nil {
 			newGeneralLedger.Credit = debit
 			newGeneralLedger.Debit = credit
-			newGeneralLedger.AccountID = generateSavingsInterest.PostAccountID
-			newGeneralLedger.Account = generateSavingsInterest.PostAccount
+			newGeneralLedger.AccountID = mutualFund.PostAccountID
+			newGeneralLedger.Account = mutualFund.PostAccount
 			if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 				return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 			}
 		}
-		totalTax = e.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-		totalInterest = e.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+		totalAmount = e.provider.Service.Decimal.Add(totalAmount, entry.Amount)
 
 	}
-	
-	
-	generateSavingsInterest.PostedDate = &now
-	generateSavingsInterest.PostedByUserID = &userOrg.UserID
-	generateSavingsInterest.PostAccountID = request.PostAccountID
-	generateSavingsInterest.TotalInterest = totalInterest
-	generateSavingsInterest.TotalTax = totalTax
-	if err := e.core.GeneratedSavingsInterestManager.UpdateByIDWithTx(context, tx, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+
+	mutualFund.PostedDate = &now
+	mutualFund.PostedByUserID = &userOrg.UserID
+	mutualFund.TotalAmount = totalAmount
+	mutualFund.PostAccountID = request.PostAccountID
+
+	if err := e.core.MutualFundManager.UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
 	if err := endTx(nil); err != nil {

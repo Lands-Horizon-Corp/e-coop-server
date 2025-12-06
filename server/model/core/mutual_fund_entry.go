@@ -29,6 +29,9 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_mutual_fund_entry" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
+		MutualFundID uuid.UUID   `gorm:"type:uuid;not null;index:idx_mutual_fund_entry_mutual_fund" json:"mutual_fund_id"`
+		MutualFund   *MutualFund `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"mutual_fund,omitempty"`
+
 		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null;index:idx_mutual_fund_entry_member" json:"member_profile_id"`
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 
@@ -56,6 +59,8 @@ type (
 		AccountID       uuid.UUID              `json:"account_id"`
 		Account         *AccountResponse       `json:"account,omitempty"`
 		Amount          float64                `json:"amount"`
+		MutualFundID    uuid.UUID              `json:"mutual_fund_id"`
+		MutualFund      *MutualFundResponse    `json:"mutual_fund,omitempty"`
 	}
 
 	// MutualFundEntryRequest represents the request structure for MutualFundEntry.
@@ -70,8 +75,13 @@ type (
 func (m *Core) mutualFundEntry() {
 	m.Migration = append(m.Migration, &MutualFundEntry{})
 	m.MutualFundEntryManager = *registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MemberProfile", "Account"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"Organization",
+			"Branch",
+			"MemberProfile", "Account", "MutualFund"},
+		Service: m.provider.Service,
 		Resource: func(data *MutualFundEntry) *MutualFundEntryResponse {
 			if data == nil {
 				return nil
@@ -93,6 +103,8 @@ func (m *Core) mutualFundEntry() {
 				AccountID:       data.AccountID,
 				Account:         m.AccountManager.ToModel(data.Account),
 				Amount:          data.Amount,
+				MutualFundID:    data.MutualFundID,
+				MutualFund:      m.MutualFundManager.ToModel(data.MutualFund),
 			}
 		},
 		Created: func(data *MutualFundEntry) []string {
