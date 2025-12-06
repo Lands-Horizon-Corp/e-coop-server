@@ -687,6 +687,40 @@ func (c *Controller) mutualFundsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	//
+	// GET /api/v1/mutual-fund/:mutual_fund_id/view
+	req.RegisterRoute(handlers.Route{
+		Method:       "GET",
+		Route:        "/api/v1/mutual-fund/:mutual_fund_id/view",
+		ResponseType: core.MutualFundView{},
+		Note:         "Returns mutual fund entries for a specific mutual fund ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		mutualFundID, err := handlers.EngineUUIDParam(ctx, "mutual_fund_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund ID"})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+
+		entries, err := c.core.MutualFundEntryManager.Find(context, &core.MutualFundEntry{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			MutualFundID:   *mutualFundID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund entries: " + err.Error()})
+		}
+		totalAmount := 0.0
+
+		for _, entry := range entries {
+			totalAmount = c.provider.Service.Decimal.Add(totalAmount, entry.Amount)
+		}
+		return ctx.JSON(http.StatusOK, core.MutualFundView{
+			MutualFundEntries: c.core.MutualFundEntryManager.ToModels(entries),
+			TotalAmount:       totalAmount,
+		})
+	})
 
 }
