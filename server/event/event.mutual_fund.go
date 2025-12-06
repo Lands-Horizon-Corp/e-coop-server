@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -27,6 +28,12 @@ func (e *Event) GenerateMutualFundEntries(
 		return nil, eris.Wrap(err, "failed to find member profiles")
 	}
 	for _, profile := range memberProfile {
+		if handlers.UUIDPtrEqual(&profile.ID, &mutualFund.MemberProfileID) {
+			continue
+		}
+		if mutualFund.MemberType != nil && !handlers.UUIDPtrEqual(profile.MemberTypeID, mutualFund.MemberTypeID) {
+			continue
+		}
 		amount := 0.0
 		switch mutualFund.ComputationType {
 		case core.ComputationTypeContinuous:
