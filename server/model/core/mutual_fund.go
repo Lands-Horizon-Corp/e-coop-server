@@ -66,6 +66,10 @@ type (
 		PostAccountID *uuid.UUID `json:"post_account_id,omitempty"`
 		PostAccount   *Account   `json:"post_account,omitempty"`
 
+		PrintedByUserID *uuid.UUID `gorm:"type:uuid"`
+		PrintedByUser   *User      `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:SET NULL;" json:"printed_by_user,omitempty"`
+		PrintedDate     *time.Time `gorm:"" json:"printed_date,omitempty"`
+
 		PostedDate     *time.Time `json:"posted_date,omitempty"`
 		PostedByUserID *uuid.UUID `gorm:"type:uuid" json:"posted_by_user_id,omitempty"`
 		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
@@ -100,6 +104,10 @@ type (
 		ComputationType   MutualFundComputationType              `json:"computation_type"`
 		AccountID         *uuid.UUID                             `json:"account_id,omitempty"`
 		Account           *Account                               `json:"account,omitempty"`
+
+		PrintedByUserID *uuid.UUID    `json:"printed_by_user_id,omitempty"`
+		PrintedByUser   *UserResponse `json:"printed_by_user,omitempty"`
+		PrintedDate     *string       `json:"printed_date,omitempty"`
 
 		PostedDate     *time.Time    `json:"posted_date,omitempty"`
 		PostAccountID  *uuid.UUID    `json:"post_account_id,omitempty"`
@@ -156,6 +164,11 @@ func (m *Core) mutualFund() {
 			if data == nil {
 				return nil
 			}
+			var printedDate *string
+			if data.PrintedDate != nil {
+				formatted := data.PrintedDate.Format(time.RFC3339)
+				printedDate = &formatted
+			}
 			return &MutualFundResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
@@ -184,6 +197,10 @@ func (m *Core) mutualFund() {
 				ComputationType:   data.ComputationType,
 				AccountID:         data.AccountID,
 				Account:           data.Account,
+
+				PrintedByUserID: data.PrintedByUserID,
+				PrintedByUser:   m.UserManager.ToModel(data.PrintedByUser),
+				PrintedDate:     printedDate,
 
 				PostAccountID:  data.PostAccountID,
 				PostAccount:    data.PostAccount,

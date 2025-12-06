@@ -568,4 +568,6 @@ func (c *Controller) mutualFundsController() {
 		return ctx.JSON(http.StatusOK, mutualFundView)
 	})
 
+	//
+
 }
