@@ -217,9 +217,11 @@ type (
 		InterestRateByDateManager             registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest]
 		InterestRateByAmountManager           registry.Registry[InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest]
 
-		MutualAidContributionManager       registry.Registry[MutualAidContribution, MutualAidContributionResponse, MutualAidContributionRequest]
+		// Mutual funds
 		MutualFundAdditionalMembersManager registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]
 		MutualFundManager                  registry.Registry[MutualFund, MutualFundResponse, MutualFundRequest]
+		MutualFundTableManager             registry.Registry[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]
+		MutualFundEntryManager             registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]
 	}
 )
 
@@ -375,9 +377,10 @@ func (m *Core) Start() error {
 	m.branchSetting()
 	m.company()
 	m.memberProfileArchive()
-	m.mutualAidContribution()
 	m.mutualFundAdditionalMembers()
 	m.mutualFund()
+	m.mutualFundTable()
+	m.mutualFundEntry()
 	return nil
 }
 func (m *Core) GlobalSeeder(ctx context.Context) error {

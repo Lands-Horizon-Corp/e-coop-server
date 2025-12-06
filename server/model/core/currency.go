@@ -167,10 +167,13 @@ func (m *Core) currencySeed(context context.Context) error {
 	now := time.Now().UTC()
 	availableLocales := numi18n.PerCountryLocales()
 	for _, locales := range availableLocales {
+		if len(locales.NumI18Identifier.ISO3166Alpha2) != 2 {
+			continue
+		}
 		currency := &Currency{
 			CreatedAt:      now,
 			UpdatedAt:      now,
-			Name:           locales.Currency.Name,
+			Name:           locales.NumI18Identifier.Locale + " " + locales.Currency.Name,
 			Country:        locales.NumI18Identifier.CountryName,
 			CurrencyCode:   locales.NumI18Identifier.Currency,
 			Symbol:         locales.Currency.Symbol,

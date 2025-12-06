@@ -164,5 +164,7 @@ func (c *Controller) Start() error {
 	c.browseReferenceController()
 	c.generateSavingsInterest()
 	c.generatedSavingsInterestEntryController()
+	c.mutualFundsController()
+	c.mutualFundEntryController()
 	return nil
 }

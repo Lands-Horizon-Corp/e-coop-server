@@ -15,6 +15,10 @@ type RateLimiterConfig struct {
 	// RequestsPerSecond defines the maximum number of requests allowed per second
 	RequestsPerSecond int
 
+	// RequestsPerMinute defines the maximum number of requests allowed per minute
+	// If set to 0, RequestsPerSecond will be used instead
+	RequestsPerMinute int
+
 	// BurstCapacity allows temporary bursts above the normal rate
 	BurstCapacity int
 
@@ -28,7 +32,8 @@ type RateLimiterConfig struct {
 // DefaultRateLimiterConfig returns a sensible default configuration
 func DefaultRateLimiterConfig() RateLimiterConfig {
 	return RateLimiterConfig{
-		RequestsPerSecond: 20,
+		RequestsPerSecond: 0,  // Use requests per minute instead
+		RequestsPerMinute: 60, // 60 requests per minute
 		BurstCapacity:     100,
 		WindowDuration:    1 * time.Minute,
 		KeyPrefix:         "rate_limit",
@@ -40,6 +45,16 @@ type RateLimiter struct {
 	cache  CacheService
 	logger *zap.Logger
 	config RateLimiterConfig
+}
+
+// getEffectiveRequestRate returns the effective requests per second based on configuration
+func (rl *RateLimiter) getEffectiveRequestRate() float64 {
+	if rl.config.RequestsPerMinute > 0 {
+		// Use requests per minute, convert to requests per second
+		return float64(rl.config.RequestsPerMinute) / 60.0
+	}
+	// Fallback to requests per second
+	return float64(rl.config.RequestsPerSecond)
 }
 
 // NewRateLimiter creates a new RateLimiter instance
@@ -54,6 +69,18 @@ func NewRateLimiter(cache CacheService, logger *zap.Logger, config RateLimiterCo
 // NewRateLimiterWithDefaults creates a new RateLimiter with default configuration
 func NewRateLimiterWithDefaults(cache CacheService, logger *zap.Logger) *RateLimiter {
 	return NewRateLimiter(cache, logger, DefaultRateLimiterConfig())
+}
+
+// NewRateLimiterPerMinute creates a new RateLimiter with requests per minute configuration
+func NewRateLimiterPerMinute(cache CacheService, logger *zap.Logger, requestsPerMinute int) *RateLimiter {
+	config := RateLimiterConfig{
+		RequestsPerSecond: 0,
+		RequestsPerMinute: requestsPerMinute,
+		BurstCapacity:     requestsPerMinute * 2, // Allow burst of 2x the per-minute rate
+		WindowDuration:    1 * time.Minute,
+		KeyPrefix:         "rate_limit",
+	}
+	return NewRateLimiter(cache, logger, config)
 }
 
 // Allow checks if a request should be allowed based on the rate limit
@@ -90,7 +117,8 @@ func (rl *RateLimiter) Allow(ctx context.Context, identifier string) (bool, erro
 	}
 
 	// Calculate maximum requests allowed in the current window
-	maxRequests := int(float64(rl.config.RequestsPerSecond) * rl.config.WindowDuration.Seconds())
+	effectiveRate := rl.getEffectiveRequestRate()
+	maxRequests := int(effectiveRate * rl.config.WindowDuration.Seconds())
 
 	if currentCount >= maxRequests {
 		rl.logger.Debug("Rate limit exceeded",
@@ -98,6 +126,8 @@ func (rl *RateLimiter) Allow(ctx context.Context, identifier string) (bool, erro
 			zap.String("key", key),
 			zap.Int("current_count", currentCount),
 			zap.Int("max_requests", maxRequests),
+			zap.Float64("effective_rate", effectiveRate),
+			zap.Int("requests_per_minute", rl.config.RequestsPerMinute),
 			zap.Duration("window", rl.config.WindowDuration),
 		)
 		return false, nil
@@ -142,7 +172,7 @@ func (rl *RateLimiter) AllowWithDetails(ctx context.Context, identifier string) 
 		return true, 0, time.Time{}, err
 	}
 
-	maxRequests := int(float64(rl.config.RequestsPerSecond) * rl.config.WindowDuration.Seconds())
+	maxRequests := int(rl.getEffectiveRequestRate() * rl.config.WindowDuration.Seconds())
 	remaining = maxRequests - currentCount
 	if remaining < 0 {
 		remaining = 0
@@ -186,7 +216,7 @@ func (rl *RateLimiter) GetStatus(ctx context.Context, identifier string) (curren
 		return 0, 0, time.Time{}, err
 	}
 
-	maxRequests := int(float64(rl.config.RequestsPerSecond) * rl.config.WindowDuration.Seconds())
+	maxRequests := int(rl.getEffectiveRequestRate() * rl.config.WindowDuration.Seconds())
 	remaining = maxRequests - current
 	if remaining < 0 {
 		remaining = 0
@@ -271,7 +301,11 @@ func (rl *RateLimiter) RateLimitMiddleware(identifierExtractor func(c echo.Conte
 			}
 
 			// Set rate limit headers
-			c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", rl.config.RequestsPerSecond))
+			if rl.config.RequestsPerMinute > 0 {
+				c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d per minute", rl.config.RequestsPerMinute))
+			} else {
+				c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d per second", rl.config.RequestsPerSecond))
+			}
 			c.Response().Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", remaining))
 			c.Response().Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", resetTime.Unix()))
 
