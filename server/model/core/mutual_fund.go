@@ -15,9 +15,10 @@ type MutualFundComputationType string
 
 // Computation type constants
 const (
-	ComputationTypeTotalAmount         MutualFundComputationType = "total_amount"
-	ComputationTypeByAmount            MutualFundComputationType = "by_amount"
-	ComputationTypeByMemberAmount      MutualFundComputationType = "by_member_amount"
+	ComputationTypeContinuous MutualFundComputationType = "continuous"
+	ComputationTypeUpToZero   MutualFundComputationType = "up_to_zero"
+	ComputationTypeSufficient MutualFundComputationType = "sufficient"
+
 	ComputationTypeByMemberClassAmount MutualFundComputationType = "by_member_class_amount"
 	ComputationTypeByMembershipYear    MutualFundComputationType = "by_membership_year"
 )
@@ -53,6 +54,11 @@ type (
 		ExtensionOnly   bool                      `gorm:"not null;default:false" json:"extension_only"`
 		Amount          float64                   `gorm:"type:decimal;not null" json:"amount"`
 		ComputationType MutualFundComputationType `gorm:"type:varchar(50);not null" json:"computation_type"`
+
+		TotalAmount float64 `gorm:"type:decimal;default:0" json:"total_amount,omitempty"`
+
+		AccountID *uuid.UUID `gorm:"type:uuid" json:"account_id,omitempty"`
+		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
 	}
 
 	// MutualFundResponse represents the response structure for mutual fund data
@@ -79,6 +85,8 @@ type (
 		ExtensionOnly     bool                                   `json:"extension_only"`
 		Amount            float64                                `json:"amount"`
 		ComputationType   MutualFundComputationType              `json:"computation_type"`
+		AccountID         *uuid.UUID                             `json:"account_id,omitempty"`
+		Account           *Account                               `json:"account,omitempty"`
 	}
 
 	// MutualFundRequest represents the request structure for creating/updating mutual fund
@@ -96,14 +104,28 @@ type (
 
 		MutualFundAdditionalMembersDeleteIDs uuid.UUIDs `json:"mutual_fund_additional_members_delete_ids,omitempty" validate:"dive"`
 		MutualFundTableDeleteIDs             uuid.UUIDs `json:"mutual_fund_table_delete_ids,omitempty" validate:"dive"`
+		AccountID                            *uuid.UUID `json:"account_id,omitempty"`
+	}
+
+	MutualFundView struct {
+		TotalAmount       float64                    `json:"total_amount"`
+		MutualFundEntries []*MutualFundEntryResponse `json:"mutual_fund_entries"`
 	}
 )
 
 func (m *Core) mutualFund() {
 	m.Migration = append(m.Migration, &MutualFund{})
 	m.MutualFundManager = *registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MemberProfile", "MutualAidContribution", "AdditionalMembers", "AdditionalMembers.MemberType", "MutualFundTables"},
-		Service:  m.provider.Service,
+		Preloads: []string{
+			"CreatedBy",
+			"UpdatedBy",
+			"MemberProfile",
+			"MutualAidContribution",
+			"AdditionalMembers",
+			"AdditionalMembers.MemberType",
+			"MutualFundTables",
+			"Account"},
+		Service: m.provider.Service,
 		Resource: func(data *MutualFund) *MutualFundResponse {
 			if data == nil {
 				return nil

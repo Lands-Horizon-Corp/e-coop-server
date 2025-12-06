@@ -507,6 +507,6 @@ func (c *Controller) mutualFundsController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+	// GET /mutual-fund/view
 
-	// GET /mutual-fund/
 }
