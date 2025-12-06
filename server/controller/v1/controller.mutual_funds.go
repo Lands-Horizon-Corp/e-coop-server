@@ -263,35 +263,40 @@ func (c *Controller) mutualFundsController() {
 		mutualFund.UpdatedByID = userOrg.UserID
 		mutualFund.MemberTypeID = req.MemberTypeID
 
-		if err := c.core.MutualFundManager.UpdateByID(context, mutualFund.ID, mutualFund); err != nil {
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+
+		if err := c.core.MutualFundManager.UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Mutual fund update failed (/mutual-fund/:mutual_fund_id), db error: " + err.Error(),
 				Module:      "MutualFund",
 			})
+			endTx(err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund: " + err.Error()})
 		}
 
 		// Handle additional members deletion
 		if len(req.MutualFundAdditionalMembersDeleteIDs) > 0 {
-			if err := c.core.MutualFundAdditionalMembersManager.BulkDelete(context, req.MutualFundAdditionalMembersDeleteIDs); err != nil {
+			if err := c.core.MutualFundAdditionalMembersManager.BulkDeleteWithTx(context, tx, req.MutualFundAdditionalMembersDeleteIDs); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete additional members: " + err.Error(),
 					Module:      "MutualFund",
 				})
+				endTx(err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete additional members: " + err.Error()})
 			}
 		}
 
 		// Handle mutual fund tables deletion
 		if len(req.MutualFundTableDeleteIDs) > 0 {
-			if err := c.core.MutualFundTableManager.BulkDelete(context, req.MutualFundTableDeleteIDs); err != nil {
+			if err := c.core.MutualFundTableManager.BulkDeleteWithTx(context, tx, req.MutualFundTableDeleteIDs); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete mutual fund tables: " + err.Error(),
 					Module:      "MutualFund",
 				})
+				endTx(err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete mutual fund tables: " + err.Error()})
 			}
 		}
@@ -307,6 +312,7 @@ func (c *Controller) mutualFundsController() {
 						Description: "Additional member not found for update: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Additional member not found: " + err.Error()})
 				}
 				existingMember.MemberTypeID = additionalMember.MemberTypeID
@@ -314,12 +320,13 @@ func (c *Controller) mutualFundsController() {
 				existingMember.Ratio = additionalMember.Ratio
 				existingMember.UpdatedAt = time.Now().UTC()
 				existingMember.UpdatedByID = userOrg.UserID
-				if err := c.core.MutualFundAdditionalMembersManager.UpdateByID(context, existingMember.ID, existingMember); err != nil {
+				if err := c.core.MutualFundAdditionalMembersManager.UpdateByIDWithTx(context, tx, existingMember.ID, existingMember); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Additional member update failed: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update additional member: " + err.Error()})
 				}
 			} else {
@@ -336,12 +343,13 @@ func (c *Controller) mutualFundsController() {
 					BranchID:        *userOrg.BranchID,
 					OrganizationID:  userOrg.OrganizationID,
 				}
-				if err := c.core.MutualFundAdditionalMembersManager.Create(context, additionalMemberData); err != nil {
+				if err := c.core.MutualFundAdditionalMembersManager.CreateWithTx(context, tx, additionalMemberData); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Additional member creation failed: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create additional member: " + err.Error()})
 				}
 			}
@@ -358,6 +366,7 @@ func (c *Controller) mutualFundsController() {
 						Description: "Mutual fund table not found for update: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund table not found: " + err.Error()})
 				}
 				existingTable.MonthFrom = mutualFundTable.MonthFrom
@@ -365,12 +374,13 @@ func (c *Controller) mutualFundsController() {
 				existingTable.Amount = mutualFundTable.Amount
 				existingTable.UpdatedAt = time.Now().UTC()
 				existingTable.UpdatedByID = userOrg.UserID
-				if err := c.core.MutualFundTableManager.UpdateByID(context, existingTable.ID, existingTable); err != nil {
+				if err := c.core.MutualFundTableManager.UpdateByIDWithTx(context, tx, existingTable.ID, existingTable); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Mutual fund table update failed: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund table: " + err.Error()})
 				}
 			} else {
@@ -387,14 +397,37 @@ func (c *Controller) mutualFundsController() {
 					BranchID:       *userOrg.BranchID,
 					OrganizationID: userOrg.OrganizationID,
 				}
-				if err := c.core.MutualFundTableManager.Create(context, mutualFundTableData); err != nil {
+				if err := c.core.MutualFundTableManager.CreateWithTx(context, tx, mutualFundTableData); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Mutual fund table creation failed: " + err.Error(),
 						Module:      "MutualFund",
 					})
+					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund table: " + err.Error()})
 				}
+			}
+		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+		mutualFundUpdated, err := c.core.MutualFundManager.GetByID(context, *mutualFundID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
+		}
+		mutualFundView, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFundUpdated)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
+		}
+		for _, entry := range mutualFundView {
+			if err := c.core.MutualFundEntryManager.CreateWithTx(context, tx, entry); err != nil {
+				c.event.Footstep(ctx, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Mutual fund entry creation failed: " + err.Error(),
+					Module:      "MutualFund",
+				})
+				endTx(err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund entry: " + err.Error()})
 			}
 		}
 
