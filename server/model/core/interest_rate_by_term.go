@@ -30,7 +30,7 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		Name       string `gorm:"type:varchar(255)"`
-		Descrition string `gorm:"type:varchar(4028)"` // Note: spelling matches schema
+		Descrition string `gorm:"type:text"`
 
 		MemberClassificationInterestRateID uuid.UUID                         `gorm:"type:uuid"`
 		MemberClassificationInterestRate   *MemberClassificationInterestRate `gorm:"foreignKey:MemberClassificationInterestRateID;constraint:OnDelete:SET NULL;" json:"member_classification_interest_rate,omitempty"`

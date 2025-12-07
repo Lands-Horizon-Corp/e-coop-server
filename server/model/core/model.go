@@ -182,7 +182,6 @@ type (
 		GroceryComputationSheetManager        registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
 		GroceryComputationSheetMonthlyManager registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
 		InterestRateSchemeManager             registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
-		InterestRateByTermsHeaderManager      registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
 		InterestRateByTermManager             registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
 		InterestRatePercentageManager         registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
 
@@ -292,7 +291,6 @@ func (m *Core) Start() error {
 	m.interestRateByYear()
 	m.interestRateByDate()
 	m.interestRateByAmount()
-	m.interestRateByTermsHeader()
 	m.interestRatePercentage()
 	m.interestRateScheme()
 	m.invitationCode()
