@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) fundsController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all funds for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
 		ResponseType: core.FundsResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Get paginated funds
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
 		ResponseType: core.FundsResponse{},
@@ -55,7 +55,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Create a new funds record
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
 		ResponseType: core.FundsResponse{},
@@ -115,7 +115,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Update an existing funds record by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
 		ResponseType: core.FundsResponse{},
@@ -185,7 +185,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Delete a funds record by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/funds/:funds_id",
 		Method: "DELETE",
 		Note:   "Deletes a funds record by its ID.",
@@ -225,7 +225,7 @@ func (c *Controller) fundsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple funds records by their IDs.",

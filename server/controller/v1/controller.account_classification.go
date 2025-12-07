@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) accountClassificationController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET endpoints (no footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/search",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch.",
@@ -38,7 +38,7 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusOK, classifications)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
@@ -62,7 +62,7 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModels(classifications))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "GET",
 		Note:         "Get an account classification by ID.",
@@ -81,7 +81,7 @@ func (c *Controller) accountClassificationController() {
 	})
 
 	// POST - Create (with footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "POST",
 		Note:         "Create a new account classification for the current branch.",
@@ -144,7 +144,7 @@ func (c *Controller) accountClassificationController() {
 	})
 
 	// PUT - Update (with footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "PUT",
 		Note:         "Update an account classification by ID.",
@@ -219,7 +219,7 @@ func (c *Controller) accountClassificationController() {
 	})
 
 	// DELETE (single) - with footstep
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-classification/:account_classification_id",
 		Method: "DELETE",
 		Note:   "Delete an account classification by ID.",
@@ -277,7 +277,7 @@ func (c *Controller) accountClassificationController() {
 	})
 
 	// BULK DELETE (with footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",

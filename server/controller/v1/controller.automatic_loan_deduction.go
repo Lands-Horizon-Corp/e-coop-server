@@ -12,10 +12,10 @@ import (
 
 // AutomaticLoanDeductionController registers routes for managing automatic loan deductions.
 func (c *Controller) automaticLoanDeductionController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -46,7 +46,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -77,7 +77,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// POST /automatic-loan-deduction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
@@ -167,7 +167,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
@@ -262,7 +262,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified automatic loan deduction by its ID.",
@@ -302,7 +302,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberDepartmentController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all member department history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department-history",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentHistory{},
@@ -33,7 +33,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get member department history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentHistoryResponse{},
@@ -60,7 +60,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get all member departments for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get paginated member departments
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department/search",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -101,7 +101,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Create a new member department
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "POST",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -159,7 +159,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Update an existing member department by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department/:member_department_id",
 		Method:       "PUT",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -227,7 +227,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Delete a member department by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-department/:member_department_id",
 		Method: "DELETE",
 		Note:   "Deletes a member department record by its ID.",
@@ -268,7 +268,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Simplified bulk-delete handler for member departments (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-department/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member department records by their IDs.",

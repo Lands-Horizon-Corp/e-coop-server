@@ -11,9 +11,9 @@ import (
 )
 
 func (c *Controller) memberAccountingLedgerController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
 		ResponseType: event.MemberAccountingLedgerSummary{},
@@ -32,7 +32,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, summary)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
 		ResponseType: core.MemberAccountingLedgerAccountSummary{},
@@ -80,7 +80,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		})
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberAccountingLedger{},
@@ -123,7 +123,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: core.MemberAccountingLedger{},
@@ -163,7 +163,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.ToModels(entries))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/branch/search",
 		Method:       "GET",
 		ResponseType: core.MemberAccountingLedger{},
@@ -203,7 +203,7 @@ func (c *Controller) memberAccountingLedgerController() {
 	})
 
 	// GET /api/v1/member-accounting-ledger/member-profile/:member-profile-id/compassion-fund-account
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/compassion-fund-account",
 		Method:       "GET",
 		ResponseType: core.MemberAccountingLedger{},

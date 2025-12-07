@@ -12,10 +12,10 @@ import (
 
 // DisbursementController registers routes for managing disbursements.
 func (c *Controller) disbursementController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /disbursement: List all disbursements for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "GET",
 		Note:         "Returns all disbursements for the current user's organization and branch.",
@@ -48,7 +48,7 @@ func (c *Controller) disbursementController() {
 	})
 
 	// GET /disbursement/search: Paginated search of disbursements for the current branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of disbursements for the current user's organization and branch.",
@@ -73,7 +73,7 @@ func (c *Controller) disbursementController() {
 	})
 
 	// GET /disbursement/:disbursement_id: Get specific disbursement by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "GET",
 		Note:         "Returns a single disbursement by its ID.",
@@ -92,7 +92,7 @@ func (c *Controller) disbursementController() {
 	})
 
 	// POST /disbursement: Create a new disbursement.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
 		Note:         "Creates a new disbursement for the current user's organization and branch.",
@@ -157,7 +157,7 @@ func (c *Controller) disbursementController() {
 	})
 
 	// PUT /disbursement/:disbursement_id: Update disbursement by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
 		Note:         "Updates an existing disbursement by its ID.",
@@ -225,7 +225,7 @@ func (c *Controller) disbursementController() {
 	})
 
 	// DELETE /disbursement/:disbursement_id: Delete a disbursement by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/disbursement/:disbursement_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified disbursement by its ID.",
@@ -265,7 +265,7 @@ func (c *Controller) disbursementController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/disbursement/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple disbursements by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

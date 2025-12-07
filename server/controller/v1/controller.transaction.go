@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) transactionController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Create transaction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",
 		RequestType:  core.TransactionRequest{},
@@ -113,7 +113,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusCreated, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "PUT",
 		RequestType:  core.TransactionRequestEdit{},
@@ -187,7 +187,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -212,7 +212,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/current/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -248,7 +248,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactionPagination)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/current",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -287,7 +287,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -320,7 +320,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -353,7 +353,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/branch/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -377,7 +377,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},

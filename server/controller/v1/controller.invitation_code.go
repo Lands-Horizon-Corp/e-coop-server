@@ -12,10 +12,10 @@ import (
 
 // InvitationCode manages endpoints for invitation code resources.
 func (c *Controller) invitationCode() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "GET",
 		ResponseType: core.InvitationCodeResponse{},
@@ -37,7 +37,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// GET /invitation-code/search: Paginated search of invitation codes for current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/invitation-code/search",
 		Method:      "GET",
 		RequestType: core.InvitationCodeRequest{},
@@ -62,7 +62,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// GET /invitation-code/code/:code: Retrieve an invitation code by its code string (for current organization). (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code/code/:code",
 		Method:       "GET",
 		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
@@ -78,7 +78,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// GET /invitation-code/:invitation_code_id: Retrieve a specific invitation code by its ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "GET",
 		Note:         "Returns the details of a specific invitation code by its ID.",
@@ -97,7 +97,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// POST /invitation-code: Create a new invitation code for the current user's organization and branch. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "POST",
 		ResponseType: core.InvitationCodeResponse{},
@@ -178,7 +178,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// PUT /invitation-code/:invitation_code_id: Update an existing invitation code by its ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "PUT",
 		ResponseType: core.InvitationCodeResponse{},
@@ -260,7 +260,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// DELETE /invitation-code/:invitation_code_id: Delete a specific invitation code by its ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/invitation-code/:invitation_code_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific invitation code identified by its ID.",
@@ -301,7 +301,7 @@ func (c *Controller) invitationCode() {
 	})
 
 	// Simplified bulk-delete handler for invitation codes (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

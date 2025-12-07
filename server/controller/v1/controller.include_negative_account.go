@@ -12,10 +12,10 @@ import (
 
 // IncludeNegativeAccountController registers routes for managing include negative accounts.
 func (c *Controller) includeNegativeAccountController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -45,7 +45,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -75,7 +75,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// POST /include-negative-accounts
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -139,7 +139,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// PUT /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -207,7 +207,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// DELETE /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
@@ -248,7 +248,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// Simplified bulk-delete handler for include-negative-accounts (matches feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

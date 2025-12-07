@@ -13,10 +13,10 @@ import (
 
 // MutualFundEntryController registers routes for managing mutual fund entries.
 func (c *Controller) mutualFundEntryController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /mutual-fund-entry: List all mutual fund entries for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +38,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// GET /mutual-fund-entry/search: Paginated search of mutual fund entries for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of mutual fund entries for the current user's organization and branch.",
@@ -63,7 +63,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// GET /mutual-fund-entry/member/:member_id: Get mutual fund entries by member profile ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry/member/:member_id",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for a specific member profile.",
@@ -89,7 +89,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// GET /mutual-fund-entry/account/:account_id: Get mutual fund entries by account ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for a specific account.",
@@ -115,7 +115,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// GET /mutual-fund-entry/:entry_id: Get specific mutual fund entry by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry/:entry_id",
 		Method:       "GET",
 		Note:         "Returns a single mutual fund entry by its ID.",
@@ -134,7 +134,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// POST /mutual-fund-entry: Create a new mutual fund entry. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund entry for the current user's organization and branch.",
@@ -198,7 +198,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// PUT /mutual-fund-entry/:entry_id: Update mutual fund entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund entry by its ID.",
@@ -265,7 +265,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// DELETE /mutual-fund-entry/:entry_id: Delete a mutual fund entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/mutual-fund-entry/:entry_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified mutual fund entry by its ID.",
@@ -306,7 +306,7 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	// DELETE /mutual-fund-entry/bulk-delete: Bulk delete multiple mutual fund entries. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/mutual-fund-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple mutual fund entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

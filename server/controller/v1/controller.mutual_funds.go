@@ -12,10 +12,10 @@ import (
 
 // MutualFundsController registers routes for managing mutual funds.
 func (c *Controller) mutualFundsController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /mutual-fund: List all mutual funds for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/search: Paginated search of mutual funds for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of mutual funds for the current user's organization and branch.",
@@ -62,7 +62,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/member/:member_id: Get mutual funds by member profile ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/member/:member_id",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for a specific member profile.",
@@ -88,7 +88,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/:mutual_fund_id: Get specific mutual fund by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "GET",
 		Note:         "Returns a single mutual fund by its ID.",
@@ -107,7 +107,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// POST /mutual-fund: Create a new mutual fund. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund for the current user's organization and branch.",
@@ -205,7 +205,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /mutual-fund/:mutual_fund_id: Update mutual fund by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund by its ID.",
@@ -440,7 +440,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// DELETE /mutual-fund/:mutual_fund_id: Delete a mutual fund by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified mutual fund by its ID.",
@@ -481,7 +481,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// DELETE /mutual-fund/bulk-delete: Bulk delete multiple mutual funds. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/mutual-fund/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple mutual funds by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -524,7 +524,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/view
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/view",
 		Method:       "POST",
 		Note:         "Retrieves a summarized view of mutual funds including total amount and entries.",
@@ -569,7 +569,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/print
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print",
 		Note:   "Prints mutual fund entries.",
@@ -606,7 +606,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/print-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print-undo",
 		Note:   "Undoes the print status of mutual fund entries.",
@@ -645,7 +645,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/post
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/mutual-fund/:mutual_fund_id/post",
 		RequestType: core.MutualFundViewPostRequest{},
@@ -688,7 +688,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /api/v1/mutual-fund/:mutual_fund_id/view
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id/view",
 		ResponseType: core.MutualFundView{},

@@ -12,10 +12,10 @@ import (
 )
 
 func (c *Controller) accountController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET: Search (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
@@ -38,7 +38,7 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
@@ -67,7 +67,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 	// GET: /api/v1/account/deposit/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all deposit accounts for the current branch.",
@@ -94,7 +94,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/paid-up-shared-capital/search",
 		Method:       "GET",
 		Note:         "Retrieve all paid-up shared capital accounts for the current branch.",
@@ -125,7 +125,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/loan/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
@@ -168,7 +168,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/cash-and-cash-equivalence/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
@@ -218,7 +218,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/ar-ledger/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ar-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Ledger accounts for the current branch.",
@@ -244,7 +244,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/ar-aging/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ar-aging/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Aging accounts for the current branch.",
@@ -272,7 +272,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/fines/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/fines/search",
 		Method:       "GET",
 		Note:         "Retrieve all fines accounts for the current branch.",
@@ -300,7 +300,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/interest/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/interest/search",
 		Method:       "GET",
 		Note:         "Retrieve all interest accounts for the current branch.",
@@ -327,7 +327,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/svf-ledger/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/svf-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all SVF-Ledger accounts for the current branch.",
@@ -353,7 +353,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/w-off/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/w-off/search",
 		Method:       "GET",
 		Note:         "Retrieve all W-Off accounts for the current branch.",
@@ -379,7 +379,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/ap-ledger/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ap-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/P-Ledger accounts for the current branch.",
@@ -406,7 +406,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/other/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/other/search",
 		Method:       "GET",
 		Note:         "Retrieve all other accounts for the current branch.",
@@ -433,7 +433,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: /api/v1/account/time-deposit/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/time-deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all time deposit accounts for the current branch.",
@@ -460,7 +460,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: Search (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -485,7 +485,7 @@ func (c *Controller) accountController() {
 	})
 
 	// POST: Create (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account",
 		Method:       "POST",
 		Note:         "Create a new account for the current branch.",
@@ -662,7 +662,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET: Get by ID (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieve a specific account by ID.",
@@ -681,7 +681,7 @@ func (c *Controller) accountController() {
 	})
 
 	// PUT: Update (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "PUT",
 		Note:         "Update an account by ID.",
@@ -878,7 +878,7 @@ func (c *Controller) accountController() {
 	})
 
 	// DELETE: Single (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account/:account_id",
 		Method: "DELETE",
 		Note:   "Delete an account by ID.",
@@ -955,7 +955,7 @@ func (c *Controller) accountController() {
 	})
 
 	// DELETE: Bulk (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple accounts by their IDs.",
@@ -1047,7 +1047,7 @@ func (c *Controller) accountController() {
 	})
 
 	// PUT: Update index (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/index/:index",
 		Method:       "PUT",
 		Note:         "Update only the index field of an account using URL param.",
@@ -1130,7 +1130,7 @@ func (c *Controller) accountController() {
 	})
 
 	// PUT: Remove GeneralLedgerDefinitionID (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
@@ -1201,7 +1201,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/financial-statement-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
@@ -1274,7 +1274,7 @@ func (c *Controller) accountController() {
 
 	// Quick Search
 	// GET: Search (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1299,7 +1299,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/journal/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1324,7 +1324,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1349,7 +1349,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
@@ -1379,7 +1379,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/adjustment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1404,7 +1404,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1429,7 +1429,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/check-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
@@ -1454,7 +1454,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
@@ -1479,7 +1479,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 	//
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
@@ -1510,7 +1510,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all accounts connected to a computation sheet.",
@@ -1536,7 +1536,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/computation-sheet/:computation_sheet_id/connect",
 		Method:       "PUT",
 		Note:         "Connect an account to a computation sheet.",
@@ -1578,7 +1578,7 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/computation-sheet/disconnect",
 		Method:       "PUT",
 		Note:         "Disconnect an account from a computation sheet.",
@@ -1617,7 +1617,7 @@ func (c *Controller) accountController() {
 	})
 
 	// POST api/v1/account/:account_id/connect-to-loan/:account_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/connect-to-loan/:loan_id",
 		Method:       "POST",
 		Note:         "Connect an account to a loan.",
@@ -1667,7 +1667,7 @@ func (c *Controller) accountController() {
 	})
 
 	// POST api/v1/account/:account_id/disconnect-account
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/disconnect-account",
 		Method:       "POST",
 		Note:         "Disconnect an account from a loan account.",
@@ -1706,7 +1706,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET /api/v1/account/loan-connectable-account-currency/:currency_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/loan-connectable-account-currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
@@ -1736,7 +1736,7 @@ func (c *Controller) accountController() {
 	})
 
 	// GET api/v1/account/:account_id/loan-accounts
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/loan-accounts",
 		Method:       "GET",
 		Note:         "Retrieve loan account connected to an account.",

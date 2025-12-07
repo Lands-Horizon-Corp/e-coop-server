@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) tagTemplateController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Returns all tag templates for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -36,7 +36,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Returns paginated tag templates for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -58,7 +58,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Returns a single tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -77,7 +77,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Creates a new tag template.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
 		ResponseType: core.TagTemplateResponse{},
@@ -137,7 +137,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Updates an existing tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
 		ResponseType: core.TagTemplateResponse{},
@@ -207,7 +207,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Deletes a tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/tag-template/:tag_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a tag template by its ID.",
@@ -248,7 +248,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Simplified bulk-delete handler for tag templates (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},

@@ -12,10 +12,10 @@ import (
 
 // PermissionTemplateController registers all routes related to permission templates.
 func (c *Controller) permissionTemplateController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Fetch all permission templates associated with the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
@@ -34,7 +34,7 @@ func (c *Controller) permissionTemplateController() {
 	})
 
 	// Fetch all permission templates (paginated) for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/search",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
@@ -56,7 +56,7 @@ func (c *Controller) permissionTemplateController() {
 	})
 
 	// Fetch a single permission template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
@@ -77,7 +77,7 @@ func (c *Controller) permissionTemplateController() {
 	})
 
 	// Create a new permission template.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "POST",
 		RequestType:  core.PermissionTemplateRequest{},
@@ -137,7 +137,7 @@ func (c *Controller) permissionTemplateController() {
 	})
 
 	// Update an existing permission template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "PUT",
 		RequestType:  core.PermissionTemplateRequest{},
@@ -213,7 +213,7 @@ func (c *Controller) permissionTemplateController() {
 	})
 
 	// Delete a permission template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/permission-template/:permission_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a permission template by its ID.",

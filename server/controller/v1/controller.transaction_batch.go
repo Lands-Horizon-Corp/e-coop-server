@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) transactionBatchController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// List all transaction batches for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
@@ -39,7 +39,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Paginate transaction batches for current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
@@ -61,7 +61,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Update batch signatures for a transaction batch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
 		ResponseType: core.TransactionBatchResponse{},
@@ -174,7 +174,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Get the current active transaction batch for the user
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
@@ -205,7 +205,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Update deposit in bank amount for a specific transaction batch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
 		ResponseType: core.TransactionBatchResponse{},
@@ -317,7 +317,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Create a new transaction batch and batch funding
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
 		ResponseType: core.TransactionBatchResponse{},
@@ -453,7 +453,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// End the current transaction batch for the authenticated user
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
 		RequestType:  core.TransactionBatchEndRequest{},
@@ -544,7 +544,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Retrieve a transaction batch by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
@@ -577,7 +577,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Submit a request to view (blotter) a specific transaction batch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
 		RequestType:  core.TransactionBatchEndRequest{},
@@ -665,7 +665,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// List all pending view (blotter) requests for transaction batches
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
@@ -687,7 +687,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// List all ended (closed) batches for the current day
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
@@ -709,7 +709,7 @@ func (c *Controller) transactionBatchController() {
 	})
 
 	// Accept a view (blotter) request for a transaction batch by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
@@ -782,7 +782,7 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},

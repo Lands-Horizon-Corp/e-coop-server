@@ -11,9 +11,9 @@ import (
 )
 
 func (c *Controller) accountCategoryController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
@@ -38,7 +38,7 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
@@ -62,7 +62,7 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModels(categories))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
@@ -82,7 +82,7 @@ func (c *Controller) accountCategoryController() {
 
 	// CREATE (POST) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
@@ -147,7 +147,7 @@ func (c *Controller) accountCategoryController() {
 
 	// UPDATE (PUT) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
@@ -223,7 +223,7 @@ func (c *Controller) accountCategoryController() {
 
 	// DELETE (DELETE) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-category/:account_category_id",
 		Method: "DELETE",
 		Note:   "Delete an account category by ID.",
@@ -281,7 +281,7 @@ func (c *Controller) accountCategoryController() {
 	})
 
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",

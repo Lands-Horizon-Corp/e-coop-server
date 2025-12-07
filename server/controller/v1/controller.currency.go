@@ -14,10 +14,10 @@ import (
 )
 
 func (c *Controller) currencyController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all currencies
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) currencyController() {
 
 	// Get all available currencies on unbalance accounts
 	// GET /api/v1/currency/blotter-available
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/blotter-available",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -54,7 +54,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// GET /api/v1/currency/available
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/available",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -91,7 +91,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// Get a currency by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -112,7 +112,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// Get a currency by its code
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/code/:currency_code",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -133,7 +133,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// Create a new currency
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency",
 		Method:       "POST",
 		ResponseType: core.CurrencyResponse{},
@@ -181,7 +181,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// Update a currency by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "PUT",
 		ResponseType: core.CurrencyResponse{},
@@ -246,7 +246,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// Delete a currency by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/currency/:currency_id",
 		Method: "DELETE",
 		Note:   "Deletes a currency by its ID.",
@@ -290,7 +290,7 @@ func (c *Controller) currencyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/currency/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -335,7 +335,7 @@ func (c *Controller) currencyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 	// POST /api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
 		Method:       "POST",
 		ResponseType: usecase.ExchangeResult{},
@@ -375,7 +375,7 @@ func (c *Controller) currencyController() {
 	})
 
 	// GET /api/v1/currency/timezone/:timezone
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/currency/timezone/:timezone",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},

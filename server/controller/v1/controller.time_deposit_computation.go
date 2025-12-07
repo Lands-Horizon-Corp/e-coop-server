@@ -12,10 +12,10 @@ import (
 
 // TimeDepositComputationController registers routes for managing time deposit computations.
 func (c *Controller) timeDepositComputationController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation: Create a new time deposit computation. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
@@ -99,7 +99,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// PUT /time-deposit-computation/:time_deposit_computation_id: Update time deposit computation by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
@@ -176,7 +176,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// DELETE /time-deposit-computation/:time_deposit_computation_id: Delete a time deposit computation by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit computation by its ID.",
@@ -217,7 +217,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// Simplified bulk-delete handler for time deposit computations (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computations by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

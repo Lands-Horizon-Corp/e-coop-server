@@ -12,10 +12,10 @@ import (
 
 // ChargesRateSchemeModeOfPaymentController registers routes for managing charges rate scheme model of payment.
 func (c *Controller) chargesRateSchemeModeOfPaymentController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /charges-rate-scheme-mode-of-payment: Create a new charges rate scheme model of payment. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
@@ -110,7 +110,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 	})
 
 	// PUT /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Update charges rate scheme model of payment by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
@@ -198,7 +198,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 	})
 
 	// DELETE /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Delete a charges rate scheme model of payment by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate scheme model of payment by its ID.",
@@ -238,7 +238,7 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-scheme-mode-of-payment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate scheme mode of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

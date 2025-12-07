@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberCenterController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all member center history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center-history",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Get member center history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberCenterHistoryResponse{},
@@ -60,7 +60,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Get all member centers for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Get paginated member centers
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center/search",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
@@ -101,7 +101,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Create a new member center
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
 		ResponseType: core.MemberCenterResponse{},
@@ -158,7 +158,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Update an existing member center by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
 		ResponseType: core.MemberCenterResponse{},
@@ -225,7 +225,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Delete a member center by ID (cleaned up messages to match other handlers)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
@@ -271,7 +271,7 @@ func (c *Controller) memberCenterController() {
 	})
 
 	// Simplified bulk-delete handler for member centers (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",

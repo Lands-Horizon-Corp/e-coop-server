@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberGroupController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all member group history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
 		ResponseType: core.MemberGroupHistoryResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get member group history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberGroupHistoryResponse{},
@@ -60,7 +60,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get all member groups for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
 		ResponseType: core.MemberGroupResponse{},
@@ -82,7 +82,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get paginated member groups
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
 		RequestType:  core.MemberGroupRequest{},
@@ -105,7 +105,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Create a new member group
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
 		ResponseType: core.MemberGroupResponse{},
@@ -162,7 +162,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Update an existing member group by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
 		ResponseType: core.MemberGroupResponse{},
@@ -229,7 +229,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Delete a member group by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-group/:member_group_id",
 		Method: "DELETE",
 		Note:   "Deletes a member group record by its ID.",
@@ -270,7 +270,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Simplified bulk-delete handler for member groups (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-group/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member group records by their IDs.",

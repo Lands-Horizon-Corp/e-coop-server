@@ -12,10 +12,10 @@ import (
 
 // MemberAssetController manages endpoints for member asset records.
 func (c *Controller) memberAssetController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  core.MemberAsset{},
@@ -89,7 +89,7 @@ func (c *Controller) memberAssetController() {
 	})
 
 	// PUT /member-asset/:member_asset_id: Update an existing asset record for a member.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/:member_asset_id",
 		Method:       "PUT",
 		RequestType:  core.MemberAsset{},
@@ -168,7 +168,7 @@ func (c *Controller) memberAssetController() {
 	})
 
 	// DELETE /member-asset/:member_asset_id: Delete a member's asset record by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-asset/:member_asset_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's asset record by its ID.",

@@ -12,10 +12,10 @@ import (
 
 // ComputationSheetController registers routes for managing computation sheets.
 func (c *Controller) computationSheetController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
@@ -72,7 +72,7 @@ func (c *Controller) computationSheetController() {
 	})
 
 	// GET /computation-sheet: List all computation sheets for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "GET",
 		Note:         "Returns all computation sheets for the current user's organization and branch.",
@@ -94,7 +94,7 @@ func (c *Controller) computationSheetController() {
 	})
 
 	// GET /computation-sheet/:id: Get specific computation sheet by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "GET",
 		ResponseType: core.ComputationSheetResponse{},
@@ -113,7 +113,7 @@ func (c *Controller) computationSheetController() {
 	})
 
 	// POST /computation-sheet: Create a new computation sheet.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "POST",
 		RequestType:  core.ComputationSheetRequest{},
@@ -182,7 +182,7 @@ func (c *Controller) computationSheetController() {
 	})
 
 	// PUT /computation-sheet/:id: Update computation sheet by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "PUT",
 		RequestType:  core.ComputationSheetRequest{},
@@ -254,7 +254,7 @@ func (c *Controller) computationSheetController() {
 	})
 
 	// DELETE /computation-sheet/:id: Delete a computation sheet by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/computation-sheet/:id",
 		Method: "DELETE",
 		Note:   "Deletes the specified computation sheet by its ID.",
@@ -294,7 +294,7 @@ func (c *Controller) computationSheetController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/computation-sheet/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

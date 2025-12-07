@@ -14,10 +14,10 @@ import (
 
 // HolidayController manages endpoints for holiday records.
 func (c *Controller) holidayController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /holiday: List all holidays for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -39,7 +39,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/search",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -64,7 +64,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -84,7 +84,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// POST /holiday: Create a new holiday record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
 		ResponseType: core.HolidayResponse{},
@@ -147,7 +147,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// PUT /holiday/:holiday_id: Update a holiday record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
 		ResponseType: core.HolidayResponse{},
@@ -222,7 +222,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// DELETE /holiday/:holiday_id: Delete a holiday record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/holiday/:holiday_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified holiday record by its ID.",
@@ -263,7 +263,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// Simplified bulk-delete handler for holidays (mirrors the feedback bulk-delete pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -309,7 +309,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// api/v1/holiday/year-available
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year-available",
 		Method:       "GET",
 		ResponseType: core.HoldayYearAvaiable{},
@@ -366,7 +366,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// api/v1/holiday/year-available
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
 		Method:       "GET",
 		ResponseType: core.HoldayYearAvaiable{},
@@ -428,7 +428,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// GET api/v1/holiday/year/:year
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -464,7 +464,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// GET api/v1/holiday/currency/:currency_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -497,7 +497,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// GET api/v1/holiday/year/:year/currency/:currency_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.HolidayResponse{},
@@ -541,7 +541,7 @@ func (c *Controller) holidayController() {
 	})
 
 	// POST /api/v1/holiday/year/:year/currency/:currency/copy/:year
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
 		Method:       "POST",
 		ResponseType: core.HolidayResponse{},

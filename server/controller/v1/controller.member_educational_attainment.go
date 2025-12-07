@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberEducationalAttainmentController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Create a new educational attainment record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  core.MemberEducationalAttainmentRequest{},
@@ -84,7 +84,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Update an existing educational attainment record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
 		RequestType:  core.MemberEducationalAttainmentRequest{},
@@ -158,7 +158,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Delete an educational attainment record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's educational attainment record by its ID.",
@@ -199,7 +199,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Simplified bulk-delete handler for member educational attainments (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple educational attainment records by their IDs.",

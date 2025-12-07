@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) timesheetController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Returns the current timesheet entry for the user, if any (for time in/out determination)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/current",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -37,7 +37,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Records a time in or time out for the user.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/time-in-and-out",
 		Method:       "POST",
 		RequestType:  core.TimesheetRequest{},
@@ -124,7 +124,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get a specific timesheet by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/:timesheet_id",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -143,7 +143,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get all timesheets for users/employees on current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -162,7 +162,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get paginated timesheets for current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -184,7 +184,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get the user's own timesheets in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
@@ -203,7 +203,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get paginated list of the user's own timesheets in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/me/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -226,7 +226,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// List all timesheets of a specific user in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/user/:user_id",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -249,7 +249,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Paginated timesheets of a specific user in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/user/:user_id/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -275,7 +275,7 @@ func (c *Controller) timesheetController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
@@ -307,7 +307,7 @@ func (c *Controller) timesheetController() {
 	})
 
 	// Get currently timed-in users for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/timesheet/current/users",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},

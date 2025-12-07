@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberIncomeController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Create a new income record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: core.MemberIncomeResponse{},
@@ -84,7 +84,7 @@ func (c *Controller) memberIncomeController() {
 	})
 
 	// Update an existing income record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
 		ResponseType: core.MemberIncomeResponse{},
@@ -157,7 +157,7 @@ func (c *Controller) memberIncomeController() {
 	})
 
 	// Delete a member's income record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-income/:member_income_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's income record by its ID.",

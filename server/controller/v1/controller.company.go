@@ -12,10 +12,10 @@ import (
 
 // CompanyController registers routes for managing companies.
 func (c *Controller) companyController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /company: List all companies for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company",
 		Method:       "GET",
 		Note:         "Returns all companies for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) companyController() {
 	})
 
 	// GET /company/search: Paginated search of companies for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of companies for the current user's organization and branch.",
@@ -62,7 +62,7 @@ func (c *Controller) companyController() {
 	})
 
 	// GET /company/:company_id: Get specific company by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "GET",
 		Note:         "Returns a single company by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) companyController() {
 	})
 
 	// POST /company: Create a new company. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company",
 		Method:       "POST",
 		Note:         "Creates a new company for the current user's organization and branch.",
@@ -145,7 +145,7 @@ func (c *Controller) companyController() {
 	})
 
 	// PUT /company/:company_id: Update company by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
 		Note:         "Updates an existing company by its ID.",
@@ -212,7 +212,7 @@ func (c *Controller) companyController() {
 	})
 
 	// DELETE /company/:company_id: Delete a company by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/company/:company_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified company by its ID.",
@@ -252,7 +252,7 @@ func (c *Controller) companyController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/company/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple companies by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -10,9 +10,9 @@ import (
 
 // QRCodeController registers the route for decoding QR codes and fetching the associated user.
 func (c *Controller) qRCodeController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/qr-code/:code",
 		Method:       "GET",
 		ResponseType: horizon.QRResult{},

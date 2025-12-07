@@ -12,10 +12,10 @@ import (
 
 // TimeDepositComputationPreMatureController registers routes for managing time deposit computation pre mature.
 func (c *Controller) timeDepositComputationPreMatureController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation-pre-mature: Create a new time deposit computation pre mature. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation pre mature for the current user's organization and branch.",
@@ -90,7 +90,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 	})
 
 	// PUT /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Update time deposit computation pre mature by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation pre mature by its ID.",
@@ -159,7 +159,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 	})
 
 	// DELETE /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Delete a time deposit computation pre mature by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit computation pre mature by its ID.",
@@ -200,7 +200,7 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 	})
 
 	// Simplified bulk-delete handler for time deposit computation pre-mature (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computation pre mature by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -12,10 +12,10 @@ import (
 
 // ChargesRateByTermController registers routes for managing charges rate by term.
 func (c *Controller) chargesRateByTermController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /charges-rate-by-term: Create a new charges rate by term. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by term for the current user's organization and branch.",
@@ -111,7 +111,7 @@ func (c *Controller) chargesRateByTermController() {
 	})
 
 	// PUT /charges-rate-by-term/:charges_rate_by_term_id: Update charges rate by term by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by term by its ID.",
@@ -200,7 +200,7 @@ func (c *Controller) chargesRateByTermController() {
 	})
 
 	// DELETE /charges-rate-by-term/:charges_rate_by_term_id: Delete a charges rate by term by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate by term by its ID.",
@@ -240,7 +240,7 @@ func (c *Controller) chargesRateByTermController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-by-term/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by term by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

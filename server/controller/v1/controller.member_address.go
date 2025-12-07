@@ -12,10 +12,10 @@ import (
 
 // MemberAddressController manages endpoints for member address records.
 func (c *Controller) memberAddressController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  core.MemberAddress{},
@@ -94,7 +94,7 @@ func (c *Controller) memberAddressController() {
 	})
 
 	// PUT /member-address/:member_address_id: Update an existing address record for a member.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-address/:member_address_id",
 		Method:       "PUT",
 		RequestType:  core.MemberAddress{},
@@ -179,7 +179,7 @@ func (c *Controller) memberAddressController() {
 	})
 
 	// DELETE /member-address/:member_address_id: Delete a member's address record by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-address/:member_address_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's address record by its ID.",

@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Controller) memberGovernmentBenefitController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Create a new government benefit record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-government-benefit/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: core.MemberGovernmentBenefitResponse{},
@@ -86,7 +86,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 	})
 
 	// Update an existing government benefit record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method:       "PUT",
 		ResponseType: core.MemberGovernmentBenefitResponse{},
@@ -161,7 +161,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 	})
 
 	// Delete a government benefit record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's government benefit record by its ID.",

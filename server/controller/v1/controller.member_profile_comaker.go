@@ -9,9 +9,9 @@ import (
 )
 
 func (c *Controller) memberProfileComaker() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",

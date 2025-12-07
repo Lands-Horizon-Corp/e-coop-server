@@ -11,9 +11,9 @@ import (
 )
 
 func (c *Controller) disbursementTransactionController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
@@ -78,7 +78,7 @@ func (c *Controller) disbursementTransactionController() {
 
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
@@ -107,7 +107,7 @@ func (c *Controller) disbursementTransactionController() {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions handled by a specific employee.",
@@ -137,7 +137,7 @@ func (c *Controller) disbursementTransactionController() {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/current/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
@@ -163,7 +163,7 @@ func (c *Controller) disbursementTransactionController() {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/current",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
@@ -189,7 +189,7 @@ func (c *Controller) disbursementTransactionController() {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/branch/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the current user's branch.",
@@ -213,7 +213,7 @@ func (c *Controller) disbursementTransactionController() {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement-transaction/disbursement/:disbursement_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific disbursement ID.",

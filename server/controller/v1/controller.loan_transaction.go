@@ -16,10 +16,10 @@ import (
 // LoanTransactionTotalResponse represents the total calculations for a loan transaction
 
 func (c *Controller) loanTransactionController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -75,7 +75,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/member-profile/:member_profile_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -107,7 +107,7 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -139,7 +139,7 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -168,7 +168,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/draft
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/draft",
 		Method:       "GET",
 		Note:         "Fetches draft loan transactions for the current user's organization and branch.",
@@ -195,7 +195,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/printed
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/printed",
 		Method:       "GET",
 		Note:         "Fetches printed loan transactions for the current user's organization and branch.",
@@ -222,7 +222,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/approved
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/approved",
 		Method:       "GET",
 		Note:         "Fetches approved loan transactions for the current user's organization and branch.",
@@ -249,7 +249,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/released/today
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/released/today",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
@@ -275,7 +275,7 @@ func (c *Controller) loanTransactionController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModels(loanTransactions))
 	})
 	// GET /api/v1/loan-transaction/released
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/released",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
@@ -302,7 +302,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/:loan_transaction_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
@@ -336,7 +336,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/:loan_transaction_id/total
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/total",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionTotalResponse{},
@@ -392,7 +392,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction",
 		Method:       "POST",
 		ResponseType: core.LoanTransactionResponse{},
@@ -651,7 +651,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
 		ResponseType: core.LoanTransactionResponse{},
@@ -1222,7 +1222,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// DELETE /api/v1/loan-transaction/:id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction/:loan_transaction_id",
 		Method: "DELETE",
 		Note:   "Deletes a loan transaction by ID.",
@@ -1386,7 +1386,7 @@ func (c *Controller) loanTransactionController() {
 	// Simplified bulk-delete handler for loan transactions.
 	// Keeps authorization in the handler but moves heavy deletion logic into the manager.
 	// Expects c.core.LoanTransactionManager.BulkDeleteWithOrg(ctx, ids, userOrg) or similar to exist.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-transaction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan transactions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -1455,7 +1455,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/print
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed by ID.",
@@ -1512,7 +1512,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT - api/v1/loan-transaction/:id/print-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction/:loan_transaction_id/print-undo",
 		Method: "PUT",
 		Note:   "Reverts the print status of a loan transaction by ID.",
@@ -1558,7 +1558,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:id/print-only
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print-only",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed without additional details by ID.",
@@ -1599,7 +1599,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:id/approve\
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a loan transaction by ID.",
@@ -1652,7 +1652,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:id/approve-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve-undo",
 		Method:       "PUT",
 		Note:         "Reverts the approval status of a loan transaction by ID.",
@@ -1698,7 +1698,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT - api/v1/loan-transaction/:id/release
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/release",
 		Method:       "PUT",
 		Note:         "Releases a loan transaction by ID. RELEASED SHOULD NOT BE UNAPPROVE",
@@ -1751,7 +1751,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// Put /api/v1/loan-transaction/:loan_transaction_id/signature
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/signature",
 		Method:       "PUT",
 		Note:         "Updates the signature of a loan transaction by ID.",
@@ -1825,7 +1825,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/cash-and_cash-equivalence-account/:account_id/change
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
 		Method:       "PUT",
 		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
@@ -1881,7 +1881,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// PUT /api/v1/loan-transaction/:loan_transaction_id/suggested/
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
 		Method:       "POST",
 		RequestType:  core.LoanTransactionSuggestedRequest{},
@@ -1909,7 +1909,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/:loan_transaction_id/schedule
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/schedule",
 		Method:       "GET",
 		ResponseType: event.LoanTransactionAmortizationResponse{},
@@ -1945,7 +1945,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/adjustment
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/adjustment",
 		Method:       "POST",
 		RequestType:  core.LoanTransactionAdjustmentRequest{},
@@ -1975,7 +1975,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/process
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
 		Method:       "POST",
 		Note:         "Processes a loan transaction by ID.",
@@ -1998,7 +1998,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// GET /api/v1/loan-transaction/:loan_transaction_id/guide
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/guide",
 		Method:       "GET",
 		ResponseType: event.LoanGuideResponse{},
@@ -2027,7 +2027,7 @@ func (c *Controller) loanTransactionController() {
 	})
 
 	// POST /api/v1/loan-transaction/process
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction/process",
 		Method:       "POST",
 		Note:         "All Loan transactions that are pending to be processed will be processed",

@@ -14,10 +14,10 @@ import (
 
 // CashCheckVoucherController registers routes for managing cash check vouchers.
 func (c *Controller) cashCheckVoucherController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /cash-check-voucher: List all cash check vouchers for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
@@ -39,7 +39,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /cash-check-voucher/search: Paginated search of cash check vouchers for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check vouchers for the current user's organization and branch.",
@@ -64,7 +64,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /api/v1/cash-check-voucher/draft
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft cash check vouchers for the current user's organization and branch.",
@@ -91,7 +91,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /api/v1/cash-check-voucher/printed
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed cash check vouchers for the current user's organization and branch.",
@@ -118,7 +118,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /api/v1/cash-check-voucher/approved
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved cash check vouchers for the current user's organization and branch.",
@@ -145,7 +145,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /api/v1/cash-check-voucher/released
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released cash check vouchers for the current user's organization and branch.",
@@ -172,7 +172,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET /cash-check-voucher/:cash_check_voucher_id: Get specific cash check voucher by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher by its ID.",
@@ -191,7 +191,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// POST /cash-check-voucher: Create a new cash check voucher. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher for the current user's organization and branch.",
@@ -351,7 +351,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// PUT /cash-check-voucher/:cash_check_voucher_id: Update cash check voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher by its ID.",
@@ -565,7 +565,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// DELETE /cash-check-voucher/:cash_check_voucher_id: Delete a cash check voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified cash check voucher by its ID.",
@@ -600,7 +600,7 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -643,7 +643,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/print
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a cash check voucher as printed by ID and updates print count.",
@@ -710,7 +710,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/approve
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a cash check voucher by ID.",
@@ -770,7 +770,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/release
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a cash check voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
@@ -893,7 +893,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a cash check voucher by ID.",
@@ -948,7 +948,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/print-only
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a cash check voucher as printed without additional details by ID.",
@@ -999,7 +999,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a cash check voucher by ID.",
@@ -1060,7 +1060,7 @@ func (c *Controller) cashCheckVoucherController() {
 	})
 
 	// GET api/v1/cash-check-voucher/released/today
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/released/today",
 		Method:       "GET",
 		Note:         "Retrieves all cash check vouchers released today.",

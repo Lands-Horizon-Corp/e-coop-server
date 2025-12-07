@@ -13,10 +13,10 @@ import (
 
 // AdjustmentTagController registers routes for managing adjustment tags.
 func (c *Controller) adjustmentTagController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /adjustment-tag: List all adjustment tags for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "GET",
 		Note:         "Returns all adjustment tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +38,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// GET /adjustment-tag/search: Paginated search of adjustment tags for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment tags for the current user's organization and branch.",
@@ -63,7 +63,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// GET /adjustment-tag/:tag_id: Get specific adjustment tag by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment tag by its ID.",
@@ -82,7 +82,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// POST /adjustment-tag: Create a new adjustment tag. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "POST",
 		Note:         "Creates a new adjustment tag for the current user's organization and branch.",
@@ -155,7 +155,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns all adjustment tags for the given adjustment entry ID.",
@@ -186,7 +186,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// PUT /adjustment-tag/:tag_id: Update adjustment tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing adjustment tag by its ID.",
@@ -256,7 +256,7 @@ func (c *Controller) adjustmentTagController() {
 	})
 
 	// DELETE /adjustment-tag/:tag_id: Delete an adjustment tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/adjustment-tag/:tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified adjustment tag by its ID.",
@@ -296,7 +296,7 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/adjustment-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

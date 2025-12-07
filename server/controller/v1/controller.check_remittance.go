@@ -12,10 +12,10 @@ import (
 
 // CheckRemittanceController manages endpoints for check remittance operations within the current transaction batch.
 func (c *Controller) checkRemittanceController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /check-remittance: List all check remittances for the active transaction batch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
 		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
@@ -56,7 +56,7 @@ func (c *Controller) checkRemittanceController() {
 	})
 
 	// POST /check-remittance: Create a new check remittance for the current transaction batch. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
 		ResponseType: core.CheckRemittanceResponse{},
@@ -161,7 +161,7 @@ func (c *Controller) checkRemittanceController() {
 	})
 
 	// PUT /check-remittance/:check_remittance_id: Update a check remittance by ID for the current transaction batch. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
@@ -292,7 +292,7 @@ func (c *Controller) checkRemittanceController() {
 	})
 
 	// DELETE /check-remittance/:check_remittance_id: Delete a check remittance by ID for the current transaction batch. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/check-remittance/:check_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",

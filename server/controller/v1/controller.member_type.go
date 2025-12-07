@@ -12,10 +12,10 @@ import (
 )
 
 func (c *Controller) memberTypeController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// Get all member type history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
 		ResponseType: core.MemberTypeHistoryResponse{},
@@ -34,7 +34,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get member type history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberTypeHistoryResponse{},
@@ -61,7 +61,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get all member types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
 		ResponseType: core.MemberTypeResponse{},
@@ -80,7 +80,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get paginated member types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
 		ResponseType: core.MemberTypeResponse{},
@@ -102,7 +102,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Create a new member type
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
 		RequestType:  core.MemberTypeRequest{},
@@ -160,7 +160,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Update an existing member type by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
 		RequestType:  core.MemberTypeRequest{},
@@ -231,7 +231,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Delete a member type by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-type/:member_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type record by its ID.",
@@ -272,7 +272,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Simplified bulk-delete handler for member types (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},

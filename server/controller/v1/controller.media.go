@@ -14,10 +14,10 @@ import (
 // MediaController manages endpoints for media records.
 func (c *Controller) mediaController() {
 
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /media: List all media records. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media",
 		Method:       "GET",
 		Note:         "Returns all media records in the system.",
@@ -32,7 +32,7 @@ func (c *Controller) mediaController() {
 	})
 
 	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a specific media record by its ID.",
@@ -52,7 +52,7 @@ func (c *Controller) mediaController() {
 	})
 
 	// POST /media: Upload a new media file. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media",
 		Method:       "POST",
 		ResponseType: core.MediaResponse{},
@@ -146,7 +146,7 @@ func (c *Controller) mediaController() {
 	})
 
 	// PUT /media/:media_id: Update media file's name. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
 		RequestType:  core.MediaRequest{},
@@ -200,7 +200,7 @@ func (c *Controller) mediaController() {
 	})
 
 	// DELETE /media/:media_id: Delete a media record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific media record by its ID and associated file.",
@@ -241,7 +241,7 @@ func (c *Controller) mediaController() {
 	})
 
 	// Simplified bulk-delete handler for media (moves storage + DB work into manager)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},

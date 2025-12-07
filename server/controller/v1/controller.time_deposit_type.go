@@ -12,10 +12,10 @@ import (
 
 // TimeDepositTypeController registers routes for managing time deposit types.
 func (c *Controller) timeDepositTypeController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
 		Note:         "Returns a paginated list of time deposit types for the current user's organization and branch.",
@@ -37,7 +37,7 @@ func (c *Controller) timeDepositTypeController() {
 	})
 
 	// GET /time-deposit-type/:time_deposit_type_id: Get specific time deposit type by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "GET",
 		Note:         "Returns a single time deposit type by its ID.",
@@ -56,7 +56,7 @@ func (c *Controller) timeDepositTypeController() {
 	})
 
 	// POST /time-deposit-type: Create a new time deposit type. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "POST",
 		Note:         "Creates a new time deposit type for the current user's organization and branch.",
@@ -123,7 +123,7 @@ func (c *Controller) timeDepositTypeController() {
 	})
 
 	// PUT /time-deposit-type/:time_deposit_type_id: Update time deposit type by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit type by its ID.",
@@ -359,7 +359,7 @@ func (c *Controller) timeDepositTypeController() {
 	})
 
 	// DELETE /time-deposit-type/:time_deposit_type_id: Delete a time deposit type by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit type by its ID.",
@@ -400,7 +400,7 @@ func (c *Controller) timeDepositTypeController() {
 	})
 
 	// Simplified bulk-delete handler for time deposit types (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit types by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -446,7 +446,7 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 	// GET /api/v1/time-deposit-type/currency/:currency_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Fetch time deposit types by currency ID.",

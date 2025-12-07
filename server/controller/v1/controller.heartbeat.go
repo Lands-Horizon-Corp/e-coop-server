@@ -12,9 +12,9 @@ import (
 )
 
 func (c *Controller) heartbeat() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/heartbeat/online",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
@@ -55,7 +55,7 @@ func (c *Controller) heartbeat() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/heartbeat/offline",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
@@ -96,7 +96,7 @@ func (c *Controller) heartbeat() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
 		RequestType: core.UserOrganizationStatusRequest{},
@@ -131,7 +131,7 @@ func (c *Controller) heartbeat() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/heartbeat/status",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationStatusResponse{},

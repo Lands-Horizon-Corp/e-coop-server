@@ -12,10 +12,10 @@ import (
 
 // JournalVoucherTagController registers routes for managing journal voucher tags.
 func (c *Controller) journalVoucherTagController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /journal-voucher-tag: List all journal voucher tags for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// GET /journal-voucher-tag/search: Paginated search of journal voucher tags for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal voucher tags for the current user's organization and branch.",
@@ -62,7 +62,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// GET /journal-voucher-tag/:tag_id: Get specific journal voucher tag by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher tag by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// POST /journal-voucher-tag: Create a new journal voucher tag. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher tag for the current user's organization and branch.",
@@ -148,7 +148,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// PUT /journal-voucher-tag/:tag_id: Update journal voucher tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher tag by its ID.",
@@ -218,7 +218,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// GET  "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id" - List journal voucher tags by journal voucher ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags associated with the specified journal voucher ID.",
@@ -249,7 +249,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// DELETE /journal-voucher-tag/:tag_id: Delete a journal voucher tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/journal-voucher-tag/:tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified journal voucher tag by its ID.",
@@ -290,7 +290,7 @@ func (c *Controller) journalVoucherTagController() {
 	})
 
 	// Simplified bulk-delete handler for journal voucher tags (matches feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/journal-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

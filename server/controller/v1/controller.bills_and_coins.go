@@ -12,10 +12,10 @@ import (
 
 // BillAndCoinsController handles endpoints for managing bills and coins.
 func (c *Controller) billAndCoinsController() {
-	req := c.provider.Service.WebRequest
+	req := c.provider.Service.Request
 
 	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "GET",
 		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
@@ -52,7 +52,7 @@ func (c *Controller) billAndCoinsController() {
 	})
 
 	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
@@ -77,7 +77,7 @@ func (c *Controller) billAndCoinsController() {
 	})
 
 	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
 		Note:         "Returns a bills and coins record by its ID.",
@@ -96,7 +96,7 @@ func (c *Controller) billAndCoinsController() {
 	})
 
 	// POST /bills-and-coins: Create a new bills and coins record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
 		RequestType:  core.BillAndCoinsRequest{},
@@ -162,7 +162,7 @@ func (c *Controller) billAndCoinsController() {
 	})
 
 	// PUT /bills-and-coins/:bills_and_coins_id: Update a bills and coins record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
 		RequestType:  core.BillAndCoinsRequest{},
@@ -231,7 +231,7 @@ func (c *Controller) billAndCoinsController() {
 	})
 
 	// DELETE /bills-and-coins/:bills_and_coins_id: Delete a bills and coins record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bills and coins record by its ID.",
@@ -271,7 +271,7 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
