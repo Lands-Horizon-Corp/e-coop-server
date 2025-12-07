@@ -32,6 +32,7 @@ type (
 		ContactNumber      *string `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
 		Description        *string `gorm:"type:text" json:"description,omitempty"`
 		Color              *string `gorm:"type:varchar(50)" json:"color,omitempty"`
+		Theme              *string `gorm:"type:text" json:"theme,omitempty"`
 		TermsAndConditions *string `gorm:"type:text" json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `gorm:"type:text" json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `gorm:"type:text" json:"cookie_policy,omitempty"`
@@ -86,6 +87,7 @@ type (
 		ContactNumber      *string `json:"contact_number,omitempty"`
 		Description        *string `json:"description,omitempty"`
 		Color              *string `json:"color,omitempty"`
+		Theme              *string `json:"theme,omitempty"`
 		TermsAndConditions *string `json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
@@ -134,6 +136,7 @@ type (
 		ContactNumber      *string `json:"contact_number,omitempty" validate:"omitempty,max=20"`
 		Description        *string `json:"description,omitempty"`
 		Color              *string `json:"color,omitempty"`
+		Theme              *string `json:"theme,omitempty"`
 		TermsAndConditions *string `json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
@@ -207,6 +210,7 @@ func (m *Core) organization() {
 				ContactNumber:      data.ContactNumber,
 				Description:        data.Description,
 				Color:              data.Color,
+				Theme:              data.Theme,
 				TermsAndConditions: data.TermsAndConditions,
 				PrivacyPolicy:      data.PrivacyPolicy,
 				CookiePolicy:       data.CookiePolicy,

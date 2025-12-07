@@ -131,6 +131,7 @@ func (c *Controller) organizationController() {
 			YoutubeLink:                         req.YoutubeLink,
 			PersonalWebsiteLink:                 req.PersonalWebsiteLink,
 			XLink:                               req.XLink,
+			Theme:                               req.Theme,
 		}
 
 		if err := c.core.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
@@ -419,6 +420,7 @@ func (c *Controller) organizationController() {
 		organization.YoutubeLink = req.YoutubeLink
 		organization.PersonalWebsiteLink = req.PersonalWebsiteLink
 		organization.XLink = req.XLink
+		organization.Theme = req.Theme
 		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
