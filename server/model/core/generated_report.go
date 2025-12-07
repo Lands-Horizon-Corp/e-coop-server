@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -137,6 +138,32 @@ type (
 		Count int    `json:"count"`
 	}
 )
+
+func (e *GeneratedReportType) EXCEL(callback func() error) error {
+	if *e == "" {
+		*e = GeneratedReportTypeExcel
+	}
+	if *e != GeneratedReportTypeExcel {
+		return fmt.Errorf("invalid GeneratedReportType: %s, expected excel", *e)
+	}
+	return callback()
+}
+
+func (e *GeneratedReport) PDF(route string, callback func(params ...string) ([]byte, error)) ([]byte, error) {
+	if e.GeneratedReportType != GeneratedReportTypePDF {
+		return nil, nil
+	}
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](e.URL)
+	return extractor.MatchableRoute(route, callback)
+}
+
+func (e *GeneratedReport) EXCEL(route string, callback func(params ...string) ([]byte, error)) ([]byte, error) {
+	if e.GeneratedReportType != GeneratedReportTypeExcel {
+		return nil, nil
+	}
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](e.URL)
+	return extractor.MatchableRoute(route, callback)
+}
 
 func (m *Core) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
