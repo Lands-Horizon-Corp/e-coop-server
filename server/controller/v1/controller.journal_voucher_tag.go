@@ -12,7 +12,7 @@ import (
 
 // JournalVoucherTagController registers routes for managing journal voucher tags.
 func (c *Controller) journalVoucherTagController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /journal-voucher-tag: List all journal voucher tags for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

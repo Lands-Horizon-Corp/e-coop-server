@@ -12,7 +12,7 @@ import (
 
 // BankController registers routes for managing banks.
 func (c *Controller) bankController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /bank: List all banks for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

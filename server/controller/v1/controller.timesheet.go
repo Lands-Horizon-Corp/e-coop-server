@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) timesheetController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Returns the current timesheet entry for the user, if any (for time in/out determination)
 	req.RegisterRoute(handlers.Route{

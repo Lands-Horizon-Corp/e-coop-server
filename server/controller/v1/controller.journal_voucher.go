@@ -15,7 +15,7 @@ import (
 
 // JournalVoucherController registers routes for managing journal vouchers.
 func (c *Controller) journalVoucherController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /journal-voucher: List all journal vouchers for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

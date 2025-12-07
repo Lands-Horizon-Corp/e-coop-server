@@ -12,7 +12,7 @@ import (
 
 // PermissionTemplateController registers all routes related to permission templates.
 func (c *Controller) permissionTemplateController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Fetch all permission templates associated with the current user's branch.
 	req.RegisterRoute(handlers.Route{

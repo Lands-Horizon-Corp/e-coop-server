@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberContactReferenceController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Create a new contact reference for a member profile
 	req.RegisterRoute(handlers.Route{

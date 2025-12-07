@@ -12,7 +12,7 @@ import (
 
 // ChargesRateByRangeOrMinimumAmountController registers routes for managing charges rate by range or minimum amount.
 func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /charges-rate-by-range-or-minimum-amount: Create a new charges rate by range or minimum amount. (WITH footstep)
 	req.RegisterRoute(handlers.Route{

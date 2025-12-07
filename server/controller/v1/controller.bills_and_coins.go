@@ -12,7 +12,7 @@ import (
 
 // BillAndCoinsController handles endpoints for managing bills and coins.
 func (c *Controller) billAndCoinsController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

@@ -13,7 +13,7 @@ import (
 
 // AdjustmentEntryController registers routes for managing adjustment entries.
 func (c *Controller) adjustmentEntryController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /adjustment-entry: List all adjustment entries for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberJointAccountController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Create a new joint account record for a member profile
 	req.RegisterRoute(handlers.Route{

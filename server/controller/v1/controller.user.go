@@ -10,7 +10,7 @@ import (
 )
 
 func (c *Controller) userController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Returns a specific user by their ID.
 	req.RegisterRoute(handlers.Route{

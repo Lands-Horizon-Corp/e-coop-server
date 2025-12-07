@@ -12,7 +12,7 @@ import (
 
 // ChargesRateSchemeController registers routes for managing charges rate schemes.
 func (c *Controller) chargesRateSchemeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /charges-rate-scheme: Paginated list of charges rate schemes for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

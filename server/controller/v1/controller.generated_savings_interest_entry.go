@@ -13,7 +13,7 @@ import (
 
 // GeneratedSavingsInterestEntryController registers routes for managing generated savings interest entries.
 func (c *Controller) generatedSavingsInterestEntryController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /generated-savings-interest-entry: List all generated savings interest entries for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

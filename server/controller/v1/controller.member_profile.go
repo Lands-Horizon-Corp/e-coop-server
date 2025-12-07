@@ -13,7 +13,7 @@ import (
 )
 
 func (c *Controller) memberProfileController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all pending member profiles in the current branch
 	req.RegisterRoute(handlers.Route{

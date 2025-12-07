@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Controller) accountController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET: Search (NO footstep)
 	req.RegisterRoute(handlers.Route{

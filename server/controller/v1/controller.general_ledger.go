@@ -11,7 +11,7 @@ import (
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
 func (c *Controller) generalLedgerController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/total",

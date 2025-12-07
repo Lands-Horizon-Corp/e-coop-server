@@ -13,7 +13,7 @@ import (
 
 // GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
 func (c *Controller) generalLedgerGroupingController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /general-ledger-accounts-grouping
 	req.RegisterRoute(handlers.Route{

@@ -13,7 +13,7 @@ import (
 
 // FinancialStatementController manages endpoints for financial statement groupings and definitions.
 func (c *Controller) financialStatementController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /financial-statement-grouping: List all financial statement groupings for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // FeedbackController manages endpoints for feedback records.
 func (c *Controller) feedbackController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /feedback: List all feedback records. (NO footstep)
 	req.RegisterRoute(handlers.Route{

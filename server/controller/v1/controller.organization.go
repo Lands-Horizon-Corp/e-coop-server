@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Controller) organizationController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all public organizations
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // IncludeNegativeAccountController registers routes for managing include negative accounts.
 func (c *Controller) includeNegativeAccountController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(handlers.Route{

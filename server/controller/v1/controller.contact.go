@@ -12,7 +12,7 @@ import (
 
 // ContactController manages endpoints for contact records.
 func (c *Controller) contactController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /contact: List all contact records. (NO footstep)
 	req.RegisterRoute(handlers.Route{

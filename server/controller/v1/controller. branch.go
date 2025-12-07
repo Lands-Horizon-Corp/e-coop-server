@@ -14,7 +14,7 @@ import (
 
 // BranchController registers routes related to branch management.
 func (c *Controller) branchController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.
 	req.RegisterRoute(handlers.Route{

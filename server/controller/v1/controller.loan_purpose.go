@@ -12,7 +12,7 @@ import (
 
 // LoanPurposeController manages endpoints for loan purpose records.
 func (c *Controller) loanPurposeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

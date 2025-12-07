@@ -11,9 +11,7 @@ import (
 )
 
 func (c *Controller) accountCategoryController() {
-	req := c.provider.Service.Request
-
-	// SEARCH (GET) - NO FOOTSTEP
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/account-category/search",

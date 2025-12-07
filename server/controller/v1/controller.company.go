@@ -12,7 +12,7 @@ import (
 
 // CompanyController registers routes for managing companies.
 func (c *Controller) companyController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /company: List all companies for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

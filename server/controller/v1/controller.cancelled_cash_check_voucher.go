@@ -12,7 +12,7 @@ import (
 
 // CancelledCashCheckVoucherController registers routes for managing cancelled cash check vouchers.
 func (c *Controller) cancelledCashCheckVoucherController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /cancelled-cash-check-voucher: List all cancelled cash check vouchers for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

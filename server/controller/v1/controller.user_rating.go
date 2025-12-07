@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) userRatingController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Returns all user ratings given by the specified user (rater)
 	req.RegisterRoute(handlers.Route{

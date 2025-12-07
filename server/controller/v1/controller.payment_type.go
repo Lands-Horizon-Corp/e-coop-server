@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) paymentTypeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all payment types for the current branch
 	req.RegisterRoute(handlers.Route{

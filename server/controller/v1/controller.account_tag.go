@@ -13,7 +13,7 @@ import (
 
 // AccountTagController handles routes for managing account tags.
 func (c *Controller) accountTagController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /account-tag - List current branch's account tags for the authenticated user.
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // CashCheckVoucherTagController registers routes for managing cash check voucher tags.
 func (c *Controller) cashCheckVoucherTagController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /cash-check-voucher-tag: List all cash check voucher tags for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

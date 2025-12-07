@@ -12,7 +12,7 @@ import (
 
 // GeneratedReports manages endpoints for generated report resources.
 func (c *Controller) generatedReports() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /api/v1/generated-report/:generated_report_id/download
 	req.RegisterRoute(handlers.Route{

@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) accountClassificationController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET endpoints (no footstep)
 	req.RegisterRoute(handlers.Route{

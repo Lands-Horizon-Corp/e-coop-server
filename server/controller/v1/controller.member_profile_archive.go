@@ -14,7 +14,7 @@ import (
 
 // MemberProfileArchiveController registers routes for managing member profile archive.
 func (c *Controller) memberProfileArchiveController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /api/v1/member-profile-archive/member-profile/:member_profile_id/search: Get all media for a specific member profile
 	req.RegisterRoute(handlers.Route{

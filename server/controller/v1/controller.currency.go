@@ -14,7 +14,7 @@ import (
 )
 
 func (c *Controller) currencyController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all currencies
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // LoanTagController registers routes for managing loan tags.
 func (c *Controller) loanTagController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /loan-tag: List all loan tags for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

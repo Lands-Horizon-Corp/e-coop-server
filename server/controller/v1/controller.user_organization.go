@@ -15,7 +15,7 @@ import (
 
 func (c *Controller) userOrganinzationController() {
 
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Update the permission fields of a user organization
 	req.RegisterRoute(handlers.Route{

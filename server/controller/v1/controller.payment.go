@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) paymentController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",

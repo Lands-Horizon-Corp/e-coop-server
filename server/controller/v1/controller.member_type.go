@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Controller) memberTypeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all member type history for the current branch
 	req.RegisterRoute(handlers.Route{

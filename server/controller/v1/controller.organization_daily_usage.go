@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Controller) organizationDailyUsage() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get daily usage records for the current user's organization
 	req.RegisterRoute(handlers.Route{

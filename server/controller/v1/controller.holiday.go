@@ -14,7 +14,7 @@ import (
 
 // HolidayController manages endpoints for holiday records.
 func (c *Controller) holidayController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /holiday: List all holidays for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

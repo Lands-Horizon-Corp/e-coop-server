@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) transactionBatchController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// List all transaction batches for the current branch
 	req.RegisterRoute(handlers.Route{

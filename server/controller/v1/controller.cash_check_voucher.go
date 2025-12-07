@@ -14,7 +14,7 @@ import (
 
 // CashCheckVoucherController registers routes for managing cash check vouchers.
 func (c *Controller) cashCheckVoucherController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /cash-check-voucher: List all cash check vouchers for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

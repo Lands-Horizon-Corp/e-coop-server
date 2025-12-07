@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) fundsController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all funds for the current branch
 	req.RegisterRoute(handlers.Route{

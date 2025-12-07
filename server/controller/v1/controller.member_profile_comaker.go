@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Controller) memberProfileComaker() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",

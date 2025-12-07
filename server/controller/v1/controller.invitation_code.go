@@ -12,7 +12,7 @@ import (
 
 // InvitationCode manages endpoints for invitation code resources.
 func (c *Controller) invitationCode() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /invitation-code: Retrieve all invitation codes for the current user's organization and branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

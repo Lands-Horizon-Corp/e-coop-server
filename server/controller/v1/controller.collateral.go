@@ -12,7 +12,7 @@ import (
 
 // CollateralController manages endpoints for collateral operations.
 func (c *Controller) collateralController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /collateral: List all collaterals for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

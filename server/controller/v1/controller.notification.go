@@ -13,7 +13,7 @@ import (
 )
 
 func (c *Controller) notificationController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get the current (logged in) user's notifications
 	req.RegisterRoute(handlers.Route{

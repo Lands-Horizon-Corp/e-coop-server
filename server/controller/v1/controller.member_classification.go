@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberClassificationController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all member classification history for the current branch
 	req.RegisterRoute(handlers.Route{

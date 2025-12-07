@@ -14,7 +14,7 @@ import (
 // MediaController manages endpoints for media records.
 func (c *Controller) mediaController() {
 
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /media: List all media records. (NO footstep)
 	req.RegisterRoute(handlers.Route{

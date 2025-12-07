@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberCenterController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all member center history for the current branch
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // MutualFundsController registers routes for managing mutual funds.
 func (c *Controller) mutualFundsController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /mutual-fund: List all mutual funds for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

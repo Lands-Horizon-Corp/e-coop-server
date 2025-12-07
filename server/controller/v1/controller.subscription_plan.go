@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) subscriptionPlanController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all subscription plans
 	req.RegisterRoute(handlers.Route{

@@ -15,7 +15,7 @@ import (
 )
 
 func (c *Controller) authenticationController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Rate limiting middleware using the reusable RateLimiter
 	rateLimiterConfig := horizon.RateLimiterConfig{

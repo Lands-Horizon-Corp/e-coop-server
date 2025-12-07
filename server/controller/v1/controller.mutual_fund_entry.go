@@ -13,7 +13,7 @@ import (
 
 // MutualFundEntryController registers routes for managing mutual fund entries.
 func (c *Controller) mutualFundEntryController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /mutual-fund-entry: List all mutual fund entries for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

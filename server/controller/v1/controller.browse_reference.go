@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Controller) browseReferenceController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// PUT /api/v1/browse-reference/:id
 	req.RegisterRoute(handlers.Route{

@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberGenderController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Get all member gender history for the current branch
 	req.RegisterRoute(handlers.Route{

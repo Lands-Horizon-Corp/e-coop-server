@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberAccountingLedgerController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",

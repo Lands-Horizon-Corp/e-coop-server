@@ -13,7 +13,7 @@ import (
 
 // CashCountController provides endpoints for managing cash counts during the transaction batch workflow.
 func (c *Controller) cashCountController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	req.RegisterRoute(handlers.Route{
 		Route:        "/api/v1/cash-count/search",

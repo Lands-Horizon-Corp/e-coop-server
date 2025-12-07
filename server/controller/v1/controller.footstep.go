@@ -12,7 +12,7 @@ import (
 
 // FootstepController manages endpoints related to footstep records.
 func (c *Controller) footstepController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /footstep: Create a new footstep. (WITH footstep)
 	req.RegisterRoute(handlers.Route{

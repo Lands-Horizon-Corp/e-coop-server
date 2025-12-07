@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) transactionController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Create transaction
 	req.RegisterRoute(handlers.Route{

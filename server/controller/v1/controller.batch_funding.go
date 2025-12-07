@@ -12,7 +12,7 @@ import (
 
 // BatchFundingController handles creation and retrieval of batch funding records with proper error handling and authorization checks.
 func (c *Controller) batchFundingController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
 	req.RegisterRoute(handlers.Route{

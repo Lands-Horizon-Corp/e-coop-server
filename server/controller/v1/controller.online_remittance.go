@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) onlineRemittanceController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.
 	req.RegisterRoute(handlers.Route{

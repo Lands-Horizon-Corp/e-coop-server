@@ -10,7 +10,7 @@ import (
 )
 
 func (c *Controller) accountHistory() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET api/v1/account-history/account/:account_id
 	req.RegisterRoute(handlers.Route{

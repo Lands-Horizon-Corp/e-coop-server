@@ -12,7 +12,7 @@ import (
 
 // MemberAddressController manages endpoints for member address records.
 func (c *Controller) memberAddressController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
 	req.RegisterRoute(handlers.Route{

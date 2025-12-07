@@ -12,7 +12,7 @@ import (
 
 // TimeDepositTypeController registers routes for managing time deposit types.
 func (c *Controller) timeDepositTypeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

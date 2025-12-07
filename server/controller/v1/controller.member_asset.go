@@ -12,7 +12,7 @@ import (
 
 // MemberAssetController manages endpoints for member asset records.
 func (c *Controller) memberAssetController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.
 	req.RegisterRoute(handlers.Route{

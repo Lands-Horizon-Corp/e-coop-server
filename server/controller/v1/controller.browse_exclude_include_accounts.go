@@ -12,7 +12,7 @@ import (
 
 // BrowseExcludeIncludeAccountsController registers routes for managing browse exclude include accounts.
 func (c *Controller) browseExcludeIncludeAccountsController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterRoute(handlers.Route{

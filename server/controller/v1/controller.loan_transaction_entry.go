@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Controller) loanTransactionEntryController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
 	req.RegisterRoute(handlers.Route{

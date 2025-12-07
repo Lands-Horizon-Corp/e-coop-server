@@ -12,7 +12,7 @@ import (
 
 // LoanStatusController manages endpoints for loan status records.
 func (c *Controller) loanStatusController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /loan-status: List all loan statuses for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

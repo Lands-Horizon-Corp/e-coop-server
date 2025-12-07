@@ -12,7 +12,7 @@ import (
 
 // DisbursementController registers routes for managing disbursements.
 func (c *Controller) disbursementController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /disbursement: List all disbursements for the current user's branch.
 	req.RegisterRoute(handlers.Route{

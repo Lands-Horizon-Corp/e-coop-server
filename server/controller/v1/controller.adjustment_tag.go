@@ -13,7 +13,7 @@ import (
 
 // AdjustmentTagController registers routes for managing adjustment tags.
 func (c *Controller) adjustmentTagController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /adjustment-tag: List all adjustment tags for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

@@ -12,7 +12,7 @@ import (
 
 // CategoryController manages endpoints for categories.
 func (c *Controller) categoryController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /category: List all categories. (NO footstep)
 	req.RegisterRoute(handlers.Route{

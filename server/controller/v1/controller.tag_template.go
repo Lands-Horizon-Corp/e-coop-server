@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) tagTemplateController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Returns all tag templates for the current user's branch.
 	req.RegisterRoute(handlers.Route{

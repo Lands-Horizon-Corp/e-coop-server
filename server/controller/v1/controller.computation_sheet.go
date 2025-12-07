@@ -12,7 +12,7 @@ import (
 
 // ComputationSheetController registers routes for managing computation sheets.
 func (c *Controller) computationSheetController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
 	req.RegisterRoute(handlers.Route{

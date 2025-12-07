@@ -12,7 +12,7 @@ import (
 
 func (c *Controller) generateSavingsInterest() {
 
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// GET /api/v1/generated-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
 	req.RegisterRoute(handlers.Route{

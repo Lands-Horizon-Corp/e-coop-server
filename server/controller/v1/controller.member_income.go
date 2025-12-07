@@ -11,7 +11,7 @@ import (
 )
 
 func (c *Controller) memberIncomeController() {
-	req := c.provider.Service.Request
+	req := c.provider.Service.WebRequest
 
 	// Create a new income record for a member profile
 	req.RegisterRoute(handlers.Route{
