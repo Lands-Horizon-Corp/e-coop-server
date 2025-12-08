@@ -154,7 +154,6 @@ func (m *Core) mutualFund() {
 			"UpdatedBy",
 			"MemberProfile",
 			"MemberType",
-			"MutualAidContribution",
 			"AdditionalMembers",
 			"AdditionalMembers.MemberType",
 			"MutualFundTables",
