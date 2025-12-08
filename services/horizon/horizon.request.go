@@ -190,6 +190,21 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 						logger.Debug("Failed to cleanup old blocked attempts", zap.String("ip", clientIP), zap.Error(err))
 					}
 				}()
+
+				// In development, avoid blocking loopback addresses (e.g., ::1, 127.0.0.1)
+				if !secured {
+					if parsed := net.ParseIP(clientIP); parsed != nil && parsed.IsLoopback() {
+						logger.Info("IPFirewall: loopback IP detected in dev, skipping block",
+							zap.String("ip", clientIP),
+							zap.String("blocked_host", blockedHost),
+							zap.String("path", c.Request().URL.Path),
+						)
+						log.Printf("IPFirewall(dev): skipping block for loopback IP=%s blocked_host=%s path=%s", clientIP, blockedHost, c.Request().URL.Path)
+						io.WriteString(os.Stdout, fmt.Sprintf("IPFirewall(dev): skipping block for loopback IP=%s blocked_host=%s path=%s\n", clientIP, blockedHost, c.Request().URL.Path))
+						return next(c)
+					}
+				}
+
 				logger.Warn("Blocked IP access attempt",
 					zap.String("ip", clientIP),
 					zap.String("blocked_host", blockedHost),
