@@ -360,6 +360,45 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 
 	e.Use(SecurityHeadersMiddleware(secured))
 
+	// Global preflight handler: respond to OPTIONS with appropriate CORS headers
+	e.OPTIONS("/*", func(c echo.Context) error {
+		origins := []string{
+			"https://ecoop-suite.netlify.app",
+			"https://ecoop-suite.com",
+			"https://www.ecoop-suite.com",
+			"https://development.ecoop-suite.com",
+			"https://www.development.ecoop-suite.com",
+			"https://staging.ecoop-suite.com",
+			"https://www.staging.ecoop-suite.com",
+			"https://cooperatives-development.fly.dev",
+			"https://cooperatives-staging.fly.dev",
+			"https://cooperatives-production.fly.dev",
+		}
+		if !secured {
+			origins = append(origins,
+				"http://localhost:8000",
+				"http://localhost:8001",
+				"http://localhost:3000",
+				"http://localhost:3001",
+				"http://localhost:3002",
+				"http://localhost:3003",
+			)
+		}
+		origin := c.Request().Header.Get("Origin")
+		if origin == "" {
+			return c.NoContent(http.StatusNoContent)
+		}
+		if slices.Contains(origins, origin) || (!secured && (strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost"))) {
+			c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+			c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+			c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
+			c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+			c.Response().Header().Set("Access-Control-Max-Age", "3600")
+		}
+		return c.NoContent(http.StatusNoContent)
+	})
+
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
