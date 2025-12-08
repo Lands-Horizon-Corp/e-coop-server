@@ -565,7 +565,14 @@ func (c *Controller) mutualFundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, mutualFundView)
+		total := 0.0
+		for _, entry := range mutualFundView {
+			total += entry.Amount
+		}
+		return ctx.JSON(http.StatusOK, core.MutualFundView{
+			TotalAmount:       total,
+			MutualFundEntries: c.core.MutualFundEntryManager.ToModels(mutualFundView),
+		})
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/print
