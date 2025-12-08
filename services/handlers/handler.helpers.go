@@ -621,9 +621,7 @@ func AddMonthsPreserveDay(t time.Time, months int) time.Time {
 	month = (month-1)%12 + 1
 
 	loc := t.Location()
-	// first day of target month
 	firstOfTarget := time.Date(year, time.Month(month), 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
-	// last day of target month
 	lastOfTarget := firstOfTarget.AddDate(0, 1, -1).Day()
 	if day > lastOfTarget {
 		day = lastOfTarget
@@ -642,4 +640,19 @@ func ToPascalCase(s string) string {
 		}
 	}
 	return strings.Join(parts, "")
+}
+
+func ToSnakeCase(str string) string {
+	var result []rune
+	for i, r := range str {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result = append(result, '_')
+			}
+			result = append(result, unicode.ToLower(r))
+		} else {
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }

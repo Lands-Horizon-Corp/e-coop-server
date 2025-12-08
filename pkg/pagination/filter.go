@@ -47,7 +47,7 @@ func (f *Pagination[T]) pagination(
 	}
 	if len(filterRoot.SortFields) > 0 {
 		for _, sortField := range filterRoot.SortFields {
-			if !strings.Contains(sortField.Field, ".") && !f.fieldExists(sortField.Field) {
+			if !strings.Contains(sortField.Field, ".") && !f.fieldExists(db, sortField.Field) {
 				continue
 			}
 			order := "ASC"
@@ -99,7 +99,7 @@ func (f *Pagination[T]) applysGorm(db *gorm.DB, filterRoot Root) *gorm.DB {
 	}
 	if filterRoot.Logic == LogicAnd {
 		for _, filter := range filterRoot.FieldFilters {
-			if strings.Contains(filter.Field, ".") || f.fieldExists(filter.Field) {
+			if strings.Contains(filter.Field, ".") || f.fieldExists(db, filter.Field) {
 				condition, values := f.buildConditionWithTableName(filter, mainTableName)
 				if condition != "" {
 					db = db.Where(condition, values...)
@@ -110,7 +110,7 @@ func (f *Pagination[T]) applysGorm(db *gorm.DB, filterRoot Root) *gorm.DB {
 		var orConditions []string
 		var orValues []any
 		for _, filter := range filterRoot.FieldFilters {
-			if strings.Contains(filter.Field, ".") || f.fieldExists(filter.Field) {
+			if strings.Contains(filter.Field, ".") || f.fieldExists(db, filter.Field) {
 				condition, values := f.buildConditionWithTableName(filter, mainTableName)
 				if condition != "" {
 					orConditions = append(orConditions, condition)

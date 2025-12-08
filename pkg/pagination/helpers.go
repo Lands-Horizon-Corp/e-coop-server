@@ -10,49 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []SortField) *gorm.DB {
-	joinedTables := make(map[string]bool)
-	for _, filter := range filters {
-		if strings.Contains(filter.Field, ".") {
-			parts := strings.Split(filter.Field, ".")
-			if len(parts) >= 2 {
-				tableName := handlers.ToPascalCase(parts[0])
-				if !joinedTables[tableName] {
-					db = db.Joins(tableName)
-					joinedTables[tableName] = true
-				}
-			}
-		}
-	}
-	for _, sortField := range sortFields {
-		if strings.Contains(sortField.Field, ".") {
-			parts := strings.Split(sortField.Field, ".")
-			if len(parts) >= 2 {
-				tableName := handlers.ToPascalCase(parts[0])
-				if !joinedTables[tableName] {
-					db = db.Joins(tableName)
-					joinedTables[tableName] = true
-				}
-			}
-		}
-	}
-	return db
-}
-
-func (f *Pagination[T]) fieldExists(field string) bool {
-	stmt := &gorm.Statement{DB: &gorm.DB{}}
-	if err := stmt.Parse(new(T)); err != nil || stmt.Schema == nil {
-		return false
-	}
-	if stmt.Schema.LookUpField(field) != nil {
-		return true
-	}
-	if stmt.Schema.LookUpField(strings.ToLower(field)) != nil {
-		return true
-	}
-	return false
-}
-
 var dateTimeLayouts = []string{
 	time.RFC3339,                     // "2006-01-02T15:04:05Z07:00"
 	time.RFC3339Nano,                 // "2006-01-02T15:04:05.999999999Z07:00"
@@ -95,8 +52,36 @@ var timeLayouts = []string{
 	"15:04:05-07:00",     // New: Offset without Z
 }
 
+func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []SortField) *gorm.DB {
+	joinedTables := make(map[string]bool)
+	for _, filter := range filters {
+		if strings.Contains(filter.Field, ".") {
+			parts := strings.Split(filter.Field, ".")
+			if len(parts) >= 2 {
+				tableName := handlers.ToPascalCase(parts[0])
+				if !joinedTables[tableName] {
+					db = db.Joins(tableName)
+					joinedTables[tableName] = true
+				}
+			}
+		}
+	}
+	for _, sortField := range sortFields {
+		if strings.Contains(sortField.Field, ".") {
+			parts := strings.Split(sortField.Field, ".")
+			if len(parts) >= 2 {
+				tableName := handlers.ToPascalCase(parts[0])
+				if !joinedTables[tableName] {
+					db = db.Joins(tableName)
+					joinedTables[tableName] = true
+				}
+			}
+		}
+	}
+	return db
+}
+
 func parseNumber(value any) (float64, error) {
-	// Handle nil values from nested pointers
 	if value == nil {
 		return 0, nil
 	}
