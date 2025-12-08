@@ -447,7 +447,7 @@ func (h *APIServiceImpl) Client() *echo.Echo {
 
 func (h *APIServiceImpl) RegisterWebRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	webRoute := handlers.Route{
-		Route:        "/web/" + route.Route,
+		Route:        "/web/" + strings.TrimPrefix(route.Route, "/"),
 		Request:      route.Request,
 		Response:     route.Response,
 		RequestType:  route.RequestType,
@@ -480,7 +480,7 @@ func (h *APIServiceImpl) RegisterWebRoute(route handlers.Route, callback func(c 
 
 func (h *APIServiceImpl) RegisterMobileRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	mobileRoute := handlers.Route{
-		Route:        "/mobile/" + route.Route,
+		Route:        "/mobile/" + strings.TrimPrefix(route.Route, "/"),
 		Request:      route.Request,
 		Response:     route.Response,
 		RequestType:  route.RequestType,
