@@ -3,8 +3,11 @@ package horizon
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -192,6 +195,9 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 					zap.String("blocked_host", blockedHost),
 					zap.String("path", c.Request().URL.Path),
 				)
+				// extra plain-log for quick visibility
+				log.Printf("IPFirewall: blocked IP=%s blocked_host=%s path=%s", clientIP, blockedHost, c.Request().URL.Path)
+				io.WriteString(os.Stdout, fmt.Sprintf("IPFirewall: blocked IP=%s blocked_host=%s path=%s\n", clientIP, blockedHost, c.Request().URL.Path))
 				return c.JSON(http.StatusForbidden, map[string]string{
 					"error": "Access denied",
 					"code":  "IP_BLOCKED",
@@ -227,6 +233,9 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 					zap.String("ip", clientIP),
 					zap.String("user_agent", handlers.GetUserAgent(c)),
 				)
+				// extra plain-log for quick visibility
+				log.Printf("SuspiciousPath: banning IP=%s path=%s host=%s", clientIP, c.Request().URL.Path, host)
+				io.WriteString(os.Stdout, fmt.Sprintf("SuspiciousPath: banning IP=%s path=%s host=%s\n", clientIP, c.Request().URL.Path, host))
 				return echo.NewHTTPError(http.StatusForbidden, "Access denied")
 			}
 			return next(c)
@@ -476,11 +485,29 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 			}
 
 			host := handlers.GetHost(c)
-			if !slices.Contains(allowedHosts, host) {
-				return c.String(http.StatusForbidden, "Host not allowed")
+			// allow loopback hosts in development regardless of port
+			if !h.secured {
+				if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.") || host == "::1" || strings.HasPrefix(host, "[::1") {
+					// continue to CORS handling below
+				} else if slices.Contains(allowedHosts, host) {
+					// allowed host
+				} else {
+					clientIP := handlers.GetClientIP(c)
+					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
+					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
+					return c.String(http.StatusForbidden, "Host not allowed")
+				}
+			} else {
+				if !slices.Contains(allowedHosts, host) {
+					clientIP := handlers.GetClientIP(c)
+					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
+					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
+					return c.String(http.StatusForbidden, "Host not allowed")
+				}
 			}
 
 			origin := c.Request().Header.Get("Origin")
+			// allow explicit origins from configured list
 			if slices.Contains(origins, origin) {
 				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
 				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
@@ -488,6 +515,16 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
 				c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
 				c.Response().Header().Set("Access-Control-Max-Age", "3600")
+			} else if !h.secured && origin != "" {
+				// in development allow localhost/127.0.0.1 origins with arbitrary ports
+				if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost") {
+					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+					c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+					c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
+					c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+					c.Response().Header().Set("Access-Control-Max-Age", "3600")
+				}
 			}
 
 			if c.Request().Method == http.MethodOptions {
