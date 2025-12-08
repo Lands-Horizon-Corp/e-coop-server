@@ -213,6 +213,19 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 				clientIP := handlers.GetClientIP(c)
 				host := handlers.GetHost(c)
 
+				// avoid banning local loopback addresses during development
+				if !secured {
+					if parsed := net.ParseIP(clientIP); parsed != nil && parsed.IsLoopback() {
+						logger.Info("Suspicious path detected on loopback - not banning in dev",
+							zap.String("path", c.Request().URL.Path),
+							zap.String("ip", clientIP),
+						)
+						log.Printf("SuspiciousPath(dev): detected from loopback IP=%s path=%s host=%s (no ban)", clientIP, c.Request().URL.Path, host)
+						io.WriteString(os.Stdout, fmt.Sprintf("SuspiciousPath(dev): detected from loopback IP=%s path=%s host=%s (no ban)\n", clientIP, c.Request().URL.Path, host))
+						return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+					}
+				}
+
 				go func() {
 					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 					defer cancel()
