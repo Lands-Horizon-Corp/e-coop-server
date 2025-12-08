@@ -63,7 +63,7 @@ func IsSuspiciousPath(path string) bool {
 		return len(path) > 4096 // Return true only if too long
 	}
 
-	isAPI := strings.HasPrefix(path, "/api/")
+	isAPI := strings.HasPrefix(path, "/web/api/") || strings.HasPrefix(path, "/mobile/api/")
 
 	// Always check injection patterns
 	if hasInjectionPattern(path) {
