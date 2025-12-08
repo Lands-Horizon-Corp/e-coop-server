@@ -152,6 +152,34 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 
+	// Pre-router handler for OPTIONS preflight to ensure it's handled before routing
+	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Request().Method != http.MethodOptions {
+				return next(c)
+			}
+
+			origin := c.Request().Header.Get("Origin")
+			if origin == "" {
+				return c.NoContent(http.StatusNoContent)
+			}
+
+			// allow configured origins and localhost in dev
+			if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost") {
+				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+				c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+				c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
+				c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+				c.Response().Header().Set("Access-Control-Max-Age", "3600")
+				return c.NoContent(http.StatusNoContent)
+			}
+
+			// fallback: respond no content
+			return c.NoContent(http.StatusNoContent)
+		}
+	})
+
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			clientIP := handlers.GetClientIP(c)
