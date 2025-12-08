@@ -1,6 +1,8 @@
 package pagination
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"reflect"
 	"strings"
@@ -296,4 +298,39 @@ func hasTimeComponent(t time.Time) bool {
 		return false
 	}
 	return true
+}
+
+func csvCreation[T any](data []*T, getter func(*T) map[string]any) ([]byte, error) {
+	var buf bytes.Buffer
+	csvWriter := csv.NewWriter(&buf)
+	if len(data) == 0 {
+		return buf.Bytes(), nil
+	}
+	firstRowFields := getter(data[0])
+	fieldNames := make([]string, 0, len(firstRowFields))
+	for k := range firstRowFields {
+		fieldNames = append(fieldNames, k)
+	}
+	if err := csvWriter.Write(fieldNames); err != nil {
+		return nil, fmt.Errorf("failed to write CSV header: %w", err)
+	}
+	for _, item := range data {
+		itemFields := getter(item)
+		record := make([]string, len(fieldNames))
+		for i, fieldName := range fieldNames {
+			if value, exists := itemFields[fieldName]; exists {
+				record[i] = fmt.Sprintf("%v", value)
+			} else {
+				record[i] = ""
+			}
+		}
+		if err := csvWriter.Write(record); err != nil {
+			return nil, fmt.Errorf("failed to write CSV record: %w", err)
+		}
+	}
+	csvWriter.Flush()
+	if err := csvWriter.Error(); err != nil {
+		return nil, fmt.Errorf("failed to flush CSV: %w", err)
+	}
+	return buf.Bytes(), nil
 }

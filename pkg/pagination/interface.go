@@ -67,7 +67,7 @@ type SortField struct {
 	Order SortOrder `json:"order"`
 }
 
-type Root struct {
+type StructuredFilter struct {
 	FieldFilters []FieldFilter `json:"filters"`
 	SortFields   []SortField   `json:"sortFields"`
 	Logic        Logic         `json:"logic"`
@@ -97,13 +97,13 @@ type RangeDate struct {
 	To   time.Time
 }
 
-type FilterSQL struct {
+type ArrFilterSQL struct {
 	Field string
 	Op    Mode
 	Value any
 }
 
-type FilterSortSQL struct {
+type ArrFilterSortSQL struct {
 	Field string
 	Order SortOrder
 }

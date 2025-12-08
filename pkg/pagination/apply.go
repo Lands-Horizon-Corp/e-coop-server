@@ -53,7 +53,7 @@ func (f *Pagination[T]) fieldExists(db *gorm.DB, field string) bool {
 	return false
 }
 
-func (f *Pagination[T]) applyJoinsForFilters(db *gorm.DB, filters []FilterSQL) *gorm.DB {
+func (f *Pagination[T]) applyJoinsForFilters(db *gorm.DB, filters []ArrFilterSQL) *gorm.DB {
 	joinMap := make(map[string]bool)
 
 	for _, filter := range filters {

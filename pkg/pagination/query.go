@@ -9,9 +9,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func (f *Pagination[T]) query(
+func (f *Pagination[T]) arrQuery(
 	db *gorm.DB,
-	filterRoot Root,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
+) *gorm.DB {
+	db = f.applyJoinsForFilters(db, filters)
+	db = f.applySQLFilters(db, filters)
+	if len(sorts) > 0 {
+		db = f.applySort(db, sorts)
+	} else {
+		db = db.Order("updated_at DESC")
+	}
+	return db
+}
+
+func (f *Pagination[T]) structuredQuery(
+	db *gorm.DB,
+	filterRoot StructuredFilter,
 ) *gorm.DB {
 	query := db.Model(new(T))
 	query = autoJoinRelatedTables(query, filterRoot.FieldFilters, filterRoot.SortFields)
@@ -79,7 +94,7 @@ func (f *Pagination[T]) query(
 	return query
 }
 
-func (f *Pagination[T]) applysGorm(db *gorm.DB, filterRoot Root) *gorm.DB {
+func (f *Pagination[T]) applysGorm(db *gorm.DB, filterRoot StructuredFilter) *gorm.DB {
 	if len(filterRoot.FieldFilters) == 0 {
 		return db
 	}
@@ -432,7 +447,7 @@ func (f *Pagination[T]) buildTimeCondition(field string, mode Mode, value any) (
 	return "", nil
 }
 
-func (r *Pagination[T]) applySQLFilters(db *gorm.DB, filters []FilterSQL) *gorm.DB {
+func (r *Pagination[T]) applySQLFilters(db *gorm.DB, filters []ArrFilterSQL) *gorm.DB {
 	for _, f := range filters {
 		switch f.Op {
 		case ModeEqual:
@@ -462,7 +477,7 @@ func (r *Pagination[T]) applySQLFilters(db *gorm.DB, filters []FilterSQL) *gorm.
 	return db
 }
 
-func (f *Pagination[T]) applySort(db *gorm.DB, sortFields []FilterSortSQL) *gorm.DB {
+func (f *Pagination[T]) applySort(db *gorm.DB, sortFields []ArrFilterSortSQL) *gorm.DB {
 	stmt := &gorm.Statement{DB: db}
 	if err := stmt.Parse(new(T)); err != nil || stmt.Schema == nil {
 		return db

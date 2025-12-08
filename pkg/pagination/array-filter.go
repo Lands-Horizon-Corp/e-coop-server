@@ -8,9 +8,47 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (p Pagination[T]) Count(
+func (f *Pagination[T]) ArrPagination(
 	db *gorm.DB,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
+	pageIndex int,
+	pageSize int,
+	preloads ...string,
+) (*PaginationResult[T], error) {
+	result := PaginationResult[T]{
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+	}
+	if result.PageIndex < 0 {
+		result.PageIndex = 0
+	}
+	if result.PageSize <= 0 {
+		result.PageSize = 30
+	}
+	db = f.arrQuery(db, filters, sorts)
+	var totalCount int64
+	if err := db.Model(new(T)).Count(&totalCount).Error; err != nil {
+		return nil, fmt.Errorf("failed to count records: %w", err)
+	}
+	result.TotalSize = int(totalCount)
+	result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
+	offset := result.PageIndex * result.PageSize
+	db = db.Offset(offset).Limit(result.PageSize)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	var data []*T
+	if err := db.Find(&data).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch records: %w", err)
+	}
+	result.Data = data
+	return &result, nil
+}
+
+func (p Pagination[T]) ArrCount(
+	db *gorm.DB,
+	filters []ArrFilterSQL,
 ) (int64, error) {
 	var count int64
 	db = p.applyJoinsForFilters(db, filters)
@@ -21,10 +59,10 @@ func (p Pagination[T]) Count(
 	return count, nil
 }
 
-func (p *Pagination[T]) Find(
+func (p *Pagination[T]) ArrFind(
 	db *gorm.DB,
-	filters []FilterSQL,
-	sorts []FilterSortSQL,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*T, error) {
 	var entities []*T
@@ -44,10 +82,10 @@ func (p *Pagination[T]) Find(
 	return entities, nil
 }
 
-func (r *Pagination[T]) FindLock(
+func (r *Pagination[T]) ArrFindLock(
 	db *gorm.DB,
-	filters []FilterSQL,
-	sorts []FilterSortSQL,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*T, error) {
 	var entities []*T
@@ -68,10 +106,10 @@ func (r *Pagination[T]) FindLock(
 	return entities, nil
 }
 
-func (p *Pagination[T]) FindOne(
+func (p *Pagination[T]) ArrFindOne(
 	db *gorm.DB,
-	filters []FilterSQL,
-	sorts []FilterSortSQL,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
 	preloads ...string,
 ) (*T, error) {
 	var entity T
@@ -95,10 +133,10 @@ func (p *Pagination[T]) FindOne(
 	return &entity, nil
 }
 
-func (p *Pagination[T]) FindOneWithLock(
+func (p *Pagination[T]) ArrFindOneWithLock(
 	db *gorm.DB,
-	filters []FilterSQL,
-	sorts []FilterSortSQL,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
 	preloads ...string,
 ) (*T, error) {
 	var entity T
@@ -123,9 +161,9 @@ func (p *Pagination[T]) FindOneWithLock(
 	return &entity, nil
 }
 
-func (p *Pagination[T]) Exists(
+func (p *Pagination[T]) ArrExists(
 	db *gorm.DB,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (bool, error) {
 	db = p.applyJoinsForFilters(db, filters)
 	db = p.applySQLFilters(db, filters)
@@ -137,7 +175,7 @@ func (p *Pagination[T]) Exists(
 	return dummy == 1, nil
 }
 
-func (p *Pagination[T]) ExistsByID(
+func (p *Pagination[T]) ArrExistsByID(
 	db *gorm.DB,
 	id any,
 ) (bool, error) {
@@ -150,9 +188,9 @@ func (p *Pagination[T]) ExistsByID(
 	return dummy == 1, nil
 }
 
-func (p *Pagination[T]) ExistsIncludingDeleted(
+func (p *Pagination[T]) ArrExistsIncludingDeleted(
 	db *gorm.DB,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (bool, error) {
 	db = db.Unscoped()
 	db = p.applyJoinsForFilters(db, filters)
@@ -165,10 +203,10 @@ func (p *Pagination[T]) ExistsIncludingDeleted(
 	return dummy == 1, nil
 }
 
-func (p *Pagination[T]) GetMax(
+func (p *Pagination[T]) ArrGetMax(
 	db *gorm.DB,
 	field string,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (any, error) {
 	var result any
 	db = p.applyJoinsForFilters(db, filters)
@@ -180,10 +218,10 @@ func (p *Pagination[T]) GetMax(
 	return result, nil
 }
 
-func (p *Pagination[T]) GetMin(
+func (p *Pagination[T]) ArrGetMin(
 	db *gorm.DB,
 	field string,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (any, error) {
 	var result any
 	db = p.applyJoinsForFilters(db, filters)
@@ -195,10 +233,10 @@ func (p *Pagination[T]) GetMin(
 	return result, nil
 }
 
-func (p *Pagination[T]) GetMaxLock(
+func (p *Pagination[T]) ArrGetMaxLock(
 	tx *gorm.DB,
 	field string,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (any, error) {
 	var result any
 	tx = p.applyJoinsForFilters(tx, filters)
@@ -211,10 +249,10 @@ func (p *Pagination[T]) GetMaxLock(
 	return result, nil
 }
 
-func (p *Pagination[T]) GetMinLock(
+func (p *Pagination[T]) ArrGetMinLock(
 	tx *gorm.DB,
 	field string,
-	filters []FilterSQL,
+	filters []ArrFilterSQL,
 ) (any, error) {
 	var result any
 	tx = p.applyJoinsForFilters(tx, filters)
@@ -227,7 +265,7 @@ func (p *Pagination[T]) GetMinLock(
 	return result, nil
 }
 
-func (p *Pagination[T]) GetByID(
+func (p *Pagination[T]) ArrGetByID(
 	db *gorm.DB,
 	id any,
 	preloads ...string,
@@ -247,7 +285,7 @@ func (p *Pagination[T]) GetByID(
 	return &entity, nil
 }
 
-func (p *Pagination[T]) GetByIDLock(
+func (p *Pagination[T]) ArrGetByIDLock(
 	tx *gorm.DB,
 	id any,
 	preloads ...string,
@@ -266,4 +304,18 @@ func (p *Pagination[T]) GetByIDLock(
 	}
 
 	return &entity, nil
+}
+
+func (f *Pagination[T]) ArrTabular(
+	db *gorm.DB,
+	getter func(data *T) map[string]any,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
+	preloads ...string,
+) ([]byte, error) {
+	data, err := f.ArrFind(db, filters, sorts, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation[T](data, getter)
 }
