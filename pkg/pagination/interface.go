@@ -7,33 +7,31 @@ type Mode string
 
 // mode constants define available comparison operations
 const (
-	ModeEqual       Mode = "equal"       // Exact match
-	ModeNotEqual    Mode = "notEqual"    // Not equal
-	ModeContains    Mode = "contains"    // Contains substring
-	ModeNotContains Mode = "notContains" // Does not contain substring
-	ModeStartsWith  Mode = "startsWith"  // Starts with prefix
-	ModeEndsWith    Mode = "endsWith"    // Ends with suffix
-	ModeIsEmpty     Mode = "isEmpty"     // Is empty or null
-	ModeIsNotEmpty  Mode = "isNotEmpty"  // Is not empty
-	ModeGT          Mode = "gt"          // Greater than
-	ModeGTE         Mode = "gte"         // Greater than or equal
-	ModeLT          Mode = "lt"          // Less than
-	ModeLTE         Mode = "lte"         // Less than or equal
-	ModeRange       Mode = "range"       // Between two values
-	ModeBefore      Mode = "before"      // Before (date/time)
-	ModeAfter       Mode = "after"       // After (date/time)
+	ModeEqual       Mode = "equal"
+	ModeNotEqual    Mode = "notEqual"
+	ModeContains    Mode = "contains"
+	ModeNotContains Mode = "notContains"
+	ModeStartsWith  Mode = "startsWith"
+	ModeEndsWith    Mode = "endsWith"
+	ModeIsEmpty     Mode = "isEmpty"
+	ModeIsNotEmpty  Mode = "isNotEmpty"
+	ModeGT          Mode = "gt"
+	ModeGTE         Mode = "gte"
+	ModeLT          Mode = "lt"
+	ModeLTE         Mode = "lte"
+	ModeRange       Mode = "range"
+	ModeBefore      Mode = "before"
+	ModeAfter       Mode = "after"
 )
 
-// DataType defines the data type being filtered
 type DataType string
 
-// data type constants define the type of data being filtered
 const (
-	DataTypeNumber DataType = "number" // Numeric values
-	DataTypeText   DataType = "text"   // Text/string values
-	DataTypeBool   DataType = "bool"   // Boolean values
-	DataTypeDate   DataType = "date"   // Date values
-	DataTypeTime   DataType = "time"   // Time values
+	DataTypeNumber DataType = "number"
+	DataTypeText   DataType = "text"
+	DataTypeBool   DataType = "bool"
+	DataTypeDate   DataType = "date"
+	DataTypeTime   DataType = "time"
 )
 
 type Logic string
