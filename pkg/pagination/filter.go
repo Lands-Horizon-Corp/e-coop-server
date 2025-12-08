@@ -2,432 +2,268 @@ package pagination
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-func (f *Pagination[T]) query(
+func (p Pagination[T]) Count(
 	db *gorm.DB,
-	filterRoot Root,
-) *gorm.DB {
-	query := db.Model(new(T))
-	query = autoJoinRelatedTables(query, filterRoot.FieldFilters, filterRoot.SortFields)
-	if len(filterRoot.Preload) > 0 {
-		for _, preloadField := range filterRoot.Preload {
-			query = query.Preload(preloadField)
-		}
+	filters []FilterSQL,
+) (int64, error) {
+	var count int64
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	if err := db.Model(new(T)).Count(&count).Error; err != nil {
+		return 0, eris.Wrapf(err, "failed to count entities with %d filters", len(filters))
 	}
-	if len(filterRoot.FieldFilters) > 0 {
-		query = f.applysGorm(query, filterRoot)
+	return count, nil
+}
+
+func (p *Pagination[T]) Find(
+	db *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) ([]*T, error) {
+	var entities []*T
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
 	}
-	hasNestedFields := false
-	for _, filter := range filterRoot.FieldFilters {
-		if strings.Contains(filter.Field, ".") {
-			hasNestedFields = true
-			break
-		}
-	}
-	if !hasNestedFields {
-		for _, sortField := range filterRoot.SortFields {
-			if strings.Contains(sortField.Field, ".") {
-				hasNestedFields = true
-				break
-			}
-		}
-	}
-	var mainTableName string
-	if hasNestedFields {
-		stmt := &gorm.Statement{DB: db}
-		if err := stmt.Parse(new(T)); err == nil {
-			mainTableName = stmt.Schema.Table
-		}
-	}
-	if len(filterRoot.SortFields) > 0 {
-		for _, sortField := range filterRoot.SortFields {
-			if !strings.Contains(sortField.Field, ".") && !f.fieldExists(db, sortField.Field) {
-				continue
-			}
-			order := "ASC"
-			if sortField.Order == SortOrderDesc {
-				order = "DESC"
-			}
-			field := sortField.Field
-			if strings.Contains(field, ".") {
-				parts := strings.Split(field, ".")
-				if len(parts) >= 2 {
-					parts[0] = handlers.ToPascalCase(parts[0])
-					field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
-					for i := 2; i < len(parts); i++ {
-						field = fmt.Sprintf(`%s."%s"`, field, parts[i])
-					}
-				}
-			} else if mainTableName != "" {
-				field = fmt.Sprintf(`"%s"."%s"`, mainTableName, field)
-			}
-			query = query.Order(fmt.Sprintf("%s %s", field, order))
-		}
+	if len(sorts) > 0 {
+		db = p.applySort(db, sorts)
 	} else {
-		if mainTableName != "" {
-			query = query.Order(fmt.Sprintf(`"%s"."created_at" DESC`, mainTableName))
-		} else {
-			query = query.Order("created_at DESC")
-		}
+		db = db.Order("updated_at DESC")
 	}
-	return query
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entities with %d filters: %w", len(filters), err)
+	}
+	return entities, nil
 }
 
-func (f *Pagination[T]) applysGorm(db *gorm.DB, filterRoot Root) *gorm.DB {
-	if len(filterRoot.FieldFilters) == 0 {
-		return db
+func (r *Pagination[T]) FindLock(
+	db *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) ([]*T, error) {
+	var entities []*T
+	db = r.applyJoinsForFilters(db, filters)
+	db = r.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
 	}
-	hasNestedFields := false
-	for _, filter := range filterRoot.FieldFilters {
-		if strings.Contains(filter.Field, ".") {
-			hasNestedFields = true
-			break
-		}
-	}
-	var mainTableName string
-	if hasNestedFields {
-		stmt := &gorm.Statement{DB: db}
-		if err := stmt.Parse(new(T)); err == nil {
-			mainTableName = stmt.Schema.Table
-		}
-	}
-	if filterRoot.Logic == LogicAnd {
-		for _, filter := range filterRoot.FieldFilters {
-			if strings.Contains(filter.Field, ".") || f.fieldExists(db, filter.Field) {
-				condition, values := f.buildConditionWithTableName(filter, mainTableName)
-				if condition != "" {
-					db = db.Where(condition, values...)
-				}
-			}
-		}
+	if len(sorts) > 0 {
+		db = r.applySort(db, sorts)
 	} else {
-		var orConditions []string
-		var orValues []any
-		for _, filter := range filterRoot.FieldFilters {
-			if strings.Contains(filter.Field, ".") || f.fieldExists(db, filter.Field) {
-				condition, values := f.buildConditionWithTableName(filter, mainTableName)
-				if condition != "" {
-					orConditions = append(orConditions, condition)
-					orValues = append(orValues, values...)
-				}
-			}
-		}
-		if len(orConditions) > 0 {
-			db = db.Where(strings.Join(orConditions, " OR "), orValues...)
-		}
+		db = db.Order("updated_at DESC")
 	}
-	return db
+	db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, eris.Wrapf(err, "failed to find entities with %d filters and lock", len(filters))
+	}
+	return entities, nil
 }
 
-func (f *Pagination[T]) buildConditionWithTableName(filter FieldFilter, mainTableName string) (string, []any) {
-	field := filter.Field
-	value := filter.Value
-	isNestedField := strings.Contains(field, ".")
-	if isNestedField {
-		parts := strings.Split(field, ".")
-		if len(parts) >= 2 {
-			parts[0] = handlers.ToPascalCase(parts[0])
-			field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
-			for i := 2; i < len(parts); i++ {
-				field = fmt.Sprintf(`%s."%s"`, field, parts[i])
-			}
-		}
-	} else if mainTableName != "" {
-		field = fmt.Sprintf(`"%s"."%s"`, mainTableName, field)
+func (p *Pagination[T]) FindOne(
+	db *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) (*T, error) {
+	var entity T
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
 	}
-	switch filter.DataType {
-	case DataTypeNumber:
-		return f.buildNumberCondition(field, filter.Mode, value)
-	case DataTypeText:
-		return f.buildTextCondition(field, filter.Mode, value)
-	case DataTypeBool:
-		return f.buildBoolCondition(field, filter.Mode, value)
-	case DataTypeDate:
-		return f.buildDateCondition(field, filter.Mode, value)
-	case DataTypeTime:
-		return f.buildTimeCondition(field, filter.Mode, value)
-	default:
-		return "", nil
+	if len(sorts) > 0 {
+		db = p.applySort(db, sorts)
+	} else {
+		db = db.Order("updated_at DESC")
 	}
-
-}
-
-func (f *Pagination[T]) buildNumberCondition(field string, mode Mode, value any) (string, []any) {
-	switch mode {
-	case ModeEqual:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s = ?", field), []any{num}
-	case ModeNotEqual:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s != ?", field), []any{num}
-	case ModeGT:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s > ?", field), []any{num}
-	case ModeGTE:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s >= ?", field), []any{num}
-	case ModeLT:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s < ?", field), []any{num}
-	case ModeLTE:
-		num, err := parseNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s <= ?", field), []any{num}
-	case ModeRange:
-		rangeVal, err := parseRangeNumber(value)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s BETWEEN ? AND ?", field), []any{rangeVal.From, rangeVal.To}
-	}
-	return "", nil
-}
-
-func (f *Pagination[T]) buildTextCondition(field string, mode Mode, value any) (string, []any) {
-	if mode == ModeRange {
-		rangeVal, ok := value.(Range)
-		if !ok {
-			return "", nil
-		}
-		fromStr, err := parseText(rangeVal.From)
-		if err != nil {
-			return "", nil
-		}
-		toStr, err := parseText(rangeVal.To)
-		if err != nil {
-			return "", nil
-		}
-		return fmt.Sprintf("%s BETWEEN ? AND ?", field), []any{fromStr, toStr}
-	}
-	str, err := parseText(value)
+	err := db.First(&entity).Error
 	if err != nil {
-		return "", nil
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find entity with %d filters: %w", len(filters), err)
 	}
-	switch mode {
-	case ModeEqual:
-		return fmt.Sprintf("LOWER(%s) = LOWER(?)", field), []any{str}
-	case ModeNotEqual:
-		return fmt.Sprintf("LOWER(%s) != LOWER(?)", field), []any{str}
-	case ModeContains:
-		return fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", field), []any{"%" + str + "%"}
-	case ModeNotContains:
-		return fmt.Sprintf("LOWER(%s) NOT LIKE LOWER(?)", field), []any{"%" + str + "%"}
-	case ModeStartsWith:
-		return fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", field), []any{str + "%"}
-	case ModeEndsWith:
-		return fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", field), []any{"%" + str}
-	case ModeIsEmpty:
-		return fmt.Sprintf("(%s IS NULL OR %s = '')", field, field), []any{}
-	case ModeIsNotEmpty:
-		return fmt.Sprintf("(%s IS NOT NULL AND %s != '')", field, field), []any{}
-	case ModeGT:
-		return fmt.Sprintf("%s > ?", field), []any{str}
-	case ModeGTE, ModeAfter:
-		return fmt.Sprintf("%s >= ?", field), []any{str}
-	case ModeLT, ModeBefore:
-		return fmt.Sprintf("%s < ?", field), []any{str}
-	case ModeLTE:
-		return fmt.Sprintf("%s <= ?", field), []any{str}
-	}
-	return "", nil
+	return &entity, nil
 }
 
-func (f *Pagination[T]) buildBoolCondition(field string, mode Mode, value any) (string, []any) {
-	boolVal, err := parseBool(value)
+func (p *Pagination[T]) FindOneWithLock(
+	db *gorm.DB,
+	filters []FilterSQL,
+	sorts []FilterSortSQL,
+	preloads ...string,
+) (*T, error) {
+	var entity T
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	if len(sorts) > 0 {
+		db = p.applySort(db, sorts)
+	} else {
+		db = db.Order("updated_at DESC")
+	}
+	db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	err := db.First(&entity).Error
 	if err != nil {
-		return "", nil
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find entity with lock and %d filters: %w", len(filters), err)
 	}
-	switch mode {
-	case ModeEqual:
-		return fmt.Sprintf("%s = ?", field), []any{boolVal}
-	case ModeNotEqual:
-		return fmt.Sprintf("%s != ?", field), []any{boolVal}
-	}
-	return "", nil
+	return &entity, nil
 }
 
-func (f *Pagination[T]) buildDateCondition(field string, mode Mode, value any) (string, []any) {
-	switch mode {
-	case ModeEqual:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s = ?", field), []any{t}
-		}
-		startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		endOfDay := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
-		return fmt.Sprintf("%s BETWEEN ? AND ?", field), []any{startOfDay, endOfDay}
-	case ModeNotEqual:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s != ?", field), []any{t}
-		}
-		startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		endOfDay := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
-		return fmt.Sprintf("(%s < ? OR %s > ?)", field, field), []any{startOfDay, endOfDay}
-	case ModeGTE:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s >= ?", field), []any{t}
-		} else {
-			startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-			return fmt.Sprintf("%s >= ?", field), []any{startOfDay}
-		}
-	case ModeLT:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s < ?", field), []any{t}
-		} else {
-			startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-			return fmt.Sprintf("%s < ?", field), []any{startOfDay}
-		}
-	case ModeLTE:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s <= ?", field), []any{t}
-		} else {
-			endOfDay := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
-			return fmt.Sprintf("%s <= ?", field), []any{endOfDay}
-		}
-	case ModeBefore:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s < ?", field), []any{t}
-		} else {
-			startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-			return fmt.Sprintf("%s < ?", field), []any{startOfDay}
-		}
-	case ModeAfter:
-		t, err := parseDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTime := hasTimeComponent(t)
-		if hasTime {
-			return fmt.Sprintf("%s > ?", field), []any{t}
-		} else {
-			endOfDay := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
-			return fmt.Sprintf("%s > ?", field), []any{endOfDay}
-		}
-	case ModeRange:
-		rangeVal, err := parseRangeDateTime(value)
-		if err != nil {
-			return "", nil
-		}
-		hasTimeFrom := hasTimeComponent(rangeVal.From)
-		hasTimeTo := hasTimeComponent(rangeVal.To)
-
-		if hasTimeFrom && hasTimeTo {
-			// Both dates have time components, use exact timestamps
-			return fmt.Sprintf("%s >= ? AND %s <= ?", field, field), []any{rangeVal.From, rangeVal.To}
-		} else {
-			// Date-only range: include entire days from start of From day to end of To day
-			startOfFromDay := time.Date(rangeVal.From.Year(), rangeVal.From.Month(), rangeVal.From.Day(), 0, 0, 0, 0, rangeVal.From.Location())
-			endOfToDay := time.Date(rangeVal.To.Year(), rangeVal.To.Month(), rangeVal.To.Day(), 23, 59, 59, 999999999, rangeVal.To.Location())
-			return fmt.Sprintf("%s >= ? AND %s <= ?", field, field), []any{startOfFromDay, endOfToDay}
-		}
+func (p *Pagination[T]) Exists(
+	db *gorm.DB,
+	filters []FilterSQL,
+) (bool, error) {
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	var dummy int
+	err := db.Model(new(T)).Select("1").Limit(1).Scan(&dummy).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to check existence: %w", err)
 	}
-	return "", nil
+	return dummy == 1, nil
 }
 
-func (f *Pagination[T]) buildTimeCondition(field string, mode Mode, value any) (string, []any) {
-	switch mode {
-	case ModeEqual:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) = ?", field), []any{timeStr}
-	case ModeNotEqual:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) != ?", field), []any{timeStr}
-	case ModeGT:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) > ?", field), []any{timeStr}
-	case ModeGTE, ModeAfter:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) >= ?", field), []any{timeStr}
-	case ModeLT, ModeBefore:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) < ?", field), []any{timeStr}
-	case ModeLTE:
-		t, err := parseTime(value)
-		if err != nil {
-			return "", nil
-		}
-		timeStr := t.Format("15:04:05")
-		return fmt.Sprintf("time(%s) <= ?", field), []any{timeStr}
-	case ModeRange:
-		rangeVal, err := parseRangeTime(value)
-		if err != nil {
-			return "", nil
-		}
-		fromStr := rangeVal.From.Format("15:04:05")
-		toStr := rangeVal.To.Format("15:04:05")
-		return fmt.Sprintf("time(%s) BETWEEN ? AND ?", field), []any{fromStr, toStr}
+func (p *Pagination[T]) ExistsByID(
+	db *gorm.DB,
+	id any,
+) (bool, error) {
+	var dummy int
+	subQuery := db.Model(new(T)).Select("1").Where("id = ?", id).Limit(1)
+	err := db.Raw("SELECT EXISTS (?)", subQuery).Scan(&dummy).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to check existence by ID: %w", err)
 	}
-	return "", nil
+	return dummy == 1, nil
+}
+
+func (p *Pagination[T]) ExistsIncludingDeleted(
+	db *gorm.DB,
+	filters []FilterSQL,
+) (bool, error) {
+	db = db.Unscoped()
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	var dummy int
+	err := db.Model(new(T)).Select("1").Limit(1).Scan(&dummy).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to check existence including deleted: %w", err)
+	}
+	return dummy == 1, nil
+}
+
+func (p *Pagination[T]) GetMax(
+	db *gorm.DB,
+	field string,
+	filters []FilterSQL,
+) (any, error) {
+	var result any
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	err := db.Model(new(T)).Select(fmt.Sprintf("MAX(%s)", field)).Scan(&result).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get max of %s: %w", field, err)
+	}
+	return result, nil
+}
+
+func (p *Pagination[T]) GetMin(
+	db *gorm.DB,
+	field string,
+	filters []FilterSQL,
+) (any, error) {
+	var result any
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	err := db.Model(new(T)).Select(fmt.Sprintf("MIN(%s)", field)).Scan(&result).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get min of %s: %w", field, err)
+	}
+	return result, nil
+}
+
+func (p *Pagination[T]) GetMaxLock(
+	tx *gorm.DB,
+	field string,
+	filters []FilterSQL,
+) (any, error) {
+	var result any
+	tx = p.applyJoinsForFilters(tx, filters)
+	tx = p.applySQLFilters(tx, filters)
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+	err := tx.Model(new(T)).Select(fmt.Sprintf("MAX(%s)", field)).Scan(&result).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get max of %s with lock: %w", field, err)
+	}
+	return result, nil
+}
+
+func (p *Pagination[T]) GetMinLock(
+	tx *gorm.DB,
+	field string,
+	filters []FilterSQL,
+) (any, error) {
+	var result any
+	tx = p.applyJoinsForFilters(tx, filters)
+	tx = p.applySQLFilters(tx, filters)
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+	err := tx.Model(new(T)).Select(fmt.Sprintf("MIN(%s)", field)).Scan(&result).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to get min of %s with lock: %w", field, err)
+	}
+	return result, nil
+}
+
+func (p *Pagination[T]) GetByID(
+	db *gorm.DB,
+	id any,
+	preloads ...string,
+) (*T, error) {
+	var entity T
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	err := db.First(&entity, "id = ?", id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get entity by ID %v: %w", id, err)
+	}
+
+	return &entity, nil
+}
+
+func (p *Pagination[T]) GetByIDLock(
+	tx *gorm.DB,
+	id any,
+	preloads ...string,
+) (*T, error) {
+	var entity T
+	for _, preload := range preloads {
+		tx = tx.Preload(preload)
+	}
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+	err := tx.First(&entity, "id = ?", id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get entity by ID %v with lock: %w", id, err)
+	}
+
+	return &entity, nil
 }

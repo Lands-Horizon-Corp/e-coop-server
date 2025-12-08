@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"strings"
 
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/rotisserie/eris"
@@ -21,35 +20,34 @@ func (r *Registry[TData, TResponse, TRequest]) Count(
 }
 
 // CountWithSQL
-func (r *Registry[TData, TResponse, TRequest]) CountWithSQL(
-	context context.Context,
-	filters []FilterSQL,
-) (int64, error) {
-	var count int64
-	db := r.Client(context)
+// func (r *Registry[TData, TResponse, TRequest]) CountWithSQL(
+// 	context context.Context,
+// 	filters []FilterSQL,
+// ) (int64, error) {
+// 	var count int64
+// 	db := r.Client(context)
 
-	// Handle joins for related table filters
-	joinMap := make(map[string]bool)
-	for _, f := range filters {
-		// Check if field references a relationship (contains dot)
-		if strings.Contains(f.Field, ".") {
-			parts := strings.Split(f.Field, ".")
-			if len(parts) == 2 {
-				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
-				if !joinMap[relationName] {
-					db = db.Joins(relationName)
-					joinMap[relationName] = true
-				}
-			}
-		}
-	}
-	db = r.applySQLFilters(db, filters)
+// 	// Handle joins for related table filters
+// 	joinMap := make(map[string]bool)
+// 	for _, f := range filters {
+// 		// Check if field references a relationship (contains dot)
+// 		if strings.Contains(f.Field, ".") {
+// 			parts := strings.Split(f.Field, ".")
+// 			if len(parts) == 2 {
+// 				relationName := strings.ToUpper(string(parts[0][0])) + parts[0][1:]
+// 				if !joinMap[relationName] {
+// 					db = db.Joins(relationName)
+// 					joinMap[relationName] = true
+// 				}
+// 			}
+// 		}
+// 	}
 
-	if err := db.Model(new(TData)).Count(&count).Error; err != nil {
-		return 0, eris.Wrapf(err, "failed to count entities with %d filters", len(filters))
-	}
-	return count, nil
-}
+// 	if err := db.Model(new(TData)).Count(&count).Error; err != nil {
+// 		return 0, eris.Wrapf(err, "failed to count entities with %d filters", len(filters))
+// 	}
+// 	return count, nil
+// }
 
 // CountWithFilter
 func (r *Registry[TData, TResponse, TRequest]) CountWithFilter(

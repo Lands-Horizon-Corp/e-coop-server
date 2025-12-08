@@ -52,3 +52,24 @@ func (f *Pagination[T]) fieldExists(db *gorm.DB, field string) bool {
 
 	return false
 }
+
+func (f *Pagination[T]) applyJoinsForFilters(db *gorm.DB, filters []FilterSQL) *gorm.DB {
+	joinMap := make(map[string]bool)
+
+	for _, filter := range filters {
+		if strings.Contains(filter.Field, ".") {
+			parts := strings.Split(filter.Field, ".")
+			if len(parts) >= 2 {
+				if !f.fieldExists(db, parts[0]) {
+					continue
+				}
+				relationName := handlers.ToSnakeCase(parts[0])
+				if !joinMap[relationName] {
+					db = db.Joins(relationName)
+					joinMap[relationName] = true
+				}
+			}
+		}
+	}
+	return db
+}

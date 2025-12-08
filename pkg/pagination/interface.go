@@ -1,6 +1,8 @@
 package pagination
 
-import "time"
+import (
+	"time"
+)
 
 // Mode defines the type of comparison operation to perform
 type Mode string
@@ -13,15 +15,20 @@ const (
 	ModeNotContains Mode = "notContains"
 	ModeStartsWith  Mode = "startsWith"
 	ModeEndsWith    Mode = "endsWith"
-	ModeIsEmpty     Mode = "isEmpty"
-	ModeIsNotEmpty  Mode = "isNotEmpty"
-	ModeGT          Mode = "gt"
-	ModeGTE         Mode = "gte"
-	ModeLT          Mode = "lt"
-	ModeLTE         Mode = "lte"
-	ModeRange       Mode = "range"
-	ModeBefore      Mode = "before"
-	ModeAfter       Mode = "after"
+
+	ModeInside  Mode = "inside"
+	ModeOutside Mode = "outside"
+
+	ModeGT     Mode = "gt"
+	ModeGTE    Mode = "gte"
+	ModeLT     Mode = "lt"
+	ModeLTE    Mode = "lte"
+	ModeRange  Mode = "range"
+	ModeBefore Mode = "before"
+	ModeAfter  Mode = "after"
+
+	ModeIsEmpty    Mode = "isEmpty"
+	ModeIsNotEmpty Mode = "isNotEmpty"
 )
 
 type DataType string
@@ -88,4 +95,15 @@ type RangeNumber struct {
 type RangeDate struct {
 	From time.Time
 	To   time.Time
+}
+
+type FilterSQL struct {
+	Field string
+	Op    Mode
+	Value any
+}
+
+type FilterSortSQL struct {
+	Field string
+	Order SortOrder
 }

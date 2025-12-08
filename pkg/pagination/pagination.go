@@ -53,7 +53,7 @@ func (f *Pagination[T]) DataGormNoPage(
 	return data, nil
 }
 
-func (f *Pagination[T]) Count(
+func (f *Pagination[T]) DataGormCount(
 	db *gorm.DB,
 	filterRoot Root,
 ) (int64, error) {
