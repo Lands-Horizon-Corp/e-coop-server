@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (f *Pagination[T]) pagination(
+func (f *Pagination[T]) query(
 	db *gorm.DB,
 	filterRoot Root,
 ) *gorm.DB {

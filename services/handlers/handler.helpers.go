@@ -520,7 +520,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"application/atom+xml": ".atom", // Added: Atom Feed
 		"application/wasm":     ".wasm", // Added: WebAssembly
 	}
-	// Clean up content type (remove charset, etc.)
 	cleanContentType := strings.Split(contentType, ";")[0]
 	cleanContentType = strings.TrimSpace(cleanContentType)
 
@@ -530,7 +529,6 @@ func GetExtensionFromContentType(contentType string) string {
 	return ""
 }
 
-// --- ID Helpers ---
 func GetID[T any](entity *T) (uuid.UUID, error) {
 	v := reflect.ValueOf(entity).Elem()
 	idField := v.FieldByName("ID")
@@ -604,7 +602,6 @@ func ToReadableDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	// If time component is zero, return date only; otherwise include time
 	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
 		return t.Format("January 2, 2006")
 	}
