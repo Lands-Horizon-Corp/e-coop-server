@@ -253,3 +253,17 @@ make deploy-fly
 ## License
 
 This project is proprietary software owned by Lands Horizon Corp.
+
+
+
+- XENDIT Outgoing
+- GCASH MERCHANT Ingoing
+
+- KYC AI
+- Mobile Banking
+- Coop store
+- Ventamo POS
+- Coop Angkas
+- Coop indrive
+- Coop Delivery
+- Fleet management (Transport) - (Camera)
