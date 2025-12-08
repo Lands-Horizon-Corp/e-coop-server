@@ -630,3 +630,16 @@ func AddMonthsPreserveDay(t time.Time, months int) time.Time {
 	}
 	return time.Date(year, time.Month(month), day, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
 }
+
+func ToPascalCase(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
+		}
+	}
+	return strings.Join(parts, "")
+}
