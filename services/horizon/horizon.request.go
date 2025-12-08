@@ -457,11 +457,22 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				)
 			}
 
-			allowedHosts := make([]string, 0, len(origins))
+			allowedHosts := make([]string, 0, len(origins)*2+2)
 			for _, origin := range origins {
 				hostname := strings.TrimPrefix(origin, "https://")
 				hostname = strings.TrimPrefix(hostname, "http://")
+				// add both host:port and host (no port) to allowed hosts
 				allowedHosts = append(allowedHosts, hostname)
+				if strings.Contains(hostname, ":") {
+					hostNoPort := strings.Split(hostname, ":")[0]
+					allowedHosts = append(allowedHosts, hostNoPort)
+				} else {
+					allowedHosts = append(allowedHosts, hostname)
+				}
+			}
+			// always allow common local hosts in development
+			if !h.secured {
+				allowedHosts = append(allowedHosts, "localhost", "127.0.0.1")
 			}
 
 			host := handlers.GetHost(c)
