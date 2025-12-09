@@ -9,7 +9,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -951,7 +950,7 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -976,7 +975,7 @@ func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, acco
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -991,7 +990,7 @@ func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationI
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -1006,7 +1005,7 @@ func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizatio
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -1021,7 +1020,7 @@ func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizati
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -1036,7 +1035,7 @@ func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizati
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -1057,6 +1056,6 @@ func (m *Core) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, 
 	}
 
 	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

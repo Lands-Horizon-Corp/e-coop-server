@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -298,7 +297,7 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -313,7 +312,7 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -328,7 +327,7 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -343,7 +342,7 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -364,6 +363,6 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

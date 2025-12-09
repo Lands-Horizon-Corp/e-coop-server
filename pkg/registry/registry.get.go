@@ -3,6 +3,8 @@ package registry
 import (
 	"context"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) GetByID(
@@ -57,11 +59,11 @@ func (r *Registry[TData, TResponse, TRequest]) GetByIDIncludingDeletedRaw(
 
 func (r *Registry[TData, TResponse, TRequest]) GetByIDLock(
 	ctx context.Context,
+	tx *gorm.DB,
 	id any,
 	preloads ...string,
 ) (*TData, error) {
-	tx := r.Client(ctx)
-	result, err := r.pagination.NormalGetByIDLock(tx, id, r.preload(preloads...)...)
+	result, err := r.pagination.NormalGetByIDLock(ctx, tx, id, r.preload(preloads...)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entity by ID with lock: %w", err)
 	}

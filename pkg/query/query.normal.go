@@ -1,6 +1,7 @@
 package query
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -244,6 +245,7 @@ func (p *Pagination[T]) NormalGetByID(
 }
 
 func (p *Pagination[T]) NormalGetByIDLock(
+	ctx context.Context,
 	tx *gorm.DB,
 	id any,
 	preloads ...string,
@@ -252,7 +254,7 @@ func (p *Pagination[T]) NormalGetByIDLock(
 	for _, preload := range preloads {
 		tx = tx.Preload(preload)
 	}
-	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"}).WithContext(ctx)
 	err := tx.First(&entity, fmt.Sprintf("%s = ?", p.columnDefaultID), id).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

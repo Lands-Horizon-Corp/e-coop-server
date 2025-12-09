@@ -10,24 +10,24 @@ func (r *Registry[TData, TResponse, TRequest]) FindOne(
 	context context.Context,
 	fields *TData,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.NormalFindOne(r.Client(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) FindOneWithLock(
 	context context.Context,
 	fields *TData,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.NormalFindOneWithLock(r.Client(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ArrFindOne(
@@ -35,12 +35,12 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindOne(
 	filters []query.ArrFilterSQL,
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.ArrFindOne(r.Client(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ArrFindOneWithLock(
@@ -48,36 +48,36 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindOneWithLock(
 	filters []query.ArrFilterSQL,
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.ArrFindOneWithLock(r.Client(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) StructuredFindOne(
 	context context.Context,
 	filter query.StructuredFilter,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.StructuredFindOne(r.Client(context), filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) StructuredFindOneWithLock(
 	context context.Context,
 	filter query.StructuredFilter,
 	preloads ...string,
-) (*TResponse, error) {
+) (*TData, error) {
 	entity, err := r.pagination.StructuredFindOneWithLock(r.Client(context), filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
-	return r.ToModel(entity), nil
+	return entity, nil
 }
 
 // Raw variants return both the raw data entity and the converted response model.

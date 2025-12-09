@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -550,7 +549,7 @@ func (m *Core) TransactionBatchCurrent(context context.Context, userID, organiza
 		{Field: "employee_user_id", Op: query.ModeEqual, Value: userID},
 		{Field: "is_closed", Op: query.ModeEqual, Value: false},
 	}, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -563,7 +562,7 @@ func (m *Core) TransactionBatchViewRequests(context context.Context, organizatio
 		{Field: "can_view", Op: query.ModeEqual, Value: false},
 		{Field: "is_closed", Op: query.ModeEqual, Value: false},
 	}, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -580,6 +579,6 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 		{Field: "created_at", Op: registry.OpGte, Value: startOfDay},
 		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
 	}, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

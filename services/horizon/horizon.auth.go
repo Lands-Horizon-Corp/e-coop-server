@@ -211,7 +211,7 @@ func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo
 		if token == currentToken {
 			continue
 		}
-		if exists, _ := h.cache.Exists(ctx, key); exists {
+		if exists, _ := h.cache.ArrExists(ctx, key); exists {
 			return true, nil
 		}
 	}

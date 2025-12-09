@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -621,7 +620,7 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 					{Field: "general_ledger_accounts_grouping_id", Op: query.ModeEqual, Value: grouping.ID},
 				},
 				[]query.ArrFilterSortSQL{
-					{Field: "created_at", Order: filter.SortOrderAsc},
+					{Field: "created_at", Order: query.SortOrderAsc},
 				},
 			)
 			if err != nil {
@@ -654,8 +653,8 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
-		{Field: "entry_date", Order: filter.SortOrderDesc},
-		{Field: "created_at", Order: filter.SortOrderDesc},
+		{Field: "entry_date", Order: query.SortOrderDesc},
+		{Field: "created_at", Order: query.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
@@ -673,7 +672,7 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
@@ -690,7 +689,7 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
@@ -709,7 +708,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
@@ -728,7 +727,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }

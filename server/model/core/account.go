@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -528,7 +527,6 @@ func (m *Core) account() {
 			"AccountTags", "ComputationSheet", "Currency",
 			"DefaultPaymentType", "LoanAccount",
 		},
-		Database: m.provider.Service.Database.Client(),
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
@@ -3999,7 +3997,7 @@ func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branc
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -4010,14 +4008,14 @@ func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID 
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
-		{Field: "type", Op: registry.OpIn, Value: []AccountType{
+		{Field: "type", Op: query.ModeInside, Value: []AccountType{
 			AccountTypeFines,
 			AccountTypeInterest,
 			AccountTypeSVFLedger,
 		}},
 	}
-	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -4029,8 +4027,8 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 		{Field: "type", Op: query.ModeEqual, Value: accountType},
 	}
 
-	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -4044,7 +4042,7 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	}
 
 	accounts, err := m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err
@@ -4061,7 +4059,7 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 // Returns an error if any of these conditions are met, preventing deletion.
 func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
 	// Check if account has any general ledger entries
-	hasEntries, err := m.GeneralLedgerManager.Exists(ctx, []registry.FilterSQL{
+	hasEntries, err := m.GeneralLedgerManager.ArrExists(ctx, []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {

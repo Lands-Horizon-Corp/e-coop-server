@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -452,7 +451,7 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err
@@ -472,7 +471,7 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err
@@ -492,7 +491,7 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err
@@ -512,7 +511,7 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		// CashCheckVoucherReleasedCurrentDay
@@ -538,7 +537,7 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err

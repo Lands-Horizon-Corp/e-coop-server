@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -527,7 +526,7 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 	}
 
 	return m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -539,8 +538,8 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 	}
 
 	return m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
-		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
 }
 
@@ -560,8 +559,8 @@ func (m *Core) GetAccountHistoryLatestByTime(
 	}
 
 	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
-		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
 	if err != nil {
 		return nil, err
@@ -590,8 +589,8 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 	}
 
 	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
-		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
 	if err != nil {
 		return nil, err
@@ -620,8 +619,8 @@ func (m *Core) GetAccountHistoryLatestByTimeHistory(
 	}
 
 	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
-		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
+		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
+		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
 	if err != nil {
 		return nil, err
@@ -665,8 +664,8 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 	}
 
 	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "account_id", Order: filter.SortOrderAsc},
-		{Field: "created_at", Order: filter.SortOrderDesc},
+		{Field: "account_id", Order: query.SortOrderAsc},
+		{Field: "created_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err

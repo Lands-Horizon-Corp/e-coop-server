@@ -83,9 +83,9 @@ func (m *Core) accountTag() {
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *AccountTag) *AccountTagResponse {
 			if data == nil {
 				return nil

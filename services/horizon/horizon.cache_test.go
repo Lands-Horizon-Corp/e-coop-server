@@ -44,20 +44,20 @@ func TestHorizonCache(t *testing.T) {
 	assert.NotNil(t, got, "Get should return a value")
 
 	// Check if key exists
-	exists, err := cache.Exists(ctx, key)
+	exists, err := cache.ArrExists(ctx, key)
 	assert.NoError(t, err, "Exists should not return an error")
 	assert.True(t, exists, "Key should exist")
 
 	// Wait for TTL to expire
 	time.Sleep(ttl + time.Second)
-	exists, _ = cache.Exists(ctx, key)
+	exists, _ = cache.ArrExists(ctx, key)
 	assert.False(t, exists, "Key should have expired")
 
 	// Set again and delete
 	_ = cache.Set(ctx, key, value, ttl)
 	err = cache.Delete(ctx, key)
 	assert.NoError(t, err, "Delete should not return an error")
-	exists, _ = cache.Exists(ctx, key)
+	exists, _ = cache.ArrExists(ctx, key)
 	assert.False(t, exists, "Key should not exist after deletion")
 
 	// Stop the Redis client

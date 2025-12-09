@@ -7,7 +7,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -250,7 +249,7 @@ func (m *Core) FinancialStatementGroupingAlignments(context context.Context, org
 					{Field: "financial_statement_grouping_id", Op: query.ModeEqual, Value: grouping.ID},
 				},
 				[]query.ArrFilterSortSQL{
-					{Field: "created_at", Order: filter.SortOrderAsc},
+					{Field: "created_at", Order: query.SortOrderAsc},
 				},
 			)
 			if err != nil {
