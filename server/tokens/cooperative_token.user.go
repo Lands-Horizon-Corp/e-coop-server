@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -16,14 +16,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CloudflareHeaders holds specific Cloudflare-related HTTP headers.
 type CloudflareHeaders struct {
 	Country      string
 	ConnectingIP string
 	CFRay        string
 }
 
-// GetCloudflareHeaders extracts Cloudflare-specific headers from the request.
 func GetCloudflareHeaders(c echo.Context) CloudflareHeaders {
 	return CloudflareHeaders{
 		Country:      c.Request().Header.Get("CF-IPCountry"),
@@ -32,7 +30,6 @@ func GetCloudflareHeaders(c echo.Context) CloudflareHeaders {
 	}
 }
 
-// UserClaim defines the JWT claims for a user.
 type UserClaim struct {
 	UserID         string  `json:"user_id"`
 	Email          string  `json:"email"`
@@ -51,7 +48,6 @@ type UserClaim struct {
 	jwt.RegisteredClaims
 }
 
-// UserCSRF holds user info for CSRF protection.
 type UserCSRF struct {
 	UserID         string  `json:"user_id"`
 	Email          string  `json:"email"`
@@ -69,7 +65,6 @@ type UserCSRF struct {
 	AcceptLanguage string  `json:"accept_language"`
 }
 
-// UserCSRFResponse is the response model for CSRF user info.
 type UserCSRFResponse struct {
 	Language       string  `json:"language"`
 	Location       string  `json:"location"`
@@ -87,7 +82,7 @@ func (m *UserCSRFResponse) UserCSRFModel(data *UserCSRF) *UserCSRFResponse {
 	if data == nil {
 		return nil
 	}
-	return registry.ToModel(data, func(data *UserCSRF) *UserCSRFResponse {
+	return query.ToModel(data, func(data *UserCSRF) *UserCSRFResponse {
 		return &UserCSRFResponse{
 			Language:       data.Language,
 			Location:       data.Location,
@@ -102,22 +97,18 @@ func (m *UserCSRFResponse) UserCSRFModel(data *UserCSRF) *UserCSRFResponse {
 	})
 }
 
-// UserCSRFModels maps a slice of UserCSRF to a slice of UserCSRFResponse.
 func (m *UserCSRFResponse) UserCSRFModels(data []*UserCSRF) []*UserCSRFResponse {
-	return registry.ToModels(data, m.UserCSRFModel)
+	return query.ToModels(data, m.UserCSRFModel)
 }
 
-// GetID returns the user ID from the UserCSRF struct.
 func (m UserCSRF) GetID() string {
 	return m.UserID
 }
 
-// GetRegisteredClaims returns the JWT registered claims from UserClaim.
 func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
-// UserToken handles user token and CSRF logic.
 type UserToken struct {
 	core                  *core.Core
 	userOrganizationToken *UserOrganizationToken
@@ -143,14 +134,12 @@ func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationTo
 	}, nil
 }
 
-// ClearCurrentCSRF clears the current CSRF token and associated user organization token
 func (h *UserToken) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
 	h.CSRF.ClearCSRF(ctx, echoCtx)
 	h.userOrganizationToken.ClearCurrentToken(ctx, echoCtx)
 
 }
 
-// CurrentUser retrieves the current user from the CSRF token, validating the information.
 func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
 	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
@@ -173,7 +162,6 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*cor
 	return user, nil
 }
 
-// SetUser sets the CSRF token for the provided user.
 func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
 	h.ClearCurrentCSRF(ctx, echoCtx)
 	if user == nil {
