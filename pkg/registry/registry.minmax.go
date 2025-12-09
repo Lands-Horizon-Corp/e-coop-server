@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"gorm.io/gorm"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) GetMax(ctx context.Context, field string, filter *TData) (any, error) {
@@ -32,16 +33,16 @@ func (r *Registry[TData, TResponse, TRequest]) GetMaxLock(ctx context.Context, f
 	return r.pagination.NormalGetMaxLock(r.Client(ctx), field, *filter)
 }
 
-func (r *Registry[TData, TResponse, TRequest]) GetMaxLockInt(ctx context.Context, field string, filter *TData) (int, error) {
-	result, err := r.pagination.NormalGetMaxLock(r.Client(ctx), field, *filter)
+func (r *Registry[TData, TResponse, TRequest]) GetMaxLockInt(ctx context.Context, tx *gorm.DB, field string, filter *TData) (int, error) {
+	result, err := r.pagination.NormalGetMaxLock(tx, field, *filter)
 	if err != nil {
 		return 0, err
 	}
 	return result.(int), nil
 }
 
-func (r *Registry[TData, TResponse, TRequest]) GetMinLock(ctx context.Context, field string, filter *TData) (any, error) {
-	return r.pagination.NormalGetMinLock(r.Client(ctx), field, *filter)
+func (r *Registry[TData, TResponse, TRequest]) GetMinLock(ctx context.Context, tx *gorm.DB, field string, filter *TData) (any, error) {
+	return r.pagination.NormalGetMinLock(tx, field, *filter)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) GetMinLockInt(ctx context.Context, field string, filter *TData) (int, error) {
