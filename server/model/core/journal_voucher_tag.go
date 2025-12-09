@@ -83,7 +83,10 @@ func (m *Core) journalVoucherTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *JournalVoucherTag) *JournalVoucherTagResponse {
 			if data == nil {
 				return nil

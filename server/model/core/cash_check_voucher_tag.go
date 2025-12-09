@@ -83,7 +83,10 @@ func (m *Core) cashCheckVoucherTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CashCheckVoucherTag) *CashCheckVoucherTagResponse {
 			if data == nil {
 				return nil

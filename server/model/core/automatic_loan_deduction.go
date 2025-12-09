@@ -134,7 +134,10 @@ func (m *Core) automaticLoanDeduction() {
 			"CreatedBy", "UpdatedBy", "Account.Currency",
 			"Account", "ComputationSheet", "ChargesRateScheme",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *AutomaticLoanDeduction) *AutomaticLoanDeductionResponse {
 			if data == nil {
 				return nil

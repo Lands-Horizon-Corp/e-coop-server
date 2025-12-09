@@ -127,7 +127,10 @@ func (m *Core) memberAccountingLedger() {
 			"MemberProfile",
 			"Account.Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberAccountingLedger) *MemberAccountingLedgerResponse {
 			if data == nil {
 				return nil

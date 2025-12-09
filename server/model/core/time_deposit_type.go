@@ -131,7 +131,10 @@ func (m *Core) timeDepositType() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency", "TimeDepositComputations", "TimeDepositComputationPreMatures",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TimeDepositType) *TimeDepositTypeResponse {
 			if data == nil {
 				return nil

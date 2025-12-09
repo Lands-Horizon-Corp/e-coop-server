@@ -109,7 +109,10 @@ func (m *Core) cashCheckVoucherEntry() {
 			"Account", "EmployeeUser", "TransactionBatch", "CashCheckVoucher",
 			"MemberProfile", "MemberProfile.Media", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CashCheckVoucherEntry) *CashCheckVoucherEntryResponse {
 			if data == nil {
 				return nil

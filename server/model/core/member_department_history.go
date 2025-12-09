@@ -81,7 +81,10 @@ func (m *Core) memberDepartmentHistory() {
 			"CreatedBy", "UpdatedBy",
 			"Organization", "Branch", "MemberDepartment", "MemberProfile",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberDepartmentHistory) *MemberDepartmentHistoryResponse {
 			if data == nil {
 				return nil

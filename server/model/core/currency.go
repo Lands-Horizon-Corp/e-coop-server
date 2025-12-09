@@ -79,7 +79,10 @@ type (
 func (m *Core) currency() {
 	m.Migration = append(m.Migration, &Currency{})
 	m.CurrencyManager = *registry.NewRegistry(registry.RegistryParams[Currency, CurrencyResponse, CurrencyRequest]{
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Currency) *CurrencyResponse {
 			if data == nil {
 				return nil

@@ -86,7 +86,10 @@ func (m *Core) generalLedgerTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "GeneralLedger",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneralLedgerTag) *GeneralLedgerTagResponse {
 			if data == nil {
 				return nil

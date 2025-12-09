@@ -366,7 +366,10 @@ func (m *Core) memberProfile() {
 			"MemberCloseRemarks",
 			"MemberDepartment",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
 			context := context.Background()
 			if data == nil {

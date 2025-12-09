@@ -234,7 +234,10 @@ func (m *Core) branchSetting() {
 			"UnbalancedAccounts.MemberProfileForShortage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
 			if data == nil {
 				return nil

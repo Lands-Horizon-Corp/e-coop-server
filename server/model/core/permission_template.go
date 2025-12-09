@@ -322,7 +322,10 @@ func (m *Core) permissionTemplate() {
 			"Organization.OrganizationCategories",
 			"Organization.OrganizationCategories.Category",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *PermissionTemplate) *PermissionTemplateResponse {
 			if data == nil {
 				return nil

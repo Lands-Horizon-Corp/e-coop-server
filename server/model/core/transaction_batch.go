@@ -373,7 +373,10 @@ func (m *Core) transactionBatch() {
 			"PostedBySignatureMedia",
 			"PaidBySignatureMedia",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TransactionBatch) *TransactionBatchResponse {
 			if data == nil {
 				return nil

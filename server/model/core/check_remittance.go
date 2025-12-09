@@ -106,7 +106,10 @@ func (m *Core) checkRemittance() {
 			"Bank", "Media", "EmployeeUser", "TransactionBatch", "Currency",
 			"Bank.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CheckRemittance) *CheckRemittanceResponse {
 			if data == nil {
 				return nil

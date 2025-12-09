@@ -75,7 +75,10 @@ func (m *Core) interestRateByTerm() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberClassificationInterestRate",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *InterestRateByTerm) *InterestRateByTermResponse {
 			if data == nil {
 				return nil

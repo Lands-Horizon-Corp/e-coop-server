@@ -82,7 +82,10 @@ func (m *Core) transactionTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Transaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TransactionTag) *TransactionTagResponse {
 			if data == nil {
 				return nil

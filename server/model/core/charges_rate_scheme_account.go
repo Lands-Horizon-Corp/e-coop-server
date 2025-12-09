@@ -74,7 +74,10 @@ func (m *Core) chargesRateSchemeAccount() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ChargesRateSchemeAccount) *ChargesRateSchemeAccountResponse {
 			if data == nil {
 				return nil

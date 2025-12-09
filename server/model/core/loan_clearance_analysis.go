@@ -81,7 +81,10 @@ func (m *Core) loanClearanceAnalysis() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanClearanceAnalysis) *LoanClearanceAnalysisResponse {
 			if data == nil {
 				return nil

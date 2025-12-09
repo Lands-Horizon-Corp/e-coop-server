@@ -80,7 +80,10 @@ func (m *Core) memberDeductionEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberDeductionEntry) *MemberDeductionEntryResponse {
 			if data == nil {
 				return nil

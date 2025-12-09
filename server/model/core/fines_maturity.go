@@ -78,7 +78,10 @@ func (m *Core) finesMaturity() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *FinesMaturity) *FinesMaturityResponse {
 			if data == nil {
 				return nil

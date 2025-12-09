@@ -99,7 +99,10 @@ func (m *Core) journalVoucherEntry() {
 			"Account", "MemberProfile", "EmployeeUser", "JournalVoucher",
 			"Account.Currency", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *JournalVoucherEntry) *JournalVoucherEntryResponse {
 			if data == nil {
 				return nil

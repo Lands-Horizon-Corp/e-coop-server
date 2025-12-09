@@ -100,7 +100,10 @@ func (m *Core) unbalancedAccount() {
 			"AccountForShortage", "AccountForOverage",
 			"MemberProfileForShortage", "MemberProfileForOverage",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *UnbalancedAccount) *UnbalancedAccountResponse {
 			if data == nil {
 				return nil

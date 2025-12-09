@@ -353,7 +353,10 @@ func (m *Core) userOrganization() {
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
 			if data == nil {
 				return nil

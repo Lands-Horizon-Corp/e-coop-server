@@ -92,7 +92,10 @@ func (m *Core) cashCount() {
 			"CreatedBy", "UpdatedBy",
 			"EmployeeUser", "TransactionBatch", "Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CashCount) *CashCountResponse {
 			if data == nil {
 				return nil

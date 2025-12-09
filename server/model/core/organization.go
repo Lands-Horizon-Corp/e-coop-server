@@ -191,7 +191,10 @@ func (m *Core) organization() {
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
 				return nil

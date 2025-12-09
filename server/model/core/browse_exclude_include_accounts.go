@@ -100,7 +100,10 @@ func (m *Core) browseExcludeIncludeAccounts() {
 			"ComputationSheet",
 			"FinesAccount", "ComakerAccount", "InterestAccount", "DeliquentAccount", "IncludeExistingLoanAccount",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BrowseExcludeIncludeAccounts) *BrowseExcludeIncludeAccountsResponse {
 			if data == nil {
 				return nil

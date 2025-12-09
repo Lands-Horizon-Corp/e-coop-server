@@ -102,7 +102,10 @@ func (m *Core) loanAccount() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AccountHistory",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanAccount) *LoanAccountResponse {
 			if data == nil {
 				return nil

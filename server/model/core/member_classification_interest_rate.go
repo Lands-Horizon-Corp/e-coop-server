@@ -150,7 +150,10 @@ func (m *Core) memberClassificationInterestRate() {
 			"CreatedBy", "UpdatedBy",
 			"InterestRateScheme", "MemberClassification", "InterestRateByTermsHeader",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberClassificationInterestRate) *MemberClassificationInterestRateResponse {
 			if data == nil {
 				return nil

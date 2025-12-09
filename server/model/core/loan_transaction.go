@@ -749,7 +749,10 @@ func (m *Core) loanTransaction() {
 			"ReleasedBy", "PrintedBy", "ApprovedBy",
 			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
 			if data == nil {
 				return nil

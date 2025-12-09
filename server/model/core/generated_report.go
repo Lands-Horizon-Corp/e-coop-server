@@ -178,7 +178,10 @@ func (m *Core) generatedReport() {
 			"Media",
 			"DownloadUsers.User.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
 			if data == nil {
 				return nil
