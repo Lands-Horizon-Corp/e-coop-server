@@ -20,7 +20,7 @@ type RegistryParams[TData any, TResponse any, TRequest any] struct {
 	Updated           func(*TData) Topics
 	Deleted           func(*TData) Topics
 	Resource          func(*TData) *TResponse
-	tabular           func(data *TData) map[string]any
+	Tabular           func(data *TData) map[string]any
 	Preloads          []string
 }
 
@@ -52,7 +52,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 		created:           params.Created,
 		updated:           params.Updated,
 		deleted:           params.Deleted,
-		tabular:           params.tabular,
+		tabular:           params.Tabular,
 		validator:         params.Validator,
 		pagination: *query.NewPagination[TData](query.PaginationConfig{
 			Verbose:           true,
