@@ -139,7 +139,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
+		batchFunding, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -167,7 +167,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
+		batchFundings, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

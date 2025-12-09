@@ -223,7 +223,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeEmployee,
@@ -245,7 +245,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeOwner,
@@ -268,7 +268,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -358,7 +358,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",

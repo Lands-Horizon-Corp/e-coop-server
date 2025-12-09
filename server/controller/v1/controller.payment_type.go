@@ -44,7 +44,7 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.PaymentTypeManager.PaginationWithFields(context, ctx, &core.PaymentType{
+		value, err := c.core.PaymentTypeManager.NormalPagination(context, ctx, &core.PaymentType{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

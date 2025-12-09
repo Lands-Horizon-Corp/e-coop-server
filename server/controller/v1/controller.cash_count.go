@@ -29,7 +29,7 @@ func (c *Controller) cashCountController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
+		cashCount, err := c.core.CashCountManager.NormalPagination(context, ctx, &core.CashCount{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -57,7 +57,7 @@ func (c *Controller) cashCountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		cashCount, err := c.core.CashCountManager.PaginationWithFields(context, ctx, &core.CashCount{
+		cashCount, err := c.core.CashCountManager.NormalPagination(context, ctx, &core.CashCount{
 			TransactionBatchID: *transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

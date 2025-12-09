@@ -52,7 +52,7 @@ func (c *Controller) mutualFundEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.MutualFundEntryManager.PaginationWithFields(context, ctx, &core.MutualFundEntry{
+		entries, err := c.core.MutualFundEntryManager.NormalPagination(context, ctx, &core.MutualFundEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

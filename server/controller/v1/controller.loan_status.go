@@ -51,7 +51,7 @@ func (c *Controller) loanStatusController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.LoanStatusManager.PaginationWithFields(context, ctx, &core.LoanStatus{
+		value, err := c.core.LoanStatusManager.NormalPagination(context, ctx, &core.LoanStatus{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

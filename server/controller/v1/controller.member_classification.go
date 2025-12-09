@@ -48,7 +48,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.PaginationWithFields(context, ctx, &core.MemberClassificationHistory{
+		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.NormalPagination(context, ctx, &core.MemberClassificationHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -90,7 +90,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberClassificationManager.PaginationWithFields(context, ctx, &core.MemberClassification{
+		value, err := c.core.MemberClassificationManager.NormalPagination(context, ctx, &core.MemberClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

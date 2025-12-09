@@ -51,7 +51,7 @@ func (c *Controller) invitationCode() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := c.core.InvitationCodeManager.PaginationWithFields(context, ctx, &core.InvitationCode{
+		invitationCode, err := c.core.InvitationCodeManager.NormalPagination(context, ctx, &core.InvitationCode{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

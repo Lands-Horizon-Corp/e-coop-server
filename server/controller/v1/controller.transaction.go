@@ -309,7 +309,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -367,7 +367,7 @@ func (c *Controller) transactionController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -392,7 +392,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

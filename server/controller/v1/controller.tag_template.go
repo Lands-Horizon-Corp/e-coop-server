@@ -47,7 +47,7 @@ func (c *Controller) tagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TagTemplateManager.PaginationWithFields(context, ctx, &core.TagTemplate{
+		value, err := c.core.TagTemplateManager.NormalPagination(context, ctx, &core.TagTemplate{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

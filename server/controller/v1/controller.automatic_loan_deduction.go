@@ -65,7 +65,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		// Find all for this computation sheet, org, and branch
-		alds, err := c.core.AutomaticLoanDeductionManager.PaginationWithFields(context, ctx, &core.AutomaticLoanDeduction{
+		alds, err := c.core.AutomaticLoanDeductionManager.NormalPagination(context, ctx, &core.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,

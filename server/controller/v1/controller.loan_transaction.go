@@ -63,7 +63,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager.PaginationWithFields(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := c.core.LoanTransactionManager.NormalPagination(context, ctx, &core.LoanTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -95,7 +95,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager.PaginationWithFields(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := c.core.LoanTransactionManager.NormalPagination(context, ctx, &core.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,

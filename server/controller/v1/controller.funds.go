@@ -44,7 +44,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.core.FundsManager.PaginationWithFields(context, ctx, &core.Funds{
+		funds, err := c.core.FundsManager.NormalPagination(context, ctx, &core.Funds{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

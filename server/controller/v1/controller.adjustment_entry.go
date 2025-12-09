@@ -52,7 +52,7 @@ func (c *Controller) adjustmentEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.PaginationWithFields(context, ctx, &core.AdjustmentEntry{
+		adjustmentEntries, err := c.core.AdjustmentEntryManager.NormalPagination(context, ctx, &core.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

@@ -50,7 +50,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.PaginationWithFields(context, ctx, &core.TransactionBatch{
+		transactionBatch, err := c.core.TransactionBatchManager.NormalPagination(context, ctx, &core.TransactionBatch{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

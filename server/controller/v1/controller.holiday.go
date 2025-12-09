@@ -53,7 +53,7 @@ func (c *Controller) holidayController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := c.core.HolidayManager.PaginationWithFields(context, ctx, &core.Holiday{
+		holidays, err := c.core.HolidayManager.NormalPagination(context, ctx, &core.Holiday{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

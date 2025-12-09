@@ -28,7 +28,7 @@ func (c *Controller) accountClassificationController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.core.AccountClassificationManager.PaginationWithFields(context, ctx, &core.AccountClassification{
+		classifications, err := c.core.AccountClassificationManager.NormalPagination(context, ctx, &core.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

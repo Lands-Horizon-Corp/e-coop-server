@@ -49,7 +49,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.core.MemberTypeHistoryManager.PaginationWithFields(context, ctx, &core.MemberTypeHistory{
+		memberTypeHistory, err := c.core.MemberTypeHistoryManager.NormalPagination(context, ctx, &core.MemberTypeHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -91,7 +91,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberTypeManager.PaginationWithFields(context, ctx, &core.MemberType{
+		value, err := c.core.MemberTypeManager.NormalPagination(context, ctx, &core.MemberType{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

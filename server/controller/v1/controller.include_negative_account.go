@@ -33,7 +33,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager.PaginationWithFields(context, ctx, &core.IncludeNegativeAccount{
+		records, err := c.core.IncludeNegativeAccountManager.NormalPagination(context, ctx, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,

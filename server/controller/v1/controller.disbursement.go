@@ -62,7 +62,7 @@ func (c *Controller) disbursementController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := c.core.DisbursementManager.PaginationWithFields(context, ctx, &core.Disbursement{
+		disbursements, err := c.core.DisbursementManager.NormalPagination(context, ctx, &core.Disbursement{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

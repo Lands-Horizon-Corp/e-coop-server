@@ -352,7 +352,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -378,7 +378,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -404,7 +404,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -430,7 +430,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -457,7 +457,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -482,7 +482,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -510,7 +510,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -536,7 +536,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -586,7 +586,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			Model:          model,
@@ -613,7 +613,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -641,7 +641,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -669,7 +669,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -698,7 +698,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -726,7 +726,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -755,7 +755,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -783,7 +783,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,

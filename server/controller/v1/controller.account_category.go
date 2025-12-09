@@ -28,7 +28,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		result, err := c.core.AccountCategoryManager.PaginationWithFields(context, ctx, &core.AccountCategory{
+		result, err := c.core.AccountCategoryManager.NormalPagination(context, ctx, &core.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

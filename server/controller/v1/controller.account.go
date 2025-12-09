@@ -29,7 +29,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -56,7 +56,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyID,
@@ -82,7 +82,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeDeposit,
@@ -112,7 +112,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
@@ -232,7 +232,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARLedger,
@@ -259,7 +259,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARAging,
@@ -287,7 +287,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeFines,
@@ -315,7 +315,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeInterest,
@@ -341,7 +341,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeSVFLedger,
@@ -367,7 +367,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeWOff,
@@ -394,7 +394,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeAPLedger,
@@ -421,7 +421,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeOther,
@@ -448,7 +448,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeTimeDeposit,
@@ -1288,7 +1288,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                    userOrg.OrganizationID,
 			BranchID:                          *userOrg.BranchID,
 			ShowInGeneralLedgerSourceWithdraw: true,
@@ -1313,7 +1313,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournal: true,
@@ -1338,7 +1338,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourcePayment: true,
@@ -1367,7 +1367,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			CurrencyID:                       currencyID,
@@ -1393,7 +1393,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                      userOrg.OrganizationID,
 			BranchID:                            *userOrg.BranchID,
 			ShowInGeneralLedgerSourceAdjustment: true,
@@ -1418,7 +1418,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                          userOrg.OrganizationID,
 			BranchID:                                *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
@@ -1443,7 +1443,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			ShowInGeneralLedgerSourceCheckVoucher: true,
@@ -1468,7 +1468,7 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1497,7 +1497,7 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager.PaginationWithFields(context, ctx, &core.Account{
+		accounts, err := c.core.AccountManager.NormalPagination(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,

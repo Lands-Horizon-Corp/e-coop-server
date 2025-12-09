@@ -51,7 +51,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CancelledCashCheckVoucher{
+		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.NormalPagination(context, ctx, &core.CancelledCashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

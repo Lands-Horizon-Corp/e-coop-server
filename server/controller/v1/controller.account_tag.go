@@ -52,7 +52,7 @@ func (c *Controller) accountTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.core.AccountTagManager.PaginationWithFields(context, ctx, &core.AccountTag{
+		accountTags, err := c.core.AccountTagManager.NormalPagination(context, ctx, &core.AccountTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

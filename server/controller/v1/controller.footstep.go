@@ -101,7 +101,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			UserID: &user.ID,
 		})
 		if err != nil {
@@ -135,7 +135,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			UserID:         &userOrg.UserID,
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
@@ -157,7 +157,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 		})
@@ -185,7 +185,7 @@ func (c *Controller) footstepController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       targetUserOrg.BranchID,
 			OrganizationID: &targetUserOrg.OrganizationID,
 			UserID:         &targetUserOrg.UserID,
@@ -230,7 +230,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 			UserID:         &userOrg.UserID,

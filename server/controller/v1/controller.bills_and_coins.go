@@ -66,7 +66,7 @@ func (c *Controller) billAndCoinsController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		billAndCoins, err := c.core.BillAndCoinsManager.PaginationWithFields(context, ctx, &core.BillAndCoins{
+		billAndCoins, err := c.core.BillAndCoinsManager.NormalPagination(context, ctx, &core.BillAndCoins{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

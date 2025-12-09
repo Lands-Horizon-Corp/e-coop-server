@@ -173,7 +173,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
+		value, err := c.core.TimesheetManager.NormalPagination(context, ctx, &core.Timesheet{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -214,7 +214,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
+		value, err := c.core.TimesheetManager.NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -264,7 +264,7 @@ func (c *Controller) timesheetController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
+		value, err := c.core.TimesheetManager.NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         *userID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -295,7 +295,7 @@ func (c *Controller) timesheetController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		value, err := c.core.TimesheetManager.PaginationWithFields(context, ctx, &core.Timesheet{
+		value, err := c.core.TimesheetManager.NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         userOrganization.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,

@@ -51,7 +51,7 @@ func (c *Controller) companyController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.core.CompanyManager.PaginationWithFields(context, ctx, &core.Company{
+		companies, err := c.core.CompanyManager.NormalPagination(context, ctx, &core.Company{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

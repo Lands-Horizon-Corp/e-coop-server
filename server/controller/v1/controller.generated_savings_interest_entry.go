@@ -52,7 +52,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.GeneratedSavingsInterestEntryManager.PaginationWithFields(context, ctx, &core.GeneratedSavingsInterestEntry{
+		entries, err := c.core.GeneratedSavingsInterestEntryManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterestEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

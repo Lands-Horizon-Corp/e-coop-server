@@ -45,7 +45,7 @@ func (c *Controller) permissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.core.PermissionTemplateManager.PaginationWithFields(context, ctx, &core.PermissionTemplate{
+		permissionTemplates, err := c.core.PermissionTemplateManager.NormalPagination(context, ctx, &core.PermissionTemplate{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

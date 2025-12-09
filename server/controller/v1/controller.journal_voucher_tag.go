@@ -51,7 +51,7 @@ func (c *Controller) journalVoucherTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.JournalVoucherTagManager.PaginationWithFields(context, ctx, &core.JournalVoucherTag{
+		tags, err := c.core.JournalVoucherTagManager.NormalPagination(context, ctx, &core.JournalVoucherTag{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

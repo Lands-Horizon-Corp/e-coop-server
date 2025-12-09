@@ -51,7 +51,7 @@ func (c *Controller) collateralController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.core.CollateralManager.PaginationWithFields(context, ctx, &core.Collateral{
+		collaterals, err := c.core.CollateralManager.NormalPagination(context, ctx, &core.Collateral{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

@@ -54,7 +54,7 @@ func (c *Controller) journalVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.core.JournalVoucherManager.PaginationWithFields(context, ctx, &core.JournalVoucher{
+		journalVouchers, err := c.core.JournalVoucherManager.NormalPagination(context, ctx, &core.JournalVoucher{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})

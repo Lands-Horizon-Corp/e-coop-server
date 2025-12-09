@@ -52,7 +52,7 @@ func (c *Controller) adjustmentTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.AdjustmentTagManager.PaginationWithFields(context, ctx, &core.AdjustmentTag{
+		tags, err := c.core.AdjustmentTagManager.NormalPagination(context, ctx, &core.AdjustmentTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

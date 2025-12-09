@@ -45,7 +45,7 @@ func (c *Controller) organizationMediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.core.OrganizationMediaManager.PaginationWithFields(context, ctx, &core.OrganizationMedia{
+		organizationMedia, err := c.core.OrganizationMediaManager.NormalPagination(context, ctx, &core.OrganizationMedia{
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
