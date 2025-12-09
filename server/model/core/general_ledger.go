@@ -366,7 +366,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
-	ledger, err := m.GeneralLedgerManager.FindOneWithSQLLock(context, tx, filters, sorts)
+	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, sorts)
 
 	// Use decimal for accurate computation
 	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
@@ -433,7 +433,7 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 	}
-	return m.GeneralLedgerManager.GetMax(ctx, "print_number", filters)
+	return m.GeneralLedgerManager.ArrGetMaxInt(ctx, "print_number", filters)
 }
 
 // GeneralLedgerCurrentBranch retrieves general ledger entries for the current branch
@@ -455,7 +455,7 @@ func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, member
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
-	return m.GeneralLedgerManager.FindOneWithSQL(context, filters, nil)
+	return m.GeneralLedgerManager.ArrFindOne(context, filters, nil)
 }
 
 // GeneralLedgerExcludeCashonHand retrieves general ledger entries excluding cash on hand accounts
@@ -478,7 +478,7 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    query.ModeNotEqualNe,
+			Op:    query.ModeNotEqual,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -515,7 +515,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    query.ModeNotEqualNe,
+			Op:    query.ModeNotEqual,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -549,7 +549,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    query.ModeNotEqualNe,
+			Op:    query.ModeNotEqual,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -595,7 +595,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    query.ModeNotEqualNe,
+			Op:    query.ModeNotEqual,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -653,7 +653,7 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
-		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderDesc},
@@ -672,7 +672,7 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
-		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -689,7 +689,7 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -708,7 +708,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "type_of_payment_type", Op: query.ModeEqual, Value: paymentType},
-		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -727,7 +727,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "source", Op: query.ModeEqual, Value: source},
-		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -840,7 +840,7 @@ func (m *Core) GetDailyEndingBalances(
 	}
 
 	startingBalance := 0.0
-	if lastEntry, err := m.GeneralLedgerManager.FindOneWithSQL(ctx, filters, sorts, "Account"); err == nil {
+	if lastEntry, err := m.GeneralLedgerManager.ArrFindOne(ctx, filters, sorts, "Account"); err == nil {
 		startingBalance = lastEntry.Balance
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err

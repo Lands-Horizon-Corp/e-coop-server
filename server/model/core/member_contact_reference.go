@@ -75,9 +75,9 @@ func (m *Core) memberContactReference() {
 	m.MemberContactReferenceManager = *registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberContactReference) *MemberContactReferenceResponse {
 			if data == nil {
 				return nil

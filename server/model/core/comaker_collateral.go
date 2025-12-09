@@ -88,9 +88,9 @@ func (m *Core) comakerCollateral() {
 	m.ComakerCollateralManager = *registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *ComakerCollateral) *ComakerCollateralResponse {
 			if data == nil {
 				return nil

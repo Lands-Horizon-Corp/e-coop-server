@@ -71,9 +71,9 @@ func (m *Core) memberCenterHistory() {
 	m.MemberCenterHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberCenter", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberCenterHistory) *MemberCenterHistoryResponse {
 			if data == nil {
 				return nil

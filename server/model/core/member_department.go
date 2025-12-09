@@ -70,9 +70,9 @@ func (m *Core) memberDepartment() {
 	m.MemberDepartmentManager = *registry.NewRegistry(registry.RegistryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberDepartment) *MemberDepartmentResponse {
 			if data == nil {
 				return nil

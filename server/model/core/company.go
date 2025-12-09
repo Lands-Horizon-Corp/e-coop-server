@@ -73,9 +73,9 @@ func (m *Core) company() {
 	m.CompanyManager = *registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *Company) *CompanyResponse {
 			if data == nil {
 				return nil

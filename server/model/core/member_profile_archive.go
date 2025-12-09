@@ -90,9 +90,9 @@ func (m *Core) memberProfileArchive() {
 	m.MemberProfileArchiveManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberProfileArchive) *MemberProfileArchiveResponse {
 			if data == nil {
 				return nil

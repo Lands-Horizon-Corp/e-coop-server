@@ -87,9 +87,9 @@ func (m *Core) memberBankCard() {
 	m.MemberBankCardManager = *registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {
 			if data == nil {
 				return nil

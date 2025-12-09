@@ -82,9 +82,9 @@ func (m *Core) memberEducationalAttainment() {
 	m.MemberEducationalAttainmentManager = *registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberEducationalAttainment) *MemberEducationalAttainmentResponse {
 			if data == nil {
 				return nil

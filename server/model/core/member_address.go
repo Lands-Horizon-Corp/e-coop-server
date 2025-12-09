@@ -94,9 +94,9 @@ func (m *Core) memberAddress() {
 	m.MemberAddressManager = *registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberAddress) *MemberAddressResponse {
 			if data == nil {
 				return nil

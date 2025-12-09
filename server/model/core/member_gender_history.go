@@ -71,9 +71,9 @@ func (m *Core) memberGenderHistory() {
 	m.MemberGenderHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberGenderHistory) *MemberGenderHistoryResponse {
 			if data == nil {
 				return nil

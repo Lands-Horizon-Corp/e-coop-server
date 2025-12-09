@@ -81,9 +81,9 @@ func (m *Core) memberAsset() {
 	m.MemberAssetManager = *registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberAsset) *MemberAssetResponse {
 			if data == nil {
 				return nil

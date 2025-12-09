@@ -114,9 +114,9 @@ func (m *Core) subscriptionPlan() {
 	m.SubscriptionPlanManager = *registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
 			if sp == nil {
 				return nil

@@ -78,9 +78,9 @@ func (m *Core) memberRelativeAccount() {
 	m.MemberRelativeAccountManager = *registry.NewRegistry(registry.RegistryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberRelativeAccount) *MemberRelativeAccountResponse {
 			if data == nil {
 				return nil

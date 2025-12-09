@@ -75,9 +75,9 @@ func (m *Core) generatedReportsDownloadUsers() {
 	m.GeneratedReportsDownloadUsersManager = *registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "User"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *GeneratedReportsDownloadUsers) *GeneratedReportsDownloadUsersResponse {
 			if data == nil {
 				return nil

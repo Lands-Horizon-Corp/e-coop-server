@@ -546,7 +546,7 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 // TransactionBatchCurrent retrieves the current active transaction batch for a user
 func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 
-	return m.TransactionBatchManager.FindOneWithSQL(context, []registry.FilterSQL{
+	return m.TransactionBatchManager.ArrFindOne(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "employee_user_id", Op: query.ModeEqual, Value: userID},

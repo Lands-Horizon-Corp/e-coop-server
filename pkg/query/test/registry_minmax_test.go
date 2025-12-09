@@ -38,7 +38,7 @@ func TestRegistryMinMaxVariants(t *testing.T) {
 	ctx := context.Background()
 
 	// Normal GetMax/GetMin
-	maxVal, err := r.GetMax(ctx, "age", &User{})
+	maxVal, err := r.ArrGetMaxInt(ctx, "age", &User{})
 	assert.NoError(t, err)
 	assert.NotNil(t, maxVal)
 	assert.EqualValues(t, 40, maxVal)
@@ -49,7 +49,7 @@ func TestRegistryMinMaxVariants(t *testing.T) {
 	assert.EqualValues(t, 20, minVal)
 
 	// Normal lock variants
-	maxLock, err := r.GetMaxLock(ctx, "age", &User{})
+	maxLock, err := r.ArrGetMaxIntLock(ctx, "age", &User{})
 	assert.NoError(t, err)
 	assert.EqualValues(t, 40, maxLock)
 

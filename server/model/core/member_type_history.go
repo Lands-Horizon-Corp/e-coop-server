@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -71,9 +72,9 @@ func (m *Core) memberTypeHistory() {
 	m.MemberTypeHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberType", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberTypeHistory) *MemberTypeHistoryResponse {
 			if data == nil {
 				return nil
@@ -159,5 +160,5 @@ func (m *Core) GetMemberTypeHistoryLatest(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	return m.MemberTypeHistoryManager.FindOneWithSQL(context, filters, sorts)
+	return m.MemberTypeHistoryManager.ArrFindOne(context, filters, sorts)
 }

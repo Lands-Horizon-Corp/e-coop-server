@@ -69,9 +69,9 @@ func (m *Core) memberOtherInformationEntry() {
 	m.MemberOtherInformationEntryManager = *registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberOtherInformationEntry) *MemberOtherInformationEntryResponse {
 			if data == nil {
 				return nil

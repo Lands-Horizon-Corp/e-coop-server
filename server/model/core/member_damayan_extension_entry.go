@@ -75,9 +75,9 @@ func (m *Core) memberDamayanExtensionEntry() {
 	m.MemberDamayanExtensionEntryManager = *registry.NewRegistry(registry.RegistryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberDamayanExtensionEntry) *MemberDamayanExtensionEntryResponse {
 			if data == nil {
 				return nil

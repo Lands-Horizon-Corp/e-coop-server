@@ -78,9 +78,9 @@ func (m *Core) funds() {
 	m.FundsManager = *registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *Funds) *FundsResponse {
 			if data == nil {
 				return nil

@@ -212,7 +212,7 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.FindOneWithSQL(
+	return m.LoanTransactionEntryManager.ArrFindOne(
 		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
 	)
 }
@@ -227,5 +227,5 @@ func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organ
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.FindOneWithSQL(ctx, filters, nil)
+	return m.LoanTransactionEntryManager.ArrFindOne(ctx, filters, nil)
 }

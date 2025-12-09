@@ -78,9 +78,9 @@ func (m *Core) userRating() {
 	m.UserRatingManager = *registry.NewRegistry(registry.RegistryParams[UserRating, UserRatingResponse, UserRatingRequest]{
 		Preloads: []string{"Organization", "Branch", "RateeUser", "RaterUser"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *UserRating) *UserRatingResponse {
 			if data == nil {
 				return nil

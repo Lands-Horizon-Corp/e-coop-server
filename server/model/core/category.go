@@ -279,9 +279,9 @@ func (m *Core) category() {
 	m.CategoryManager = *registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *Category) *CategoryResponse {
 			if data == nil {
 				return nil

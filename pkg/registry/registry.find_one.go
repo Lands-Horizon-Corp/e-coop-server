@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"gorm.io/gorm"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) FindOne(
@@ -45,11 +46,12 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindOne(
 
 func (r *Registry[TData, TResponse, TRequest]) ArrFindOneWithLock(
 	context context.Context,
+	tx *gorm.DB,
 	filters []query.ArrFilterSQL,
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) (*TData, error) {
-	entity, err := r.pagination.ArrFindOneWithLock(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	entity, err := r.pagination.ArrFindOneWithLock(tx, filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +72,11 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindOne(
 
 func (r *Registry[TData, TResponse, TRequest]) StructuredFindOneWithLock(
 	context context.Context,
+	tx *gorm.DB,
 	filter query.StructuredFilter,
 	preloads ...string,
 ) (*TData, error) {
-	entity, err := r.pagination.StructuredFindOneWithLock(r.Client(context), filter, r.preload(preloads...)...)
+	entity, err := r.pagination.StructuredFindOneWithLock(tx, filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,10 +98,11 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneRaw(
 
 func (r *Registry[TData, TResponse, TRequest]) FindOneWithLockRaw(
 	context context.Context,
+	tx *gorm.DB,
 	fields *TData,
 	preloads ...string,
 ) (*TData, *TResponse, error) {
-	entity, err := r.pagination.NormalFindOneWithLock(r.Client(context), *fields, r.preload(preloads...)...)
+	entity, err := r.pagination.NormalFindOneWithLock(tx, *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -120,11 +124,12 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindOneRaw(
 
 func (r *Registry[TData, TResponse, TRequest]) ArrFindOneWithLockRaw(
 	context context.Context,
+	tx *gorm.DB,
 	filters []query.ArrFilterSQL,
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) (*TData, *TResponse, error) {
-	entity, err := r.pagination.ArrFindOneWithLock(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	entity, err := r.pagination.ArrFindOneWithLock(tx, filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -145,10 +150,11 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindOneRaw(
 
 func (r *Registry[TData, TResponse, TRequest]) StructuredFindOneWithLockRaw(
 	context context.Context,
+	tx *gorm.DB,
 	filter query.StructuredFilter,
 	preloads ...string,
 ) (*TData, *TResponse, error) {
-	entity, err := r.pagination.StructuredFindOneWithLock(r.Client(context), filter, r.preload(preloads...)...)
+	entity, err := r.pagination.StructuredFindOneWithLock(tx, filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -60,9 +60,9 @@ func (m *Core) organizationMedia() {
 	m.OrganizationMediaManager = *registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {
 			if data == nil {
 				return nil

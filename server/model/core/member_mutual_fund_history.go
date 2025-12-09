@@ -65,9 +65,9 @@ func (m *Core) memberMutualFundHistory() {
 	m.MemberMutualFundHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
 			if data == nil {
 				return nil

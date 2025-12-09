@@ -185,7 +185,7 @@ func (m *Core) GetLoanAccountByLoanTransaction(
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.LoanAccountManager.FindOneWithSQLLock(
+	return m.LoanAccountManager.ArrFindOneWithLock(
 		ctx, tx, filters, nil, "Account", "Account.DefaultPaymentType", "AccountHistory",
 	)
 }

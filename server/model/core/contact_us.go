@@ -55,9 +55,9 @@ func (m *Core) contactUs() {
 	m.ContactUsManager = *registry.NewRegistry(registry.RegistryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
 		Preloads: nil,
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(cu *ContactUs) *ContactUsResponse {
 			if cu == nil {
 				return nil
@@ -73,22 +73,22 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				UpdatedAt:     cu.UpdatedAt.Format(time.RFC3339),
 			}
 		},
-		Created: func(cu *ContactUs) []string {
+		Created: func(data *ContactUs) registry.Topics {
 			return []string{
 				"contact_us.create",
-				fmt.Sprintf("feedback.create.%s", cu.ID),
+				fmt.Sprintf("feedback.create.%s", data.ID),
 			}
 		},
-		Deleted: func(cu *ContactUs) []string {
+		Deleted: func(data *ContactUs) registry.Topics {
 			return []string{
 				"contact_us.delete",
-				fmt.Sprintf("feedback.delete.%s", cu.ID),
+				fmt.Sprintf("feedback.delete.%s", data.ID),
 			}
 		},
-		Updated: func(cu *ContactUs) []string {
+		Updated: func(data *ContactUs) registry.Topics {
 			return []string{
 				"contact_us.update",
-				fmt.Sprintf("feedback.update.%s", cu.ID),
+				fmt.Sprintf("feedback.update.%s", data.ID),
 			}
 		},
 	})

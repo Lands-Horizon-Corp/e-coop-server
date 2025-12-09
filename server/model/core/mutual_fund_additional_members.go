@@ -74,9 +74,9 @@ func (m *Core) mutualFundAdditionalMembers() {
 	m.MutualFundAdditionalMembersManager = *registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MutualFundAdditionalMembers) *MutualFundAdditionalMembersResponse {
 			if data == nil {
 				return nil

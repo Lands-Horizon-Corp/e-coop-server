@@ -71,9 +71,9 @@ func (m *Core) notification() {
 	m.NotificationManager = *registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
 		Preloads: []string{"Recipient", "Recipient.Media"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *Notification) *NotificationResponse {
 			if data == nil {
 				return nil

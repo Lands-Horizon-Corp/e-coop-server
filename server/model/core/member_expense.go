@@ -75,9 +75,9 @@ func (m *Core) memberExpense() {
 	m.MemberExpenseManager = *registry.NewRegistry(registry.RegistryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *MemberExpense) *MemberExpenseResponse {
 			if data == nil {
 				return nil
