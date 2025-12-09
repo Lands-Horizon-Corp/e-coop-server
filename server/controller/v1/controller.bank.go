@@ -277,7 +277,12 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No bank IDs provided for bulk delete"})
 		}
 
-		if err := c.core.BankManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+
+		if err := c.core.AccountCategoryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | error: " + err.Error(),

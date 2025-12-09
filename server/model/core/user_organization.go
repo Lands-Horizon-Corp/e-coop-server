@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -552,4 +553,31 @@ func (m *Core) UserOrganizationsNoneUserMembers(context context.Context, branchI
 		}
 	}
 	return filteredUserOrganizations, nil
+}
+
+func (m *Core) UserOrganizationsNoneUserMemberss(
+	ctx context.Context,
+	branchID, organizationID uuid.UUID,
+) ([]*UserOrganization, error) {
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "user_type", Op: query.ModeEqual, Value: UserOrganizationTypeMember},
+	}
+
+	// Exclude users that already have a MemberProfile
+	// This assumes your FilterSQL supports "NOT IN" with subqueries
+	subQuery := m.DB.Model(&MemberProfile{}).Select("user_id").
+		Where("organization_id = ? AND branch_id = ?", organizationID, branchID)
+	filters = append(filters, registry.FilterSQL{
+		Field: "user_id",
+		Op:    query.ModeNotIn,
+		Value: subQuery,
+	})
+
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: query.SortOrderDesc},
+	}
+
+	return m.UserOrganizationManager.ArrFind(ctx, filters, sorts)
 }

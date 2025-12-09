@@ -295,7 +295,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
-		noneUsers, err := c.core.UserOrganizationManager.PaginationData(context, ctx, userOrganization)
+		noneUsers, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
@@ -307,7 +307,7 @@ func (c *Controller) userOrganinzationController() {
 		Route:        "/api/v1/user-organization/user/:user_id",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
-		Note:         "Returns all user organizations for a specific user. Use query param `pending=true` to include pending organizations.",
+		Note:         "Returns all user organizations for a specific user. Use quer	y param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
