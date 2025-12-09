@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -284,22 +285,6 @@ func (p *Pagination[T]) NormalGetByIDIncludingDeleted(
 	return &entity, nil
 }
 
-func (f *Pagination[T]) NormalTabular(
-	db *gorm.DB,
-	filter T,
-	getter func(data *T) map[string]any,
-	preloads ...string,
-) ([]byte, error) {
-	for _, preload := range preloads {
-		db = db.Preload(preload)
-	}
-	data, err := f.NormalFind(db, filter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get data: %w", err)
-	}
-	return csvCreation(data, getter)
-}
-
 func (p *Pagination[T]) NormalGetByIDIncludingDeletedLock(
 	tx *gorm.DB,
 	id any,
@@ -323,4 +308,73 @@ func (p *Pagination[T]) NormalGetByIDIncludingDeletedLock(
 	}
 
 	return &entity, nil
+}
+
+func (f *Pagination[T]) NormalTabular(
+	db *gorm.DB,
+	filter T,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	data, err := f.NormalFind(db, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation(data, getter)
+}
+
+// NormalRequestTabular uses echo.Context and optional filter
+func (f *Pagination[T]) NormalRequestTabular(
+	db *gorm.DB,
+	ctx echo.Context,
+	filter *T,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := parseQuery(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query: %w", err)
+	}
+
+	if filter != nil {
+		db = db.Where(filter)
+	}
+
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+
+	data, err := f.StructuredFind(db, filterRoot, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+
+	return csvCreation(data, getter)
+}
+
+func (f *Pagination[T]) NormalStringTabular(
+	db *gorm.DB,
+	filterValue string,
+	filter *T,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := strParseQuery(filterValue)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query string: %w", err)
+	}
+	if filter != nil {
+		db = db.Where(filter)
+	}
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	data, err := f.StructuredFind(db, filterRoot, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation(data, getter)
 }

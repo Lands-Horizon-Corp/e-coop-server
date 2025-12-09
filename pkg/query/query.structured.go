@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -232,6 +233,60 @@ func (f *Pagination[T]) StructuredTabular(
 	data, err := f.StructuredFind(db, filterRoot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation(data, getter)
+}
+func (f *Pagination[T]) StructuredRequestTabular(
+	db *gorm.DB,
+	ctx echo.Context,
+	filter StructuredFilter,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := parseQuery(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query: %w", err)
+	}
+	filterRoot.FieldFilters = append(filterRoot.FieldFilters, filter.FieldFilters...)
+	filterRoot.Logic = LogicAnd
+	if len(filterRoot.SortFields) == 0 && len(filter.SortFields) > 0 {
+		filterRoot.SortFields = filter.SortFields
+	}
+	filterRoot.Preload = append(filterRoot.Preload, filter.Preload...)
+
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	data, err := f.StructuredFind(db, filterRoot, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get structured data: %w", err)
+	}
+	return csvCreation(data, getter)
+}
+
+func (f *Pagination[T]) StructuredStringTabular(
+	db *gorm.DB,
+	filterValue string,
+	filter StructuredFilter,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := strParseQuery(filterValue)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query string: %w", err)
+	}
+	filterRoot.FieldFilters = append(filterRoot.FieldFilters, filter.FieldFilters...)
+	filterRoot.Logic = LogicAnd
+	if len(filterRoot.SortFields) == 0 && len(filter.SortFields) > 0 {
+		filterRoot.SortFields = filter.SortFields
+	}
+	filterRoot.Preload = append(filterRoot.Preload, filter.Preload...)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	data, err := f.StructuredFind(db, filterRoot, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get structured data: %w", err)
 	}
 	return csvCreation(data, getter)
 }

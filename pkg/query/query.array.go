@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -256,11 +257,83 @@ func (p *Pagination[T]) ArrGetMinLock(
 
 func (f *Pagination[T]) ArrTabular(
 	db *gorm.DB,
-	getter func(data *T) map[string]any,
 	filters []ArrFilterSQL,
 	sorts []ArrFilterSortSQL,
+	getter func(data *T) map[string]any,
 	preloads ...string,
 ) ([]byte, error) {
+	data, err := f.ArrFind(db, filters, sorts, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation(data, getter)
+}
+
+func (f *Pagination[T]) ArrRequestTabular(
+	db *gorm.DB,
+	ctx echo.Context,
+	extraFilters []ArrFilterSQL,
+	extraSorts []ArrFilterSortSQL,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := parseQuery(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query: %w", err)
+	}
+	filters := make([]ArrFilterSQL, len(filterRoot.FieldFilters))
+	for i, ff := range filterRoot.FieldFilters {
+		filters[i] = ArrFilterSQL{
+			Field: ff.Field,
+			Value: ff.Value,
+			Op:    ff.Mode,
+		}
+	}
+	filters = append(filters, extraFilters...)
+	sorts := make([]ArrFilterSortSQL, len(filterRoot.SortFields))
+	for i, sf := range filterRoot.SortFields {
+		sorts[i] = ArrFilterSortSQL{
+			Field: sf.Field,
+			Order: sf.Order,
+		}
+	}
+	sorts = append(sorts, extraSorts...)
+	data, err := f.ArrFind(db, filters, sorts, preloads...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get data: %w", err)
+	}
+	return csvCreation(data, getter)
+}
+
+func (f *Pagination[T]) ArrStringTabular(
+	db *gorm.DB,
+	filterValue string,
+	extraFilters []ArrFilterSQL,
+	extraSorts []ArrFilterSortSQL,
+	getter func(data *T) map[string]any,
+	preloads ...string,
+) ([]byte, error) {
+	filterRoot, _, _, err := strParseQuery(filterValue)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse query string: %w", err)
+	}
+	filters := make([]ArrFilterSQL, len(filterRoot.FieldFilters))
+	for i, ff := range filterRoot.FieldFilters {
+		filters[i] = ArrFilterSQL{
+			Field: ff.Field,
+			Value: ff.Value,
+			Op:    ff.Mode,
+		}
+	}
+	filters = append(filters, extraFilters...)
+	sorts := make([]ArrFilterSortSQL, len(filterRoot.SortFields))
+	for i, sf := range filterRoot.SortFields {
+		sorts[i] = ArrFilterSortSQL{
+			Field: sf.Field,
+			Order: sf.Order,
+		}
+	}
+	sorts = append(sorts, extraSorts...)
 	data, err := f.ArrFind(db, filters, sorts, preloads...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get data: %w", err)
