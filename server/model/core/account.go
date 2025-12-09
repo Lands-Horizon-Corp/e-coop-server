@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -527,7 +528,11 @@ func (m *Core) account() {
 			"AccountTags", "ComputationSheet", "Currency",
 			"DefaultPaymentType", "LoanAccount",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Account) *AccountResponse {
 			if data == nil {
 				return nil
@@ -3994,8 +3999,8 @@ func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branc
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -4011,7 +4016,7 @@ func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID 
 			AccountTypeSVFLedger,
 		}},
 	}
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -4024,7 +4029,7 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 		{Field: "type", Op: registry.OpEq, Value: accountType},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.AccountManager.ArrFind(ctx, filters, []query.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -4038,7 +4043,7 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 		{Field: "loan_account_id", Op: registry.OpEq, Value: accountID},
 	}
 
-	accounts, err := m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	accounts, err := m.AccountManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {

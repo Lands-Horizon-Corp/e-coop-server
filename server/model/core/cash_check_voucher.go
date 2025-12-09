@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -450,7 +450,7 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -470,7 +470,7 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -490,7 +490,7 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -510,7 +510,7 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -536,7 +536,7 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -949,7 +949,7 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -974,7 +974,7 @@ func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, acco
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -989,7 +989,7 @@ func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationI
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -1004,7 +1004,7 @@ func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -1019,7 +1019,7 @@ func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -1034,7 +1034,7 @@ func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -1055,7 +1055,7 @@ func (m *Core) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, 
 		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }

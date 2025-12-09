@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -89,7 +89,10 @@ func (m *Core) memberProfileArchive() {
 	m.Migration = append(m.Migration, &MemberProfileArchive{})
 	m.MemberProfileArchiveManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *MemberProfileArchive) *MemberProfileArchiveResponse {
 			if data == nil {
 				return nil

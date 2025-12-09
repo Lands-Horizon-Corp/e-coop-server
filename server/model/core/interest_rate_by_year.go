@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -138,7 +138,7 @@ func (m *Core) InterestRateByYearForBrowseReference(context context.Context, bro
 		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByYearManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByYearForRange retrieves interest rates for a specific year range
@@ -149,7 +149,7 @@ func (m *Core) InterestRateByYearForRange(context context.Context, browseReferen
 		{Field: "to_year", Op: registry.OpGte, Value: year},
 	}
 
-	return m.InterestRateByYearManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByYearCurrentBranch retrieves interest rates for the specified branch and organization
@@ -159,7 +159,7 @@ func (m *Core) InterestRateByYearCurrentBranch(context context.Context, organiza
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.InterestRateByYearManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
 }
 
 // GetInterestRateForYear gets the applicable interest rate for a specific browse reference and year

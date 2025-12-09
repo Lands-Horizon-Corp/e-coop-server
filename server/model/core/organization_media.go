@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -59,7 +59,10 @@ func (m *Core) organizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
 	m.OrganizationMediaManager = *registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {
 			if data == nil {
 				return nil

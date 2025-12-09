@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -62,7 +62,10 @@ func (m *Core) memberOccupation() {
 	m.Migration = append(m.Migration, &MemberOccupation{})
 	m.MemberOccupationManager = *registry.NewRegistry(registry.RegistryParams[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *MemberOccupation) *MemberOccupationResponse {
 			if data == nil {
 				return nil

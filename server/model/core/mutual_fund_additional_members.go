@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -73,7 +73,10 @@ func (m *Core) mutualFundAdditionalMembers() {
 	m.Migration = append(m.Migration, &MutualFundAdditionalMembers{})
 	m.MutualFundAdditionalMembersManager = *registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *MutualFundAdditionalMembers) *MutualFundAdditionalMembersResponse {
 			if data == nil {
 				return nil

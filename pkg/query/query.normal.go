@@ -297,3 +297,34 @@ func (f *Pagination[T]) NormalTabular(
 	}
 	return csvCreation(data, getter)
 }
+
+func (p *Pagination[T]) NormalGetByIDIncludingDeletedLock(
+	tx *gorm.DB,
+	id any,
+	preloads ...string,
+) (*T, error) {
+	// Include deleted
+	tx = tx.Unscoped()
+
+	// Preload relations
+	for _, preload := range preloads {
+		tx = tx.Preload(preload)
+	}
+
+	// Apply locking (FOR UPDATE)
+	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
+
+	var entity T
+	err := tx.First(&entity, fmt.Sprintf("%s = ?", p.columnDefaultID), id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf(
+			"failed to get entity by ID %v including deleted with lock: %w",
+			id, err,
+		)
+	}
+
+	return &entity, nil
+}

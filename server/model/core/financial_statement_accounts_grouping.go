@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -242,7 +242,7 @@ func (m *Core) FinancialStatementGroupingAlignments(context context.Context, org
 	for _, grouping := range fsGroupings {
 		if grouping != nil {
 			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
-			entries, err := m.FinancialStatementDefinitionManager.FindWithSQL(context,
+			entries, err := m.FinancialStatementDefinitionManager.ArrFind(context,
 				[]registry.FilterSQL{
 					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 					{Field: "branch_id", Op: registry.OpEq, Value: branchID},

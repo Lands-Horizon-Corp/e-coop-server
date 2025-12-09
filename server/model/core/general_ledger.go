@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -440,7 +440,7 @@ func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationI
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.GeneralLedgerManager.FindWithSQL(context, filters, nil)
+	return m.GeneralLedgerManager.ArrFind(context, filters, nil)
 }
 
 // GeneralLedgerCurrentMemberAccount retrieves the general ledger entry for a specific member account
@@ -480,7 +480,7 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 		})
 	}
 
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // GeneralLedgerExcludeCashonHandWithType retrieves general ledger entries excluding cash on hand accounts with payment type filter
@@ -517,7 +517,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // GeneralLedgerExcludeCashonHandWithSource retrieves general ledger entries excluding cash on hand accounts with source filter
@@ -550,7 +550,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // GeneralLedgerExcludeCashonHandWithFilters retrieves general ledger entries excluding cash on hand accounts with payment type and source filters
@@ -597,7 +597,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // GeneralLedgerAlignments retrieves general ledger groupings with their definition entries for a given organization and branch
@@ -613,7 +613,7 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 	for _, grouping := range glGroupings {
 		if grouping != nil {
 			grouping.GeneralLedgerDefinitionEntries = []*GeneralLedgerDefinition{}
-			entries, err := m.GeneralLedgerDefinitionManager.FindWithSQL(context,
+			entries, err := m.GeneralLedgerDefinitionManager.ArrFind(context,
 				[]registry.FilterSQL{
 					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 					{Field: "branch_id", Op: registry.OpEq, Value: branchID},
@@ -656,7 +656,7 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 		{Field: "entry_date", Order: filter.SortOrderDesc},
 		{Field: "created_at", Order: filter.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
 // GeneralLedgerMemberAccountTotal retrieves all general ledger entries for computing totals (excludes cash on hand)
@@ -674,7 +674,7 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 	sorts := []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
 // GeneralLedgerMemberProfileEntries retrieves all general ledger entries for a member profile excluding cash on hand
@@ -691,7 +691,7 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 	sorts := []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
 // GeneralLedgerMemberProfileEntriesByPaymentType retrieves all general ledger entries for a member profile by payment type, excluding cash on hand
@@ -710,7 +710,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 	sorts := []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
 // GeneralLedgerMemberProfileEntriesBySource retrieves all general ledger entries for a member profile by source, excluding cash on hand
@@ -729,7 +729,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	sorts := []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts)
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
 // GeneralLedgerByLoanTransaction retrieves all general ledger entries for a specific loan transaction
@@ -748,7 +748,7 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	entries, err := m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account", "EmployeeUser", "EmployeeUser.Media")
+	entries, err := m.GeneralLedgerManager.ArrFind(ctx, filters, sorts, "Account", "EmployeeUser", "EmployeeUser.Media")
 	if err != nil {
 		return nil, err
 	}
@@ -793,7 +793,7 @@ func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 		{Field: "entry_date", Order: "DESC"},
 	}
 
-	return m.GeneralLedgerManager.FindWithSQL(ctx, filters, sorts, "Account")
+	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts, "Account")
 }
 
 // GetDailyEndingBalances retrieves daily ending balances for ADB calculations

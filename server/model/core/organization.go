@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -274,7 +274,7 @@ func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, erro
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: registry.OpEq, Value: false},
 	}
-	return m.OrganizationManager.FindWithSQL(ctx, filters, nil)
+	return m.OrganizationManager.ArrFind(ctx, filters, nil)
 }
 
 // GetFeaturedOrganization retrieves organizations marked as featured for promotional display
@@ -288,7 +288,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	}
 
 	// Get organizations with preloads to check branches
-	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, nil, "Media", "CoverMedia",
+	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, nil, "Media", "CoverMedia",
 		"SubscriptionPlan", "Branches",
 		"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 		"OrganizationCategories.Category")
@@ -319,7 +319,7 @@ func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid
 		{Field: "category_id", Op: registry.OpEq, Value: categoryID},
 	}
 
-	orgCategories, err := m.OrganizationCategoryManager.FindWithSQL(ctx, filters, nil, "Organization")
+	orgCategories, err := m.OrganizationCategoryManager.ArrFind(ctx, filters, nil, "Organization")
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +353,7 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, sorts)
+	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, sorts)
 	if err != nil {
 		return nil, err
 	}

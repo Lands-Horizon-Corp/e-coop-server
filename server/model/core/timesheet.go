@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -152,7 +152,7 @@ func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uu
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.TimesheetManager.FindWithSQL(context, filters, nil)
+	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
 
 // GetUserTimesheet retrieves timesheets for a specific user in a branch
@@ -163,7 +163,7 @@ func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID,
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.TimesheetManager.FindWithSQL(context, filters, nil)
+	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
 
 // TimeSheetActiveUsers gets all users with active timesheets in the branch
@@ -174,5 +174,5 @@ func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, bra
 		{Field: "time_out", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.TimesheetManager.FindWithSQL(context, filters, nil)
+	return m.TimesheetManager.ArrFind(context, filters, nil)
 }

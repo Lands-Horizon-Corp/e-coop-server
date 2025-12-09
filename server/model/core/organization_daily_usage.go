@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -92,7 +92,10 @@ func (m *Core) organizationDailyUsage() {
 	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
 	m.OrganizationDailyUsageManager = *registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
 			if data == nil {
 				return nil

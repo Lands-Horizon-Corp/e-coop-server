@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -57,7 +57,10 @@ func (m *Core) media() {
 	m.Migration = append(m.Migration, &Media{})
 	m.MediaManager = *registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *Media) *MediaResponse {
 			context := context.Background()
 			if data == nil {

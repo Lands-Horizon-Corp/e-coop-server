@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -555,7 +555,7 @@ func (m *Core) TransactionBatchCurrent(context context.Context, userID, organiza
 
 // TransactionBatchViewRequests retrieves transaction batches with pending view requests
 func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	return m.TransactionBatchManager.FindWithSQL(context, []registry.FilterSQL{
+	return m.TransactionBatchManager.ArrFind(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "request_view", Op: registry.OpEq, Value: true},
@@ -572,7 +572,7 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	return m.TransactionBatchManager.FindWithSQL(ctx, []registry.FilterSQL{
+	return m.TransactionBatchManager.ArrFind(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "is_closed", Op: registry.OpEq, Value: true},

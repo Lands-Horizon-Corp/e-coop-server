@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -212,7 +212,7 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 
-	return m.MemberAccountingLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // MemberAccountingLedgerBranchEntries retrieves member accounting ledger entries for a specific branch
@@ -223,7 +223,7 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	return m.MemberAccountingLedgerManager.FindWithSQL(ctx, filters, nil)
+	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
 }
 
 // MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
@@ -330,7 +330,7 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	includeClosedAccounts bool,
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
-	memberAccountingLedger, err := m.MemberAccountingLedgerManager.FindWithSQL(ctx, []registry.FilterSQL{
+	memberAccountingLedger, err := m.MemberAccountingLedgerManager.ArrFind(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},

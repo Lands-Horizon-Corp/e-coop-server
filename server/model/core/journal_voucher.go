@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -296,7 +296,7 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -311,7 +311,7 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -326,7 +326,7 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -341,7 +341,7 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -362,7 +362,7 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	return m.JournalVoucherManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }

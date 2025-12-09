@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -138,7 +138,7 @@ func (m *Core) InterestRateByAmountForBrowseReference(context context.Context, b
 		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByAmountManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByAmountForRange retrieves interest rates for a specific amount range
@@ -149,7 +149,7 @@ func (m *Core) InterestRateByAmountForRange(context context.Context, browseRefer
 		{Field: "to_amount", Op: registry.OpGte, Value: amount},
 	}
 
-	return m.InterestRateByAmountManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByAmountCurrentBranch retrieves interest rates for the specified branch and organization
@@ -159,7 +159,7 @@ func (m *Core) InterestRateByAmountCurrentBranch(context context.Context, organi
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.InterestRateByAmountManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
 // GetInterestRateForAmount gets the applicable interest rate for a specific browse reference and amount

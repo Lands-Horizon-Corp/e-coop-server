@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -204,7 +204,7 @@ func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizatio
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 // BrowseReferenceByMemberType retrieves browse references for a specific member type
@@ -215,7 +215,7 @@ func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID
 		{Field: "member_type_id", Op: registry.OpEq, Value: memberTypeID},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 // BrowseReferenceByInterestType retrieves browse references by interest type
@@ -226,7 +226,7 @@ func (m *Core) BrowseReferenceByInterestType(context context.Context, interestTy
 		{Field: "interest_type", Op: registry.OpEq, Value: string(interestType)},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 func (m *Core) BrowseReferenceByField(
@@ -250,5 +250,5 @@ func (m *Core) BrowseReferenceByField(
 		})
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }

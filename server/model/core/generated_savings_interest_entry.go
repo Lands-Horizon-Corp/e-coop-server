@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -175,7 +175,7 @@ func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByGeneratedSavingsInterest retrieves entries for a specific generated savings interest
@@ -185,7 +185,7 @@ func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 		{Field: "generated_savings_interest_id", Op: registry.OpEq, Value: generatedSavingsInterestID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByAccount retrieves entries for a specific account
@@ -197,7 +197,7 @@ func (m *Core) GenerateSavingsInterestEntryByAccount(
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByMemberProfile retrieves entries for a specific member profile
@@ -210,7 +210,7 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByEndingBalanceRange retrieves entries within a specific ending balance range
@@ -224,7 +224,7 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 		{Field: "ending_balance", Op: registry.OpLte, Value: maxEndingBalance},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEntryID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {

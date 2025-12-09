@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -266,7 +266,10 @@ func (m *Core) accountHistory() {
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		}
 		Resource: func(data *AccountHistory) *AccountHistoryResponse {
 			if data == nil {
 				return nil
@@ -522,7 +525,7 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 		{Field: "account_id", Op: registry.OpEq, Value: accountID},
 	}
 
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -534,7 +537,7 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	return m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
 	})
@@ -555,7 +558,7 @@ func (m *Core) GetAccountHistoryLatestByTime(
 		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
 	})
@@ -585,7 +588,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
 	})
@@ -615,7 +618,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistory(
 		{Field: "created_at", Op: registry.OpLte, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "created_at", Order: filter.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: filter.SortOrderDesc}, // Secondary sort
 	})
@@ -660,7 +663,7 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 		})
 	}
 
-	histories, err := m.AccountHistoryManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
+	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
 		{Field: "account_id", Order: filter.SortOrderAsc},
 		{Field: "created_at", Order: filter.SortOrderDesc},
 	})

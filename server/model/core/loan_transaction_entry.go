@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -195,7 +195,7 @@ func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organi
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.LoanTransactionEntryManager.FindWithSQL(context, filters, nil)
+	return m.LoanTransactionEntryManager.ArrFind(context, filters, nil)
 }
 
 // GetCashOnCashEquivalence returns the cash-on-cash equivalence entry (index 0) for a loan transaction

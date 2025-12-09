@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -138,7 +138,7 @@ func (m *Core) InterestRateByDateForBrowseReference(context context.Context, bro
 		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByDateManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByDateForRange retrieves interest rates for a specific date range
@@ -149,7 +149,7 @@ func (m *Core) InterestRateByDateForRange(context context.Context, browseReferen
 		{Field: "to_date", Op: registry.OpGte, Value: date},
 	}
 
-	return m.InterestRateByDateManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
 // InterestRateByDateCurrentBranch retrieves interest rates for the specified branch and organization
@@ -159,7 +159,7 @@ func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organiza
 		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
 	}
 
-	return m.InterestRateByDateManager.FindWithSQL(context, filters, nil)
+	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
 // GetInterestRateForDate gets the applicable interest rate for a specific browse reference and date
