@@ -7,7 +7,6 @@ import (
 )
 
 func (r *Reports) bankReport(ctx context.Context, data ReportData) (result []byte, err error) {
-
 	result, err = data.generated.PDF("/api/v1/bank/search", func(params ...string) ([]byte, error) {
 		return r.core.BankManager.FilterFieldsCSV(ctx, data.generated.FilterSearch, &core.Bank{
 			OrganizationID: data.generated.OrganizationID,
