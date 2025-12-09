@@ -378,3 +378,36 @@ func (f *Pagination[T]) NormalStringTabular(
 	}
 	return csvCreation(data, getter)
 }
+
+func (p *Pagination[T]) NormalFindIncludeDeleted(
+	db *gorm.DB,
+	filter T,
+	preloads ...string,
+) ([]*T, error) {
+	db = db.Unscoped().Where(&filter)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	var data []*T
+	if err := db.Find(&data).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entities including deleted: %w", err)
+	}
+	return data, nil
+}
+
+func (r *Pagination[T]) NormalFindLockIncludeDeleted(
+	db *gorm.DB,
+	filter T,
+	preloads ...string,
+) ([]*T, error) {
+	db = db.Unscoped().Where(&filter)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	var entities []*T
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entities including deleted with lock: %w", err)
+	}
+	return entities, nil
+}

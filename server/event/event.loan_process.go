@@ -275,15 +275,11 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 	if userOrg == nil {
 		return eris.New("user organization is nil")
 	}
-
 	if userOrg.BranchID == nil {
 		return eris.New("user organization has no branch assigned")
 	}
-
 	currentTime := time.Now().UTC()
-
-	// Get all loan transactions that are not currently being processed
-	loanTransactions, err := e.core.LoanTransactionManager.FindIncludingDeleted(processContext, &core.LoanTransaction{
+	loanTransactions, err := e.core.LoanTransactionManager.FindIncludeDeleted(processContext, &core.LoanTransaction{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		Processing:     false,
@@ -296,7 +292,6 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 		return eris.New("no loan transactions found to process")
 	}
 
-	// Mark all transactions as processing to prevent concurrent processing
 	for _, entry := range loanTransactions {
 		entry.Processing = true
 		if err := e.core.LoanTransactionManager.UpdateByID(processContext, entry.ID, entry); err != nil {

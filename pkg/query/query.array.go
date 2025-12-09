@@ -340,3 +340,52 @@ func (f *Pagination[T]) ArrStringTabular(
 	}
 	return csvCreation(data, getter)
 }
+
+func (p *Pagination[T]) ArrFindIncludeDeleted(
+	db *gorm.DB,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
+	preloads ...string,
+) ([]*T, error) {
+	var entities []*T
+	db = db.Unscoped()
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	if len(sorts) > 0 {
+		db = p.applySort(db, sorts)
+	} else {
+		db = db.Order(p.columnDefaultSort)
+	}
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entities including deleted with %d filters: %w", len(filters), err)
+	}
+	return entities, nil
+}
+
+func (p *Pagination[T]) ArrFindLockIncludeDeleted(
+	db *gorm.DB,
+	filters []ArrFilterSQL,
+	sorts []ArrFilterSortSQL,
+	preloads ...string,
+) ([]*T, error) {
+	var entities []*T
+	db = db.Unscoped()
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	if len(sorts) > 0 {
+		db = p.applySort(db, sorts)
+	} else {
+		db = db.Order(p.columnDefaultSort)
+	}
+	db = db.Clauses(clause.Locking{Strength: "UPDATE"})
+	if err := db.Find(&entities).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entities including deleted with %d filters and lock: %w", len(filters), err)
+	}
+	return entities, nil
+}

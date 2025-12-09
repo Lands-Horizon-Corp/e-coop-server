@@ -290,3 +290,37 @@ func (f *Pagination[T]) StructuredStringTabular(
 	}
 	return csvCreation(data, getter)
 }
+func (p *Pagination[T]) StructuredFindIncludeDeleted(
+	db *gorm.DB,
+	filterRoot StructuredFilter,
+	preloads ...string,
+) ([]*T, error) {
+	db = db.Unscoped()
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	query := p.structuredQuery(db, filterRoot)
+	var data []*T
+	if err := query.Find(&data).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch records including deleted: %w", err)
+	}
+	return data, nil
+}
+
+func (p *Pagination[T]) StructuredFindLockIncludeDeleted(
+	db *gorm.DB,
+	filterRoot StructuredFilter,
+	preloads ...string,
+) ([]*T, error) {
+	db = db.Unscoped()
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	query := p.structuredQuery(db, filterRoot)
+	query = query.Clauses(clause.Locking{Strength: "UPDATE"})
+	var data []*T
+	if err := query.Find(&data).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch records including deleted with lock: %w", err)
+	}
+	return data, nil
+}
