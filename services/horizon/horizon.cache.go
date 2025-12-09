@@ -192,7 +192,7 @@ func (h *Cache) Exists(ctx context.Context, key string) (bool, error) {
 	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
-	val, err := h.client.ArrExists(ctx, prefixedKey).Result()
+	val, err := h.client.Exists(ctx, prefixedKey).Result()
 	if err != nil {
 		return false, err
 	}

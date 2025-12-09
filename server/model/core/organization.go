@@ -350,7 +350,7 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
-		{Field: "created_at", Op: registry.OpGte, Value: thirtyDaysAgo},
+		{Field: "created_at", Op: query.ModeGTE, Value: thirtyDaysAgo},
 	}
 
 	sorts := []query.ArrFilterSortSQL{

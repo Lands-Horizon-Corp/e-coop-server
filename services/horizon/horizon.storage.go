@@ -137,7 +137,7 @@ func (h *StorageImpl) Run(ctx context.Context) error {
 	h.client = client
 
 	// Check whether the bucket exists
-	exists, err := client.BucketArrExists(ctx, h.storageBucket)
+	exists, err := client.BucketExists(ctx, h.storageBucket)
 	if err != nil {
 		return eris.Wrap(err, "failed to check bucket exists")
 	}

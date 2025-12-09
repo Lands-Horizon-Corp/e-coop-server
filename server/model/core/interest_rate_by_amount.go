@@ -150,7 +150,7 @@ func (m *Core) InterestRateByAmountForRange(context context.Context, browseRefer
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_amount", Op: query.ModeLTE, Value: amount},
-		{Field: "to_amount", Op: registry.OpGte, Value: amount},
+		{Field: "to_amount", Op: query.ModeGTE, Value: amount},
 	}
 
 	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)

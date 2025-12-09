@@ -71,9 +71,9 @@ func (m *Core) cancelledCashCheckVoucher() {
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *CancelledCashCheckVoucher) *CancelledCashCheckVoucherResponse {
 			if data == nil {
 				return nil

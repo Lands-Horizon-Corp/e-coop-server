@@ -175,7 +175,7 @@ func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, bra
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "time_out", Op: registry.OpIsNull, Value: nil},
+		{Field: "time_out", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	return m.TimesheetManager.ArrFind(context, filters, nil)

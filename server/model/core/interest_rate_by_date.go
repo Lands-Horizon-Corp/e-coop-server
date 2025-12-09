@@ -150,7 +150,7 @@ func (m *Core) InterestRateByDateForRange(context context.Context, browseReferen
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_date", Op: query.ModeLTE, Value: date},
-		{Field: "to_date", Op: registry.OpGte, Value: date},
+		{Field: "to_date", Op: query.ModeGTE, Value: date},
 	}
 
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)

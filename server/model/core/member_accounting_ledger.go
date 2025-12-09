@@ -213,7 +213,7 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 
 	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
@@ -225,7 +225,7 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
 }

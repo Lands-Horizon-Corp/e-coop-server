@@ -448,9 +448,9 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "printed_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -468,9 +468,9 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -488,9 +488,9 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -508,9 +508,9 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -532,11 +532,11 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpGte, Value: startOfDay},
-		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
 	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{

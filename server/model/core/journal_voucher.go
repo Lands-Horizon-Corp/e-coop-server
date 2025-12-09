@@ -294,9 +294,9 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "printed_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -309,9 +309,9 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -324,9 +324,9 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -339,9 +339,9 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -358,11 +358,11 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpGte, Value: startOfDay},
-		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
 	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{

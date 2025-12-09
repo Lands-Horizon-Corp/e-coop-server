@@ -579,8 +579,8 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "is_closed", Op: query.ModeEqual, Value: true},
-		{Field: "created_at", Op: registry.OpGte, Value: startOfDay},
-		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
+		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "created_at", Op: query.ModeLT, Value: endOfDay},
 	}, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})

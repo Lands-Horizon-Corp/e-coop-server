@@ -478,7 +478,7 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    registry.OpNe,
+			Op:    query.ModeNotEqualNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -515,7 +515,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    registry.OpNe,
+			Op:    query.ModeNotEqualNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -549,7 +549,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    registry.OpNe,
+			Op:    query.ModeNotEqualNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -595,7 +595,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	if branchSetting.CashOnHandAccountID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "account_id",
-			Op:    registry.OpNe,
+			Op:    query.ModeNotEqualNe,
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
@@ -653,7 +653,7 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderDesc},
@@ -672,7 +672,7 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -689,7 +689,7 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -708,7 +708,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "type_of_payment_type", Op: query.ModeEqual, Value: paymentType},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -727,7 +727,7 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "source", Op: query.ModeEqual, Value: source},
-		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
+		{Field: "account_id", Op: query.ModeNotEqualNe, Value: cashOnHandAccountID},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
@@ -787,7 +787,7 @@ func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
-		{Field: "created_at", Op: registry.OpGte, Value: fromStartOfDay},
+		{Field: "created_at", Op: query.ModeGTE, Value: fromStartOfDay},
 		{Field: "created_at", Op: query.ModeLTE, Value: toEndOfDay},
 	}
 
@@ -832,7 +832,7 @@ func (m *Core) GetDailyEndingBalances(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
-		{Field: "created_at", Op: registry.OpLt, Value: fromDate},
+		{Field: "created_at", Op: query.ModeLT, Value: fromDate},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},

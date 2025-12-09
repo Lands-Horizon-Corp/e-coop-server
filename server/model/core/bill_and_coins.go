@@ -81,9 +81,9 @@ func (m *Core) billAndCoins() {
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {
 				return nil
@@ -137,7 +137,6 @@ Dispatch: func(topics registry.Topics, payload any) error {
 
 func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-
 	curency, err := m.CurrencyManager.List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for bill and coins seeding")

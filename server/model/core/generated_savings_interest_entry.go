@@ -224,7 +224,7 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "ending_balance", Op: registry.OpGte, Value: minEndingBalance},
+		{Field: "ending_balance", Op: query.ModeGTE, Value: minEndingBalance},
 		{Field: "ending_balance", Op: query.ModeLTE, Value: maxEndingBalance},
 	}
 
