@@ -50,6 +50,21 @@ func (f *Pagination[T]) StructuredPagination(
 	return &result, nil
 }
 
+func (f *Pagination[T]) StructuredFind(
+	db *gorm.DB,
+	filterRoot StructuredFilter,
+	preloads ...string,
+) ([]*T, error) {
+	for _, preload := range preloads {
+		db = db.Preload(preload)
+	}
+	query := f.structuredQuery(db, filterRoot)
+	var data []*T
+	if err := query.Find(&data).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch records: %w", err)
+	}
+	return data, nil
+}
 func (f *Pagination[T]) StructuredCount(
 	db *gorm.DB,
 	filterRoot StructuredFilter,
@@ -60,18 +75,6 @@ func (f *Pagination[T]) StructuredCount(
 		return 0, fmt.Errorf("failed to count records: %w", err)
 	}
 	return totalCount, nil
-}
-
-func (f *Pagination[T]) StructuredFind(
-	db *gorm.DB,
-	filterRoot StructuredFilter,
-) ([]*T, error) {
-	query := f.structuredQuery(db, filterRoot)
-	var data []*T
-	if err := query.Find(&data).Error; err != nil {
-		return nil, fmt.Errorf("failed to fetch records: %w", err)
-	}
-	return data, nil
 }
 
 func (p *Pagination[T]) StructuredFindLock(

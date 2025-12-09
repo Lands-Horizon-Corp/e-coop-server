@@ -305,17 +305,11 @@ func (p *Pagination[T]) NormalGetByIDIncludingDeletedLock(
 	id any,
 	preloads ...string,
 ) (*T, error) {
-	// Include deleted
 	tx = tx.Unscoped()
-
-	// Preload relations
 	for _, preload := range preloads {
 		tx = tx.Preload(preload)
 	}
-
-	// Apply locking (FOR UPDATE)
 	tx = tx.Clauses(clause.Locking{Strength: "UPDATE"})
-
 	var entity T
 	err := tx.First(&entity, fmt.Sprintf("%s = ?", p.columnDefaultID), id).Error
 	if err != nil {

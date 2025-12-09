@@ -48,19 +48,6 @@ func (f *Pagination[T]) ArrPagination(
 	return &result, nil
 }
 
-func (p Pagination[T]) ArrCount(
-	db *gorm.DB,
-	filters []ArrFilterSQL,
-) (int64, error) {
-	var count int64
-	db = p.applyJoinsForFilters(db, filters)
-	db = p.applySQLFilters(db, filters)
-	if err := db.Count(&count).Error; err != nil {
-		return 0, fmt.Errorf("failed to count entities with %d filters: %w", len(filters), err)
-	}
-	return count, nil
-}
-
 func (p *Pagination[T]) ArrFind(
 	db *gorm.DB,
 	filters []ArrFilterSQL,
@@ -82,6 +69,19 @@ func (p *Pagination[T]) ArrFind(
 		return nil, fmt.Errorf("failed to find entities with %d filters: %w", len(filters), err)
 	}
 	return entities, nil
+}
+
+func (p Pagination[T]) ArrCount(
+	db *gorm.DB,
+	filters []ArrFilterSQL,
+) (int64, error) {
+	var count int64
+	db = p.applyJoinsForFilters(db, filters)
+	db = p.applySQLFilters(db, filters)
+	if err := db.Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to count entities with %d filters: %w", len(filters), err)
+	}
+	return count, nil
 }
 
 func (p *Pagination[T]) ArrFindLock(
