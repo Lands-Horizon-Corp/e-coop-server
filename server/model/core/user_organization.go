@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -533,51 +532,29 @@ func (m *Core) Members(context context.Context, organizationID uuid.UUID, branch
 	})
 }
 
-func (m *Core) UserOrganizationsNoneUserMembers(context context.Context, branchID, organizationID uuid.UUID) ([]*UserOrganization, error) {
-	userOrganization, err := m.UserOrganizationManager.Find(context, &UserOrganization{
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-		UserType:       UserOrganizationTypeMember,
-	})
-	if err != nil {
-		return nil, eris.Wrapf(err, "Failed to retrieve user organizations: %v", err)
-	}
-	filteredUserOrganizations := []*UserOrganization{}
-	for _, uo := range userOrganization {
-		if uo.BranchID == nil {
-			continue
-		}
-		userProfile, _ := m.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
-		if userProfile == nil {
-			filteredUserOrganizations = append(filteredUserOrganizations, uo)
-		}
-	}
-	return filteredUserOrganizations, nil
-}
-
-func (m *Core) UserOrganizationsNoneUserMemberss(
+func (m *Core) UserOrganizationsNoneUserMembers(
 	ctx context.Context,
 	branchID, organizationID uuid.UUID,
 ) ([]*UserOrganization, error) {
-	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
-		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "user_type", Op: query.ModeEqual, Value: UserOrganizationTypeMember},
+	var userOrgs []*UserOrganization
+
+	// Build the query with NOT EXISTS for member profiles
+	err := m.DB.WithContext(ctx).
+		Model(&UserOrganization{}).
+		Where("organization_id = ?", organizationID).
+		Where("branch_id = ?", branchID).
+		Where("user_type = ?", UserOrganizationTypeMember).
+		Where(`NOT EXISTS (
+			SELECT 1 FROM member_profiles mp
+			WHERE mp.user_id = user_organizations.user_id
+			AND mp.organization_id = user_organizations.organization_id
+			AND mp.branch_id = user_organizations.branch_id
+		)`).
+		Find(&userOrgs).Error
+
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to fetch user organizations")
 	}
 
-	// Exclude users that already have a MemberProfile
-	// This assumes your FilterSQL supports "NOT IN" with subqueries
-	subQuery := m.DB.Model(&MemberProfile{}).Select("user_id").
-		Where("organization_id = ? AND branch_id = ?", organizationID, branchID)
-	filters = append(filters, registry.FilterSQL{
-		Field: "user_id",
-		Op:    query.ModeNotIn,
-		Value: subQuery,
-	})
-
-	sorts := []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: query.SortOrderDesc},
-	}
-
-	return m.UserOrganizationManager.ArrFind(ctx, filters, sorts)
+	return userOrgs, nil
 }
