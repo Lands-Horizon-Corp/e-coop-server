@@ -173,7 +173,7 @@ func (m *Core) automaticLoanDeduction() {
 				Description:         data.Description,
 			}
 		},
-		Created: func(data *AutomaticLoanDeduction) []string {
+		Created: func(data *AutomaticLoanDeduction) registry.Topics {
 			return []string{
 				"automatic_loan_deduction.create",
 				fmt.Sprintf("automatic_loan_deduction.create.%s", data.ID),
@@ -181,7 +181,7 @@ func (m *Core) automaticLoanDeduction() {
 				fmt.Sprintf("automatic_loan_deduction.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AutomaticLoanDeduction) []string {
+		Updated: func(data *AutomaticLoanDeduction) registry.Topics {
 			return []string{
 				"automatic_loan_deduction.update",
 				fmt.Sprintf("automatic_loan_deduction.update.%s", data.ID),
@@ -189,7 +189,7 @@ func (m *Core) automaticLoanDeduction() {
 				fmt.Sprintf("automatic_loan_deduction.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AutomaticLoanDeduction) []string {
+		Deleted: func(data *AutomaticLoanDeduction) registry.Topics {
 			return []string{
 				"automatic_loan_deduction.update",
 				fmt.Sprintf("automatic_loan_deduction.delete.%s", data.ID),

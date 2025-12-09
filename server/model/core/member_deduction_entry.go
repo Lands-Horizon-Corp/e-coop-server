@@ -107,7 +107,7 @@ func (m *Core) memberDeductionEntry() {
 			}
 		},
 
-		Created: func(data *MemberDeductionEntry) []string {
+		Created: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.create",
 				fmt.Sprintf("member_deduction_entry.create.%s", data.ID),
@@ -115,7 +115,7 @@ func (m *Core) memberDeductionEntry() {
 				fmt.Sprintf("member_deduction_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDeductionEntry) []string {
+		Updated: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.update",
 				fmt.Sprintf("member_deduction_entry.update.%s", data.ID),
@@ -123,7 +123,7 @@ func (m *Core) memberDeductionEntry() {
 				fmt.Sprintf("member_deduction_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDeductionEntry) []string {
+		Deleted: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.delete",
 				fmt.Sprintf("member_deduction_entry.delete.%s", data.ID),

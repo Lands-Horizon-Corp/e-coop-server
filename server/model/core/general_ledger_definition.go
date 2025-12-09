@@ -185,7 +185,7 @@ func (m *Core) generalLedgerDefinition() {
 				Depth:                           0,
 			}
 		},
-		Created: func(data *GeneralLedgerDefinition) []string {
+		Created: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.create",
 				fmt.Sprintf("general_ledger_definition.create.%s", data.ID),
@@ -193,7 +193,7 @@ func (m *Core) generalLedgerDefinition() {
 				fmt.Sprintf("general_ledger_definition.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerDefinition) []string {
+		Updated: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.update",
 				fmt.Sprintf("general_ledger_definition.update.%s", data.ID),
@@ -201,7 +201,7 @@ func (m *Core) generalLedgerDefinition() {
 				fmt.Sprintf("general_ledger_definition.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerDefinition) []string {
+		Deleted: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.delete",
 				fmt.Sprintf("general_ledger_definition.delete.%s", data.ID),

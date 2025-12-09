@@ -107,7 +107,7 @@ func (m *Core) mutualFundEntry() {
 				MutualFund:      m.MutualFundManager.ToModel(data.MutualFund),
 			}
 		},
-		Created: func(data *MutualFundEntry) []string {
+		Created: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.create",
 				fmt.Sprintf("mutual_fund_entry.create.%s", data.ID),
@@ -117,7 +117,7 @@ func (m *Core) mutualFundEntry() {
 				fmt.Sprintf("mutual_fund_entry.create.account.%s", data.AccountID),
 			}
 		},
-		Updated: func(data *MutualFundEntry) []string {
+		Updated: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.update",
 				fmt.Sprintf("mutual_fund_entry.update.%s", data.ID),
@@ -127,7 +127,7 @@ func (m *Core) mutualFundEntry() {
 				fmt.Sprintf("mutual_fund_entry.update.account.%s", data.AccountID),
 			}
 		},
-		Deleted: func(data *MutualFundEntry) []string {
+		Deleted: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.delete",
 				fmt.Sprintf("mutual_fund_entry.delete.%s", data.ID),

@@ -171,7 +171,7 @@ func (m *Core) transaction() {
 			}
 		},
 
-		Created: func(data *Transaction) []string {
+		Created: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.create.member_profile.%s", data.MemberProfileID))
@@ -188,7 +188,7 @@ func (m *Core) transaction() {
 			)
 			return events
 		},
-		Updated: func(data *Transaction) []string {
+		Updated: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))
@@ -205,7 +205,7 @@ func (m *Core) transaction() {
 			)
 			return events
 		},
-		Deleted: func(data *Transaction) []string {
+		Deleted: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))

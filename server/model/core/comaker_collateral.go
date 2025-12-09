@@ -117,7 +117,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				YearCount:         data.YearCount,
 			}
 		},
-		Created: func(data *ComakerCollateral) []string {
+		Created: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.create",
 				fmt.Sprintf("comaker_collateral.create.%s", data.ID),
@@ -126,7 +126,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("comaker_collateral.create.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Updated: func(data *ComakerCollateral) []string {
+		Updated: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.update",
 				fmt.Sprintf("comaker_collateral.update.%s", data.ID),
@@ -135,7 +135,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("comaker_collateral.update.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Deleted: func(data *ComakerCollateral) []string {
+		Deleted: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.delete",
 				fmt.Sprintf("comaker_collateral.delete.%s", data.ID),

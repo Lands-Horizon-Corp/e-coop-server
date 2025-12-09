@@ -349,7 +349,7 @@ func (m *Core) permissionTemplate() {
 			}
 		},
 
-		Created: func(data *PermissionTemplate) []string {
+		Created: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.create",
 				fmt.Sprintf("permission_template.create.%s", data.ID),
@@ -357,7 +357,7 @@ func (m *Core) permissionTemplate() {
 				fmt.Sprintf("permission_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PermissionTemplate) []string {
+		Updated: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.update",
 				fmt.Sprintf("permission_template.update.%s", data.ID),
@@ -365,7 +365,7 @@ func (m *Core) permissionTemplate() {
 				fmt.Sprintf("permission_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PermissionTemplate) []string {
+		Deleted: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.delete",
 				fmt.Sprintf("permission_template.delete.%s", data.ID),

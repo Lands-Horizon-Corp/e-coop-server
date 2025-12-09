@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -102,7 +103,7 @@ func (m *Core) interestRateByDate() {
 			}
 		},
 
-		Created: func(data *InterestRateByDate) []string {
+		Created: func(data *InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.create",
 				fmt.Sprintf("interest_rate_by_date.create.%s", data.ID),
@@ -111,7 +112,7 @@ func (m *Core) interestRateByDate() {
 				fmt.Sprintf("interest_rate_by_date.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByDate) []string {
+		Updated: func(data *InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.update",
 				fmt.Sprintf("interest_rate_by_date.update.%s", data.ID),
@@ -120,7 +121,7 @@ func (m *Core) interestRateByDate() {
 				fmt.Sprintf("interest_rate_by_date.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByDate) []string {
+		Deleted: func(data *InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.delete",
 				fmt.Sprintf("interest_rate_by_date.delete.%s", data.ID),
@@ -135,7 +136,7 @@ func (m *Core) interestRateByDate() {
 // InterestRateByDateForBrowseReference retrieves interest rates for a specific browse reference
 func (m *Core) InterestRateByDateForBrowseReference(context context.Context, browseReferenceID uuid.UUID) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
-		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
+		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
@@ -144,8 +145,8 @@ func (m *Core) InterestRateByDateForBrowseReference(context context.Context, bro
 // InterestRateByDateForRange retrieves interest rates for a specific date range
 func (m *Core) InterestRateByDateForRange(context context.Context, browseReferenceID uuid.UUID, date time.Time) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
-		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
-		{Field: "from_date", Op: registry.OpLte, Value: date},
+		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
+		{Field: "from_date", Op: query.ModeLTE, Value: date},
 		{Field: "to_date", Op: registry.OpGte, Value: date},
 	}
 
@@ -155,8 +156,8 @@ func (m *Core) InterestRateByDateForRange(context context.Context, browseReferen
 // InterestRateByDateCurrentBranch retrieves interest rates for the specified branch and organization
 func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)

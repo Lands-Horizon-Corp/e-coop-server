@@ -117,7 +117,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberBankCard) []string {
+		Created: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.create",
 				fmt.Sprintf("member_bank_card.create.%s", data.ID),
@@ -125,7 +125,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_bank_card.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberBankCard) []string {
+		Updated: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.update",
 				fmt.Sprintf("member_bank_card.update.%s", data.ID),
@@ -133,7 +133,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_bank_card.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberBankCard) []string {
+		Deleted: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.delete",
 				fmt.Sprintf("member_bank_card.delete.%s", data.ID),

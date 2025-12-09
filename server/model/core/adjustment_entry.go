@@ -199,7 +199,7 @@ func (m *Core) adjustmentEntry() {
 				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
 			}
 		},
-		Created: func(data *AdjustmentEntry) []string {
+		Created: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.create",
 				fmt.Sprintf("adjustment_entry.create.%s", data.ID),
@@ -207,7 +207,7 @@ func (m *Core) adjustmentEntry() {
 				fmt.Sprintf("adjustment_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AdjustmentEntry) []string {
+		Updated: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.update",
 				fmt.Sprintf("adjustment_entry.update.%s", data.ID),
@@ -215,7 +215,7 @@ func (m *Core) adjustmentEntry() {
 				fmt.Sprintf("adjustment_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AdjustmentEntry) []string {
+		Deleted: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.delete",
 				fmt.Sprintf("adjustment_entry.delete.%s", data.ID),

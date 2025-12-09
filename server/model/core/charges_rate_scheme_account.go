@@ -97,7 +97,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				Account:             m.AccountManager.ToModel(data.Account),
 			}
 		},
-		Created: func(data *ChargesRateSchemeAccount) []string {
+		Created: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.create",
 				fmt.Sprintf("charges_rate_scheme_account.create.%s", data.ID),
@@ -105,7 +105,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				fmt.Sprintf("charges_rate_scheme_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeAccount) []string {
+		Updated: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.update",
 				fmt.Sprintf("charges_rate_scheme_account.update.%s", data.ID),
@@ -113,7 +113,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				fmt.Sprintf("charges_rate_scheme_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeAccount) []string {
+		Deleted: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.delete",
 				fmt.Sprintf("charges_rate_scheme_account.delete.%s", data.ID),

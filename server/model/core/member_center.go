@@ -91,7 +91,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberCenter) []string {
+		Created: func(data *MemberCenter) registry.Topics {
 			return []string{
 				"member_center.create",
 				fmt.Sprintf("member_center.create.%s", data.ID),
@@ -99,7 +99,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_center.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberCenter) []string {
+		Updated: func(data *MemberCenter) registry.Topics {
 			return []string{
 				"member_center.update",
 				fmt.Sprintf("member_center.update.%s", data.ID),
@@ -107,7 +107,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_center.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberCenter) []string {
+		Deleted: func(data *MemberCenter) registry.Topics {
 			return []string{
 				"member_center.delete",
 				fmt.Sprintf("member_center.delete.%s", data.ID),

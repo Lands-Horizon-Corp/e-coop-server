@@ -108,7 +108,7 @@ func (m *Core) cashCheckVoucherTag() {
 				Icon:               data.Icon,
 			}
 		},
-		Created: func(data *CashCheckVoucherTag) []string {
+		Created: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.create.%s", data.ID),
@@ -116,7 +116,7 @@ func (m *Core) cashCheckVoucherTag() {
 				fmt.Sprintf("cash_check_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CashCheckVoucherTag) []string {
+		Updated: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.update.%s", data.ID),
@@ -124,7 +124,7 @@ func (m *Core) cashCheckVoucherTag() {
 				fmt.Sprintf("cash_check_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CashCheckVoucherTag) []string {
+		Deleted: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.delete.%s", data.ID),

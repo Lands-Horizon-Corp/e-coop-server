@@ -102,7 +102,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				LoanGuaranteedFundRate:    data.LoanGuaranteedFundRate,
 			}
 		},
-		Created: func(data *GroceryComputationSheetMonthly) []string {
+		Created: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.create",
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.%s", data.ID),
@@ -110,7 +110,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GroceryComputationSheetMonthly) []string {
+		Updated: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.update",
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.%s", data.ID),
@@ -118,7 +118,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GroceryComputationSheetMonthly) []string {
+		Deleted: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.delete",
 				fmt.Sprintf("grocery_computation_sheet_monthly.delete.%s", data.ID),

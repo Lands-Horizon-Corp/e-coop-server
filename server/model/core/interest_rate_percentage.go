@@ -105,7 +105,7 @@ func (m *Core) interestRatePercentage() {
 				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
 			}
 		},
-		Created: func(data *InterestRatePercentage) []string {
+		Created: func(data *InterestRatePercentage) registry.Topics {
 			return []string{
 				"interest_rate_percentage.create",
 				fmt.Sprintf("interest_rate_percentage.create.%s", data.ID),
@@ -113,7 +113,7 @@ func (m *Core) interestRatePercentage() {
 				fmt.Sprintf("interest_rate_percentage.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRatePercentage) []string {
+		Updated: func(data *InterestRatePercentage) registry.Topics {
 			return []string{
 				"interest_rate_percentage.update",
 				fmt.Sprintf("interest_rate_percentage.update.%s", data.ID),
@@ -121,7 +121,7 @@ func (m *Core) interestRatePercentage() {
 				fmt.Sprintf("interest_rate_percentage.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRatePercentage) []string {
+		Deleted: func(data *InterestRatePercentage) registry.Topics {
 			return []string{
 				"interest_rate_percentage.delete",
 				fmt.Sprintf("interest_rate_percentage.delete.%s", data.ID),

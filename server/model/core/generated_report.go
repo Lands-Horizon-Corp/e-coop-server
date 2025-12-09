@@ -222,7 +222,7 @@ func (m *Core) generatedReport() {
 				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}
 		},
-		Created: func(data *GeneratedReport) []string {
+		Created: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.create",
 				fmt.Sprintf("generated_report.create.%s", data.ID),
@@ -231,7 +231,7 @@ func (m *Core) generatedReport() {
 				fmt.Sprintf("generated_report.create.user.%s", data.UserID),
 			}
 		},
-		Updated: func(data *GeneratedReport) []string {
+		Updated: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.update",
 				fmt.Sprintf("generated_report.update.%s", data.ID),
@@ -240,7 +240,7 @@ func (m *Core) generatedReport() {
 				fmt.Sprintf("generated_report.update.user.%s", data.UserID),
 			}
 		},
-		Deleted: func(data *GeneratedReport) []string {
+		Deleted: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.delete",
 				fmt.Sprintf("generated_report.delete.%s", data.ID),

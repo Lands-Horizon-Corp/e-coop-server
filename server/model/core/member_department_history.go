@@ -104,7 +104,7 @@ func (m *Core) memberDepartmentHistory() {
 				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
-		Created: func(data *MemberDepartmentHistory) []string {
+		Created: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.create",
 				fmt.Sprintf("member_department_history.create.%s", data.ID),
@@ -113,7 +113,7 @@ func (m *Core) memberDepartmentHistory() {
 				fmt.Sprintf("member_department_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberDepartmentHistory) []string {
+		Updated: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.update",
 				fmt.Sprintf("member_department_history.update.%s", data.ID),
@@ -122,7 +122,7 @@ func (m *Core) memberDepartmentHistory() {
 				fmt.Sprintf("member_department_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberDepartmentHistory) []string {
+		Deleted: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.delete",
 				fmt.Sprintf("member_department_history.delete.%s", data.ID),

@@ -103,7 +103,7 @@ func (m *Core) finesMaturity() {
 			}
 		},
 
-		Created: func(data *FinesMaturity) []string {
+		Created: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.create",
 				fmt.Sprintf("fines_maturity.create.%s", data.ID),
@@ -111,7 +111,7 @@ func (m *Core) finesMaturity() {
 				fmt.Sprintf("fines_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinesMaturity) []string {
+		Updated: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.update",
 				fmt.Sprintf("fines_maturity.update.%s", data.ID),
@@ -119,7 +119,7 @@ func (m *Core) finesMaturity() {
 				fmt.Sprintf("fines_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinesMaturity) []string {
+		Deleted: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.delete",
 				fmt.Sprintf("fines_maturity.delete.%s", data.ID),

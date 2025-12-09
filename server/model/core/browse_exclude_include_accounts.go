@@ -131,7 +131,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				IncludeExistingLoanAccount:   m.AccountManager.ToModel(data.IncludeExistingLoanAccount),
 			}
 		},
-		Created: func(data *BrowseExcludeIncludeAccounts) []string {
+		Created: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.create",
 				fmt.Sprintf("browse_exclude_include_accounts.create.%s", data.ID),
@@ -139,7 +139,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				fmt.Sprintf("browse_exclude_include_accounts.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BrowseExcludeIncludeAccounts) []string {
+		Updated: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.update",
 				fmt.Sprintf("browse_exclude_include_accounts.update.%s", data.ID),
@@ -147,7 +147,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				fmt.Sprintf("browse_exclude_include_accounts.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BrowseExcludeIncludeAccounts) []string {
+		Deleted: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.delete",
 				fmt.Sprintf("browse_exclude_include_accounts.delete.%s", data.ID),

@@ -297,21 +297,21 @@ func (m *Core) branchSetting() {
 				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
 			}
 		},
-		Created: func(data *BranchSetting) []string {
+		Created: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.create",
 				fmt.Sprintf("branch_setting.create.%s", data.ID),
 				fmt.Sprintf("branch_setting.create.branch.%s", data.BranchID),
 			}
 		},
-		Updated: func(data *BranchSetting) []string {
+		Updated: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.update",
 				fmt.Sprintf("branch_setting.update.%s", data.ID),
 				fmt.Sprintf("branch_setting.update.branch.%s", data.BranchID),
 			}
 		},
-		Deleted: func(data *BranchSetting) []string {
+		Deleted: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.delete",
 				fmt.Sprintf("branch_setting.delete.%s", data.ID),

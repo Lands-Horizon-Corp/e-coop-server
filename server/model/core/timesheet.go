@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -115,7 +116,7 @@ func (m *Core) timesheet() {
 			}
 		},
 
-		Created: func(data *Timesheet) []string {
+		Created: func(data *Timesheet) registry.Topics {
 			return []string{
 				"timesheet.create",
 				fmt.Sprintf("timesheet.create.%s", data.ID),
@@ -124,7 +125,7 @@ func (m *Core) timesheet() {
 				fmt.Sprintf("timesheet.create.user.%s", data.UserID),
 			}
 		},
-		Updated: func(data *Timesheet) []string {
+		Updated: func(data *Timesheet) registry.Topics {
 			return []string{
 				"timesheet.update",
 				fmt.Sprintf("timesheet.update.%s", data.ID),
@@ -133,7 +134,7 @@ func (m *Core) timesheet() {
 				fmt.Sprintf("timesheet.update.user.%s", data.UserID),
 			}
 		},
-		Deleted: func(data *Timesheet) []string {
+		Deleted: func(data *Timesheet) registry.Topics {
 			return []string{
 				"timesheet.delete",
 				fmt.Sprintf("timesheet.delete.%s", data.ID),
@@ -148,8 +149,8 @@ func (m *Core) timesheet() {
 // TimesheetCurrentBranch gets timesheets for the current branch
 func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.TimesheetManager.ArrFind(context, filters, nil)
@@ -158,9 +159,9 @@ func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uu
 // GetUserTimesheet retrieves timesheets for a specific user in a branch
 func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
-		{Field: "user_id", Op: registry.OpEq, Value: userID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "user_id", Op: query.ModeEqual, Value: userID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.TimesheetManager.ArrFind(context, filters, nil)
@@ -169,8 +170,8 @@ func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID,
 // TimeSheetActiveUsers gets all users with active timesheets in the branch
 func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "time_out", Op: registry.OpIsNull, Value: nil},
 	}
 

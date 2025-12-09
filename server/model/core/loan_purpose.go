@@ -92,7 +92,7 @@ func (m *Core) loanPurpose() {
 			}
 		},
 
-		Created: func(data *LoanPurpose) []string {
+		Created: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.create",
 				fmt.Sprintf("loan_purpose.create.%s", data.ID),
@@ -100,7 +100,7 @@ func (m *Core) loanPurpose() {
 				fmt.Sprintf("loan_purpose.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanPurpose) []string {
+		Updated: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.update",
 				fmt.Sprintf("loan_purpose.update.%s", data.ID),
@@ -108,7 +108,7 @@ func (m *Core) loanPurpose() {
 				fmt.Sprintf("loan_purpose.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanPurpose) []string {
+		Deleted: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.delete",
 				fmt.Sprintf("loan_purpose.delete.%s", data.ID),

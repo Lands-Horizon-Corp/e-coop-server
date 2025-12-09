@@ -100,7 +100,7 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 			}
 		},
 
-		Created: func(data *LoanTermsAndConditionSuggestedPayment) []string {
+		Created: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.create",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.%s", data.ID),
@@ -108,7 +108,7 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanTermsAndConditionSuggestedPayment) []string {
+		Updated: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.update",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.%s", data.ID),
@@ -116,7 +116,7 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanTermsAndConditionSuggestedPayment) []string {
+		Deleted: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.delete",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.%s", data.ID),

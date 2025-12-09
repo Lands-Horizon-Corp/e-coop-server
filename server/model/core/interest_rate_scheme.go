@@ -90,7 +90,7 @@ func (m *Core) interestRateScheme() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *InterestRateScheme) []string {
+		Created: func(data *InterestRateScheme) registry.Topics {
 			return []string{
 				"interest_rate_scheme.create",
 				fmt.Sprintf("interest_rate_scheme.create.%s", data.ID),
@@ -98,7 +98,7 @@ func (m *Core) interestRateScheme() {
 				fmt.Sprintf("interest_rate_scheme.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateScheme) []string {
+		Updated: func(data *InterestRateScheme) registry.Topics {
 			return []string{
 				"interest_rate_scheme.update",
 				fmt.Sprintf("interest_rate_scheme.update.%s", data.ID),
@@ -106,7 +106,7 @@ func (m *Core) interestRateScheme() {
 				fmt.Sprintf("interest_rate_scheme.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateScheme) []string {
+		Deleted: func(data *InterestRateScheme) registry.Topics {
 			return []string{
 				"interest_rate_scheme.delete",
 				fmt.Sprintf("interest_rate_scheme.delete.%s", data.ID),

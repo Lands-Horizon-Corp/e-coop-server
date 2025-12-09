@@ -102,7 +102,7 @@ func (m *Core) includeNegativeAccount() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *IncludeNegativeAccount) []string {
+		Created: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.create",
 				fmt.Sprintf("include_negative_account.create.%s", data.ID),
@@ -110,7 +110,7 @@ func (m *Core) includeNegativeAccount() {
 				fmt.Sprintf("include_negative_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *IncludeNegativeAccount) []string {
+		Updated: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.update",
 				fmt.Sprintf("include_negative_account.update.%s", data.ID),
@@ -118,7 +118,7 @@ func (m *Core) includeNegativeAccount() {
 				fmt.Sprintf("include_negative_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *IncludeNegativeAccount) []string {
+		Deleted: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.delete",
 				fmt.Sprintf("include_negative_account.delete.%s", data.ID),

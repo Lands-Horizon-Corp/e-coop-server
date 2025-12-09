@@ -117,7 +117,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				YearCount:         data.YearCount,
 			}
 		},
-		Created: func(data *ComakerMemberProfile) []string {
+		Created: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.create",
 				fmt.Sprintf("comaker_member_profile.create.%s", data.ID),
@@ -126,7 +126,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("comaker_member_profile.create.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Updated: func(data *ComakerMemberProfile) []string {
+		Updated: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.update",
 				fmt.Sprintf("comaker_member_profile.update.%s", data.ID),
@@ -135,7 +135,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("comaker_member_profile.update.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Deleted: func(data *ComakerMemberProfile) []string {
+		Deleted: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.delete",
 				fmt.Sprintf("comaker_member_profile.delete.%s", data.ID),

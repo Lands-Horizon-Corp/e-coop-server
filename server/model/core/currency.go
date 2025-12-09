@@ -102,21 +102,21 @@ func (m *Core) currency() {
 				Timezone:       data.Timezone,
 			}
 		},
-		Created: func(data *Currency) []string {
+		Created: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.create",
 				fmt.Sprintf("currency.create.%s", data.ID),
 				fmt.Sprintf("currency.create.code.%s", data.CurrencyCode),
 			}
 		},
-		Updated: func(data *Currency) []string {
+		Updated: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.update",
 				fmt.Sprintf("currency.update.%s", data.ID),
 				fmt.Sprintf("currency.update.code.%s", data.CurrencyCode),
 			}
 		},
-		Deleted: func(data *Currency) []string {
+		Deleted: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.delete",
 				fmt.Sprintf("currency.delete.%s", data.ID),

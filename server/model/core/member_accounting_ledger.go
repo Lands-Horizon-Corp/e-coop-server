@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
@@ -164,7 +165,7 @@ func (m *Core) memberAccountingLedger() {
 			}
 		},
 
-		Created: func(data *MemberAccountingLedger) []string {
+		Created: func(data *MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.create",
 				fmt.Sprintf("member_accounting_ledger.create.%s", data.ID),
@@ -173,7 +174,7 @@ func (m *Core) memberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberAccountingLedger) []string {
+		Updated: func(data *MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.update",
 				fmt.Sprintf("member_accounting_ledger.update.%s", data.ID),
@@ -182,7 +183,7 @@ func (m *Core) memberAccountingLedger() {
 				fmt.Sprintf("member_accounting_ledger.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberAccountingLedger) []string {
+		Deleted: func(data *MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.delete",
 				fmt.Sprintf("member_accounting_ledger.delete.%s", data.ID),
@@ -206,9 +207,9 @@ func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, orga
 // excluding the cash on hand account
 func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 
@@ -219,8 +220,8 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 // excluding the cash on hand account
 func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
 	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
@@ -238,10 +239,10 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 	branchID uuid.UUID,
 ) (*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 	ledger, err := m.MemberAccountingLedgerManager.FindOneWithSQLLock(ctx, tx, filters, nil)
 	if err != nil {
@@ -331,9 +332,9 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
 	memberAccountingLedger, err := m.MemberAccountingLedgerManager.ArrFind(ctx, []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}, nil, "MemberProfile", "Account.Currency")
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledgers by account")

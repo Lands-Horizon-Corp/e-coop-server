@@ -90,7 +90,7 @@ func (m *Core) groceryComputationSheet() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *GroceryComputationSheet) []string {
+		Created: func(data *GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.create",
 				fmt.Sprintf("grocery_computation_sheet.create.%s", data.ID),
@@ -98,7 +98,7 @@ func (m *Core) groceryComputationSheet() {
 				fmt.Sprintf("grocery_computation_sheet.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GroceryComputationSheet) []string {
+		Updated: func(data *GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.update",
 				fmt.Sprintf("grocery_computation_sheet.update.%s", data.ID),
@@ -106,7 +106,7 @@ func (m *Core) groceryComputationSheet() {
 				fmt.Sprintf("grocery_computation_sheet.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GroceryComputationSheet) []string {
+		Deleted: func(data *GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.delete",
 				fmt.Sprintf("grocery_computation_sheet.delete.%s", data.ID),

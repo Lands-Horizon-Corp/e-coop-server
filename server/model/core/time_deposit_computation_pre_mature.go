@@ -108,7 +108,7 @@ func (m *Core) timeDepositComputationPreMature() {
 			}
 		},
 
-		Created: func(data *TimeDepositComputationPreMature) []string {
+		Created: func(data *TimeDepositComputationPreMature) registry.Topics {
 			return []string{
 				"time_deposit_computation_pre_mature.create",
 				fmt.Sprintf("time_deposit_computation_pre_mature.create.%s", data.ID),
@@ -116,7 +116,7 @@ func (m *Core) timeDepositComputationPreMature() {
 				fmt.Sprintf("time_deposit_computation_pre_mature.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TimeDepositComputationPreMature) []string {
+		Updated: func(data *TimeDepositComputationPreMature) registry.Topics {
 			return []string{
 				"time_deposit_computation_pre_mature.update",
 				fmt.Sprintf("time_deposit_computation_pre_mature.update.%s", data.ID),
@@ -124,7 +124,7 @@ func (m *Core) timeDepositComputationPreMature() {
 				fmt.Sprintf("time_deposit_computation_pre_mature.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TimeDepositComputationPreMature) []string {
+		Deleted: func(data *TimeDepositComputationPreMature) registry.Topics {
 			return []string{
 				"time_deposit_computation_pre_mature.delete",
 				fmt.Sprintf("time_deposit_computation_pre_mature.delete.%s", data.ID),

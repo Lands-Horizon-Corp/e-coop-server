@@ -145,7 +145,7 @@ func (m *Core) checkRemittance() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *CheckRemittance) []string {
+		Created: func(data *CheckRemittance) registry.Topics {
 			return []string{
 				"check_remittance.create",
 				fmt.Sprintf("check_remittance.create.%s", data.ID),
@@ -153,7 +153,7 @@ func (m *Core) checkRemittance() {
 				fmt.Sprintf("check_remittance.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CheckRemittance) []string {
+		Updated: func(data *CheckRemittance) registry.Topics {
 			return []string{
 				"check_remittance.update",
 				fmt.Sprintf("check_remittance.update.%s", data.ID),
@@ -161,7 +161,7 @@ func (m *Core) checkRemittance() {
 				fmt.Sprintf("check_remittance.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CheckRemittance) []string {
+		Deleted: func(data *CheckRemittance) registry.Topics {
 			return []string{
 				"check_remittance.delete",
 				fmt.Sprintf("check_remittance.delete.%s", data.ID),

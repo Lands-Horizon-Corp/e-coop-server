@@ -124,7 +124,7 @@ func (m *Core) tagTemplate() {
 			}
 		},
 
-		Created: func(data *TagTemplate) []string {
+		Created: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.create",
 				fmt.Sprintf("tag_template.create.%s", data.ID),
@@ -132,7 +132,7 @@ func (m *Core) tagTemplate() {
 				fmt.Sprintf("tag_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TagTemplate) []string {
+		Updated: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.update",
 				fmt.Sprintf("tag_template.update.%s", data.ID),
@@ -140,7 +140,7 @@ func (m *Core) tagTemplate() {
 				fmt.Sprintf("tag_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TagTemplate) []string {
+		Deleted: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.delete",
 				fmt.Sprintf("tag_template.delete.%s", data.ID),

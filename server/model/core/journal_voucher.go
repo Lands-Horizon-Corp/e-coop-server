@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
@@ -234,7 +235,7 @@ func (m *Core) journalVoucher() {
 				TotalCredit:           data.TotalCredit,
 			}
 		},
-		Created: func(data *JournalVoucher) []string {
+		Created: func(data *JournalVoucher) registry.Topics {
 			return []string{
 				"journal_voucher.create",
 				fmt.Sprintf("journal_voucher.create.%s", data.ID),
@@ -242,7 +243,7 @@ func (m *Core) journalVoucher() {
 				fmt.Sprintf("journal_voucher.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *JournalVoucher) []string {
+		Updated: func(data *JournalVoucher) registry.Topics {
 			return []string{
 				"journal_voucher.update",
 				fmt.Sprintf("journal_voucher.update.%s", data.ID),
@@ -250,7 +251,7 @@ func (m *Core) journalVoucher() {
 				fmt.Sprintf("journal_voucher.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *JournalVoucher) []string {
+		Deleted: func(data *JournalVoucher) registry.Topics {
 			return []string{
 				"journal_voucher.delete",
 				fmt.Sprintf("journal_voucher.delete.%s", data.ID),
@@ -289,14 +290,14 @@ func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) err
 // JournalVoucherDraft retrieves all journal vouchers that are in draft status for the specified organization and branch
 func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "printed_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -304,14 +305,14 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 // JournalVoucherPrinted retrieves all journal vouchers that have been printed for the specified organization and branch
 func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -319,14 +320,14 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 // JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
 func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -334,14 +335,14 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 // JournalVoucherReleased retrieves all journal vouchers that have been released for the specified organization and branch
 func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }
@@ -353,8 +354,8 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
@@ -362,7 +363,7 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 }

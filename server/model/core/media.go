@@ -90,19 +90,19 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				DownloadURL: temporary,
 			}
 		},
-		Created: func(data *Media) []string {
+		Created: func(data *Media) registry.Topics {
 			return []string{
 				"media.create",
 				"media.create." + data.ID.String(),
 			}
 		},
-		Updated: func(data *Media) []string {
+		Updated: func(data *Media) registry.Topics {
 			return []string{
 				"media.update",
 				"media.update." + data.ID.String(),
 			}
 		},
-		Deleted: func(data *Media) []string {
+		Deleted: func(data *Media) registry.Topics {
 			return []string{
 				"media.delete",
 				"media.delete." + data.ID.String(),

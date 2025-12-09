@@ -133,7 +133,7 @@ func (m *Core) memberJointAccount() {
 			}
 		},
 
-		Created: func(data *MemberJointAccount) []string {
+		Created: func(data *MemberJointAccount) registry.Topics {
 			return []string{
 				"member_joint_account.create",
 				fmt.Sprintf("member_joint_account.create.%s", data.ID),
@@ -141,7 +141,7 @@ func (m *Core) memberJointAccount() {
 				fmt.Sprintf("member_joint_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberJointAccount) []string {
+		Updated: func(data *MemberJointAccount) registry.Topics {
 			return []string{
 				"member_joint_account.update",
 				fmt.Sprintf("member_joint_account.update.%s", data.ID),
@@ -149,7 +149,7 @@ func (m *Core) memberJointAccount() {
 				fmt.Sprintf("member_joint_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberJointAccount) []string {
+		Deleted: func(data *MemberJointAccount) registry.Topics {
 			return []string{
 				"member_joint_account.delete",
 				fmt.Sprintf("member_joint_account.delete.%s", data.ID),

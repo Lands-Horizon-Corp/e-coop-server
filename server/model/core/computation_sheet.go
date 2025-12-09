@@ -118,7 +118,7 @@ func (m *Core) computationSheet() {
 				Currency:          m.CurrencyManager.ToModel(data.Currency),
 			}
 		},
-		Created: func(data *ComputationSheet) []string {
+		Created: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.create",
 				fmt.Sprintf("computation_sheet.create.%s", data.ID),
@@ -126,7 +126,7 @@ func (m *Core) computationSheet() {
 				fmt.Sprintf("computation_sheet.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ComputationSheet) []string {
+		Updated: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.update",
 				fmt.Sprintf("computation_sheet.update.%s", data.ID),
@@ -134,7 +134,7 @@ func (m *Core) computationSheet() {
 				fmt.Sprintf("computation_sheet.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ComputationSheet) []string {
+		Deleted: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.delete",
 				fmt.Sprintf("computation_sheet.delete.%s", data.ID),

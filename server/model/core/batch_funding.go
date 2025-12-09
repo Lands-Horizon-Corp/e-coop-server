@@ -127,7 +127,7 @@ func (m *Core) batchFunding() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *BatchFunding) []string {
+		Created: func(data *BatchFunding) registry.Topics {
 			return []string{
 				"batch_funding.create",
 				fmt.Sprintf("batch_funding.create.%s", data.ID),
@@ -135,7 +135,7 @@ func (m *Core) batchFunding() {
 				fmt.Sprintf("batch_funding.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BatchFunding) []string {
+		Updated: func(data *BatchFunding) registry.Topics {
 			return []string{
 				"batch_funding.update",
 				fmt.Sprintf("batch_funding.update.%s", data.ID),
@@ -143,7 +143,7 @@ func (m *Core) batchFunding() {
 				fmt.Sprintf("batch_funding.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BatchFunding) []string {
+		Deleted: func(data *BatchFunding) registry.Topics {
 			return []string{
 				"batch_funding.delete",
 				fmt.Sprintf("batch_funding.delete.%s", data.ID),

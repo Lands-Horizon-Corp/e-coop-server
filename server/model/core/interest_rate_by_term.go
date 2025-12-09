@@ -98,7 +98,7 @@ func (m *Core) interestRateByTerm() {
 				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
 			}
 		},
-		Created: func(data *InterestRateByTerm) []string {
+		Created: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.create",
 				fmt.Sprintf("interest_rate_by_term.create.%s", data.ID),
@@ -106,7 +106,7 @@ func (m *Core) interestRateByTerm() {
 				fmt.Sprintf("interest_rate_by_term.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByTerm) []string {
+		Updated: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.update",
 				fmt.Sprintf("interest_rate_by_term.update.%s", data.ID),
@@ -114,7 +114,7 @@ func (m *Core) interestRateByTerm() {
 				fmt.Sprintf("interest_rate_by_term.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByTerm) []string {
+		Deleted: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.delete",
 				fmt.Sprintf("interest_rate_by_term.delete.%s", data.ID),

@@ -97,7 +97,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberCloseRemark) []string {
+		Created: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.create",
 				fmt.Sprintf("member_close_remark.create.%s", data.ID),
@@ -105,7 +105,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_close_remark.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberCloseRemark) []string {
+		Updated: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.update",
 				fmt.Sprintf("member_close_remark.update.%s", data.ID),
@@ -113,7 +113,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_close_remark.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberCloseRemark) []string {
+		Deleted: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.delete",
 				fmt.Sprintf("member_close_remark.delete.%s", data.ID),

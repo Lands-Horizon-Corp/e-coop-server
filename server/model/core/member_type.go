@@ -105,7 +105,7 @@ func (m *Core) memberType() {
 			}
 		},
 
-		Created: func(data *MemberType) []string {
+		Created: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.create",
 				fmt.Sprintf("member_type.create.%s", data.ID),
@@ -113,7 +113,7 @@ func (m *Core) memberType() {
 				fmt.Sprintf("member_type.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberType) []string {
+		Updated: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.update",
 				fmt.Sprintf("member_type.update.%s", data.ID),
@@ -121,7 +121,7 @@ func (m *Core) memberType() {
 				fmt.Sprintf("member_type.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberType) []string {
+		Deleted: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.delete",
 				fmt.Sprintf("member_type.delete.%s", data.ID),

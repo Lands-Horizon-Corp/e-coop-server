@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
@@ -403,7 +404,7 @@ func (m *Core) cashCheckVoucher() {
 				Name: data.Name,
 			}
 		},
-		Created: func(data *CashCheckVoucher) []string {
+		Created: func(data *CashCheckVoucher) registry.Topics {
 			return []string{
 				"cash_check_voucher.create",
 				fmt.Sprintf("cash_check_voucher.create.%s", data.ID),
@@ -411,7 +412,7 @@ func (m *Core) cashCheckVoucher() {
 				fmt.Sprintf("cash_check_voucher.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CashCheckVoucher) []string {
+		Updated: func(data *CashCheckVoucher) registry.Topics {
 			return []string{
 				"cash_check_voucher.update",
 				fmt.Sprintf("cash_check_voucher.update.%s", data.ID),
@@ -419,7 +420,7 @@ func (m *Core) cashCheckVoucher() {
 				fmt.Sprintf("cash_check_voucher.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CashCheckVoucher) []string {
+		Deleted: func(data *CashCheckVoucher) registry.Topics {
 			return []string{
 				"cash_check_voucher.delete",
 				fmt.Sprintf("cash_check_voucher.delete.%s", data.ID),
@@ -443,14 +444,14 @@ func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizati
 // CashCheckVoucherDraft retrieves all draft cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "printed_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -463,14 +464,14 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 // CashCheckVoucherPrinted retrieves all printed cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -483,14 +484,14 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 // CashCheckVoucherApproved retrieves all approved cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -503,14 +504,14 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 // CashCheckVoucherReleased retrieves all released cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {
@@ -527,8 +528,8 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
 		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
@@ -536,7 +537,7 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 		{Field: "released_date", Op: registry.OpLt, Value: endOfDay},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []registry.FilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	})
 	if err != nil {

@@ -94,7 +94,7 @@ func (m *Core) voucherPayTo() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *VoucherPayTo) []string {
+		Created: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.create",
 				fmt.Sprintf("voucher_pay_to.create.%s", data.ID),
@@ -102,7 +102,7 @@ func (m *Core) voucherPayTo() {
 				fmt.Sprintf("voucher_pay_to.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *VoucherPayTo) []string {
+		Updated: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.update",
 				fmt.Sprintf("voucher_pay_to.update.%s", data.ID),
@@ -110,7 +110,7 @@ func (m *Core) voucherPayTo() {
 				fmt.Sprintf("voucher_pay_to.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *VoucherPayTo) []string {
+		Deleted: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.delete",
 				fmt.Sprintf("voucher_pay_to.delete.%s", data.ID),

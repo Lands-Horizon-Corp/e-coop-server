@@ -121,7 +121,7 @@ func (m *Core) cashCount() {
 				Name:               data.Name,
 			}
 		},
-		Created: func(data *CashCount) []string {
+		Created: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.create",
 				fmt.Sprintf("cash_count.create.%s", data.ID),
@@ -129,7 +129,7 @@ func (m *Core) cashCount() {
 				fmt.Sprintf("cash_count.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CashCount) []string {
+		Updated: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.update",
 				fmt.Sprintf("cash_count.update.%s", data.ID),
@@ -137,7 +137,7 @@ func (m *Core) cashCount() {
 				fmt.Sprintf("cash_count.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CashCount) []string {
+		Deleted: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.delete",
 				fmt.Sprintf("cash_count.delete.%s", data.ID),

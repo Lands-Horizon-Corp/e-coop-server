@@ -97,7 +97,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberTypeHistory) []string {
+		Created: func(data *MemberTypeHistory) registry.Topics {
 			return []string{
 				"member_type_history.create",
 				fmt.Sprintf("member_type_history.create.%s", data.ID),
@@ -106,7 +106,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_type_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberTypeHistory) []string {
+		Updated: func(data *MemberTypeHistory) registry.Topics {
 			return []string{
 				"member_type_history.update",
 				fmt.Sprintf("member_type_history.update.%s", data.ID),
@@ -115,7 +115,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_type_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberTypeHistory) []string {
+		Deleted: func(data *MemberTypeHistory) registry.Topics {
 			return []string{
 				"member_type_history.delete",
 				fmt.Sprintf("member_type_history.delete.%s", data.ID),
@@ -149,13 +149,13 @@ func (m *Core) GetMemberTypeHistoryLatest(
 	memberProfileID, memberTypeID, organizationID, branchID uuid.UUID,
 ) (*MemberTypeHistory, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "member_type_id", Op: registry.OpEq, Value: memberTypeID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	}
 

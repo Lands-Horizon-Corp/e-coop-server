@@ -415,9 +415,9 @@ func (m *Core) accountClassification() {
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *AccountClassification) *AccountClassificationResponse {
 			if data == nil {
 				return nil
@@ -438,7 +438,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *AccountClassification) []string {
+		Created: func(data *AccountClassification) registry.Topics {
 			return []string{
 				"account_classification.create",
 				fmt.Sprintf("account_classification.create.%s", data.ID),
@@ -446,7 +446,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("account_classification.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AccountClassification) []string {
+		Updated: func(data *AccountClassification) registry.Topics {
 			return []string{
 				"account_classification.update",
 				fmt.Sprintf("account_classification.update.%s", data.ID),
@@ -454,7 +454,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("account_classification.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AccountClassification) []string {
+		Deleted: func(data *AccountClassification) registry.Topics {
 			return []string{
 				"account_classification.delete",
 				fmt.Sprintf("account_classification.delete.%s", data.ID),

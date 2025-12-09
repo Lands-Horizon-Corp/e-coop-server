@@ -102,7 +102,7 @@ func (m *Core) interestMaturity() {
 				Rate:           data.Rate,
 			}
 		},
-		Created: func(data *InterestMaturity) []string {
+		Created: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.create",
 				fmt.Sprintf("interest_maturity.create.%s", data.ID),
@@ -110,7 +110,7 @@ func (m *Core) interestMaturity() {
 				fmt.Sprintf("interest_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestMaturity) []string {
+		Updated: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.update",
 				fmt.Sprintf("interest_maturity.update.%s", data.ID),
@@ -118,7 +118,7 @@ func (m *Core) interestMaturity() {
 				fmt.Sprintf("interest_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestMaturity) []string {
+		Deleted: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.delete",
 				fmt.Sprintf("interest_maturity.delete.%s", data.ID),

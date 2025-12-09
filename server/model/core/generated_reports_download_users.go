@@ -102,7 +102,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				GeneratedReport:    m.GeneratedReportManager.ToModel(data.GeneratedReport),
 			}
 		},
-		Created: func(data *GeneratedReportsDownloadUsers) []string {
+		Created: func(data *GeneratedReportsDownloadUsers) registry.Topics {
 			return []string{
 				"generated_reports_download_users.create",
 				fmt.Sprintf("generated_reports_download_users.create.%s", data.ID),
@@ -112,7 +112,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("generated_reports_download_users.create.generated_report.%s", data.GeneratedReportID),
 			}
 		},
-		Updated: func(data *GeneratedReportsDownloadUsers) []string {
+		Updated: func(data *GeneratedReportsDownloadUsers) registry.Topics {
 			return []string{
 				"generated_reports_download_users.update",
 				fmt.Sprintf("generated_reports_download_users.update.%s", data.ID),
@@ -122,7 +122,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("generated_reports_download_users.update.generated_report.%s", data.GeneratedReportID),
 			}
 		},
-		Deleted: func(data *GeneratedReportsDownloadUsers) []string {
+		Deleted: func(data *GeneratedReportsDownloadUsers) registry.Topics {
 			return []string{
 				"generated_reports_download_users.delete",
 				fmt.Sprintf("generated_reports_download_users.delete.%s", data.ID),

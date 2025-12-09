@@ -145,7 +145,7 @@ func (m *Core) timeDepositComputation() {
 			}
 		},
 
-		Created: func(data *TimeDepositComputation) []string {
+		Created: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.create",
 				fmt.Sprintf("time_deposit_computation.create.%s", data.ID),
@@ -153,7 +153,7 @@ func (m *Core) timeDepositComputation() {
 				fmt.Sprintf("time_deposit_computation.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TimeDepositComputation) []string {
+		Updated: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.update",
 				fmt.Sprintf("time_deposit_computation.update.%s", data.ID),
@@ -161,7 +161,7 @@ func (m *Core) timeDepositComputation() {
 				fmt.Sprintf("time_deposit_computation.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TimeDepositComputation) []string {
+		Deleted: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.delete",
 				fmt.Sprintf("time_deposit_computation.delete.%s", data.ID),

@@ -74,9 +74,9 @@ func (m *Core) bank() {
 	m.BankManager = *registry.NewRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: m.provider.Service.Database.Client(),
-Dispatch: func(topics registry.Topics, payload any) error {
+		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
-		}
+		},
 		Resource: func(data *Bank) *BankResponse {
 			if data == nil {
 				return nil
@@ -99,7 +99,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Bank) []string {
+		Created: func(data *Bank) registry.Topics {
 			return []string{
 				"bank.create",
 				fmt.Sprintf("bank.create.%s", data.ID),
@@ -107,7 +107,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("bank.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Bank) []string {
+		Updated: func(data *Bank) registry.Topics {
 			return []string{
 				"bank.update",
 				fmt.Sprintf("bank.update.%s", data.ID),
@@ -115,7 +115,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("bank.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Bank) []string {
+		Deleted: func(data *Bank) registry.Topics {
 			return []string{
 				"bank.delete",
 				fmt.Sprintf("bank.delete.%s", data.ID),

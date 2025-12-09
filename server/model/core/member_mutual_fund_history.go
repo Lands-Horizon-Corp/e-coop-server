@@ -88,7 +88,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberMutualFundHistory) []string {
+		Created: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.create",
 				fmt.Sprintf("member_mutual_fund_history.create.%s", data.ID),
@@ -96,7 +96,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_mutual_fund_history.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberMutualFundHistory) []string {
+		Updated: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.update",
 				fmt.Sprintf("member_mutual_fund_history.update.%s", data.ID),
@@ -104,7 +104,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_mutual_fund_history.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberMutualFundHistory) []string {
+		Deleted: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.delete",
 				fmt.Sprintf("member_mutual_fund_history.delete.%s", data.ID),

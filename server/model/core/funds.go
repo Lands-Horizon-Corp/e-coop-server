@@ -105,7 +105,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				GLBooks:        data.GLBooks,
 			}
 		},
-		Created: func(data *Funds) []string {
+		Created: func(data *Funds) registry.Topics {
 			return []string{
 				"funds.create",
 				fmt.Sprintf("funds.create.%s", data.ID),
@@ -113,7 +113,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("funds.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Funds) []string {
+		Updated: func(data *Funds) registry.Topics {
 			return []string{
 				"funds.update",
 				fmt.Sprintf("funds.update.%s", data.ID),
@@ -121,7 +121,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("funds.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Funds) []string {
+		Deleted: func(data *Funds) registry.Topics {
 			return []string{
 				"funds.delete",
 				fmt.Sprintf("funds.delete.%s", data.ID),

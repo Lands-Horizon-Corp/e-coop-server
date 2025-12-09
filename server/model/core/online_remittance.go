@@ -142,7 +142,7 @@ func (m *Core) onlineRemittance() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *OnlineRemittance) []string {
+		Created: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.create",
 				fmt.Sprintf("online_remittance.create.%s", data.ID),
@@ -150,7 +150,7 @@ func (m *Core) onlineRemittance() {
 				fmt.Sprintf("online_remittance.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *OnlineRemittance) []string {
+		Updated: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.update",
 				fmt.Sprintf("online_remittance.update.%s", data.ID),
@@ -158,7 +158,7 @@ func (m *Core) onlineRemittance() {
 				fmt.Sprintf("online_remittance.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *OnlineRemittance) []string {
+		Deleted: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.delete",
 				fmt.Sprintf("online_remittance.delete.%s", data.ID),

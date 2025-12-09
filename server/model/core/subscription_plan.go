@@ -177,19 +177,19 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *SubscriptionPlan) []string {
+		Created: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.create",
 				fmt.Sprintf("subscription_plan.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *SubscriptionPlan) []string {
+		Updated: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.update",
 				fmt.Sprintf("subscription_plan.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *SubscriptionPlan) []string {
+		Deleted: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.delete",
 				fmt.Sprintf("subscription_plan.delete.%s", data.ID),

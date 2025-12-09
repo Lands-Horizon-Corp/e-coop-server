@@ -95,7 +95,7 @@ func (m *Core) memberOccupationHistory() {
 				MemberOccupation:   m.MemberOccupationManager.ToModel(data.MemberOccupation),
 			}
 		},
-		Created: func(data *MemberOccupationHistory) []string {
+		Created: func(data *MemberOccupationHistory) registry.Topics {
 			return []string{
 				"member_occupation_history.create",
 				fmt.Sprintf("member_occupation_history.create.%s", data.ID),
@@ -104,7 +104,7 @@ func (m *Core) memberOccupationHistory() {
 				fmt.Sprintf("member_occupation_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberOccupationHistory) []string {
+		Updated: func(data *MemberOccupationHistory) registry.Topics {
 			return []string{
 				"member_occupation_history.update",
 				fmt.Sprintf("member_occupation_history.update.%s", data.ID),
@@ -113,7 +113,7 @@ func (m *Core) memberOccupationHistory() {
 				fmt.Sprintf("member_occupation_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberOccupationHistory) []string {
+		Deleted: func(data *MemberOccupationHistory) registry.Topics {
 			return []string{
 				"member_occupation_history.delete",
 				fmt.Sprintf("member_occupation_history.delete.%s", data.ID),

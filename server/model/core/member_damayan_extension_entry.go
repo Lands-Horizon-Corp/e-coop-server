@@ -107,7 +107,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberDamayanExtensionEntry) []string {
+		Created: func(data *MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.create",
 				fmt.Sprintf("member_damayan_extension_entry.create.%s", data.ID),
@@ -115,7 +115,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_damayan_extension_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDamayanExtensionEntry) []string {
+		Updated: func(data *MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.update",
 				fmt.Sprintf("member_damayan_extension_entry.update.%s", data.ID),
@@ -123,7 +123,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_damayan_extension_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDamayanExtensionEntry) []string {
+		Deleted: func(data *MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.delete",
 				fmt.Sprintf("member_damayan_extension_entry.delete.%s", data.ID),

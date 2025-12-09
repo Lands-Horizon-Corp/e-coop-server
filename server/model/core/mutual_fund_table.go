@@ -98,7 +98,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Amount:         data.Amount,
 			}
 		},
-		Created: func(data *MutualFundTable) []string {
+		Created: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.create",
 				fmt.Sprintf("mutual_fund_table.create.%s", data.ID),
@@ -107,7 +107,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("mutual_fund_table.create.mutual_fund.%s", data.MutualFundID),
 			}
 		},
-		Updated: func(data *MutualFundTable) []string {
+		Updated: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.update",
 				fmt.Sprintf("mutual_fund_table.update.%s", data.ID),
@@ -116,7 +116,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("mutual_fund_table.update.mutual_fund.%s", data.MutualFundID),
 			}
 		},
-		Deleted: func(data *MutualFundTable) []string {
+		Deleted: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.delete",
 				fmt.Sprintf("mutual_fund_table.delete.%s", data.ID),

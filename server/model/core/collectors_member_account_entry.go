@@ -109,7 +109,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				Description:     data.Description,
 			}
 		},
-		Created: func(data *CollectorsMemberAccountEntry) []string {
+		Created: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.create",
 				fmt.Sprintf("collectors_member_account_entry.create.%s", data.ID),
@@ -117,7 +117,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				fmt.Sprintf("collectors_member_account_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CollectorsMemberAccountEntry) []string {
+		Updated: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.update",
 				fmt.Sprintf("collectors_member_account_entry.update.%s", data.ID),
@@ -125,7 +125,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				fmt.Sprintf("collectors_member_account_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CollectorsMemberAccountEntry) []string {
+		Deleted: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.delete",
 				fmt.Sprintf("collectors_member_account_entry.delete.%s", data.ID),

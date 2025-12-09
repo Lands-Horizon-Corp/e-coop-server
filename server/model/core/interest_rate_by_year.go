@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -102,7 +103,7 @@ func (m *Core) interestRateByYear() {
 			}
 		},
 
-		Created: func(data *InterestRateByYear) []string {
+		Created: func(data *InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.create",
 				fmt.Sprintf("interest_rate_by_year.create.%s", data.ID),
@@ -111,7 +112,7 @@ func (m *Core) interestRateByYear() {
 				fmt.Sprintf("interest_rate_by_year.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByYear) []string {
+		Updated: func(data *InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.update",
 				fmt.Sprintf("interest_rate_by_year.update.%s", data.ID),
@@ -120,7 +121,7 @@ func (m *Core) interestRateByYear() {
 				fmt.Sprintf("interest_rate_by_year.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByYear) []string {
+		Deleted: func(data *InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.delete",
 				fmt.Sprintf("interest_rate_by_year.delete.%s", data.ID),
@@ -135,7 +136,7 @@ func (m *Core) interestRateByYear() {
 // InterestRateByYearForBrowseReference retrieves interest rates for a specific browse reference
 func (m *Core) InterestRateByYearForBrowseReference(context context.Context, browseReferenceID uuid.UUID) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
-		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
+		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
 	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
@@ -144,8 +145,8 @@ func (m *Core) InterestRateByYearForBrowseReference(context context.Context, bro
 // InterestRateByYearForRange retrieves interest rates for a specific year range
 func (m *Core) InterestRateByYearForRange(context context.Context, browseReferenceID uuid.UUID, year int) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
-		{Field: "browse_reference_id", Op: registry.OpEq, Value: browseReferenceID},
-		{Field: "from_year", Op: registry.OpLte, Value: year},
+		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
+		{Field: "from_year", Op: query.ModeLTE, Value: year},
 		{Field: "to_year", Op: registry.OpGte, Value: year},
 	}
 
@@ -155,8 +156,8 @@ func (m *Core) InterestRateByYearForRange(context context.Context, browseReferen
 // InterestRateByYearCurrentBranch retrieves interest rates for the specified branch and organization
 func (m *Core) InterestRateByYearCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.InterestRateByYearManager.ArrFind(context, filters, nil)

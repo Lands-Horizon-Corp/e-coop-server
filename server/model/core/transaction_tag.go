@@ -109,7 +109,7 @@ func (m *Core) transactionTag() {
 			}
 		},
 
-		Created: func(data *TransactionTag) []string {
+		Created: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.create",
 				fmt.Sprintf("transaction_tag.create.%s", data.ID),
@@ -117,7 +117,7 @@ func (m *Core) transactionTag() {
 				fmt.Sprintf("transaction_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TransactionTag) []string {
+		Updated: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.update",
 				fmt.Sprintf("transaction_tag.update.%s", data.ID),
@@ -125,7 +125,7 @@ func (m *Core) transactionTag() {
 				fmt.Sprintf("transaction_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TransactionTag) []string {
+		Deleted: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.delete",
 				fmt.Sprintf("transaction_tag.delete.%s", data.ID),

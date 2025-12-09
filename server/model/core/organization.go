@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
@@ -248,19 +249,19 @@ func (m *Core) organization() {
 			}
 		},
 
-		Created: func(data *Organization) []string {
+		Created: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.create",
 				fmt.Sprintf("organization.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Organization) []string {
+		Updated: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.update",
 				fmt.Sprintf("organization.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Organization) []string {
+		Deleted: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.delete",
 				fmt.Sprintf("organization.delete.%s", data.ID),
@@ -272,7 +273,7 @@ func (m *Core) organization() {
 // GetPublicOrganization retrieves all organizations marked as public
 func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 	return m.OrganizationManager.ArrFind(ctx, filters, nil)
 }
@@ -284,7 +285,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	// 2. Have a cover media (more visually appealing)
 	// 3. Have a description (complete profile)
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
 	// Get organizations with preloads to check branches
@@ -316,7 +317,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
 	// Get organization categories that match the category ID
 	filters := []registry.FilterSQL{
-		{Field: "category_id", Op: registry.OpEq, Value: categoryID},
+		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
 
 	orgCategories, err := m.OrganizationCategoryManager.ArrFind(ctx, filters, nil, "Organization")
@@ -345,11 +346,11 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
 		{Field: "created_at", Op: registry.OpGte, Value: thirtyDaysAgo},
 	}
 
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	}
 

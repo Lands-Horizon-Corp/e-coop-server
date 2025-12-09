@@ -249,7 +249,7 @@ func (m *Core) generatedSavingsInterest() {
 			}
 		},
 
-		Created: func(data *GeneratedSavingsInterest) []string {
+		Created: func(data *GeneratedSavingsInterest) registry.Topics {
 			return []string{
 				"generated_savings_interest.create",
 				fmt.Sprintf("generated_savings_interest.create.%s", data.ID),
@@ -257,7 +257,7 @@ func (m *Core) generatedSavingsInterest() {
 				fmt.Sprintf("generated_savings_interest.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneratedSavingsInterest) []string {
+		Updated: func(data *GeneratedSavingsInterest) registry.Topics {
 			return []string{
 				"generated_savings_interest.update",
 				fmt.Sprintf("generated_savings_interest.update.%s", data.ID),
@@ -265,7 +265,7 @@ func (m *Core) generatedSavingsInterest() {
 				fmt.Sprintf("generated_savings_interest.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneratedSavingsInterest) []string {
+		Deleted: func(data *GeneratedSavingsInterest) registry.Topics {
 			return []string{
 				"generated_savings_interest.delete",
 				fmt.Sprintf("generated_savings_interest.delete.%s", data.ID),

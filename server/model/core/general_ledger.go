@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
@@ -318,7 +319,7 @@ func (m *Core) generalLedger() {
 				AccountHistoryID:      accountHistoryID,
 				Balance:               data.Balance}
 		},
-		Created: func(data *GeneralLedger) []string {
+		Created: func(data *GeneralLedger) registry.Topics {
 			return []string{
 				// "general_ledger.create",
 				// fmt.Sprintf("general_ledger.create.%s", data.ID),
@@ -326,7 +327,7 @@ func (m *Core) generalLedger() {
 				// fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedger) []string {
+		Updated: func(data *GeneralLedger) registry.Topics {
 			return []string{
 				// "general_ledger.update",
 				// fmt.Sprintf("general_ledger.update.%s", data.ID),
@@ -334,7 +335,7 @@ func (m *Core) generalLedger() {
 				// fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedger) []string {
+		Deleted: func(data *GeneralLedger) registry.Topics {
 			return []string{
 				// "general_ledger.delete",
 				// fmt.Sprintf("general_ledger.delete.%s", data.ID),
@@ -350,16 +351,16 @@ func (m *Core) CreateGeneralLedgerEntry(
 ) error {
 	// Get previous balance
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: data.OrganizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: data.BranchID},
-		{Field: "account_id", Op: registry.OpEq, Value: data.AccountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: data.OrganizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: data.AccountID},
 	}
 	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
 		filters = append(filters, registry.FilterSQL{
-			Field: "member_profile_id", Op: registry.OpEq, Value: data.MemberProfileID,
+			Field: "member_profile_id", Op: query.ModeEqual, Value: data.MemberProfileID,
 		})
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
@@ -425,10 +426,10 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 	memberProfileID, accountID, branchID, organizationID uuid.UUID,
 ) (int, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 	}
 	return m.GeneralLedgerManager.GetMax(ctx, "print_number", filters)
 }
@@ -436,8 +437,8 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 // GeneralLedgerCurrentBranch retrieves general ledger entries for the current branch
 func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.GeneralLedgerManager.ArrFind(context, filters, nil)
@@ -446,10 +447,10 @@ func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationI
 // GeneralLedgerCurrentMemberAccount retrieves the general ledger entry for a specific member account
 func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
 	return m.GeneralLedgerManager.FindOneWithSQL(context, filters, nil)
@@ -462,9 +463,9 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "transaction_id", Op: registry.OpEq, Value: transactionID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{BranchID: branchID})
@@ -490,16 +491,16 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 	paymentType *TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "transaction_id", Op: registry.OpEq, Value: transactionID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	// Add payment type filter if provided
 	if paymentType != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "type_of_payment_type",
-			Op:    registry.OpEq,
+			Op:    query.ModeEqual,
 			Value: *paymentType,
 		})
 	}
@@ -527,15 +528,15 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "transaction_id", Op: registry.OpEq, Value: transactionID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 	// Add source filter if provided
 	if source != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "source",
-			Op:    registry.OpEq,
+			Op:    query.ModeEqual,
 			Value: *source,
 		})
 	}
@@ -561,16 +562,16 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "transaction_id", Op: registry.OpEq, Value: transactionID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	// Add payment type filter if provided
 	if paymentType != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "type_of_payment_type",
-			Op:    registry.OpEq,
+			Op:    query.ModeEqual,
 			Value: *paymentType,
 		})
 	}
@@ -579,7 +580,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	if source != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "source",
-			Op:    registry.OpEq,
+			Op:    query.ModeEqual,
 			Value: *source,
 		})
 	}
@@ -615,11 +616,11 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 			grouping.GeneralLedgerDefinitionEntries = []*GeneralLedgerDefinition{}
 			entries, err := m.GeneralLedgerDefinitionManager.ArrFind(context,
 				[]registry.FilterSQL{
-					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-					{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-					{Field: "general_ledger_accounts_grouping_id", Op: registry.OpEq, Value: grouping.ID},
+					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+					{Field: "general_ledger_accounts_grouping_id", Op: query.ModeEqual, Value: grouping.ID},
 				},
-				[]registry.FilterSortSQL{
+				[]query.ArrFilterSortSQL{
 					{Field: "created_at", Order: filter.SortOrderAsc},
 				},
 			)
@@ -646,13 +647,13 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: filter.SortOrderDesc},
 		{Field: "created_at", Order: filter.SortOrderDesc},
 	}
@@ -665,13 +666,13 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
@@ -683,12 +684,12 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
@@ -701,13 +702,13 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 	paymentType TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "type_of_payment_type", Op: registry.OpEq, Value: paymentType},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "type_of_payment_type", Op: query.ModeEqual, Value: paymentType},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
@@ -720,13 +721,13 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	source GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "source", Op: registry.OpEq, Value: source},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "source", Op: query.ModeEqual, Value: source},
 		{Field: "account_id", Op: registry.OpNe, Value: cashOnHandAccountID},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: filter.SortOrderDesc},
 	}
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
@@ -738,12 +739,12 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 	loanTransactionID, organizationID, branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
-		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: "DESC NULLS LAST"},
 		{Field: "created_at", Order: "DESC"},
 	}
@@ -780,15 +781,15 @@ func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 	fromStartOfDay := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location()).UTC()
 	toEndOfDay := time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, 999999999, to.Location()).UTC()
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "created_at", Op: registry.OpGte, Value: fromStartOfDay},
-		{Field: "created_at", Op: registry.OpLte, Value: toEndOfDay},
+		{Field: "created_at", Op: query.ModeLTE, Value: toEndOfDay},
 	}
 
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 		{Field: "entry_date", Order: "DESC"},
 	}
@@ -825,13 +826,13 @@ func (m *Core) GetDailyEndingBalances(
 
 	// Get starting balance (balance before the from date)
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "created_at", Op: registry.OpLt, Value: fromDate},
 	}
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 		{Field: "entry_date", Order: "DESC"},
 	}

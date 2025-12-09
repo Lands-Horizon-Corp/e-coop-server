@@ -95,7 +95,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *CancelledCashCheckVoucher) []string {
+		Created: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.create",
 				fmt.Sprintf("cancelled_cash_check_voucher.create.%s", data.ID),
@@ -103,7 +103,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("cancelled_cash_check_voucher.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CancelledCashCheckVoucher) []string {
+		Updated: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.update",
 				fmt.Sprintf("cancelled_cash_check_voucher.update.%s", data.ID),
@@ -111,7 +111,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("cancelled_cash_check_voucher.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CancelledCashCheckVoucher) []string {
+		Deleted: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.delete",
 				fmt.Sprintf("cancelled_cash_check_voucher.delete.%s", data.ID),

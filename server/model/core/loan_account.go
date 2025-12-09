@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -135,7 +136,7 @@ func (m *Core) loanAccount() {
 			}
 		},
 
-		Created: func(data *LoanAccount) []string {
+		Created: func(data *LoanAccount) registry.Topics {
 			return []string{
 				"loan_account.create",
 				fmt.Sprintf("loan_account.create.%s", data.ID),
@@ -143,7 +144,7 @@ func (m *Core) loanAccount() {
 				fmt.Sprintf("loan_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanAccount) []string {
+		Updated: func(data *LoanAccount) registry.Topics {
 			return []string{
 				"loan_account.update",
 				fmt.Sprintf("loan_account.update.%s", data.ID),
@@ -151,7 +152,7 @@ func (m *Core) loanAccount() {
 				fmt.Sprintf("loan_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanAccount) []string {
+		Deleted: func(data *LoanAccount) registry.Topics {
 			return []string{
 				"loan_account.delete",
 				fmt.Sprintf("loan_account.delete.%s", data.ID),
@@ -165,8 +166,8 @@ func (m *Core) loanAccount() {
 // LoanAccountCurrentBranch retrieves loan accounts for the specified branch and organization
 func (m *Core) LoanAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanAccount, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	return m.LoanAccountManager.ArrFind(context, filters, nil)
@@ -175,10 +176,10 @@ func (m *Core) LoanAccountCurrentBranch(context context.Context, organizationID 
 func (m *Core) GetLoanAccountByLoanTransaction(
 	ctx context.Context, tx *gorm.DB, loanTransactionID, accountID, organizationID, branchID uuid.UUID) (*LoanAccount, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
 	return m.LoanAccountManager.FindOneWithSQLLock(

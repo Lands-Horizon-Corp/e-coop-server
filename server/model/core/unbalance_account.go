@@ -134,7 +134,7 @@ func (m *Core) unbalancedAccount() {
 				Description: data.Description,
 			}
 		},
-		Created: func(data *UnbalancedAccount) []string {
+		Created: func(data *UnbalancedAccount) registry.Topics {
 			return []string{
 				"unbalanced_account.create",
 				fmt.Sprintf("unbalanced_account.create.%s", data.ID),
@@ -142,7 +142,7 @@ func (m *Core) unbalancedAccount() {
 				fmt.Sprintf("unbalanced_account.create.currency.%s", data.CurrencyID),
 			}
 		},
-		Updated: func(data *UnbalancedAccount) []string {
+		Updated: func(data *UnbalancedAccount) registry.Topics {
 			return []string{
 				"unbalanced_account.update",
 				fmt.Sprintf("unbalanced_account.update.%s", data.ID),
@@ -150,7 +150,7 @@ func (m *Core) unbalancedAccount() {
 				fmt.Sprintf("unbalanced_account.update.currency.%s", data.CurrencyID),
 			}
 		},
-		Deleted: func(data *UnbalancedAccount) []string {
+		Deleted: func(data *UnbalancedAccount) registry.Topics {
 			return []string{
 				"unbalanced_account.delete",
 				fmt.Sprintf("unbalanced_account.delete.%s", data.ID),

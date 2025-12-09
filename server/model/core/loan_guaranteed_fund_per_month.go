@@ -87,7 +87,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 			}
 		},
 
-		Created: func(data *LoanGuaranteedFundPerMonth) []string {
+		Created: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.create",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.create.%s", data.ID),
@@ -95,7 +95,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 				fmt.Sprintf("loan_guaranteed_fund_per_month.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanGuaranteedFundPerMonth) []string {
+		Updated: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.update",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.update.%s", data.ID),
@@ -103,7 +103,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 				fmt.Sprintf("loan_guaranteed_fund_per_month.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanGuaranteedFundPerMonth) []string {
+		Deleted: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.delete",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.delete.%s", data.ID),

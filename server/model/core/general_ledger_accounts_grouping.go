@@ -115,7 +115,7 @@ func (m *Core) generalLedgerAccountsGrouping() {
 				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
 			}
 		},
-		Created: func(data *GeneralLedgerAccountsGrouping) []string {
+		Created: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.create",
 				fmt.Sprintf("general_ledger_accounts_grouping.create.%s", data.ID),
@@ -123,7 +123,7 @@ func (m *Core) generalLedgerAccountsGrouping() {
 				fmt.Sprintf("general_ledger_accounts_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerAccountsGrouping) []string {
+		Updated: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.update",
 				fmt.Sprintf("general_ledger_accounts_grouping.update.%s", data.ID),
@@ -131,7 +131,7 @@ func (m *Core) generalLedgerAccountsGrouping() {
 				fmt.Sprintf("general_ledger_accounts_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerAccountsGrouping) []string {
+		Deleted: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.delete",
 				fmt.Sprintf("general_ledger_accounts_grouping.delete.%s", data.ID),

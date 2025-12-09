@@ -100,7 +100,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 			}
 		},
 
-		Created: func(data *LoanClearanceAnalysisInstitution) []string {
+		Created: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.create",
 				fmt.Sprintf("loan_clearance_analysis_institution.create.%s", data.ID),
@@ -108,7 +108,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 				fmt.Sprintf("loan_clearance_analysis_institution.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanClearanceAnalysisInstitution) []string {
+		Updated: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.update",
 				fmt.Sprintf("loan_clearance_analysis_institution.update.%s", data.ID),
@@ -116,7 +116,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 				fmt.Sprintf("loan_clearance_analysis_institution.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanClearanceAnalysisInstitution) []string {
+		Deleted: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.delete",
 				fmt.Sprintf("loan_clearance_analysis_institution.delete.%s", data.ID),

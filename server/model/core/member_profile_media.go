@@ -105,7 +105,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Description:     data.Description,
 			}
 		},
-		Created: func(data *MemberProfileMedia) []string {
+		Created: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.create",
 				fmt.Sprintf("member_profile_media.create.%s", data.ID),
@@ -118,7 +118,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileMedia) []string {
+		Updated: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.update",
 				fmt.Sprintf("member_profile_media.update.%s", data.ID),
@@ -131,7 +131,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileMedia) []string {
+		Deleted: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.delete",
 				fmt.Sprintf("member_profile_media.delete.%s", data.ID),

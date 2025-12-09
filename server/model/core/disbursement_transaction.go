@@ -120,7 +120,7 @@ func (m *Core) disbursementTransaction() {
 				Amount:             data.Amount,
 			}
 		},
-		Created: func(data *DisbursementTransaction) []string {
+		Created: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.create",
 				fmt.Sprintf("disbursement_transaction.create.%s", data.ID),
@@ -128,7 +128,7 @@ func (m *Core) disbursementTransaction() {
 				fmt.Sprintf("disbursement_transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *DisbursementTransaction) []string {
+		Updated: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.update",
 				fmt.Sprintf("disbursement_transaction.update.%s", data.ID),
@@ -136,7 +136,7 @@ func (m *Core) disbursementTransaction() {
 				fmt.Sprintf("disbursement_transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *DisbursementTransaction) []string {
+		Deleted: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.delete",
 				fmt.Sprintf("disbursement_transaction.delete.%s", data.ID),

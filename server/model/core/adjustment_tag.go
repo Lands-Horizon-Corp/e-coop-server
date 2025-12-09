@@ -110,7 +110,7 @@ func (m *Core) adjustmentTag() {
 				Icon:              data.Icon,
 			}
 		},
-		Created: func(data *AdjustmentTag) []string {
+		Created: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.create",
 				fmt.Sprintf("adjustment_entry_tag.create.%s", data.ID),
@@ -118,7 +118,7 @@ func (m *Core) adjustmentTag() {
 				fmt.Sprintf("adjustment_entry_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AdjustmentTag) []string {
+		Updated: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.update",
 				fmt.Sprintf("adjustment_entry_tag.update.%s", data.ID),
@@ -126,7 +126,7 @@ func (m *Core) adjustmentTag() {
 				fmt.Sprintf("adjustment_entry_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AdjustmentTag) []string {
+		Deleted: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.delete",
 				fmt.Sprintf("adjustment_entry_tag.delete.%s", data.ID),

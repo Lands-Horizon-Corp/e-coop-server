@@ -112,7 +112,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Type:           data.Type,
 			}
 		},
-		Created: func(data *PaymentType) []string {
+		Created: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.create",
 				fmt.Sprintf("payment_type.create.%s", data.ID),
@@ -120,7 +120,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("payment_type.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PaymentType) []string {
+		Updated: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.update",
 				fmt.Sprintf("payment_type.update.%s", data.ID),
@@ -128,7 +128,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("payment_type.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PaymentType) []string {
+		Deleted: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.delete",
 				fmt.Sprintf("payment_type.delete.%s", data.ID),

@@ -160,7 +160,7 @@ func (m *Core) footstep() {
 				Level:          data.Level,
 			}
 		},
-		Created: func(data *Footstep) []string {
+		Created: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.create",
 				fmt.Sprintf("footstep.create.%s", data.ID),
@@ -168,7 +168,7 @@ func (m *Core) footstep() {
 				fmt.Sprintf("footstep.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Footstep) []string {
+		Updated: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.update",
 				fmt.Sprintf("footstep.update.%s", data.ID),
@@ -176,7 +176,7 @@ func (m *Core) footstep() {
 				fmt.Sprintf("footstep.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Footstep) []string {
+		Deleted: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.delete",
 				fmt.Sprintf("footstep.delete.%s", data.ID),

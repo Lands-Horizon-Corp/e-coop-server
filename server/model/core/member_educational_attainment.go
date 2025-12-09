@@ -111,7 +111,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberEducationalAttainment) []string {
+		Created: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.create",
 				fmt.Sprintf("member_educational_attainment.create.%s", data.ID),
@@ -119,7 +119,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_educational_attainment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberEducationalAttainment) []string {
+		Updated: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.update",
 				fmt.Sprintf("member_educational_attainment.update.%s", data.ID),
@@ -127,7 +127,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_educational_attainment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberEducationalAttainment) []string {
+		Deleted: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.delete",
 				fmt.Sprintf("member_educational_attainment.delete.%s", data.ID),

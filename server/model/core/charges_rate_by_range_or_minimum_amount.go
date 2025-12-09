@@ -110,7 +110,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				MinimumAmount:       data.MinimumAmount,
 			}
 		},
-		Created: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Created: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.create",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.%s", data.ID),
@@ -118,7 +118,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Updated: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.update",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.%s", data.ID),
@@ -126,7 +126,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Deleted: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.delete",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.%s", data.ID),

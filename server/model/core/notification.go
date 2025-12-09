@@ -93,21 +93,21 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				UserType:         data.UserType,
 			}
 		},
-		Created: func(data *Notification) []string {
+		Created: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.create",
 				fmt.Sprintf("notification.create.user.%s", data.UserID),
 				fmt.Sprintf("notification.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Notification) []string {
+		Updated: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.update",
 				fmt.Sprintf("notification.update.user.%s", data.UserID),
 				fmt.Sprintf("notification.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Notification) []string {
+		Deleted: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.delete",
 				fmt.Sprintf("notification.delete.user.%s", data.UserID),

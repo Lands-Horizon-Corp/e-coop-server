@@ -88,7 +88,7 @@ func (m *Core) accountCategory() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *AccountCategory) []string {
+		Created: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.create",
 				fmt.Sprintf("account_category.create.%s", data.ID),
@@ -96,7 +96,7 @@ func (m *Core) accountCategory() {
 				fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AccountCategory) []string {
+		Updated: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.update",
 				fmt.Sprintf("account_category.update.%s", data.ID),
@@ -104,7 +104,7 @@ func (m *Core) accountCategory() {
 				fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AccountCategory) []string {
+		Deleted: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.delete",
 				fmt.Sprintf("account_category.delete.%s", data.ID),

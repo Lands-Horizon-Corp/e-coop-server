@@ -107,7 +107,7 @@ func (m *Core) holiday() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Holiday) []string {
+		Created: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.create",
 				fmt.Sprintf("holiday.create.%s", data.ID),
@@ -115,7 +115,7 @@ func (m *Core) holiday() {
 				fmt.Sprintf("holiday.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Holiday) []string {
+		Updated: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.update",
 				fmt.Sprintf("holiday.update.%s", data.ID),
@@ -123,7 +123,7 @@ func (m *Core) holiday() {
 				fmt.Sprintf("holiday.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Holiday) []string {
+		Deleted: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.delete",
 				fmt.Sprintf("holiday.delete.%s", data.ID),

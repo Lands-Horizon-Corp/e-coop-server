@@ -192,7 +192,7 @@ func (m *Core) chargesRateByTerm() {
 				Rate22:              data.Rate22,
 			}
 		},
-		Created: func(data *ChargesRateByTerm) []string {
+		Created: func(data *ChargesRateByTerm) registry.Topics {
 			return []string{
 				"charges_rate_by_term.create",
 				fmt.Sprintf("charges_rate_by_term.create.%s", data.ID),
@@ -200,7 +200,7 @@ func (m *Core) chargesRateByTerm() {
 				fmt.Sprintf("charges_rate_by_term.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateByTerm) []string {
+		Updated: func(data *ChargesRateByTerm) registry.Topics {
 			return []string{
 				"charges_rate_by_term.update",
 				fmt.Sprintf("charges_rate_by_term.update.%s", data.ID),
@@ -208,7 +208,7 @@ func (m *Core) chargesRateByTerm() {
 				fmt.Sprintf("charges_rate_by_term.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateByTerm) []string {
+		Deleted: func(data *ChargesRateByTerm) registry.Topics {
 			return []string{
 				"charges_rate_by_term.delete",
 				fmt.Sprintf("charges_rate_by_term.delete.%s", data.ID),

@@ -144,7 +144,7 @@ func (m *Core) postDatedCheck() {
 			}
 		},
 
-		Created: func(data *PostDatedCheck) []string {
+		Created: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.create",
 				fmt.Sprintf("post_dated_check.create.%s", data.ID),
@@ -152,7 +152,7 @@ func (m *Core) postDatedCheck() {
 				fmt.Sprintf("post_dated_check.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PostDatedCheck) []string {
+		Updated: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.update",
 				fmt.Sprintf("post_dated_check.update.%s", data.ID),
@@ -160,7 +160,7 @@ func (m *Core) postDatedCheck() {
 				fmt.Sprintf("post_dated_check.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PostDatedCheck) []string {
+		Deleted: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.delete",
 				fmt.Sprintf("post_dated_check.delete.%s", data.ID),

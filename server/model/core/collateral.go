@@ -95,7 +95,7 @@ func (m *Core) collateral() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Collateral) []string {
+		Created: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.create",
 				fmt.Sprintf("collateral.create.%s", data.ID),
@@ -103,7 +103,7 @@ func (m *Core) collateral() {
 				fmt.Sprintf("collateral.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Collateral) []string {
+		Updated: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.update",
 				fmt.Sprintf("collateral.update.%s", data.ID),
@@ -111,7 +111,7 @@ func (m *Core) collateral() {
 				fmt.Sprintf("collateral.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Collateral) []string {
+		Deleted: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.delete",
 				fmt.Sprintf("collateral.delete.%s", data.ID),

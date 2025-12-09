@@ -207,7 +207,7 @@ func (m *Core) mutualFund() {
 				PostedByUserID: data.PostedByUserID,
 			}
 		},
-		Created: func(data *MutualFund) []string {
+		Created: func(data *MutualFund) registry.Topics {
 			return []string{
 				"mutual_fund.create",
 				fmt.Sprintf("mutual_fund.create.%s", data.ID),
@@ -216,7 +216,7 @@ func (m *Core) mutualFund() {
 				fmt.Sprintf("mutual_fund.create.member.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MutualFund) []string {
+		Updated: func(data *MutualFund) registry.Topics {
 			return []string{
 				"mutual_fund.update",
 				fmt.Sprintf("mutual_fund.update.%s", data.ID),
@@ -225,7 +225,7 @@ func (m *Core) mutualFund() {
 				fmt.Sprintf("mutual_fund.update.member.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MutualFund) []string {
+		Deleted: func(data *MutualFund) registry.Topics {
 			return []string{
 				"mutual_fund.delete",
 				fmt.Sprintf("mutual_fund.delete.%s", data.ID),

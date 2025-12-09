@@ -112,7 +112,7 @@ func (m *Core) generalLedgerTag() {
 				Icon:            data.Icon,
 			}
 		},
-		Created: func(data *GeneralLedgerTag) []string {
+		Created: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.create",
 				fmt.Sprintf("general_ledger_tag.create.%s", data.ID),
@@ -120,7 +120,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerTag) []string {
+		Updated: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.update",
 				fmt.Sprintf("general_ledger_tag.update.%s", data.ID),
@@ -128,7 +128,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerTag) []string {
+		Deleted: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.delete",
 				fmt.Sprintf("general_ledger_tag.delete.%s", data.ID),

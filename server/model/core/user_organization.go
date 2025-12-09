@@ -411,7 +411,7 @@ func (m *Core) userOrganization() {
 				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
 			}
 		},
-		Created: func(data *UserOrganization) []string {
+		Created: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.create",
 				fmt.Sprintf("user_organization.create.%s", data.ID),
@@ -420,7 +420,7 @@ func (m *Core) userOrganization() {
 				fmt.Sprintf("user_organization.create.user.%s", data.UserID),
 			}
 		},
-		Updated: func(data *UserOrganization) []string {
+		Updated: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.update",
 				fmt.Sprintf("user_organization.update.%s", data.ID),
@@ -429,7 +429,7 @@ func (m *Core) userOrganization() {
 				fmt.Sprintf("user_organization.update.user.%s", data.UserID),
 			}
 		},
-		Deleted: func(data *UserOrganization) []string {
+		Deleted: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.delete",
 				fmt.Sprintf("user_organization.delete.%s", data.ID),

@@ -126,21 +126,21 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *OrganizationDailyUsage) []string {
+		Created: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.create",
 				fmt.Sprintf("organization_daily_usage.create.%s", data.ID),
 				fmt.Sprintf("organization_daily_usage.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *OrganizationDailyUsage) []string {
+		Updated: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.update",
 				fmt.Sprintf("organization_daily_usage.update.%s", data.ID),
 				fmt.Sprintf("organization_daily_usage.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *OrganizationDailyUsage) []string {
+		Deleted: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.delete",
 				fmt.Sprintf("organization_daily_usage.delete.%s", data.ID),

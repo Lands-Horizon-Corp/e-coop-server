@@ -107,7 +107,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Remark:      data.Remark,
 			}
 		},
-		Created: func(data *UserRating) []string {
+		Created: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.create",
 				fmt.Sprintf("user_rating.create.%s", data.ID),
@@ -115,7 +115,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("user_rating.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *UserRating) []string {
+		Updated: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.update",
 				fmt.Sprintf("user_rating.update.%s", data.ID),
@@ -123,7 +123,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("user_rating.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *UserRating) []string {
+		Deleted: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.delete",
 				fmt.Sprintf("user_rating.delete.%s", data.ID),

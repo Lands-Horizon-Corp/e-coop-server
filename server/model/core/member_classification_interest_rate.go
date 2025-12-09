@@ -198,7 +198,7 @@ func (m *Core) memberClassificationInterestRate() {
 				Header22: data.Header22,
 			}
 		},
-		Created: func(data *MemberClassificationInterestRate) []string {
+		Created: func(data *MemberClassificationInterestRate) registry.Topics {
 			return []string{
 				"member_classification_interest_rate.create",
 				fmt.Sprintf("member_classification_interest_rate.create.%s", data.ID),
@@ -206,7 +206,7 @@ func (m *Core) memberClassificationInterestRate() {
 				fmt.Sprintf("member_classification_interest_rate.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberClassificationInterestRate) []string {
+		Updated: func(data *MemberClassificationInterestRate) registry.Topics {
 			return []string{
 				"member_classification_interest_rate.update",
 				fmt.Sprintf("member_classification_interest_rate.update.%s", data.ID),
@@ -214,7 +214,7 @@ func (m *Core) memberClassificationInterestRate() {
 				fmt.Sprintf("member_classification_interest_rate.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberClassificationInterestRate) []string {
+		Deleted: func(data *MemberClassificationInterestRate) registry.Topics {
 			return []string{
 				"member_classification_interest_rate.delete",
 				fmt.Sprintf("member_classification_interest_rate.delete.%s", data.ID),

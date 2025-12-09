@@ -259,19 +259,19 @@ func (m *Core) user() {
 			}
 		},
 
-		Created: func(data *User) []string {
+		Created: func(data *User) registry.Topics {
 			return []string{
 				"user.create",
 				fmt.Sprintf("user.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *User) []string {
+		Updated: func(data *User) registry.Topics {
 			return []string{
 				"user.update",
 				fmt.Sprintf("user.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *User) []string {
+		Deleted: func(data *User) registry.Topics {
 			return []string{
 				"user.delete",
 				fmt.Sprintf("user.delete.%s", data.ID),

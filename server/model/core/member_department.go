@@ -94,7 +94,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *MemberDepartment) []string {
+		Created: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.create",
 				fmt.Sprintf("member_department.create.%s", data.ID),
@@ -102,7 +102,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_department.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDepartment) []string {
+		Updated: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.update",
 				fmt.Sprintf("member_department.update.%s", data.ID),
@@ -110,7 +110,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_department.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDepartment) []string {
+		Deleted: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.delete",
 				fmt.Sprintf("member_department.delete.%s", data.ID),

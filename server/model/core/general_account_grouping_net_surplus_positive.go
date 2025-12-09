@@ -104,7 +104,7 @@ func (m *Core) generalAccountGroupingNetSurplusPositive() {
 				Percentage2:    data.Percentage2,
 			}
 		},
-		Created: func(data *GeneralAccountGroupingNetSurplusPositive) []string {
+		Created: func(data *GeneralAccountGroupingNetSurplusPositive) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_positive.create",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.create.%s", data.ID),
@@ -112,7 +112,7 @@ func (m *Core) generalAccountGroupingNetSurplusPositive() {
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralAccountGroupingNetSurplusPositive) []string {
+		Updated: func(data *GeneralAccountGroupingNetSurplusPositive) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_positive.update",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.update.%s", data.ID),
@@ -120,7 +120,7 @@ func (m *Core) generalAccountGroupingNetSurplusPositive() {
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralAccountGroupingNetSurplusPositive) []string {
+		Deleted: func(data *GeneralAccountGroupingNetSurplusPositive) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_positive.delete",
 				fmt.Sprintf("general_account_grouping_net_surplus_positive.delete.%s", data.ID),

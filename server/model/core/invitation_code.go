@@ -135,7 +135,7 @@ func (m *Core) invitationCode() {
 				Permissions:           data.Permissions,
 			}
 		},
-		Created: func(data *InvitationCode) []string {
+		Created: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.create",
 				fmt.Sprintf("invitation_code.create.%s", data.ID),
@@ -143,7 +143,7 @@ func (m *Core) invitationCode() {
 				fmt.Sprintf("invitation_code.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InvitationCode) []string {
+		Updated: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.update",
 				fmt.Sprintf("invitation_code.update.%s", data.ID),
@@ -151,7 +151,7 @@ func (m *Core) invitationCode() {
 				fmt.Sprintf("invitation_code.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InvitationCode) []string {
+		Deleted: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.delete",
 				fmt.Sprintf("invitation_code.delete.%s", data.ID),

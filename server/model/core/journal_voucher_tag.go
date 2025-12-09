@@ -109,7 +109,7 @@ func (m *Core) journalVoucherTag() {
 			}
 		},
 
-		Created: func(data *JournalVoucherTag) []string {
+		Created: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.create",
 				fmt.Sprintf("journal_voucher_tag.create.%s", data.ID),
@@ -117,7 +117,7 @@ func (m *Core) journalVoucherTag() {
 				fmt.Sprintf("journal_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *JournalVoucherTag) []string {
+		Updated: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.update",
 				fmt.Sprintf("journal_voucher_tag.update.%s", data.ID),
@@ -125,7 +125,7 @@ func (m *Core) journalVoucherTag() {
 				fmt.Sprintf("journal_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *JournalVoucherTag) []string {
+		Deleted: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.delete",
 				fmt.Sprintf("journal_voucher_tag.delete.%s", data.ID),

@@ -115,7 +115,7 @@ func (m *Core) loanComakerMember() {
 			}
 		},
 
-		Created: func(data *LoanComakerMember) []string {
+		Created: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.create",
 				fmt.Sprintf("loan_comaker_member.create.%s", data.ID),
@@ -123,7 +123,7 @@ func (m *Core) loanComakerMember() {
 				fmt.Sprintf("loan_comaker_member.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanComakerMember) []string {
+		Updated: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.update",
 				fmt.Sprintf("loan_comaker_member.update.%s", data.ID),
@@ -131,7 +131,7 @@ func (m *Core) loanComakerMember() {
 				fmt.Sprintf("loan_comaker_member.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanComakerMember) []string {
+		Deleted: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.delete",
 				fmt.Sprintf("loan_comaker_member.delete.%s", data.ID),

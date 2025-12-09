@@ -101,7 +101,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Ratio:           data.Ratio,
 			}
 		},
-		Created: func(data *MutualFundAdditionalMembers) []string {
+		Created: func(data *MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.create",
 				fmt.Sprintf("mutual_fund_additional_members.create.%s", data.ID),
@@ -111,7 +111,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("mutual_fund_additional_members.create.member_type.%s", data.MemberTypeID),
 			}
 		},
-		Updated: func(data *MutualFundAdditionalMembers) []string {
+		Updated: func(data *MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.update",
 				fmt.Sprintf("mutual_fund_additional_members.update.%s", data.ID),
@@ -121,7 +121,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("mutual_fund_additional_members.update.member_type.%s", data.MemberTypeID),
 			}
 		},
-		Deleted: func(data *MutualFundAdditionalMembers) []string {
+		Deleted: func(data *MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.delete",
 				fmt.Sprintf("mutual_fund_additional_members.delete.%s", data.ID),

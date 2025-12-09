@@ -98,7 +98,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Company) []string {
+		Created: func(data *Company) registry.Topics {
 			return []string{
 				"company.create",
 				fmt.Sprintf("company.create.%s", data.ID),
@@ -106,7 +106,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("company.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Company) []string {
+		Updated: func(data *Company) registry.Topics {
 			return []string{
 				"company.update",
 				fmt.Sprintf("company.update.%s", data.ID),
@@ -114,7 +114,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("company.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Company) []string {
+		Deleted: func(data *Company) registry.Topics {
 			return []string{
 				"company.delete",
 				fmt.Sprintf("company.delete.%s", data.ID),

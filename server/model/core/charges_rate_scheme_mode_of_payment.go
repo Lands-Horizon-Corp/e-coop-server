@@ -189,7 +189,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				Column22:            data.Column22,
 			}
 		},
-		Created: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Created: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.create",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.%s", data.ID),
@@ -197,7 +197,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Updated: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.update",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.%s", data.ID),
@@ -205,7 +205,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Deleted: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.delete",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.delete.%s", data.ID),

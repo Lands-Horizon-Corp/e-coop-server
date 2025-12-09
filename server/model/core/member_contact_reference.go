@@ -102,7 +102,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 		},
 
-		Created: func(data *MemberContactReference) []string {
+		Created: func(data *MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.create",
 				fmt.Sprintf("member_contact_reference.create.%s", data.ID),
@@ -110,7 +110,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_contact_reference.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberContactReference) []string {
+		Updated: func(data *MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.update",
 				fmt.Sprintf("member_contact_reference.update.%s", data.ID),
@@ -118,7 +118,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				fmt.Sprintf("member_contact_reference.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberContactReference) []string {
+		Deleted: func(data *MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.delete",
 				fmt.Sprintf("member_contact_reference.delete.%s", data.ID),

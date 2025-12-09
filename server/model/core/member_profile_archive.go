@@ -118,7 +118,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 				Category:        data.Category,
 			}
 		},
-		Created: func(data *MemberProfileArchive) []string {
+		Created: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.create",
 				fmt.Sprintf("member_profile_archive.create.%s", data.ID),
@@ -131,7 +131,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileArchive) []string {
+		Updated: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.update",
 				fmt.Sprintf("member_profile_archive.update.%s", data.ID),
@@ -144,7 +144,7 @@ Dispatch: func(topics registry.Topics, payload any) error {
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileArchive) []string {
+		Deleted: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.delete",
 				fmt.Sprintf("member_profile_archive.delete.%s", data.ID),
