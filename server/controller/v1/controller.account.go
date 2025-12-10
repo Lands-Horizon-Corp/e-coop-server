@@ -5,10 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (c *Controller) accountController() {
@@ -140,34 +143,31 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Type:           core.AccountTypeLoan,
-		})
+		paginated, err := c.core.AccountManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.Account{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", *userOrg.BranchID).
+					Where("type = ?", core.AccountTypeLoan).
+					Where(`EXISTS (
+				SELECT 1 FROM accounts ace
+				WHERE ace.organization_id = accounts.organization_id
+				AND ace.branch_id = accounts.branch_id
+				AND ace.currency_id = accounts.currency_id
+				AND ace.cash_and_cash_equivalence = TRUE
+			)`)
+			},
+		)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
-		}
-		result := []*core.Account{}
-		for _, acc := range accounts {
-			cashAndCashEquivalence, _ := c.core.AccountManager.Find(context, &core.Account{
-				OrganizationID:         userOrg.OrganizationID,
-				BranchID:               *userOrg.BranchID,
-				CashAndCashEquivalence: true,
-				CurrencyID:             acc.CurrencyID,
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to retrieve loan accounts with cash and cash equivalence: " + err.Error(),
 			})
-			if len(cashAndCashEquivalence) > 0 {
-				result = append(result, acc)
-			}
-		}
-		paginated, err := c.core.AccountManager.PaginationData(context, ctx, result)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated data: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	// GET: /api/v1/account/cash-and-cash-equivalence/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/loan/search",
 		Method:       "GET",
@@ -186,33 +186,29 @@ func (c *Controller) accountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		// If loan exist on settings
-		// if branch settings has paid up shared capital account
 
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			CurrencyID:     currencyID,
-			Type:           core.AccountTypeLoan,
-		})
-		result := []*core.Account{}
-		for _, acc := range accounts {
-			cashAndCashEquivalence, _ := c.core.AccountManager.Find(context, &core.Account{
-				OrganizationID:         userOrg.OrganizationID,
-				BranchID:               *userOrg.BranchID,
-				CashAndCashEquivalence: true,
-				CurrencyID:             acc.CurrencyID,
+		paginated, err := c.core.AccountManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.Account{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", *userOrg.BranchID).
+					Where("currency_id = ?", currencyID).
+					Where("type = ?", core.AccountTypeLoan).
+					Where(`EXISTS (
+				SELECT 1 FROM accounts ace
+				WHERE ace.organization_id = accounts.organization_id
+				AND ace.branch_id = accounts.branch_id
+				AND ace.currency_id = accounts.currency_id
+				AND ace.cash_and_cash_equivalence = TRUE
+			)`)
+			},
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to retrieve loan accounts with cash and cash equivalence: " + err.Error(),
 			})
-			if len(cashAndCashEquivalence) > 0 {
-				result = append(result, acc)
-			}
-		}
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash and cash equivalence accounts: " + err.Error()})
-		}
-		paginated, err := c.core.AccountManager.PaginationData(context, ctx, result)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve paginated data: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, paginated)
 	})
@@ -1027,8 +1023,11 @@ func (c *Controller) accountController() {
 			})
 		}
 
-		// Perform bulk deletion
-		if err := c.core.AccountManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.AccountManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | error: " + err.Error(),
@@ -1722,13 +1721,18 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
 
-		accounts, err := c.core.FindAccountsByTypesAndBranch(
-			context,
-			userOrg.OrganizationID, *userOrg.BranchID, *currencyID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan accounts: " + err.Error()})
-		}
-		pagination, err := c.core.AccountManager.PaginationData(context, ctx, accounts)
+		pagination, err := c.core.AccountManager.ArrPagination(context, ctx, []registry.FilterSQL{
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+			{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
+			{Field: "type", Op: query.ModeInside, Value: []core.AccountType{
+				core.AccountTypeFines,
+				core.AccountTypeInterest,
+				core.AccountTypeSVFLedger,
+			}},
+		}, []query.ArrFilterSortSQL{
+			{Field: "updated_at", Order: query.SortOrderDesc},
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate loan accounts: " + err.Error()})
 		}
