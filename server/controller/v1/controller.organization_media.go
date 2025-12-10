@@ -269,9 +269,11 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate the heavy lifting (DB transaction, validations, DeletedBy, storage cleanup if any)
-		// to the manager layer.
-		if err := c.core.OrganizationMediaManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.OrganizationMediaManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | error: " + err.Error(),

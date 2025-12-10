@@ -3,6 +3,8 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
@@ -107,16 +109,16 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerMemberProfileEntries(context,
-			*memberProfileID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-		)
+
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		paginatedResult, err := c.core.MemberAccountingLedgerManager.PaginationData(context, ctx, entries)
+		paginatedResult, err := c.core.MemberAccountingLedgerManager.ArrPagination(context, ctx, []registry.FilterSQL{
+			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+			{Field: "account_id", Op: query.ModeNotEqual, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+		}, nil)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate entries: " + err.Error()})
 		}
@@ -187,15 +189,12 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.MemberAccountingLedgerBranchEntries(context,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-		)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
-		}
-		paginatedResult, err := c.core.MemberAccountingLedgerManager.PaginationData(context, ctx, entries)
+
+		paginatedResult, err := c.core.MemberAccountingLedgerManager.ArrPagination(context, ctx, []registry.FilterSQL{
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+			{Field: "account_id", Op: query.ModeNotEqual, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
+		}, nil)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate entries: " + err.Error()})
 		}

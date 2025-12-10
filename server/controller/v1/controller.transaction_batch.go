@@ -806,15 +806,11 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		batches, err := c.core.TransactionBatchManager.Find(context, &core.TransactionBatch{
+		paginated, err := c.core.TransactionBatchManager.NormalPagination(context, ctx, &core.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrganization.UserID,
 		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
-		}
-		paginated, err := c.core.TransactionBatchManager.PaginationData(context, ctx, batches)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate transaction batches: " + err.Error()})
 		}

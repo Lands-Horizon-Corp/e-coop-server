@@ -236,9 +236,6 @@ func (m *Core) TransactionCurrentBranch(context context.Context, organizationID 
 	})
 }
 
-// TransactionsByUserType retrieves transactions based on user type (member or employee)
-// For members, it looks up their member profile and filters by MemberProfileID
-// For employees, it filters by EmployeeUserID
 func (m *Core) TransactionsByUserType(
 	context context.Context,
 	userID uuid.UUID,

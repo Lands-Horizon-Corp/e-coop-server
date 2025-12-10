@@ -275,9 +275,12 @@ func (c *Controller) mutualFundsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund: " + err.Error()})
 		}
 
-		// Handle additional members deletion
+		mfIds := make([]any, len(req.MutualFundAdditionalMembersDeleteIDs))
+		for i, id := range req.MutualFundAdditionalMembersDeleteIDs {
+			mfIds[i] = id
+		}
 		if len(req.MutualFundAdditionalMembersDeleteIDs) > 0 {
-			if err := c.core.MutualFundAdditionalMembersManager.BulkDeleteWithTx(context, tx, req.MutualFundAdditionalMembersDeleteIDs); err != nil {
+			if err := c.core.MutualFundAdditionalMembersManager.BulkDeleteWithTx(context, tx, mfIds); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete additional members: " + err.Error(),
@@ -288,9 +291,13 @@ func (c *Controller) mutualFundsController() {
 			}
 		}
 
+		mftIds := make([]any, len(req.MutualFundTableDeleteIDs))
+		for i, id := range req.MutualFundTableDeleteIDs {
+			mftIds[i] = id
+		}
 		// Handle mutual fund tables deletion
 		if len(req.MutualFundTableDeleteIDs) > 0 {
-			if err := c.core.MutualFundTableManager.BulkDeleteWithTx(context, tx, req.MutualFundTableDeleteIDs); err != nil {
+			if err := c.core.MutualFundTableManager.BulkDeleteWithTx(context, tx, mftIds); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete mutual fund tables: " + err.Error(),
@@ -506,7 +513,11 @@ func (c *Controller) mutualFundsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No mutual fund IDs provided for bulk delete"})
 		}
 
-		if err := c.core.MutualFundManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MutualFundManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete mutual funds (/mutual-fund/bulk-delete) | error: " + err.Error(),
