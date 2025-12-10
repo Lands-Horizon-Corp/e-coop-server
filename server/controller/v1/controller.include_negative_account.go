@@ -274,8 +274,11 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.IncludeNegativeAccountManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.IncludeNegativeAccountManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | error: " + err.Error(),

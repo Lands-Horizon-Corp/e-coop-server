@@ -328,7 +328,12 @@ func (c *Controller) invitationCode() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.InvitationCodeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+
+		if err := c.core.InvitationCodeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Invitation code bulk delete failed (/invitation-code/bulk-delete) | error: " + err.Error(),

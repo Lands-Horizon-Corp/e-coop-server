@@ -1432,16 +1432,16 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete loan transactions"})
 		}
 
-		// Delegate complex deletion (transaction, related records, ownership checks) to the manager.
-		// Manager signature assumed: BulkDeleteWithOrg(ctx context.Context, ids []string, userOrg core.UserOrganization) error
-		if err := c.core.LoanTransactionManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.LoanTransactionManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTransaction",
 			})
-			// Manager should return appropriate error types (validation/not-found/forbidden/internal)
-			// Map manager errors to HTTP status as needed (here we return 500 for generic failure).
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan transactions: " + err.Error()})
 		}
 

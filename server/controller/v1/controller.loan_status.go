@@ -286,8 +286,11 @@ func (c *Controller) loanStatusController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.LoanStatusManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.LoanStatusManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan status bulk delete failed (/loan-status/bulk-delete) | error: " + err.Error(),

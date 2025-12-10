@@ -299,8 +299,11 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberTypeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberTypeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | error: " + err.Error(),

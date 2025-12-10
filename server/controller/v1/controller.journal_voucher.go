@@ -442,8 +442,11 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.JournalVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.JournalVoucherManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | error: " + err.Error(),

@@ -251,8 +251,11 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
-
-		if err := c.core.FundsManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.FundsManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | error: " + err.Error(),
