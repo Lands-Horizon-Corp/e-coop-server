@@ -14,7 +14,7 @@ func (c *Controller) userRatingController() {
 	req := c.provider.Service.Request
 
 	// Returns all user ratings given by the specified user (rater)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-rater/:user_id",
 		Method:       "GET",
 		ResponseType: core.UserRatingResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) userRatingController() {
 	})
 
 	// Returns all user ratings received by the specified user (ratee)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-ratee/:user_id",
 		Method:       "GET",
 		ResponseType: core.UserRatingResponse{},
@@ -52,7 +52,7 @@ func (c *Controller) userRatingController() {
 	})
 
 	// Returns a specific user rating by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/:user_rating_id",
 		Method:       "GET",
 		ResponseType: core.UserRatingResponse{},
@@ -71,7 +71,7 @@ func (c *Controller) userRatingController() {
 	})
 
 	// Returns all user ratings in the current user's active branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/branch",
 		Method:       "GET",
 		ResponseType: core.UserRatingResponse{},
@@ -90,7 +90,7 @@ func (c *Controller) userRatingController() {
 	})
 
 	// Creates a new user rating in the current user's branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
 		ResponseType: core.UserRatingResponse{},
@@ -149,7 +149,7 @@ func (c *Controller) userRatingController() {
 	})
 
 	// Deletes a user rating by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-rating/:user_rating_id",
 		Method: "DELETE",
 		Note:   "Deletes a user rating by its ID.",

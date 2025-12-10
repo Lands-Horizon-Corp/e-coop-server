@@ -14,7 +14,7 @@ func (c *Controller) subscriptionPlanController() {
 	req := c.provider.Service.Request
 
 	// Get all subscription plans
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -29,7 +29,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// Get a subscription plan by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -50,7 +50,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// Create a new subscription plan
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -108,7 +108,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// Update a subscription plan by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -183,7 +183,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// Delete a subscription plan by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 		Note:   "Deletes a subscription plan by its ID.",
@@ -228,7 +228,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// Simplified bulk-delete handler for subscription plans (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple subscription plan records.",
@@ -255,8 +255,11 @@ func (c *Controller) subscriptionPlanController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.SubscriptionPlanManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.SubscriptionPlanManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | error: " + err.Error(),
@@ -275,7 +278,7 @@ func (c *Controller) subscriptionPlanController() {
 	})
 
 	// GET /api/v1/subscription-plan/currency/:currency_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},

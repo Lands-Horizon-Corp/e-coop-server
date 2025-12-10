@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -55,7 +55,10 @@ func (m *Core) feedback() {
 	m.Migration = append(m.Migration, &Feedback{})
 	m.FeedbackManager = *registry.NewRegistry(registry.RegistryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Feedback) *FeedbackResponse {
 			if data == nil {
 				return nil
@@ -71,19 +74,19 @@ func (m *Core) feedback() {
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}
 		},
-		Created: func(data *Feedback) []string {
+		Created: func(data *Feedback) registry.Topics {
 			return []string{
 				"feedback.create",
 				fmt.Sprintf("feedback.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Feedback) []string {
+		Updated: func(data *Feedback) registry.Topics {
 			return []string{
 				"feedback.update",
 				fmt.Sprintf("feedback.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Feedback) []string {
+		Deleted: func(data *Feedback) registry.Topics {
 			return []string{
 				"feedback.delete",
 				fmt.Sprintf("feedback.delete.%s", data.ID),

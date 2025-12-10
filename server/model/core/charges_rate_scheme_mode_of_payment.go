@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -144,7 +144,10 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ChargesRateSchemeModeOfPayment) *ChargesRateSchemeModeOfPaymentResponse {
 			if data == nil {
 				return nil
@@ -189,7 +192,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				Column22:            data.Column22,
 			}
 		},
-		Created: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Created: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.create",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.%s", data.ID),
@@ -197,7 +200,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Updated: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.update",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.%s", data.ID),
@@ -205,7 +208,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeModeOfPayment) []string {
+		Deleted: func(data *ChargesRateSchemeModeOfPayment) registry.Topics {
 			return []string{
 				"charges_rate_scheme_model_of_payment.delete",
 				fmt.Sprintf("charges_rate_scheme_model_of_payment.delete.%s", data.ID),

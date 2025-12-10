@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -77,7 +77,10 @@ func (m *Core) userRating() {
 	m.Migration = append(m.Migration, &UserRating{})
 	m.UserRatingManager = *registry.NewRegistry(registry.RegistryParams[UserRating, UserRatingResponse, UserRatingRequest]{
 		Preloads: []string{"Organization", "Branch", "RateeUser", "RaterUser"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *UserRating) *UserRatingResponse {
 			if data == nil {
 				return nil
@@ -104,7 +107,7 @@ func (m *Core) userRating() {
 				Remark:      data.Remark,
 			}
 		},
-		Created: func(data *UserRating) []string {
+		Created: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.create",
 				fmt.Sprintf("user_rating.create.%s", data.ID),
@@ -112,7 +115,7 @@ func (m *Core) userRating() {
 				fmt.Sprintf("user_rating.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *UserRating) []string {
+		Updated: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.update",
 				fmt.Sprintf("user_rating.update.%s", data.ID),
@@ -120,7 +123,7 @@ func (m *Core) userRating() {
 				fmt.Sprintf("user_rating.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *UserRating) []string {
+		Deleted: func(data *UserRating) registry.Topics {
 			return []string{
 				"user_rating.delete",
 				fmt.Sprintf("user_rating.delete.%s", data.ID),

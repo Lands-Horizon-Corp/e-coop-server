@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -129,7 +129,10 @@ func (m *Core) generalLedgerDefinition() {
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneralLedgerDefinition) *GeneralLedgerDefinitionResponse {
 			if data == nil {
 				return nil
@@ -185,7 +188,7 @@ func (m *Core) generalLedgerDefinition() {
 				Depth:                           0,
 			}
 		},
-		Created: func(data *GeneralLedgerDefinition) []string {
+		Created: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.create",
 				fmt.Sprintf("general_ledger_definition.create.%s", data.ID),
@@ -193,7 +196,7 @@ func (m *Core) generalLedgerDefinition() {
 				fmt.Sprintf("general_ledger_definition.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerDefinition) []string {
+		Updated: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.update",
 				fmt.Sprintf("general_ledger_definition.update.%s", data.ID),
@@ -201,7 +204,7 @@ func (m *Core) generalLedgerDefinition() {
 				fmt.Sprintf("general_ledger_definition.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerDefinition) []string {
+		Deleted: func(data *GeneralLedgerDefinition) registry.Topics {
 			return []string{
 				"general_ledger_definition.delete",
 				fmt.Sprintf("general_ledger_definition.delete.%s", data.ID),

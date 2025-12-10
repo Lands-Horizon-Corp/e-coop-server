@@ -14,7 +14,7 @@ func (c *Controller) memberRelativeAccountController() {
 	req := c.provider.Service.Request
 
 	// Create a new relative account record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-relative-account/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  core.MemberRelativeAccountRequest{},
@@ -82,7 +82,7 @@ func (c *Controller) memberRelativeAccountController() {
 	})
 
 	// Update an existing relative account record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-relative-account/:member_relative_account_id",
 		Method:       "PUT",
 		RequestType:  core.MemberRelativeAccountRequest{},
@@ -154,7 +154,7 @@ func (c *Controller) memberRelativeAccountController() {
 	})
 
 	// Delete a member's relative account record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-relative-account/:member_relative_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a relative account record by its ID.",

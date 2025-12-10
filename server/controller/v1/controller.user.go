@@ -13,7 +13,7 @@ func (c *Controller) userController() {
 	req := c.provider.Service.Request
 
 	// Returns a specific user by their ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user/:user_id",
 		Method:       "GET",
 		ResponseType: core.UserResponse{},
@@ -31,7 +31,7 @@ func (c *Controller) userController() {
 		return ctx.JSON(http.StatusOK, user)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/profile",
 		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
@@ -63,7 +63,7 @@ func (c *Controller) userController() {
 	})
 
 	// Change user's password from profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
@@ -140,7 +140,7 @@ func (c *Controller) userController() {
 	})
 
 	// Change user's profile picture
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
@@ -200,7 +200,7 @@ func (c *Controller) userController() {
 	})
 
 	// Change user's general profile settings
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",

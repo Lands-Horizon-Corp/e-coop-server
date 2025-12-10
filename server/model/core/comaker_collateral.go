@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -87,7 +87,10 @@ func (m *Core) comakerCollateral() {
 	m.Migration = append(m.Migration, &ComakerCollateral{})
 	m.ComakerCollateralManager = *registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ComakerCollateral) *ComakerCollateralResponse {
 			if data == nil {
 				return nil
@@ -114,7 +117,7 @@ func (m *Core) comakerCollateral() {
 				YearCount:         data.YearCount,
 			}
 		},
-		Created: func(data *ComakerCollateral) []string {
+		Created: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.create",
 				fmt.Sprintf("comaker_collateral.create.%s", data.ID),
@@ -123,7 +126,7 @@ func (m *Core) comakerCollateral() {
 				fmt.Sprintf("comaker_collateral.create.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Updated: func(data *ComakerCollateral) []string {
+		Updated: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.update",
 				fmt.Sprintf("comaker_collateral.update.%s", data.ID),
@@ -132,7 +135,7 @@ func (m *Core) comakerCollateral() {
 				fmt.Sprintf("comaker_collateral.update.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Deleted: func(data *ComakerCollateral) []string {
+		Deleted: func(data *ComakerCollateral) registry.Topics {
 			return []string{
 				"comaker_collateral.delete",
 				fmt.Sprintf("comaker_collateral.delete.%s", data.ID),

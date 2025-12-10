@@ -17,7 +17,7 @@ func (c *Controller) branchController() {
 	req := c.provider.Service.Request
 
 	// GET /branch: List all branches or filter by user's organization from JWT if available.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
@@ -41,7 +41,7 @@ func (c *Controller) branchController() {
 	})
 
 	// GET /branch/organization/:organization_id: List branches by organization ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
@@ -60,7 +60,7 @@ func (c *Controller) branchController() {
 	})
 
 	// POST /branch/organization/:organization_id: Create a branch for an organization.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
@@ -339,7 +339,7 @@ func (c *Controller) branchController() {
 	})
 
 	// PUT /branch/:branch_id: Update an existing branch (only by owner).
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
@@ -457,7 +457,7 @@ func (c *Controller) branchController() {
 	})
 
 	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:   "/api/v1/branch/:branch_id",
 		Method:  "DELETE",
 		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
@@ -568,7 +568,7 @@ func (c *Controller) branchController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
@@ -771,7 +771,7 @@ func (c *Controller) branchController() {
 		return ctx.JSON(http.StatusOK, c.core.BranchSettingManager.ToModel(branchSetting))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",

@@ -15,7 +15,7 @@ func (c *Controller) memberTypeController() {
 	req := c.provider.Service.Request
 
 	// Get all member type history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
 		ResponseType: core.MemberTypeHistoryResponse{},
@@ -34,7 +34,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get member type history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberTypeHistoryResponse{},
@@ -49,7 +49,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.core.MemberTypeHistoryManager.PaginationWithFields(context, ctx, &core.MemberTypeHistory{
+		memberTypeHistory, err := c.core.MemberTypeHistoryManager.NormalPagination(context, ctx, &core.MemberTypeHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -61,7 +61,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get all member types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
 		ResponseType: core.MemberTypeResponse{},
@@ -80,7 +80,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Get paginated member types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
 		ResponseType: core.MemberTypeResponse{},
@@ -91,7 +91,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberTypeManager.PaginationWithFields(context, ctx, &core.MemberType{
+		value, err := c.core.MemberTypeManager.NormalPagination(context, ctx, &core.MemberType{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -102,7 +102,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Create a new member type
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
 		RequestType:  core.MemberTypeRequest{},
@@ -160,7 +160,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Update an existing member type by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
 		RequestType:  core.MemberTypeRequest{},
@@ -231,7 +231,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Delete a member type by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-type/:member_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type record by its ID.",
@@ -272,7 +272,7 @@ func (c *Controller) memberTypeController() {
 	})
 
 	// Simplified bulk-delete handler for member types (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -299,8 +299,11 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberTypeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberTypeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | error: " + err.Error(),

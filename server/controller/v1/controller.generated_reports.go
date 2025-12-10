@@ -15,7 +15,7 @@ func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
 	// GET /api/v1/generated-report/:generated_report_id/download
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/download",
 		Method:       "POST",
 		ResponseType: core.Media{},
@@ -69,7 +69,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// POST
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",
 		Method:       "POST",
 		RequestType:  core.GeneratedReportRequest{},
@@ -139,7 +139,7 @@ func (c *Controller) generatedReports() {
 
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/generated-report/:generated_report_id",
 		Method: "DELETE",
 		Note:   "Delete a generated report by ID.",
@@ -170,7 +170,7 @@ func (c *Controller) generatedReports() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "PUT",
 		RequestType:  core.GeneratedReportUpdateRequest{},
@@ -230,7 +230,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// POST /api/v1/generated-report/download-user
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/download-user",
 		Method:       "POST",
 		Note:         "Creates a new generated report download user entry for the current user's organization and branch.",
@@ -293,7 +293,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// PUT /api/v1/generated-report/:generated_report_id/favorite: Mark or unmark a generated report as favorite.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/favorite",
 		Method:       "PUT",
 		ResponseType: core.GeneratedReportResponse{},
@@ -318,7 +318,7 @@ func (c *Controller) generatedReports() {
 
 	// =======================================[FILTERED]==========================================================
 	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -337,7 +337,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -352,7 +352,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -363,7 +363,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -378,7 +378,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -390,7 +390,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/pdf/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/pdf/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -404,7 +404,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -416,7 +416,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/pdf/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/pdf/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -430,7 +430,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -443,7 +443,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/excel/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/excel/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -457,7 +457,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -468,7 +468,7 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 	// GET /api/v1/generated-report/me/excel/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/excel/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -482,7 +482,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -495,7 +495,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/favorites/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/favorites/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -510,7 +510,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -522,7 +522,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/favorites/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/favorites/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -536,7 +536,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -549,7 +549,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/available-models
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/available-models",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportAvailableModelsResponse{},
@@ -571,7 +571,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -586,7 +586,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			Model:          model,
@@ -598,7 +598,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -613,7 +613,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -626,7 +626,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/pdf/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/pdf/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -641,7 +641,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -654,7 +654,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/pdf/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/pdf/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -669,7 +669,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -683,7 +683,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/excel/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/excel/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -698,7 +698,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -711,7 +711,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/excel/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/excel/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -726,7 +726,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -740,7 +740,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/favorites/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/favorites/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -755,7 +755,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -768,7 +768,7 @@ func (c *Controller) generatedReports() {
 	})
 
 	// GET /api/v1/generated-report/me/favorites/model/:model/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/favorites/model/:model/search",
 		Method:       "GET",
 		ResponseType: core.GeneratedReportResponse{},
@@ -783,7 +783,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.PaginationWithFields(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,

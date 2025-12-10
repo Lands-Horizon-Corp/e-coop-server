@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -93,7 +93,10 @@ func (m *Core) disbursementTransaction() {
 			"Disbursement", "TransactionBatch", "EmployeeUser",
 			"Disbursement.Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *DisbursementTransaction) *DisbursementTransactionResponse {
 			if data == nil {
 				return nil
@@ -120,7 +123,7 @@ func (m *Core) disbursementTransaction() {
 				Amount:             data.Amount,
 			}
 		},
-		Created: func(data *DisbursementTransaction) []string {
+		Created: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.create",
 				fmt.Sprintf("disbursement_transaction.create.%s", data.ID),
@@ -128,7 +131,7 @@ func (m *Core) disbursementTransaction() {
 				fmt.Sprintf("disbursement_transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *DisbursementTransaction) []string {
+		Updated: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.update",
 				fmt.Sprintf("disbursement_transaction.update.%s", data.ID),
@@ -136,7 +139,7 @@ func (m *Core) disbursementTransaction() {
 				fmt.Sprintf("disbursement_transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *DisbursementTransaction) []string {
+		Deleted: func(data *DisbursementTransaction) registry.Topics {
 			return []string{
 				"disbursement_transaction.delete",
 				fmt.Sprintf("disbursement_transaction.delete.%s", data.ID),

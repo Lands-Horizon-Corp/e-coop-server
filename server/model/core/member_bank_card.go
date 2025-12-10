@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -86,7 +86,10 @@ func (m *Core) memberBankCard() {
 	m.Migration = append(m.Migration, &MemberBankCard{})
 	m.MemberBankCardManager = *registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {
 			if data == nil {
 				return nil
@@ -114,7 +117,7 @@ func (m *Core) memberBankCard() {
 			}
 		},
 
-		Created: func(data *MemberBankCard) []string {
+		Created: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.create",
 				fmt.Sprintf("member_bank_card.create.%s", data.ID),
@@ -122,7 +125,7 @@ func (m *Core) memberBankCard() {
 				fmt.Sprintf("member_bank_card.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberBankCard) []string {
+		Updated: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.update",
 				fmt.Sprintf("member_bank_card.update.%s", data.ID),
@@ -130,7 +133,7 @@ func (m *Core) memberBankCard() {
 				fmt.Sprintf("member_bank_card.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberBankCard) []string {
+		Deleted: func(data *MemberBankCard) registry.Topics {
 			return []string{
 				"member_bank_card.delete",
 				fmt.Sprintf("member_bank_card.delete.%s", data.ID),

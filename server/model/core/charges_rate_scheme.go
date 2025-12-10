@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -273,7 +273,10 @@ func (m *Core) chargesRateScheme() {
 			"ChargesRateSchemeModeOfPayments",
 			"ChargesRateByTerms",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
 			if data == nil {
 				return nil
@@ -355,7 +358,7 @@ func (m *Core) chargesRateScheme() {
 				ByTermHeader22:        data.ByTermHeader22,
 			}
 		},
-		Created: func(data *ChargesRateScheme) []string {
+		Created: func(data *ChargesRateScheme) registry.Topics {
 			return []string{
 				"charges_rate_scheme.create",
 				fmt.Sprintf("charges_rate_scheme.create.%s", data.ID),
@@ -363,7 +366,7 @@ func (m *Core) chargesRateScheme() {
 				fmt.Sprintf("charges_rate_scheme.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateScheme) []string {
+		Updated: func(data *ChargesRateScheme) registry.Topics {
 			return []string{
 				"charges_rate_scheme.update",
 				fmt.Sprintf("charges_rate_scheme.update.%s", data.ID),
@@ -371,7 +374,7 @@ func (m *Core) chargesRateScheme() {
 				fmt.Sprintf("charges_rate_scheme.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateScheme) []string {
+		Deleted: func(data *ChargesRateScheme) registry.Topics {
 			return []string{
 				"charges_rate_scheme.delete",
 				fmt.Sprintf("charges_rate_scheme.delete.%s", data.ID),

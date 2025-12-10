@@ -15,7 +15,7 @@ func (c *Controller) contactController() {
 	req := c.provider.Service.Request
 
 	// GET /contact: List all contact records. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact",
 		Method:       "GET",
 		Note:         "Returns all contact records in the system.",
@@ -30,7 +30,7 @@ func (c *Controller) contactController() {
 	})
 
 	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact/:contact_id",
 		Method:       "GET",
 		Note:         "Returns a single contact record by its ID.",
@@ -49,7 +49,7 @@ func (c *Controller) contactController() {
 	})
 
 	// POST /contact: Create a new contact record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact",
 		Method:       "POST",
 		ResponseType: core.ContactUsResponse{},
@@ -96,7 +96,7 @@ func (c *Controller) contactController() {
 	})
 
 	// DELETE /contact/:contact_id: Delete a contact record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/contact/:contact_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified contact record by its ID.",
@@ -136,7 +136,7 @@ func (c *Controller) contactController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -162,7 +162,11 @@ func (c *Controller) contactController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.ContactUsManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.ContactUsManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Contact bulk delete failed (/contact/bulk-delete) | error: " + err.Error(),

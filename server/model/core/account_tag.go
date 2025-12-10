@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -82,7 +82,10 @@ func (m *Core) accountTag() {
 		AccountTag, AccountTagResponse, AccountTagRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *AccountTag) *AccountTagResponse {
 			if data == nil {
 				return nil
@@ -108,7 +111,7 @@ func (m *Core) accountTag() {
 				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *AccountTag) []string {
+		Created: func(data *AccountTag) registry.Topics {
 			return []string{
 				"account_tag.create",
 				fmt.Sprintf("account_tag.create.%s", data.ID),
@@ -116,7 +119,7 @@ func (m *Core) accountTag() {
 				fmt.Sprintf("account_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AccountTag) []string {
+		Updated: func(data *AccountTag) registry.Topics {
 			return []string{
 				"account_tag.update",
 				fmt.Sprintf("account_tag.update.%s", data.ID),
@@ -124,7 +127,7 @@ func (m *Core) accountTag() {
 				fmt.Sprintf("account_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AccountTag) []string {
+		Deleted: func(data *AccountTag) registry.Topics {
 			return []string{
 				"account_tag.delete",
 				fmt.Sprintf("account_tag.delete.%s", data.ID),

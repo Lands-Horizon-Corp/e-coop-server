@@ -14,7 +14,7 @@ func (c *Controller) paymentTypeController() {
 	req := c.provider.Service.Request
 
 	// Get all payment types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "GET",
 		ResponseType: core.PaymentTypeResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Paginate payment types for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/search",
 		Method:       "GET",
 		ResponseType: core.PaymentTypeResponse{},
@@ -44,7 +44,7 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.PaymentTypeManager.PaginationWithFields(context, ctx, &core.PaymentType{
+		value, err := c.core.PaymentTypeManager.NormalPagination(context, ctx, &core.PaymentType{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -55,7 +55,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Get a payment type by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "GET",
 		Note:         "Returns a specific payment type by its ID.",
@@ -74,7 +74,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Create a new payment type
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "POST",
 		ResponseType: core.PaymentTypeResponse{},
@@ -133,7 +133,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Update a payment type by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "PUT",
 		ResponseType: core.PaymentTypeResponse{},
@@ -202,7 +202,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Delete a payment type by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/payment-type/:payment_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a payment type record by its ID.",
@@ -243,7 +243,7 @@ func (c *Controller) paymentTypeController() {
 	})
 
 	// Simplified bulk-delete handler for payment types (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/payment-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple payment type records by their IDs.",
@@ -270,8 +270,11 @@ func (c *Controller) paymentTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.PaymentTypeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.PaymentTypeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Payment type bulk delete failed (/payment-type/bulk-delete) | error: " + err.Error(),

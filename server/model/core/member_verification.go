@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,10 @@ func (m *Core) memberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
 	m.MemberVerificationManager = *registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberVerification) *MemberVerificationResponse {
 			if data == nil {
 				return nil
@@ -96,7 +99,7 @@ func (m *Core) memberVerification() {
 			}
 		},
 
-		Created: func(data *MemberVerification) []string {
+		Created: func(data *MemberVerification) registry.Topics {
 			return []string{
 				"member_verification.create",
 				fmt.Sprintf("member_verification.create.%s", data.ID),
@@ -104,7 +107,7 @@ func (m *Core) memberVerification() {
 				fmt.Sprintf("member_verification.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberVerification) []string {
+		Updated: func(data *MemberVerification) registry.Topics {
 			return []string{
 				"member_verification.update",
 				fmt.Sprintf("member_verification.update.%s", data.ID),
@@ -112,7 +115,7 @@ func (m *Core) memberVerification() {
 				fmt.Sprintf("member_verification.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberVerification) []string {
+		Deleted: func(data *MemberVerification) registry.Topics {
 			return []string{
 				"member_verification.delete",
 				fmt.Sprintf("member_verification.delete.%s", data.ID),

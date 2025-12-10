@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -81,7 +81,10 @@ func (m *Core) mutualFundEntry() {
 			"Organization",
 			"Branch",
 			"MemberProfile", "Account", "MutualFund"},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MutualFundEntry) *MutualFundEntryResponse {
 			if data == nil {
 				return nil
@@ -107,7 +110,7 @@ func (m *Core) mutualFundEntry() {
 				MutualFund:      m.MutualFundManager.ToModel(data.MutualFund),
 			}
 		},
-		Created: func(data *MutualFundEntry) []string {
+		Created: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.create",
 				fmt.Sprintf("mutual_fund_entry.create.%s", data.ID),
@@ -117,7 +120,7 @@ func (m *Core) mutualFundEntry() {
 				fmt.Sprintf("mutual_fund_entry.create.account.%s", data.AccountID),
 			}
 		},
-		Updated: func(data *MutualFundEntry) []string {
+		Updated: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.update",
 				fmt.Sprintf("mutual_fund_entry.update.%s", data.ID),
@@ -127,7 +130,7 @@ func (m *Core) mutualFundEntry() {
 				fmt.Sprintf("mutual_fund_entry.update.account.%s", data.AccountID),
 			}
 		},
-		Deleted: func(data *MutualFundEntry) []string {
+		Deleted: func(data *MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.delete",
 				fmt.Sprintf("mutual_fund_entry.delete.%s", data.ID),

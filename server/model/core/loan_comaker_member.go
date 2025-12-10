@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -87,7 +87,10 @@ func (m *Core) loanComakerMember() {
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanComakerMember) *LoanComakerMemberResponse {
 			if data == nil {
 				return nil
@@ -115,7 +118,7 @@ func (m *Core) loanComakerMember() {
 			}
 		},
 
-		Created: func(data *LoanComakerMember) []string {
+		Created: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.create",
 				fmt.Sprintf("loan_comaker_member.create.%s", data.ID),
@@ -123,7 +126,7 @@ func (m *Core) loanComakerMember() {
 				fmt.Sprintf("loan_comaker_member.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanComakerMember) []string {
+		Updated: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.update",
 				fmt.Sprintf("loan_comaker_member.update.%s", data.ID),
@@ -131,7 +134,7 @@ func (m *Core) loanComakerMember() {
 				fmt.Sprintf("loan_comaker_member.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanComakerMember) []string {
+		Deleted: func(data *LoanComakerMember) registry.Topics {
 			return []string{
 				"loan_comaker_member.delete",
 				fmt.Sprintf("loan_comaker_member.delete.%s", data.ID),

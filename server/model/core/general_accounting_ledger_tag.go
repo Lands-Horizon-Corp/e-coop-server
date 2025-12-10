@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -86,7 +86,10 @@ func (m *Core) generalLedgerTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "GeneralLedger",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneralLedgerTag) *GeneralLedgerTagResponse {
 			if data == nil {
 				return nil
@@ -112,7 +115,7 @@ func (m *Core) generalLedgerTag() {
 				Icon:            data.Icon,
 			}
 		},
-		Created: func(data *GeneralLedgerTag) []string {
+		Created: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.create",
 				fmt.Sprintf("general_ledger_tag.create.%s", data.ID),
@@ -120,7 +123,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerTag) []string {
+		Updated: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.update",
 				fmt.Sprintf("general_ledger_tag.update.%s", data.ID),
@@ -128,7 +131,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerTag) []string {
+		Deleted: func(data *GeneralLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.delete",
 				fmt.Sprintf("general_ledger_tag.delete.%s", data.ID),

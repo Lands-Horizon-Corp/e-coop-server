@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -81,7 +81,10 @@ func (m *Core) memberDepartmentHistory() {
 			"CreatedBy", "UpdatedBy",
 			"Organization", "Branch", "MemberDepartment", "MemberProfile",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberDepartmentHistory) *MemberDepartmentHistoryResponse {
 			if data == nil {
 				return nil
@@ -104,7 +107,7 @@ func (m *Core) memberDepartmentHistory() {
 				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
 			}
 		},
-		Created: func(data *MemberDepartmentHistory) []string {
+		Created: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.create",
 				fmt.Sprintf("member_department_history.create.%s", data.ID),
@@ -113,7 +116,7 @@ func (m *Core) memberDepartmentHistory() {
 				fmt.Sprintf("member_department_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberDepartmentHistory) []string {
+		Updated: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.update",
 				fmt.Sprintf("member_department_history.update.%s", data.ID),
@@ -122,7 +125,7 @@ func (m *Core) memberDepartmentHistory() {
 				fmt.Sprintf("member_department_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberDepartmentHistory) []string {
+		Deleted: func(data *MemberDepartmentHistory) registry.Topics {
 			return []string{
 				"member_department_history.delete",
 				fmt.Sprintf("member_department_history.delete.%s", data.ID),

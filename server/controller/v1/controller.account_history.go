@@ -13,7 +13,7 @@ func (c *Controller) accountHistory() {
 	req := c.provider.Service.Request
 
 	// GET api/v1/account-history/account/:account_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
 		ResponseType: core.AccountHistoryResponse{},
@@ -42,7 +42,7 @@ func (c *Controller) accountHistory() {
 		})
 
 	// GET api/v1/account-history/:account_history_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/:account_history_id",
 		ResponseType: core.AccountHistory{},
@@ -62,7 +62,7 @@ func (c *Controller) accountHistory() {
 		})
 
 	// POST /api/v1/account-history/account/:account_id/restore
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:       "POST",
 		Route:        "/api/v1/account-history/:account_history_id/restore",
 		ResponseType: core.AccountHistory{},

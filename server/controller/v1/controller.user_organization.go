@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (c *Controller) userOrganinzationController() {
@@ -18,7 +19,7 @@ func (c *Controller) userOrganinzationController() {
 	req := c.provider.Service.Request
 
 	// Update the permission fields of a user organization
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
@@ -101,7 +102,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Seed all branches inside an organization when first created
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/:organization_id/seed",
 		Method: "POST",
 		Note:   "Seeds all branches inside an organization when first created.",
@@ -212,7 +213,7 @@ func (c *Controller) userOrganinzationController() {
 		return ctx.NoContent(http.StatusOK)
 	})
 	// Get paginated user organizations for employees on current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/employee/search",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -223,7 +224,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeEmployee,
@@ -234,7 +235,7 @@ func (c *Controller) userOrganinzationController() {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/owner/search",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -245,7 +246,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeOwner,
@@ -257,7 +258,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Get paginated user organizations for members on current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/member/search",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -268,7 +269,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -280,7 +281,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Get paginated user organizations for members without profiles on current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/none-member-profile/search",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -291,23 +292,36 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationsNoneUserMembers(context, *userOrg.BranchID, userOrg.OrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.UserOrganization{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", userOrg.BranchID).
+					Where("user_type = ?", core.UserOrganizationTypeMember).
+					Where(`NOT EXISTS (
+				SELECT 1 FROM member_profiles mp
+				WHERE mp.user_id = user_organizations.user_id
+				AND mp.organization_id = user_organizations.organization_id
+				AND mp.branch_id = user_organizations.branch_id
+			)`)
+			},
+			"Branch", "Organization",
+		)
+
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
-		noneUsers, err := c.core.UserOrganizationManager.PaginationData(context, ctx, userOrganization)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, noneUsers)
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	// Retrieve all user organizations for a user (optionally including pending)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/user/:user_id",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
-		Note:         "Returns all user organizations for a specific user. Use query param `pending=true` to include pending organizations.",
+		Note:         "Returns all user organizations for a specific user. Use quer	y param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
@@ -327,7 +341,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for the logged-in user (not pending)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/current",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -347,7 +361,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Get paginated join requests for user organizations in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/join-request/paginated",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -358,7 +372,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.PaginationWithFields(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",
@@ -370,7 +384,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Get all join requests for user organizations in the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/join-request",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -393,7 +407,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for a specific organization (optionally including pending)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -420,7 +434,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve all user organizations for a specific branch (optionally including pending)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/branch/:branch_id",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -444,7 +458,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Switch organization and branch stored in JWT (no database impact)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/switch",
 		ResponseType: core.UserOrganizationResponse{},
 		Method:       "GET",
@@ -476,7 +490,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Remove organization and branch from JWT (no database impact)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/unswitch",
 		Method: "POST",
 		Note:   "Removes organization and branch from JWT for the current user. No database impact.",
@@ -497,7 +511,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Refresh developer key associated with the user organization
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/developer-key-refresh",
 		Method:       "POST",
 		Note:         "Refreshes the developer key associated with the current user organization.",
@@ -542,7 +556,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Join organization and branch using an invitation code
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/invitation-code/:code/join",
 		Method:       "POST",
 		Note:         "Joins an organization and branch using an invitation code.",
@@ -703,7 +717,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Join an organization and branch that is already created
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/join",
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
@@ -840,7 +854,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Leave a specific organization and branch (must have current organization)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/leave",
 		Method: "POST",
 		Note:   "Leaves the current organization and branch (must have current organization token set).",
@@ -884,7 +898,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Check if the user can join as a member
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
 		Method: "GET",
 		Note:   "Checks if the user can join as a member.",
@@ -909,7 +923,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Check if the user can join as an employee
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
 		Method: "GET",
 		Note:   "Checks if the user can join as an employee.",
@@ -934,7 +948,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve a specific user organization by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id",
 		Method:       "GET",
 		Note:         "Returns a specific user organization by ID.",
@@ -953,7 +967,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Accept an employee or member application by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id/accept",
 		Method: "POST",
 		Note:   "Accepts an employee or member application by ID.",
@@ -1033,7 +1047,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Reject an employee or member application by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id/reject",
 		Method: "DELETE",
 		Note:   "Rejects an employee or member application by ID.",
@@ -1106,7 +1120,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Delete a user organization by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id",
 		Method: "DELETE",
 		Note:   "Deletes a user organization by ID.",
@@ -1147,7 +1161,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Simplified bulk-delete handler for user organizations (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -1174,8 +1188,11 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.UserOrganizationManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.UserOrganizationManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | error: " + err.Error(),
@@ -1194,7 +1211,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve all employees of the current user's organization
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -1213,7 +1230,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// Retrieve all members of the current user's organization
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/members",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationResponse{},
@@ -1231,7 +1248,7 @@ func (c *Controller) userOrganinzationController() {
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(members))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
 		RequestType:  core.UserOrganizationSettingsRequest{},
@@ -1304,7 +1321,7 @@ func (c *Controller) userOrganinzationController() {
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/settings/current",
 		Method:       "PUT",
 		RequestType:  core.UserOrganizationSelfSettingsRequest{},
@@ -1374,7 +1391,7 @@ func (c *Controller) userOrganinzationController() {
 	})
 
 	// PUT api/v1/user-organization/time-machine/cancel
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-organization/time-machine/cancel",
 		Method:       "PUT",
 		Note:         "Cancels time machine by setting TimeMachineTime to nil for current user organization.",

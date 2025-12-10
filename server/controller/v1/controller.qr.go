@@ -12,7 +12,7 @@ import (
 func (c *Controller) qRCodeController() {
 	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/qr-code/:code",
 		Method:       "GET",
 		ResponseType: horizon.QRResult{},

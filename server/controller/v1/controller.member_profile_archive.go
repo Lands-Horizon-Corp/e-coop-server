@@ -17,7 +17,7 @@ func (c *Controller) memberProfileArchiveController() {
 	req := c.provider.Service.Request
 
 	// GET /api/v1/member-profile-archive/member-profile/:member_profile_id/search: Get all media for a specific member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile archive for a specific member profile.",
@@ -80,7 +80,7 @@ func (c *Controller) memberProfileArchiveController() {
 	})
 
 	// POST /api/v1/member-profile-archive: Create a new member profile archive
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
 		Note:         "Creates a new member profile archive for the current user's organization and branch.",
@@ -155,7 +155,7 @@ func (c *Controller) memberProfileArchiveController() {
 	})
 
 	// PUT /api/v1/member-profile-archive/:member_profile_archive_id: Update a member profile archive
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
 		Note:         "Update a member profile archive by ID.",
@@ -234,7 +234,7 @@ func (c *Controller) memberProfileArchiveController() {
 	})
 
 	// DELETE /api/v1/member-profile-archive/:member_profile_archive_id: Delete a member profile archive
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method: "DELETE",
 		Note:   "Delete a member profile archive by ID.",
@@ -297,7 +297,7 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile archive deleted successfully"})
 	})
 	// GET /api/v1/member-profile-archive/:member_profile_archive_id: Get a specific member profile archive by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile archive by ID.",
@@ -319,7 +319,7 @@ func (c *Controller) memberProfileArchiveController() {
 	})
 
 	// POST /api/v1/member-profile-archive/bulk/member-profile/:member_profile_id: Bulk create member profile archive for a specific member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
@@ -372,7 +372,7 @@ func (c *Controller) memberProfileArchiveController() {
 	})
 
 	// GET api/v1/member-profile-archive/member-profile/:member_profile_id/category
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
 		Method:       "GET",
 		Note:         "Get distinct categories of member profile archive for a specific member profile.",

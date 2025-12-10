@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -32,6 +33,7 @@ type (
 		ContactNumber      *string `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
 		Description        *string `gorm:"type:text" json:"description,omitempty"`
 		Color              *string `gorm:"type:varchar(50)" json:"color,omitempty"`
+		Theme              *string `gorm:"type:text" json:"theme,omitempty"`
 		TermsAndConditions *string `gorm:"type:text" json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `gorm:"type:text" json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `gorm:"type:text" json:"cookie_policy,omitempty"`
@@ -86,6 +88,7 @@ type (
 		ContactNumber      *string `json:"contact_number,omitempty"`
 		Description        *string `json:"description,omitempty"`
 		Color              *string `json:"color,omitempty"`
+		Theme              *string `json:"theme,omitempty"`
 		TermsAndConditions *string `json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
@@ -134,6 +137,7 @@ type (
 		ContactNumber      *string `json:"contact_number,omitempty" validate:"omitempty,max=20"`
 		Description        *string `json:"description,omitempty"`
 		Color              *string `json:"color,omitempty"`
+		Theme              *string `json:"theme,omitempty"`
 		TermsAndConditions *string `json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `json:"cookie_policy,omitempty"`
@@ -187,7 +191,10 @@ func (m *Core) organization() {
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
 				return nil
@@ -207,6 +214,7 @@ func (m *Core) organization() {
 				ContactNumber:      data.ContactNumber,
 				Description:        data.Description,
 				Color:              data.Color,
+				Theme:              data.Theme,
 				TermsAndConditions: data.TermsAndConditions,
 				PrivacyPolicy:      data.PrivacyPolicy,
 				CookiePolicy:       data.CookiePolicy,
@@ -244,19 +252,19 @@ func (m *Core) organization() {
 			}
 		},
 
-		Created: func(data *Organization) []string {
+		Created: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.create",
 				fmt.Sprintf("organization.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Organization) []string {
+		Updated: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.update",
 				fmt.Sprintf("organization.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Organization) []string {
+		Deleted: func(data *Organization) registry.Topics {
 			return []string{
 				"organization.delete",
 				fmt.Sprintf("organization.delete.%s", data.ID),
@@ -268,9 +276,9 @@ func (m *Core) organization() {
 // GetPublicOrganization retrieves all organizations marked as public
 func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
-	return m.OrganizationManager.FindWithSQL(ctx, filters, nil)
+	return m.OrganizationManager.ArrFind(ctx, filters, nil)
 }
 
 // GetFeaturedOrganization retrieves organizations marked as featured for promotional display
@@ -280,11 +288,11 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	// 2. Have a cover media (more visually appealing)
 	// 3. Have a description (complete profile)
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
 	// Get organizations with preloads to check branches
-	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, nil, "Media", "CoverMedia",
+	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, nil, "Media", "CoverMedia",
 		"SubscriptionPlan", "Branches",
 		"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 		"OrganizationCategories.Category")
@@ -312,10 +320,10 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
 	// Get organization categories that match the category ID
 	filters := []registry.FilterSQL{
-		{Field: "category_id", Op: registry.OpEq, Value: categoryID},
+		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
 
-	orgCategories, err := m.OrganizationCategoryManager.FindWithSQL(ctx, filters, nil, "Organization")
+	orgCategories, err := m.OrganizationCategoryManager.ArrFind(ctx, filters, nil, "Organization")
 	if err != nil {
 		return nil, err
 	}
@@ -341,15 +349,15 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
 	filters := []registry.FilterSQL{
-		{Field: "is_private", Op: registry.OpEq, Value: false},
-		{Field: "created_at", Op: registry.OpGte, Value: thirtyDaysAgo},
+		{Field: "is_private", Op: query.ModeEqual, Value: false},
+		{Field: "created_at", Op: query.ModeGTE, Value: thirtyDaysAgo},
 	}
 
-	sorts := []registry.FilterSortSQL{
+	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	organizations, err := m.OrganizationManager.FindWithSQL(ctx, filters, sorts)
+	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, sorts)
 	if err != nil {
 		return nil, err
 	}

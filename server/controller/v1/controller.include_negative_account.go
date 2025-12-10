@@ -15,7 +15,7 @@ func (c *Controller) includeNegativeAccountController() {
 	req := c.provider.Service.Request
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager.PaginationWithFields(context, ctx, &core.IncludeNegativeAccount{
+		records, err := c.core.IncludeNegativeAccountManager.NormalPagination(context, ctx, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -45,7 +45,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -75,7 +75,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// POST /include-negative-accounts
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -139,7 +139,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// PUT /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -207,7 +207,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// DELETE /include-negative-accounts/:include_negative_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
@@ -248,7 +248,7 @@ func (c *Controller) includeNegativeAccountController() {
 	})
 
 	// Simplified bulk-delete handler for include-negative-accounts (matches feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -274,8 +274,11 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.IncludeNegativeAccountManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.IncludeNegativeAccountManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | error: " + err.Error(),

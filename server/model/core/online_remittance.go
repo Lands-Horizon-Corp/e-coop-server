@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -103,7 +103,10 @@ func (m *Core) onlineRemittance() {
 			"Bank", "Media", "EmployeeUser", "TransactionBatch", "Currency",
 			"Bank.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *OnlineRemittance) *OnlineRemittanceResponse {
 			if data == nil {
 				return nil
@@ -142,7 +145,7 @@ func (m *Core) onlineRemittance() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *OnlineRemittance) []string {
+		Created: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.create",
 				fmt.Sprintf("online_remittance.create.%s", data.ID),
@@ -150,7 +153,7 @@ func (m *Core) onlineRemittance() {
 				fmt.Sprintf("online_remittance.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *OnlineRemittance) []string {
+		Updated: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.update",
 				fmt.Sprintf("online_remittance.update.%s", data.ID),
@@ -158,7 +161,7 @@ func (m *Core) onlineRemittance() {
 				fmt.Sprintf("online_remittance.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *OnlineRemittance) []string {
+		Deleted: func(data *OnlineRemittance) registry.Topics {
 			return []string{
 				"online_remittance.delete",
 				fmt.Sprintf("online_remittance.delete.%s", data.ID),

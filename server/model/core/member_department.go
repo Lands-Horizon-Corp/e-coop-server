@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -69,7 +69,10 @@ func (m *Core) memberDepartment() {
 	m.Migration = append(m.Migration, &MemberDepartment{})
 	m.MemberDepartmentManager = *registry.NewRegistry(registry.RegistryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberDepartment) *MemberDepartmentResponse {
 			if data == nil {
 				return nil
@@ -91,7 +94,7 @@ func (m *Core) memberDepartment() {
 				Icon:           data.Icon,
 			}
 		},
-		Created: func(data *MemberDepartment) []string {
+		Created: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.create",
 				fmt.Sprintf("member_department.create.%s", data.ID),
@@ -99,7 +102,7 @@ func (m *Core) memberDepartment() {
 				fmt.Sprintf("member_department.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDepartment) []string {
+		Updated: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.update",
 				fmt.Sprintf("member_department.update.%s", data.ID),
@@ -107,7 +110,7 @@ func (m *Core) memberDepartment() {
 				fmt.Sprintf("member_department.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDepartment) []string {
+		Deleted: func(data *MemberDepartment) registry.Topics {
 			return []string{
 				"member_department.delete",
 				fmt.Sprintf("member_department.delete.%s", data.ID),

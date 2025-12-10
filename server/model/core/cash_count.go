@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -92,7 +92,10 @@ func (m *Core) cashCount() {
 			"CreatedBy", "UpdatedBy",
 			"EmployeeUser", "TransactionBatch", "Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CashCount) *CashCountResponse {
 			if data == nil {
 				return nil
@@ -121,7 +124,7 @@ func (m *Core) cashCount() {
 				Name:               data.Name,
 			}
 		},
-		Created: func(data *CashCount) []string {
+		Created: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.create",
 				fmt.Sprintf("cash_count.create.%s", data.ID),
@@ -129,7 +132,7 @@ func (m *Core) cashCount() {
 				fmt.Sprintf("cash_count.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CashCount) []string {
+		Updated: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.update",
 				fmt.Sprintf("cash_count.update.%s", data.ID),
@@ -137,7 +140,7 @@ func (m *Core) cashCount() {
 				fmt.Sprintf("cash_count.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CashCount) []string {
+		Deleted: func(data *CashCount) registry.Topics {
 			return []string{
 				"cash_count.delete",
 				fmt.Sprintf("cash_count.delete.%s", data.ID),

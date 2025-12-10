@@ -15,7 +15,7 @@ func (c *Controller) bankController() {
 	req := c.provider.Service.Request
 
 	// GET /bank: List all banks for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank",
 		Method:       "GET",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) bankController() {
 	})
 
 	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
@@ -51,7 +51,7 @@ func (c *Controller) bankController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		banks, err := c.core.BankManager.PaginationWithFields(context, ctx, &core.Bank{
+		banks, err := c.core.BankManager.NormalPagination(context, ctx, &core.Bank{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -62,7 +62,7 @@ func (c *Controller) bankController() {
 	})
 
 	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "GET",
 		Note:         "Returns a single bank by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) bankController() {
 	})
 
 	// POST /bank: Create a new bank. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
@@ -145,7 +145,7 @@ func (c *Controller) bankController() {
 	})
 
 	// PUT /bank/:bank_id: Update bank by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
@@ -212,7 +212,7 @@ func (c *Controller) bankController() {
 	})
 
 	// DELETE /bank/:bank_id: Delete a bank by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/bank/:bank_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bank by its ID.",
@@ -252,7 +252,7 @@ func (c *Controller) bankController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -277,7 +277,12 @@ func (c *Controller) bankController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No bank IDs provided for bulk delete"})
 		}
 
-		if err := c.core.BankManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+
+		if err := c.core.AccountCategoryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | error: " + err.Error(),

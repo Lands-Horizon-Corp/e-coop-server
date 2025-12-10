@@ -6,16 +6,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
-// UserOrganizationClaim defines the JWT claims for a user organization.
 type UserOrganizationClaim struct {
 	UserOrganizationID string                    `json:"user_organization_id"`
 	UserID             string                    `json:"user_id"`
@@ -25,12 +24,10 @@ type UserOrganizationClaim struct {
 	jwt.RegisteredClaims
 }
 
-// GetRegisteredClaims returns the JWT registered claims from UserOrganizationClaim.
 func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
 	return &c.RegisteredClaims
 }
 
-// UserOrganizationCSRF holds user organization info for CSRF protection.
 type UserOrganizationCSRF struct {
 	UserOrganizationID string                    `json:"user_organization_id"`
 	UserID             string                    `json:"user_id"`
@@ -47,8 +44,6 @@ type UserOrganizationCSRF struct {
 	Referer            string                    `json:"referer"`
 	AcceptLanguage     string                    `json:"accept_language"`
 }
-
-// UserOrganizationCSRFResponse is the response model for CSRF user organization info.
 type UserOrganizationCSRFResponse struct {
 	Language       string  `json:"language"`
 	Location       string  `json:"location"`
@@ -66,7 +61,7 @@ func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrgan
 	if data == nil {
 		return nil
 	}
-	return registry.ToModel(data, func(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
+	return query.ToModel(data, func(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
 		return &UserOrganizationCSRFResponse{
 			Language:       data.Language,
 			Location:       data.Location,
@@ -81,17 +76,14 @@ func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrgan
 	})
 }
 
-// UserOrganizationCSRFModels maps a slice of UserOrganizationCSRF to a slice of UserOrganizationCSRFResponse.
 func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModels(data []*UserOrganizationCSRF) []*UserOrganizationCSRFResponse {
-	return registry.ToModels(data, m.UserOrganizationCSRFModel)
+	return query.ToModels(data, m.UserOrganizationCSRFModel)
 }
 
-// GetID returns the user organization ID from the UserOrganizationCSRF struct.
 func (m UserOrganizationCSRF) GetID() string {
 	return m.UserOrganizationID
 }
 
-// UserOrganizationToken handles user organization token and CSRF logic.
 type UserOrganizationToken struct {
 	core     *core.Core
 	provider *server.Provider
@@ -117,14 +109,11 @@ func NewUserOrganizationToken(provider *server.Provider, core *core.Core) (*User
 	}, nil
 }
 
-// ClearCurrentToken clears the current CSRF token for user organization authentication
 func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
 	h.CSRF.ClearCSRF(ctx, echoCtx)
 }
 
-// CurrentUserOrganization retrieves the current user organization from the CSRF token, validating the information.
 func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
-	// Try Bearer token as fallback first
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
@@ -167,7 +156,6 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	return userOrganization, nil
 }
 
-// SetUserOrganization sets the CSRF token for the provided user organization.
 func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx echo.Context, userOrganization *core.UserOrganization) error {
 	h.ClearCurrentToken(context, ctx)
 	if userOrganization == nil {

@@ -15,7 +15,7 @@ func (c *Controller) categoryController() {
 	req := c.provider.Service.Request
 
 	// GET /category: List all categories. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category",
 		Method:       "GET",
 		Note:         "Returns all categories in the system.",
@@ -30,7 +30,7 @@ func (c *Controller) categoryController() {
 	})
 
 	// GET /category/:category_id: Get a specific category by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "GET",
 		Note:         "Returns a single category by its ID.",
@@ -51,7 +51,7 @@ func (c *Controller) categoryController() {
 	})
 
 	// POST /category: Create a new category. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
@@ -97,7 +97,7 @@ func (c *Controller) categoryController() {
 	})
 
 	// PUT /category/:category_id: Update a category by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
@@ -160,7 +160,7 @@ func (c *Controller) categoryController() {
 	})
 
 	// DELETE /category/:category_id: Delete a category by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/category/:category_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified category by its ID.",
@@ -204,7 +204,7 @@ func (c *Controller) categoryController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -231,7 +231,11 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.CategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.CategoryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | error: " + err.Error(),

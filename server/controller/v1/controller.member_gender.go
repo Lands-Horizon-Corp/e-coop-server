@@ -14,7 +14,7 @@ func (c *Controller) memberGenderController() {
 	req := c.provider.Service.Request
 
 	// Get all member gender history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history",
 		Method:       "GET",
 		ResponseType: core.MemberGenderHistory{},
@@ -33,7 +33,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Get member gender history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberGenderHistoryResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := c.core.MemberGenderHistoryManager.PaginationWithFields(context, ctx, &core.MemberGenderHistory{
+		memberGenderHistory, err := c.core.MemberGenderHistoryManager.NormalPagination(context, ctx, &core.MemberGenderHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -60,7 +60,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Get all member genders for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "GET",
 		ResponseType: core.MemberGenderResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Get paginated member genders
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
 		ResponseType: core.MemberGenderResponse{},
@@ -90,7 +90,7 @@ func (c *Controller) memberGenderController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := c.core.MemberGenderManager.PaginationWithFields(context, ctx, &core.MemberGender{
+		memberGender, err := c.core.MemberGenderManager.NormalPagination(context, ctx, &core.MemberGender{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -101,7 +101,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Create a new member gender
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
 		ResponseType: core.MemberGenderResponse{},
@@ -158,7 +158,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Update an existing member gender by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
 		ResponseType: core.MemberGenderResponse{},
@@ -225,7 +225,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Delete a member gender by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-gender/:member_gender_id",
 		Method: "DELETE",
 		Note:   "Deletes a member gender record by its ID.",
@@ -266,7 +266,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	// Simplified bulk-delete handler for member genders (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",
@@ -293,8 +293,11 @@ func (c *Controller) memberGenderController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberGenderManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberGenderManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member genders failed (/member-gender/bulk-delete) | error: " + err.Error(),

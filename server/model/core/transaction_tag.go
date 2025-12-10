@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -82,7 +82,10 @@ func (m *Core) transactionTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Transaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TransactionTag) *TransactionTagResponse {
 			if data == nil {
 				return nil
@@ -109,7 +112,7 @@ func (m *Core) transactionTag() {
 			}
 		},
 
-		Created: func(data *TransactionTag) []string {
+		Created: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.create",
 				fmt.Sprintf("transaction_tag.create.%s", data.ID),
@@ -117,7 +120,7 @@ func (m *Core) transactionTag() {
 				fmt.Sprintf("transaction_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TransactionTag) []string {
+		Updated: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.update",
 				fmt.Sprintf("transaction_tag.update.%s", data.ID),
@@ -125,7 +128,7 @@ func (m *Core) transactionTag() {
 				fmt.Sprintf("transaction_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TransactionTag) []string {
+		Deleted: func(data *TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.delete",
 				fmt.Sprintf("transaction_tag.delete.%s", data.ID),

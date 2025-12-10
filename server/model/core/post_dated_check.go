@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -109,7 +109,10 @@ func (m *Core) postDatedCheck() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "Bank",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *PostDatedCheck) *PostDatedCheckResponse {
 			if data == nil {
 				return nil
@@ -144,7 +147,7 @@ func (m *Core) postDatedCheck() {
 			}
 		},
 
-		Created: func(data *PostDatedCheck) []string {
+		Created: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.create",
 				fmt.Sprintf("post_dated_check.create.%s", data.ID),
@@ -152,7 +155,7 @@ func (m *Core) postDatedCheck() {
 				fmt.Sprintf("post_dated_check.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PostDatedCheck) []string {
+		Updated: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.update",
 				fmt.Sprintf("post_dated_check.update.%s", data.ID),
@@ -160,7 +163,7 @@ func (m *Core) postDatedCheck() {
 				fmt.Sprintf("post_dated_check.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PostDatedCheck) []string {
+		Deleted: func(data *PostDatedCheck) registry.Topics {
 			return []string{
 				"post_dated_check.delete",
 				fmt.Sprintf("post_dated_check.delete.%s", data.ID),

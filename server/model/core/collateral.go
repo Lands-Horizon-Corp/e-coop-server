@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -73,7 +73,10 @@ func (m *Core) collateral() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Collateral) *CollateralResponse {
 			if data == nil {
 				return nil
@@ -95,7 +98,7 @@ func (m *Core) collateral() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Collateral) []string {
+		Created: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.create",
 				fmt.Sprintf("collateral.create.%s", data.ID),
@@ -103,7 +106,7 @@ func (m *Core) collateral() {
 				fmt.Sprintf("collateral.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Collateral) []string {
+		Updated: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.update",
 				fmt.Sprintf("collateral.update.%s", data.ID),
@@ -111,7 +114,7 @@ func (m *Core) collateral() {
 				fmt.Sprintf("collateral.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Collateral) []string {
+		Deleted: func(data *Collateral) registry.Topics {
 			return []string{
 				"collateral.delete",
 				fmt.Sprintf("collateral.delete.%s", data.ID),

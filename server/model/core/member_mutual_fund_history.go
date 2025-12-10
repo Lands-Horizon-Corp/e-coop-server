@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -64,7 +64,10 @@ func (m *Core) memberMutualFundHistory() {
 	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
 	m.MemberMutualFundHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
 			if data == nil {
 				return nil
@@ -85,7 +88,7 @@ func (m *Core) memberMutualFundHistory() {
 			}
 		},
 
-		Created: func(data *MemberMutualFundHistory) []string {
+		Created: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.create",
 				fmt.Sprintf("member_mutual_fund_history.create.%s", data.ID),
@@ -93,7 +96,7 @@ func (m *Core) memberMutualFundHistory() {
 				fmt.Sprintf("member_mutual_fund_history.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberMutualFundHistory) []string {
+		Updated: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.update",
 				fmt.Sprintf("member_mutual_fund_history.update.%s", data.ID),
@@ -101,7 +104,7 @@ func (m *Core) memberMutualFundHistory() {
 				fmt.Sprintf("member_mutual_fund_history.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberMutualFundHistory) []string {
+		Deleted: func(data *MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.delete",
 				fmt.Sprintf("member_mutual_fund_history.delete.%s", data.ID),

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -366,7 +366,10 @@ func (m *Core) memberProfile() {
 			"MemberCloseRemarks",
 			"MemberDepartment",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
 			context := context.Background()
 			if data == nil {
@@ -454,7 +457,7 @@ func (m *Core) memberProfile() {
 			}
 		},
 
-		Created: func(data *MemberProfile) []string {
+		Created: func(data *MemberProfile) registry.Topics {
 			return []string{
 				"member_profile.create",
 				fmt.Sprintf("member_profile.create.%s", data.ID),
@@ -462,7 +465,7 @@ func (m *Core) memberProfile() {
 				fmt.Sprintf("member_profile.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberProfile) []string {
+		Updated: func(data *MemberProfile) registry.Topics {
 			return []string{
 				"member_profile.update",
 				fmt.Sprintf("member_profile.update.%s", data.ID),
@@ -470,7 +473,7 @@ func (m *Core) memberProfile() {
 				fmt.Sprintf("member_profile.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberProfile) []string {
+		Deleted: func(data *MemberProfile) registry.Topics {
 			return []string{
 				"member_profile.delete",
 				fmt.Sprintf("member_profile.delete.%s", data.ID),

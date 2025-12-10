@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -130,7 +130,10 @@ func (m *Core) transaction() {
 			"MemberJointAccount.SignatureMedia",
 			"Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Transaction) *TransactionResponse {
 			if data == nil {
 				return nil
@@ -171,7 +174,7 @@ func (m *Core) transaction() {
 			}
 		},
 
-		Created: func(data *Transaction) []string {
+		Created: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.create.member_profile.%s", data.MemberProfileID))
@@ -188,7 +191,7 @@ func (m *Core) transaction() {
 			)
 			return events
 		},
-		Updated: func(data *Transaction) []string {
+		Updated: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))
@@ -205,7 +208,7 @@ func (m *Core) transaction() {
 			)
 			return events
 		},
-		Deleted: func(data *Transaction) []string {
+		Deleted: func(data *Transaction) registry.Topics {
 			events := []string{}
 			if data.MemberProfileID != nil {
 				events = append(events, fmt.Sprintf("transaction.update.member_profile.%s", data.MemberProfileID))
@@ -233,9 +236,6 @@ func (m *Core) TransactionCurrentBranch(context context.Context, organizationID 
 	})
 }
 
-// TransactionsByUserType retrieves transactions based on user type (member or employee)
-// For members, it looks up their member profile and filters by MemberProfileID
-// For employees, it filters by EmployeeUserID
 func (m *Core) TransactionsByUserType(
 	context context.Context,
 	userID uuid.UUID,

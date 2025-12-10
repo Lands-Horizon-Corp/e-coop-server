@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -83,7 +83,10 @@ func (m *Core) holiday() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Holiday) *HolidayResponse {
 			if data == nil {
 				return nil
@@ -107,7 +110,7 @@ func (m *Core) holiday() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Holiday) []string {
+		Created: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.create",
 				fmt.Sprintf("holiday.create.%s", data.ID),
@@ -115,7 +118,7 @@ func (m *Core) holiday() {
 				fmt.Sprintf("holiday.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Holiday) []string {
+		Updated: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.update",
 				fmt.Sprintf("holiday.update.%s", data.ID),
@@ -123,7 +126,7 @@ func (m *Core) holiday() {
 				fmt.Sprintf("holiday.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Holiday) []string {
+		Deleted: func(data *Holiday) registry.Topics {
 			return []string{
 				"holiday.delete",
 				fmt.Sprintf("holiday.delete.%s", data.ID),

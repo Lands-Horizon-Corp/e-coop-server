@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -70,7 +70,10 @@ func (m *Core) cancelledCashCheckVoucher() {
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CancelledCashCheckVoucher) *CancelledCashCheckVoucherResponse {
 			if data == nil {
 				return nil
@@ -92,7 +95,7 @@ func (m *Core) cancelledCashCheckVoucher() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *CancelledCashCheckVoucher) []string {
+		Created: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.create",
 				fmt.Sprintf("cancelled_cash_check_voucher.create.%s", data.ID),
@@ -100,7 +103,7 @@ func (m *Core) cancelledCashCheckVoucher() {
 				fmt.Sprintf("cancelled_cash_check_voucher.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CancelledCashCheckVoucher) []string {
+		Updated: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.update",
 				fmt.Sprintf("cancelled_cash_check_voucher.update.%s", data.ID),
@@ -108,7 +111,7 @@ func (m *Core) cancelledCashCheckVoucher() {
 				fmt.Sprintf("cancelled_cash_check_voucher.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CancelledCashCheckVoucher) []string {
+		Deleted: func(data *CancelledCashCheckVoucher) registry.Topics {
 			return []string{
 				"cancelled_cash_check_voucher.delete",
 				fmt.Sprintf("cancelled_cash_check_voucher.delete.%s", data.ID),

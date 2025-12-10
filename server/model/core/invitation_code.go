@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/rotisserie/eris"
@@ -101,7 +101,10 @@ func (m *Core) invitationCode() {
 			"Branch.Media",
 			"Branch",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *InvitationCode) *InvitationCodeResponse {
 			if data == nil {
 				return nil
@@ -135,7 +138,7 @@ func (m *Core) invitationCode() {
 				Permissions:           data.Permissions,
 			}
 		},
-		Created: func(data *InvitationCode) []string {
+		Created: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.create",
 				fmt.Sprintf("invitation_code.create.%s", data.ID),
@@ -143,7 +146,7 @@ func (m *Core) invitationCode() {
 				fmt.Sprintf("invitation_code.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InvitationCode) []string {
+		Updated: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.update",
 				fmt.Sprintf("invitation_code.update.%s", data.ID),
@@ -151,7 +154,7 @@ func (m *Core) invitationCode() {
 				fmt.Sprintf("invitation_code.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InvitationCode) []string {
+		Deleted: func(data *InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.delete",
 				fmt.Sprintf("invitation_code.delete.%s", data.ID),

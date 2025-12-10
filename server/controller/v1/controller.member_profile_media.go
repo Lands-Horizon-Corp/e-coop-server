@@ -16,7 +16,7 @@ func (c *Controller) memberProfileMediaController() {
 	req := c.provider.Service.Request
 
 	// GET /api/v1/member-profile-media/member-profile/:member_profile_id/search: Get all media for a specific member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile media for a specific member profile.",
@@ -79,7 +79,7 @@ func (c *Controller) memberProfileMediaController() {
 	})
 
 	// POST /api/v1/member-profile-media: Create a new member profile media
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media",
 		Method:       "POST",
 		Note:         "Creates a new member profile media for the current user's organization and branch.",
@@ -153,7 +153,7 @@ func (c *Controller) memberProfileMediaController() {
 	})
 
 	// PUT /api/v1/member-profile-media/:member_profile_media_id: Update a member profile media
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "PUT",
 		Note:         "Update a member profile media by ID.",
@@ -231,7 +231,7 @@ func (c *Controller) memberProfileMediaController() {
 	})
 
 	// DELETE /api/v1/member-profile-media/:member_profile_media_id: Delete a member profile media
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-profile-media/:member_profile_media_id",
 		Method: "DELETE",
 		Note:   "Delete a member profile media by ID.",
@@ -298,7 +298,7 @@ func (c *Controller) memberProfileMediaController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile media deleted successfully"})
 	})
 	// GET /api/v1/member-profile-media/:member_profile_media_id: Get a specific member profile media by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile media by ID.",
@@ -320,7 +320,7 @@ func (c *Controller) memberProfileMediaController() {
 	})
 
 	// POST /api/v1/member-profile-media/bulk/member-profile/:member_profile_id: Bulk create member profile media for a specific member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile media for a specific member profile.",

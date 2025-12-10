@@ -15,7 +15,7 @@ func (c *Controller) timeDepositComputationController() {
 	req := c.provider.Service.Request
 
 	// POST /time-deposit-computation: Create a new time deposit computation. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
@@ -99,7 +99,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// PUT /time-deposit-computation/:time_deposit_computation_id: Update time deposit computation by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
@@ -176,7 +176,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// DELETE /time-deposit-computation/:time_deposit_computation_id: Delete a time deposit computation by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit computation by its ID.",
@@ -217,7 +217,7 @@ func (c *Controller) timeDepositComputationController() {
 	})
 
 	// Simplified bulk-delete handler for time deposit computations (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computations by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -244,8 +244,11 @@ func (c *Controller) timeDepositComputationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
-		if err := c.core.TimeDepositComputationManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.TimeDepositComputationManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit computation bulk delete failed (/time-deposit-computation/bulk-delete) | error: " + err.Error(),

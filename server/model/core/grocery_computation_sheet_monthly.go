@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -78,7 +78,10 @@ func (m *Core) groceryComputationSheetMonthly() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "GroceryComputationSheet",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GroceryComputationSheetMonthly) *GroceryComputationSheetMonthlyResponse {
 			if data == nil {
 				return nil
@@ -102,7 +105,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				LoanGuaranteedFundRate:    data.LoanGuaranteedFundRate,
 			}
 		},
-		Created: func(data *GroceryComputationSheetMonthly) []string {
+		Created: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.create",
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.%s", data.ID),
@@ -110,7 +113,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GroceryComputationSheetMonthly) []string {
+		Updated: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.update",
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GroceryComputationSheetMonthly) []string {
+		Deleted: func(data *GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.delete",
 				fmt.Sprintf("grocery_computation_sheet_monthly.delete.%s", data.ID),

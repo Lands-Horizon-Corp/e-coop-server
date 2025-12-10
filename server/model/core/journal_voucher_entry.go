@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -99,7 +99,10 @@ func (m *Core) journalVoucherEntry() {
 			"Account", "MemberProfile", "EmployeeUser", "JournalVoucher",
 			"Account.Currency", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *JournalVoucherEntry) *JournalVoucherEntryResponse {
 			if data == nil {
 				return nil
@@ -131,7 +134,7 @@ func (m *Core) journalVoucherEntry() {
 				Credit:            data.Credit,
 			}
 		},
-		Created: func(data *JournalVoucherEntry) []string {
+		Created: func(data *JournalVoucherEntry) registry.Topics {
 			return []string{
 				"journal_voucher_entry.create",
 				fmt.Sprintf("journal_voucher_entry.create.%s", data.ID),
@@ -139,7 +142,7 @@ func (m *Core) journalVoucherEntry() {
 				fmt.Sprintf("journal_voucher_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *JournalVoucherEntry) []string {
+		Updated: func(data *JournalVoucherEntry) registry.Topics {
 			return []string{
 				"journal_voucher_entry.update",
 				fmt.Sprintf("journal_voucher_entry.update.%s", data.ID),
@@ -147,7 +150,7 @@ func (m *Core) journalVoucherEntry() {
 				fmt.Sprintf("journal_voucher_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *JournalVoucherEntry) []string {
+		Deleted: func(data *JournalVoucherEntry) registry.Topics {
 			return []string{
 				"journal_voucher_entry.delete",
 				fmt.Sprintf("journal_voucher_entry.delete.%s", data.ID),

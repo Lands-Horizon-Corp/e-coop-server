@@ -20,7 +20,7 @@ type GovernmentIDResponse struct {
 func (c *Controller) commonController() {
 	req := c.provider.Service.Request
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/government-ids/:country_code",
 		Method:       "GET",
 		ResponseType: GovernmentIDResponse{},

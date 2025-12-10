@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -101,7 +102,10 @@ func (m *Core) generateSavingsInterestEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "GeneratedSavingsInterest", "Account", "MemberProfile",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneratedSavingsInterestEntry) *GeneratedSavingsInterestEntryResponse {
 			if data == nil {
 				return nil
@@ -131,7 +135,7 @@ func (m *Core) generateSavingsInterestEntry() {
 			}
 		},
 
-		Created: func(data *GeneratedSavingsInterestEntry) []string {
+		Created: func(data *GeneratedSavingsInterestEntry) registry.Topics {
 			return []string{
 				"generated_savings_interest_entry.create",
 				fmt.Sprintf("generated_savings_interest_entry.create.%s", data.ID),
@@ -142,7 +146,7 @@ func (m *Core) generateSavingsInterestEntry() {
 				fmt.Sprintf("generated_savings_interest_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneratedSavingsInterestEntry) []string {
+		Updated: func(data *GeneratedSavingsInterestEntry) registry.Topics {
 			return []string{
 				"generate_savings_interest_entry.update",
 				fmt.Sprintf("generate_savings_interest_entry.update.%s", data.ID),
@@ -153,7 +157,7 @@ func (m *Core) generateSavingsInterestEntry() {
 				fmt.Sprintf("generate_savings_interest_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneratedSavingsInterestEntry) []string {
+		Deleted: func(data *GeneratedSavingsInterestEntry) registry.Topics {
 			return []string{
 				"generated_savings_interest_entry.delete",
 				fmt.Sprintf("generated_savings_interest_entry.delete.%s", data.ID),
@@ -171,33 +175,33 @@ func (m *Core) generateSavingsInterestEntry() {
 func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
 	context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByGeneratedSavingsInterest retrieves entries for a specific generated savings interest
 func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 	context context.Context, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "generated_savings_interest_id", Op: registry.OpEq, Value: generatedSavingsInterestID},
+		{Field: "generated_savings_interest_id", Op: query.ModeEqual, Value: generatedSavingsInterestID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByAccount retrieves entries for a specific account
 func (m *Core) GenerateSavingsInterestEntryByAccount(
 	context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByMemberProfile retrieves entries for a specific member profile
@@ -205,12 +209,12 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 	context context.Context, memberProfileID, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberProfileID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 // GenerateSavingsInterestEntryByEndingBalanceRange retrieves entries within a specific ending balance range
@@ -218,13 +222,13 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 	context context.Context, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "ending_balance", Op: registry.OpGte, Value: minEndingBalance},
-		{Field: "ending_balance", Op: registry.OpLte, Value: maxEndingBalance},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "ending_balance", Op: query.ModeGTE, Value: minEndingBalance},
+		{Field: "ending_balance", Op: query.ModeLTE, Value: maxEndingBalance},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.FindWithSQL(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
 func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEntryID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -83,7 +83,10 @@ func (m *Core) collectorsMemberAccountEntry() {
 			"CreatedBy", "UpdatedBy",
 			"CollectorUser", "MemberProfile", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CollectorsMemberAccountEntry) *CollectorsMemberAccountEntryResponse {
 			if data == nil {
 				return nil
@@ -109,7 +112,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				Description:     data.Description,
 			}
 		},
-		Created: func(data *CollectorsMemberAccountEntry) []string {
+		Created: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.create",
 				fmt.Sprintf("collectors_member_account_entry.create.%s", data.ID),
@@ -117,7 +120,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				fmt.Sprintf("collectors_member_account_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CollectorsMemberAccountEntry) []string {
+		Updated: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.update",
 				fmt.Sprintf("collectors_member_account_entry.update.%s", data.ID),
@@ -125,7 +128,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 				fmt.Sprintf("collectors_member_account_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CollectorsMemberAccountEntry) []string {
+		Deleted: func(data *CollectorsMemberAccountEntry) registry.Topics {
 			return []string{
 				"collectors_member_account_entry.delete",
 				fmt.Sprintf("collectors_member_account_entry.delete.%s", data.ID),

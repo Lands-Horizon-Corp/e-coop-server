@@ -15,7 +15,7 @@ func (c *Controller) batchFundingController() {
 	req := c.provider.Service.Request
 
 	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
@@ -108,7 +108,7 @@ func (c *Controller) batchFundingController() {
 	})
 
 	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
@@ -139,7 +139,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
+		batchFunding, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -152,7 +152,7 @@ func (c *Controller) batchFundingController() {
 	})
 
 	// GET /api/v1/batch-funding/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding/search",
 		Method:       "GET",
 		ResponseType: core.BatchFundingResponse{},
@@ -167,7 +167,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.core.BatchFundingManager.PaginationWithFields(context, ctx, &core.BatchFunding{
+		batchFundings, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

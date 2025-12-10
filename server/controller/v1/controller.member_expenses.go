@@ -14,7 +14,7 @@ func (c *Controller) memberExpenseController() {
 	req := c.provider.Service.Request
 
 	// Create a new expense record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: core.MemberExpenseResponse{},
@@ -82,7 +82,7 @@ func (c *Controller) memberExpenseController() {
 	})
 
 	// Update an existing expense record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/:member_expense_id",
 		Method:       "PUT",
 		RequestType:  core.MemberExpenseRequest{},
@@ -154,7 +154,7 @@ func (c *Controller) memberExpenseController() {
 	})
 
 	// Delete a member's expense record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-expense/:member_expense_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's expense record by its ID.",

@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -125,7 +126,10 @@ func (m *Core) loanTransactionEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AutomaticLoanDeduction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {
 			if data == nil {
 				return nil
@@ -161,7 +165,7 @@ func (m *Core) loanTransactionEntry() {
 			}
 		},
 
-		Created: func(data *LoanTransactionEntry) []string {
+		Created: func(data *LoanTransactionEntry) registry.Topics {
 			return []string{
 				"loan_transaction_entry.create",
 				fmt.Sprintf("loan_transaction_entry.create.%s", data.ID),
@@ -169,7 +173,7 @@ func (m *Core) loanTransactionEntry() {
 				fmt.Sprintf("loan_transaction_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanTransactionEntry) []string {
+		Updated: func(data *LoanTransactionEntry) registry.Topics {
 			return []string{
 				"loan_transaction_entry.update",
 				fmt.Sprintf("loan_transaction_entry.update.%s", data.ID),
@@ -177,7 +181,7 @@ func (m *Core) loanTransactionEntry() {
 				fmt.Sprintf("loan_transaction_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanTransactionEntry) []string {
+		Deleted: func(data *LoanTransactionEntry) registry.Topics {
 			return []string{
 				"loan_transaction_entry.delete",
 				fmt.Sprintf("loan_transaction_entry.delete.%s", data.ID),
@@ -191,24 +195,24 @@ func (m *Core) loanTransactionEntry() {
 // LoanTransactionEntryCurrentBranch retrieves loan transaction entries for the specified branch and organization
 func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.LoanTransactionEntryManager.FindWithSQL(context, filters, nil)
+	return m.LoanTransactionEntryManager.ArrFind(context, filters, nil)
 }
 
 // GetCashOnCashEquivalence returns the cash-on-cash equivalence entry (index 0) for a loan transaction
 func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "index", Op: registry.OpEq, Value: 0},
-		{Field: "debit", Op: registry.OpEq, Value: 0},
-		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "index", Op: query.ModeEqual, Value: 0},
+		{Field: "debit", Op: query.ModeEqual, Value: 0},
+		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.FindOneWithSQL(
+	return m.LoanTransactionEntryManager.ArrFindOne(
 		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
 	)
 }
@@ -216,12 +220,12 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 // GetLoanEntryAccount returns the loan entry account (index 1) for the given loan transaction
 func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "index", Op: registry.OpEq, Value: 1},
-		{Field: "credit", Op: registry.OpEq, Value: 0},
-		{Field: "loan_transaction_id", Op: registry.OpEq, Value: loanTransactionID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "index", Op: query.ModeEqual, Value: 1},
+		{Field: "credit", Op: query.ModeEqual, Value: 0},
+		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.FindOneWithSQL(ctx, filters, nil)
+	return m.LoanTransactionEntryManager.ArrFindOne(ctx, filters, nil)
 }

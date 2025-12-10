@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -74,7 +74,10 @@ func (m *Core) chargesRateSchemeAccount() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ChargesRateSchemeAccount) *ChargesRateSchemeAccountResponse {
 			if data == nil {
 				return nil
@@ -97,7 +100,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				Account:             m.AccountManager.ToModel(data.Account),
 			}
 		},
-		Created: func(data *ChargesRateSchemeAccount) []string {
+		Created: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.create",
 				fmt.Sprintf("charges_rate_scheme_account.create.%s", data.ID),
@@ -105,7 +108,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				fmt.Sprintf("charges_rate_scheme_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeAccount) []string {
+		Updated: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.update",
 				fmt.Sprintf("charges_rate_scheme_account.update.%s", data.ID),
@@ -113,7 +116,7 @@ func (m *Core) chargesRateSchemeAccount() {
 				fmt.Sprintf("charges_rate_scheme_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeAccount) []string {
+		Deleted: func(data *ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.delete",
 				fmt.Sprintf("charges_rate_scheme_account.delete.%s", data.ID),

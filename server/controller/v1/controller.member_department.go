@@ -14,7 +14,7 @@ func (c *Controller) memberDepartmentController() {
 	req := c.provider.Service.Request
 
 	// Get all member department history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department-history",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentHistory{},
@@ -33,7 +33,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get member department history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentHistoryResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager.PaginationWithFields(context, ctx, &core.MemberDepartmentHistory{
+		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager.NormalPagination(context, ctx, &core.MemberDepartmentHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -60,7 +60,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get all member departments for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Get paginated member departments
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department/search",
 		Method:       "GET",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -90,7 +90,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.core.MemberDepartmentManager.PaginationWithFields(context, ctx, &core.MemberDepartment{
+		memberDepartment, err := c.core.MemberDepartmentManager.NormalPagination(context, ctx, &core.MemberDepartment{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -101,7 +101,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Create a new member department
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "POST",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -159,7 +159,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Update an existing member department by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-department/:member_department_id",
 		Method:       "PUT",
 		ResponseType: core.MemberDepartmentResponse{},
@@ -227,7 +227,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Delete a member department by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-department/:member_department_id",
 		Method: "DELETE",
 		Note:   "Deletes a member department record by its ID.",
@@ -268,7 +268,7 @@ func (c *Controller) memberDepartmentController() {
 	})
 
 	// Simplified bulk-delete handler for member departments (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-department/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member department records by their IDs.",
@@ -295,8 +295,11 @@ func (c *Controller) memberDepartmentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberDepartmentManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberDepartmentManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | error: " + err.Error(),

@@ -18,7 +18,7 @@ func (c *Controller) journalVoucherController() {
 	req := c.provider.Service.Request
 
 	// GET /journal-voucher: List all journal vouchers for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "GET",
 		Note:         "Returns all journal vouchers for the current user's organization and branch. Returns empty if not authenticated.",
@@ -40,7 +40,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET /journal-voucher/search: Paginated search of journal vouchers for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal vouchers for the current user's organization and branch.",
@@ -54,7 +54,7 @@ func (c *Controller) journalVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := c.core.JournalVoucherManager.PaginationWithFields(context, ctx, &core.JournalVoucher{
+		journalVouchers, err := c.core.JournalVoucherManager.NormalPagination(context, ctx, &core.JournalVoucher{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -65,7 +65,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET /journal-voucher/:journal_voucher_id: Get specific journal voucher by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher by its ID.",
@@ -84,7 +84,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// POST /journal-voucher: Create a new journal voucher. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher for the current user's organization and branch.",
@@ -211,7 +211,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// PUT /journal-voucher/:journal_voucher_id: Update journal voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher by its ID.",
@@ -375,7 +375,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// DELETE /journal-voucher/:journal_voucher_id: Delete a journal voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/journal-voucher/:journal_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified journal voucher by its ID.",
@@ -416,7 +416,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// Simplified bulk-delete handler for journal vouchers (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/journal-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -442,8 +442,11 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.JournalVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.JournalVoucherManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/journal-voucher/bulk-delete) | error: " + err.Error(),
@@ -461,7 +464,7 @@ func (c *Controller) journalVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/print
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a journal voucher as printed by ID.",
@@ -549,7 +552,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/print-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a journal voucher by ID.",
@@ -623,7 +626,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// PUT /api/v1/journal-voucher/:journal_voucher_id/approve
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a journal voucher by ID.",
@@ -697,7 +700,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/print-only
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a journal voucher as printed without additional details by ID.",
@@ -767,7 +770,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/approve-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a journal voucher by ID.",
@@ -844,7 +847,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// POST /api/v1/journal-voucher/:journal_voucher_id/release
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a journal voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
@@ -1011,7 +1014,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET POST /api/v1/journal-voucher/draft
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft journal vouchers for the current user's organization and branch.",
@@ -1035,7 +1038,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET POST /api/v1/journal-voucher/printed
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed journal vouchers for the current user's organization and branch.",
@@ -1059,7 +1062,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET POST /api/v1/journal-voucher/approved
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved journal vouchers for the current user's organization and branch.",
@@ -1089,7 +1092,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET /api/v1/journal-voucher/released
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released journal vouchers for the current user's organization and branch.",
@@ -1114,7 +1117,7 @@ func (c *Controller) journalVoucherController() {
 	})
 
 	// GET /api/v1/journal-voucher/released/today
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/released/today",
 		Method:       "GET",
 		Note:         "Fetches journal vouchers released today for the current user's organization and branch.",

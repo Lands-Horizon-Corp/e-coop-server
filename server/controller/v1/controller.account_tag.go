@@ -16,7 +16,7 @@ func (c *Controller) accountTagController() {
 	req := c.provider.Service.Request
 
 	// GET /account-tag - List current branch's account tags for the authenticated user.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "GET",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +38,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// GET /account-tag/search - Paginated search of account tags for current branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
@@ -52,7 +52,7 @@ func (c *Controller) accountTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.core.AccountTagManager.PaginationWithFields(context, ctx, &core.AccountTag{
+		accountTags, err := c.core.AccountTagManager.NormalPagination(context, ctx, &core.AccountTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -63,7 +63,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single account tag by its ID.",
@@ -82,7 +82,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// "/api/v1/account-tag/account/:account_id",
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all account tags for a specific account ID within the user's organization and branch.",
@@ -113,7 +113,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// POST /account-tag - Create new account tag.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
@@ -182,7 +182,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// PUT /account-tag/:account_tag_id - Update account tag by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
@@ -254,7 +254,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// DELETE /account-tag/:account_tag_id - Delete account tag by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-tag/:account_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified account tag by its ID.",
@@ -286,7 +286,7 @@ func (c *Controller) accountTagController() {
 	})
 
 	// DELETE /account-tag/bulk-delete - Bulk delete account tags by IDs.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account tags by IDs.",
@@ -311,7 +311,11 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
 
-		if err := c.core.AccountTagManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.AccountTagManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | error: " + err.Error(),

@@ -15,7 +15,7 @@ func (c *Controller) browseReferenceController() {
 	req := c.provider.Service.Request
 
 	// PUT /api/v1/browse-reference/:id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "PUT",
 		ResponseType: core.BrowseReferenceResponse{},
@@ -283,7 +283,7 @@ func (c *Controller) browseReferenceController() {
 	})
 
 	// GET /api/v1/browse-reference/:id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},
@@ -314,7 +314,7 @@ func (c *Controller) browseReferenceController() {
 	})
 
 	// GET /api/v1/browse-reference
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},
@@ -336,7 +336,7 @@ func (c *Controller) browseReferenceController() {
 	})
 
 	// POST /api/v1/browse-reference
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "POST",
 		ResponseType: core.BrowseReferenceResponse{},
@@ -475,7 +475,7 @@ func (c *Controller) browseReferenceController() {
 	})
 
 	// DELETE /api/v1/browse-reference/:id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/browse-reference/:browse_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a browse reference and all related interest rates.",
@@ -519,7 +519,7 @@ func (c *Controller) browseReferenceController() {
 	})
 
 	// GET /api/v1/browse-reference/by-member-type/:member_type_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
 		ResponseType: core.BrowseReferenceResponse{},

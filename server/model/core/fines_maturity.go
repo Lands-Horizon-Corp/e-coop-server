@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -78,7 +78,10 @@ func (m *Core) finesMaturity() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *FinesMaturity) *FinesMaturityResponse {
 			if data == nil {
 				return nil
@@ -103,7 +106,7 @@ func (m *Core) finesMaturity() {
 			}
 		},
 
-		Created: func(data *FinesMaturity) []string {
+		Created: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.create",
 				fmt.Sprintf("fines_maturity.create.%s", data.ID),
@@ -111,7 +114,7 @@ func (m *Core) finesMaturity() {
 				fmt.Sprintf("fines_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinesMaturity) []string {
+		Updated: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.update",
 				fmt.Sprintf("fines_maturity.update.%s", data.ID),
@@ -119,7 +122,7 @@ func (m *Core) finesMaturity() {
 				fmt.Sprintf("fines_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinesMaturity) []string {
+		Deleted: func(data *FinesMaturity) registry.Topics {
 			return []string{
 				"fines_maturity.delete",
 				fmt.Sprintf("fines_maturity.delete.%s", data.ID),

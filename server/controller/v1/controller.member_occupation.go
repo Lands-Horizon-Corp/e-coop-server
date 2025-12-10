@@ -14,7 +14,7 @@ func (c *Controller) memberOccupationController() {
 	req := c.provider.Service.Request
 
 	// Get all member occupation history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history",
 		Method:       "GET",
 		ResponseType: core.MemberOccupationHistoryResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Get member occupation history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberOccupationHistoryResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager.PaginationWithFields(context, ctx, &core.MemberOccupationHistory{
+		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager.NormalPagination(context, ctx, &core.MemberOccupationHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -60,7 +60,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Get all member occupations for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "GET",
 		ResponseType: core.MemberOccupationResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Get paginated member occupations
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/search",
 		Method:       "GET",
 		ResponseType: core.MemberOccupationResponse{},
@@ -90,7 +90,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberOccupationManager.PaginationWithFields(context, ctx, &core.MemberOccupation{
+		value, err := c.core.MemberOccupationManager.NormalPagination(context, ctx, &core.MemberOccupation{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -101,7 +101,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Create a new member occupation
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
 		ResponseType: core.MemberOccupationResponse{},
@@ -158,7 +158,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Update an existing member occupation by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
 		ResponseType: core.MemberOccupationResponse{},
@@ -225,7 +225,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Delete a member occupation by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-occupation/:member_occupation_id",
 		Method: "DELETE",
 		Note:   "Deletes a member occupation record by its ID.",
@@ -266,7 +266,7 @@ func (c *Controller) memberOccupationController() {
 	})
 
 	// Simplified bulk-delete handler for member occupations (matches feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member occupation records by their IDs.",
@@ -293,7 +293,11 @@ func (c *Controller) memberOccupationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.MemberOccupationManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberOccupationManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | error: " + err.Error(),

@@ -520,7 +520,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"application/atom+xml": ".atom", // Added: Atom Feed
 		"application/wasm":     ".wasm", // Added: WebAssembly
 	}
-	// Clean up content type (remove charset, etc.)
 	cleanContentType := strings.Split(contentType, ";")[0]
 	cleanContentType = strings.TrimSpace(cleanContentType)
 
@@ -530,7 +529,6 @@ func GetExtensionFromContentType(contentType string) string {
 	return ""
 }
 
-// --- ID Helpers ---
 func GetID[T any](entity *T) (uuid.UUID, error) {
 	v := reflect.ValueOf(entity).Elem()
 	idField := v.FieldByName("ID")
@@ -604,7 +602,6 @@ func ToReadableDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	// If time component is zero, return date only; otherwise include time
 	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
 		return t.Format("January 2, 2006")
 	}
@@ -621,12 +618,38 @@ func AddMonthsPreserveDay(t time.Time, months int) time.Time {
 	month = (month-1)%12 + 1
 
 	loc := t.Location()
-	// first day of target month
 	firstOfTarget := time.Date(year, time.Month(month), 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
-	// last day of target month
 	lastOfTarget := firstOfTarget.AddDate(0, 1, -1).Day()
 	if day > lastOfTarget {
 		day = lastOfTarget
 	}
 	return time.Date(year, time.Month(month), day, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), loc)
+}
+
+func ToPascalCase(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
+		}
+	}
+	return strings.Join(parts, "")
+}
+
+func ToSnakeCase(str string) string {
+	var result []rune
+	for i, r := range str {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result = append(result, '_')
+			}
+			result = append(result, unicode.ToLower(r))
+		} else {
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }

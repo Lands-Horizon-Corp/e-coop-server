@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -83,7 +83,10 @@ func (m *Core) journalVoucherTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *JournalVoucherTag) *JournalVoucherTagResponse {
 			if data == nil {
 				return nil
@@ -109,7 +112,7 @@ func (m *Core) journalVoucherTag() {
 			}
 		},
 
-		Created: func(data *JournalVoucherTag) []string {
+		Created: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.create",
 				fmt.Sprintf("journal_voucher_tag.create.%s", data.ID),
@@ -117,7 +120,7 @@ func (m *Core) journalVoucherTag() {
 				fmt.Sprintf("journal_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *JournalVoucherTag) []string {
+		Updated: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.update",
 				fmt.Sprintf("journal_voucher_tag.update.%s", data.ID),
@@ -125,7 +128,7 @@ func (m *Core) journalVoucherTag() {
 				fmt.Sprintf("journal_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *JournalVoucherTag) []string {
+		Deleted: func(data *JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.delete",
 				fmt.Sprintf("journal_voucher_tag.delete.%s", data.ID),

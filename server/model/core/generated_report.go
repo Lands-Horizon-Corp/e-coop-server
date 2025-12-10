@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -138,6 +139,32 @@ type (
 	}
 )
 
+func (e *GeneratedReportType) EXCEL(callback func() error) error {
+	if *e == "" {
+		*e = GeneratedReportTypeExcel
+	}
+	if *e != GeneratedReportTypeExcel {
+		return fmt.Errorf("invalid GeneratedReportType: %s, expected excel", *e)
+	}
+	return callback()
+}
+
+func (e *GeneratedReport) PDF(route string, callback func(params ...string) ([]byte, error)) ([]byte, error) {
+	if e.GeneratedReportType != GeneratedReportTypePDF {
+		return nil, nil
+	}
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](e.URL)
+	return extractor.MatchableRoute(route, callback)
+}
+
+func (e *GeneratedReport) EXCEL(route string, callback func(params ...string) ([]byte, error)) ([]byte, error) {
+	if e.GeneratedReportType != GeneratedReportTypeExcel {
+		return nil, nil
+	}
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](e.URL)
+	return extractor.MatchableRoute(route, callback)
+}
+
 func (m *Core) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
 	m.GeneratedReportManager = *registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
@@ -151,7 +178,10 @@ func (m *Core) generatedReport() {
 			"Media",
 			"DownloadUsers.User.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
 			if data == nil {
 				return nil
@@ -195,7 +225,7 @@ func (m *Core) generatedReport() {
 				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
 			}
 		},
-		Created: func(data *GeneratedReport) []string {
+		Created: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.create",
 				fmt.Sprintf("generated_report.create.%s", data.ID),
@@ -204,7 +234,7 @@ func (m *Core) generatedReport() {
 				fmt.Sprintf("generated_report.create.user.%s", data.UserID),
 			}
 		},
-		Updated: func(data *GeneratedReport) []string {
+		Updated: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.update",
 				fmt.Sprintf("generated_report.update.%s", data.ID),
@@ -213,7 +243,7 @@ func (m *Core) generatedReport() {
 				fmt.Sprintf("generated_report.update.user.%s", data.UserID),
 			}
 		},
-		Deleted: func(data *GeneratedReport) []string {
+		Deleted: func(data *GeneratedReport) registry.Topics {
 			return []string{
 				"generated_report.delete",
 				fmt.Sprintf("generated_report.delete.%s", data.ID),

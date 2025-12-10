@@ -15,7 +15,7 @@ func (c *Controller) organizationMediaController() {
 	req := c.provider.Service.Request
 
 	// GET /organization-media: List all organization media for the current user's organization. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media",
 		Method:       "GET",
 		Note:         "Returns all organization media for the current user's organization. Returns empty if not authenticated.",
@@ -34,7 +34,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// GET /organization-media/search: Paginated search of organization media for the current organization. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of organization media for the current user's organization.",
@@ -45,7 +45,7 @@ func (c *Controller) organizationMediaController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		organizationMedia, err := c.core.OrganizationMediaManager.PaginationWithFields(context, ctx, &core.OrganizationMedia{
+		organizationMedia, err := c.core.OrganizationMediaManager.NormalPagination(context, ctx, &core.OrganizationMedia{
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
@@ -55,7 +55,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// GET /organization-media/organization/:organization_id: Get all media for a specific organization by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all organization media for a specific organization by its ID.",
@@ -76,7 +76,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// GET /organization-media/:media_id: Get specific organization media by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a single organization media by its ID.",
@@ -95,7 +95,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// POST /organization-media: Create a new organization media. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media",
 		Method:       "POST",
 		Note:         "Creates a new organization media for the current user's organization.",
@@ -139,7 +139,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// PUT /organization-media/: Update organization media by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "PUT",
 		Note:         "Updates an existing organization media by its ID.",
@@ -199,7 +199,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// DELETE /organization-media/:media_id: Delete an organization media by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/organization-media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified organization media by its ID.",
@@ -242,7 +242,7 @@ func (c *Controller) organizationMediaController() {
 	})
 
 	// Simplified bulk-delete handler for organization media (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/organization-media/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple organization media by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -269,9 +269,11 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate the heavy lifting (DB transaction, validations, DeletedBy, storage cleanup if any)
-		// to the manager layer.
-		if err := c.core.OrganizationMediaManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.OrganizationMediaManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Organization media bulk delete failed (/organization-media/bulk-delete) | error: " + err.Error(),

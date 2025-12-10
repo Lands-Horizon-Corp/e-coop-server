@@ -15,7 +15,7 @@ func (c *Controller) loanTagController() {
 	req := c.provider.Service.Request
 
 	// GET /loan-tag: List all loan tags for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// GET /api/v1/loan-tag/loan-transaction/:loan_transaction_id: List loan tags by loan transaction ID for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the specified loan transaction ID within the current user's organization and branch.",
@@ -67,7 +67,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// GET /loan-tag/search: Paginated search of loan tags for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of loan tags for the current user's organization and branch.",
@@ -81,7 +81,7 @@ func (c *Controller) loanTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.core.LoanTagManager.PaginationWithFields(context, ctx, &core.LoanTag{
+		loanTags, err := c.core.LoanTagManager.NormalPagination(context, ctx, &core.LoanTag{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -92,7 +92,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// GET /loan-tag/:loan_tag_id: Get specific loan tag by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single loan tag by its ID.",
@@ -111,7 +111,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// POST /loan-tag: Create a new loan tag. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "POST",
 		Note:         "Creates a new loan tag for the current user's organization and branch.",
@@ -178,7 +178,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// PUT /loan-tag/:loan_tag_id: Update loan tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing loan tag by its ID.",
@@ -248,7 +248,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// DELETE /loan-tag/:loan_tag_id: Delete a loan tag by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-tag/:loan_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan tag by its ID.",
@@ -289,7 +289,7 @@ func (c *Controller) loanTagController() {
 	})
 
 	// Simplified bulk-delete handler for loan tags (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -316,7 +316,11 @@ func (c *Controller) loanTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.LoanTagManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.LoanTagManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-tag/bulk-delete) | error: " + err.Error(),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -80,7 +80,10 @@ func (m *Core) memberDeductionEntry() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberDeductionEntry) *MemberDeductionEntryResponse {
 			if data == nil {
 				return nil
@@ -107,7 +110,7 @@ func (m *Core) memberDeductionEntry() {
 			}
 		},
 
-		Created: func(data *MemberDeductionEntry) []string {
+		Created: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.create",
 				fmt.Sprintf("member_deduction_entry.create.%s", data.ID),
@@ -115,7 +118,7 @@ func (m *Core) memberDeductionEntry() {
 				fmt.Sprintf("member_deduction_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDeductionEntry) []string {
+		Updated: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.update",
 				fmt.Sprintf("member_deduction_entry.update.%s", data.ID),
@@ -123,7 +126,7 @@ func (m *Core) memberDeductionEntry() {
 				fmt.Sprintf("member_deduction_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDeductionEntry) []string {
+		Deleted: func(data *MemberDeductionEntry) registry.Topics {
 			return []string{
 				"member_deduction_entry.delete",
 				fmt.Sprintf("member_deduction_entry.delete.%s", data.ID),

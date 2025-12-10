@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -84,7 +84,10 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ChargesRateByRangeOrMinimumAmount) *ChargesRateByRangeOrMinimumAmountResponse {
 			if data == nil {
 				return nil
@@ -110,7 +113,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				MinimumAmount:       data.MinimumAmount,
 			}
 		},
-		Created: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Created: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.create",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Updated: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.update",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.%s", data.ID),
@@ -126,7 +129,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateByRangeOrMinimumAmount) []string {
+		Deleted: func(data *ChargesRateByRangeOrMinimumAmount) registry.Topics {
 			return []string{
 				"charges_rate_by_range_or_minimum_amount.delete",
 				fmt.Sprintf("charges_rate_by_range_or_minimum_amount.delete.%s", data.ID),

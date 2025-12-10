@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -90,7 +90,10 @@ func (m *Core) computationSheet() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ComputationSheet) *ComputationSheetResponse {
 			if data == nil {
 				return nil
@@ -118,7 +121,7 @@ func (m *Core) computationSheet() {
 				Currency:          m.CurrencyManager.ToModel(data.Currency),
 			}
 		},
-		Created: func(data *ComputationSheet) []string {
+		Created: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.create",
 				fmt.Sprintf("computation_sheet.create.%s", data.ID),
@@ -126,7 +129,7 @@ func (m *Core) computationSheet() {
 				fmt.Sprintf("computation_sheet.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ComputationSheet) []string {
+		Updated: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.update",
 				fmt.Sprintf("computation_sheet.update.%s", data.ID),
@@ -134,7 +137,7 @@ func (m *Core) computationSheet() {
 				fmt.Sprintf("computation_sheet.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ComputationSheet) []string {
+		Deleted: func(data *ComputationSheet) registry.Topics {
 			return []string{
 				"computation_sheet.delete",
 				fmt.Sprintf("computation_sheet.delete.%s", data.ID),

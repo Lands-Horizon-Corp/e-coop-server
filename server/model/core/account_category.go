@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -64,7 +64,10 @@ func (m *Core) accountCategory() {
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *AccountCategory) *AccountCategoryResponse {
 			if data == nil {
 				return nil
@@ -85,7 +88,7 @@ func (m *Core) accountCategory() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *AccountCategory) []string {
+		Created: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.create",
 				fmt.Sprintf("account_category.create.%s", data.ID),
@@ -93,7 +96,7 @@ func (m *Core) accountCategory() {
 				fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AccountCategory) []string {
+		Updated: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.update",
 				fmt.Sprintf("account_category.update.%s", data.ID),
@@ -101,7 +104,7 @@ func (m *Core) accountCategory() {
 				fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AccountCategory) []string {
+		Deleted: func(data *AccountCategory) registry.Topics {
 			return []string{
 				"account_category.delete",
 				fmt.Sprintf("account_category.delete.%s", data.ID),

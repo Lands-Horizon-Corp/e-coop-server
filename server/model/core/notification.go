@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -70,7 +70,10 @@ func (m *Core) notification() {
 	m.Migration = append(m.Migration, &Notification{})
 	m.NotificationManager = *registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
 		Preloads: []string{"Recipient", "Recipient.Media"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Notification) *NotificationResponse {
 			if data == nil {
 				return nil
@@ -90,21 +93,21 @@ func (m *Core) notification() {
 				UserType:         data.UserType,
 			}
 		},
-		Created: func(data *Notification) []string {
+		Created: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.create",
 				fmt.Sprintf("notification.create.user.%s", data.UserID),
 				fmt.Sprintf("notification.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Notification) []string {
+		Updated: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.update",
 				fmt.Sprintf("notification.update.user.%s", data.UserID),
 				fmt.Sprintf("notification.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Notification) []string {
+		Deleted: func(data *Notification) registry.Topics {
 			return []string{
 				"notification.delete",
 				fmt.Sprintf("notification.delete.user.%s", data.UserID),

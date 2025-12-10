@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -88,7 +88,10 @@ func (m *Core) financialStatementGrouping() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "IconMedia",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *FinancialStatementGrouping) *FinancialStatementGroupingResponse {
 			if data == nil {
 				return nil
@@ -122,7 +125,7 @@ func (m *Core) financialStatementGrouping() {
 				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
 			}
 		},
-		Created: func(data *FinancialStatementGrouping) []string {
+		Created: func(data *FinancialStatementGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.create",
 				fmt.Sprintf("financial_statement_grouping.create.%s", data.ID),
@@ -130,7 +133,7 @@ func (m *Core) financialStatementGrouping() {
 				fmt.Sprintf("financial_statement_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinancialStatementGrouping) []string {
+		Updated: func(data *FinancialStatementGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.update",
 				fmt.Sprintf("financial_statement_grouping.update.%s", data.ID),
@@ -138,7 +141,7 @@ func (m *Core) financialStatementGrouping() {
 				fmt.Sprintf("financial_statement_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinancialStatementGrouping) []string {
+		Deleted: func(data *FinancialStatementGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.delete",
 				fmt.Sprintf("financial_statement_grouping.delete.%s", data.ID),
@@ -242,14 +245,14 @@ func (m *Core) FinancialStatementGroupingAlignments(context context.Context, org
 	for _, grouping := range fsGroupings {
 		if grouping != nil {
 			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
-			entries, err := m.FinancialStatementDefinitionManager.FindWithSQL(context,
+			entries, err := m.FinancialStatementDefinitionManager.ArrFind(context,
 				[]registry.FilterSQL{
-					{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-					{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-					{Field: "financial_statement_grouping_id", Op: registry.OpEq, Value: grouping.ID},
+					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+					{Field: "financial_statement_grouping_id", Op: query.ModeEqual, Value: grouping.ID},
 				},
-				[]registry.FilterSortSQL{
-					{Field: "created_at", Order: filter.SortOrderAsc},
+				[]query.ArrFilterSortSQL{
+					{Field: "created_at", Order: query.SortOrderAsc},
 				},
 			)
 			if err != nil {

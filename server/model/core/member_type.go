@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -80,7 +80,10 @@ func (m *Core) memberType() {
 			"BrowseReferences.Account",
 			"BrowseReferences.MemberType",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberType) *MemberTypeResponse {
 			if data == nil {
 				return nil
@@ -105,7 +108,7 @@ func (m *Core) memberType() {
 			}
 		},
 
-		Created: func(data *MemberType) []string {
+		Created: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.create",
 				fmt.Sprintf("member_type.create.%s", data.ID),
@@ -113,7 +116,7 @@ func (m *Core) memberType() {
 				fmt.Sprintf("member_type.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberType) []string {
+		Updated: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.update",
 				fmt.Sprintf("member_type.update.%s", data.ID),
@@ -121,7 +124,7 @@ func (m *Core) memberType() {
 				fmt.Sprintf("member_type.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberType) []string {
+		Deleted: func(data *MemberType) registry.Topics {
 			return []string{
 				"member_type.delete",
 				fmt.Sprintf("member_type.delete.%s", data.ID),

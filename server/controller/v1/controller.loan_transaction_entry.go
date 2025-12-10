@@ -15,7 +15,7 @@ func (c *Controller) loanTransactionEntryController() {
 	req := c.provider.Service.Request
 
 	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
 		Method:       "POST",
 		Note:         "Adds a deduction to a loan transaction by ID.",
@@ -102,7 +102,7 @@ func (c *Controller) loanTransactionEntryController() {
 	})
 
 	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
 		Note:         "Adds a deduction to a loan transaction by ID.",
@@ -192,7 +192,7 @@ func (c *Controller) loanTransactionEntryController() {
 	})
 
 	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id",
 		Method: "DELETE",
 		Note:   "Deletes a loan transaction entry by ID.",
@@ -256,7 +256,7 @@ func (c *Controller) loanTransactionEntryController() {
 	})
 
 	// PUT /api/v1/loan-transaction-entry/:loan_transaction_entry_id/restore
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/restore",
 		Method: "PUT",
 		Note:   "Restores a deleted automatic loan deduction entry by ID.",

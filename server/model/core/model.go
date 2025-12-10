@@ -3,8 +3,8 @@ package core
 import (
 	"context"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -182,7 +182,6 @@ type (
 		GroceryComputationSheetManager        registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest]
 		GroceryComputationSheetMonthlyManager registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest]
 		InterestRateSchemeManager             registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest]
-		InterestRateByTermsHeaderManager      registry.Registry[InterestRateByTermsHeader, InterestRateByTermsHeaderResponse, InterestRateByTermsHeaderRequest]
 		InterestRateByTermManager             registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest]
 		InterestRatePercentageManager         registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest]
 
@@ -292,7 +291,6 @@ func (m *Core) Start() error {
 	m.interestRateByYear()
 	m.interestRateByDate()
 	m.interestRateByAmount()
-	m.interestRateByTermsHeader()
 	m.interestRatePercentage()
 	m.interestRateScheme()
 	m.invitationCode()
@@ -383,6 +381,7 @@ func (m *Core) Start() error {
 	m.mutualFundEntry()
 	return nil
 }
+
 func (m *Core) GlobalSeeder(ctx context.Context) error {
 	if err := m.currencySeed(ctx); err != nil {
 		return err

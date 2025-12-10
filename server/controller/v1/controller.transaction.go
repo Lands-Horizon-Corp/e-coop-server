@@ -14,7 +14,7 @@ func (c *Controller) transactionController() {
 	req := c.provider.Service.Request
 
 	// Create transaction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",
 		RequestType:  core.TransactionRequest{},
@@ -113,7 +113,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusCreated, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "PUT",
 		RequestType:  core.TransactionRequestEdit{},
@@ -187,7 +187,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -212,7 +212,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/current/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -225,21 +225,24 @@ func (c *Controller) transactionController() {
 				"error": "Failed to get user organization: " + err.Error(),
 			})
 		}
-
-		transactions, err := c.core.TransactionsByUserType(
-			context,
-			userOrg.UserID,
-			userOrg.UserType,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-		)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"error": "Failed to retrieve transactions: " + err.Error(),
+		var filter core.Transaction
+		if userOrg.UserType == core.UserOrganizationTypeMember {
+			memberProfile, err := c.core.MemberProfileManager.FindOne(context, &core.MemberProfile{
+				UserID: &userOrg.UserID,
 			})
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Failed to retrieve transactions: " + err.Error(),
+				})
+			}
+			filter.MemberProfileID = &memberProfile.ID
+		} else {
+			filter.EmployeeUserID = &userOrg.UserID
 		}
 
-		transactionPagination, err := c.core.TransactionManager.PaginationData(context, ctx, transactions)
+		filter.OrganizationID = userOrg.OrganizationID
+		filter.BranchID = *userOrg.BranchID
+		transactionPagination, err := c.core.TransactionManager.NormalPagination(context, ctx, &filter)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Failed to paginate transactions: " + err.Error(),
@@ -248,7 +251,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactionPagination)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/current",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -287,7 +290,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -309,7 +312,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -320,7 +323,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -353,7 +356,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/branch/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -367,7 +370,7 @@ func (c *Controller) transactionController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -377,7 +380,7 @@ func (c *Controller) transactionController() {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionResponse{},
@@ -392,7 +395,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.PaginationWithFields(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

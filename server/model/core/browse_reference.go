@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -134,7 +135,10 @@ func (m *Core) browseReference() {
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "Account", "Account.Currency",
 			"MemberType", "InterestRatesByYear", "InterestRatesByDate", "InterestRatesByAmount",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BrowseReference) *BrowseReferenceResponse {
 			if data == nil {
 				return nil
@@ -170,7 +174,7 @@ func (m *Core) browseReference() {
 			}
 		},
 
-		Created: func(data *BrowseReference) []string {
+		Created: func(data *BrowseReference) registry.Topics {
 			return []string{
 				"browse_reference.create",
 				fmt.Sprintf("browse_reference.create.%s", data.ID),
@@ -178,7 +182,7 @@ func (m *Core) browseReference() {
 				fmt.Sprintf("browse_reference.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BrowseReference) []string {
+		Updated: func(data *BrowseReference) registry.Topics {
 			return []string{
 				"browse_reference.update",
 				fmt.Sprintf("browse_reference.update.%s", data.ID),
@@ -186,7 +190,7 @@ func (m *Core) browseReference() {
 				fmt.Sprintf("browse_reference.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BrowseReference) []string {
+		Deleted: func(data *BrowseReference) registry.Topics {
 			return []string{
 				"browse_reference.delete",
 				fmt.Sprintf("browse_reference.delete.%s", data.ID),
@@ -200,55 +204,55 @@ func (m *Core) browseReference() {
 // BrowseReferenceCurrentBranch retrieves browse references for the specified branch and organization
 func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 // BrowseReferenceByMemberType retrieves browse references for a specific member type
 func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "member_type_id", Op: registry.OpEq, Value: memberTypeID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 // BrowseReferenceByInterestType retrieves browse references by interest type
 func (m *Core) BrowseReferenceByInterestType(context context.Context, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "interest_type", Op: registry.OpEq, Value: string(interestType)},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "interest_type", Op: query.ModeEqual, Value: string(interestType)},
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
 func (m *Core) BrowseReferenceByField(
 	context context.Context, organizationID, branchID uuid.UUID, accountID, memberTypeID *uuid.UUID,
 ) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	// Add filters based on provided parameters
 	if memberTypeID != nil {
 		filters = append(filters, registry.FilterSQL{
-			Field: "member_type_id", Op: registry.OpEq, Value: *memberTypeID,
+			Field: "member_type_id", Op: query.ModeEqual, Value: *memberTypeID,
 		})
 	}
 
 	if accountID != nil {
 		filters = append(filters, registry.FilterSQL{
-			Field: "account_id", Op: registry.OpEq, Value: *accountID,
+			Field: "account_id", Op: query.ModeEqual, Value: *accountID,
 		})
 	}
 
-	return m.BrowseReferenceManager.FindWithSQL(context, filters, nil)
+	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }

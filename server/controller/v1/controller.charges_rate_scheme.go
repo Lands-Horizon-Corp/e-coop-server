@@ -15,7 +15,7 @@ func (c *Controller) chargesRateSchemeController() {
 	req := c.provider.Service.Request
 
 	// GET /charges-rate-scheme: Paginated list of charges rate schemes for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "GET",
 		Note:         "Returns a paginated list of charges rate schemes for the current user's organization and branch.",
@@ -37,7 +37,7 @@ func (c *Controller) chargesRateSchemeController() {
 	})
 
 	// GET	 /api/v1/charges-rate-scheme/currency/:currency_id: Get charges rate schemes by currency ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Returns a list of charges rate schemes for a specific currency.",
@@ -67,7 +67,7 @@ func (c *Controller) chargesRateSchemeController() {
 	})
 
 	// GET /charges-rate-scheme/:charges_rate_scheme_id: Get specific charges rate scheme by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "GET",
 		Note:         "Returns a single charges rate scheme by its ID.",
@@ -86,7 +86,7 @@ func (c *Controller) chargesRateSchemeController() {
 	})
 
 	// POST /charges-rate-scheme: Create a new charges rate scheme. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme for the current user's organization and branch.",
@@ -225,7 +225,7 @@ func (c *Controller) chargesRateSchemeController() {
 	})
 
 	// PUT /charges-rate-scheme/:charges_rate_scheme_id: Update charges rate scheme by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme by its ID.",
@@ -654,7 +654,7 @@ func (c *Controller) chargesRateSchemeController() {
 	})
 
 	// DELETE /charges-rate-scheme/:charges_rate_scheme_id: Delete a charges rate scheme by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate scheme by its ID.",
@@ -694,7 +694,7 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/charges-rate-scheme/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate schemes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -718,8 +718,11 @@ func (c *Controller) chargesRateSchemeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate scheme IDs provided for bulk delete"})
 		}
-
-		if err := c.core.ChargesRateSchemeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.ChargesRateSchemeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | error: " + err.Error(),

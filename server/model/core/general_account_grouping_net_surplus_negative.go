@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -83,7 +83,10 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *GeneralAccountGroupingNetSurplusNegative) *GeneralAccountGroupingNetSurplusNegativeResponse {
 			if data == nil {
 				return nil
@@ -108,7 +111,7 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 				Percentage2:    data.Percentage2,
 			}
 		},
-		Created: func(data *GeneralAccountGroupingNetSurplusNegative) []string {
+		Created: func(data *GeneralAccountGroupingNetSurplusNegative) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_negative.create",
 				fmt.Sprintf("general_account_grouping_net_surplus_negative.create.%s", data.ID),
@@ -116,7 +119,7 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 				fmt.Sprintf("general_account_grouping_net_surplus_negative.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralAccountGroupingNetSurplusNegative) []string {
+		Updated: func(data *GeneralAccountGroupingNetSurplusNegative) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_negative.update",
 				fmt.Sprintf("general_account_grouping_net_surplus_negative.update.%s", data.ID),
@@ -124,7 +127,7 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 				fmt.Sprintf("general_account_grouping_net_surplus_negative.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralAccountGroupingNetSurplusNegative) []string {
+		Deleted: func(data *GeneralAccountGroupingNetSurplusNegative) registry.Topics {
 			return []string{
 				"general_account_grouping_net_surplus_negative.delete",
 				fmt.Sprintf("general_account_grouping_net_surplus_negative.delete.%s", data.ID),

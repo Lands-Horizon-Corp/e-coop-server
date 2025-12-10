@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -70,7 +70,10 @@ func (m *Core) memberCloseRemark() {
 	m.Migration = append(m.Migration, &MemberCloseRemark{})
 	m.MemberCloseRemarkManager = *registry.NewRegistry(registry.RegistryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberCloseRemark) *MemberCloseRemarkResponse {
 			if data == nil {
 				return nil
@@ -94,7 +97,7 @@ func (m *Core) memberCloseRemark() {
 			}
 		},
 
-		Created: func(data *MemberCloseRemark) []string {
+		Created: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.create",
 				fmt.Sprintf("member_close_remark.create.%s", data.ID),
@@ -102,7 +105,7 @@ func (m *Core) memberCloseRemark() {
 				fmt.Sprintf("member_close_remark.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberCloseRemark) []string {
+		Updated: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.update",
 				fmt.Sprintf("member_close_remark.update.%s", data.ID),
@@ -110,7 +113,7 @@ func (m *Core) memberCloseRemark() {
 				fmt.Sprintf("member_close_remark.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberCloseRemark) []string {
+		Deleted: func(data *MemberCloseRemark) registry.Topics {
 			return []string{
 				"member_close_remark.delete",
 				fmt.Sprintf("member_close_remark.delete.%s", data.ID),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -77,7 +77,10 @@ func (m *Core) memberIncome() {
 	m.Migration = append(m.Migration, &MemberIncome{})
 	m.MemberIncomeManager = *registry.NewRegistry(registry.RegistryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberIncome) *MemberIncomeResponse {
 			if data == nil {
 				return nil
@@ -110,7 +113,7 @@ func (m *Core) memberIncome() {
 			}
 		},
 
-		Created: func(data *MemberIncome) []string {
+		Created: func(data *MemberIncome) registry.Topics {
 			return []string{
 				"member_income.create",
 				fmt.Sprintf("member_income.create.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) memberIncome() {
 				fmt.Sprintf("member_income.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberIncome) []string {
+		Updated: func(data *MemberIncome) registry.Topics {
 			return []string{
 				"member_income.update",
 				fmt.Sprintf("member_income.update.%s", data.ID),
@@ -126,7 +129,7 @@ func (m *Core) memberIncome() {
 				fmt.Sprintf("member_income.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberIncome) []string {
+		Deleted: func(data *MemberIncome) registry.Topics {
 			return []string{
 				"member_income.delete",
 				fmt.Sprintf("member_income.delete.%s", data.ID),

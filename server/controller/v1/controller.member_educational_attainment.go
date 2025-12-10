@@ -14,7 +14,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	req := c.provider.Service.Request
 
 	// Create a new educational attainment record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  core.MemberEducationalAttainmentRequest{},
@@ -84,7 +84,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Update an existing educational attainment record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
 		RequestType:  core.MemberEducationalAttainmentRequest{},
@@ -158,7 +158,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Delete an educational attainment record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's educational attainment record by its ID.",
@@ -199,7 +199,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 	})
 
 	// Simplified bulk-delete handler for member educational attainments (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple educational attainment records by their IDs.",
@@ -226,8 +226,11 @@ func (c *Controller) memberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactionality, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberEducationalAttainmentManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberEducationalAttainmentManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | error: " + err.Error(),

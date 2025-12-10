@@ -15,7 +15,7 @@ func (c *Controller) footstepController() {
 	req := c.provider.Service.Request
 
 	// POST /footstep: Create a new footstep. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep",
 		Method:       "POST",
 		Note:         "Creates a new footstep record for the current user's organization and branch.",
@@ -90,7 +90,7 @@ func (c *Controller) footstepController() {
 	})
 
 	// GET /footstep/me: Get all footsteps for the currently logged-in user.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/me/search",
 		Method:       "GET",
 		ResponseType: core.FootstepResponse{},
@@ -101,7 +101,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			UserID: &user.ID,
 		})
 		if err != nil {
@@ -110,7 +110,7 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusOK, footstep)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.FootstepResponse{},
@@ -135,7 +135,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			UserID:         &userOrg.UserID,
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
@@ -147,7 +147,7 @@ func (c *Controller) footstepController() {
 	})
 
 	// GET /footstep/branch: Get all footsteps for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/footstep/branch/search",
 		Method: "GET",
 		Note:   "Returns all footsteps for the current user's organization and branch.",
@@ -157,7 +157,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 		})
@@ -168,7 +168,7 @@ func (c *Controller) footstepController() {
 	})
 
 	// GET /footstep/user-organization/:user_organization_id/search: Get footsteps for a user organization on the current branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/user-organization/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.FootstepResponse{},
@@ -185,7 +185,7 @@ func (c *Controller) footstepController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       targetUserOrg.BranchID,
 			OrganizationID: &targetUserOrg.OrganizationID,
 			UserID:         &targetUserOrg.UserID,
@@ -197,7 +197,7 @@ func (c *Controller) footstepController() {
 	})
 
 	// GET /footstep/:footstep_id: Get a specific footstep by ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/:footstep_id",
 		Method:       "GET",
 		Note:         "Returns a specific footstep record by its ID.",
@@ -215,7 +215,7 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusOK, footstep)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/current/me/branch/search",
 		Method:       "GET",
 		Note:         "Returns footsteps for the currently authenticated user on their current branch.",
@@ -230,7 +230,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.PaginationWithFields(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 			UserID:         &userOrg.UserID,

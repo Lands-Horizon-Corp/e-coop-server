@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -234,7 +234,10 @@ func (m *Core) branchSetting() {
 			"UnbalancedAccounts.MemberProfileForShortage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
 			if data == nil {
 				return nil
@@ -297,21 +300,21 @@ func (m *Core) branchSetting() {
 				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
 			}
 		},
-		Created: func(data *BranchSetting) []string {
+		Created: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.create",
 				fmt.Sprintf("branch_setting.create.%s", data.ID),
 				fmt.Sprintf("branch_setting.create.branch.%s", data.BranchID),
 			}
 		},
-		Updated: func(data *BranchSetting) []string {
+		Updated: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.update",
 				fmt.Sprintf("branch_setting.update.%s", data.ID),
 				fmt.Sprintf("branch_setting.update.branch.%s", data.BranchID),
 			}
 		},
-		Deleted: func(data *BranchSetting) []string {
+		Deleted: func(data *BranchSetting) registry.Topics {
 			return []string{
 				"branch_setting.delete",
 				fmt.Sprintf("branch_setting.delete.%s", data.ID),

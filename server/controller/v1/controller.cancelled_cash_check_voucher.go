@@ -15,7 +15,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	req := c.provider.Service.Request
 
 	// GET /cancelled-cash-check-voucher: List all cancelled cash check vouchers for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cancelled cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	})
 
 	// GET /cancelled-cash-check-voucher/search: Paginated search of cancelled cash check vouchers for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cancelled cash check vouchers for the current user's organization and branch.",
@@ -51,7 +51,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.PaginationWithFields(context, ctx, &core.CancelledCashCheckVoucher{
+		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.NormalPagination(context, ctx, &core.CancelledCashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -62,7 +62,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	})
 
 	// GET /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Get specific cancelled cash check voucher by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cancelled cash check voucher by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	})
 
 	// POST /cancelled-cash-check-voucher: Create a new cancelled cash check voucher. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cancelled cash check voucher for the current user's organization and branch.",
@@ -145,7 +145,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	})
 
 	// PUT /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Update cancelled cash check voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cancelled cash check voucher by its ID.",
@@ -212,7 +212,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 	})
 
 	// DELETE /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Delete a cancelled cash check voucher by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified cancelled cash check voucher by its ID.",
@@ -252,7 +252,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/cancelled-cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cancelled cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -276,8 +276,11 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No cancelled cash check voucher IDs provided for bulk delete"})
 		}
-
-		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | error: " + err.Error(),

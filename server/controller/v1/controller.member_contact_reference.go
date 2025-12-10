@@ -14,7 +14,7 @@ func (c *Controller) memberContactReferenceController() {
 	req := c.provider.Service.Request
 
 	// Create a new contact reference for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-contact-reference/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: core.MemberContactReferenceResponse{},
@@ -82,7 +82,7 @@ func (c *Controller) memberContactReferenceController() {
 	})
 
 	// Update an existing contact reference by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method:       "PUT",
 		ResponseType: core.MemberContactReferenceResponse{},
@@ -153,7 +153,7 @@ func (c *Controller) memberContactReferenceController() {
 	})
 
 	// Delete a contact reference by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a contact reference entry by its ID.",

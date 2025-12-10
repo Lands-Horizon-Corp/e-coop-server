@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -76,7 +76,10 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanClearanceAnalysisInstitution) *LoanClearanceAnalysisInstitutionResponse {
 			if data == nil {
 				return nil
@@ -100,7 +103,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 			}
 		},
 
-		Created: func(data *LoanClearanceAnalysisInstitution) []string {
+		Created: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.create",
 				fmt.Sprintf("loan_clearance_analysis_institution.create.%s", data.ID),
@@ -108,7 +111,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 				fmt.Sprintf("loan_clearance_analysis_institution.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanClearanceAnalysisInstitution) []string {
+		Updated: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.update",
 				fmt.Sprintf("loan_clearance_analysis_institution.update.%s", data.ID),
@@ -116,7 +119,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 				fmt.Sprintf("loan_clearance_analysis_institution.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanClearanceAnalysisInstitution) []string {
+		Deleted: func(data *LoanClearanceAnalysisInstitution) registry.Topics {
 			return []string{
 				"loan_clearance_analysis_institution.delete",
 				fmt.Sprintf("loan_clearance_analysis_institution.delete.%s", data.ID),

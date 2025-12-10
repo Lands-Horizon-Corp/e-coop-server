@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -92,7 +92,10 @@ func (m *Core) organizationDailyUsage() {
 	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
 	m.OrganizationDailyUsageManager = *registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
 			if data == nil {
 				return nil
@@ -123,21 +126,21 @@ func (m *Core) organizationDailyUsage() {
 			}
 		},
 
-		Created: func(data *OrganizationDailyUsage) []string {
+		Created: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.create",
 				fmt.Sprintf("organization_daily_usage.create.%s", data.ID),
 				fmt.Sprintf("organization_daily_usage.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *OrganizationDailyUsage) []string {
+		Updated: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.update",
 				fmt.Sprintf("organization_daily_usage.update.%s", data.ID),
 				fmt.Sprintf("organization_daily_usage.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *OrganizationDailyUsage) []string {
+		Deleted: func(data *OrganizationDailyUsage) registry.Topics {
 			return []string{
 				"organization_daily_usage.delete",
 				fmt.Sprintf("organization_daily_usage.delete.%s", data.ID),

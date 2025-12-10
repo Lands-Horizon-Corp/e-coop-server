@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -154,7 +154,10 @@ func (m *Core) adjustmentEntry() {
 			"LoanTransaction",
 			"Account.Currency",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *AdjustmentEntry) *AdjustmentEntryResponse {
 			if data == nil {
 				return nil
@@ -199,7 +202,7 @@ func (m *Core) adjustmentEntry() {
 				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
 			}
 		},
-		Created: func(data *AdjustmentEntry) []string {
+		Created: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.create",
 				fmt.Sprintf("adjustment_entry.create.%s", data.ID),
@@ -207,7 +210,7 @@ func (m *Core) adjustmentEntry() {
 				fmt.Sprintf("adjustment_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AdjustmentEntry) []string {
+		Updated: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.update",
 				fmt.Sprintf("adjustment_entry.update.%s", data.ID),
@@ -215,7 +218,7 @@ func (m *Core) adjustmentEntry() {
 				fmt.Sprintf("adjustment_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AdjustmentEntry) []string {
+		Deleted: func(data *AdjustmentEntry) registry.Topics {
 			return []string{
 				"adjustment_entry.delete",
 				fmt.Sprintf("adjustment_entry.delete.%s", data.ID),

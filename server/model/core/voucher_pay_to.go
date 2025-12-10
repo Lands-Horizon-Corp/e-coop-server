@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,10 @@ func (m *Core) voucherPayTo() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *VoucherPayTo) *VoucherPayToResponse {
 			if data == nil {
 				return nil
@@ -94,7 +97,7 @@ func (m *Core) voucherPayTo() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *VoucherPayTo) []string {
+		Created: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.create",
 				fmt.Sprintf("voucher_pay_to.create.%s", data.ID),
@@ -102,7 +105,7 @@ func (m *Core) voucherPayTo() {
 				fmt.Sprintf("voucher_pay_to.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *VoucherPayTo) []string {
+		Updated: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.update",
 				fmt.Sprintf("voucher_pay_to.update.%s", data.ID),
@@ -110,7 +113,7 @@ func (m *Core) voucherPayTo() {
 				fmt.Sprintf("voucher_pay_to.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *VoucherPayTo) []string {
+		Deleted: func(data *VoucherPayTo) registry.Topics {
 			return []string{
 				"voucher_pay_to.delete",
 				fmt.Sprintf("voucher_pay_to.delete.%s", data.ID),

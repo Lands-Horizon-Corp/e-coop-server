@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -83,7 +83,10 @@ func (m *Core) cashCheckVoucherTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *CashCheckVoucherTag) *CashCheckVoucherTagResponse {
 			if data == nil {
 				return nil
@@ -108,7 +111,7 @@ func (m *Core) cashCheckVoucherTag() {
 				Icon:               data.Icon,
 			}
 		},
-		Created: func(data *CashCheckVoucherTag) []string {
+		Created: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.create.%s", data.ID),
@@ -116,7 +119,7 @@ func (m *Core) cashCheckVoucherTag() {
 				fmt.Sprintf("cash_check_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *CashCheckVoucherTag) []string {
+		Updated: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.update.%s", data.ID),
@@ -124,7 +127,7 @@ func (m *Core) cashCheckVoucherTag() {
 				fmt.Sprintf("cash_check_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *CashCheckVoucherTag) []string {
+		Deleted: func(data *CashCheckVoucherTag) registry.Topics {
 			return []string{
 				"cash_check_voucher_tag.create",
 				fmt.Sprintf("cash_check_voucher_tag.delete.%s", data.ID),

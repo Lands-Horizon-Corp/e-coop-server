@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -99,7 +99,10 @@ func (m *Core) tagTemplate() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TagTemplate) *TagTemplateResponse {
 			if data == nil {
 				return nil
@@ -124,7 +127,7 @@ func (m *Core) tagTemplate() {
 			}
 		},
 
-		Created: func(data *TagTemplate) []string {
+		Created: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.create",
 				fmt.Sprintf("tag_template.create.%s", data.ID),
@@ -132,7 +135,7 @@ func (m *Core) tagTemplate() {
 				fmt.Sprintf("tag_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TagTemplate) []string {
+		Updated: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.update",
 				fmt.Sprintf("tag_template.update.%s", data.ID),
@@ -140,7 +143,7 @@ func (m *Core) tagTemplate() {
 				fmt.Sprintf("tag_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TagTemplate) []string {
+		Deleted: func(data *TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.delete",
 				fmt.Sprintf("tag_template.delete.%s", data.ID),

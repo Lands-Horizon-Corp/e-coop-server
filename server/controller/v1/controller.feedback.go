@@ -15,7 +15,7 @@ func (c *Controller) feedbackController() {
 	req := c.provider.Service.Request
 
 	// GET /feedback: List all feedback records. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "GET",
 		Note:         "Returns all feedback records in the system.",
@@ -30,7 +30,7 @@ func (c *Controller) feedbackController() {
 	})
 
 	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback/:feedback_id",
 		Method:       "GET",
 		Note:         "Returns a single feedback record by its ID.",
@@ -51,7 +51,7 @@ func (c *Controller) feedbackController() {
 	})
 
 	// POST /feedback: Create a new feedback record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
@@ -97,7 +97,7 @@ func (c *Controller) feedbackController() {
 	})
 
 	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/feedback/:feedback_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified feedback record by its ID.",
@@ -141,7 +141,7 @@ func (c *Controller) feedbackController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -168,7 +168,11 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.FeedbackManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.FeedbackManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),

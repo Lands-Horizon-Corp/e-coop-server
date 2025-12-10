@@ -14,7 +14,7 @@ func (c *Controller) memberGroupController() {
 	req := c.provider.Service.Request
 
 	// Get all member group history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
 		ResponseType: core.MemberGroupHistoryResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get member group history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberGroupHistoryResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.core.MemberGroupHistoryManager.PaginationWithFields(context, ctx, &core.MemberGroupHistory{
+		memberGroupHistory, err := c.core.MemberGroupHistoryManager.NormalPagination(context, ctx, &core.MemberGroupHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -60,7 +60,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get all member groups for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
 		ResponseType: core.MemberGroupResponse{},
@@ -82,7 +82,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Get paginated member groups
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
 		RequestType:  core.MemberGroupRequest{},
@@ -94,7 +94,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := c.core.MemberGroupManager.PaginationWithFields(context, ctx, &core.MemberGroup{
+		memberGroup, err := c.core.MemberGroupManager.NormalPagination(context, ctx, &core.MemberGroup{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -105,7 +105,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Create a new member group
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
 		ResponseType: core.MemberGroupResponse{},
@@ -162,7 +162,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Update an existing member group by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
 		ResponseType: core.MemberGroupResponse{},
@@ -229,7 +229,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Delete a member group by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-group/:member_group_id",
 		Method: "DELETE",
 		Note:   "Deletes a member group record by its ID.",
@@ -270,7 +270,7 @@ func (c *Controller) memberGroupController() {
 	})
 
 	// Simplified bulk-delete handler for member groups (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-group/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member group records by their IDs.",
@@ -297,8 +297,11 @@ func (c *Controller) memberGroupController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.MemberGroupManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberGroupManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | error: " + err.Error(),

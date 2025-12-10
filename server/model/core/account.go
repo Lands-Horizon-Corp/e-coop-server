@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -527,7 +527,10 @@ func (m *Core) account() {
 			"AccountTags", "ComputationSheet", "Currency",
 			"DefaultPaymentType", "LoanAccount",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Account) *AccountResponse {
 			if data == nil {
 				return nil
@@ -638,7 +641,7 @@ func (m *Core) account() {
 				IsTaxable:                   data.IsTaxable,
 			}
 		},
-		Created: func(data *Account) []string {
+		Created: func(data *Account) registry.Topics {
 			return []string{
 				"account.create",
 				fmt.Sprintf("account.create.%s", data.ID),
@@ -646,7 +649,7 @@ func (m *Core) account() {
 				fmt.Sprintf("account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Account) []string {
+		Updated: func(data *Account) registry.Topics {
 			return []string{
 				"account.update",
 				fmt.Sprintf("account.update.%s", data.ID),
@@ -654,7 +657,7 @@ func (m *Core) account() {
 				fmt.Sprintf("account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Account) []string {
+		Deleted: func(data *Account) registry.Topics {
 			return []string{
 				"account.delete",
 				fmt.Sprintf("account.delete.%s", data.ID),
@@ -3990,42 +3993,42 @@ func (m *Core) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accou
 // LoanAccounts retrieves all loan accounts for a given organization and branch.
 func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // FindAccountsByTypesAndBranch finds all accounts with specified branch, organization and account types (Fines, Interest, or SVFLedger)
 func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "currency_id", Op: registry.OpEq, Value: currencyID},
-		{Field: "type", Op: registry.OpIn, Value: []AccountType{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
+		{Field: "type", Op: query.ModeInside, Value: []AccountType{
 			AccountTypeFines,
 			AccountTypeInterest,
 			AccountTypeSVFLedger,
 		}},
 	}
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // FindAccountsBySpecificType finds all accounts with specified branch, organization and a single account type
 func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "type", Op: registry.OpEq, Value: accountType},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "type", Op: query.ModeEqual, Value: accountType},
 	}
 
-	return m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -4033,13 +4036,13 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "loan_account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "loan_account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	accounts, err := m.AccountManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	accounts, err := m.AccountManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
 		return nil, err
@@ -4056,8 +4059,8 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 // Returns an error if any of these conditions are met, preventing deletion.
 func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
 	// Check if account has any general ledger entries
-	hasEntries, err := m.GeneralLedgerManager.Exists(ctx, []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+	hasEntries, err := m.GeneralLedgerManager.ArrExists(ctx, []registry.FilterSQL{
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {
 		return eris.Wrap(err, "failed to check general ledger entries for account")
@@ -4127,7 +4130,7 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 // by checking for existing general ledger entries, including soft-deleted ones.
 func (m *Core) AccountDeleteCheckIncludingDeleted(ctx context.Context, accountID uuid.UUID) error {
 	hasEntries, err := m.GeneralLedgerManager.ExistsIncludingDeleted(ctx, []registry.FilterSQL{
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {
 		return eris.Wrap(err, "failed to check general ledger entries for account")

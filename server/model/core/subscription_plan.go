@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -113,7 +113,10 @@ func (m *Core) subscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
 	m.SubscriptionPlanManager = *registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
 			if sp == nil {
 				return nil
@@ -174,19 +177,19 @@ func (m *Core) subscriptionPlan() {
 			}
 		},
 
-		Created: func(data *SubscriptionPlan) []string {
+		Created: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.create",
 				fmt.Sprintf("subscription_plan.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *SubscriptionPlan) []string {
+		Updated: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.update",
 				fmt.Sprintf("subscription_plan.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *SubscriptionPlan) []string {
+		Deleted: func(data *SubscriptionPlan) registry.Topics {
 			return []string{
 				"subscription_plan.delete",
 				fmt.Sprintf("subscription_plan.delete.%s", data.ID),

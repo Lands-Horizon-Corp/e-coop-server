@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -118,7 +118,10 @@ func (m *Core) financialStatementDefinition() {
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *FinancialStatementDefinition) *FinancialStatementDefinitionResponse {
 			if data == nil {
 				return nil
@@ -151,7 +154,7 @@ func (m *Core) financialStatementDefinition() {
 				FinancialStatementType: data.FinancialStatementType,
 			}
 		},
-		Created: func(data *FinancialStatementDefinition) []string {
+		Created: func(data *FinancialStatementDefinition) registry.Topics {
 			return []string{
 				"financial_statement_definition.create",
 				fmt.Sprintf("financial_statement_definition.create.%s", data.ID),
@@ -159,7 +162,7 @@ func (m *Core) financialStatementDefinition() {
 				fmt.Sprintf("financial_statement_definition.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinancialStatementDefinition) []string {
+		Updated: func(data *FinancialStatementDefinition) registry.Topics {
 			return []string{
 				"financial_statement_definition.update",
 				fmt.Sprintf("financial_statement_definition.update.%s", data.ID),
@@ -167,7 +170,7 @@ func (m *Core) financialStatementDefinition() {
 				fmt.Sprintf("financial_statement_definition.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinancialStatementDefinition) []string {
+		Deleted: func(data *FinancialStatementDefinition) registry.Topics {
 			return []string{
 				"financial_statement_definition.delete",
 				fmt.Sprintf("financial_statement_definition.delete.%s", data.ID),

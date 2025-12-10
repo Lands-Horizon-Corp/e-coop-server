@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -84,7 +84,10 @@ func (m *Core) adjustmentTag() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "AdjustmentEntry",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *AdjustmentTag) *AdjustmentTagResponse {
 			if data == nil {
 				return nil
@@ -110,7 +113,7 @@ func (m *Core) adjustmentTag() {
 				Icon:              data.Icon,
 			}
 		},
-		Created: func(data *AdjustmentTag) []string {
+		Created: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.create",
 				fmt.Sprintf("adjustment_entry_tag.create.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) adjustmentTag() {
 				fmt.Sprintf("adjustment_entry_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *AdjustmentTag) []string {
+		Updated: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.update",
 				fmt.Sprintf("adjustment_entry_tag.update.%s", data.ID),
@@ -126,7 +129,7 @@ func (m *Core) adjustmentTag() {
 				fmt.Sprintf("adjustment_entry_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *AdjustmentTag) []string {
+		Deleted: func(data *AdjustmentTag) registry.Topics {
 			return []string{
 				"adjustment_entry_tag.delete",
 				fmt.Sprintf("adjustment_entry_tag.delete.%s", data.ID),

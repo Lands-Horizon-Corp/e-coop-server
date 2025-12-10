@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -87,7 +87,10 @@ func (m *Core) comakerMemberProfile() {
 	m.Migration = append(m.Migration, &ComakerMemberProfile{})
 	m.ComakerMemberProfileManager = *registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *ComakerMemberProfile) *ComakerMemberProfileResponse {
 			if data == nil {
 				return nil
@@ -114,7 +117,7 @@ func (m *Core) comakerMemberProfile() {
 				YearCount:         data.YearCount,
 			}
 		},
-		Created: func(data *ComakerMemberProfile) []string {
+		Created: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.create",
 				fmt.Sprintf("comaker_member_profile.create.%s", data.ID),
@@ -123,7 +126,7 @@ func (m *Core) comakerMemberProfile() {
 				fmt.Sprintf("comaker_member_profile.create.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Updated: func(data *ComakerMemberProfile) []string {
+		Updated: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.update",
 				fmt.Sprintf("comaker_member_profile.update.%s", data.ID),
@@ -132,7 +135,7 @@ func (m *Core) comakerMemberProfile() {
 				fmt.Sprintf("comaker_member_profile.update.loan_transaction.%s", data.LoanTransactionID),
 			}
 		},
-		Deleted: func(data *ComakerMemberProfile) []string {
+		Deleted: func(data *ComakerMemberProfile) registry.Topics {
 			return []string{
 				"comaker_member_profile.delete",
 				fmt.Sprintf("comaker_member_profile.delete.%s", data.ID),

@@ -13,9 +13,7 @@ import (
 func (c *Controller) accountCategoryController() {
 	req := c.provider.Service.Request
 
-	// SEARCH (GET) - NO FOOTSTEP
-
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
@@ -30,7 +28,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		result, err := c.core.AccountCategoryManager.PaginationWithFields(context, ctx, &core.AccountCategory{
+		result, err := c.core.AccountCategoryManager.NormalPagination(context, ctx, &core.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -40,7 +38,7 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
@@ -64,7 +62,7 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModels(categories))
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
@@ -84,7 +82,7 @@ func (c *Controller) accountCategoryController() {
 
 	// CREATE (POST) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
@@ -149,7 +147,7 @@ func (c *Controller) accountCategoryController() {
 
 	// UPDATE (PUT) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
@@ -225,7 +223,7 @@ func (c *Controller) accountCategoryController() {
 
 	// DELETE (DELETE) - ADD FOOTSTEP
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-category/:account_category_id",
 		Method: "DELETE",
 		Note:   "Delete an account category by ID.",
@@ -283,7 +281,7 @@ func (c *Controller) accountCategoryController() {
 	})
 
 	// BULK DELETE (DELETE) - ADD FOOTSTEP
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",
@@ -299,7 +297,12 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.core.AccountCategoryManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+
+		if err := c.core.AccountCategoryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | error: " + err.Error(),

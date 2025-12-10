@@ -14,7 +14,7 @@ func (c *Controller) memberClassificationController() {
 	req := c.provider.Service.Request
 
 	// Get all member classification history for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification-history",
 		Method:       "GET",
 		ResponseType: core.MemberClassificationHistoryResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Get member classification history by member profile ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberClassificationHistoryResponse{},
@@ -48,7 +48,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.PaginationWithFields(context, ctx, &core.MemberClassificationHistory{
+		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.NormalPagination(context, ctx, &core.MemberClassificationHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -60,7 +60,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Get all member classifications for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "GET",
 		ResponseType: core.MemberClassificationResponse{},
@@ -79,7 +79,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Get paginated member classifications
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification/search",
 		Method:       "GET",
 		ResponseType: core.MemberClassificationResponse{},
@@ -90,7 +90,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberClassificationManager.PaginationWithFields(context, ctx, &core.MemberClassification{
+		value, err := c.core.MemberClassificationManager.NormalPagination(context, ctx, &core.MemberClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -101,7 +101,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Create a new member classification
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "POST",
 		ResponseType: core.MemberClassificationResponse{},
@@ -159,7 +159,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Update an existing member classification by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification/:member_classification_id",
 		Method:       "PUT",
 		ResponseType: core.MemberClassificationResponse{},
@@ -227,7 +227,7 @@ func (c *Controller) memberClassificationController() {
 	})
 
 	// Delete a member classification by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-classification/:member_classification_id",
 		Method: "DELETE",
 		Note:   "Deletes a member classification record by its ID.",
@@ -267,7 +267,7 @@ func (c *Controller) memberClassificationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member classification records by their IDs.",
@@ -293,7 +293,11 @@ func (c *Controller) memberClassificationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
 
-		if err := c.core.MemberClassificationManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MemberClassificationManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | error: " + err.Error(),

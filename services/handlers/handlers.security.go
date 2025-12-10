@@ -57,20 +57,14 @@ var (
 	}
 )
 
-// IsSuspiciousPath validates path for security threats with API-aware logic
 func IsSuspiciousPath(path string) bool {
 	if path == "" || len(path) > 4096 {
-		return len(path) > 4096 // Return true only if too long
+		return len(path) > 4096
 	}
-
-	isAPI := strings.HasPrefix(path, "/api/")
-
-	// Always check injection patterns
+	isAPI := strings.HasPrefix(path, "/web/api/") || strings.HasPrefix(path, "/mobile/api/")
 	if hasInjectionPattern(path) {
 		return true
 	}
-
-	// API paths: check traversal only
 	if isAPI {
 		return hasPathTraversal(path) || hasSystemAccess(path)
 	}
@@ -119,7 +113,6 @@ func hasPathTraversal(path string) bool {
 	return false
 }
 
-// hasSystemAccess checks for system file access attempts
 func hasSystemAccess(path string) bool {
 	variants := getPathVariants(path)
 	for _, variant := range variants {
@@ -132,7 +125,6 @@ func hasSystemAccess(path string) bool {
 	return false
 }
 
-// hasDangerousContent checks for dangerous extensions and content
 func hasDangerousContent(path string) bool {
 	lower := strings.ToLower(path)
 	for _, ext := range dangerousExtensions {
@@ -143,11 +135,8 @@ func hasDangerousContent(path string) bool {
 	return false
 }
 
-// getPathVariants returns normalized path variants for checking
 func getPathVariants(path string) []string {
 	variants := []string{strings.ToLower(path)}
-
-	// URL decode up to 3 times
 	decoded := path
 	for i := 0; i < 3 && len(decoded) <= 4096; i++ {
 		if newDecoded, err := url.PathUnescape(decoded); err == nil && newDecoded != decoded {
@@ -160,7 +149,6 @@ func getPathVariants(path string) []string {
 	return variants
 }
 
-// IsSecurePath validates if path is safe for file operations
 func IsSecurePath(path string) bool {
 	return path != "" &&
 		len(path) <= 1024 &&
@@ -169,7 +157,6 @@ func IsSecurePath(path string) bool {
 		!hasTraversalElements(path)
 }
 
-// hasTraversalElements checks for directory traversal in clean path
 func hasTraversalElements(path string) bool {
 	clean := filepath.Clean(path)
 	return strings.HasPrefix(clean, "../") ||
@@ -177,7 +164,6 @@ func hasTraversalElements(path string) bool {
 		strings.Contains(clean, "/../")
 }
 
-// SafePathJoin securely joins path components
 func SafePathJoin(base string, elements ...string) (string, error) {
 	if base == "" {
 		return "", errors.New("base path cannot be empty")
@@ -198,16 +184,14 @@ func SafePathJoin(base string, elements ...string) (string, error) {
 	return result, nil
 }
 
-// ThreatInfo contains detailed threat analysis information
 type ThreatInfo struct {
 	IsThreat    bool
 	ThreatType  string
-	Severity    int // 1=Low, 5=Critical
+	Severity    int
 	Pattern     string
 	Description string
 }
 
-// IsSecurityThreat performs comprehensive threat analysis with severity scoring
 func IsSecurityThreat(input string) (bool, string) {
 	threats := map[string]string{
 		"script_injection":   "SCRIPT_INJECTION",

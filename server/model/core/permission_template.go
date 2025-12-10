@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/rotisserie/eris"
@@ -322,7 +322,10 @@ func (m *Core) permissionTemplate() {
 			"Organization.OrganizationCategories",
 			"Organization.OrganizationCategories.Category",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *PermissionTemplate) *PermissionTemplateResponse {
 			if data == nil {
 				return nil
@@ -349,7 +352,7 @@ func (m *Core) permissionTemplate() {
 			}
 		},
 
-		Created: func(data *PermissionTemplate) []string {
+		Created: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.create",
 				fmt.Sprintf("permission_template.create.%s", data.ID),
@@ -357,7 +360,7 @@ func (m *Core) permissionTemplate() {
 				fmt.Sprintf("permission_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PermissionTemplate) []string {
+		Updated: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.update",
 				fmt.Sprintf("permission_template.update.%s", data.ID),
@@ -365,7 +368,7 @@ func (m *Core) permissionTemplate() {
 				fmt.Sprintf("permission_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PermissionTemplate) []string {
+		Deleted: func(data *PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.delete",
 				fmt.Sprintf("permission_template.delete.%s", data.ID),

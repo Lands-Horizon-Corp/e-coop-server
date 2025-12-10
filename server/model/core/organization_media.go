@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -59,7 +59,10 @@ func (m *Core) organizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
 	m.OrganizationMediaManager = *registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {
 			if data == nil {
 				return nil
@@ -79,21 +82,21 @@ func (m *Core) organizationMedia() {
 				Media:   m.MediaManager.ToModel(&data.Media),
 			}
 		},
-		Created: func(data *OrganizationMedia) []string {
+		Created: func(data *OrganizationMedia) registry.Topics {
 			return []string{
 				"organization_media.create",
 				fmt.Sprintf("organization_media.create.%s", data.ID),
 				fmt.Sprintf("organization_media.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *OrganizationMedia) []string {
+		Updated: func(data *OrganizationMedia) registry.Topics {
 			return []string{
 				"organization_media.update",
 				fmt.Sprintf("organization_media.update.%s", data.ID),
 				fmt.Sprintf("organization_media.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *OrganizationMedia) []string {
+		Deleted: func(data *OrganizationMedia) registry.Topics {
 			return []string{
 				"organization_media.delete",
 				fmt.Sprintf("organization_media.delete.%s", data.ID),

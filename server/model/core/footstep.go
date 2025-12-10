@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -121,7 +121,10 @@ func (m *Core) footstep() {
 			"Organization.CoverMedia",
 			"Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Footstep) *FootstepResponse {
 			if data == nil {
 				return nil
@@ -160,7 +163,7 @@ func (m *Core) footstep() {
 				Level:          data.Level,
 			}
 		},
-		Created: func(data *Footstep) []string {
+		Created: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.create",
 				fmt.Sprintf("footstep.create.%s", data.ID),
@@ -168,7 +171,7 @@ func (m *Core) footstep() {
 				fmt.Sprintf("footstep.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Footstep) []string {
+		Updated: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.update",
 				fmt.Sprintf("footstep.update.%s", data.ID),
@@ -176,7 +179,7 @@ func (m *Core) footstep() {
 				fmt.Sprintf("footstep.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Footstep) []string {
+		Deleted: func(data *Footstep) registry.Topics {
 			return []string{
 				"footstep.delete",
 				fmt.Sprintf("footstep.delete.%s", data.ID),

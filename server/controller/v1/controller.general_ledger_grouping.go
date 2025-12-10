@@ -16,7 +16,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	req := c.provider.Service.Request
 
 	// GET /general-ledger-accounts-grouping
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping",
 		Method:       "GET",
 		ResponseType: core.GeneralLedgerAccountsGroupingResponse{},
@@ -39,7 +39,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:       "PUT",
 		ResponseType: core.GeneralLedgerAccountsGroupingResponse{},
@@ -117,7 +117,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// GET /general-ledger-definition
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "GET",
 		ResponseType: core.GeneralLedgerDefinitionResponse{},
@@ -142,7 +142,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// POST /general-ledger-definition (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "POST",
 		RequestType:  core.GeneralLedgerDefinitionRequest{},
@@ -211,7 +211,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-definition/:general_ledger_definition_id (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id",
 		Method:       "PUT",
 		RequestType:  core.GeneralLedgerDefinitionRequest{},
@@ -292,7 +292,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		Note:         "Connects an account to a general ledger definition by their IDs.",
@@ -398,7 +398,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: core.GeneralLedgerDefinitionResponse{},
@@ -469,7 +469,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		Note:         "Updates the index of an account within a general ledger definition and reorders accordingly.",
@@ -606,7 +606,7 @@ func (c *Controller) generalLedgerGroupingController() {
 	})
 
 	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/general-ledger-definition/:general_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a general ledger definition by its ID, only if no accounts are linked.",

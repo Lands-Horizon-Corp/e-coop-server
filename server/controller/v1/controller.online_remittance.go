@@ -14,7 +14,7 @@ func (c *Controller) onlineRemittanceController() {
 	req := c.provider.Service.Request
 
 	// Retrieve batch online remittance (JWT) for the current transaction batch before ending.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "GET",
 		ResponseType: core.OnlineRemittanceResponse{},
@@ -55,7 +55,7 @@ func (c *Controller) onlineRemittanceController() {
 	})
 
 	// Create a new online remittance for the current transaction batch before ending.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "POST",
 		ResponseType: core.OnlineRemittanceResponse{},
@@ -161,7 +161,7 @@ func (c *Controller) onlineRemittanceController() {
 	})
 
 	// Update an existing online remittance by ID for the current transaction batch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/online-remittance/:online_remittance_id",
 		Method:       "PUT",
 		ResponseType: core.OnlineRemittanceResponse{},
@@ -303,7 +303,7 @@ func (c *Controller) onlineRemittanceController() {
 	})
 
 	// Delete an existing online remittance by ID for the current transaction batch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/online-remittance/:online_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -78,7 +78,10 @@ func (m *Core) includeNegativeAccount() {
 			"CreatedBy", "UpdatedBy",
 			"ComputationSheet", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *IncludeNegativeAccount) *IncludeNegativeAccountResponse {
 			if data == nil {
 				return nil
@@ -102,7 +105,7 @@ func (m *Core) includeNegativeAccount() {
 				Description:        data.Description,
 			}
 		},
-		Created: func(data *IncludeNegativeAccount) []string {
+		Created: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.create",
 				fmt.Sprintf("include_negative_account.create.%s", data.ID),
@@ -110,7 +113,7 @@ func (m *Core) includeNegativeAccount() {
 				fmt.Sprintf("include_negative_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *IncludeNegativeAccount) []string {
+		Updated: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.update",
 				fmt.Sprintf("include_negative_account.update.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) includeNegativeAccount() {
 				fmt.Sprintf("include_negative_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *IncludeNegativeAccount) []string {
+		Deleted: func(data *IncludeNegativeAccount) registry.Topics {
 			return []string{
 				"include_negative_account.delete",
 				fmt.Sprintf("include_negative_account.delete.%s", data.ID),

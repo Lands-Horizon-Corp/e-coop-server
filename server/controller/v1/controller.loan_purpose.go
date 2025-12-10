@@ -15,7 +15,7 @@ func (c *Controller) loanPurposeController() {
 	req := c.provider.Service.Request
 
 	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "GET",
 		ResponseType: core.LoanPurposeResponse{},
@@ -37,7 +37,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// GET /loan-purpose/search: Paginated search of loan purposes for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/search",
 		Method:       "GET",
 		ResponseType: core.LoanPurposeResponse{},
@@ -51,7 +51,7 @@ func (c *Controller) loanPurposeController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.LoanPurposeManager.PaginationWithFields(context, ctx, &core.LoanPurpose{
+		value, err := c.core.LoanPurposeManager.NormalPagination(context, ctx, &core.LoanPurpose{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -62,7 +62,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// GET /loan-purpose/:loan_purpose_id: Get a specific loan purpose record by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
 		Note:         "Returns a loan purpose record by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// POST /loan-purpose: Create a new loan purpose record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "POST",
 		RequestType:  core.LoanPurposeRequest{},
@@ -142,7 +142,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// PUT /loan-purpose/:loan_purpose_id: Update a loan purpose record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
 		RequestType:  core.LoanPurposeRequest{},
@@ -215,7 +215,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// DELETE /loan-purpose/:loan_purpose_id: Delete a loan purpose record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-purpose/:loan_purpose_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan purpose record by its ID.",
@@ -256,7 +256,7 @@ func (c *Controller) loanPurposeController() {
 	})
 
 	// Simplified bulk-delete handler for loan purposes (mirrors the feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-purpose/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -283,7 +283,11 @@ func (c *Controller) loanPurposeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		if err := c.core.LoanPurposeManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.LoanPurposeManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan purpose bulk delete failed (/loan-purpose/bulk-delete) | error: " + err.Error(),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -77,7 +77,10 @@ func (m *Core) memberProfileMedia() {
 	m.Migration = append(m.Migration, &MemberProfileMedia{})
 	m.MemberProfileMediaManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {
 			if data == nil {
 				return nil
@@ -102,7 +105,7 @@ func (m *Core) memberProfileMedia() {
 				Description:     data.Description,
 			}
 		},
-		Created: func(data *MemberProfileMedia) []string {
+		Created: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.create",
 				fmt.Sprintf("member_profile_media.create.%s", data.ID),
@@ -115,7 +118,7 @@ func (m *Core) memberProfileMedia() {
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileMedia) []string {
+		Updated: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.update",
 				fmt.Sprintf("member_profile_media.update.%s", data.ID),
@@ -128,7 +131,7 @@ func (m *Core) memberProfileMedia() {
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileMedia) []string {
+		Deleted: func(data *MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.delete",
 				fmt.Sprintf("member_profile_media.delete.%s", data.ID),

@@ -15,7 +15,7 @@ func (c *Controller) organizationController() {
 	req := c.provider.Service.Request
 
 	// Get all public organizations
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization",
 		Method:       "GET",
 		ResponseType: core.OrganizationResponse{},
@@ -30,7 +30,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// Get an organization by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: core.OrganizationResponse{},
@@ -50,7 +50,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// Create a new organization (user must be logged in)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization",
 		Method:       "POST",
 		RequestType:  core.OrganizationRequest{},
@@ -131,6 +131,7 @@ func (c *Controller) organizationController() {
 			YoutubeLink:                         req.YoutubeLink,
 			PersonalWebsiteLink:                 req.PersonalWebsiteLink,
 			XLink:                               req.XLink,
+			Theme:                               req.Theme,
 		}
 
 		if err := c.core.OrganizationManager.CreateWithTx(context, tx, organization); err != nil {
@@ -334,7 +335,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// Update an organization (user must be logged in)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "PUT",
 		RequestType:  core.OrganizationRequest{},
@@ -419,6 +420,7 @@ func (c *Controller) organizationController() {
 		organization.YoutubeLink = req.YoutubeLink
 		organization.PersonalWebsiteLink = req.PersonalWebsiteLink
 		organization.XLink = req.XLink
+		organization.Theme = req.Theme
 		if err := c.core.OrganizationManager.UpdateByIDWithTx(context, tx, organization.ID, organization); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -482,7 +484,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// Delete an organization (user must be logged in)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/organization/:organization_id",
 		Method: "DELETE",
 		Note:   "Deletes an organization. User must be logged in.",
@@ -614,7 +616,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// GET /api/v1/organization/featured
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/featured",
 		Method:       "GET",
 		ResponseType: core.OrganizationResponse{},
@@ -629,7 +631,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// GET /api/v1/organization/recently
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/recently",
 		Method:       "GET",
 		ResponseType: core.OrganizationResponse{},
@@ -644,7 +646,7 @@ func (c *Controller) organizationController() {
 	})
 
 	// GET /api/v1/organization/category
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/category",
 		Method:       "GET",
 		ResponseType: core.OrganizationPerCategoryResponse{},

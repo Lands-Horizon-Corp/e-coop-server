@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -65,7 +65,10 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanGuaranteedFundPerMonth) *LoanGuaranteedFundPerMonthResponse {
 			if data == nil {
 				return nil
@@ -87,7 +90,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 			}
 		},
 
-		Created: func(data *LoanGuaranteedFundPerMonth) []string {
+		Created: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.create",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.create.%s", data.ID),
@@ -95,7 +98,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 				fmt.Sprintf("loan_guaranteed_fund_per_month.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanGuaranteedFundPerMonth) []string {
+		Updated: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.update",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.update.%s", data.ID),
@@ -103,7 +106,7 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 				fmt.Sprintf("loan_guaranteed_fund_per_month.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanGuaranteedFundPerMonth) []string {
+		Deleted: func(data *LoanGuaranteedFundPerMonth) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund_per_month.delete",
 				fmt.Sprintf("loan_guaranteed_fund_per_month.delete.%s", data.ID),

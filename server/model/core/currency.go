@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/numi18n/numi18n"
 
 	"github.com/google/uuid"
@@ -79,7 +79,10 @@ type (
 func (m *Core) currency() {
 	m.Migration = append(m.Migration, &Currency{})
 	m.CurrencyManager = *registry.NewRegistry(registry.RegistryParams[Currency, CurrencyResponse, CurrencyRequest]{
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Currency) *CurrencyResponse {
 			if data == nil {
 				return nil
@@ -102,21 +105,21 @@ func (m *Core) currency() {
 				Timezone:       data.Timezone,
 			}
 		},
-		Created: func(data *Currency) []string {
+		Created: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.create",
 				fmt.Sprintf("currency.create.%s", data.ID),
 				fmt.Sprintf("currency.create.code.%s", data.CurrencyCode),
 			}
 		},
-		Updated: func(data *Currency) []string {
+		Updated: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.update",
 				fmt.Sprintf("currency.update.%s", data.ID),
 				fmt.Sprintf("currency.update.code.%s", data.CurrencyCode),
 			}
 		},
-		Deleted: func(data *Currency) []string {
+		Deleted: func(data *Currency) registry.Topics {
 			return []string{
 				"currency.delete",
 				fmt.Sprintf("currency.delete.%s", data.ID),

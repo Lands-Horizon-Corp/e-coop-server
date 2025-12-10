@@ -15,7 +15,7 @@ func (c *Controller) mutualFundsController() {
 	req := c.provider.Service.Request
 
 	// GET /mutual-fund: List all mutual funds for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/search: Paginated search of mutual funds for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of mutual funds for the current user's organization and branch.",
@@ -51,7 +51,7 @@ func (c *Controller) mutualFundsController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		mutualFunds, err := c.core.MutualFundManager.PaginationWithFields(context, ctx, &core.MutualFund{
+		mutualFunds, err := c.core.MutualFundManager.NormalPagination(context, ctx, &core.MutualFund{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -62,7 +62,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/member/:member_id: Get mutual funds by member profile ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/member/:member_id",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for a specific member profile.",
@@ -88,7 +88,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/:mutual_fund_id: Get specific mutual fund by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "GET",
 		Note:         "Returns a single mutual fund by its ID.",
@@ -107,7 +107,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// POST /mutual-fund: Create a new mutual fund. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund for the current user's organization and branch.",
@@ -205,7 +205,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /mutual-fund/:mutual_fund_id: Update mutual fund by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund by its ID.",
@@ -275,9 +275,12 @@ func (c *Controller) mutualFundsController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund: " + err.Error()})
 		}
 
-		// Handle additional members deletion
+		mfIds := make([]any, len(req.MutualFundAdditionalMembersDeleteIDs))
+		for i, id := range req.MutualFundAdditionalMembersDeleteIDs {
+			mfIds[i] = id
+		}
 		if len(req.MutualFundAdditionalMembersDeleteIDs) > 0 {
-			if err := c.core.MutualFundAdditionalMembersManager.BulkDeleteWithTx(context, tx, req.MutualFundAdditionalMembersDeleteIDs); err != nil {
+			if err := c.core.MutualFundAdditionalMembersManager.BulkDeleteWithTx(context, tx, mfIds); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete additional members: " + err.Error(),
@@ -288,9 +291,13 @@ func (c *Controller) mutualFundsController() {
 			}
 		}
 
+		mftIds := make([]any, len(req.MutualFundTableDeleteIDs))
+		for i, id := range req.MutualFundTableDeleteIDs {
+			mftIds[i] = id
+		}
 		// Handle mutual fund tables deletion
 		if len(req.MutualFundTableDeleteIDs) > 0 {
-			if err := c.core.MutualFundTableManager.BulkDeleteWithTx(context, tx, req.MutualFundTableDeleteIDs); err != nil {
+			if err := c.core.MutualFundTableManager.BulkDeleteWithTx(context, tx, mftIds); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete mutual fund tables: " + err.Error(),
@@ -440,7 +447,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// DELETE /mutual-fund/:mutual_fund_id: Delete a mutual fund by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified mutual fund by its ID.",
@@ -481,7 +488,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// DELETE /mutual-fund/bulk-delete: Bulk delete multiple mutual funds. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/mutual-fund/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple mutual funds by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -506,7 +513,11 @@ func (c *Controller) mutualFundsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No mutual fund IDs provided for bulk delete"})
 		}
 
-		if err := c.core.MutualFundManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.MutualFundManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete mutual funds (/mutual-fund/bulk-delete) | error: " + err.Error(),
@@ -524,7 +535,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /mutual-fund/view
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/mutual-fund/view",
 		Method:       "POST",
 		Note:         "Retrieves a summarized view of mutual funds including total amount and entries.",
@@ -565,11 +576,18 @@ func (c *Controller) mutualFundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, mutualFundView)
+		total := 0.0
+		for _, entry := range mutualFundView {
+			total += entry.Amount
+		}
+		return ctx.JSON(http.StatusOK, core.MutualFundView{
+			TotalAmount:       total,
+			MutualFundEntries: c.core.MutualFundEntryManager.ToModels(mutualFundView),
+		})
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/print
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print",
 		Note:   "Prints mutual fund entries.",
@@ -606,7 +624,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/print-undo
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print-undo",
 		Note:   "Undoes the print status of mutual fund entries.",
@@ -645,7 +663,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// PUT /api/v1/mutual-fund/:mutual_fund_id/post
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/mutual-fund/:mutual_fund_id/post",
 		RequestType: core.MutualFundViewPostRequest{},
@@ -688,7 +706,7 @@ func (c *Controller) mutualFundsController() {
 	})
 
 	// GET /api/v1/mutual-fund/:mutual_fund_id/view
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id/view",
 		ResponseType: core.MutualFundView{},

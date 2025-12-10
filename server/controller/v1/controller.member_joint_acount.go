@@ -14,7 +14,7 @@ func (c *Controller) memberJointAccountController() {
 	req := c.provider.Service.Request
 
 	// Create a new joint account record for a member profile
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-joint-account/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: core.MemberJointAccountResponse{},
@@ -89,7 +89,7 @@ func (c *Controller) memberJointAccountController() {
 	})
 
 	// Update an existing joint account record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-joint-account/:member_joint_account_id",
 		Method:       "PUT",
 		ResponseType: core.MemberJointAccountResponse{},
@@ -169,7 +169,7 @@ func (c *Controller) memberJointAccountController() {
 	})
 
 	// Delete a member's joint account record by its ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-joint-account/:member_joint_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a joint account record by its ID.",

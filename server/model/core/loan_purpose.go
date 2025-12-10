@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -70,7 +70,10 @@ func (m *Core) loanPurpose() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanPurpose) *LoanPurposeResponse {
 			if data == nil {
 				return nil
@@ -92,7 +95,7 @@ func (m *Core) loanPurpose() {
 			}
 		},
 
-		Created: func(data *LoanPurpose) []string {
+		Created: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.create",
 				fmt.Sprintf("loan_purpose.create.%s", data.ID),
@@ -100,7 +103,7 @@ func (m *Core) loanPurpose() {
 				fmt.Sprintf("loan_purpose.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanPurpose) []string {
+		Updated: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.update",
 				fmt.Sprintf("loan_purpose.update.%s", data.ID),
@@ -108,7 +111,7 @@ func (m *Core) loanPurpose() {
 				fmt.Sprintf("loan_purpose.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanPurpose) []string {
+		Deleted: func(data *LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.delete",
 				fmt.Sprintf("loan_purpose.delete.%s", data.ID),

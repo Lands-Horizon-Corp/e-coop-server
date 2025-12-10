@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -71,7 +71,10 @@ func (m *Core) mutualFundTable() {
 	m.Migration = append(m.Migration, &MutualFundTable{})
 	m.MutualFundTableManager = *registry.NewRegistry(registry.RegistryParams[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MutualFundTable) *MutualFundTableResponse {
 			if data == nil {
 				return nil
@@ -95,7 +98,7 @@ func (m *Core) mutualFundTable() {
 				Amount:         data.Amount,
 			}
 		},
-		Created: func(data *MutualFundTable) []string {
+		Created: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.create",
 				fmt.Sprintf("mutual_fund_table.create.%s", data.ID),
@@ -104,7 +107,7 @@ func (m *Core) mutualFundTable() {
 				fmt.Sprintf("mutual_fund_table.create.mutual_fund.%s", data.MutualFundID),
 			}
 		},
-		Updated: func(data *MutualFundTable) []string {
+		Updated: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.update",
 				fmt.Sprintf("mutual_fund_table.update.%s", data.ID),
@@ -113,7 +116,7 @@ func (m *Core) mutualFundTable() {
 				fmt.Sprintf("mutual_fund_table.update.mutual_fund.%s", data.MutualFundID),
 			}
 		},
-		Deleted: func(data *MutualFundTable) []string {
+		Deleted: func(data *MutualFundTable) registry.Topics {
 			return []string{
 				"mutual_fund_table.delete",
 				fmt.Sprintf("mutual_fund_table.delete.%s", data.ID),

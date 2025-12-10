@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -86,7 +86,10 @@ func (m *Core) paymentType() {
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *PaymentType) *PaymentTypeResponse {
 			if data == nil {
 				return nil
@@ -109,7 +112,7 @@ func (m *Core) paymentType() {
 				Type:           data.Type,
 			}
 		},
-		Created: func(data *PaymentType) []string {
+		Created: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.create",
 				fmt.Sprintf("payment_type.create.%s", data.ID),
@@ -117,7 +120,7 @@ func (m *Core) paymentType() {
 				fmt.Sprintf("payment_type.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PaymentType) []string {
+		Updated: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.update",
 				fmt.Sprintf("payment_type.update.%s", data.ID),
@@ -125,7 +128,7 @@ func (m *Core) paymentType() {
 				fmt.Sprintf("payment_type.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PaymentType) []string {
+		Deleted: func(data *PaymentType) registry.Topics {
 			return []string{
 				"payment_type.delete",
 				fmt.Sprintf("payment_type.delete.%s", data.ID),

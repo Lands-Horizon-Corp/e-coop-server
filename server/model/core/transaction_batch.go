@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -373,7 +373,10 @@ func (m *Core) transactionBatch() {
 			"PostedBySignatureMedia",
 			"PaidBySignatureMedia",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TransactionBatch) *TransactionBatchResponse {
 			if data == nil {
 				return nil
@@ -468,7 +471,7 @@ func (m *Core) transactionBatch() {
 				EndedAt:                       endedAt,
 			}
 		},
-		Created: func(data *TransactionBatch) []string {
+		Created: func(data *TransactionBatch) registry.Topics {
 			return []string{
 				"transaction_batch.create",
 				fmt.Sprintf("transaction_batch.create.%s", data.ID),
@@ -477,7 +480,7 @@ func (m *Core) transactionBatch() {
 				fmt.Sprintf("transaction_batch.create.user.%s", data.EmployeeUserID),
 			}
 		},
-		Updated: func(data *TransactionBatch) []string {
+		Updated: func(data *TransactionBatch) registry.Topics {
 			return []string{
 				"transaction_batch.update",
 				fmt.Sprintf("transaction_batch.update.%s", data.ID),
@@ -486,7 +489,7 @@ func (m *Core) transactionBatch() {
 				fmt.Sprintf("transaction_batch.update.user.%s", data.EmployeeUserID),
 			}
 		},
-		Deleted: func(data *TransactionBatch) []string {
+		Deleted: func(data *TransactionBatch) registry.Topics {
 			return []string{
 				"transaction_batch.delete",
 				fmt.Sprintf("transaction_batch.delete.%s", data.ID),
@@ -543,26 +546,26 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 // TransactionBatchCurrent retrieves the current active transaction batch for a user
 func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 
-	return m.TransactionBatchManager.FindOneWithSQL(context, []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "employee_user_id", Op: registry.OpEq, Value: userID},
-		{Field: "is_closed", Op: registry.OpEq, Value: false},
-	}, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.TransactionBatchManager.ArrFindOne(context, []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "employee_user_id", Op: query.ModeEqual, Value: userID},
+		{Field: "is_closed", Op: query.ModeEqual, Value: false},
+	}, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // TransactionBatchViewRequests retrieves transaction batches with pending view requests
 func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	return m.TransactionBatchManager.FindWithSQL(context, []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "request_view", Op: registry.OpEq, Value: true},
-		{Field: "can_view", Op: registry.OpEq, Value: false},
-		{Field: "is_closed", Op: registry.OpEq, Value: false},
-	}, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.TransactionBatchManager.ArrFind(context, []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "request_view", Op: query.ModeEqual, Value: true},
+		{Field: "can_view", Op: query.ModeEqual, Value: false},
+		{Field: "is_closed", Op: query.ModeEqual, Value: false},
+	}, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -572,13 +575,13 @@ func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, b
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	return m.TransactionBatchManager.FindWithSQL(ctx, []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "is_closed", Op: registry.OpEq, Value: true},
-		{Field: "created_at", Op: registry.OpGte, Value: startOfDay},
-		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
-	}, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.TransactionBatchManager.ArrFind(ctx, []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "is_closed", Op: query.ModeEqual, Value: true},
+		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "created_at", Op: query.ModeLT, Value: endOfDay},
+	}, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

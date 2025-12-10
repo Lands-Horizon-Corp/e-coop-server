@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -80,7 +80,10 @@ func (m *Core) billAndCoins() {
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {
 				return nil
@@ -105,7 +108,7 @@ func (m *Core) billAndCoins() {
 				Value:          data.Value,
 			}
 		},
-		Created: func(data *BillAndCoins) []string {
+		Created: func(data *BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.create",
 				fmt.Sprintf("bill_and_coins.create.%s", data.ID),
@@ -113,7 +116,7 @@ func (m *Core) billAndCoins() {
 				fmt.Sprintf("bill_and_coins.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BillAndCoins) []string {
+		Updated: func(data *BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.update",
 				fmt.Sprintf("bill_and_coins.update.%s", data.ID),
@@ -121,7 +124,7 @@ func (m *Core) billAndCoins() {
 				fmt.Sprintf("bill_and_coins.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BillAndCoins) []string {
+		Deleted: func(data *BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.delete",
 				fmt.Sprintf("bill_and_coins.delete.%s", data.ID),
@@ -134,7 +137,6 @@ func (m *Core) billAndCoins() {
 
 func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-
 	curency, err := m.CurrencyManager.List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for bill and coins seeding")

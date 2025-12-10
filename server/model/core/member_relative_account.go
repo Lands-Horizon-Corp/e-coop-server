@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -77,7 +77,10 @@ func (m *Core) memberRelativeAccount() {
 	m.Migration = append(m.Migration, &MemberRelativeAccount{})
 	m.MemberRelativeAccountManager = *registry.NewRegistry(registry.RegistryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberRelativeAccount) *MemberRelativeAccountResponse {
 			if data == nil {
 				return nil
@@ -103,7 +106,7 @@ func (m *Core) memberRelativeAccount() {
 			}
 		},
 
-		Created: func(data *MemberRelativeAccount) []string {
+		Created: func(data *MemberRelativeAccount) registry.Topics {
 			return []string{
 				"member_relative_account.create",
 				fmt.Sprintf("member_relative_account.create.%s", data.ID),
@@ -111,7 +114,7 @@ func (m *Core) memberRelativeAccount() {
 				fmt.Sprintf("member_relative_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberRelativeAccount) []string {
+		Updated: func(data *MemberRelativeAccount) registry.Topics {
 			return []string{
 				"member_relative_account.update",
 				fmt.Sprintf("member_relative_account.update.%s", data.ID),
@@ -119,7 +122,7 @@ func (m *Core) memberRelativeAccount() {
 				fmt.Sprintf("member_relative_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberRelativeAccount) []string {
+		Deleted: func(data *MemberRelativeAccount) registry.Topics {
 			return []string{
 				"member_relative_account.delete",
 				fmt.Sprintf("member_relative_account.delete.%s", data.ID),

@@ -6,9 +6,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
-	"github.com/Lands-Horizon-Corp/golang-filtering/filter"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -749,7 +749,10 @@ func (m *Core) loanTransaction() {
 			"ReleasedBy", "PrintedBy", "ApprovedBy",
 			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *LoanTransaction) *LoanTransactionResponse {
 			if data == nil {
 				return nil
@@ -883,7 +886,7 @@ func (m *Core) loanTransaction() {
 			}
 		},
 
-		Created: func(data *LoanTransaction) []string {
+		Created: func(data *LoanTransaction) registry.Topics {
 			return []string{
 				"loan_transaction.create",
 				fmt.Sprintf("loan_transaction.create.%s", data.ID),
@@ -891,7 +894,7 @@ func (m *Core) loanTransaction() {
 				fmt.Sprintf("loan_transaction.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanTransaction) []string {
+		Updated: func(data *LoanTransaction) registry.Topics {
 			return []string{
 				"loan_transaction.update",
 				fmt.Sprintf("loan_transaction.update.%s", data.ID),
@@ -899,7 +902,7 @@ func (m *Core) loanTransaction() {
 				fmt.Sprintf("loan_transaction.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanTransaction) []string {
+		Deleted: func(data *LoanTransaction) registry.Topics {
 			return []string{
 				"loan_transaction.delete",
 				fmt.Sprintf("loan_transaction.delete.%s", data.ID),
@@ -941,16 +944,16 @@ func (m *Core) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Loa
 // LoanTransactionWithDatesNotNull returns loan transactions for a member where printed/approved/released dates are set.
 func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -965,77 +968,77 @@ func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, acco
 		accountID = *account.LoanAccountID
 	}
 	filters := []registry.FilterSQL{
-		{Field: "member_profile_id", Op: registry.OpEq, Value: memberID},
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "account_id", Op: registry.OpEq, Value: accountID},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
+		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberID},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // LoanTransactionDraft returns loan transactions that are in draft state (not printed/approved/released)
 func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "printed_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "printed_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // LoanTransactionPrinted returns loan transactions that have been printed but not approved or released
 func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpIsNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // LoanTransactionApproved returns loan transactions that have been approved but not yet released
 func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpIsNull, Value: nil},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
 // LoanTransactionReleased returns loan transactions that have been released
 func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
@@ -1046,16 +1049,16 @@ func (m *Core) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, 
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filters := []registry.FilterSQL{
-		{Field: "organization_id", Op: registry.OpEq, Value: organizationID},
-		{Field: "branch_id", Op: registry.OpEq, Value: branchID},
-		{Field: "printed_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "approved_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "released_date", Op: registry.OpNotNull, Value: nil},
-		{Field: "created_at", Op: registry.OpGte, Value: startOfDay},
-		{Field: "created_at", Op: registry.OpLt, Value: endOfDay},
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "approved_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
+		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "created_at", Op: query.ModeLT, Value: endOfDay},
 	}
 
-	return m.LoanTransactionManager.FindWithSQL(ctx, filters, []registry.FilterSortSQL{
-		{Field: "updated_at", Order: filter.SortOrderDesc},
+	return m.LoanTransactionManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

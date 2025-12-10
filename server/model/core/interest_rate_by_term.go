@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -30,7 +30,7 @@ type (
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
 		Name       string `gorm:"type:varchar(255)"`
-		Descrition string `gorm:"type:varchar(4028)"` // Note: spelling matches schema
+		Descrition string `gorm:"type:text"`
 
 		MemberClassificationInterestRateID uuid.UUID                         `gorm:"type:uuid"`
 		MemberClassificationInterestRate   *MemberClassificationInterestRate `gorm:"foreignKey:MemberClassificationInterestRateID;constraint:OnDelete:SET NULL;" json:"member_classification_interest_rate,omitempty"`
@@ -75,7 +75,10 @@ func (m *Core) interestRateByTerm() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberClassificationInterestRate",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *InterestRateByTerm) *InterestRateByTermResponse {
 			if data == nil {
 				return nil
@@ -98,7 +101,7 @@ func (m *Core) interestRateByTerm() {
 				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
 			}
 		},
-		Created: func(data *InterestRateByTerm) []string {
+		Created: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.create",
 				fmt.Sprintf("interest_rate_by_term.create.%s", data.ID),
@@ -106,7 +109,7 @@ func (m *Core) interestRateByTerm() {
 				fmt.Sprintf("interest_rate_by_term.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByTerm) []string {
+		Updated: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.update",
 				fmt.Sprintf("interest_rate_by_term.update.%s", data.ID),
@@ -114,7 +117,7 @@ func (m *Core) interestRateByTerm() {
 				fmt.Sprintf("interest_rate_by_term.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByTerm) []string {
+		Deleted: func(data *InterestRateByTerm) registry.Topics {
 			return []string{
 				"interest_rate_by_term.delete",
 				fmt.Sprintf("interest_rate_by_term.delete.%s", data.ID),

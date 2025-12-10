@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -72,7 +72,10 @@ func (m *Core) company() {
 	m.Migration = append(m.Migration, &Company{})
 	m.CompanyManager = *registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Company) *CompanyResponse {
 			if data == nil {
 				return nil
@@ -95,7 +98,7 @@ func (m *Core) company() {
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Company) []string {
+		Created: func(data *Company) registry.Topics {
 			return []string{
 				"company.create",
 				fmt.Sprintf("company.create.%s", data.ID),
@@ -103,7 +106,7 @@ func (m *Core) company() {
 				fmt.Sprintf("company.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Company) []string {
+		Updated: func(data *Company) registry.Topics {
 			return []string{
 				"company.update",
 				fmt.Sprintf("company.update.%s", data.ID),
@@ -111,7 +114,7 @@ func (m *Core) company() {
 				fmt.Sprintf("company.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Company) []string {
+		Deleted: func(data *Company) registry.Topics {
 			return []string{
 				"company.delete",
 				fmt.Sprintf("company.delete.%s", data.ID),

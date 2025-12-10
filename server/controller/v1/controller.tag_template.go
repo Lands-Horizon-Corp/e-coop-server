@@ -14,7 +14,7 @@ func (c *Controller) tagTemplateController() {
 	req := c.provider.Service.Request
 
 	// Returns all tag templates for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -36,7 +36,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Returns paginated tag templates for the current user's branch.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -47,7 +47,7 @@ func (c *Controller) tagTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TagTemplateManager.PaginationWithFields(context, ctx, &core.TagTemplate{
+		value, err := c.core.TagTemplateManager.NormalPagination(context, ctx, &core.TagTemplate{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -58,7 +58,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Returns a single tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
 		ResponseType: core.TagTemplateResponse{},
@@ -77,7 +77,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Creates a new tag template.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
 		ResponseType: core.TagTemplateResponse{},
@@ -137,7 +137,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Updates an existing tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
 		ResponseType: core.TagTemplateResponse{},
@@ -207,7 +207,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Deletes a tag template by its ID.
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/tag-template/:tag_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a tag template by its ID.",
@@ -248,7 +248,7 @@ func (c *Controller) tagTemplateController() {
 	})
 
 	// Simplified bulk-delete handler for tag templates (mirrors feedback/holiday pattern)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -275,8 +275,11 @@ func (c *Controller) tagTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, per-record validation and DeletedBy bookkeeping.
-		if err := c.core.TagTemplateManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.TagTemplateManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Tag template bulk delete failed (/tag-template/bulk-delete) | error: " + err.Error(),

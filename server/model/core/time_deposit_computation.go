@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -110,7 +110,10 @@ func (m *Core) timeDepositComputation() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "TimeDepositType",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *TimeDepositComputation) *TimeDepositComputationResponse {
 			if data == nil {
 				return nil
@@ -145,7 +148,7 @@ func (m *Core) timeDepositComputation() {
 			}
 		},
 
-		Created: func(data *TimeDepositComputation) []string {
+		Created: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.create",
 				fmt.Sprintf("time_deposit_computation.create.%s", data.ID),
@@ -153,7 +156,7 @@ func (m *Core) timeDepositComputation() {
 				fmt.Sprintf("time_deposit_computation.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TimeDepositComputation) []string {
+		Updated: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.update",
 				fmt.Sprintf("time_deposit_computation.update.%s", data.ID),
@@ -161,7 +164,7 @@ func (m *Core) timeDepositComputation() {
 				fmt.Sprintf("time_deposit_computation.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TimeDepositComputation) []string {
+		Deleted: func(data *TimeDepositComputation) registry.Topics {
 			return []string{
 				"time_deposit_computation.delete",
 				fmt.Sprintf("time_deposit_computation.delete.%s", data.ID),

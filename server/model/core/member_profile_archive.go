@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -89,7 +89,10 @@ func (m *Core) memberProfileArchive() {
 	m.Migration = append(m.Migration, &MemberProfileArchive{})
 	m.MemberProfileArchiveManager = *registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberProfileArchive) *MemberProfileArchiveResponse {
 			if data == nil {
 				return nil
@@ -115,7 +118,7 @@ func (m *Core) memberProfileArchive() {
 				Category:        data.Category,
 			}
 		},
-		Created: func(data *MemberProfileArchive) []string {
+		Created: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.create",
 				fmt.Sprintf("member_profile_archive.create.%s", data.ID),
@@ -128,7 +131,7 @@ func (m *Core) memberProfileArchive() {
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileArchive) []string {
+		Updated: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.update",
 				fmt.Sprintf("member_profile_archive.update.%s", data.ID),
@@ -141,7 +144,7 @@ func (m *Core) memberProfileArchive() {
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileArchive) []string {
+		Deleted: func(data *MemberProfileArchive) registry.Topics {
 			events := []string{
 				"member_profile_archive.delete",
 				fmt.Sprintf("member_profile_archive.delete.%s", data.ID),

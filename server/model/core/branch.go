@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -148,7 +148,10 @@ func (m *Core) branch() {
 			"Organization.CreatedBy",
 			"Organization.CoverMedia",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *Branch) *BranchResponse {
 			if data == nil {
 				return nil
@@ -194,21 +197,21 @@ func (m *Core) branch() {
 				TaxIdentificationNumber: data.TaxIdentificationNumber,
 			}
 		},
-		Created: func(data *Branch) []string {
+		Created: func(data *Branch) registry.Topics {
 			return []string{
 				"branch.create",
 				fmt.Sprintf("branch.create.%s", data.ID),
 				fmt.Sprintf("branch.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Branch) []string {
+		Updated: func(data *Branch) registry.Topics {
 			return []string{
 				"branch.update",
 				fmt.Sprintf("branch.update.%s", data.ID),
 				fmt.Sprintf("branch.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Branch) []string {
+		Deleted: func(data *Branch) registry.Topics {
 			return []string{
 				"branch.delete",
 				fmt.Sprintf("branch.delete.%s", data.ID),

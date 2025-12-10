@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -78,7 +78,10 @@ func (m *Core) interestMaturity() {
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *InterestMaturity) *InterestMaturityResponse {
 			if data == nil {
 				return nil
@@ -102,7 +105,7 @@ func (m *Core) interestMaturity() {
 				Rate:           data.Rate,
 			}
 		},
-		Created: func(data *InterestMaturity) []string {
+		Created: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.create",
 				fmt.Sprintf("interest_maturity.create.%s", data.ID),
@@ -110,7 +113,7 @@ func (m *Core) interestMaturity() {
 				fmt.Sprintf("interest_maturity.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestMaturity) []string {
+		Updated: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.update",
 				fmt.Sprintf("interest_maturity.update.%s", data.ID),
@@ -118,7 +121,7 @@ func (m *Core) interestMaturity() {
 				fmt.Sprintf("interest_maturity.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestMaturity) []string {
+		Deleted: func(data *InterestMaturity) registry.Topics {
 			return []string{
 				"interest_maturity.delete",
 				fmt.Sprintf("interest_maturity.delete.%s", data.ID),

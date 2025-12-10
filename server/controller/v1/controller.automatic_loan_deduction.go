@@ -15,7 +15,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	req := c.provider.Service.Request
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -46,7 +46,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -65,7 +65,7 @@ func (c *Controller) automaticLoanDeductionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
 		// Find all for this computation sheet, org, and branch
-		alds, err := c.core.AutomaticLoanDeductionManager.PaginationWithFields(context, ctx, &core.AutomaticLoanDeduction{
+		alds, err := c.core.AutomaticLoanDeductionManager.NormalPagination(context, ctx, &core.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -77,7 +77,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// POST /automatic-loan-deduction
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
@@ -167,7 +167,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
@@ -262,7 +262,7 @@ func (c *Controller) automaticLoanDeductionController() {
 	})
 
 	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified automatic loan deduction by its ID.",
@@ -302,7 +302,7 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -326,8 +326,11 @@ func (c *Controller) automaticLoanDeductionController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.AutomaticLoanDeductionManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.AutomaticLoanDeductionManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete automatic loan deductions (/automatic-loan-deduction/bulk-delete) | error: " + err.Error(),

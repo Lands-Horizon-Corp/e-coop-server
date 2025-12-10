@@ -15,7 +15,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 	req := c.provider.Service.Request
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
@@ -45,7 +45,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 	})
 
 	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: core.BrowseExcludeIncludeAccountsResponse{},
@@ -75,7 +75,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 	})
 
 	// POST /browse-exclude-include-accounts
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts",
 		Method:       "POST",
 		RequestType:  core.BrowseExcludeIncludeAccountsRequest{},
@@ -142,7 +142,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 	})
 
 	// PUT /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method:       "PUT",
 		Note:         "Updates an existing browse exclude include account by its ID.",
@@ -213,7 +213,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 	})
 
 	// DELETE /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified browse exclude include account by its ID.",
@@ -253,7 +253,7 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/browse-exclude-include-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -277,8 +277,11 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.BrowseExcludeIncludeAccountsManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.BrowseExcludeIncludeAccountsManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete browse exclude include accounts (/browse-exclude-include-accounts/bulk-delete) | error: " + err.Error(),

@@ -15,7 +15,7 @@ func (c *Controller) collateralController() {
 	req := c.provider.Service.Request
 
 	// GET /collateral: List all collaterals for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "GET",
 		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
@@ -37,7 +37,7 @@ func (c *Controller) collateralController() {
 	})
 
 	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/search",
 		Method:       "GET",
 		ResponseType: core.CollateralResponse{},
@@ -51,7 +51,7 @@ func (c *Controller) collateralController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := c.core.CollateralManager.PaginationWithFields(context, ctx, &core.Collateral{
+		collaterals, err := c.core.CollateralManager.NormalPagination(context, ctx, &core.Collateral{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -62,7 +62,7 @@ func (c *Controller) collateralController() {
 	})
 
 	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "GET",
 		Note:         "Returns a collateral record by its ID.",
@@ -81,7 +81,7 @@ func (c *Controller) collateralController() {
 	})
 
 	// POST /collateral: Create a new collateral record. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
 		RequestType:  core.CollateralRequest{},
@@ -146,7 +146,7 @@ func (c *Controller) collateralController() {
 	})
 
 	// PUT /collateral/:collateral_id: Update a collateral record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
 		RequestType:  core.CollateralRequest{},
@@ -213,7 +213,7 @@ func (c *Controller) collateralController() {
 	})
 
 	// DELETE /collateral/:collateral_id: Delete a collateral record by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/collateral/:collateral_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified collateral record by its ID.",
@@ -253,7 +253,7 @@ func (c *Controller) collateralController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -278,8 +278,11 @@ func (c *Controller) collateralController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
-
-		if err := c.core.CollateralManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.CollateralManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Collateral bulk delete failed (/collateral/bulk-delete) | error: " + err.Error(),

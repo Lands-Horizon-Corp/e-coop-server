@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -353,7 +352,10 @@ func (m *Core) userOrganization() {
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
 			if data == nil {
 				return nil
@@ -411,7 +413,7 @@ func (m *Core) userOrganization() {
 				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager.ToModel(data.SettingsPaymentTypeDefaultValue),
 			}
 		},
-		Created: func(data *UserOrganization) []string {
+		Created: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.create",
 				fmt.Sprintf("user_organization.create.%s", data.ID),
@@ -420,7 +422,7 @@ func (m *Core) userOrganization() {
 				fmt.Sprintf("user_organization.create.user.%s", data.UserID),
 			}
 		},
-		Updated: func(data *UserOrganization) []string {
+		Updated: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.update",
 				fmt.Sprintf("user_organization.update.%s", data.ID),
@@ -429,7 +431,7 @@ func (m *Core) userOrganization() {
 				fmt.Sprintf("user_organization.update.user.%s", data.UserID),
 			}
 		},
-		Deleted: func(data *UserOrganization) []string {
+		Deleted: func(data *UserOrganization) registry.Topics {
 			return []string{
 				"user_organization.delete",
 				fmt.Sprintf("user_organization.delete.%s", data.ID),
@@ -527,26 +529,4 @@ func (m *Core) Members(context context.Context, organizationID uuid.UUID, branch
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeMember,
 	})
-}
-
-func (m *Core) UserOrganizationsNoneUserMembers(context context.Context, branchID, organizationID uuid.UUID) ([]*UserOrganization, error) {
-	userOrganization, err := m.UserOrganizationManager.Find(context, &UserOrganization{
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-		UserType:       UserOrganizationTypeMember,
-	})
-	if err != nil {
-		return nil, eris.Wrapf(err, "Failed to retrieve user organizations: %v", err)
-	}
-	filteredUserOrganizations := []*UserOrganization{}
-	for _, uo := range userOrganization {
-		if uo.BranchID == nil {
-			continue
-		}
-		userProfile, _ := m.MemberProfileFindUserByID(context, uo.UserID, uo.OrganizationID, *uo.BranchID)
-		if userProfile == nil {
-			filteredUserOrganizations = append(filteredUserOrganizations, uo)
-		}
-	}
-	return filteredUserOrganizations, nil
 }

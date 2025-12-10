@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -81,7 +81,10 @@ func (m *Core) memberEducationalAttainment() {
 	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
 	m.MemberEducationalAttainmentManager = *registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
-		Service:  m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *MemberEducationalAttainment) *MemberEducationalAttainmentResponse {
 			if data == nil {
 				return nil
@@ -108,7 +111,7 @@ func (m *Core) memberEducationalAttainment() {
 			}
 		},
 
-		Created: func(data *MemberEducationalAttainment) []string {
+		Created: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.create",
 				fmt.Sprintf("member_educational_attainment.create.%s", data.ID),
@@ -116,7 +119,7 @@ func (m *Core) memberEducationalAttainment() {
 				fmt.Sprintf("member_educational_attainment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberEducationalAttainment) []string {
+		Updated: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.update",
 				fmt.Sprintf("member_educational_attainment.update.%s", data.ID),
@@ -124,7 +127,7 @@ func (m *Core) memberEducationalAttainment() {
 				fmt.Sprintf("member_educational_attainment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberEducationalAttainment) []string {
+		Deleted: func(data *MemberEducationalAttainment) registry.Topics {
 			return []string{
 				"member_educational_attainment.delete",
 				fmt.Sprintf("member_educational_attainment.delete.%s", data.ID),

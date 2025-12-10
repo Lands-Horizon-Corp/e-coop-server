@@ -14,7 +14,7 @@ func (c *Controller) fundsController() {
 	req := c.provider.Service.Request
 
 	// Get all funds for the current branch
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
 		ResponseType: core.FundsResponse{},
@@ -33,7 +33,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Get paginated funds
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
 		ResponseType: core.FundsResponse{},
@@ -44,7 +44,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.core.FundsManager.PaginationWithFields(context, ctx, &core.Funds{
+		funds, err := c.core.FundsManager.NormalPagination(context, ctx, &core.Funds{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -55,7 +55,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Create a new funds record
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
 		ResponseType: core.FundsResponse{},
@@ -115,7 +115,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Update an existing funds record by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
 		ResponseType: core.FundsResponse{},
@@ -185,7 +185,7 @@ func (c *Controller) fundsController() {
 	})
 
 	// Delete a funds record by ID
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/funds/:funds_id",
 		Method: "DELETE",
 		Note:   "Deletes a funds record by its ID.",
@@ -225,7 +225,7 @@ func (c *Controller) fundsController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple funds records by their IDs.",
@@ -251,8 +251,11 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for deletion."})
 		}
-
-		if err := c.core.FundsManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.FundsManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | error: " + err.Error(),

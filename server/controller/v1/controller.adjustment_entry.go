@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // AdjustmentEntryController registers routes for managing adjustment entries.
@@ -16,7 +17,7 @@ func (c *Controller) adjustmentEntryController() {
 	req := c.provider.Service.Request
 
 	// GET /adjustment-entry: List all adjustment entries for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "GET",
 		Note:         "Returns all adjustment entries for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +39,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// GET /adjustment-entry/search: Paginated search of adjustment entries for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries for the current user's organization and branch.",
@@ -52,7 +53,7 @@ func (c *Controller) adjustmentEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.PaginationWithFields(context, ctx, &core.AdjustmentEntry{
+		adjustmentEntries, err := c.core.AdjustmentEntryManager.NormalPagination(context, ctx, &core.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -63,7 +64,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// GET /adjustment-entry/:adjustment_entry_id: Get specific adjustment entry by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment entry by its ID.",
@@ -82,7 +83,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// POST /adjustment-entry: Create a new adjustment entry. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
 		Note:         "Creates a new adjustment entry for the current user's organization and branch.",
@@ -216,7 +217,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// DELETE /adjustment-entry/:adjustment_entry_id: Delete an adjustment entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified adjustment entry by its ID.",
@@ -257,7 +258,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// DELETE /adjustment-entry/bulk-delete: Bulk delete adjustment entries by IDs. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/adjustment-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -282,7 +283,11 @@ func (c *Controller) adjustmentEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No adjustment entry IDs provided for bulk delete"})
 		}
 
-		if err := c.core.AdjustmentEntryManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.AdjustmentEntryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | error: " + err.Error(),
@@ -300,7 +305,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// GET /api/v1/adjustment-entry/total
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/total",
 		Method:       "GET",
 		Note:         "Returns the total debit and credit of all adjustment entries for the current user's organization and branch.",
@@ -333,7 +338,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and optionally by user organization.",
@@ -351,29 +356,34 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		paginated, err := c.core.AdjustmentEntryManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				query := db.Model(&core.AdjustmentEntry{}).
+					Joins("JOIN accounts a ON a.id = adjustment_entries.account_id").
+					Where("adjustment_entries.organization_id = ?", userOrg.OrganizationID).
+					Where("adjustment_entries.branch_id = ?", *userOrg.BranchID)
+
+				if currencyID != nil {
+					query = query.Where("a.currency_id = ?", *currencyID)
+				}
+
+				return query
+			},
+			"Organization", "Branch", "Account", "EmployeeUser",
+		)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
-		}
-		result := []*core.AdjustmentEntry{}
-		for _, entry := range adjustmentEntries {
-			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				result = append(result, entry)
-			}
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to fetch adjustment entries for pagination: " + err.Error(),
+			})
 		}
 
-		paginated, err := c.core.AdjustmentEntryManager.PaginationData(context, ctx, result)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate adjustment entries: " + err.Error()})
-		}
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/total
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and optionally by user organization.",
@@ -414,7 +424,7 @@ func (c *Controller) adjustmentEntryController() {
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and user organization.",
@@ -436,29 +446,35 @@ func (c *Controller) adjustmentEntryController() {
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
-			OrganizationID: userOrganization.OrganizationID,
-			BranchID:       *userOrganization.BranchID,
-			EmployeeUserID: &userOrganization.UserID,
-		})
+		paginated, err := c.core.AdjustmentEntryManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				query := db.Model(&core.AdjustmentEntry{}).
+					Joins("JOIN accounts a ON a.id = adjustment_entries.account_id").
+					Where("adjustment_entries.organization_id = ?", userOrganization.OrganizationID).
+					Where("adjustment_entries.branch_id = ?", *userOrganization.BranchID).
+					Where("adjustment_entries.employee_user_id = ?", userOrganization.UserID)
+
+				if currencyID != nil {
+					query = query.Where("a.currency_id = ?", *currencyID)
+				}
+
+				return query
+			},
+			"Organization", "Branch", "EmployeeUser", "Account",
+		)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to fetch adjustment entries for pagination: " + err.Error(),
+			})
 		}
-		result := []*core.AdjustmentEntry{}
-		for _, entry := range adjustmentEntries {
-			if handlers.UUIDPtrEqual(entry.Account.CurrencyID, currencyID) {
-				result = append(result, entry)
-			}
-		}
-		paginated, err := c.core.AdjustmentEntryManager.PaginationData(context, ctx, result)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate adjustment entries: " + err.Error()})
-		}
+
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
 	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and user organization.",

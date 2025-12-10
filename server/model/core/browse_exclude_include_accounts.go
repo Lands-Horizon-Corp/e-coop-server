@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -100,7 +100,10 @@ func (m *Core) browseExcludeIncludeAccounts() {
 			"ComputationSheet",
 			"FinesAccount", "ComakerAccount", "InterestAccount", "DeliquentAccount", "IncludeExistingLoanAccount",
 		},
-		Service: m.provider.Service,
+		Database: m.provider.Service.Database.Client(),
+		Dispatch: func(topics registry.Topics, payload any) error {
+			return m.provider.Service.Broker.Dispatch(topics, payload)
+		},
 		Resource: func(data *BrowseExcludeIncludeAccounts) *BrowseExcludeIncludeAccountsResponse {
 			if data == nil {
 				return nil
@@ -131,7 +134,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				IncludeExistingLoanAccount:   m.AccountManager.ToModel(data.IncludeExistingLoanAccount),
 			}
 		},
-		Created: func(data *BrowseExcludeIncludeAccounts) []string {
+		Created: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.create",
 				fmt.Sprintf("browse_exclude_include_accounts.create.%s", data.ID),
@@ -139,7 +142,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				fmt.Sprintf("browse_exclude_include_accounts.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BrowseExcludeIncludeAccounts) []string {
+		Updated: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.update",
 				fmt.Sprintf("browse_exclude_include_accounts.update.%s", data.ID),
@@ -147,7 +150,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				fmt.Sprintf("browse_exclude_include_accounts.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BrowseExcludeIncludeAccounts) []string {
+		Deleted: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
 			return []string{
 				"browse_exclude_include_accounts.delete",
 				fmt.Sprintf("browse_exclude_include_accounts.delete.%s", data.ID),

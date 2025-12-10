@@ -16,7 +16,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	req := c.provider.Service.Request
 
 	// GET /generated-savings-interest-entry: List all generated savings interest entries for the current user's branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest entries for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +38,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// GET /generated-savings-interest-entry/search: Paginated search of generated savings interest entries for the current branch. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of generated savings interest entries for the current user's organization and branch.",
@@ -52,7 +52,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.GeneratedSavingsInterestEntryManager.PaginationWithFields(context, ctx, &core.GeneratedSavingsInterestEntry{
+		entries, err := c.core.GeneratedSavingsInterestEntryManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterestEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -63,7 +63,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// GET /generated-savings-interest-entry/:entry_id: Get specific generated savings interest entry by ID. (NO footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest entry by its ID.",
@@ -82,7 +82,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// POST /generated-savings-interest-entry: Create a new generated savings interest entry. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "POST",
 		Note:         "Creates a new generated savings interest entry for the current user's organization and branch.",
@@ -223,7 +223,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// PUT /generated-savings-interest-entry/:entry_id: Update generated savings interest entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing generated savings interest entry by its ID.",
@@ -353,7 +353,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// DELETE /generated-savings-interest-entry/:entry_id: Delete a generated savings interest entry by ID. (WITH footstep)
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified generated savings interest entry by its ID.",
@@ -393,7 +393,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/generated-savings-interest-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple generated savings interest entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -417,8 +417,11 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No entry IDs provided for bulk delete"})
 		}
-
-		if err := c.core.GeneratedSavingsInterestEntryManager.BulkDelete(context, reqBody.IDs); err != nil {
+ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.GeneratedSavingsInterestEntryManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete generated savings interest entries (/generated-savings-interest-entry/bulk-delete) | error: " + err.Error(),
@@ -436,7 +439,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 	})
 
 	// GET /api/v1//generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance
-	req.RegisterRoute(handlers.Route{
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance",
 		Method:       "GET",
 		Note:         "Fetches daily ending balances for all entries under a specific generated savings interest record.",
