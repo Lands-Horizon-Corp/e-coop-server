@@ -472,9 +472,7 @@ func (c *Controller) adjustmentEntryController() {
 				"error": "Failed to fetch adjustment entries for pagination: " + err.Error(),
 			})
 		}
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate adjustment entries: " + err.Error()})
-		}
+
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 

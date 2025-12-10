@@ -110,9 +110,6 @@ func (c *Controller) memberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
-		}
 		paginatedResult, err := c.core.MemberAccountingLedgerManager.ArrPagination(context, ctx, []registry.FilterSQL{
 			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
