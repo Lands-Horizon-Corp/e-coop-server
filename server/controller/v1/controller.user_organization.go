@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (c *Controller) userOrganinzationController() {
@@ -291,15 +292,28 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationsNoneUserMembers(context, *userOrg.BranchID, userOrg.OrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager.RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.UserOrganization{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", userOrg.BranchID).
+					Where("user_type = ?", core.UserOrganizationTypeMember).
+					Where(`NOT EXISTS (
+				SELECT 1 FROM member_profiles mp
+				WHERE mp.user_id = user_organizations.user_id
+				AND mp.organization_id = user_organizations.organization_id
+				AND mp.branch_id = user_organizations.branch_id
+			)`)
+			},
+			"Branch", "Organization",
+		)
+
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
 		}
-		noneUsers, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve none member user organizations: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, noneUsers)
+		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
 	// Retrieve all user organizations for a user (optionally including pending)
@@ -1174,8 +1188,11 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		// Delegate deletion to the manager. Manager should handle transactions, validations and DeletedBy bookkeeping.
-		if err := c.core.UserOrganizationManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.UserOrganizationManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | error: " + err.Error(),

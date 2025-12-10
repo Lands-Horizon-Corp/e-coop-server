@@ -2,8 +2,7 @@ package registry
 
 import (
 	"context"
-
-	"github.com/rotisserie/eris"
+	"fmt"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) List(
@@ -11,7 +10,7 @@ func (r *Registry[TData, TResponse, TRequest]) List(
 	preloads ...string,
 ) ([]*TData, error) {
 	var entities []*TData
-	db := r.Client(context)
+	db := r.client.WithContext(context)
 	if preloads == nil {
 		preloads = r.preloads
 	}
@@ -19,7 +18,7 @@ func (r *Registry[TData, TResponse, TRequest]) List(
 		db = db.Preload(preload)
 	}
 	if err := db.Order("updated_at DESC").Find(&entities).Error; err != nil {
-		return nil, eris.Wrap(err, "failed to list entities")
+		return nil, fmt.Errorf("failed to list entities: %w", err)
 	}
 	return entities, nil
 }
@@ -30,7 +29,7 @@ func (r *Registry[TData, TResponse, TRequest]) ListRaw(
 ) ([]*TResponse, error) {
 	data, err := r.List(context, preloads...)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to list raw entities")
+		return nil, fmt.Errorf("failed to list data: %w", err)
 	}
 	return r.ToModels(data), nil
 }

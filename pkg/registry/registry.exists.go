@@ -7,21 +7,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// FilterSQL is an alias for the query.ArrFilterSQL type used in array-style filters.
 type FilterSQL = query.ArrFilterSQL
 
 func (r *Registry[TData, TResponse, TRequest]) Exists(
 	context context.Context,
 	fields *TData,
 ) (bool, error) {
-	return r.pagination.NormalExists(r.Client(context), *fields)
+	return r.pagination.NormalExists(r.client.WithContext(context), *fields)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ArrExists(
 	context context.Context,
 	filters []query.ArrFilterSQL,
 ) (bool, error) {
-	return r.pagination.ArrExists(r.Client(context), filters)
+	return r.pagination.ArrExists(r.client.WithContext(context), filters)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) StructuredExists(
@@ -36,7 +35,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsByID(
 	context context.Context,
 	id any,
 ) (bool, error) {
-	return r.pagination.NormalExistsByID(r.Client(context), id)
+	return r.pagination.NormalExistsByID(r.client.WithContext(context), id)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ExistsByIDWithTx(
@@ -51,7 +50,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsIncludingDeleted(
 	context context.Context,
 	filters []FilterSQL,
 ) (bool, error) {
-	return r.pagination.ArrExistsIncludingDeleted(r.Client(context), filters)
+	return r.pagination.ArrExistsIncludingDeleted(r.client.WithContext(context), filters)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ExistsIncludingDeletedWithTx(

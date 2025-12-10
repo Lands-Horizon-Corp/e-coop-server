@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"gorm.io/gorm"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) Find(
@@ -11,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) Find(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFind(r.Client(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFind(r.client.WithContext(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindWithLock(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFindLock(r.Client(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFindLock(r.client.WithContext(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFind(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFind(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFind(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindWithLock(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFindLock(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFindLock(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFind(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFind(r.Client(context), filter)
+	data, err := r.pagination.StructuredFind(r.client.WithContext(context), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindWithLock(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFindLock(r.Client(context), filter, r.preload(preloads...)...)
+	data, err := r.pagination.StructuredFindLock(r.client.WithContext(context), filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +149,69 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindWithLockRaw(
 	preloads ...string,
 ) ([]*TResponse, error) {
 	data, err := r.StructuredFindWithLock(context, filter, preloads...)
+	if err != nil {
+		return nil, err
+	}
+	return r.ToModels(data), nil
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFind(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TData, error) {
+	var db *gorm.DB
+	if filter != nil {
+		db = filter.Model(new(TData))
+	} else {
+		db = r.client.WithContext(context)
+	}
+
+	data, err := r.pagination.RawFind(db, preloads...)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+func (r *Registry[TData, TResponse, TRequest]) RawFindRaw(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TResponse, error) {
+	data, err := r.RawFind(context, filter, preloads...)
+	if err != nil {
+		return nil, err
+	}
+	return r.ToModels(data), nil
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindWithLock(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TData, error) {
+	var db *gorm.DB
+	if filter != nil {
+		db = filter.Model(new(TData))
+	} else {
+		db = r.client.WithContext(context)
+	}
+
+	data, err := r.pagination.RawFindLock(db, preloads...)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindWithLockRaw(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TResponse, error) {
+	data, err := r.RawFindWithLock(context, filter, preloads...)
 	if err != nil {
 		return nil, err
 	}

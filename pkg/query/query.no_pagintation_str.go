@@ -11,7 +11,7 @@ func (f *Pagination[T]) NoPaginationStr(
 	filterValue string,
 	preloads ...string,
 ) ([]*T, error) {
-	filterRoot, _, _, err := strParseQuery(filterValue)
+	filterRoot, err := StrParseQueryNoPagination(filterValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query string: %w", err)
 	}
@@ -24,7 +24,7 @@ func (f *Pagination[T]) NoPaginationStructuredStr(
 	filter StructuredFilter,
 	preloads ...string,
 ) ([]*T, error) {
-	filterRoot, _, _, err := strParseQuery(filterValue)
+	filterRoot, err := StrParseQueryNoPagination(filterValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query string: %w", err)
 	}
@@ -44,24 +44,29 @@ func (f *Pagination[T]) NoPaginationArrayStr(
 	sorts []ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*T, error) {
-	filterRoot, _, _, err := strParseQuery(filterValue)
+	filterRoot, err := StrParseQueryNoPagination(filterValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query string: %w", err)
 	}
+
 	for _, f := range filters {
+
 		filterRoot.FieldFilters = append(filterRoot.FieldFilters, FieldFilter{
 			Field:    f.Field,
 			Value:    f.Value,
 			Mode:     f.Op,
-			DataType: DataTypeText,
+			DataType: DetectDataType(f.Value),
 		})
 	}
+
 	filterRoot.Logic = LogicAnd
+
 	if len(filterRoot.SortFields) == 0 && len(sorts) > 0 {
 		for _, s := range sorts {
 			filterRoot.SortFields = append(filterRoot.SortFields, SortField(s))
 		}
 	}
+
 	filterRoot.Preload = append(filterRoot.Preload, preloads...)
 	return f.StructuredFind(db, filterRoot, preloads...)
 }
@@ -72,7 +77,7 @@ func (f *Pagination[T]) NoPaginationNormalStr(
 	filter *T,
 	preloads ...string,
 ) ([]*T, error) {
-	filterRoot, _, _, err := strParseQuery(filterValue)
+	filterRoot, err := StrParseQueryNoPagination(filterValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query string: %w", err)
 	}

@@ -8,7 +8,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -530,31 +529,4 @@ func (m *Core) Members(context context.Context, organizationID uuid.UUID, branch
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeMember,
 	})
-}
-
-func (m *Core) UserOrganizationsNoneUserMembers(
-	ctx context.Context,
-	branchID, organizationID uuid.UUID,
-) ([]*UserOrganization, error) {
-	var userOrgs []*UserOrganization
-
-	// Build the query with NOT EXISTS for member profiles
-	err := m.DB.WithContext(ctx).
-		Model(&UserOrganization{}).
-		Where("organization_id = ?", organizationID).
-		Where("branch_id = ?", branchID).
-		Where("user_type = ?", UserOrganizationTypeMember).
-		Where(`NOT EXISTS (
-			SELECT 1 FROM member_profiles mp
-			WHERE mp.user_id = user_organizations.user_id
-			AND mp.organization_id = user_organizations.organization_id
-			AND mp.branch_id = user_organizations.branch_id
-		)`).
-		Find(&userOrgs).Error
-
-	if err != nil {
-		return nil, eris.Wrap(err, "failed to fetch user organizations")
-	}
-
-	return userOrgs, nil
 }

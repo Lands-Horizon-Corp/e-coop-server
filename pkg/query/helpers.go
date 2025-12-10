@@ -63,27 +63,14 @@ var timeLayouts = []string{
 
 func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []SortField) *gorm.DB {
 	joinedTables := make(map[string]bool)
-	allowedJoinTables := map[string]struct{}{
-		// Allowed PascalCase table names (example):
-		"User":    {},
-		"Profile": {},
-		"Order":   {},
-		// TODO: Add other table names from your schema as appropriate.
-	}
 	for _, filter := range filters {
 		if strings.Contains(filter.Field, ".") {
 			parts := strings.Split(filter.Field, ".")
 			if len(parts) >= 2 {
 				tableName := toPascalCase(parts[0])
-				if _, allowed := allowedJoinTables[tableName]; allowed {
-					if !joinedTables[tableName] {
-						db = db.Joins(tableName)
-						joinedTables[tableName] = true
-					}
-				} else {
-					// Optionally: log or handle attempt to join disallowed table
-					// fmt.Printf("Attempt to join disallowed table: %s\n", tableName)
-					continue
+				if !joinedTables[tableName] {
+					db = db.Joins(tableName)
+					joinedTables[tableName] = true
 				}
 			}
 		}
@@ -93,15 +80,9 @@ func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []Sort
 			parts := strings.Split(sortField.Field, ".")
 			if len(parts) >= 2 {
 				tableName := toPascalCase(parts[0])
-				if _, allowed := allowedJoinTables[tableName]; allowed {
-					if !joinedTables[tableName] {
-						db = db.Joins(tableName)
-						joinedTables[tableName] = true
-					}
-				} else {
-					// Optionally: log or handle attempt to join disallowed table
-					// fmt.Printf("Attempt to join disallowed table: %s\n", tableName)
-					continue
+				if !joinedTables[tableName] {
+					db = db.Joins(tableName)
+					joinedTables[tableName] = true
 				}
 			}
 		}
@@ -254,7 +235,6 @@ func parseRangeNumber(value any) (RangeNumber, error) {
 func parseRangeDateTime(value any) (RangeDate, error) {
 	switch v := value.(type) {
 	case RangeDate:
-		// Already a RangeDate, just return
 		return v, nil
 	case Range:
 		from, err := parseDateTime(v.From)
@@ -295,7 +275,6 @@ func parseRangeDateTime(value any) (RangeDate, error) {
 func parseRangeTime(value any) (RangeDate, error) {
 	switch v := value.(type) {
 	case RangeDate:
-		// Already a RangeDate, just return
 		return v, nil
 	case Range:
 		from, err := parseTime(v.From)
@@ -534,7 +513,7 @@ func parseQuery(ctx echo.Context) (StructuredFilter, int, int, error) {
 	return filterRoot, pageIndex, pageSize, nil
 }
 
-func strParseFilters(value string) (StructuredFilter, error) {
+func StrParseFilters(value string) (StructuredFilter, error) {
 	if value == "" {
 		return StructuredFilter{Logic: LogicAnd}, nil
 	}
@@ -556,7 +535,7 @@ func strParseFilters(value string) (StructuredFilter, error) {
 	return filterRoot, nil
 }
 
-func strParseSort(value string) ([]SortField, error) {
+func StrParseSort(value string) ([]SortField, error) {
 	if value == "" {
 		return nil, nil
 	}
@@ -583,7 +562,7 @@ func strParseSort(value string) ([]SortField, error) {
 	return sortFields, nil
 }
 
-func strParsePageSize(value string) (int, error) {
+func StrParsePageSize(value string) (int, error) {
 	if value == "" {
 		return 0, nil
 	}
@@ -594,7 +573,7 @@ func strParsePageSize(value string) (int, error) {
 	return pageSize, nil
 }
 
-func strParsePageIndex(value string) (int, error) {
+func StrParsePageIndex(value string) (int, error) {
 	if value == "" {
 		return 0, nil
 	}
@@ -605,7 +584,7 @@ func strParsePageIndex(value string) (int, error) {
 	return pageIndex, nil
 }
 
-func strParseQuery(value string) (StructuredFilter, int, int, error) {
+func StrParseQuery(value string) (StructuredFilter, int, int, error) {
 	parts := strings.Split(value, "|")
 	var filterStr, sortStr, pageIndexStr, pageSizeStr string
 	if len(parts) > 0 {
@@ -621,22 +600,92 @@ func strParseQuery(value string) (StructuredFilter, int, int, error) {
 		pageSizeStr = parts[3]
 	}
 
-	filterRoot, err := strParseFilters(filterStr)
+	filterRoot, err := StrParseFilters(filterStr)
 	if err != nil {
 		return StructuredFilter{}, 0, 0, fmt.Errorf("filter processing failed: %w", err)
 	}
-	sortFields, err := strParseSort(sortStr)
+	sortFields, err := StrParseSort(sortStr)
 	if err != nil {
 		return StructuredFilter{}, 0, 0, fmt.Errorf("sort processing failed: %w", err)
 	}
 	filterRoot.SortFields = sortFields
-	pageIndex, err := strParsePageIndex(pageIndexStr)
+	pageIndex, err := StrParsePageIndex(pageIndexStr)
 	if err != nil {
 		return StructuredFilter{}, 0, 0, fmt.Errorf("pageIndex processing failed: %w", err)
 	}
-	pageSize, err := strParsePageSize(pageSizeStr)
+	pageSize, err := StrParsePageSize(pageSizeStr)
 	if err != nil {
 		return StructuredFilter{}, 0, 0, fmt.Errorf("pageSize processing failed: %w", err)
 	}
 	return filterRoot, pageIndex, pageSize, nil
+}
+
+func StrParseQueryNoPagination(value string) (StructuredFilter, error) {
+	parts := strings.Split(value, "|")
+	var filterStr, sortStr string
+	if len(parts) > 0 {
+		filterStr = parts[0]
+	}
+	if len(parts) > 1 {
+		sortStr = parts[1]
+	}
+
+	filterRoot, err := StrParseFilters(filterStr)
+	if err != nil {
+		return StructuredFilter{}, fmt.Errorf("filter processing failed: %w", err)
+	}
+	sortFields, err := StrParseSort(sortStr)
+	if err != nil {
+		return StructuredFilter{}, fmt.Errorf("sort processing failed: %w", err)
+	}
+	filterRoot.SortFields = sortFields
+	return filterRoot, nil
+}
+
+func parseQueryNoPagination(ctx echo.Context) (StructuredFilter, error) {
+	filterRoot, err := parseFilters(ctx)
+	if err != nil {
+		return StructuredFilter{}, fmt.Errorf("filter processing failed: %w", err)
+	}
+	sortFields, err := parseSort(ctx)
+	if err != nil {
+		return StructuredFilter{}, fmt.Errorf("sort processing failed: %w", err)
+	}
+	filterRoot.SortFields = sortFields
+	return filterRoot, nil
+}
+
+func DetectDataType(val any) DataType {
+	if val == nil {
+		return DataTypeText
+	}
+
+	rv := reflect.ValueOf(val)
+	kind := rv.Kind()
+	switch kind {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return DataTypeNumber
+
+	case reflect.Bool:
+		return DataTypeBool
+
+	case reflect.String:
+		return DataTypeText
+
+	case reflect.Struct:
+		if t, ok := val.(time.Time); ok {
+			if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
+				return DataTypeDate
+			}
+			return DataTypeTime
+		}
+	case reflect.Ptr:
+		if !rv.IsNil() {
+			return DetectDataType(rv.Elem().Interface())
+		}
+	}
+
+	return DataTypeText
 }

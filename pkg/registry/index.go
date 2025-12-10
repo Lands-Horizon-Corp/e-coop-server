@@ -37,11 +37,22 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 	deleted           func(*TData) Topics
 	tabular           func(data *TData) map[string]any
 	pagination        query.Pagination[TData]
+	client            *gorm.DB
 }
 
 func NewRegistry[TData any, TResponse any, TRequest any](
 	params RegistryParams[TData, TResponse, TRequest],
 ) *Registry[TData, TResponse, TRequest] {
+	if params.ColumnDefaultID == "" {
+		params.ColumnDefaultID = "id"
+	}
+	if params.ColumnDefaultSort == "" {
+		params.ColumnDefaultSort = "created_at DESC"
+	}
+	var client *gorm.DB
+	if params.Database != nil {
+		client = params.Database.Model(new(TData))
+	}
 	return &Registry[TData, TResponse, TRequest]{
 		columnDefaultID:   params.ColumnDefaultID,
 		columnDefaultSort: params.ColumnDefaultSort,
@@ -54,6 +65,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 		deleted:           params.Deleted,
 		tabular:           params.Tabular,
 		validator:         params.Validator,
+		client:            client,
 		pagination: *query.NewPagination[TData](query.PaginationConfig{
 			Verbose:           true,
 			ColumnDefaultSort: params.ColumnDefaultSort,
@@ -63,10 +75,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 }
 
 func (r *Registry[TData, TResponse, TRequest]) Client(context context.Context) *gorm.DB {
-	if r.database == nil {
-		return nil
-	}
-	return r.database.WithContext(context).Model(new(TData))
+	return r.client.WithContext(context)
 }
 
 func (r *Registry[TData, TResponse, TRequest]) preload(preloads ...string) []string {

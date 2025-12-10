@@ -64,7 +64,7 @@ func (f *Pagination[T]) PaginationArray(
 			Field:    f.Field,
 			Value:    f.Value,
 			Mode:     f.Op,
-			DataType: DataTypeText,
+			DataType: DetectDataType(f.Value),
 		})
 	}
 	filterRoot.Logic = LogicAnd
@@ -95,4 +95,19 @@ func (f *Pagination[T]) PaginationNormal(
 		db = db.Where(filter)
 	}
 	return f.StructuredPagination(db, filterRoot, pageIndex, pageSize, preloads...)
+}
+
+func (f *Pagination[T]) PaginationRaw(
+	db *gorm.DB,
+	ctx echo.Context,
+	rawQuery func(*gorm.DB) *gorm.DB,
+	preloads ...string,
+) (*PaginationResult[T], error) {
+	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
+	if err != nil {
+		return &PaginationResult[T]{}, fmt.Errorf("failed to parse query: %w", err)
+	}
+	dbQuery := rawQuery(db)
+	dbQuery = f.structuredQuery(dbQuery, filterRoot)
+	return f.RawPagination(dbQuery, pageIndex, pageSize, preloads...)
 }

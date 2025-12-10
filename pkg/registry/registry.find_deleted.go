@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"gorm.io/gorm"
 )
 
 func (r *Registry[TData, TResponse, TRequest]) FindIncludeDeleted(
@@ -11,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindIncludeDeleted(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFindIncludeDeleted(r.Client(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFindIncludeDeleted(r.client.WithContext(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindWithLockIncludeDeleted(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFindLockIncludeDeleted(r.Client(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFindLockIncludeDeleted(r.client.WithContext(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindIncludeDeleted(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFindIncludeDeleted(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFindIncludeDeleted(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindWithLockIncludeDeleted(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFindLockIncludeDeleted(r.Client(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFindLockIncludeDeleted(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindIncludeDeleted(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFindIncludeDeleted(r.Client(context), filter)
+	data, err := r.pagination.StructuredFindIncludeDeleted(r.client.WithContext(context), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -73,14 +74,12 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindWithLockIncludeDele
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFindLockIncludeDeleted(r.Client(context), filter, r.preload(preloads...)...)
+	data, err := r.pagination.StructuredFindLockIncludeDeleted(r.client.WithContext(context), filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
 	return data, nil
 }
-
-// ===== RAW versions =====
 
 func (r *Registry[TData, TResponse, TRequest]) FindIncludeDeletedRaw(
 	context context.Context,
@@ -150,6 +149,58 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindWithLockIncludeDele
 	preloads ...string,
 ) ([]*TResponse, error) {
 	data, err := r.StructuredFindWithLockIncludeDeleted(context, filter, preloads...)
+	if err != nil {
+		return nil, err
+	}
+	return r.ToModels(data), nil
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindIncludeDeleted(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TData, error) {
+	var db *gorm.DB
+	if filter != nil {
+		db = filter.Model(new(TData))
+	} else {
+		db = r.client.WithContext(context)
+	}
+	return r.pagination.RawFindIncludeDeleted(db, preloads...)
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindLockIncludeDeleted(
+	context context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TData, error) {
+	var db *gorm.DB
+	if filter != nil {
+		db = filter.Model(new(TData))
+	} else {
+		db = r.client.WithContext(context)
+	}
+	return r.pagination.RawFindLockIncludeDeleted(db, preloads...)
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindIncludeDeletedRaw(
+	ctx context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TResponse, error) {
+	data, err := r.RawFindIncludeDeleted(ctx, filter, preloads...)
+	if err != nil {
+		return nil, err
+	}
+	return r.ToModels(data), nil
+}
+
+func (r *Registry[TData, TResponse, TRequest]) RawFindLockIncludeDeletedRaw(
+	ctx context.Context,
+	filter *gorm.DB,
+	preloads ...string,
+) ([]*TResponse, error) {
+	data, err := r.RawFindLockIncludeDeleted(ctx, filter, preloads...)
 	if err != nil {
 		return nil, err
 	}

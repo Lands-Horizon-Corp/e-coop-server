@@ -206,21 +206,20 @@ func (p *Pagination[T]) NormalGetMaxLock(
 	filter T,
 ) (any, error) {
 	var result any
-	tx = tx.Where(&filter).Clauses(clause.Locking{Strength: "UPDATE"})
+	tx = tx.Model(&filter).Where(&filter).Clauses(clause.Locking{Strength: "UPDATE"})
 	row := tx.Select(fmt.Sprintf("MAX(%s)", field)).Row()
 	if err := row.Scan(&result); err != nil {
 		return nil, fmt.Errorf("failed to get max of %s with lock: %w", field, err)
 	}
 	return result, nil
 }
-
 func (p *Pagination[T]) NormalGetMinLock(
 	tx *gorm.DB,
 	field string,
 	filter T,
 ) (any, error) {
 	var result any
-	tx = tx.Where(&filter).Clauses(clause.Locking{Strength: "UPDATE"})
+	tx = tx.Model(&filter).Where(&filter).Clauses(clause.Locking{Strength: "UPDATE"})
 	row := tx.Select(fmt.Sprintf("MIN(%s)", field)).Row()
 	if err := row.Scan(&result); err != nil {
 		return nil, fmt.Errorf("failed to get min of %s with lock: %w", field, err)
@@ -326,7 +325,6 @@ func (f *Pagination[T]) NormalTabular(
 	return csvCreation(data, getter)
 }
 
-// NormalRequestTabular uses echo.Context and optional filter
 func (f *Pagination[T]) NormalRequestTabular(
 	db *gorm.DB,
 	ctx echo.Context,
@@ -362,7 +360,7 @@ func (f *Pagination[T]) NormalStringTabular(
 	getter func(data *T) map[string]any,
 	preloads ...string,
 ) ([]byte, error) {
-	filterRoot, _, _, err := strParseQuery(filterValue)
+	filterRoot, _, _, err := StrParseQuery(filterValue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse query string: %w", err)
 	}
