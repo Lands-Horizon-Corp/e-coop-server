@@ -320,7 +320,11 @@ func (c *Controller) computationSheetController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No computation sheet IDs provided for bulk delete"})
 		}
 
-		if err := c.core.ComputationSheetManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.ComputationSheetManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/computation-sheet/bulk-delete) | error: " + err.Error(),
@@ -337,6 +341,4 @@ func (c *Controller) computationSheetController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// POST - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/connect
-	// PUT - api/v1/computation-sheeet/:computation-sheet-id/account/:account-id/disconnect
 }

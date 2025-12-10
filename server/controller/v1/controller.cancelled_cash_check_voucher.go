@@ -276,8 +276,11 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No cancelled cash check voucher IDs provided for bulk delete"})
 		}
-
-		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | error: " + err.Error(),

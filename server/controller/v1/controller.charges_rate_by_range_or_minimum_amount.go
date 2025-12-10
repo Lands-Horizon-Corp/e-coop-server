@@ -225,7 +225,11 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No charges rate by range or minimum amount IDs provided for bulk delete"})
 		}
 
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.BulkDelete(context, reqBody.IDs); err != nil {
+		ids := make([]any, len(reqBody.IDs))
+		for i, id := range reqBody.IDs {
+			ids[i] = id
+		}
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | error: " + err.Error(),
