@@ -225,7 +225,7 @@ func (c *Controller) transactionController() {
 				"error": "Failed to get user organization: " + err.Error(),
 			})
 		}
-		var filter *core.Transaction
+		var filter core.Transaction
 		if userOrg.UserType == core.UserOrganizationTypeMember {
 			memberProfile, err := c.core.MemberProfileManager.FindOne(context, &core.MemberProfile{
 				UserID: &userOrg.UserID,
@@ -242,7 +242,7 @@ func (c *Controller) transactionController() {
 
 		filter.OrganizationID = userOrg.OrganizationID
 		filter.BranchID = *userOrg.BranchID
-		transactionPagination, err := c.core.TransactionManager.NormalPagination(context, ctx, filter)
+		transactionPagination, err := c.core.TransactionManager.NormalPagination(context, ctx, &filter)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Failed to paginate transactions: " + err.Error(),
