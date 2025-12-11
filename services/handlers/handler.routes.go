@@ -172,10 +172,16 @@ func (h *RouteHandler) AddRoute(route Route) error {
 	return nil
 }
 
-// GroupedRoutes organizes routes by their URL path segments for API documentation
 func (h *RouteHandler) GroupedRoutes() API {
-	const skipSegments = 2  // e.g., skip "api" and "v1" or "v2"
-	const groupSegments = 1 // e.g., group by the next segment ("subject")
+	// Prefixes we want to ignore (in order)
+	prefixes := [][]string{
+		{"api", "v1"},
+		{"api", "v2"},
+		{"web", "api", "v1"},
+		{"web", "api", "v2"},
+	}
+
+	const groupSegments = 1 // group by 1 segment after the prefix
 
 	groups := make(map[string][]Route)
 
@@ -183,25 +189,24 @@ func (h *RouteHandler) GroupedRoutes() API {
 		trimmedPath := strings.TrimPrefix(route.Route, "/")
 		segments := strings.Split(trimmedPath, "/")
 
+		skipSegments := detectPrefix(segments, prefixes)
+
 		groupKey := "/"
 		if len(segments) > skipSegments {
 			end := min(skipSegments+groupSegments, len(segments))
-			groupKey = strings.Join(segments[skipSegments:end], "/")
-		} else if len(segments) > 0 && segments[0] != "" {
-			groupKey = segments[0]
+			groupKey = segments[skipSegments:end][0]
 		}
 
 		groups[groupKey] = append(groups[groupKey], route)
 	}
 
-	// Sort group keys
+	// Sort keys
 	keys := make([]string, 0, len(groups))
 	for k := range groups {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	// Prepare sorted result
 	var groupedRoutes []GroupedRoute
 	for _, key := range keys {
 		routes := groups[key]
@@ -219,6 +224,24 @@ func (h *RouteHandler) GroupedRoutes() API {
 		Requests:      GetAllRequestInterfaces(h.RoutesList),
 		Responses:     GetAllResponseInterfaces(h.RoutesList),
 	}
+}
+
+func detectPrefix(segments []string, prefixes [][]string) int {
+	for _, pre := range prefixes {
+		if len(segments) >= len(pre) {
+			match := true
+			for i := range pre {
+				if segments[i] != pre[i] {
+					match = false
+					break
+				}
+			}
+			if match {
+				return len(pre)
+			}
+		}
+	}
+	return 0
 }
 
 func GetClientIP(c echo.Context) string {
