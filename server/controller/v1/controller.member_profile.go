@@ -1261,7 +1261,7 @@ func (c *Controller) memberProfileController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
-		Route:        "/member-profile/:member_profile_id/connect",
+		Route:        "/api/v1/member-profile/:member_profile_id/connect",
 		Method:       "POST",
 		RequestType:  core.MemberProfileAccountRequest{},
 		ResponseType: core.MemberProfileResponse{},
