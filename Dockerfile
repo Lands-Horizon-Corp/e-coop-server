@@ -16,7 +16,7 @@ COPY . .
 # - Use -gcflags="-N -l" to disable optimizations and reduce memory during compilation
 # - Use -ldflags="-s -w" to strip debug info from final binary
 # - Set GOMEMLIMIT to control memory usage during build
-RUN GOMEMLIMIT=1GiB CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -a -installsuffix cgo -ldflags="-s -w -extldflags '-static'" -o app .
 
 # Use a minimal base image for the final artifact
