@@ -387,31 +387,30 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 	}))
 
 	e.Use(SecurityHeadersMiddleware(secured))
-
-	// Global preflight handler: respond to OPTIONS with appropriate CORS headers
+	origins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://www.ecoop-suite.com",
+		"https://development.ecoop-suite.com",
+		"https://www.development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+		"https://www.staging.ecoop-suite.com",
+		"https://cooperatives-development.fly.dev",
+		"https://cooperatives-staging.fly.dev",
+		"https://cooperatives-production.fly.dev",
+	}
+	if !secured {
+		origins = append(origins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+		)
+	}
 	e.OPTIONS("/*", func(c echo.Context) error {
-		origins := []string{
-			"https://ecoop-suite.netlify.app",
-			"https://ecoop-suite.com",
-			"https://www.ecoop-suite.com",
-			"https://development.ecoop-suite.com",
-			"https://www.development.ecoop-suite.com",
-			"https://staging.ecoop-suite.com",
-			"https://www.staging.ecoop-suite.com",
-			"https://cooperatives-development.fly.dev",
-			"https://cooperatives-staging.fly.dev",
-			"https://cooperatives-production.fly.dev",
-		}
-		if !secured {
-			origins = append(origins,
-				"http://localhost:8000",
-				"http://localhost:8001",
-				"http://localhost:3000",
-				"http://localhost:3001",
-				"http://localhost:3002",
-				"http://localhost:3003",
-			)
-		}
+
 		origin := c.Request().Header.Get("Origin")
 		if origin == "" {
 			return c.NoContent(http.StatusNoContent)
@@ -561,65 +560,41 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				)
 			}
 
-			allowedHosts := make([]string, 0, len(origins)*2+2)
+			allowedHosts := make([]string, 0, len(origins)*2)
 			for _, origin := range origins {
-				hostname := strings.TrimPrefix(origin, "https://")
-				hostname = strings.TrimPrefix(hostname, "http://")
-				// add both host:port and host (no port) to allowed hosts
-				allowedHosts = append(allowedHosts, hostname)
-				if strings.Contains(hostname, ":") {
-					hostNoPort := strings.Split(hostname, ":")[0]
-					allowedHosts = append(allowedHosts, hostNoPort)
-				} else {
-					allowedHosts = append(allowedHosts, hostname)
+				host := strings.TrimPrefix(origin, "https://")
+				host = strings.TrimPrefix(host, "http://")
+				allowedHosts = append(allowedHosts, host)
+				if strings.Contains(host, ":") {
+					allowedHosts = append(allowedHosts, strings.Split(host, ":")[0])
 				}
 			}
-			// always allow common local hosts in development
+
 			if !h.secured {
-				allowedHosts = append(allowedHosts, "localhost", "127.0.0.1")
+				allowedHosts = append(allowedHosts, "localhost", "127.0.0.1", "::1")
 			}
 
 			host := handlers.GetHost(c)
-			// allow loopback hosts in development regardless of port
+			clientIP := handlers.GetClientIP(c)
 			if !h.secured {
-				if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.") || host == "::1" || strings.HasPrefix(host, "[::1") {
-					// continue to CORS handling below
-				} else if slices.Contains(allowedHosts, host) {
-					// allowed host
-				} else {
-					clientIP := handlers.GetClientIP(c)
-					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
+				if !strings.HasPrefix(host, "localhost") && !strings.HasPrefix(host, "127.") && host != "::1" && !slices.Contains(allowedHosts, host) {
+					log.Printf("HostValidation(dev): blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
 					return c.String(http.StatusForbidden, "Host not allowed")
 				}
-			} else {
-				if !slices.Contains(allowedHosts, host) {
-					clientIP := handlers.GetClientIP(c)
-					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
-					return c.String(http.StatusForbidden, "Host not allowed")
-				}
+			} else if !slices.Contains(allowedHosts, host) {
+				log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
+				return c.String(http.StatusForbidden, "Host not allowed")
 			}
 
 			origin := c.Request().Header.Get("Origin")
-			// allow explicit origins from configured list
-			if slices.Contains(origins, origin) {
-				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-				c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-				c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-				c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-				c.Response().Header().Set("Access-Control-Max-Age", "3600")
-			} else if !h.secured && origin != "" {
-				// in development allow localhost/127.0.0.1 origins with arbitrary ports
-				if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost") {
-					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-					c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-					c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-					c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-					c.Response().Header().Set("Access-Control-Max-Age", "3600")
-				}
+			if origin != "" && (slices.Contains(origins, origin) || (!h.secured && (strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost")))) {
+				headers := c.Response().Header()
+				headers.Set("Access-Control-Allow-Origin", origin)
+				headers.Set("Access-Control-Allow-Credentials", "true")
+				headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+				headers.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
+				headers.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+				headers.Set("Access-Control-Max-Age", "3600")
 			}
 
 			if c.Request().Method == http.MethodOptions {
@@ -627,8 +602,11 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 			}
 
 			if h.secured {
-				c.Response().Header().Set("Set-Cookie",
-					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
+				setCookies := c.Response().Header()["Set-Cookie"]
+				for i, val := range setCookies {
+					setCookies[i] = strings.ReplaceAll(val, "; Path=", "; HttpOnly; Secure; SameSite=None; Path=")
+				}
+				c.Response().Header()["Set-Cookie"] = setCookies
 			}
 
 			return next(c)
