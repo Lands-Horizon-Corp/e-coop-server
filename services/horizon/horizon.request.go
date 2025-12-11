@@ -546,7 +546,7 @@ func (h *APIServiceImpl) RegisterMobileRoute(route handlers.Route, callback func
 
 func (h *APIServiceImpl) Run(_ context.Context) error {
 	grouped := h.handler.GroupedRoutes()
-	h.service.GET("/api/routes", func(c echo.Context) error {
+	h.service.GET("/web/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"
 
