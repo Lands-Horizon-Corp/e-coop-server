@@ -426,6 +426,40 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		return c.NoContent(http.StatusNoContent)
 	})
 
+	allowedOrigins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://www.ecoop-suite.com",
+		"https://development.ecoop-suite.com",
+		"https://www.development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+		"https://www.staging.ecoop-suite.com",
+		"https://cooperatives-development.fly.dev",
+		"https://cooperatives-staging.fly.dev",
+		"https://cooperatives-production.fly.dev",
+	}
+
+	if !secured {
+		allowedOrigins = append(allowedOrigins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+		)
+	}
+
+	// Add global CORS middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     allowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "X-CSRF-Token", "X-Longitude", "X-Latitude", "Location", "X-Device-Type", "X-User-Agent"},
+		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           3600,
+	}))
+
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
@@ -535,7 +569,9 @@ func (h *APIServiceImpl) Stop(ctx context.Context) error {
 
 func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
+
 		return func(c echo.Context) error {
+			// Allowed origins
 			origins := []string{
 				"https://ecoop-suite.netlify.app",
 				"https://ecoop-suite.com",
@@ -548,7 +584,6 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				"https://cooperatives-staging.fly.dev",
 				"https://cooperatives-production.fly.dev",
 			}
-
 			if !h.secured {
 				origins = append(origins,
 					"http://localhost:8000",
@@ -560,34 +595,16 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				)
 			}
 
-			allowedHosts := make([]string, 0, len(origins)*2)
-			for _, origin := range origins {
-				host := strings.TrimPrefix(origin, "https://")
-				host = strings.TrimPrefix(host, "http://")
-				allowedHosts = append(allowedHosts, host)
-				if strings.Contains(host, ":") {
-					allowedHosts = append(allowedHosts, strings.Split(host, ":")[0])
-				}
-			}
-
-			if !h.secured {
-				allowedHosts = append(allowedHosts, "localhost", "127.0.0.1", "::1")
-			}
-
-			host := handlers.GetHost(c)
-			clientIP := handlers.GetClientIP(c)
-			if !h.secured {
-				if !strings.HasPrefix(host, "localhost") && !strings.HasPrefix(host, "127.") && host != "::1" && !slices.Contains(allowedHosts, host) {
-					log.Printf("HostValidation(dev): blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-					return c.String(http.StatusForbidden, "Host not allowed")
-				}
-			} else if !slices.Contains(allowedHosts, host) {
-				log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-				return c.String(http.StatusForbidden, "Host not allowed")
-			}
-
 			origin := c.Request().Header.Get("Origin")
-			if origin != "" && (slices.Contains(origins, origin) || (!h.secured && (strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost")))) {
+
+			// Check if the origin is allowed
+			allowed := slices.Contains(origins, origin) ||
+				(!h.secured && (strings.HasPrefix(origin, "http://localhost") ||
+					strings.HasPrefix(origin, "http://127.") ||
+					strings.HasPrefix(origin, "http://[::1") ||
+					strings.HasPrefix(origin, "https://localhost")))
+
+			if allowed {
 				headers := c.Response().Header()
 				headers.Set("Access-Control-Allow-Origin", origin)
 				headers.Set("Access-Control-Allow-Credentials", "true")
@@ -597,18 +614,12 @@ func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
 				headers.Set("Access-Control-Max-Age", "3600")
 			}
 
+			// Preflight request
 			if c.Request().Method == http.MethodOptions {
 				return c.NoContent(http.StatusNoContent)
 			}
 
-			if h.secured {
-				setCookies := c.Response().Header()["Set-Cookie"]
-				for i, val := range setCookies {
-					setCookies[i] = strings.ReplaceAll(val, "; Path=", "; HttpOnly; Secure; SameSite=None; Path=")
-				}
-				c.Response().Header()["Set-Cookie"] = setCookies
-			}
-
+			// Continue to next middleware
 			return next(c)
 		}
 	}
