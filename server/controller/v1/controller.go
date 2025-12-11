@@ -18,7 +18,7 @@ type Controller struct {
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
-	usecase               *usecase.TransactionService
+	usecase               *usecase.UsecaseService
 }
 
 // NewController creates a new Controller with required dependencies.
@@ -31,7 +31,7 @@ func NewController(
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
-	usecase *usecase.TransactionService,
+	usecase *usecase.UsecaseService,
 
 ) (*Controller, error) {
 	return &Controller{

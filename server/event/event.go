@@ -16,7 +16,7 @@ type Event struct {
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	provider              *server.Provider
-	usecase               *usecase.TransactionService
+	usecase               *usecase.UsecaseService
 	report                *report.Reports
 }
 
@@ -27,7 +27,7 @@ func NewEvent(
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
 	provider *server.Provider,
-	usecase *usecase.TransactionService,
+	usecase *usecase.UsecaseService,
 	report *report.Reports,
 ) (*Event, error) {
 	return &Event{

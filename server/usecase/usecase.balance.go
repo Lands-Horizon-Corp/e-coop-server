@@ -49,7 +49,7 @@ type BalanceResponse struct {
 	IsBalanced bool
 }
 
-func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
+func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 	credit := 0.0
 	debit := 0.0
 	balance := 0.0
@@ -277,7 +277,7 @@ func (t *TransactionService) Balance(data Balance) (BalanceResponse, error) {
 	}, nil
 }
 
-func (t *TransactionService) StrictBalance(data Balance) (BalanceResponse, error) {
+func (t *UsecaseService) StrictBalance(data Balance) (BalanceResponse, error) {
 	response, err := t.Balance(data)
 	if err != nil {
 		return BalanceResponse{}, eris.Wrap(err, "failed to calculate balance")
@@ -292,7 +292,7 @@ func (t *TransactionService) StrictBalance(data Balance) (BalanceResponse, error
 	return response, nil
 }
 
-func (t *TransactionService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core.GeneralLedger) []*core.GeneralLedger {
+func (t *UsecaseService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core.GeneralLedger) []*core.GeneralLedger {
 	if len(GeneralLedgers) == 0 {
 		return GeneralLedgers
 	}

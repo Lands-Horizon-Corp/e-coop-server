@@ -9,7 +9,7 @@ import (
 )
 
 // Deposit processes a deposit transaction for the given account and amount using precise decimal arithmetic
-func (t *TransactionService) Deposit(
+func (t *UsecaseService) Deposit(
 	ctx context.Context,
 	account *core.Account,
 	amount float64,

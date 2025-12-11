@@ -101,7 +101,7 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 }
 
 // ExchangeRateComputeAmount computes the exchange rate and converts amount between two currencies
-func (s *TransactionService) ExchangeRateComputeAmount(
+func (s *UsecaseService) ExchangeRateComputeAmount(
 	fromCurrency core.Currency,
 	toCurrency core.Currency,
 	amount float64) (*ExchangeResult, error) {

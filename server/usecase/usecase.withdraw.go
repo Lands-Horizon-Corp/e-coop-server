@@ -8,7 +8,7 @@ import (
 )
 
 // Withdraw processes a withdrawal transaction for the specified account and amount.
-func (t *TransactionService) Withdraw(
+func (t *UsecaseService) Withdraw(
 	ctx context.Context,
 	account *core.Account,
 	amount float64) (credit, debit float64, err error) {

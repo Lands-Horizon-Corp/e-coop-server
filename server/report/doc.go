@@ -18,7 +18,7 @@ type Reports struct {
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
-	usecase               *usecase.TransactionService
+	usecase               *usecase.UsecaseService
 }
 
 type ReportData struct {
@@ -35,7 +35,7 @@ func NewReports(
 	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
-	usecase *usecase.TransactionService,
+	usecase *usecase.UsecaseService,
 
 ) (*Reports, error) {
 	return &Reports{

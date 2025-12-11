@@ -24,7 +24,7 @@ type SavingsInterestComputationResult struct {
 	EndingBalance float64
 }
 
-func (t *TransactionService) SavingsInterestComputation(data SavingsInterestComputation) SavingsInterestComputationResult {
+func (t *UsecaseService) SavingsInterestComputation(data SavingsInterestComputation) SavingsInterestComputationResult {
 
 	result := SavingsInterestComputationResult{
 		Interest:      0.0,

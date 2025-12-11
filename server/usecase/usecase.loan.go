@@ -10,7 +10,7 @@ import (
 )
 
 // LoanChargesRateComputation calculates the loan charges based on the rate scheme and loan transaction
-func (t *TransactionService) LoanChargesRateComputation(crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
+func (t *UsecaseService) LoanChargesRateComputation(crs core.ChargesRateScheme, ald core.LoanTransaction) float64 {
 
 	result := 0.0
 
@@ -219,7 +219,7 @@ func (t *TransactionService) LoanChargesRateComputation(crs core.ChargesRateSche
 }
 
 // LoanNumberOfPayments calculates the total number of payments for a loan based on terms and payment mode
-func (t *TransactionService) LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
+func (t *UsecaseService) LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
 	switch mp {
 	case core.LoanModeOfPaymentDaily:
 		return terms * 30, nil
@@ -245,7 +245,7 @@ func (t *TransactionService) LoanNumberOfPayments(mp core.LoanModeOfPayment, ter
 }
 
 // LoanComputation calculates the loan amount after applying automatic loan deduction rules using precise decimal arithmetic
-func (t *TransactionService) LoanComputation(ald core.AutomaticLoanDeduction, lt core.LoanTransaction) float64 {
+func (t *UsecaseService) LoanComputation(ald core.AutomaticLoanDeduction, lt core.LoanTransaction) float64 {
 	result := lt.Applied1
 
 	// --- Min/Max check ---
@@ -307,7 +307,7 @@ func (t *TransactionService) LoanComputation(ald core.AutomaticLoanDeduction, lt
 }
 
 // LoanModeOfPayment calculates the payment amount per period based on loan terms and mode of payment using precise decimal arithmetic
-func (t *TransactionService) LoanModeOfPayment(amount float64, lt *core.LoanTransaction) (float64, error) {
+func (t *UsecaseService) LoanModeOfPayment(amount float64, lt *core.LoanTransaction) (float64, error) {
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
 		// lt.Applied1 / float64(lt.Terms) / 30
@@ -354,7 +354,7 @@ func (t *TransactionService) LoanModeOfPayment(amount float64, lt *core.LoanTran
 }
 
 // SuggestedNumberOfTerms calculates the suggested number of terms for a loan based on payment amount and other factors
-func (t *TransactionService) SuggestedNumberOfTerms(
+func (t *UsecaseService) SuggestedNumberOfTerms(
 	_ context.Context,
 	suggestedAmount float64,
 	principal float64,
@@ -412,7 +412,7 @@ func (t *TransactionService) SuggestedNumberOfTerms(
 // ...existing code...
 
 // computeFines calculates fines based on payment mode, grace periods, and late days
-func (t *TransactionService) ComputeFines(
+func (t *UsecaseService) ComputeFines(
 	balance float64,
 	finesAmortRate float64,
 	finesMaturityRate float64,
@@ -568,7 +568,7 @@ func (t *TransactionService) ComputeFines(
 	}
 }
 
-func (t *TransactionService) ComputeInterest(balance float64, rate float64, mp core.LoanModeOfPayment) float64 {
+func (t *UsecaseService) ComputeInterest(balance float64, rate float64, mp core.LoanModeOfPayment) float64 {
 	switch mp {
 	case core.LoanModeOfPaymentMonthly:
 		// Monthly: (balance * rate) / 100
@@ -663,7 +663,7 @@ func (t *TransactionService) ComputeInterest(balance float64, rate float64, mp c
 	}
 }
 
-func (t *TransactionService) ComputeInterestStraight(balance float64, rate float64, terms int) float64 {
+func (t *UsecaseService) ComputeInterestStraight(balance float64, rate float64, terms int) float64 {
 	if rate <= 0 || balance <= 0 {
 		return 0.0
 	}

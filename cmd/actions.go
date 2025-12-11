@@ -268,7 +268,7 @@ func startServer() {
 			seeder.NewSeeder,
 			tokens.NewUserToken,
 			tokens.NewUserOrganizationToken,
-			usecase.NewTransactionService,
+			usecase.NewUsecaseService,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {
 			lc.Append(fx.Hook{

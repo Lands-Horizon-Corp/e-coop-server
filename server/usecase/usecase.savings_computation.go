@@ -13,7 +13,7 @@ type SavingsBalanceResult struct {
 	InterestTax    float64 `json:"interest_tax"`
 }
 
-func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
+func (t *UsecaseService) GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
 	result := SavingsBalanceResult{
 		Balance:        0.0,
 		InterestAmount: data.InterestAmount,
