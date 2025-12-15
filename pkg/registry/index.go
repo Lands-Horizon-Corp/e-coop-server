@@ -15,7 +15,6 @@ type RegistryParams[TData any, TResponse any, TRequest any] struct {
 	ColumnDefaultSort string
 	Database          *gorm.DB
 	Dispatch          func(topics Topics, payload any) error
-	Validator         *validator.Validate
 	Created           func(*TData) Topics
 	Updated           func(*TData) Topics
 	Deleted           func(*TData) Topics
@@ -64,7 +63,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 		updated:           params.Updated,
 		deleted:           params.Deleted,
 		tabular:           params.Tabular,
-		validator:         params.Validator,
+		validator:         validator.New(),
 		client:            client,
 		pagination: *query.NewPagination[TData](query.PaginationConfig{
 			Verbose:           true,
