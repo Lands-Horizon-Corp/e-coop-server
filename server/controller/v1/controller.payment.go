@@ -207,8 +207,11 @@ func (c *Controller) paymentController() {
 		RequestType:  core.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		fmt.Println(">>> Handler started for single payment")
+
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
+			fmt.Println(">>> Bind error:", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-bind-error",
 				Description: "Payment failed: invalid payload: " + err.Error(),
@@ -216,7 +219,10 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment payload: " + err.Error()})
 		}
+		fmt.Println(">>> Payment request payload:", req)
+
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			fmt.Println(">>> Validation error:", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-validation-error",
 				Description: "Payment failed: validation error: " + err.Error(),
@@ -227,6 +233,7 @@ func (c *Controller) paymentController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
+			fmt.Println(">>> StartTransaction error:", tx.Error)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-db-error",
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
@@ -234,9 +241,11 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
+		fmt.Println(">>> Database transaction started")
 
 		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
+			fmt.Println(">>> Invalid transaction ID:", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/payment: %v", err),
@@ -244,6 +253,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
+		fmt.Println(">>> transactionID:", transactionID)
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        transactionID,
@@ -265,6 +275,7 @@ func (c *Controller) paymentController() {
 			LoanTransactionID: req.LoanTransactionID,
 		})
 		if err != nil {
+			fmt.Println(">>> Payment processing error:", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-error",
 				Description: "Payment processing failed: " + err.Error(),
@@ -272,8 +283,12 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
+		fmt.Println(">>> Payment processed successfully, generalLedger ID:", generalLedger.ID)
 
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		response := c.core.GeneralLedgerManager.ToModel(generalLedger)
+		fmt.Println(">>> Sending response:", response)
+
+		return ctx.JSON(http.StatusOK, response)
 	})
 
 	req.RegisterWebRoute(handlers.Route{
