@@ -48,11 +48,9 @@ func (e *Event) TransactionPayment(
 	data TransactionEvent,
 
 ) (*core.GeneralLedger, error) {
-	fmt.Println("[dbg] enter TransactionPayment")
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
-		fmt.Printf("[dbg] defer: duration=%v\n", duration)
 		if duration > 5*time.Second {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "performance-warning",
@@ -61,12 +59,8 @@ func (e *Event) TransactionPayment(
 			})
 		}
 	}()
-
-	fmt.Println("[dbg] calling HandleIPBlocker")
 	block, blocked, err := e.HandleIPBlocker(context, ctx)
-	fmt.Printf("[dbg] HandleIPBlocker returned: block=%v, blocked=%v, err=%v\n", block != nil, blocked, err)
 	if err != nil {
-		fmt.Println("[dbg] error from HandleIPBlocker")
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "ip-block-check-error",
 			Description: "IP blocker check failed (/transaction/payment/:transaction_id): " + err.Error(),

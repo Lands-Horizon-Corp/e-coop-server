@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -319,9 +318,6 @@ func (c *Controller) transactionBatchController() {
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
-		fmt.Println("DEBUG: Start Create Transaction Batch")
-
 		batchFundingReq, err := c.core.BatchFundingManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -446,8 +442,6 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-
-		fmt.Println("DEBUG: Transaction committed successfully")
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
