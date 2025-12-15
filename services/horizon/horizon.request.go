@@ -426,40 +426,6 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		return c.NoContent(http.StatusNoContent)
 	})
 
-	allowedOrigins := []string{
-		"https://ecoop-suite.netlify.app",
-		"https://ecoop-suite.com",
-		"https://www.ecoop-suite.com",
-		"https://development.ecoop-suite.com",
-		"https://www.development.ecoop-suite.com",
-		"https://staging.ecoop-suite.com",
-		"https://www.staging.ecoop-suite.com",
-		"https://cooperatives-development.fly.dev",
-		"https://cooperatives-staging.fly.dev",
-		"https://cooperatives-production.fly.dev",
-	}
-
-	if !secured {
-		allowedOrigins = append(allowedOrigins,
-			"http://localhost:8000",
-			"http://localhost:8001",
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"http://localhost:3002",
-			"http://localhost:3003",
-		)
-	}
-
-	// Add global CORS middleware
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     allowedOrigins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "X-CSRF-Token", "X-Longitude", "X-Latitude", "Location", "X-Device-Type", "X-User-Agent"},
-		ExposeHeaders:    []string{"Content-Length", "Content-Type", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           3600,
-	}))
-
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
