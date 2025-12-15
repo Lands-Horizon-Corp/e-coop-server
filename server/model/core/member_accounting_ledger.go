@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
@@ -252,10 +253,19 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
+	log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: entry (m nil? %v, ctx nil? %v, tx nil? %v)", m == nil, ctx == nil, tx == nil)
+	log.Printf("[DEBUG] Params: MemberProfileID=%v AccountID=%v OrganizationID=%v BranchID=%v UserID=%v Debit=%v Credit=%v LastPayTime=%v",
+		params.MemberProfileID, params.AccountID, params.OrganizationID, params.BranchID, params.UserID, params.DebitAmount, params.CreditAmount, params.LastPayTime)
+
+	// Validate exactly one of debit or credit is non-zero
 	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: validation failed - exactly one of debit or credit must be non-zero")
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
+	log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: validation passed")
 
+	// Attempt to find existing ledger for update (locked)
+	log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: calling MemberAccountingLedgerFindForUpdate")
 	ledger, err := m.MemberAccountingLedgerFindForUpdate(
 		ctx, tx,
 		params.MemberProfileID,
@@ -263,11 +273,15 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		params.OrganizationID,
 		params.BranchID,
 	)
+	log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: MemberAccountingLedgerFindForUpdate returned ledger nil? %v err=%v", ledger == nil, err)
 	if err != nil {
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: error finding ledger for update: %v", err)
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
+	// Create new ledger if not found
 	if ledger == nil {
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: ledger not found, creating new ledger with balance=%v", balance)
 		ledger = &MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -288,23 +302,40 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			PrincipalDue:        0,
 		}
 
+		if tx == nil {
+			log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: tx is nil when trying to create ledger - cannot proceed")
+			return nil, eris.New("database tx is nil")
+		}
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: creating ledger in DB")
 		err = tx.WithContext(ctx).Create(ledger).Error
 		if err != nil {
+			log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: failed to create ledger: %v", err)
 			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: ledger created successfully ID=%v", ledger.ID)
 	} else {
+		// Update existing ledger
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: ledger found ID=%v - updating fields (old balance=%v -> new balance=%v)", ledger.ID, ledger.Balance, balance)
 		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
 		ledger.Count++
 
+		if tx == nil {
+			log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: tx is nil when trying to update ledger - cannot proceed")
+			return nil, eris.New("database tx is nil")
+		}
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: saving updated ledger to DB")
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {
+			log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: failed to update ledger: %v", err)
 			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
+		log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: ledger updated successfully ID=%v", ledger.ID)
 	}
 
+	log.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate: exit success ledger ID=%v Balance=%v", ledger.ID, ledger.Balance)
 	return ledger, nil
 }
 
