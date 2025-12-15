@@ -15,7 +15,7 @@ func (c *Controller) generateSavingsInterest() {
 	req := c.provider.Service.Request
 
 	req.RegisterWebRoute(handlers.Route{
-		Route:        "/api/v1/generated-savings-interest",
+		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -28,14 +28,14 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.Find(context, &core.GeneratedSavingsInterest{
+		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated savings interest found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
+		return ctx.JSON(http.StatusOK, generatedSavingsInterests)
 	})
 
 	req.RegisterWebRoute(handlers.Route{
