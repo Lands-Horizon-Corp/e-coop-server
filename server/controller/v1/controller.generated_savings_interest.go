@@ -142,8 +142,8 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
 			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
-			TotalTax:      totalTax,      // You might want to calculate this value
-			TotalInterest: totalInterest, // You might want to calculate this value
+			TotalTax:      totalTax,
+			TotalInterest: totalInterest,
 		})
 	})
 

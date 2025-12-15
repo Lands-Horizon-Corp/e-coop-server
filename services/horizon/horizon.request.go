@@ -611,10 +611,10 @@ func (h *APIServiceImpl) RegisterWebRoute(route handlers.Route, callback func(c 
 }
 
 func (h *APIServiceImpl) Run(_ context.Context) error {
-	grouped := h.handler.GroupedRoutes()
-	h.service.GET("web/api/routes", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, grouped)
-	}).Name = "horizon-routes-json"
+	// grouped := h.handler.GroupedRoutes()
+	// h.service.GET("web/api/routes", func(c echo.Context) error {
+	// 	return c.JSON(http.StatusOK, grouped)
+	// }).Name = "horizon-routes-json"
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
 	})
