@@ -24,14 +24,10 @@ func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
 	tx *gorm.DB,
 	data *TData,
 ) error {
-	fmt.Printf("DEBUG: CreateWithTx called with data: %+v\n", data)
 
 	if err := tx.Create(data).WithContext(context).Error; err != nil {
-		fmt.Printf("DEBUG: Failed to create entity: %v\n", err)
 		return fmt.Errorf("failed to create entity with transaction: %w", err)
 	}
-
-	fmt.Printf("DEBUG: Entity created successfully: %+v\n", data)
 	r.OnCreate(context, data)
 	return nil
 }

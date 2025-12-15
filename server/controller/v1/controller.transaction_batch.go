@@ -331,7 +331,6 @@ func (c *Controller) transactionBatchController() {
 
 		batchFundingReq, err := c.core.BatchFundingManager.Validate(ctx)
 		if err != nil {
-			fmt.Printf("DEBUG: Validation error: %v\n", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: validation error: " + err.Error(),
@@ -339,11 +338,9 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: BatchFundingReq: %+v\n", batchFundingReq)
 
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			fmt.Printf("DEBUG: User org error: %v\n", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user org error: " + err.Error(),
@@ -351,10 +348,8 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: UserOrg: %+v\n", userOrg)
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			fmt.Println("DEBUG: User not authorized")
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user not authorized",
@@ -364,9 +359,7 @@ func (c *Controller) transactionBatchController() {
 		}
 
 		transactionBatch, _ := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		fmt.Printf("DEBUG: Existing TransactionBatch: %+v\n", transactionBatch)
 		if transactionBatch != nil {
-			fmt.Println("DEBUG: There is an ongoing transaction batch")
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: ongoing batch",
@@ -377,7 +370,6 @@ func (c *Controller) transactionBatchController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			fmt.Printf("DEBUG: StartTransaction error: %v\n", tx.Error)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: begin tx error: " + tx.Error.Error(),
@@ -385,7 +377,6 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
-		fmt.Println("DEBUG: Transaction started successfully")
 
 		// Prepare TransactionBatch struct
 		transBatch := &core.TransactionBatch{
@@ -422,7 +413,6 @@ func (c *Controller) transactionBatchController() {
 		}
 
 		if err := c.core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
-			fmt.Printf("DEBUG: Create TransactionBatch error: %v\n", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create error: " + err.Error(),
@@ -430,7 +420,6 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + endTx(err).Error()})
 		}
-		fmt.Printf("DEBUG: TransactionBatch created: %+v\n", transBatch)
 
 		batchFunding := &core.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
@@ -449,7 +438,6 @@ func (c *Controller) transactionBatchController() {
 		}
 
 		if err := c.core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
-			fmt.Printf("DEBUG: Create BatchFunding error: %v\n", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create batch funding error: " + err.Error(),
@@ -457,10 +445,8 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create batch funding: " + endTx(err).Error()})
 		}
-		fmt.Printf("DEBUG: BatchFunding created: %+v\n", batchFunding)
 
 		if err := endTx(nil); err != nil {
-			fmt.Printf("DEBUG: Commit transaction error: %v\n", err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: commit tx error: " + err.Error(),
@@ -479,10 +465,8 @@ func (c *Controller) transactionBatchController() {
 
 		result, err := c.core.TransactionBatchMinimal(context, transBatch.ID)
 		if err != nil {
-			fmt.Printf("DEBUG: Retrieve minimal batch error: %v\n", err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: Returning result: %+v\n", result)
 
 		return ctx.JSON(http.StatusOK, result)
 	})

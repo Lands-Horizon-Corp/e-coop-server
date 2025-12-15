@@ -1,7 +1,6 @@
 package query_test
 
 import (
-	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -79,67 +78,6 @@ func animalTestDB() (*gorm.DB, error) {
 
 	seedData(db)
 	return db.Model(&Animal{}), nil
-}
-
-func TestRawAllMethods(t *testing.T) {
-
-	db, err := animalTestDB()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	p := query.NewPagination[Animal](query.PaginationConfig{
-		Verbose: true,
-	})
-
-	paginated, _ := p.RawPagination(db, 0, 2, "Habitat")
-	fmt.Println("RawPagination:", paginated.Data)
-
-	rawFind, _ := p.RawFind(db, "Habitat")
-	fmt.Println("RawFind:", len(rawFind))
-
-	count, _ := p.RawCount(db)
-	fmt.Println("RawCount:", count)
-
-	rawLock, _ := p.RawFindLock(db, "Habitat")
-	fmt.Println("RawFindLock:", len(rawLock))
-
-	one, _ := p.RawFindOne(db, "Habitat")
-	fmt.Println("RawFindOne:", one)
-
-	oneLock, _ := p.RawFindOneWithLock(db, "Habitat")
-	fmt.Println("RawFindOneWithLock:", oneLock)
-
-	exists, _ := p.RawExists(db)
-	fmt.Println("RawExists:", exists)
-
-	existsDeleted, _ := p.RawExistsIncludingDeleted(db)
-	fmt.Println("RawExistsIncludingDeleted:", existsDeleted)
-
-	maxID, _ := p.RawGetMax(db, "id")
-	minID, _ := p.RawGetMin(db, "id")
-	fmt.Println("RawGetMax ID:", maxID)
-	fmt.Println("RawGetMin ID:", minID)
-
-	maxLock, _ := p.RawGetMaxLock(db, "id")
-	minLock, _ := p.RawGetMinLock(db, "id")
-	fmt.Println("RawGetMaxLock ID:", maxLock)
-	fmt.Println("RawGetMinLock ID:", minLock)
-
-	rawTabular, _ := p.RawTabular(db, func(a *Animal) map[string]any {
-		return map[string]any{
-			"Name":    a.Name,
-			"Type":    a.Type,
-			"Habitat": a.Habitat.Name,
-		}
-	}, "Habitat")
-	fmt.Println("RawTabular length:", len(rawTabular))
-
-	includeDeleted, _ := p.RawFindIncludeDeleted(db, "Habitat")
-	fmt.Println("RawFindIncludeDeleted:", len(includeDeleted))
-
-	includeDeletedLock, _ := p.RawFindLockIncludeDeleted(db, "Habitat")
-	fmt.Println("RawFindLockIncludeDeleted:", len(includeDeletedLock))
 }
 
 func TestRawPaginationComplex(t *testing.T) {
