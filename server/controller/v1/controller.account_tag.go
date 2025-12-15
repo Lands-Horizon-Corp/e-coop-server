@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AccountTagController handles routes for managing account tags.
 func (c *Controller) accountTagController() {
 	req := c.provider.Service.Request
 
-	// GET /account-tag - List current branch's account tags for the authenticated user.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "GET",
@@ -37,7 +35,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModels(accountTags))
 	})
 
-	// GET /account-tag/search - Paginated search of account tags for current branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/search",
 		Method:       "GET",
@@ -62,7 +59,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, accountTags)
 	})
 
-	// GET /account-tag/:account_tag_id - Get specific account tag by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "GET",
@@ -81,7 +77,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, accountTag)
 	})
 
-	// "/api/v1/account-tag/account/:account_id",
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/account/:account_id",
 		Method:       "GET",
@@ -112,7 +107,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, accountTags)
 	})
 
-	// POST /account-tag - Create new account tag.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "POST",
@@ -181,7 +175,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModel(accountTag))
 	})
 
-	// PUT /account-tag/:account_tag_id - Update account tag by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "PUT",
@@ -253,7 +246,6 @@ func (c *Controller) accountTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModel(accountTag))
 	})
 
-	// DELETE /account-tag/:account_tag_id - Delete account tag by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-tag/:account_tag_id",
 		Method: "DELETE",
@@ -285,7 +277,6 @@ func (c *Controller) accountTagController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /account-tag/bulk-delete - Bulk delete account tags by IDs.
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",

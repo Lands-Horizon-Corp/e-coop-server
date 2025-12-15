@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// MemberProfileMediaController registers routes for managing member profile media.
 func (c *Controller) memberProfileMediaController() {
 	req := c.provider.Service.Request
 
-	// GET /api/v1/member-profile-media/member-profile/:member_profile_id/search: Get all media for a specific member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",
 		Method:       "GET",
@@ -44,7 +42,6 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		// Verify member profile belongs to user's organization
 		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -54,7 +51,6 @@ func (c *Controller) memberProfileMediaController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-		// Search for all member profile media for the specified member profile
 		memberProfileMediaList, err := c.core.MemberProfileMediaManager.FindRaw(context, &core.MemberProfileMedia{
 			BranchID:        userOrg.BranchID,
 			OrganizationID:  &userOrg.OrganizationID,
@@ -78,7 +74,6 @@ func (c *Controller) memberProfileMediaController() {
 		return ctx.JSON(http.StatusOK, memberProfileMediaList)
 	})
 
-	// POST /api/v1/member-profile-media: Create a new member profile media
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media",
 		Method:       "POST",
@@ -152,7 +147,6 @@ func (c *Controller) memberProfileMediaController() {
 		return ctx.JSON(http.StatusCreated, result)
 	})
 
-	// PUT /api/v1/member-profile-media/:member_profile_media_id: Update a member profile media
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "PUT",
@@ -230,7 +224,6 @@ func (c *Controller) memberProfileMediaController() {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	// DELETE /api/v1/member-profile-media/:member_profile_media_id: Delete a member profile media
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-profile-media/:member_profile_media_id",
 		Method: "DELETE",
@@ -297,7 +290,6 @@ func (c *Controller) memberProfileMediaController() {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile media deleted successfully"})
 	})
-	// GET /api/v1/member-profile-media/:member_profile_media_id: Get a specific member profile media by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "GET",
@@ -319,7 +311,6 @@ func (c *Controller) memberProfileMediaController() {
 		return ctx.JSON(http.StatusOK, memberProfileMedia)
 	})
 
-	// POST /api/v1/member-profile-media/bulk/member-profile/:member_profile_id: Bulk create member profile media for a specific member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",

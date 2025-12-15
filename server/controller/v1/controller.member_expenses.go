@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberExpenseController() {
 	req := c.provider.Service.Request
 
-	// Create a new expense record for a member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -81,7 +80,6 @@ func (c *Controller) memberExpenseController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager.ToModel(value))
 	})
 
-	// Update an existing expense record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-expense/:member_expense_id",
 		Method:       "PUT",
@@ -153,7 +151,6 @@ func (c *Controller) memberExpenseController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager.ToModel(value))
 	})
 
-	// Delete a member's expense record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-expense/:member_expense_id",
 		Method: "DELETE",

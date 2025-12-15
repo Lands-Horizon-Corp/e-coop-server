@@ -14,7 +14,6 @@ import (
 )
 
 type (
-	// InvitationCode represents the InvitationCode model.
 	InvitationCode struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -43,9 +42,7 @@ type (
 		Permissions           pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
 	}
 
-	// InvitationCodeResponse represents the response structure for invitationcode data
 
-	// InvitationCodeResponse represents the response structure for InvitationCode.
 	InvitationCodeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -72,9 +69,7 @@ type (
 		Permissions           []string `json:"permissions"`
 	}
 
-	// InvitationCodeRequest represents the request structure for creating/updating invitationcode
 
-	// InvitationCodeRequest represents the request structure for InvitationCode.
 	InvitationCodeRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -165,7 +160,6 @@ func (m *Core) invitationCode() {
 	})
 }
 
-// InvitationCodeSeed seeds initial invitation codes for employees and members.
 func (m *Core) invitationCodeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	expiration := now.AddDate(0, 1, 0)
@@ -208,7 +202,6 @@ func (m *Core) invitationCodeSeed(context context.Context, tx *gorm.DB, userID u
 	return nil
 }
 
-// GetInvitationCodeByBranch retrieves invitation codes for a specific organization and branch.
 func (m *Core) GetInvitationCodeByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
 	return m.InvitationCodeManager.Find(context, &InvitationCode{
 		OrganizationID: organizationID,
@@ -216,14 +209,12 @@ func (m *Core) GetInvitationCodeByBranch(context context.Context, organizationID
 	})
 }
 
-// GetInvitationCodeByCode retrieves a single invitation code by its code string
 func (m *Core) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	return m.InvitationCodeManager.FindOne(context, &InvitationCode{
 		Code: code,
 	})
 }
 
-// VerifyInvitationCodeByCode checks if the invitation code is valid, not expired, and has remaining uses.
 func (m *Core) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
 	data, err := m.GetInvitationCodeByCode(context, code)
 	if err != nil {
@@ -242,7 +233,6 @@ func (m *Core) VerifyInvitationCodeByCode(context context.Context, code string) 
 	return data, nil
 }
 
-// RedeemInvitationCode increments the CurrentUse of the invitation code by 1 with row-level locking.
 func (m *Core) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeID uuid.UUID) error {
 	data, err := m.InvitationCodeManager.GetByIDLock(context, tx, invitationCodeID)
 	if err != nil {

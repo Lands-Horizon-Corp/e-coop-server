@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ChargesRateByTermController registers routes for managing charges rate by term.
 func (c *Controller) chargesRateByTermController() {
 	req := c.provider.Service.Request
 
-	// POST /charges-rate-by-term: Create a new charges rate by term. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
@@ -110,7 +108,6 @@ func (c *Controller) chargesRateByTermController() {
 		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
 	})
 
-	// PUT /charges-rate-by-term/:charges_rate_by_term_id: Update charges rate by term by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
@@ -199,7 +196,6 @@ func (c *Controller) chargesRateByTermController() {
 		return ctx.JSON(http.StatusOK, c.core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
 	})
 
-	// DELETE /charges-rate-by-term/:charges_rate_by_term_id: Delete a charges rate by term by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method: "DELETE",

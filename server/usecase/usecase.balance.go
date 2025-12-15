@@ -11,16 +11,13 @@ import (
 )
 
 type Balance struct {
-	// Models
 	GeneralLedgers         []*core.GeneralLedger
 	AdjustmentEntries      []*core.AdjustmentEntry
 	LoanTransactionEntries []*core.LoanTransactionEntry
 
-	// Requests
 	CashCheckVoucherEntriesRequest []*core.CashCheckVoucherEntryRequest
 	JournalVoucherEntriesRequest   []*core.JournalVoucherEntryRequest
 
-	// Strict variables
 	CurrencyID *uuid.UUID
 	AccountID  *uuid.UUID
 
@@ -63,7 +60,6 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 	var lastPayment *time.Time
 	var lastCredit *time.Time
 	var lastDebit *time.Time
-	// Models
 	if data.GeneralLedgers != nil {
 		for _, entry := range data.GeneralLedgers {
 			if entry == nil {
@@ -80,11 +76,9 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 					Balance: balance,
 				}, eris.New("general ledger missing account")
 			}
-			// Skip if AccountID filter is set and doesn't match
 			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
 				continue
 			}
-			// Skip if CurrencyID filter is set and doesn't match
 			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				continue
 			}
@@ -94,18 +88,15 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 
 			if entry.Credit > 0 {
 				countCredit++
-				// Track last payment date (credit represents payment)
 				if lastPayment == nil || entry.EntryDate.After(*lastPayment) {
 					lastPayment = &entry.EntryDate
 				}
-				// Track last credit date
 				if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
 					lastCredit = &entry.EntryDate
 				}
 			}
 			if entry.Debit > 0 {
 				countDebit++
-				// Track last debit date
 				if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
 					lastDebit = &entry.EntryDate
 				}
@@ -132,11 +123,9 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 					IsBalanced: true,
 				}, eris.New("nil adjustment entry")
 			}
-			// Skip if AccountID filter is set and doesn't match
 			if data.AccountID != nil && !handlers.UUIDPtrEqual(&entry.AccountID, data.AccountID) {
 				continue
 			}
-			// Skip if CurrencyID filter is set and doesn't match
 			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				continue
 			}
@@ -146,7 +135,6 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 
 			if entry.Credit > 0 {
 				countCredit++
-				// Track last credit date
 				if entry.EntryDate != nil {
 					if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
 						lastCredit = entry.EntryDate
@@ -155,7 +143,6 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 			}
 			if entry.Debit > 0 {
 				countDebit++
-				// Track last debit date
 				if entry.EntryDate != nil {
 					if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
 						lastDebit = entry.EntryDate
@@ -186,11 +173,9 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 			if entry.IsAddOn && data.IsAddOn {
 				addOnAmount = t.provider.Service.Decimal.Add(addOnAmount, entry.Debit+entry.Credit)
 			}
-			// Skip if AccountID filter is set and doesn't match
 			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
 				continue
 			}
-			// Skip if CurrencyID filter is set and doesn't match
 			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
 				continue
 			}
@@ -216,7 +201,6 @@ func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
 		}
 	}
 
-	// Requests
 	if data.CashCheckVoucherEntriesRequest != nil {
 		for _, entry := range data.CashCheckVoucherEntriesRequest {
 			if entry == nil {
@@ -297,12 +281,10 @@ func (t *UsecaseService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core
 		return GeneralLedgers
 	}
 
-	// Sort by CreatedAt (oldest first)
 	sort.Slice(GeneralLedgers, func(i, j int) bool {
 		return GeneralLedgers[i].EntryDate.Before(GeneralLedgers[j].EntryDate)
 	})
 
-	// Group by AccountID and calculate running balance
 	accountBalances := make(map[uuid.UUID]float64)
 
 	for _, ledger := range GeneralLedgers {
@@ -313,7 +295,6 @@ func (t *UsecaseService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core
 		accountID := *ledger.AccountID
 		currentBalance := accountBalances[accountID]
 
-		// Calculate new balance based on account type
 		switch ledger.Account.GeneralLedgerType {
 		case core.GLTypeAssets, core.GLTypeExpenses:
 			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
@@ -323,10 +304,8 @@ func (t *UsecaseService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core
 			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
 		}
 
-		// Update the balance in the map
 		accountBalances[accountID] = currentBalance
 
-		// Set the running balance on the ledger
 		ledger.Balance = currentBalance
 	}
 

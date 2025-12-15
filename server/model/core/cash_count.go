@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// CashCount represents the CashCount model.
 	CashCount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -43,9 +42,7 @@ type (
 		Amount     float64 `gorm:"type:decimal"`
 	}
 
-	// CashCountResponse represents the response structure for cashcount data
 
-	// CashCountResponse represents the response structure for CashCount.
 	CashCountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -70,7 +67,6 @@ type (
 		Name               string                    `json:"name"`
 	}
 
-	// CashCountRequest represents the request structure for CashCount.
 	CashCountRequest struct {
 		ID                 *uuid.UUID `json:"id,omitempty"`
 		EmployeeUserID     uuid.UUID  `json:"employee_user_id" validate:"required"`
@@ -151,7 +147,6 @@ func (m *Core) cashCount() {
 	})
 }
 
-// CashCountCurrentBranch retrieves all cash counts for the specified organization and branch.
 func (m *Core) CashCountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCount, error) {
 	return m.CashCountManager.Find(context, &CashCount{
 		OrganizationID: organizationID,

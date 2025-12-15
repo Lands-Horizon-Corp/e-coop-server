@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// LoanStatus represents a status value used to track the lifecycle of a loan application or account.
 	LoanStatus struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,7 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// LoanStatusResponse represents the response structure for loanstatus data
 
-	// LoanStatusResponse represents the response structure for LoanStatus.
 	LoanStatusResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -57,9 +54,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// LoanStatusRequest represents the request structure for creating/updating loanstatus
 
-	// LoanStatusRequest represents the request structure for LoanStatus.
 	LoanStatusRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Icon        string `json:"icon,omitempty"`
@@ -133,7 +128,6 @@ func (m *Core) loanStatus() {
 func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	loanStatuses := []*LoanStatus{
-		// Application Phase Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -194,7 +188,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Shield Lock",
 		},
-		// Approval Phase Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -255,7 +248,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#6B7280", // Gray
 			Icon:           "Exit Door",
 		},
-		// Disbursement Phase Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -292,7 +284,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#10B981", // Green
 			Icon:           "Money Stack",
 		},
-		// Active Loan Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -329,7 +320,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#10B981", // Green
 			Icon:           "Trend Up",
 		},
-		// Delinquency Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -390,7 +380,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#7F1D1D", // Very Dark Red
 			Icon:           "Error",
 		},
-		// Special Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -451,7 +440,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#374151", // Dark Gray
 			Icon:           "Trash",
 		},
-		// Completion Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -488,7 +476,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#6B7280", // Gray
 			Icon:           "Archive",
 		},
-		// Cooperative Specific Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -573,7 +560,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 			Color:          "#7C3AED", // Violet
 			Icon:           "Building Gear",
 		},
-		// Role and Process Related Statuses
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -752,7 +738,6 @@ func (m *Core) loanStatusSeed(context context.Context, tx *gorm.DB, userID uuid.
 	return nil
 }
 
-// LoanStatusCurrentBranch retrieves loan statuses for the given organization and branch.
 func (m *Core) LoanStatusCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanStatus, error) {
 	return m.LoanStatusManager.Find(context, &LoanStatus{
 		OrganizationID: organizationID,

@@ -10,10 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// ComputationType represents the mutual fund computation type
 type MutualFundComputationType string
 
-// Computation type constants
 const (
 	ComputationTypeContinuous MutualFundComputationType = "continuous"
 	ComputationTypeUpToZero   MutualFundComputationType = "up_to_zero"
@@ -24,7 +22,6 @@ const (
 )
 
 type (
-	// MutualFund represents the MutualFund model.
 	MutualFund struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -75,7 +72,6 @@ type (
 		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
 	}
 
-	// MutualFundResponse represents the response structure for mutual fund data
 	MutualFundResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -116,7 +112,6 @@ type (
 		PostedByUser   *UserResponse `json:"posted_by_user,omitempty"`
 	}
 
-	// MutualFundRequest represents the request structure for creating/updating mutual fund
 	MutualFundRequest struct {
 		MemberProfileID uuid.UUID                 `json:"member_profile_id" validate:"required"`
 		MemberTypeID    *uuid.UUID                `json:"member_type_id,omitempty"`
@@ -240,7 +235,6 @@ func (m *Core) mutualFund() {
 	})
 }
 
-// MutualFundCurrentBranch retrieves all mutual funds associated with the specified organization and branch.
 func (m *Core) MutualFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
 	return m.MutualFundManager.Find(context, &MutualFund{
 		OrganizationID: organizationID,
@@ -248,7 +242,6 @@ func (m *Core) MutualFundCurrentBranch(context context.Context, organizationID u
 	})
 }
 
-// MutualFundByMember retrieves all mutual funds for a specific member profile.
 func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
 	return m.MutualFundManager.Find(context, &MutualFund{
 		MemberProfileID: memberProfileID,
@@ -257,13 +250,11 @@ func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.
 	})
 }
 
-// CreateMutualFundValue creates a mutual fund object with additional members and tables without saving to database.
 func (m *Core) CreateMutualFundValue(
 	context context.Context,
 	req *MutualFundRequest, userOrg *UserOrganization) *MutualFund {
 	now := time.Now().UTC()
 
-	// Create additional members objects
 	var additionalMembers []*MutualFundAdditionalMembers
 	for _, additionalMember := range req.MutualFundAdditionalMembers {
 		additionalMemberData := &MutualFundAdditionalMembers{
@@ -281,7 +272,6 @@ func (m *Core) CreateMutualFundValue(
 		additionalMembers = append(additionalMembers, additionalMemberData)
 	}
 
-	// Create mutual fund tables objects
 	var mutualFundTables []*MutualFundTable
 	for _, mutualFundTable := range req.MutualFundTables {
 		mutualFundTableData := &MutualFundTable{
@@ -299,7 +289,6 @@ func (m *Core) CreateMutualFundValue(
 		mutualFundTables = append(mutualFundTables, mutualFundTableData)
 	}
 
-	// Create the mutual fund object
 	mutualFund := &MutualFund{
 		ID:                uuid.New(),
 		MemberProfileID:   req.MemberProfileID,
@@ -321,7 +310,6 @@ func (m *Core) CreateMutualFundValue(
 		MutualFundTables:  mutualFundTables,
 	}
 
-	// Set the MutualFundID for the child objects
 	for _, additionalMember := range additionalMembers {
 		additionalMember.MutualFundID = mutualFund.ID
 	}

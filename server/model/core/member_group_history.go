@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberGroupHistory represents the MemberGroupHistory model.
 	MemberGroupHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,7 @@ type (
 		MemberGroup   *MemberGroup `gorm:"foreignKey:MemberGroupID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_group,omitempty"`
 	}
 
-	// MemberGroupHistoryResponse represents the response structure for membergrouphistory data
 
-	// MemberGroupHistoryResponse represents the response structure for MemberGroupHistory.
 	MemberGroupHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,9 +54,7 @@ type (
 		MemberGroup     *MemberGroupResponse   `json:"member_group,omitempty"`
 	}
 
-	// MemberGroupHistoryRequest represents the request structure for creating/updating membergrouphistory
 
-	// MemberGroupHistoryRequest represents the request structure for MemberGroupHistory.
 	MemberGroupHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberGroupID   uuid.UUID `json:"member_group_id" validate:"required"`
@@ -127,7 +122,6 @@ func (m *Core) memberGroupHistory() {
 	})
 }
 
-// MemberGroupHistoryCurrentBranch returns MemberGroupHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberGroupHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
 	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID: organizationID,
@@ -135,7 +129,6 @@ func (m *Core) MemberGroupHistoryCurrentBranch(context context.Context, organiza
 	})
 }
 
-// MemberGroupHistoryMemberProfileID returns MemberGroupHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *Core) MemberGroupHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
 	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		OrganizationID:  organizationID,

@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// DisbursementController registers routes for managing disbursements.
 func (c *Controller) disbursementController() {
 	req := c.provider.Service.Request
 
-	// GET /disbursement: List all disbursements for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "GET",
@@ -47,7 +45,6 @@ func (c *Controller) disbursementController() {
 		return ctx.JSON(http.StatusOK, c.core.DisbursementManager.ToModels(disbursements))
 	})
 
-	// GET /disbursement/search: Paginated search of disbursements for the current branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/search",
 		Method:       "GET",
@@ -72,7 +69,6 @@ func (c *Controller) disbursementController() {
 		return ctx.JSON(http.StatusOK, disbursements)
 	})
 
-	// GET /disbursement/:disbursement_id: Get specific disbursement by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "GET",
@@ -91,7 +87,6 @@ func (c *Controller) disbursementController() {
 		return ctx.JSON(http.StatusOK, disbursement)
 	})
 
-	// POST /disbursement: Create a new disbursement.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
@@ -156,7 +151,6 @@ func (c *Controller) disbursementController() {
 		return ctx.JSON(http.StatusCreated, c.core.DisbursementManager.ToModel(disbursement))
 	})
 
-	// PUT /disbursement/:disbursement_id: Update disbursement by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
@@ -224,7 +218,6 @@ func (c *Controller) disbursementController() {
 		return ctx.JSON(http.StatusOK, c.core.DisbursementManager.ToModel(disbursement))
 	})
 
-	// DELETE /disbursement/:disbursement_id: Delete a disbursement by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/disbursement/:disbursement_id",
 		Method: "DELETE",

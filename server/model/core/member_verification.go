@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberVerification represents the verification process for cooperative members
 	MemberVerification struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,7 +37,6 @@ type (
 		Status string `gorm:"type:varchar(50);not null;default:'pending'"`
 	}
 
-	// MemberVerificationResponse represents the JSON response structure for member verification data
 	MemberVerificationResponse struct {
 		ID               uuid.UUID              `json:"id"`
 		CreatedAt        string                 `json:"created_at"`
@@ -58,7 +56,6 @@ type (
 		Status           string                 `json:"status"`
 	}
 
-	// MemberVerificationRequest represents the request payload for member verification operations
 	MemberVerificationRequest struct {
 		MemberProfileID  uuid.UUID `json:"member_profile_id" validate:"required"`
 		VerifiedByUserID uuid.UUID `json:"verified_by_user_id,omitempty"`
@@ -66,7 +63,6 @@ type (
 	}
 )
 
-// MemberVerification initializes the MemberVerification model and its repository manager
 func (m *Core) memberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
 	m.MemberVerificationManager = *registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
@@ -126,7 +122,6 @@ func (m *Core) memberVerification() {
 	})
 }
 
-// MemberVerificationCurrentBranch retrieves all member verifications for the specified organization and branch
 func (m *Core) MemberVerificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
 	return m.MemberVerificationManager.Find(context, &MemberVerification{
 		OrganizationID: organizationID,

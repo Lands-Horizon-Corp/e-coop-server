@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// FeedbackController manages endpoints for feedback records.
 func (c *Controller) feedbackController() {
 	req := c.provider.Service.Request
 
-	// GET /feedback: List all feedback records. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "GET",
@@ -29,7 +27,6 @@ func (c *Controller) feedbackController() {
 		return ctx.JSON(http.StatusOK, c.core.FeedbackManager.ToModels(feedback))
 	})
 
-	// GET /feedback/:feedback_id: Get a specific feedback by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback/:feedback_id",
 		Method:       "GET",
@@ -50,7 +47,6 @@ func (c *Controller) feedbackController() {
 		return ctx.JSON(http.StatusOK, feedback)
 	})
 
-	// POST /feedback: Create a new feedback record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "POST",
@@ -96,7 +92,6 @@ func (c *Controller) feedbackController() {
 		return ctx.JSON(http.StatusCreated, c.core.FeedbackManager.ToModel(feedback))
 	})
 
-	// DELETE /feedback/:feedback_id: Delete a feedback record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/feedback/:feedback_id",
 		Method: "DELETE",

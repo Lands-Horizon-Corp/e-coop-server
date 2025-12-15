@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// FootstepController manages endpoints related to footstep records.
 func (c *Controller) footstepController() {
 	req := c.provider.Service.Request
 
-	// POST /footstep: Create a new footstep. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep",
 		Method:       "POST",
@@ -89,7 +87,6 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusCreated, c.core.FootstepManager.ToModel(footstep))
 	})
 
-	// GET /footstep/me: Get all footsteps for the currently logged-in user.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/me/search",
 		Method:       "GET",
@@ -146,7 +143,6 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusOK, footstep)
 	})
 
-	// GET /footstep/branch: Get all footsteps for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/footstep/branch/search",
 		Method: "GET",
@@ -167,7 +163,6 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusOK, footstep)
 	})
 
-	// GET /footstep/user-organization/:user_organization_id/search: Get footsteps for a user organization on the current branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/user-organization/:user_organization_id/search",
 		Method:       "GET",
@@ -196,7 +191,6 @@ func (c *Controller) footstepController() {
 		return ctx.JSON(http.StatusOK, footstep)
 	})
 
-	// GET /footstep/:footstep_id: Get a specific footstep by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/footstep/:footstep_id",
 		Method:       "GET",

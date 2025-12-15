@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberProfileMedia represents the MemberProfileMedia model.
 	MemberProfileArchive struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -40,9 +39,7 @@ type (
 		Category    string `gorm:"type:varchar(100);index" json:"category"`
 	}
 
-	// MemberProfileMediaResponse represents the response structure for memberprofilemedia data
 
-	// MemberProfileMediaResponse represents the response structure for MemberProfileMedia.
 	MemberProfileArchiveResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -64,7 +61,6 @@ type (
 		Category        string                 `json:"category"`
 	}
 
-	// MemberProfileArchiveRequest represents the request structure for creating/updating memberprofilearchive
 	MemberProfileArchiveRequest struct {
 		Name            string     `json:"name" validate:"required,min=1,max=255"`
 		Description     string     `json:"description,omitempty"`
@@ -160,7 +156,6 @@ func (m *Core) memberProfileArchive() {
 	})
 }
 
-// MemberProfileArchiveCurrentBranch returns MemberProfileArchiveCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberProfileArchiveCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileArchive, error) {
 	return m.MemberProfileArchiveManager.Find(context, &MemberProfileArchive{
 		OrganizationID: organizationID,

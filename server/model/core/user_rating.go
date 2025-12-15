@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// UserRating represents a rating given by one user to another user within an organization
 	UserRating struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -38,7 +37,6 @@ type (
 		Remark string `gorm:"type:text"`
 	}
 
-	// UserRatingRequest represents the request structure for creating or updating a user rating
 	UserRatingRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -48,7 +46,6 @@ type (
 		Remark      string    `json:"remark" validate:"max=2000"`
 	}
 
-	// UserRatingResponse represents the response structure for user rating data
 	UserRatingResponse struct {
 		ID          uuid.UUID     `json:"id"`
 		CreatedAt   string        `json:"created_at"`
@@ -72,7 +69,6 @@ type (
 	}
 )
 
-// UserRating initializes the user rating repository and sets up migration
 func (m *Core) userRating() {
 	m.Migration = append(m.Migration, &UserRating{})
 	m.UserRatingManager = *registry.NewRegistry(registry.RegistryParams[UserRating, UserRatingResponse, UserRatingRequest]{
@@ -134,21 +130,18 @@ func (m *Core) userRating() {
 	})
 }
 
-// GetUserRatee retrieves all ratings where the specified user is the ratee (being rated)
 func (m *Core) GetUserRatee(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		RateeUserID: userID,
 	})
 }
 
-// GetUserRater retrieves all ratings where the specified user is the rater (giving ratings)
 func (m *Core) GetUserRater(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		RaterUserID: userID,
 	})
 }
 
-// UserRatingCurrentBranch retrieves all user ratings for the specified organization and branch
 func (m *Core) UserRatingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
 	return m.UserRatingManager.Find(context, &UserRating{
 		OrganizationID: organizationID,

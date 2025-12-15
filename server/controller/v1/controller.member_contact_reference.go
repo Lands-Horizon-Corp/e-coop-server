@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberContactReferenceController() {
 	req := c.provider.Service.Request
 
-	// Create a new contact reference for a member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-contact-reference/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -81,7 +80,6 @@ func (c *Controller) memberContactReferenceController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberContactReferenceManager.ToModel(value))
 	})
 
-	// Update an existing contact reference by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method:       "PUT",
@@ -152,7 +150,6 @@ func (c *Controller) memberContactReferenceController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberContactReferenceManager.ToModel(value))
 	})
 
-	// Delete a contact reference by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",

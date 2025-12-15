@@ -9,7 +9,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// MemberAccountingLedgerSummary represents a summary of member accounting ledger data
 type MemberAccountingLedgerSummary struct {
 	TotalDeposits                     float64 `json:"total_deposits"`
 	TotalShareCapitalPlusFixedSavings float64 `json:"total_share_capital_plus_fixed_savings"`

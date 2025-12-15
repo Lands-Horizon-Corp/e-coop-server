@@ -1,5 +1,3 @@
-// Package seeder provides utilities to populate the database with
-// sample data for development and testing environments.
 package seeder
 
 import (
@@ -16,7 +14,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// loadImagePaths scans the seeder/images directory and loads all image file paths
 func (s *Seeder) loadImagePaths() error {
 	imagesDir := "seeder/images"
 	supportedExtensions := map[string]bool{
@@ -57,7 +54,6 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 		return nil, eris.New("no image files available for seeding")
 	}
 
-	// Randomly choose one image from the loaded paths using crypto/rand
 	maxInt := big.NewInt(int64(len(s.imagePaths)))
 	nBig, err := crand.Int(crand.Reader, maxInt)
 	if err != nil {
@@ -66,7 +62,6 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 	randomIndex := int(nBig.Int64())
 	imagePath := s.imagePaths[randomIndex]
 
-	// Upload the image from local path
 	storage, err := s.provider.Service.Storage.UploadFromPath(ctx, imagePath, func(_ int64, _ int64, _ *horizon.Storage) {})
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// TimeDepositType represents a time deposit type configuration in the database
 	TimeDepositType struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -54,7 +53,6 @@ type (
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMature `gorm:"foreignKey:TimeDepositTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
-	// TimeDepositTypeResponse represents the response structure for time deposit type data
 	TimeDepositTypeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -92,7 +90,6 @@ type (
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureResponse `json:"time_deposit_computation_pre_matures,omitempty"`
 	}
 
-	// TimeDepositTypeRequest represents the request structure for creating/updating time deposit types
 	TimeDepositTypeRequest struct {
 		Name          string    `json:"name" validate:"required,min=1,max=255"`
 		Description   string    `json:"description,omitempty"`
@@ -113,11 +110,9 @@ type (
 		Header10 int `json:"header_10,omitempty"`
 		Header11 int `json:"header_11,omitempty"`
 
-		// Nested relationships for creation/update
 		TimeDepositComputations          []*TimeDepositComputationRequest          `json:"time_deposit_computations,omitempty"`
 		TimeDepositComputationPreMatures []*TimeDepositComputationPreMatureRequest `json:"time_deposit_computation_pre_matures,omitempty"`
 
-		// Deletion arrays
 		TimeDepositComputationsDeleted          uuid.UUIDs `json:"time_deposit_computations_deleted,omitempty"`
 		TimeDepositComputationPreMaturesDeleted uuid.UUIDs `json:"time_deposit_computation_pre_matures_deleted,omitempty"`
 	}
@@ -204,7 +199,6 @@ func (m *Core) timeDepositType() {
 	})
 }
 
-// TimeDepositTypeCurrentBranch retrieves time deposit types for a specific organization branch
 func (m *Core) TimeDepositTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositType, error) {
 	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
 		OrganizationID: organizationID,

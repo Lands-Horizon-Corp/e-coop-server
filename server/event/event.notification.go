@@ -10,14 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// NotificationEvent represents data required to create a notification.
 type NotificationEvent struct {
 	Title            string
 	Description      string
 	NotificationType core.NotificationType
 }
 
-// createNotificationForUsers is a helper function that creates notifications for a list of users
 func (e *Event) createNotificationForUsers(context context.Context, users []*core.UserOrganization, data NotificationEvent, senderUserID *uuid.UUID) {
 	data.Title = handlers.Sanitize(data.Title)
 	data.Description = handlers.Sanitize(data.Description)
@@ -27,7 +25,6 @@ func (e *Event) createNotificationForUsers(context context.Context, users []*cor
 	}
 
 	for _, org := range users {
-		// Skip sending notification to sender (if provided)
 		if senderUserID != nil && (org.UserID == *senderUserID || handlers.UUIDPtrEqual(&org.UserID, senderUserID)) {
 			continue
 		}
@@ -50,7 +47,6 @@ func (e *Event) createNotificationForUsers(context context.Context, users []*cor
 	}
 }
 
-// filterAdminUsers filters users to only include employees and owners
 func (e *Event) filterAdminUsers(users []*core.UserOrganization) []*core.UserOrganization {
 	var adminUsers []*core.UserOrganization
 	for _, user := range users {
@@ -61,7 +57,6 @@ func (e *Event) filterAdminUsers(users []*core.UserOrganization) []*core.UserOrg
 	return adminUsers
 }
 
-// Notification creates a notification record asynchronously for the current user
 func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -72,13 +67,11 @@ func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
 			return
 		}
 
-		// Create a fake user org for the single user notification
 		users := []*core.UserOrganization{{UserID: user.ID, UserType: ""}}
 		e.createNotificationForUsers(context, users, data, nil)
 	}()
 }
 
-// OrganizationAdminsNotification notifies admin users in the current user's organization and branch
 func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -102,7 +95,6 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 	}()
 }
 
-// OrganizationNotification notifies all users in the current user's organization
 func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -124,7 +116,6 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 	}()
 }
 
-// OrganizationDirectNotification creates notifications for all users in an organization by ID
 func (e *Event) OrganizationDirectNotification(ctx echo.Context, organizationID uuid.UUID, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -141,7 +132,6 @@ func (e *Event) OrganizationDirectNotification(ctx echo.Context, organizationID 
 	}()
 }
 
-// OrganizationAdminsDirectNotification creates notifications for admin users only in an organization by ID
 func (e *Event) OrganizationAdminsDirectNotification(ctx echo.Context, organizationID uuid.UUID, data NotificationEvent) {
 	go func() {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)

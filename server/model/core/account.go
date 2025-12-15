@@ -12,10 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// GeneralLedgerType define this type according to your domain (e.g. as string or int)
 type GeneralLedgerType string // adjust as needed
 
-// General ledger type constants
 const (
 	GLTypeAssets      GeneralLedgerType = "Assets"
 	GLTypeLiabilities GeneralLedgerType = "Liabilities"
@@ -24,10 +22,8 @@ const (
 	GLTypeExpenses    GeneralLedgerType = "Expenses"
 )
 
-// AccountType represents the type of account in the system
 type AccountType string
 
-// Account type constants
 const (
 	AccountTypeDeposit     AccountType = "Deposit"
 	AccountTypeLoan        AccountType = "Loan"
@@ -42,10 +38,8 @@ const (
 	AccountTypeTimeDeposit AccountType = "Time Deposit"
 )
 
-// LumpsumComputationType represents the type of lumpsum computation
 type LumpsumComputationType string
 
-// Lumpsum computation type constants
 const (
 	LumpsumComputationNone             LumpsumComputationType = "None"
 	LumpsumComputationFinesMaturity    LumpsumComputationType = "Compute Fines Maturity"
@@ -53,30 +47,23 @@ const (
 	LumpsumComputationAdvanceInterest  LumpsumComputationType = "Compute Advance Interest"
 )
 
-// InterestFinesComputationDiminishing represents the type of interest fines computation diminishing
 type InterestFinesComputationDiminishing string
 
-// Interest fines computation diminishing constants
 const (
 	IFCDNone                  InterestFinesComputationDiminishing = "None"
 	IFCDByAmortization        InterestFinesComputationDiminishing = "By Amortization"
 	IFCDByAmortizationDalyArr InterestFinesComputationDiminishing = "By Amortization Daly on Interest Principal + Interest = Fines(Arr)"
 )
 
-// InterestFinesComputationDiminishingStraightYearly represents the type of interest fines computation diminishing straight yearly
 type InterestFinesComputationDiminishingStraightYearly string
 
-// Interest fines computation diminishing straight yearly constants
 const (
 	IFCDSYNone                   InterestFinesComputationDiminishingStraightYearly = "None"
 	IFCDSYByDailyInterestBalance InterestFinesComputationDiminishingStraightYearly = "By Daily on Interest based on loan balance by year Principal + Interest Amortization = Fines Fines Grace Period Month end Amortization"
 )
 
-// EarnedUnearnedInterest indicates how interest is recorded for an account
-// (earned, unearned, formula-based, or advanced interest handling).
 type EarnedUnearnedInterest string
 
-// Values for EarnedUnearnedInterest
 const (
 	EUITypeNone                    EarnedUnearnedInterest = "None"
 	EUITypeByFormula               EarnedUnearnedInterest = "By Formula"
@@ -84,10 +71,8 @@ const (
 	EUITypeByAdvanceInterestActual EarnedUnearnedInterest = "By Advance Interest + Actual Pay"
 )
 
-// LoanSavingType indicates how loan-linked savings are stored and reported.
 type LoanSavingType string
 
-// Values for LoanSavingType
 const (
 	LSTSeparate                 LoanSavingType = "Separate"
 	LSTSingleLedger             LoanSavingType = "Single Ledger"
@@ -96,37 +81,29 @@ const (
 	LSTSingleLedgerSemiMaturity LoanSavingType = "Single Ledger Semi Within Maturity"
 )
 
-// InterestDeduction indicates whether interest applies above/below a threshold.
 type InterestDeduction string
 
-// Values for InterestDeduction
 const (
 	InterestDeductionAbove InterestDeduction = "Above"
 	InterestDeductionBelow InterestDeduction = "Below"
 )
 
-// OtherDeductionEntry represents additional deduction categories for accounts.
 type OtherDeductionEntry string
 
-// Values for OtherDeductionEntry
 const (
 	OtherDeductionEntryNone       OtherDeductionEntry = "None"
 	OtherDeductionEntryHealthCare OtherDeductionEntry = "Health Care"
 )
 
-// InterestSavingTypeDiminishingStraight represents interest saving options for diminishing-straight loans.
 type InterestSavingTypeDiminishingStraight string
 
-// Values for InterestSavingTypeDiminishingStraight
 const (
 	ISTDSSpread     InterestSavingTypeDiminishingStraight = "Spread"
 	ISTDS1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
 )
 
-// OtherInformationOfAnAccount represents miscellaneous account flags and metadata.
 type OtherInformationOfAnAccount string
 
-// Values for OtherInformationOfAnAccount
 const (
 	OIOANone               OtherInformationOfAnAccount = "None"
 	OIOAJewely             OtherInformationOfAnAccount = "Jewely"
@@ -137,30 +114,24 @@ const (
 	OIOACashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
 )
 
-// InterestStandardComputation indicates the standard way interest is computed for an account.
 type InterestStandardComputation string
 
-// Values for InterestStandardComputation
 const (
 	ISCNone    InterestStandardComputation = "None"
 	ISCYearly  InterestStandardComputation = "Yearly"
 	ISCMonthly InterestStandardComputation = "Monthly"
 )
 
-// ComputationType enumerates the supported computation algorithms for account interest/amortization.
 type ComputationType string
 
-// Values for ComputationType
 const (
 	Straight            ComputationType = "Straight"
 	Diminishing         ComputationType = "Diminishing"
 	DiminishingStraight ComputationType = "DiminishingStraight"
 )
 
-// --- MODEL ---
 
 type (
-	// Account represents the Account model.
 	Account struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -272,7 +243,6 @@ type (
 
 		Icon string `gorm:"type:varchar(50);default:'account'" json:"icon,omitempty"`
 
-		// General Ledger Source
 		ShowInGeneralLedgerSourceWithdraw       bool `gorm:"default:true" json:"show_in_general_ledger_source_withdraw"`
 		ShowInGeneralLedgerSourceDeposit        bool `gorm:"default:true" json:"show_in_general_ledger_source_deposit"`
 		ShowInGeneralLedgerSourceJournal        bool `gorm:"default:true" json:"show_in_general_ledger_source_journal"`
@@ -284,7 +254,6 @@ type (
 		CompassionFund         bool    `gorm:"default:false" json:"compassion_fund"`
 		CompassionFundAmount   float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
 		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
-		// AccountResponse
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
 		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
@@ -295,9 +264,7 @@ type (
 	}
 )
 
-// --- RESPONSE & REQUEST STRUCTS ---
 
-// AccountResponse represents the response structure for account data
 type AccountResponse struct {
 	ID             uuid.UUID             `json:"id"`
 	CreatedAt      string                `json:"created_at"`
@@ -403,10 +370,8 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourcePayment        bool   `json:"show_in_general_ledger_source_payment"`
 	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
-	// AccountRequest
 	ShowInGeneralLedgerSourceCheckVoucher bool `json:"show_in_general_ledger_source_check_voucher"`
 
-	// AccountRequest
 	CompassionFund              bool                        `json:"compassion_fund"`
 	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
 	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
@@ -418,7 +383,6 @@ type AccountResponse struct {
 	IsTaxable            bool    `json:"is_taxable"`
 }
 
-// AccountRequest represents the request structure for creating/updating accounts
 type AccountRequest struct {
 	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
@@ -514,7 +478,6 @@ type AccountRequest struct {
 	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
 }
 
-// --- REGISTRATION ---
 
 func (m *Core) account() {
 	m.Migration = append(m.Migration, &Account{})
@@ -677,7 +640,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	accounts := []*Account{
-		// Regular Savings Accounts
 		{
 			CreatedAt:         now,
 			CreatedByID:       userID,
@@ -847,7 +809,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create all deposit accounts first
 	for _, data := range accounts {
 		data.CurrencyID = branch.CurrencyID
 		data.ShowInGeneralLedgerSourceWithdraw = true
@@ -861,13 +822,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 
-		// Create account history for seed within the same transaction
 		if err := m.CreateAccountHistory(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
 		}
 	}
 
-	// Create loan accounts with their alternative accounts
 	loanAccounts := []*Account{
 		{
 			CreatedAt:                               now,
@@ -987,24 +946,19 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create loan accounts and their alternative accounts
 	for _, loanAccount := range loanAccounts {
 		loanAccount.CurrencyID = branch.CurrencyID
-		// Create the main loan account
 		if err := m.AccountManager.CreateWithTx(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
-		// Create Interest Account with varying computation types
 		var interestComputationType ComputationType
 		var interestStandardRate float64
 
-		// Set different computation types and rates based on loan type
 		switch loanAccount.Name {
 		case "Emergency Loan":
 			interestComputationType = Diminishing
@@ -1053,16 +1007,13 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
-		// Create Service Fee Account with varying computation types
 		var svfComputationType ComputationType
 		var svfStandardRate float64
 
-		// Set different computation types and rates based on loan type
 		switch loanAccount.Name {
 		case "Emergency Loan":
 			svfComputationType = Straight
@@ -1111,12 +1062,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
-		// Create Fines Account with percentage-based rates and grace periods
 		finesAccount := &Account{
 			CreatedAt:        now,
 			CreatedByID:      userID,
@@ -1132,23 +1081,19 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			MaxAmount:        100.00, // Max percentage is 100%
 			InterestStandard: 0.0,
 
-			// Percentage-based fines rates (0-100%)
 			FinesAmort:    2.5, // 2.5% fine on amortization
 			FinesMaturity: 5.0, // 5.0% fine on maturity
 
-			// Grace periods for fines
 			FinesGracePeriodAmortization: 7,     // 7 days grace period for amortization fines
 			FinesGracePeriodMaturity:     15,    // 15 days grace period for maturity fines
 			AdditionalGracePeriod:        3,     // 3 additional days
 			NoGracePeriodDaily:           false, // Allow daily grace period
 
-			// Computation settings
 			GeneralLedgerType: GLTypeRevenue,
 			ComputationType:   Straight,
 			Index:             loanAccount.Index + 300, // Offset to avoid conflicts
 			LoanAccountID:     &loanAccount.ID,
 
-			// Enhanced grace period entries with different frequencies
 			CohCibFinesGracePeriodEntryDailyAmortization:       1.0,  // 1% daily amortization fine
 			CohCibFinesGracePeriodEntryDailyMaturity:           2.0,  // 2% daily maturity fine
 			CohCibFinesGracePeriodEntryWeeklyAmortization:      5.0,  // 5% weekly amortization fine
@@ -1179,13 +1124,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
 
-	// Create additional standalone fines accounts with different configurations
 	standaloneFinesAccounts := []*Account{
 		{
 			CreatedAt:                    now,
@@ -1306,19 +1249,16 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create all standalone fines accounts
 	for _, finesAccount := range standaloneFinesAccounts {
 		if err := m.AccountManager.CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
 
-	// Create additional standalone Interest accounts with different configurations
 	standaloneInterestAccounts := []*Account{
 		{
 			CreatedAt:                               now,
@@ -1403,7 +1343,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create additional standalone SVF accounts with different configurations
 	standaloneSVFAccounts := []*Account{
 		{
 			CreatedAt:                               now,
@@ -1488,25 +1427,21 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create all standalone interest accounts
 	for _, interestAccount := range standaloneInterestAccounts {
 		if err := m.AccountManager.CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone interest account %s", interestAccount.Name)
 		}
 	}
 
-	// Create all standalone SVF accounts
 	for _, svfAccount := range standaloneSVFAccounts {
 		if err := m.AccountManager.CreateWithTx(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
 		}
 
-		// Create account history for seed
 		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
@@ -1540,22 +1475,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
-	// Create essential payment types for account seeding
 	var cashOnHandPaymentType *PaymentType
 
-	// Try to find existing Cash On Hand payment type
 	cashOnHandPaymentType, _ = m.PaymentTypeManager.FindOne(context, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 		Name:           "Cash On Hand",
 	})
 
-	// If Cash On Hand payment type doesn't exist, create it
 	if cashOnHandPaymentType == nil {
 		cashOnHandPaymentType = &PaymentType{
 			CreatedAt:      now,
@@ -1574,7 +1505,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
 		}
 
-		// Set this payment type as the default in user organization settings
 		userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 			UserID:         userID,
 			OrganizationID: organizationID,
@@ -1588,9 +1518,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrap(err, "failed to update user organization with default payment type")
 		}
 
-		// Create additional payment types
 		paymentTypes := []*PaymentType{
-			// Cash types
 			{
 				CreatedAt:      now,
 				UpdatedAt:      now,
@@ -1615,7 +1543,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				NumberOfDays:   0,
 				Type:           PaymentTypeCash,
 			},
-			// Online types
 			{
 				CreatedAt:      now,
 				UpdatedAt:      now,
@@ -1652,7 +1579,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				NumberOfDays:   0,
 				Type:           PaymentTypeOnline,
 			},
-			// Check/Bank types
 			{
 				CreatedAt:      now,
 				UpdatedAt:      now,
@@ -1689,7 +1615,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				NumberOfDays:   2,
 				Type:           PaymentTypeCheck,
 			},
-			// Adjustment types
 			{
 				CreatedAt:      now,
 				UpdatedAt:      now,
@@ -1759,12 +1684,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
-	// Cash in Bank Account
 	cashInBank := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -1800,12 +1723,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInBank.Name)
 	}
 
-	// Cash Online Account (Digital Wallets, Online Banking)
 	cashOnline := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -1841,12 +1762,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnline.Name)
 	}
 
-	// Petty Cash Account
 	pettyCash := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -1882,12 +1801,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", pettyCash.Name)
 	}
 
-	// Cash in Transit Account
 	cashInTransit := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -1923,12 +1840,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
-	// Foreign Currency Cash Account
 	foreignCurrencyCash := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -1964,12 +1879,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
-	// Cash Equivalents - Money Market Account
 	moneyMarketFund := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -2005,12 +1918,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
 	}
 
-	// Create account history for seed
 	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
-	// Treasury Bills (Short-term)
 	treasuryBills := &Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
@@ -2046,9 +1957,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
 	}
 
-	// Fee Accounts - Other Type
 	feeAccounts := []*Account{
-		// Service Fees
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2076,7 +1985,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Transaction Fees
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2104,7 +2012,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Loan Processing Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2132,7 +2039,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Passbook Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2160,7 +2066,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// ATM Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2187,7 +2092,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Check Processing Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2215,7 +2119,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Documentation Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2243,7 +2146,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Late Payment Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2271,7 +2173,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Account Closure Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2299,7 +2200,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Annual Membership Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2327,7 +2227,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Insurance Premium Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2355,7 +2254,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Notarial Fee
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2385,9 +2283,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Operational Expense Accounts - Other Type
 	operationalAccounts := []*Account{
-		// Computer and IT Maintenance
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2415,7 +2311,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// General Maintenance
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2443,7 +2338,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Electricity Bills
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2471,7 +2365,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Water Bills
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2499,7 +2392,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Building Repairs and Maintenance
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2527,7 +2419,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Internet and Telecommunications
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2555,7 +2446,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Office Supplies
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2583,7 +2473,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Security Services
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2611,7 +2500,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Cleaning Services
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2639,7 +2527,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Professional Services
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2667,7 +2554,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Vehicle Maintenance
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2695,7 +2581,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Equipment Rental
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2723,7 +2608,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Training and Development
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2751,7 +2635,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Marketing and Advertising
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2779,7 +2662,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Travel and Accommodation
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2807,7 +2689,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Government Fees and Permits
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2835,7 +2716,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Medical and Health Services
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2863,7 +2743,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Waste Management
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2891,7 +2770,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			OtherInformationOfAnAccount:             OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
-		// Emergency Expenses
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2921,10 +2799,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Additional Cooperative-Specific Accounts
 	cooperativeAccounts := []*Account{
-		// === EQUITY ACCOUNTS ===
-		// Retained Earnings
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2952,7 +2827,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Patronage Refund Payable
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2980,7 +2854,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Member Equity Withdrawals
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3008,8 +2881,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// === REVENUE ACCOUNTS ===
-		// Dividend Income
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3037,7 +2908,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Other Income
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3065,8 +2935,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// === ASSET ACCOUNTS ===
-		// Accounts Receivable
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3094,7 +2962,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Allowance for Doubtful Accounts
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3122,7 +2989,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Inventory
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3150,7 +3016,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Prepaid Expenses
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3178,7 +3043,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Fixed Assets - Land
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3206,7 +3070,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Fixed Assets - Building
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3234,7 +3097,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Fixed Assets - Equipment
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3262,7 +3124,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Fixed Assets - Furniture and Fixtures
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3290,7 +3151,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Accumulated Depreciation
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3318,8 +3178,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// === LIABILITY ACCOUNTS ===
-		// Accounts Payable
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3347,7 +3205,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Accrued Expenses
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3375,7 +3232,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Taxes Payable
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3403,7 +3259,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Unearned Revenue
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3431,8 +3286,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// === EXPENSE ACCOUNTS ===
-		// Salaries and Wages
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3460,7 +3313,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Employee Benefits
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3488,7 +3340,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Depreciation Expense
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3516,7 +3367,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Bad Debt Expense
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3544,7 +3394,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Interest Expense on Borrowings
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3572,7 +3421,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Audit and Accounting Fees
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3600,7 +3448,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Bank Charges
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3628,7 +3475,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			CurrencyID:                              branch.CurrencyID,
 			OtherInformationOfAnAccount:             OIOANone,
 		},
-		// Donations and Contributions
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -3658,7 +3504,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		},
 	}
 
-	// Create all cooperative-specific accounts
 	for _, coopAccount := range cooperativeAccounts {
 		coopAccount.CurrencyID = branch.CurrencyID
 		if err := m.AccountManager.CreateWithTx(context, tx, coopAccount); err != nil {
@@ -3666,7 +3511,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 	}
 
-	// Create all fee accounts
 	for _, feeAccount := range feeAccounts {
 		feeAccount.CurrencyID = branch.CurrencyID
 		if err := m.AccountManager.CreateWithTx(context, tx, feeAccount); err != nil {
@@ -3674,7 +3518,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 	}
 
-	// Create all operational expense accounts
 	for _, operationalAccount := range operationalAccounts {
 		operationalAccount.CurrencyID = branch.CurrencyID
 		if err := m.AccountManager.CreateWithTx(context, tx, operationalAccount); err != nil {
@@ -3724,7 +3567,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err := m.UnbalancedAccountManager.CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
-	// Set default accounting accounts for user organization
 	userOrganization, err := m.UserOrganizationManager.FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
@@ -3734,7 +3576,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
 	}
 
-	// Set default accounting accounts - using first suitable account for each type
 	var regularSavings *Account
 	for _, account := range accounts {
 		if account.Name == "Regular Savings" {
@@ -3744,7 +3585,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if regularSavings != nil {
-		// Use Regular Savings as default for all three accounting operations
 		userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
@@ -3753,7 +3593,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-// CreateAccountHistory creates a history record for the account
 func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
 	now := time.Now().UTC()
 	history := &AccountHistory{
@@ -3764,7 +3603,6 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CreatedAt:      now,
 		LoanAccountID:  account.LoanAccountID,
 
-		// Copy all account data
 		Name:                                account.Name,
 		Description:                         account.Description,
 		Type:                                account.Type,
@@ -3813,7 +3651,6 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CashAndCashEquivalence:                            account.CashAndCashEquivalence,
 		InterestStandardComputation:                       account.InterestStandardComputation,
 
-		// Foreign key references
 		GeneralLedgerDefinitionID:      account.GeneralLedgerDefinitionID,
 		FinancialStatementDefinitionID: account.FinancialStatementDefinitionID,
 		AccountClassificationID:        account.AccountClassificationID,
@@ -3823,7 +3660,6 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		DefaultPaymentTypeID:           account.DefaultPaymentTypeID,
 		ComputationSheetID:             account.ComputationSheetID,
 
-		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                account.CohCibFinesGracePeriodEntryCashHand,
 		CohCibFinesGracePeriodEntryCashInBank:              account.CohCibFinesGracePeriodEntryCashInBank,
 		CohCibFinesGracePeriodEntryDailyAmortization:       account.CohCibFinesGracePeriodEntryDailyAmortization,
@@ -3844,7 +3680,6 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
 
-	// Debug: check if tx is nil
 	if tx == nil {
 		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
 	}
@@ -3852,12 +3687,9 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 	return m.AccountHistoryManager.CreateWithTx(ctx, tx, history)
 }
 
-// CreateAccountHistoryBeforeUpdate creates a history record with the original account data before update
 func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, updatedBy uuid.UUID) error {
-	// Get the original account data before update
 	original, err := m.AccountManager.GetByID(ctx, accountID)
 	if err != nil {
-		// If we can't find the original record, skip history creation
 		return nil
 	}
 
@@ -3870,7 +3702,6 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB
 		CreatedAt:      now,
 		LoanAccountID:  original.LoanAccountID,
 
-		// Copy all original data
 		Name:                                original.Name,
 		Description:                         original.Description,
 		Type:                                original.Type,
@@ -3919,7 +3750,6 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB
 		CashAndCashEquivalence:                            original.CashAndCashEquivalence,
 		InterestStandardComputation:                       original.InterestStandardComputation,
 
-		// Foreign key references
 		GeneralLedgerDefinitionID:      original.GeneralLedgerDefinitionID,
 		FinancialStatementDefinitionID: original.FinancialStatementDefinitionID,
 		AccountClassificationID:        original.AccountClassificationID,
@@ -3929,7 +3759,6 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB
 		DefaultPaymentTypeID:           original.DefaultPaymentTypeID,
 		ComputationSheetID:             original.ComputationSheetID,
 
-		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                original.CohCibFinesGracePeriodEntryCashHand,
 		CohCibFinesGracePeriodEntryCashInBank:              original.CohCibFinesGracePeriodEntryCashInBank,
 		CohCibFinesGracePeriodEntryDailyAmortization:       original.CohCibFinesGracePeriodEntryDailyAmortization,
@@ -3956,7 +3785,6 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB
 	return m.AccountHistoryManager.Create(ctx, history)
 }
 
-// AccountCurrentBranch
 func (m *Core) AccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	return m.AccountManager.Find(context, &Account{
 		OrganizationID: organizationID,
@@ -3964,21 +3792,16 @@ func (m *Core) AccountCurrentBranch(context context.Context, organizationID uuid
 	})
 }
 
-// AccountLockForUpdate locks the account row for update and returns the locked Account.
-// It uses a SELECT ... FOR UPDATE style locking to prevent concurrent modifications.
 func (m *Core) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
 	return m.AccountManager.GetByIDLock(ctx, tx, accountID)
 }
 
-// AccountLockWithValidation acquires an account lock and validates that the account
-// has not been changed compared to originalAccount. It returns the locked Account.
 func (m *Core) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
 	lockedAccount, err := m.AccountManager.GetByIDLock(ctx, tx, accountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to acquire account lock")
 	}
 
-	// Verify account data hasn't changed since initial check (concurrent modification detection)
 	if originalAccount != nil {
 		if lockedAccount.OrganizationID != originalAccount.OrganizationID ||
 			lockedAccount.BranchID != originalAccount.BranchID ||
@@ -3990,7 +3813,6 @@ func (m *Core) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accou
 	return lockedAccount, nil
 }
 
-// LoanAccounts retrieves all loan accounts for a given organization and branch.
 func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -4002,7 +3824,6 @@ func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branc
 	})
 }
 
-// FindAccountsByTypesAndBranch finds all accounts with specified branch, organization and account types (Fines, Interest, or SVFLedger)
 func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -4019,7 +3840,6 @@ func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID 
 	})
 }
 
-// FindAccountsBySpecificType finds all accounts with specified branch, organization and a single account type
 func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -4032,7 +3852,6 @@ func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uu
 	})
 }
 
-// FindAccountsBySpecificTypeByAccountID finds all accounts with specified branch, organization and a single account ID
 func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
@@ -4050,15 +3869,7 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	return accounts, nil
 }
 
-// AccountDeleteCheck verifies if an account can be safely deleted by checking:
-// 1. If account has any general ledger entries
-// 2. If account is set as Cash on Hand in branch settings
-// 3. If account is set as Paid Up Share Capital in branch settings
-// 4. If account is referenced by unbalanced accounts (shortage or overage)
-// 5. If account is a parent loan account for other accounts (Interest/Fines/SVF)
-// Returns an error if any of these conditions are met, preventing deletion.
 func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
-	// Check if account has any general ledger entries
 	hasEntries, err := m.GeneralLedgerManager.ArrExists(ctx, []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
@@ -4070,13 +3881,11 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		return eris.New("cannot delete account: account has existing general ledger entries")
 	}
 
-	// Get the account to check organization and branch
 	account, err := m.AccountManager.GetByID(ctx, accountID)
 	if err != nil {
 		return eris.Wrap(err, "failed to retrieve account for validation")
 	}
 
-	// Get branch settings for this account's branch
 	branchSetting, err := m.BranchSettingManager.FindOne(ctx, &BranchSetting{
 		BranchID: account.BranchID,
 	})
@@ -4084,19 +3893,16 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		return eris.Wrap(err, "failed to retrieve branch settings")
 	}
 
-	// Check if account is Cash on Hand
 	if branchSetting != nil && branchSetting.CashOnHandAccountID != nil &&
 		*branchSetting.CashOnHandAccountID == accountID {
 		return eris.New("cannot delete account: it is currently set as the Cash on Hand account in branch settings")
 	}
 
-	// Check if account is Paid Up Share Capital
 	if branchSetting != nil && branchSetting.PaidUpSharedCapitalAccountID != nil &&
 		*branchSetting.PaidUpSharedCapitalAccountID == accountID {
 		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
 	}
 
-	// Check if account is referenced by unbalanced accounts (shortage or overage)
 	unbalancedAccount, err := m.UnbalancedAccountManager.FindOne(ctx, &UnbalancedAccount{
 		BranchSettingsID: branchSetting.ID,
 	})
@@ -4113,7 +3919,6 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		}
 	}
 
-	// Check if account is a parent loan account for other accounts
 	linkedAccounts, err := m.FindLoanAccountsByID(ctx, account.OrganizationID, account.BranchID, accountID)
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
 		return eris.Wrap(err, "failed to check linked loan accounts")
@@ -4126,8 +3931,6 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 	return nil
 }
 
-// AccountDeleteCheckIncludingDeleted verifies if an account can be safely deleted
-// by checking for existing general ledger entries, including soft-deleted ones.
 func (m *Core) AccountDeleteCheckIncludingDeleted(ctx context.Context, accountID uuid.UUID) error {
 	hasEntries, err := m.GeneralLedgerManager.ExistsIncludingDeleted(ctx, []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},

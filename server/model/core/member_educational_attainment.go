@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberEducationalAttainment represents the MemberEducationalAttainment model.
 	MemberEducationalAttainment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,7 @@ type (
 		Description           string `gorm:"type:text"`
 	}
 
-	// MemberEducationalAttainmentResponse represents the response structure for membereducationalattainment data
 
-	// MemberEducationalAttainmentResponse represents the response structure for MemberEducationalAttainment.
 	MemberEducationalAttainmentResponse struct {
 		ID                    uuid.UUID              `json:"id"`
 		CreatedAt             string                 `json:"created_at"`
@@ -64,9 +61,7 @@ type (
 		Description           string                 `json:"description"`
 	}
 
-	// MemberEducationalAttainmentRequest represents the request structure for creating/updating membereducationalattainment
 
-	// MemberEducationalAttainmentRequest represents the request structure for MemberEducationalAttainment.
 	MemberEducationalAttainmentRequest struct {
 		MemberProfileID       uuid.UUID `json:"member_profile_id" validate:"required"`
 		SchoolName            string    `json:"school_name,omitempty" validate:"required,min=1,max=255"`
@@ -138,7 +133,6 @@ func (m *Core) memberEducationalAttainment() {
 	})
 }
 
-// MemberEducationalAttainmentCurrentBranch returns MemberEducationalAttainmentCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberEducationalAttainmentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberEducationalAttainment, error) {
 	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		OrganizationID: organizationID,

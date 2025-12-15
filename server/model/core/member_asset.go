@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberAsset represents a member's asset information in the database
 	MemberAsset struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -40,7 +39,6 @@ type (
 		Cost        float64   `gorm:"type:decimal(20,6);default:0"`
 	}
 
-	// MemberAssetResponse represents the response structure for member asset data
 	MemberAssetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -66,7 +64,6 @@ type (
 		Cost        float64 `json:"cost"`
 	}
 
-	// MemberAssetRequest represents the request structure for member asset data
 	MemberAssetRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		EntryDate   time.Time  `json:"entry_date" validate:"required"`
@@ -138,7 +135,6 @@ func (m *Core) memberAsset() {
 	})
 }
 
-// MemberAssetCurrentBranch retrieves member assets for the current branch
 func (m *Core) MemberAssetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
 	return m.MemberAssetManager.Find(context, &MemberAsset{
 		OrganizationID: organizationID,

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// Funds represents the Funds model.
 	Funds struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -38,9 +37,7 @@ type (
 		GLBooks     string  `gorm:"type:varchar(255)" json:"gl_books"`
 	}
 
-	// FundsResponse represents the response structure for funds data
 
-	// FundsResponse represents the response structure for Funds.
 	FundsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -61,9 +58,7 @@ type (
 		GLBooks        string                `json:"gl_books"`
 	}
 
-	// FundsRequest represents the request structure for creating/updating funds
 
-	// FundsRequest represents the request structure for Funds.
 	FundsRequest struct {
 		AccountID   *uuid.UUID `json:"account_id,omitempty"`
 		Type        string     `json:"type" validate:"required,min=1,max=255"`
@@ -132,7 +127,6 @@ func (m *Core) funds() {
 	})
 }
 
-// FundsCurrentBranch gets funds for the current branch
 func (m *Core) FundsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Funds, error) {
 	return m.FundsManager.Find(context, &Funds{
 		OrganizationID: organizationID,

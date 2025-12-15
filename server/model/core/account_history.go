@@ -12,22 +12,17 @@ import (
 	"gorm.io/gorm"
 )
 
-// HistoryChangeType defines the type of change recorded in account history
 type HistoryChangeType string
 
 const (
-	// HistoryChangeTypeCreated represents a created account
 	HistoryChangeTypeCreated HistoryChangeType = "created"
 
-	// HistoryChangeTypeUpdated represents an updated account
 	HistoryChangeTypeUpdated HistoryChangeType = "updated"
 
-	// HistoryChangeTypeDeleted represents a deleted account
 	HistoryChangeTypeDeleted HistoryChangeType = "deleted"
 )
 
 type (
-	// AccountHistory represents the history of changes made to an account
 	AccountHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -36,17 +31,14 @@ type (
 		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
 		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
-		// Reference to the original account
 		AccountID uuid.UUID `gorm:"type:uuid;not null;index:idx_account_history_account" json:"account_id"`
 		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"account,omitempty"`
 
-		// Organization and branch for filtering
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_account_history_org_branch" json:"organization_id"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_account_history_org_branch" json:"branch_id"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		// Snapshot of account data at the time of change
 		Name        string      `gorm:"type:varchar(255)" json:"name"`
 		Description string      `gorm:"type:text" json:"description"`
 		Type        AccountType `gorm:"type:varchar(50)" json:"type"`
@@ -60,13 +52,11 @@ type (
 
 		ComputationType ComputationType `gorm:"type:varchar(50)" json:"computation_type"`
 
-		// Interest and fees snapshot
 		FinesAmort       float64 `gorm:"type:decimal" json:"fines_amort"`
 		FinesMaturity    float64 `gorm:"type:decimal" json:"fines_maturity"`
 		InterestStandard float64 `gorm:"type:decimal" json:"interest_standard"`
 		InterestSecured  float64 `gorm:"type:decimal" json:"interest_secured"`
 
-		// Grace periods snapshot
 		FinesGracePeriodAmortization int  `gorm:"type:int" json:"fines_grace_period_amortization"`
 		AdditionalGracePeriod        int  `gorm:"type:int" json:"additional_grace_period"`
 		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
@@ -75,7 +65,6 @@ type (
 		CutOffDays                   int  `gorm:"type:int;default:0" json:"cut_off_days"`
 		CutOffMonths                 int  `gorm:"type:int;default:0" json:"cut_off_months"`
 
-		// Configuration snapshot
 		LumpsumComputationType                            LumpsumComputationType                            `gorm:"type:varchar(50)" json:"lumpsum_computation_type"`
 		InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `gorm:"type:varchar(100)" json:"interest_fines_computation_diminishing"`
 		InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `gorm:"type:varchar(200)" json:"interest_fines_computation_diminishing_straight_yearly"`
@@ -88,7 +77,6 @@ type (
 
 		GeneralLedgerType GeneralLedgerType `gorm:"type:varchar(50)" json:"general_ledger_type"`
 
-		// Display configuration snapshot
 		HeaderRow int `gorm:"type:int" json:"header_row"`
 		CenterRow int `gorm:"type:int" json:"center_row"`
 		TotalRow  int `gorm:"type:int" json:"total_row"`
@@ -96,7 +84,6 @@ type (
 		GeneralLedgerGroupingExcludeAccount bool   `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
 		Icon                                string `gorm:"type:varchar(50)" json:"icon"`
 
-		// General Ledger Source flags snapshot
 		ShowInGeneralLedgerSourceWithdraw       bool `gorm:"default:true" json:"show_in_general_ledger_source_withdraw"`
 		ShowInGeneralLedgerSourceDeposit        bool `gorm:"default:true" json:"show_in_general_ledger_source_deposit"`
 		ShowInGeneralLedgerSourceJournal        bool `gorm:"default:true" json:"show_in_general_ledger_source_journal"`
@@ -111,7 +98,6 @@ type (
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20)" json:"interest_standard_computation"`
 
-		// Foreign key references (stored as IDs for history)
 		GeneralLedgerDefinitionID      *uuid.UUID `gorm:"type:uuid" json:"general_ledger_definition_id,omitempty"`
 		FinancialStatementDefinitionID *uuid.UUID `gorm:"type:uuid" json:"financial_statement_definition_id,omitempty"`
 		AccountClassificationID        *uuid.UUID `gorm:"type:uuid" json:"account_classification_id,omitempty"`
@@ -122,7 +108,6 @@ type (
 		ComputationSheetID             *uuid.UUID `gorm:"type:uuid" json:"computation_sheet_id,omitempty"`
 		LoanAccountID                  *uuid.UUID `gorm:"type:uuid" json:"loan_account_id,omitempty"`
 
-		// Grace period entries snapshot
 		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_cash_hand"`
 		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
 		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
@@ -143,9 +128,7 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
 
-	// AccountHistoryResponse represents the response structure for accounthistory data
 
-	// AccountHistoryResponse represents the response structure for AccountHistory.
 	AccountHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -159,7 +142,6 @@ type (
 		BranchID       uuid.UUID             `json:"branch_id"`
 		Branch         *BranchResponse       `json:"branch,omitempty"`
 
-		// Account snapshot data
 		Name        string      `json:"name"`
 		Description string      `json:"description"`
 		Type        AccountType `json:"type"`
@@ -218,7 +200,6 @@ type (
 		CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
 		InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
 
-		// Foreign key references
 		GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
 		FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
 		AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
@@ -229,7 +210,6 @@ type (
 		ComputationSheetID             *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		LoanAccountID                  *uuid.UUID `json:"loan_account_id,omitempty"`
 
-		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand"`
 		CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
 		CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization"`
@@ -250,15 +230,12 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
 
-	// AccountHistoryRequest represents the request structure for creating/updating accounthistory
 
-	// AccountHistoryRequest represents the request structure for AccountHistory.
 	AccountHistoryRequest struct {
 		AccountID uuid.UUID `json:"account_id" validate:"required"`
 	}
 )
 
-// --- REGISTRATION ---
 
 func (m *Core) accountHistory() {
 	m.Migration = append(m.Migration, &AccountHistory{})
@@ -288,7 +265,6 @@ func (m *Core) accountHistory() {
 				BranchID:       data.BranchID,
 				Branch:         m.BranchManager.ToModel(data.Branch),
 
-				// Account snapshot data
 				Name:                         data.Name,
 				Description:                  data.Description,
 				Type:                         data.Type,
@@ -341,7 +317,6 @@ func (m *Core) accountHistory() {
 				CashAndCashEquivalence:      data.CashAndCashEquivalence,
 				InterestStandardComputation: data.InterestStandardComputation,
 
-				// Foreign key references
 				GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
 				FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
 				AccountClassificationID:        data.AccountClassificationID,
@@ -352,7 +327,6 @@ func (m *Core) accountHistory() {
 				ComputationSheetID:             data.ComputationSheetID,
 				LoanAccountID:                  data.LoanAccountID,
 
-				// Grace period entries
 				CohCibFinesGracePeriodEntryCashHand:                data.CohCibFinesGracePeriodEntryCashHand,
 				CohCibFinesGracePeriodEntryCashInBank:              data.CohCibFinesGracePeriodEntryCashInBank,
 				CohCibFinesGracePeriodEntryDailyAmortization:       data.CohCibFinesGracePeriodEntryDailyAmortization,
@@ -411,13 +385,11 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		UpdatedAt:        data.UpdatedAt,
 		DeletedAt:        gorm.DeletedAt{}, // History doesn't track deletion state of original
 
-		// Organization and branch references
 		OrganizationID: data.OrganizationID,
 		Organization:   data.Organization,
 		BranchID:       data.BranchID,
 		Branch:         data.Branch,
 
-		// Basic account information
 		Name:        data.Name,
 		Description: data.Description,
 		Type:        data.Type,
@@ -425,21 +397,17 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		MaxAmount:   data.MaxAmount,
 		Index:       data.Index,
 
-		// Account flags
 		IsInternal:         data.IsInternal,
 		CashOnHand:         data.CashOnHand,
 		PaidUpShareCapital: data.PaidUpShareCapital,
 
-		// Computation configuration
 		ComputationType: data.ComputationType,
 
-		// Interest and fees
 		FinesAmort:       data.FinesAmort,
 		FinesMaturity:    data.FinesMaturity,
 		InterestStandard: data.InterestStandard,
 		InterestSecured:  data.InterestSecured,
 
-		// Grace periods
 		FinesGracePeriodAmortization: data.FinesGracePeriodAmortization,
 		AdditionalGracePeriod:        data.AdditionalGracePeriod,
 		NoGracePeriodDaily:           data.NoGracePeriodDaily,
@@ -448,7 +416,6 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		CutOffDays:                   data.CutOffDays,
 		CutOffMonths:                 data.CutOffMonths,
 
-		// Advanced computation settings
 		LumpsumComputationType:                            data.LumpsumComputationType,
 		InterestFinesComputationDiminishing:               data.InterestFinesComputationDiminishing,
 		InterestFinesComputationDiminishingStraightYearly: data.InterestFinesComputationDiminishingStraightYearly,
@@ -459,10 +426,8 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		InterestSavingTypeDiminishingStraight:             data.InterestSavingTypeDiminishingStraight,
 		OtherInformationOfAnAccount:                       data.OtherInformationOfAnAccount,
 
-		// General ledger configuration
 		GeneralLedgerType: data.GeneralLedgerType,
 
-		// Display configuration
 		HeaderRow: data.HeaderRow,
 		CenterRow: data.CenterRow,
 		TotalRow:  data.TotalRow,
@@ -470,7 +435,6 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		GeneralLedgerGroupingExcludeAccount: data.GeneralLedgerGroupingExcludeAccount,
 		Icon:                                data.Icon,
 
-		// General Ledger Source flags
 		ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
 		ShowInGeneralLedgerSourceDeposit:        data.ShowInGeneralLedgerSourceDeposit,
 		ShowInGeneralLedgerSourceJournal:        data.ShowInGeneralLedgerSourceJournal,
@@ -479,14 +443,12 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		ShowInGeneralLedgerSourceJournalVoucher: data.ShowInGeneralLedgerSourceJournalVoucher,
 		ShowInGeneralLedgerSourceCheckVoucher:   data.ShowInGeneralLedgerSourceCheckVoucher,
 
-		// Compassion fund settings
 		CompassionFund:         data.CompassionFund,
 		CompassionFundAmount:   data.CompassionFundAmount,
 		CashAndCashEquivalence: data.CashAndCashEquivalence,
 
 		InterestStandardComputation: data.InterestStandardComputation,
 
-		// Foreign key references
 		GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
 		FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
 		AccountClassificationID:        data.AccountClassificationID,
@@ -497,7 +459,6 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 		ComputationSheetID:             data.ComputationSheetID,
 		LoanAccountID:                  data.LoanAccountID,
 
-		// Grace period entries
 		CohCibFinesGracePeriodEntryCashHand:                data.CohCibFinesGracePeriodEntryCashHand,
 		CohCibFinesGracePeriodEntryCashInBank:              data.CohCibFinesGracePeriodEntryCashInBank,
 		CohCibFinesGracePeriodEntryDailyAmortization:       data.CohCibFinesGracePeriodEntryDailyAmortization,
@@ -519,7 +480,6 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 	}
 }
 
-// GetAccountHistory retrieves the history records for a specific account
 func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
@@ -671,7 +631,6 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 		return nil, err
 	}
 
-	// Get the latest history for each unique account_id
 	accountMap := make(map[uuid.UUID]*AccountHistory)
 	for _, history := range histories {
 		if existing, found := accountMap[history.AccountID]; !found || history.CreatedAt.After(existing.CreatedAt) {
@@ -679,7 +638,6 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 		}
 	}
 
-	// Convert to Account models
 	var accounts []*Account
 	for _, history := range accountMap {
 		accounts = append(accounts, m.AccountHistoryToModel(history))

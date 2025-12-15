@@ -13,8 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// TransactionEvent represents a payment or withdrawal operation's payload
-// used by the event-based transaction processing routines.
 type TransactionEvent struct {
 	Amount               float64    `json:"amount" validate:"required"`
 	AccountID            *uuid.UUID `json:"account_id" validate:"required"`
@@ -38,9 +36,6 @@ type TransactionEvent struct {
 	Reverse             bool   `json:"reverse"`
 }
 
-// TransactionPayment processes a transaction event (deposit/withdrawal)
-// and creates the corresponding general ledger entries. It returns the
-// created GeneralLedger record or an error.
 func (e *Event) TransactionPayment(
 
 	context context.Context,
@@ -50,9 +45,6 @@ func (e *Event) TransactionPayment(
 	data TransactionEvent,
 
 ) (*core.GeneralLedger, error) {
-	// ================================================================================
-	// STEP 1: INITIALIZATION & PERFORMANCE MONITORING
-	// ================================================================================
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
@@ -65,9 +57,6 @@ func (e *Event) TransactionPayment(
 		}
 	}()
 
-	// ================================================================================
-	// STEP 2: SECURITY & ACCESS CONTROL
-	// ================================================================================
 	block, blocked, err := e.HandleIPBlocker(context, ctx)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -78,7 +67,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "internal error during IP block check"))
 	}
 
-	// Add nil check for block function
 	if block == nil {
 		return nil, endTx(eris.New("IP blocker function is nil"))
 	}
@@ -92,9 +80,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("IP is temporarily blocked due to repeated errors"))
 	}
 
-	// ================================================================================
-	// STEP 3: GET CURRENT USER ORGANIZATION
-	// ================================================================================
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -124,10 +109,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("user organization branch ID is nil"))
 	}
 
-	// ================================================================================
-	// STEP 4: INPUT VALIDATION
-	// ================================================================================
-	// Validate Payment Amount
 	if data.Amount == 0 {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "payment-error",
@@ -165,10 +146,6 @@ func (e *Event) TransactionPayment(
 		block("Cash on hand account ID does not match")
 		return nil, endTx(eris.New("cash on hand account ID does not match"))
 	}
-	// ================================================================================
-	// STEP 5: ENTITY VALIDATION & RETRIEVAL
-	// ================================================================================
-	// GET or CREATE transaction
 	var transaction *core.Transaction
 	now := time.Now().UTC()
 	if data.TransactionID != nil {
@@ -190,7 +167,6 @@ func (e *Event) TransactionPayment(
 		memberProfileID = transaction.MemberProfileID
 	}
 
-	// GET member profile (if provided)
 	if data.MemberProfileID != nil {
 		memberProfile, err := e.core.MemberProfileManager.GetByID(context, *data.MemberProfileID)
 		if err != nil {
@@ -232,7 +208,6 @@ func (e *Event) TransactionPayment(
 		memberProfileID = &memberProfile.ID
 	}
 
-	// GET transaction batch
 	transactionBatch, err := e.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -253,7 +228,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("transaction batch is nil"))
 	}
 
-	// GET account (with lock)
 	account, err := e.core.AccountLockForUpdate(context, tx, *data.AccountID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -275,8 +249,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("account is nil"))
 	}
 
-	// --- CHECK FOR LOAN ACCOUNT LEDGER ---
-	// Get current member account ledger with row-level locking if member profile exists
 
 	if account.BranchID != *userOrg.BranchID {
 		e.Footstep(ctx, FootstepEvent{
@@ -317,7 +289,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("cash on hand account is nil"))
 	}
 
-	// GET payment type
 	paymentType, err := e.core.PaymentTypeManager.GetByID(context, *data.PaymentTypeID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -382,9 +353,6 @@ func (e *Event) TransactionPayment(
 		}
 	}
 
-	// ================================================================================
-	// STEP 6: CREATE GENERAL LEDGER ENTRY
-	// ================================================================================
 	referenceNumber := data.ReferenceNumber
 	if transaction.ReferenceNumber != "" {
 		referenceNumber = transaction.ReferenceNumber
@@ -394,7 +362,6 @@ func (e *Event) TransactionPayment(
 		memberJointAccountID = transaction.MemberJointAccountID
 	}
 
-	// Add nil checks for service operations
 	if e.usecase == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "service-error",
@@ -444,9 +411,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to process transaction"))
 	}
 
-	// ================================================================================
-	// STEP 6.5: UPDATE LOAN ACCOUNT IF LOAN TRANSACTION EXISTS
-	// ================================================================================
 	loanTransactionID := data.LoanTransactionID
 	if loanTransactionID != nil {
 		loanAccount, err := e.core.GetLoanAccountByLoanTransaction(
@@ -467,14 +431,12 @@ func (e *Event) TransactionPayment(
 		}
 
 		if loanAccount != nil {
-			// Handle Credit (Payment)
 			if credit > 0 {
 				loanAccount.TotalPaymentCount += 1
 				loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
 					loanAccount.TotalPayment, credit)
 			}
 
-			// Handle Debit (Deduction/Add-on)
 			if debit > 0 {
 				loanAccount.TotalDeductionCount += 1
 				loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
@@ -540,9 +502,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 	}
 
-	// ================================================================================
-	// STEP 7: UPDATE TRANSACTION USING PRECISE DECIMAL ARITHMETIC
-	// ================================================================================
 	switch data.Source {
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
@@ -594,9 +553,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to update transaction"))
 	}
 
-	// ================================================================================
-	// STEP 9: Adding Cash on Hand Account
-	// ================================================================================
 	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -636,16 +592,10 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to create general ledger entry for cash on hand"))
 	}
 
-	// ================================================================================
-	// STEP 9: UPDATE USER ORGANIZATION OR GENERATED
-	// ================================================================================
 	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to balance transaction batch"))
 	}
 
-	// ================================================================================
-	// STEP 10: TRANSACTION COMMIT & SUCCESS LOGGING
-	// ================================================================================
 	if err := endTx(nil); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "db-commit-error",
@@ -655,7 +605,6 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
-	// Success - log completion with performance metrics
 	duration := time.Since(startTime)
 	e.Footstep(ctx, FootstepEvent{
 		Activity: "payment-success",

@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/security_test.go
 func setupSecurityUtils() SecurityService {
 	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")
@@ -60,7 +59,6 @@ func TestEncryptAndDecrypt(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, encrypted)
 
-	// base64 decode to check if it's encoded properly
 	_, err = base64.StdEncoding.DecodeString(encrypted)
 	assert.NoError(t, err)
 

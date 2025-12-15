@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// LoanTagController registers routes for managing loan tags.
 func (c *Controller) loanTagController() {
 	req := c.provider.Service.Request
 
-	// GET /loan-tag: List all loan tags for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
 	})
 
-	// GET /api/v1/loan-tag/loan-transaction/:loan_transaction_id: List loan tags by loan transaction ID for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
@@ -66,7 +63,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
 	})
 
-	// GET /loan-tag/search: Paginated search of loan tags for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/search",
 		Method:       "GET",
@@ -91,7 +87,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusOK, loanTags)
 	})
 
-	// GET /loan-tag/:loan_tag_id: Get specific loan tag by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "GET",
@@ -110,7 +105,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusOK, loanTag)
 	})
 
-	// POST /loan-tag: Create a new loan tag. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "POST",
@@ -177,7 +171,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusCreated, c.core.LoanTagManager.ToModel(loanTag))
 	})
 
-	// PUT /loan-tag/:loan_tag_id: Update loan tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "PUT",
@@ -247,7 +240,6 @@ func (c *Controller) loanTagController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModel(loanTag))
 	})
 
-	// DELETE /loan-tag/:loan_tag_id: Delete a loan tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-tag/:loan_tag_id",
 		Method: "DELETE",
@@ -288,7 +280,6 @@ func (c *Controller) loanTagController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for loan tags (mirrors the feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-tag/bulk-delete",
 		Method:      "DELETE",

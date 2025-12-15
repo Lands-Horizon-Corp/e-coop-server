@@ -76,7 +76,6 @@ type (
 		UserRatingManager                    registry.Registry[UserRating, UserRatingResponse, UserRatingRequest]
 		MemberProfileMediaManager            registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]
 		MemberProfileArchiveManager          registry.Registry[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]
-		// Members
 		MemberAddressManager                registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest]
 		MemberAssetManager                  registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest]
 		MemberBankCardManager               registry.Registry[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]
@@ -109,11 +108,9 @@ type (
 		MemberDepartmentManager             registry.Registry[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]
 		MemberDepartmentHistoryManager      registry.Registry[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest]
 
-		// Employee Feature
 		TimesheetManager registry.Registry[Timesheet, TimesheetResponse, TimesheetRequest]
 		CompanyManager   registry.Registry[Company, CompanyResponse, CompanyRequest]
 
-		// GL/FS
 		FinancialStatementDefinitionManager             registry.Registry[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]
 		FinancialStatementGroupingManager               registry.Registry[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]
 		GeneralLedgerAccountsGroupingManager            registry.Registry[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]
@@ -121,24 +118,20 @@ type (
 		GeneralAccountGroupingNetSurplusPositiveManager registry.Registry[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]
 		Generalaccountgroupingnetsurplusnegativemanager registry.Registry[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest]
 
-		// MAINTENANCE TABLE FOR ACCOUNTING
 		AccountClassificationManager registry.Registry[AccountClassification, AccountClassificationResponse, AccountClassificationRequest]
 		AccountCategoryManager       registry.Registry[AccountCategory, AccountCategoryResponse, AccountCategoryRequest]
 		PaymentTypeManager           registry.Registry[PaymentType, PaymentTypeResponse, PaymentTypeRequest]
 		BillAndCoinsManager          registry.Registry[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest]
 
-		// ACCOUNT
 		AccountManager           registry.Registry[Account, AccountResponse, AccountRequest]
 		AccountTagManager        registry.Registry[AccountTag, AccountTagResponse, AccountTagRequest]
 		AccountHistoryManager    registry.Registry[AccountHistory, AccountHistoryResponse, AccountHistoryRequest]
 		UnbalancedAccountManager registry.Registry[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]
 
-		// LEDGERS
 		GeneralLedgerManager          registry.Registry[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]
 		GeneralLedgerTagManager       registry.Registry[GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest]
 		MemberAccountingLedgerManager registry.Registry[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest]
 
-		// TRANSACTION START
 		TransactionBatchManager registry.Registry[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]
 		CheckRemittanceManager  registry.Registry[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest]
 		OnlineRemittanceManager registry.Registry[OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest]
@@ -147,11 +140,9 @@ type (
 		TransactionManager      registry.Registry[Transaction, TransactionResponse, TransactionRequest]
 		TransactionTagManager   registry.Registry[TransactionTag, TransactionTagResponse, TransactionTagRequest]
 
-		// Disbursements
 		DisbursementTransactionManager registry.Registry[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest]
 		DisbursementManager            registry.Registry[Disbursement, DisbursementResponse, DisbursementRequest]
 
-		// LOAN START
 		ComputationSheetManager                      registry.Registry[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest]
 		FinesMaturityManager                         registry.Registry[FinesMaturity, FinesMaturityResponse, FinesMaturityRequest]
 		InterestMaturityManager                      registry.Registry[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest]
@@ -175,7 +166,6 @@ type (
 		LoanPurposeManager                           registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest]
 		LoanAccountManager                           registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest]
 
-		// Maintenance
 		CollateralManager                     registry.Registry[Collateral, CollateralResponse, CollateralRequest]
 		TagTemplateManager                    registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest]
 		HolidayManager                        registry.Registry[Holiday, HolidayResponse, HolidayRequest]
@@ -188,7 +178,6 @@ type (
 		MemberDeductionEntryManager registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest]
 		PostDatedCheckManager       registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest]
 
-		// TIME DEPOSIT
 		TimeDepositTypeManager                   registry.Registry[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest]
 		TimeDepositComputationManager            registry.Registry[TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest]
 		TimeDepositComputationPreMatureManager   registry.Registry[TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest]
@@ -197,7 +186,6 @@ type (
 		ChargesRateByRangeOrMinimumAmountManager registry.Registry[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest]
 		ChargesRateByTermManager                 registry.Registry[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest]
 
-		// ACCOUNTING ENTRY
 		AdjustmentEntryManager           registry.Registry[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]
 		AdjustmentTagManager             registry.Registry[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest]
 		VoucherPayToManager              registry.Registry[VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest]
@@ -216,7 +204,6 @@ type (
 		InterestRateByDateManager             registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest]
 		InterestRateByAmountManager           registry.Registry[InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest]
 
-		// Mutual funds
 		MutualFundAdditionalMembersManager registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]
 		MutualFundManager                  registry.Registry[MutualFund, MutualFundResponse, MutualFundRequest]
 		MutualFundTableManager             registry.Registry[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]
@@ -230,10 +217,8 @@ func NewCore(provider *server.Provider) (*Core, error) {
 	}, nil
 }
 
-// Start initializes all model managers and performs auto-migration setup
 func (m *Core) Start() error {
 
-	// Models
 	m.accountCategory()
 	m.accountClassification()
 	m.unbalancedAccount()
@@ -395,7 +380,6 @@ func (m *Core) GlobalSeeder(ctx context.Context) error {
 	return nil
 }
 
-// OrganizationSeeder seeds initial data for a new organization including default accounts, payment types, and templates
 func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	if err := m.invitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
@@ -484,7 +468,6 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	return nil
 }
 
-// OrganizationDestroyer cleans up and removes all data associated with an organization branch
 func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizationID uuid.UUID, branchID uuid.UUID) error {
 	invitationCodes, err := m.InvitationCodeManager.Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
@@ -507,7 +490,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 	if err != nil {
 		return eris.Wrapf(err, "failed to get bill and coins")
 	}
-	// 4. Delete Holidays
 	holidays, err := m.HolidayManager.Find(ctx, &Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -536,7 +518,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 1. Delete MemberType
 	memberTypes, err := m.MemberTypeManager.Find(ctx, &MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -550,7 +531,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 2. Delete MemberOccupation
 	memberOccupations, err := m.MemberOccupationManager.Find(ctx, &MemberOccupation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -564,7 +544,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 3. Delete MemberGroup
 	memberGroups, err := m.MemberGroupManager.Find(ctx, &MemberGroup{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -578,7 +557,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 4. Delete MemberGender
 	memberGenders, err := m.MemberGenderManager.Find(ctx, &MemberGender{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -592,7 +570,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 5. Delete MemberCenter
 	memberCenters, err := m.MemberCenterManager.Find(ctx, &MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -606,7 +583,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// 6. Delete MemberClassification
 	memberClassifications, err := m.MemberClassificationManager.Find(ctx, &MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -646,7 +622,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Financial Statement Accounts Grouping destroyer
 	FinancialStatementGroupings, err := m.FinancialStatementGroupingManager.Find(ctx, &FinancialStatementGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -696,7 +671,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete Accounts
 	accounts, err := m.AccountManager.Find(ctx, &Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -710,7 +684,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete LoanPurpose
 	loanPurposes, err := m.LoanPurposeManager.Find(ctx, &LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -724,7 +697,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete AccountCategory
 	accountCategories, err := m.AccountCategoryManager.Find(ctx, &AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -738,7 +710,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete TagTemplate
 	tagTemplates, err := m.TagTemplateManager.Find(ctx, &TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -752,7 +723,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete LoanStatus
 	loanStatuses, err := m.LoanStatusManager.Find(ctx, &LoanStatus{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -766,7 +736,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete MemberProfile
 	memberProfiles, err := m.MemberProfileManager.Find(ctx, &MemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -780,7 +749,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete Company
 	companies, err := m.CompanyManager.Find(ctx, &Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
@@ -794,7 +762,6 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	// Delete MemberDepartment
 	memberDepartments, err := m.MemberDepartmentManager.Find(ctx, &MemberDepartment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,

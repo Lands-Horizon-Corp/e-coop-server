@@ -11,7 +11,6 @@ import (
 	"go.uber.org/fx"
 )
 
-// CommandConfig defines a command configuration
 type CommandConfig struct {
 	Use     string
 	Short   string

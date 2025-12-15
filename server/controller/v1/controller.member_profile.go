@@ -15,7 +15,6 @@ import (
 func (c *Controller) memberProfileController() {
 	req := c.provider.Service.Request
 
-	// Get all pending member profiles in the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/pending",
 		Method:       "GET",
@@ -41,7 +40,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModels(memberProfile))
 	})
 
-	// Quickly create a new user account and link it to a member profile by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
@@ -212,7 +210,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	// Approve a member profile by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/approve",
 		Method:       "PUT",
@@ -273,7 +270,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	// Reject a member profile by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
@@ -333,7 +329,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	// Retrieve a list of all member profiles in the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile",
 		Method:       "GET",
@@ -352,7 +347,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModels(memberProfile))
 	})
 
-	// Retrieve paginated member profiles for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/search",
 		Method:       "GET",
@@ -374,7 +368,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Retrieve a specific member profile by member_profile_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id",
 		Method:       "GET",
@@ -393,7 +386,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
-	// Delete a specific member profile by its member_profile_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-profile/:member_profile_id",
 		Method: "DELETE",
@@ -452,7 +444,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member profiles (delegates heavy work to manager)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
@@ -502,7 +493,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Connect the specified member profile to a user account
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user",
 		Method:       "POST",
@@ -562,7 +552,6 @@ func (c *Controller) memberProfileController() {
 		})
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
-	// Quickly create a new member profile with minimal required fields
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/quick-create",
 		Method:       "POST",
@@ -747,7 +736,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
-	// Update the personal information of a member profile by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/personal-info",
 		Method:       "PUT",
@@ -877,7 +865,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
-	// Update the membership information of a member profile by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
 		Method:       "PUT",
@@ -1123,7 +1110,6 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
 
-		// Verify current user authorization
 		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1142,7 +1128,6 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		// Get the member profile
 		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1153,7 +1138,6 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 
-		// Connect the member profile to the user
 		memberProfile.UserID = userID
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = currentUserOrg.UserID
@@ -1198,7 +1182,6 @@ func (c *Controller) memberProfileController() {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		// Validate each request in the array
 		for i, remark := range req {
 			if err := c.provider.Service.Validator.Struct(remark); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Validation failed for remark %d: %s", i+1, err.Error()))
@@ -1222,16 +1205,13 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNoContent, map[string]string{"error": "Current user organization not found"})
 		}
 
-		// Start transaction for multiple operations
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Close the member profile first
 		memberProfile.IsClosed = true
 		if err := c.core.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+endTx(err).Error())
 		}
 
-		// Create all close remarks
 		var createdRemarks []*core.MemberCloseRemark
 		for _, remarkReq := range req {
 			value := &core.MemberCloseRemark{
@@ -1252,7 +1232,6 @@ func (c *Controller) memberProfileController() {
 			createdRemarks = append(createdRemarks, value)
 		}
 
-		// Commit transaction
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
@@ -1290,7 +1269,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	// PUT /api/v1/member-profile/:member_profile_id/coordinates
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
 		Method:       "PUT",
@@ -1364,7 +1342,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
 	})
 
-	// GET api/v1/member-profile/member-type/:member_type_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/member-type/:member_type_id/search",
 		Method:       "GET",
@@ -1391,7 +1368,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, memberProfiles)
 	})
 
-	// PUT api/v1/member-profile/:member_profile_id/member-type/member_type_id/link
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/member-type/:member_type_id/link",
 		Method:       "PUT",
@@ -1445,7 +1421,6 @@ func (c *Controller) memberProfileController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
 	})
 
-	// PUT api/v1/member-profile/:member_profile_id/unlink
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/unlink",
 		Method:       "PUT",

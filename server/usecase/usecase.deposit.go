@@ -1,4 +1,3 @@
-// Package usecase provides business logic and transaction processing services for the e-cooperative application
 package usecase
 
 import (
@@ -8,7 +7,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// Deposit processes a deposit transaction for the given account and amount using precise decimal arithmetic
 func (t *UsecaseService) Deposit(
 	ctx context.Context,
 	account *core.Account,
@@ -31,7 +29,6 @@ func (t *UsecaseService) Deposit(
 		return amount, 0, nil
 
 	case core.AccountTypeLoan, core.AccountTypeFines, core.AccountTypeInterest, core.AccountTypeAPLedger:
-		// When receiving payment on a loan, CREDIT the loan account (reduces the debt)
 		return amount, 0, nil
 
 	case core.AccountTypeARLedger, core.AccountTypeARAging:

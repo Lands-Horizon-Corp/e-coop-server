@@ -11,10 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// TagCategory represents different categorization types for tags in the cooperative system
 type TagCategory string
 
-// Tag category constants for template organization and classification
 const (
 	TagCategoryStatus          TagCategory = "status"
 	TagCategoryAlert           TagCategory = "alert"
@@ -35,7 +33,6 @@ const (
 )
 
 type (
-	// TagTemplate represents reusable tag templates for categorizing and organizing cooperative data
 	TagTemplate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -60,7 +57,6 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	// TagTemplateResponse represents the response structure for tag template data
 	TagTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -80,7 +76,6 @@ type (
 		Icon           string                `json:"icon"`
 	}
 
-	// TagTemplateRequest represents the request structure for creating or updating tag templates
 	TagTemplateRequest struct {
 		Name        string      `json:"name" validate:"required,min=1,max=50"`
 		Description string      `json:"description,omitempty"`
@@ -90,7 +85,6 @@ type (
 	}
 )
 
-// TagTemplate initializes the tag template model and its repository manager
 func (m *Core) tagTemplate() {
 	m.Migration = append(m.Migration, &TagTemplate{})
 	m.TagTemplateManager = *registry.NewRegistry(registry.RegistryParams[
@@ -154,11 +148,9 @@ func (m *Core) tagTemplate() {
 	})
 }
 
-// TagTemplateSeed initializes the database with default tag templates for a branch
 func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	tagTemplates := []*TagTemplate{
-		// Status Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -250,7 +242,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#F59E0B", // Yellow/Orange
 			Icon:           "Warning",
 		},
-		// Priority Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -290,7 +281,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#6B7280", // Gray
 			Icon:           "Info",
 		},
-		// Transaction Type Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -343,7 +333,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Online Payment",
 		},
-		// Account Classification Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -409,7 +398,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#DC2626", // Dark Red
 			Icon:           "Trend Down",
 		},
-		// Special Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -514,7 +502,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#BE185D", // Pink
 			Icon:           "Price Tag",
 		},
-		// Cooperative Banking Specific Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -658,7 +645,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#7C3AED", // Violet
 			Icon:           "House",
 		},
-		// Community and Social Services Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -750,7 +736,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#65A30D", // Lime
 			Icon:           "Plant Growth",
 		},
-		// Operational Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -829,7 +814,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#DC2626", // Red
 			Icon:           "Warning Circle",
 		},
-		// Digital Banking Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -882,7 +866,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 			Color:          "#059669", // Emerald
 			Icon:           "QR Code",
 		},
-		// Member Services Tags
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -958,7 +941,6 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 	return nil
 }
 
-// TagTemplateCurrentBranch retrieves all tag templates for a specific branch within an organization
 func (m *Core) TagTemplateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
 	return m.TagTemplateManager.Find(context, &TagTemplate{
 		OrganizationID: organizationID,

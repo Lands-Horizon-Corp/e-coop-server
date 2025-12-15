@@ -15,7 +15,6 @@ import (
 )
 
 type (
-	// User represents a user account in the system with personal information and authentication details
 	User struct {
 		ID                uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt         time.Time      `gorm:"not null;default:now()"`
@@ -45,7 +44,6 @@ type (
 		UserOrganizations []*UserOrganization `gorm:"foreignKey:UserID" json:"user_organizations,omitempty"` // user organization
 	}
 
-	// UserResponse represents the JSON response structure for user data
 	UserResponse struct {
 		ID                uuid.UUID         `json:"id"`
 		MediaID           *uuid.UUID        `json:"media_id,omitempty"`
@@ -74,7 +72,6 @@ type (
 		UserOrganizations []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 	}
 
-	// CurrentUserResponse represents the response structure for the currently authenticated user
 	CurrentUserResponse struct {
 		UserID                  uuid.UUID                 `json:"user_id"`
 		User                    *UserResponse             `json:"user"`
@@ -83,18 +80,15 @@ type (
 		Users                   any                       `json:"users,omitempty"` // This can be used to return multiple users if needed
 	}
 
-	// UserLoginRequest represents the request payload for user authentication
 	UserLoginRequest struct {
 		Key      string `json:"key" validate:"required"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
-	// UserAdminPasswordVerificationRequest represents the request payload for admin password verification
 	UserAdminPasswordVerificationRequest struct {
 		UserOrganizationID uuid.UUID `json:"user_organization_id" validate:"required"`
 		Password           string    `json:"password" validate:"required,min=8"`
 	}
 
-	// UserRegisterRequest represents the request payload for user registration
 	UserRegisterRequest struct {
 		Email         string     `json:"email" validate:"required,email"`
 		Password      string     `json:"password" validate:"required,min=8"`
@@ -109,77 +103,63 @@ type (
 		MediaID       *uuid.UUID `json:"media_id,omitempty"`
 	}
 
-	// UserForgotPasswordRequest represents the request payload for password reset
 	UserForgotPasswordRequest struct {
 		Key string `json:"key" validate:"required"`
 	}
 
-	// UserChangePasswordRequest represents the request payload for changing user password
 	UserChangePasswordRequest struct {
 		NewPassword     string `json:"new_password" validate:"required,min=8"`
 		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
-	// UserVerifyContactNumberRequest represents the request payload for contact number verification
 	UserVerifyContactNumberRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
-	// UserVerifyEmailRequest represents the request payload for email verification
 	UserVerifyEmailRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
-	// UserVerifyWithEmailConfirmationRequest represents the request payload for email confirmation verification
 	UserVerifyWithEmailConfirmationRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
 
-	// UserVerifyWithContactNumberRequest represents the request payload for contact number verification
 	UserVerifyWithContactNumberRequest struct {
 		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
 	}
 
-	// UserVerifyWithContactNumberConfirmationRequest represents the request payload for contact number confirmation
 	UserVerifyWithContactNumberConfirmationRequest struct {
 		OTP string `json:"otp" validate:"required,min=6"`
 	}
-	// UserVerifyWithPasswordRequest represents the request payload for password verification
 	UserVerifyWithPasswordRequest struct {
 		Password string `json:"password" validate:"required,min=6"`
 	}
 
-	// UserSettingsChangePasswordRequest represents the request payload for changing password in user settings
 	UserSettingsChangePasswordRequest struct {
 		OldPassword     string `json:"old_password" validate:"required,min=8"`
 		NewPassword     string `json:"new_password" validate:"required,min=8"`
 		ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 	}
 
-	// UserSettingsChangeEmailRequest represents the request payload for changing email in user settings
 	UserSettingsChangeEmailRequest struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
-	// UserSettingsChangeUsernameRequest represents the request payload for changing username in user settings
 	UserSettingsChangeUsernameRequest struct {
 		UserName string `json:"user_name" validate:"required,min=3,max=100"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
-	// UserSettingsChangeContactNumberRequest represents the request payload for changing contact number in user settings
 	UserSettingsChangeContactNumberRequest struct {
 		ContactNumber string `json:"contact_number" validate:"required,min=7,max=20"`
 		Password      string `json:"password" validate:"required,min=8"`
 	}
 
-	// UserSettingsChangeProfilePictureRequest represents the request payload for changing profile picture in user settings
 	UserSettingsChangeProfilePictureRequest struct {
 		MediaID *uuid.UUID `json:"media_id" validate:"required"`
 	}
 
-	// UserSettingsChangeProfileRequest represents the request payload for changing profile information in user settings
 	UserSettingsChangeProfileRequest struct {
 		Birthdate *time.Time `json:"birthdate"`
 
@@ -190,7 +170,6 @@ type (
 		Suffix     *string `json:"suffix,omitempty"`
 	}
 
-	// UserSettingsChangeGeneralRequest represents the request payload for changing general settings
 	UserSettingsChangeGeneralRequest struct {
 		ContactNumber string  `json:"contact_number" validate:"required,min=7,max=20"`
 		Description   *string `json:"description,omitempty"`
@@ -199,7 +178,6 @@ type (
 	}
 )
 
-// User initializes the User model and its repository manager
 func (m *Core) user() {
 	m.Migration = append(m.Migration, &User{})
 	m.UserManager = *registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
@@ -283,22 +261,18 @@ func (m *Core) user() {
 	})
 }
 
-// GetUserByContactNumber retrieves a user by their contact number (endpoint: user/contact-number/:contact_number_id)
 func (m *Core) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{ContactNumber: contactNumber})
 }
 
-// GetUserByEmail retrieves a user by their email address (endpoint: user/email/:email)
 func (m *Core) GetUserByEmail(context context.Context, email string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{Email: email})
 }
 
-// GetUserByUserName retrieves a user by their username (endpoint: user/user-name/:user-name)
 func (m *Core) GetUserByUserName(context context.Context, userName string) (*User, error) {
 	return m.UserManager.FindOne(context, &User{UserName: userName})
 }
 
-// GetUserByIdentifier retrieves a user by email, contact number, or username (endpoint: user/identifier/:identifier)
 func (m *Core) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
 	if strings.Contains(identifier, "@") {
 		if u, err := m.GetUserByEmail(context, identifier); err == nil {

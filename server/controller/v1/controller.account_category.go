@@ -80,7 +80,6 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(category))
 	})
 
-	// CREATE (POST) - ADD FOOTSTEP
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
@@ -145,7 +144,6 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusCreated, c.core.AccountCategoryManager.ToModel(accountCategory))
 	})
 
-	// UPDATE (PUT) - ADD FOOTSTEP
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
@@ -221,7 +219,6 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(accountCategory))
 	})
 
-	// DELETE (DELETE) - ADD FOOTSTEP
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-category/:account_category_id",
@@ -280,7 +277,6 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(accountCategory))
 	})
 
-	// BULK DELETE (DELETE) - ADD FOOTSTEP
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",

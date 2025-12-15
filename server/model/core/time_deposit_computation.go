@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// TimeDepositComputation represents the TimeDepositComputation model.
 	TimeDepositComputation struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,9 +47,7 @@ type (
 		Header11 float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// TimeDepositComputationResponse represents the response structure for timedepositcomputation data
 
-	// TimeDepositComputationResponse represents the response structure for TimeDepositComputation.
 	TimeDepositComputationResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -80,9 +77,7 @@ type (
 		Header11          float64                  `json:"header_11"`
 	}
 
-	// TimeDepositComputationRequest represents the request structure for creating/updating timedepositcomputation
 
-	// TimeDepositComputationRequest represents the request structure for TimeDepositComputation.
 	TimeDepositComputationRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
 		MinimumAmount float64    `json:"minimum_amount,omitempty"`
@@ -101,7 +96,6 @@ type (
 	}
 )
 
-// TimeDepositComputation initializes the TimeDepositComputation model and its repository manager
 func (m *Core) timeDepositComputation() {
 	m.Migration = append(m.Migration, &TimeDepositComputation{})
 	m.TimeDepositComputationManager = *registry.NewRegistry(registry.RegistryParams[
@@ -175,7 +169,6 @@ func (m *Core) timeDepositComputation() {
 	})
 }
 
-// TimeDepositComputationCurrentBranch retrieves all timedepositcomputation records for the specified organization and branch
 func (m *Core) TimeDepositComputationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
 	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
 		OrganizationID: organizationID,

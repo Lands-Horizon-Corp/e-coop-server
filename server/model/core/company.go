@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// Company represents the Company model.
 	Company struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -37,9 +36,7 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
-	// CompanyResponse represents the response structure for company data
 
-	// CompanyResponse represents the response structure for Company.
 	CompanyResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -58,9 +55,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// CompanyRequest represents the request structure for creating/updating company
 
-	// CompanyRequest represents the request structure for Company.
 	CompanyRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		Description string     `json:"description,omitempty"`
@@ -163,7 +158,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "Parent company of Facebook, Instagram, and WhatsApp.",
 		},
 
-		// Automotive Companies
 		{
 			Name:        "Toyota Motor Corporation",
 			Description: "Japanese multinational automotive manufacturer and world leader in hybrid vehicles.",
@@ -177,7 +171,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "German multinational automotive manufacturer owning Audi, Porsche, and Lamborghini.",
 		},
 
-		// Finance & Banking
 		{
 			Name:        "JPMorgan Chase & Co.",
 			Description: "Largest bank in the United States by assets, offering global financial services.",
@@ -195,7 +188,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "Global leader in digital payments and financial technology.",
 		},
 
-		// Telecommunications
 		{
 			Name:        "AT&T Inc.",
 			Description: "American multinational telecommunications and media company.",
@@ -205,7 +197,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "One of the largest telecommunications companies in the world.",
 		},
 
-		// Energy Companies
 		{
 			Name:        "ExxonMobil Corporation",
 			Description: "American multinational oil and gas corporation.",
@@ -220,7 +211,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "Multinational oil and gas company based in the United Kingdom.",
 		},
 
-		// Food & Consumer Goods
 		{
 			Name:        "Nestlé S.A.",
 			Description: "Swiss multinational food and beverage company, the largest in the world by revenue.",
@@ -238,7 +228,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "British-Dutch multinational consumer goods company known for Dove, Lifebuoy, and Knorr.",
 		},
 
-		// Education & Research
 		{
 			Name:        "Harvard University",
 			Description: "Private Ivy League research university in Cambridge, Massachusetts.",
@@ -252,7 +241,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Description: "Private research university in Stanford, California, known for innovation and entrepreneurship.",
 		},
 
-		// Starlink and cables
 		{
 			Name:        "SpaceX",
 			Description: "Aerospace manufacturer and space transport services company founded by Elon Musk.",
@@ -266,7 +254,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	switch branch.Currency.ISO3166Alpha3 {
 	case "USA": // United States
 		companies = append(companies,
-			// Electricity / Energy Companies
 			&Company{
 
 				Name:        "Pacific Gas and Electric Company (PG&E)",
@@ -288,7 +275,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "The largest electric utility in Florida, providing power to over 5 million customer accounts.",
 			},
 
-			// Water Utilities
 			&Company{
 
 				Name:        "American Water Works Company, Inc.",
@@ -305,7 +291,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Provides regulated and reliable water services to California communities.",
 			},
 
-			// Internet / Cable / Telecom
 			&Company{
 
 				Name:        "Comcast Xfinity",
@@ -327,7 +312,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Cable television, internet, and phone provider serving millions across the U.S.",
 			},
 
-			// Gas Companies
 			&Company{
 
 				Name:        "Southern California Gas Company (SoCalGas)",
@@ -339,7 +323,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Provides natural gas and electricity distribution services in the Northeastern United States.",
 			},
 
-			// Waste Management
 			&Company{
 
 				Name:        "Waste Management, Inc.",
@@ -2303,7 +2286,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 				Description: "Maintenance and cleaning services provider for businesses and households.",
 			},
 		)
-	// case "XDR": // Special Drawing Rights (IMF) - No specific country
 	case "KWT": // Kuwait
 	case "QAT": // Qatar
 	case "OMN": // Oman
@@ -2326,7 +2308,6 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-// CompanyCurrentBranch returns all companies for the given organization and branch.
 func (m *Core) CompanyCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
 	return m.CompanyManager.Find(context, &Company{
 		OrganizationID: organizationID,

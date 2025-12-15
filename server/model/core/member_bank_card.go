@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberBankCard represents the MemberBankCard model.
 	MemberBankCard struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -41,9 +40,7 @@ type (
 		IsDefault      bool      `gorm:"not null;default:false"`
 	}
 
-	// MemberBankCardResponse represents the response structure for memberbankcard data
 
-	// MemberBankCardResponse represents the response structure for MemberBankCard.
 	MemberBankCardResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,9 +66,7 @@ type (
 		IsDefault      bool   `json:"is_default"`
 	}
 
-	// MemberBankCardRequest represents the request structure for creating/updating memberbankcard
 
-	// MemberBankCardRequest represents the request structure for MemberBankCard.
 	MemberBankCardRequest struct {
 		AccountNumber   string     `json:"account_number" validate:"required,min=1,max=50"`
 		CardName        string     `json:"card_name" validate:"required,min=1,max=50"`
@@ -144,7 +139,6 @@ func (m *Core) memberBankCard() {
 	})
 }
 
-// MemberBankCardCurrentBranch returns MemberBankCardCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberBankCardCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberBankCard, error) {
 	return m.MemberBankCardManager.Find(context, &MemberBankCard{
 		OrganizationID: organizationID,

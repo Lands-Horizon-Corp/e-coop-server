@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// GroceryComputationSheet represents the GroceryComputationSheet model.
 	GroceryComputationSheet struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -33,9 +32,7 @@ type (
 		Description  string `gorm:"type:text"`
 	}
 
-	// GroceryComputationSheetResponse represents the response structure for grocerycomputationsheet data
 
-	// GroceryComputationSheetResponse represents the response structure for GroceryComputationSheet.
 	GroceryComputationSheetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -52,9 +49,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// GroceryComputationSheetRequest represents the request structure for creating/updating grocerycomputationsheet
 
-	// GroceryComputationSheetRequest represents the request structure for GroceryComputationSheet.
 	GroceryComputationSheetRequest struct {
 		SchemeNumber int    `json:"scheme_number" validate:"required"`
 		Description  string `json:"description,omitempty"`
@@ -120,7 +115,6 @@ func (m *Core) groceryComputationSheet() {
 	})
 }
 
-// GroceryComputationSheetCurrentBranch returns GroceryComputationSheetCurrentBranch for the current branch or organization where applicable.
 func (m *Core) GroceryComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheet, error) {
 	return m.GroceryComputationSheetManager.Find(context, &GroceryComputationSheet{
 		OrganizationID: organizationID,

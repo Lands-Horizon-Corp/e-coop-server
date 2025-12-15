@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanTermsAndConditionAmountReceipt represents a configured amount receipt linked to loan terms and conditions.
 	LoanTermsAndConditionAmountReceipt struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,9 +37,7 @@ type (
 		Amount float64 `gorm:"type:decimal"`
 	}
 
-	// LoanTermsAndConditionAmountReceiptResponse represents the response structure for loantermsandconditionamountreceipt data
 
-	// LoanTermsAndConditionAmountReceiptResponse represents the response structure for LoanTermsAndConditionAmountReceipt.
 	LoanTermsAndConditionAmountReceiptResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -60,9 +57,7 @@ type (
 		Amount            float64                  `json:"amount"`
 	}
 
-	// LoanTermsAndConditionAmountReceiptRequest represents the request structure for creating/updating loantermsandconditionamountreceipt
 
-	// LoanTermsAndConditionAmountReceiptRequest represents the request structure for LoanTermsAndConditionAmountReceipt.
 	LoanTermsAndConditionAmountReceiptRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
@@ -134,7 +129,6 @@ func (m *Core) loanTermsAndConditionAmountReceipt() {
 	})
 }
 
-// LoanTermsAndConditionAmountReceiptCurrentBranch returns LoanTermsAndConditionAmountReceiptCurrentBranch for the current branch or organization where applicable.
 func (m *Core) LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
 	return m.LoanTermsAndConditionAmountReceiptManager.Find(context, &LoanTermsAndConditionAmountReceipt{
 		OrganizationID: organizationID,

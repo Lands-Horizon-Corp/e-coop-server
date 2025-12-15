@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// LoanAccount represents a single accounting entry related to a loan account
 	LoanAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,7 +47,6 @@ type (
 		TotalPaymentCount   int     `gorm:"type:int;default:0" json:"total_payment_count,omitempty"`
 	}
 
-	// LoanAccountResponse represents the response structure for loan account data
 	LoanAccountResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -77,7 +75,6 @@ type (
 		TotalPaymentCount   int     `json:"total_payment_count"`
 	}
 
-	// LoanAccountRequest represents the request structure for creating/updating loan accounts
 	LoanAccountRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
@@ -166,7 +163,6 @@ func (m *Core) loanAccount() {
 	})
 }
 
-// LoanAccountCurrentBranch retrieves loan accounts for the specified branch and organization
 func (m *Core) LoanAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanAccount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},

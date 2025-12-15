@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberIncomeController() {
 	req := c.provider.Service.Request
 
-	// Create a new income record for a member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -83,7 +82,6 @@ func (c *Controller) memberIncomeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberIncomeManager.ToModel(value))
 	})
 
-	// Update an existing income record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
@@ -156,7 +154,6 @@ func (c *Controller) memberIncomeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberIncomeManager.ToModel(value))
 	})
 
-	// Delete a member's income record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-income/:member_income_id",
 		Method: "DELETE",

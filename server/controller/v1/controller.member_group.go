@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberGroupController() {
 	req := c.provider.Service.Request
 
-	// Get all member group history for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGroupHistoryManager.ToModels(memberGroupHistory))
 	})
 
-	// Get member group history by member profile ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -59,7 +57,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, memberGroupHistory)
 	})
 
-	// Get all member groups for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
@@ -81,7 +78,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
-	// Get paginated member groups
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
@@ -104,7 +100,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
-	// Create a new member group
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
@@ -161,7 +156,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.ToModel(memberGroup))
 	})
 
-	// Update an existing member group by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
@@ -228,7 +222,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.ToModel(memberGroup))
 	})
 
-	// Delete a member group by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-group/:member_group_id",
 		Method: "DELETE",
@@ -269,7 +262,6 @@ func (c *Controller) memberGroupController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member groups (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-group/bulk-delete",
 		Method:      "DELETE",

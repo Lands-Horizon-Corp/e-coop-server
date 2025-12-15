@@ -11,7 +11,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// CacheService defines the interface for Redis operations.
 type CacheService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -23,7 +22,6 @@ type CacheService interface {
 	Keys(ctx context.Context, pattern string) ([]string, error)
 	Flush(ctx context.Context) error
 
-	// Sorted Set operations
 	ZAdd(ctx context.Context, key string, score float64, member any) error
 	ZRange(ctx context.Context, key string, start, stop int64) ([]string, error)
 	ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error)
@@ -32,7 +30,6 @@ type CacheService interface {
 	ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error)
 }
 
-// Cache provides a Redis-based implementation of CacheService.
 type Cache struct {
 	host     string
 	password string
@@ -42,7 +39,6 @@ type Cache struct {
 	prefix   string
 }
 
-// NewHorizonCache creates a new Redis cache service instance.
 func NewHorizonCache(host, password, username string, port int) CacheService {
 	return &Cache{
 		host:     host,
@@ -58,7 +54,6 @@ func (h *Cache) applyPrefix(key string) string {
 	return h.prefix + key
 }
 
-// Flush removes all keys from the Redis database.
 func (h *Cache) Flush(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -66,7 +61,6 @@ func (h *Cache) Flush(ctx context.Context) error {
 	return eris.Wrap(h.client.FlushAll(ctx).Err(), "failed to flush Redis")
 }
 
-// Run initializes the Redis client connection.
 func (h *Cache) Run(ctx context.Context) error {
 	h.client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
@@ -81,7 +75,6 @@ func (h *Cache) Run(ctx context.Context) error {
 	return nil
 }
 
-// Stop closes the Redis connection and cleans up keys.
 func (h *Cache) Stop(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -100,7 +93,6 @@ func (h *Cache) Stop(ctx context.Context) error {
 	return h.client.Close()
 }
 
-// Ping checks if the Redis server is reachable.
 func (h *Cache) Ping(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
@@ -111,16 +103,13 @@ func (h *Cache) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Get retrieves a value from Redis by key.
 func (h *Cache) Get(ctx context.Context, key string) ([]byte, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
-	// Get raw bytes directly
 	val, err := h.client.Get(ctx, prefixedKey).Bytes()
 	if err == redis.Nil {
 		return nil, nil
@@ -128,13 +117,11 @@ func (h *Cache) Get(ctx context.Context, key string) ([]byte, error) {
 	return val, eris.Wrap(err, "failed to get key")
 }
 
-// Set stores a value in Redis with an optional TTL.
 func (h *Cache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	var data []byte
@@ -183,13 +170,11 @@ func (h *Cache) Set(ctx context.Context, key string, value any, ttl time.Duratio
 	)
 }
 
-// Exists checks if a key exists in Redis.
 func (h *Cache) Exists(ctx context.Context, key string) (bool, error) {
 	if h.client == nil {
 		return false, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	val, err := h.client.Exists(ctx, prefixedKey).Result()
@@ -199,25 +184,21 @@ func (h *Cache) Exists(ctx context.Context, key string) (bool, error) {
 	return val > 0, nil
 }
 
-// Delete removes a key from Redis.
 func (h *Cache) Delete(ctx context.Context, key string) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	return h.client.Del(ctx, prefixedKey).Err()
 }
 
-// Keys returns all keys matching the given pattern.
 func (h *Cache) Keys(ctx context.Context, pattern string) ([]string, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the pattern
 	prefixedPattern := h.applyPrefix(pattern)
 
 	var cursor uint64
@@ -237,16 +218,13 @@ func (h *Cache) Keys(ctx context.Context, pattern string) ([]string, error) {
 	return keys, nil
 }
 
-// ZAdd adds one or more members to a sorted set, or updates the score if the member already exists.
 func (h *Cache) ZAdd(ctx context.Context, key string, score float64, member any) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
-	// Create a Z struct with score and member
 	z := redis.Z{
 		Score:  score,
 		Member: member,
@@ -258,13 +236,11 @@ func (h *Cache) ZAdd(ctx context.Context, key string, score float64, member any)
 	)
 }
 
-// ZRange returns a range of members from a sorted set, by index.
 func (h *Cache) ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	result, err := h.client.ZRange(ctx, prefixedKey, start, stop).Result()
@@ -275,13 +251,11 @@ func (h *Cache) ZRange(ctx context.Context, key string, start, stop int64) ([]st
 	return result, nil
 }
 
-// ZRangeWithScores returns a range of members from a sorted set, by index, with scores.
 func (h *Cache) ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	result, err := h.client.ZRangeWithScores(ctx, prefixedKey, start, stop).Result()
@@ -292,13 +266,11 @@ func (h *Cache) ZRangeWithScores(ctx context.Context, key string, start, stop in
 	return result, nil
 }
 
-// ZCard returns the number of members in a sorted set.
 func (h *Cache) ZCard(ctx context.Context, key string) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	result, err := h.client.ZCard(ctx, prefixedKey).Result()
@@ -309,13 +281,11 @@ func (h *Cache) ZCard(ctx context.Context, key string) (int64, error) {
 	return result, nil
 }
 
-// ZRem removes one or more members from a sorted set.
 func (h *Cache) ZRem(ctx context.Context, key string, members ...any) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	result, err := h.client.ZRem(ctx, prefixedKey, members...).Result()
@@ -326,13 +296,11 @@ func (h *Cache) ZRem(ctx context.Context, key string, members ...any) (int64, er
 	return result, nil
 }
 
-// ZRemRangeByScore removes all members in a sorted set within the given scores.
 func (h *Cache) ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
 
-	// Add prefix to the key
 	prefixedKey := h.applyPrefix(key)
 
 	result, err := h.client.ZRemRangeByScore(ctx, prefixedKey, min, max).Result()

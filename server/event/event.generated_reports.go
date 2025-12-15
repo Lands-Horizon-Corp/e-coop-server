@@ -31,7 +31,6 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 		data, err := e.report.Generate(ctx, *generatedReport)
 
-		// Get the latest report data
 		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
 		if getErr != nil {
 			generatedReport.Status = core.GeneratedReportStatusFailed
@@ -41,9 +40,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			}
 			return
 		}
-		// Upload the generated data to media storage
 		if data != nil {
-			// choose file extension / content type based on generated report type
 			fileExt := "csv"
 			contentType := "text/csv"
 			if generatedReport.GeneratedReportType == core.GeneratedReportTypePDF {
@@ -52,7 +49,6 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			}
 			fileName := fmt.Sprintf("report_%s.%s", generatedReport.Name, fileExt)
 
-			// Create initial media record
 			initial := &core.Media{
 				FileName:   fileName,
 				FileSize:   0,
@@ -131,7 +127,6 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			generatedReport.SystemMessage = "Report generated successfully"
 		}
 
-		// Final update with result
 		if finalUpdateErr := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); finalUpdateErr != nil {
 			e.core.FootstepManager.Create(ctx, &core.Footstep{
 				OrganizationID: &generatedReport.OrganizationID,

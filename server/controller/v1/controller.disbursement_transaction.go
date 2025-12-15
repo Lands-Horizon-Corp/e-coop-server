@@ -133,7 +133,6 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		// Return paginated response
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
@@ -159,7 +158,6 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		// Return paginated response
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
@@ -185,7 +183,6 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve disbursement transactions: " + err.Error()})
 		}
-		// Return paginated response
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 

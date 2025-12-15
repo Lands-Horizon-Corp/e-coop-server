@@ -198,7 +198,6 @@ func (c *Controller) memberAccountingLedgerController() {
 		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
-	// GET /api/v1/member-accounting-ledger/member-profile/:member-profile-id/compassion-fund-account
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/compassion-fund-account",
 		Method:       "GET",

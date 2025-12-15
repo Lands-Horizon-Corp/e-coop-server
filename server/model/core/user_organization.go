@@ -11,36 +11,25 @@ import (
 	"gorm.io/gorm"
 )
 
-// UserOrganizationStatus represents the online status of a user within an organization
 type UserOrganizationStatus string
 
 const (
-	// UserOrganizationStatusOnline indicates the user is currently online
 	UserOrganizationStatusOnline UserOrganizationStatus = "online"
-	// UserOrganizationStatusOffline indicates the user is currently offline
 	UserOrganizationStatusOffline UserOrganizationStatus = "offline"
-	// UserOrganizationStatusBusy indicates the user is currently busy
 	UserOrganizationStatusBusy UserOrganizationStatus = "busy"
-	// UserOrganizationStatusVacation indicates the user is on vacation
 	UserOrganizationStatusVacation UserOrganizationStatus = "vacation"
-	// UserOrganizationStatusCommuting indicates the user is commuting
 	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
-// UserOrganizationType represents the role type of a user within an organization
 type UserOrganizationType string
 
 const (
-	// UserOrganizationTypeOwner indicates the user is an owner of the organization
 	UserOrganizationTypeOwner UserOrganizationType = "owner"
-	// UserOrganizationTypeEmployee indicates the user is an employee of the organization
 	UserOrganizationTypeEmployee UserOrganizationType = "employee"
-	// UserOrganizationTypeMember indicates the user is a member of the organization
 	UserOrganizationTypeMember UserOrganizationType = "member"
 )
 
 type (
-	// UserOrganization represents the relationship between a user and an organization/branch
 	UserOrganization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -83,7 +72,6 @@ type (
 		UserSettingEndVoucher   int64 `gorm:"unsigned" json:"end_voucher"`
 		UserSettingUsedVoucher  int64 `gorm:"unsigned" json:"used_voucher"`
 
-		// Override settings for branch
 		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `gorm:"not null;default:false" json:"maintaining_balance"`
@@ -91,7 +79,6 @@ type (
 		Status       UserOrganizationStatus `gorm:"type:varchar(50);not null;default:'offline'" json:"status"`
 		LastOnlineAt time.Time              `gorm:"default:now()" json:"last_online_at"`
 
-		// Time machine for experimentation - allows setting custom time for testing
 		TimeMachineTime *time.Time `gorm:"type:timestamp" json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID *uuid.UUID `gorm:"type:uuid;index" json:"settings_accounting_payment_default_value_id,omitempty"`
@@ -111,7 +98,6 @@ type (
 	}
 )
 
-// UserOrgTime returns the time machine time if set, otherwise returns current UTC time
 func (uo *UserOrganization) UserOrgTime() time.Time {
 	if uo.TimeMachineTime != nil && !uo.TimeMachineTime.IsZero() {
 		if uo.Branch != nil && uo.Branch.Currency != nil && uo.Branch.Currency.Timezone != "" {
@@ -160,7 +146,6 @@ type (
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
 	}
 
-	// UserOrganizationSettingsRequest represents the request payload for updating user organization settings
 	UserOrganizationSettingsRequest struct {
 		UserType    UserOrganizationType `json:"user_type,omitempty" validate:"omitempty,oneof=employee member"`
 		Description string               `json:"description,omitempty"`
@@ -183,7 +168,6 @@ type (
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
-		// Time machine for experimentation - allows setting custom time for testing
 		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
@@ -192,7 +176,6 @@ type (
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
-	// UserOrganizationSelfSettingsRequest represents the request payload for users updating their own organization settings
 	UserOrganizationSelfSettingsRequest struct {
 		Description            string `json:"description,omitempty"`
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
@@ -210,7 +193,6 @@ type (
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
-		// Time machine for experimentation - allows setting custom time for testing
 		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID  *uuid.UUID `json:"settings_accounting_payment_default_value_id,omitempty"`
@@ -219,7 +201,6 @@ type (
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
 	}
 
-	// UserOrganizationResponse represents the JSON response structure for user organization data
 	UserOrganizationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -255,7 +236,6 @@ type (
 		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
 		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
 
-		// Override settings for branch
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
@@ -263,7 +243,6 @@ type (
 		Status       UserOrganizationStatus `json:"status"`
 		LastOnlineAt time.Time              `json:"last_online_at"`
 
-		// Time machine for experimentation - allows setting custom time for testing
 		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
 
 		SettingsAccountingPaymentDefaultValueID *uuid.UUID       `json:"settings_accounting_payment_default_value_id"`
@@ -279,24 +258,20 @@ type (
 		SettingsPaymentTypeDefaultValue   *PaymentTypeResponse `json:"settings_payment_type_default_value,omitempty"`
 	}
 
-	// UserOrganizationPermissionPayload represents the payload for managing user organization permissions
 	UserOrganizationPermissionPayload struct {
 		PermissionName        string   `json:"permission_name" validate:"required"`
 		PermissionDescription string   `json:"permission_description" validate:"required"`
 		Permissions           []string `json:"permissions" validate:"required,min=1,dive,required"`
 	}
 
-	// DeveloperSecretKeyResponse represents the response containing a developer secret key
 	DeveloperSecretKeyResponse struct {
 		DeveloperSecretKey string `json:"developer_secret_key"`
 	}
 
-	// UserOrganizationStatusRequest represents the request payload for updating user organization status
 	UserOrganizationStatusRequest struct {
 		UserOrganizationStatus UserOrganizationStatus `json:"user_organization_status" validate:"required,oneof=online offline busy vacation commuting"`
 	}
 
-	// UserOrganizationStatusResponse represents the response containing user organization status information
 	UserOrganizationStatusResponse struct {
 		OfflineUsers   []*UserOrganizationResponse `json:"user_organizations,omitempty"`
 		OnlineUsers    []*UserOrganizationResponse `json:"online_user_organizations,omitempty"`
@@ -315,7 +290,6 @@ type (
 	}
 )
 
-// UserOrganization initializes the UserOrganization model and its repository manager
 func (m *Core) userOrganization() {
 	m.Migration = append(m.Migration, &UserOrganization{})
 	m.UserOrganizationManager = *registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
@@ -443,7 +417,6 @@ func (m *Core) userOrganization() {
 	})
 }
 
-// GetUserOrganizationByUser retrieves all user organizations for a specific user
 func (m *Core) GetUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		UserID: userID,
@@ -454,7 +427,6 @@ func (m *Core) GetUserOrganizationByUser(context context.Context, userID uuid.UU
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-// GetUserOrganizationByOrganization retrieves all user organizations for a specific organization
 func (m *Core) GetUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
@@ -465,7 +437,6 @@ func (m *Core) GetUserOrganizationByOrganization(context context.Context, organi
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-// GetUserOrganizationBybranch retrieves all user organizations for a specific organization branch
 func (m *Core) GetUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
@@ -477,7 +448,6 @@ func (m *Core) GetUserOrganizationBybranch(context context.Context, organization
 	return m.UserOrganizationManager.Find(context, filter)
 }
 
-// CountUserOrganizationPerbranch counts the number of user organizations for a specific branch
 func (m *Core) CountUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -485,7 +455,6 @@ func (m *Core) CountUserOrganizationPerbranch(context context.Context, organizat
 	})
 }
 
-// CountUserOrganizationbranch counts user organizations for a specific user in a branch
 func (m *Core) CountUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
 	return m.UserOrganizationManager.Count(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -494,13 +463,11 @@ func (m *Core) CountUserOrganizationbranch(context context.Context, userID uuid.
 	})
 }
 
-// UserOrganizationEmployeeCanJoin checks if a user can join an organization as an employee
 func (m *Core) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
 	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
 	return err == nil && existing == 0
 }
 
-// UserOrganizationMemberCanJoin checks if a user can join an organization as a member
 func (m *Core) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
 	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
 	if err != nil || existing > 0 {
@@ -513,7 +480,6 @@ func (m *Core) UserOrganizationMemberCanJoin(context context.Context, userID uui
 	return err == nil && existingOrgCount == 0
 }
 
-// Employees retrieves all employee user organizations for the specified organization and branch
 func (m *Core) Employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,
@@ -522,7 +488,6 @@ func (m *Core) Employees(context context.Context, organizationID uuid.UUID, bran
 	})
 }
 
-// Members retrieves all member user organizations for the specified organization and branch
 func (m *Core) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
 	return m.UserOrganizationManager.Find(context, &UserOrganization{
 		OrganizationID: organizationID,

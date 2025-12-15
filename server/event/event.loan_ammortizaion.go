@@ -36,27 +36,19 @@ type LoanTransactionAmortizationResponse struct {
 
 func (e Event) LoanAmortizationSchedule(context context.Context, loanTransactionID uuid.UUID, userOrg *core.UserOrganization) (*LoanTransactionAmortizationResponse, error) {
 
-	// Validate user organization context
 	if userOrg == nil {
 		return nil, eris.New("user organization context is required for loan amortization schedule generation")
 	}
 
-	// Validate branch assignment
 	if userOrg.BranchID == nil {
 		return nil, eris.New("branch assignment is required for loan amortization schedule generation")
 	}
 
-	// ===============================
-	// STEP 2: FETCH LOAN TRANSACTION DATA
-	// ===============================
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Branch", "Account.Currency")
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with ID: %s", loanTransactionID.String())
 	}
 
-	// ===============================
-	// STEP 3: FETCH LOAN TRANSACTION ENTRIES
-	// ===============================
 	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
@@ -66,18 +58,12 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction entries for transaction ID: %s", loanTransactionID.String())
 	}
 
-	// ===============================
-	// STEP 4: CALCULATE DEBIT/CREDIT TOTALS
-	// ===============================
 	totalDebit, totalCredit := 0.0, 0.0
 	for _, entry := range loanTransactionEntries {
 		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 	}
 
-	// ===============================
-	// STEP 5: FETCH RELATED ACCOUNTS & CURRENCY
-	// ===============================
 	currency := loanTransaction.Account.Currency
 	accounts, err := e.core.AccountManager.Find(context, &core.Account{
 		OrganizationID: loanTransaction.OrganizationID,
@@ -89,9 +75,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String())
 	}
 
-	// ===============================
-	// STEP 6: FETCH HOLIDAY CALENDAR
-	// ===============================
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
@@ -101,36 +84,24 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule")
 	}
 
-	// ===============================
-	// STEP 7: CALCULATE NUMBER OF PAYMENTS
-	// ===============================
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	}
 
-	// ===============================
-	// STEP 8: CONFIGURE PAYMENT SCHEDULE SETTINGS
-	// ===============================
-	// Weekend and holiday exclusions
 	excludeSaturday := loanTransaction.ExcludeSaturday
 	excludeSunday := loanTransaction.ExcludeSunday
 	excludeHolidays := loanTransaction.ExcludeHoliday
 
-	// Payment frequency settings
 	isMonthlyExactDay := loanTransaction.ModeOfPaymentMonthlyExactDay
 	weeklyExactDay := loanTransaction.ModeOfPaymentWeekly
 	semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
 	semiMonthlyExactDay2 := loanTransaction.ModeOfPaymentSemiMonthlyPay2
 
-	// ===============================
-	// STEP 9: INITIALIZE AMORTIZATION VARIABLES
-	// ===============================
 	accountsSchedule := []*AccountValue{}
 	amortization := []*LoanAmortizationSchedule{}
 
-	// Setup account schedule with related accounts
 	for _, acc := range accounts {
 		accountsSchedule = append(accountsSchedule, &AccountValue{
 			Account: acc,
@@ -139,14 +110,12 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		})
 	}
 
-	// Add the main loan account
 	accountsSchedule = append(accountsSchedule, &AccountValue{
 		Account: loanTransaction.Account,
 		Value:   0,
 		Total:   0,
 	})
 
-	// Initialize payment calculation variables
 	paymentDate := userOrg.UserOrgTime()
 	if loanTransaction.PrintedDate != nil {
 		paymentDate = loanTransaction.PrintedDate.UTC()
@@ -155,15 +124,11 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 	balance := totalCredit
 	total := 0.0
 
-	// ===============================
-	// STEP 10: GENERATE AMORTIZATION SCHEDULE
-	// ===============================
 	for i := range numberOfPayments + 1 {
 		actualDate := paymentDate
 		daysSkipped := 0
 		rowTotal := 0.0
 
-		// Calculate skipped days due to weekends/holidays
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02"))
@@ -171,13 +136,9 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 
 		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 
-		// ===============================
-		// STEP 11: CREATE PERIOD-SPECIFIC ACCOUNT CALCULATIONS
-		// ===============================
 		periodAccounts := make([]*AccountValue, len(accountsSchedule))
 
 		if i > 0 {
-			// For subsequent payments, calculate based on account history
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
 					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
@@ -187,31 +148,23 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 					return nil, eris.Wrapf(err, "failed to get account history for account ID: %s", accountsSchedule[j].Account.ID.String())
 				}
 
-				// Create new account entry for this period
 				periodAccounts[j] = &AccountValue{
 					Account: accountHistory,
 					Value:   0,
 					Total:   accountsSchedule[j].Total,
 				}
 
-				// ===============================
-				// STEP 12: CALCULATE ACCOUNT-SPECIFIC VALUES
-				// ===============================
 				switch accountHistory.Type {
 				case core.AccountTypeLoan:
-					// LOAN PRINCIPAL PAYMENT: Principal ÷ Number of Payments
 					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
 						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
 
-					// Update cumulative totals
 					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 					periodAccounts[j].Total = accountsSchedule[j].Total
 
-					// Update remaining balance
 					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
 
 				case core.AccountTypeFines:
-					// FINES CALCULATION: Based on days skipped and penalty rates
 					if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
 						periodAccounts[j].Value = e.usecase.ComputeFines(
 							principal,
@@ -228,13 +181,9 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 					}
 
 				default:
-					// ===============================
-					// STEP 13: INTEREST CALCULATIONS
-					// ===============================
 					switch accountHistory.ComputationType {
 					case core.Straight:
 						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// STRAIGHT INTEREST: Fixed percentage of original principal
 							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
@@ -242,7 +191,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 						}
 					case core.Diminishing:
 						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// DIMINISHING INTEREST: Percentage of remaining balance
 							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
@@ -250,7 +198,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 						}
 					case core.DiminishingStraight:
 						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							// DIMINISHING STRAIGHT: Hybrid calculation method
 							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 
 							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
@@ -259,12 +206,10 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 					}
 				}
 
-				// Update running totals
 				total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
 				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
 			}
 		} else {
-			// For first payment, initialize account entries
 			for j := range accountsSchedule {
 				accountHistory, err := e.core.GetAccountHistoryLatestByTime(
 					context, accountsSchedule[j].Account.ID, loanTransaction.OrganizationID,
@@ -281,15 +226,11 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 			}
 		}
 
-		// Sort accounts by type priority for consistent ordering
 		sort.Slice(periodAccounts, func(i, j int) bool {
 			return getAccountTypePriority(periodAccounts[i].Account.Type) <
 				getAccountTypePriority(periodAccounts[j].Account.Type)
 		})
 
-		// ===============================
-		// STEP 14: DETERMINE NEXT PAYMENT DATE
-		// ===============================
 		switch loanTransaction.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -402,9 +343,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		}
 	}
 
-	// ===============================
-	// STEP 15: RETURN COMPLETE AMORTIZATION SCHEDULE
-	// ===============================
 	return &LoanTransactionAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
 		Currency:    *e.core.CurrencyManager.ToModel(currency),

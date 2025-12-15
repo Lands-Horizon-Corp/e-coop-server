@@ -12,11 +12,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// MemberProfileArchiveController registers routes for managing member profile archive.
 func (c *Controller) memberProfileArchiveController() {
 	req := c.provider.Service.Request
 
-	// GET /api/v1/member-profile-archive/member-profile/:member_profile_id/search: Get all media for a specific member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",
 		Method:       "GET",
@@ -45,7 +43,6 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		// Verify member profile belongs to user's organization
 		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -55,7 +52,6 @@ func (c *Controller) memberProfileArchiveController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-		// Search for all member profile archive for the specified member profile
 		memberProfileArchiveList, err := c.core.MemberProfileArchiveManager.FindRaw(context, &core.MemberProfileArchive{
 			BranchID:        userOrg.BranchID,
 			OrganizationID:  &userOrg.OrganizationID,
@@ -79,7 +75,6 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusOK, memberProfileArchiveList)
 	})
 
-	// POST /api/v1/member-profile-archive: Create a new member profile archive
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
@@ -154,7 +149,6 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusCreated, result)
 	})
 
-	// PUT /api/v1/member-profile-archive/:member_profile_archive_id: Update a member profile archive
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
@@ -233,7 +227,6 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	// DELETE /api/v1/member-profile-archive/:member_profile_archive_id: Delete a member profile archive
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method: "DELETE",
@@ -296,7 +289,6 @@ func (c *Controller) memberProfileArchiveController() {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile archive deleted successfully"})
 	})
-	// GET /api/v1/member-profile-archive/:member_profile_archive_id: Get a specific member profile archive by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "GET",
@@ -318,7 +310,6 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusOK, memberProfileArchive)
 	})
 
-	// POST /api/v1/member-profile-archive/bulk/member-profile/:member_profile_id: Bulk create member profile archive for a specific member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -371,7 +362,6 @@ func (c *Controller) memberProfileArchiveController() {
 		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager.ToModels(createdMedia))
 	})
 
-	// GET api/v1/member-profile-archive/member-profile/:member_profile_id/category
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
 		Method:       "GET",
@@ -401,14 +391,11 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
 		}
 
-		// Build counts per category, treating nil/empty as "Uncategorized"
-		// Normalize by trimming, collapsing spaces and lower-casing for case-insensitive grouping
 		normalize := func(s string) string {
 			trimmed := strings.Join(strings.Fields(strings.TrimSpace(s)), " ") // collapse multiple spaces
 			return strings.ToLower(trimmed)
 		}
 		titleize := func(s string) string {
-			// simple title case for display: capitalize first letter of each word
 			words := strings.Fields(s)
 			for i, w := range words {
 				if len(w) == 0 {
@@ -446,7 +433,6 @@ func (c *Controller) memberProfileArchiveController() {
 			counts[norm]++
 		}
 
-		// Default categories commonly used in cooperative bank member profiles
 		defaultCategories := []string{
 			"Identity Documents",
 			"Passports",
@@ -469,13 +455,11 @@ func (c *Controller) memberProfileArchiveController() {
 			"Uncategorized",
 		}
 
-		// prepare normalized map for defaults so we present canonical display names
 		normDefault := make(map[string]string)
 		for _, d := range defaultCategories {
 			normDefault[normalize(d)] = d
 		}
 
-		// Prepare result with defaults (preserve ordering) and include any additional categories found
 		result := make([]core.MemberProfileArchiveCategoryResponse, 0, len(defaultCategories))
 		seen := make(map[string]bool)
 		for _, name := range defaultCategories {
@@ -486,17 +470,14 @@ func (c *Controller) memberProfileArchiveController() {
 			})
 			seen[n] = true
 		}
-		// add any categories present in counts but not in defaults
 		for norm, cnt := range counts {
 			if seen[norm] {
 				continue
 			}
 			display := displayVariant[norm]
 			if display == "" {
-				// fallback: make a readable display from normalized key
 				display = titleize(strings.ReplaceAll(norm, "_", " "))
 			} else {
-				// use cleaned display (collapse spaces) and titleize for consistent casing
 				display = titleize(display)
 			}
 			result = append(result, core.MemberProfileArchiveCategoryResponse{

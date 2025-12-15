@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// Transaction represents a financial transaction in the database
 	Transaction struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -60,7 +59,6 @@ type (
 		GeneralLedgers []GeneralLedger `gorm:"foreignKey:TransactionID" json:"general_ledgers,omitempty"`
 	}
 
-	// TransactionResponse represents the response structure for transaction data
 	TransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -97,7 +95,6 @@ type (
 		Description          string                      `json:"description"`
 	}
 
-	// TransactionRequest represents the request structure for creating transactions
 	TransactionRequest struct {
 		SignatureMediaID     *uuid.UUID `json:"signature_media_id,omitempty"`
 		MemberProfileID      *uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -109,7 +106,6 @@ type (
 		CurrencyID               uuid.UUID `json:"currency_id" validate:"required"`
 	}
 
-	// TransactionRequestEdit represents the request structure for editing transactions
 	TransactionRequestEdit struct {
 		Description     string `json:"description,omitempty"`
 		ReferenceNumber string `json:"reference_number,omitempty"`
@@ -228,7 +224,6 @@ func (m *Core) transaction() {
 	})
 }
 
-// TransactionCurrentBranch retrieves transactions for a specific organization branch
 func (m *Core) TransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
 	return m.TransactionManager.Find(context, &Transaction{
 		OrganizationID: organizationID,

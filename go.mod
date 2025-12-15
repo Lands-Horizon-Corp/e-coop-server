@@ -4,8 +4,8 @@ go 1.25.5
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d
-	github.com/go-playground/validator/v10 v10.28.0
-	github.com/labstack/echo/v4 v4.13.4
+	github.com/go-playground/validator/v10 v10.29.0
+	github.com/labstack/echo/v4 v4.14.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shopspring/decimal v1.4.0
@@ -42,7 +42,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.11 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

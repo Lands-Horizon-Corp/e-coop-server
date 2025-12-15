@@ -9,7 +9,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// Route defines an API endpoint with its metadata
 type Route struct {
 	Route        string `json:"route"`
 	Request      string `json:"request,omitempty"`  // TypeScript interface for request
@@ -21,19 +20,16 @@ type Route struct {
 	Private      bool   `json:"private,omitempty"` // Excluded from public docs
 }
 
-// GroupedRoute organizes routes by their base path segment
 type GroupedRoute struct {
 	Key    string  `json:"key"`    // Base path segment (e.g. "users")
 	Routes []Route `json:"routes"` // Routes under this group
 }
 
-// APIInterfaces represents a TypeScript interface definition
 type APIInterfaces struct {
 	Key   string `json:"key"`   // Interface name
 	Value string `json:"value"` // Full TypeScript definition
 }
 
-// API aggregates all documentation components
 type API struct {
 	GroupedRoutes []GroupedRoute  `json:"grouped_routes"` // Routes grouped by base path
 	Requests      []APIInterfaces `json:"requests"`       // Unique request interfaces
@@ -45,7 +41,6 @@ const (
 	interfacePrefix       = "interface "
 )
 
-// extractInterfaceNameFromTS parses TypeScript to extract interface name
 func extractInterfaceNameFromTS(tsDefinition string) string {
 	lines := strings.SplitSeq(tsDefinition, "\n")
 	for line := range lines {
@@ -61,7 +56,6 @@ func extractInterfaceNameFromTS(tsDefinition string) string {
 	return ""
 }
 
-// extractName helper for interface name extraction
 func extractName(line, prefix string) string {
 	afterPrefix := strings.TrimPrefix(line, prefix)
 	if name := strings.Fields(afterPrefix); len(name) > 0 {
@@ -70,7 +64,6 @@ func extractName(line, prefix string) string {
 	return ""
 }
 
-// getUniqueInterfaces filters unique interfaces from routes
 func getUniqueInterfaces(routes []Route, fieldExtractor func(*Route) string) []APIInterfaces {
 	seen := make(map[string]struct{})
 	var unique []APIInterfaces
@@ -86,7 +79,6 @@ func getUniqueInterfaces(routes []Route, fieldExtractor func(*Route) string) []A
 			continue
 		}
 
-		// Skip duplicates
 		if _, exists := seen[name]; exists {
 			continue
 		}
@@ -100,25 +92,21 @@ func getUniqueInterfaces(routes []Route, fieldExtractor func(*Route) string) []A
 	return unique
 }
 
-// GetAllRequestInterfaces gets unique request interfaces
 func GetAllRequestInterfaces(routes []Route) []APIInterfaces {
 	extractor := func(rt *Route) string { return rt.Request }
 	return getUniqueInterfaces(routes, extractor)
 }
 
-// GetAllResponseInterfaces gets unique response interfaces
 func GetAllResponseInterfaces(routes []Route) []APIInterfaces {
 	extractor := func(rt *Route) string { return rt.Response }
 	return getUniqueInterfaces(routes, extractor)
 }
 
-// RouteHandler manages route registration and documentation
 type RouteHandler struct {
 	RoutesList     []Route
 	interfacesList []APIInterfaces
 }
 
-// NewRouteHandler creates a new route manager
 func NewRouteHandler() *RouteHandler {
 	return &RouteHandler{
 		RoutesList:     []Route{},
@@ -126,13 +114,11 @@ func NewRouteHandler() *RouteHandler {
 	}
 }
 
-// AddRoute registers a new API endpoint
 func (h *RouteHandler) AddRoute(route Route) error {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 
 	switch method {
 	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-		// OK
 		break
 	default:
 		return eris.Errorf("unsupported HTTP method: %s for route: %s", method, route.Route)
@@ -143,16 +129,13 @@ func (h *RouteHandler) AddRoute(route Route) error {
 			return eris.Errorf("route already registered: %s %s", method, route.Route)
 		}
 	}
-	// Skip private routes
 	if route.Private {
 		return nil
 	}
 
-	// Convert Go types to TypeScript definitions
 	tsRequest := TagFormat(route.RequestType)
 	tsResponse := TagFormat(route.ResponseType)
 
-	// Store interfaces
 	h.interfacesList = append(h.interfacesList, APIInterfaces{
 		Key:   extractInterfaceNameFromTS(tsRequest),
 		Value: tsRequest,
@@ -161,7 +144,6 @@ func (h *RouteHandler) AddRoute(route Route) error {
 		Value: tsResponse,
 	})
 
-	// Add to registry
 	h.RoutesList = append(h.RoutesList, Route{
 		Route:    route.Route,
 		Request:  tsRequest,
@@ -173,7 +155,6 @@ func (h *RouteHandler) AddRoute(route Route) error {
 }
 
 func (h *RouteHandler) GroupedRoutes() API {
-	// Prefixes we want to ignore (in order)
 	prefixes := [][]string{
 		{"api", "v1"},
 		{"api", "v2"},
@@ -200,7 +181,6 @@ func (h *RouteHandler) GroupedRoutes() API {
 		groups[groupKey] = append(groups[groupKey], route)
 	}
 
-	// Sort keys
 	keys := make([]string, 0, len(groups))
 	for k := range groups {
 		keys = append(keys, k)

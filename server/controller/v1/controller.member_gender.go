@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberGenderController() {
 	req := c.provider.Service.Request
 
-	// Get all member gender history for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGenderHistoryManager.ToModels(memberGenderHistory))
 	})
 
-	// Get member gender history by member profile ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -59,7 +57,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, memberGenderHistory)
 	})
 
-	// Get all member genders for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "GET",
@@ -78,7 +75,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.ToModels(memberGender))
 	})
 
-	// Get paginated member genders
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
@@ -100,7 +96,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, memberGender)
 	})
 
-	// Create a new member gender
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
@@ -157,7 +152,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.ToModel(memberGender))
 	})
 
-	// Update an existing member gender by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
@@ -224,7 +218,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager.ToModel(memberGender))
 	})
 
-	// Delete a member gender by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-gender/:member_gender_id",
 		Method: "DELETE",
@@ -265,7 +258,6 @@ func (c *Controller) memberGenderController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member genders (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",

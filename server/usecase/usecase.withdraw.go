@@ -7,7 +7,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// Withdraw processes a withdrawal transaction for the specified account and amount.
 func (t *UsecaseService) Withdraw(
 	ctx context.Context,
 	account *core.Account,
@@ -29,7 +28,6 @@ func (t *UsecaseService) Withdraw(
 		return 0, amount, nil
 
 	case core.AccountTypeLoan, core.AccountTypeFines, core.AccountTypeInterest, core.AccountTypeAPLedger:
-		// When disbursing/releasing a loan, DEBIT the loan account (increases the debt)
 		return 0, amount, nil
 
 	case core.AccountTypeARLedger, core.AccountTypeARAging:

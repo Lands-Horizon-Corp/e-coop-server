@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// GeneralLedgerDefinition represents the GeneralLedgerDefinition model.
 	GeneralLedgerDefinition struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger_definition"`
@@ -50,9 +49,7 @@ type (
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 	}
 
-	// GeneralLedgerDefinitionResponse represents the response structure for generalledgerdefinition data
 
-	// GeneralLedgerDefinitionResponse represents the response structure for GeneralLedgerDefinition.
 	GeneralLedgerDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
@@ -88,9 +85,7 @@ type (
 		Depth                           int               `json:"depth"`
 	}
 
-	// GeneralLedgerDefinitionRequest represents the request structure for creating/updating generalledgerdefinition
 
-	// GeneralLedgerDefinitionRequest represents the request structure for GeneralLedgerDefinition.
 	GeneralLedgerDefinitionRequest struct {
 		Name                            string            `json:"name" validate:"required,min=1,max=255"`
 		Description                     string            `json:"description,omitempty"`
@@ -122,7 +117,6 @@ func (m *Core) generalLedgerDefinition() {
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries",                                // Children level 4
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries", // Parent of level 4
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries", // Children level 5
-			// Preload accounts for each level
 			"GeneralLedgerDefinitionEntries.Accounts",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
@@ -142,11 +136,9 @@ func (m *Core) generalLedgerDefinition() {
 				t := data.DeletedAt.Time.Format(time.RFC3339)
 				deletedAt = &t
 			}
-			// Sort GeneralLedgerDefinitionEntries by Index
 			sort.Slice(data.GeneralLedgerDefinitionEntries, func(i, j int) bool {
 				return data.GeneralLedgerDefinitionEntries[i].Index < data.GeneralLedgerDefinitionEntries[j].Index
 			})
-			// Sort Accounts by Index
 			sort.Slice(data.Accounts, func(i, j int) bool {
 				return data.Accounts[i].Index < data.Accounts[j].Index
 			})
@@ -215,7 +207,6 @@ func (m *Core) generalLedgerDefinition() {
 	})
 }
 
-// GeneralLedgerDefinitionCurrentBranch returns GeneralLedgerDefinitionCurrentBranch for the current branch or organization where applicable.
 func (m *Core) GeneralLedgerDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerDefinition, error) {
 	return m.GeneralLedgerDefinitionManager.Find(context, &GeneralLedgerDefinition{
 		OrganizationID: organizationID,

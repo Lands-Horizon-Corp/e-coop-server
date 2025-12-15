@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// BrowseExcludeIncludeAccountsController registers routes for managing browse exclude include accounts.
 func (c *Controller) browseExcludeIncludeAccountsController() {
 	req := c.provider.Service.Request
 
-	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
@@ -44,7 +42,6 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseExcludeIncludeAccountsManager.ToModels(records))
 	})
 
-	// GET /browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
@@ -74,7 +71,6 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseExcludeIncludeAccountsManager.ToModels(records))
 	})
 
-	// POST /browse-exclude-include-accounts
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts",
 		Method:       "POST",
@@ -141,7 +137,6 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		return ctx.JSON(http.StatusCreated, c.core.BrowseExcludeIncludeAccountsManager.ToModel(record))
 	})
 
-	// PUT /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method:       "PUT",
@@ -212,7 +207,6 @@ func (c *Controller) browseExcludeIncludeAccountsController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseExcludeIncludeAccountsManager.ToModel(record))
 	})
 
-	// DELETE /browse-exclude-include-accounts/:browse_exclude_include_accounts_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method: "DELETE",

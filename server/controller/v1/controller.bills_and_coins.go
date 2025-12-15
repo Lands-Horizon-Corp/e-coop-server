@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// BillAndCoinsController handles endpoints for managing bills and coins.
 func (c *Controller) billAndCoinsController() {
 	req := c.provider.Service.Request
 
-	// GET /bills-and-coins: List all bills and coins for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "GET",
@@ -51,7 +49,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	// GET /bills-and-coins/search: Paginated search of bills and coins for current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/search",
 		Method:       "GET",
@@ -76,7 +73,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	// GET /bills-and-coins/:bills_and_coins_id: Get a specific bills and coins record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
@@ -95,7 +91,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	// POST /bills-and-coins: Create a new bills and coins record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
@@ -161,7 +156,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.JSON(http.StatusCreated, c.core.BillAndCoinsManager.ToModel(billAndCoins))
 	})
 
-	// PUT /bills-and-coins/:bills_and_coins_id: Update a bills and coins record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
@@ -230,7 +224,6 @@ func (c *Controller) billAndCoinsController() {
 		return ctx.JSON(http.StatusOK, c.core.BillAndCoinsManager.ToModel(billAndCoins))
 	})
 
-	// DELETE /bills-and-coins/:bills_and_coins_id: Delete a bills and coins record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method: "DELETE",

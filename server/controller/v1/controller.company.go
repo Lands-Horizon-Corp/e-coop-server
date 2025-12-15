@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CompanyController registers routes for managing companies.
 func (c *Controller) companyController() {
 	req := c.provider.Service.Request
 
-	// GET /company: List all companies for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) companyController() {
 		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModels(companies))
 	})
 
-	// GET /company/search: Paginated search of companies for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) companyController() {
 		return ctx.JSON(http.StatusOK, companies)
 	})
 
-	// GET /company/:company_id: Get specific company by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) companyController() {
 		return ctx.JSON(http.StatusOK, company)
 	})
 
-	// POST /company: Create a new company. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company",
 		Method:       "POST",
@@ -144,7 +139,6 @@ func (c *Controller) companyController() {
 		return ctx.JSON(http.StatusCreated, c.core.CompanyManager.ToModel(company))
 	})
 
-	// PUT /company/:company_id: Update company by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
@@ -211,7 +205,6 @@ func (c *Controller) companyController() {
 		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModel(company))
 	})
 
-	// DELETE /company/:company_id: Delete a company by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/company/:company_id",
 		Method: "DELETE",

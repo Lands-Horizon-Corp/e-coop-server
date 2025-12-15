@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// SubscriptionPlan represents the different pricing and feature tiers available for cooperative organizations
 	SubscriptionPlan struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -30,13 +29,11 @@ type (
 		YearlyDiscount      float64 `gorm:"type:numeric(5,2);default:0"`
 		IsRecommended       bool    `gorm:"not null;default:false"`
 
-		// Core Features
 		HasAPIAccess             bool `gorm:"not null;default:false"` // False for free
 		HasFlexibleOrgStructures bool `gorm:"not null;default:false"` // False for free
 		HasAIEnabled             bool `gorm:"not null;default:false"`
 		HasMachineLearning       bool `gorm:"not null;default:false"`
 
-		// Limits
 		MaxAPICallsPerMonth int64 `gorm:"default:0"` // 0 for unlimited
 
 		Organizations []*Organization `gorm:"foreignKey:SubscriptionPlanID" json:"organizations,omitempty"`
@@ -44,7 +41,6 @@ type (
 		Currency      *Currency       `gorm:"foreignKey:CurrencyID"`
 	}
 
-	// SubscriptionPlanRequest represents the request structure for creating or updating subscription plans
 	SubscriptionPlanRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -59,20 +55,17 @@ type (
 		IsRecommended       bool    `json:"is_recommended"`
 		YearlyDiscount      float64 `json:"yearly_discount" validate:"gte=0"`
 
-		// Core Features
 		HasAPIAccess             bool `json:"has_api_access"`
 		HasFlexibleOrgStructures bool `json:"has_flexible_org_structures"`
 		HasAIEnabled             bool `json:"has_ai_enabled"`
 		HasMachineLearning       bool `json:"has_machine_learning"`
 
-		// Limits
 		MaxAPICallsPerMonth int64 `json:"max_api_calls_per_month" validate:"gte=0"`
 
 		Organizations []*Organization `json:"organizations,omitempty"`
 		CurrencyID    *uuid.UUID      `json:"currency_id,omitempty"`
 	}
 
-	// SubscriptionPlanResponse represents the response structure for subscription plan data with calculated pricing
 	SubscriptionPlanResponse struct {
 		ID                  uuid.UUID `json:"id"`
 		Name                string    `json:"name"`
@@ -86,13 +79,11 @@ type (
 		YearlyDiscount      float64   `json:"yearly_discount"`
 		IsRecommended       bool      `json:"is_recommended"`
 
-		// Core Features
 		HasAPIAccess             bool `json:"has_api_access"`
 		HasFlexibleOrgStructures bool `json:"has_flexible_org_structures"`
 		HasAIEnabled             bool `json:"has_ai_enabled"`
 		HasMachineLearning       bool `json:"has_machine_learning"`
 
-		// Limits
 		MaxAPICallsPerMonth int64 `json:"max_api_calls_per_month"`
 
 		MonthlyPrice           float64 `json:"monthly_price"`
@@ -108,7 +99,6 @@ type (
 	}
 )
 
-// SubscriptionPlan initializes the subscription plan model and its repository manager
 func (m *Core) subscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
 	m.SubscriptionPlanManager = *registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
@@ -122,25 +112,16 @@ func (m *Core) subscriptionPlan() {
 				return nil
 			}
 
-			// Use decimal operations for precise financial calculations
 			decimal := m.provider.Service.Decimal
 
-			// MONTHLY PRICE CALCULATION:
-			// Round cost to 2 decimal places for precise monthly pricing
 			monthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(sp.Cost, 2)
 
-			// YEARLY PRICE CALCULATION:
-			// Yearly = Monthly * 12, rounded to 2 decimal places
 			yearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
 				decimal.Multiply(sp.Cost, 12), 2)
 
-			// DISCOUNTED MONTHLY PRICE CALCULATION:
-			// Apply monthly discount: Cost * (1 - Discount/100)
 			discountedMonthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
 				decimal.SubtractPercentage(sp.Cost, sp.Discount), 2)
 
-			// DISCOUNTED YEARLY PRICE CALCULATION:
-			// Apply yearly discount: (Cost * 12) * (1 - YearlyDiscount/100)
 			discountedYearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
 				decimal.SubtractPercentage(yearlyPrice, sp.YearlyDiscount), 2)
 
@@ -157,13 +138,11 @@ func (m *Core) subscriptionPlan() {
 				YearlyDiscount:      sp.YearlyDiscount,
 				IsRecommended:       sp.IsRecommended,
 
-				// Core Features
 				HasAPIAccess:             sp.HasAPIAccess,
 				HasFlexibleOrgStructures: sp.HasFlexibleOrgStructures,
 				HasAIEnabled:             sp.HasAIEnabled,
 				HasMachineLearning:       sp.HasMachineLearning,
 
-				// Limits
 				MaxAPICallsPerMonth: sp.MaxAPICallsPerMonth,
 
 				MonthlyPrice:           monthlyPrice,
@@ -198,7 +177,6 @@ func (m *Core) subscriptionPlan() {
 	})
 }
 
-// newSubscriptionPlan creates a new SubscriptionPlan instance with tier-specific static properties.
 func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscount float64, tier string, currencyID *uuid.UUID) *SubscriptionPlan {
 	p := &SubscriptionPlan{
 		Name:           name,
@@ -266,7 +244,6 @@ func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscoun
 	return p
 }
 
-// SubscriptionPlanSeed initializes the database with default subscription plans for different currencies
 func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 	subscriptionPlans, err := m.SubscriptionPlanManager.List(ctx)
 	if err != nil {
@@ -927,7 +904,6 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 				newSubscriptionPlan("Free Plan", "Негізгі мүмкіндіктерді сынауға арналған тегін жоспар.", 0, 0, 0, "free", &currency.ID),
 			}
 		default:
-			// Skip or handle default if needed
 			continue
 		}
 

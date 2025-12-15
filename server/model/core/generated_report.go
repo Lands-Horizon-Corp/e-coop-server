@@ -28,7 +28,6 @@ const (
 )
 
 type (
-	// GeneratedReport represents the GeneratedReport model.
 	GeneratedReport struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -69,11 +68,9 @@ type (
 
 		GeneratedReportType GeneratedReportType `gorm:"type:varchar(50);not null;default:'report'" json:"generated_report_type"`
 
-		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsers `gorm:"foreignKey:GeneratedReportID" json:"download_users,omitempty"`
 	}
 
-	// GeneratedReportResponse represents the response structure for generatedreport data
 	GeneratedReportResponse struct {
 		ID                  uuid.UUID             `json:"id"`
 		CreatedAt           string                `json:"created_at"`
@@ -105,12 +102,10 @@ type (
 		Unit          string                `json:"unit,omitempty"`
 		SystemMessage string                `json:"system_message,omitempty"`
 
-		// One-to-many relationship with GeneratedReportsDownloadUsers
 		DownloadUsers []*GeneratedReportsDownloadUsersResponse `json:"download_users,omitempty"`
 		Landscape     bool                                     `json:"landscape,omitempty"`
 	}
 
-	// GeneratedReportRequest represents the request structure for GeneratedReport.
 	GeneratedReportRequest struct {
 		Name                string              `json:"name" validate:"required,min=1,max=255"`
 		Description         string              `json:"description" validate:"required,min=1"`
@@ -119,7 +114,6 @@ type (
 		Model               string              `json:"model,omitempty"`
 		GeneratedReportType GeneratedReportType `json:"generated_report_type" validate:"required,oneof=pdf excel"`
 
-		// Optional fields for report customization
 		PaperSize string  `json:"paper_size,omitempty"`
 		Template  string  `json:"template,omitempty"`
 		Width     float64 `json:"width,omitempty"`

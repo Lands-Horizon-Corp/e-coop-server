@@ -10,10 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// FootstepLevel represents the severity level of a footstep log entry
 type FootstepLevel string
 
-// Footstep level constants
 const (
 	FootstepLevelInfo    FootstepLevel = "info"
 	FootstepLevelWarning FootstepLevel = "warning"
@@ -22,7 +20,6 @@ const (
 )
 
 type (
-	// Footstep represents the Footstep model.
 	Footstep struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -60,9 +57,7 @@ type (
 		Level          FootstepLevel        `gorm:"type:varchar(255)" json:"level"`
 	}
 
-	// FootstepResponse represents the response structure for footstep data
 
-	// FootstepResponse represents the response structure for Footstep.
 	FootstepResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -97,9 +92,7 @@ type (
 		Level          FootstepLevel        `json:"level"`
 	}
 
-	// FootstepRequest represents the request structure for creating/updating footstep
 
-	// FootstepRequest represents the request structure for Footstep.
 	FootstepRequest struct {
 		Level       FootstepLevel `json:"level" validate:"required,oneof=info warning error debug"`
 		Description string        `json:"description"`
@@ -190,25 +183,20 @@ func (m *Core) footstep() {
 	})
 }
 
-// GetFootstepByUser retrieves all footstep records for a specific user
 func (m *Core) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID: &userID,
 	})
 }
 
-// GetFootstepBybranch
 
-// GetFootstepBybranch returns GetFootstepBybranch for the current branch or organization where applicable.
 func (m *Core) GetFootstepBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		OrganizationID: &organizationID,
 		BranchID:       &branchID,
 	})
-	// GetFootstepByUserOrganization
 }
 
-// GetFootstepByUserOrganization returns GetFootstepByUserOrganization for the current branch or organization where applicable.
 func (m *Core) GetFootstepByUserOrganization(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{
 		UserID:         &userID,

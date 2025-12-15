@@ -8,34 +8,26 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
-// Controller is the top-level HTTP controller registry that holds
-// dependencies and initializes all sub-controllers for the v1 API.
 type Controller struct {
-	// Services
 	provider *server.Provider
 	core     *core.Core
 	event    *event.Event
-	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	usecase               *usecase.UsecaseService
 }
 
-// NewController creates a new Controller with required dependencies.
 func NewController(
-	// Services
 	provider *server.Provider,
 	core *core.Core,
 	event *event.Event,
 
-	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
 	usecase *usecase.UsecaseService,
 
 ) (*Controller, error) {
 	return &Controller{
-		// Services
 		provider: provider,
 		core:     core,
 		event:    event,
@@ -46,14 +38,10 @@ func NewController(
 	}, nil
 }
 
-// Start registers and initializes all sub-controllers and route groups.
-// Start should be called during application boot to wire up handlers.
 func (c *Controller) Start() error {
-	// Others
 	c.heartbeat()
 	c.formGeneratorController()
 	c.authenticationController()
-	// Basic Onboardding & Utilities
 	c.branchController()
 	c.categoryController()
 	c.contactController()
@@ -76,7 +64,6 @@ func (c *Controller) Start() error {
 	c.memberProfileMediaController()
 	c.tagTemplateController()
 
-	// Member Profile
 	c.memberGenderController()
 	c.memberCenterController()
 	c.memberTypeController()
@@ -85,7 +72,6 @@ func (c *Controller) Start() error {
 	c.memberGroupController()
 	c.memberProfileController()
 
-	// member profile properties
 	c.memberEducationalAttainmentController()
 	c.memberAddressController()
 	c.memberContactReferenceController()
@@ -96,7 +82,6 @@ func (c *Controller) Start() error {
 	c.memberJointAccountController()
 	c.memberRelativeAccountController()
 
-	// Account Maintenance
 	c.bankController()
 	c.cancelledCashCheckVoucherController()
 	c.cashCheckVoucherController()
@@ -106,7 +91,6 @@ func (c *Controller) Start() error {
 	c.holidayController()
 	c.billAndCoinsController()
 
-	// Transaction batch
 	c.transactionBatchController()
 	c.cashCountController()
 	c.batchFundingController()
@@ -116,7 +100,6 @@ func (c *Controller) Start() error {
 	c.disbursementController()
 	c.disbursementTransactionController()
 
-	// Accounts
 	c.accountController()
 	c.accountHistory()
 	c.memberAccountingLedgerController()
@@ -129,7 +112,6 @@ func (c *Controller) Start() error {
 	c.paymentTypeController()
 	c.paymentController()
 
-	// Loans
 	c.loanStatusController()
 	c.loanPurposeController()
 	c.loanTransactionController()
@@ -142,12 +124,10 @@ func (c *Controller) Start() error {
 	c.memberDepartmentController()
 	c.loanTagController()
 
-	// Time deposit
 	c.timeDepositTypeController()
 	c.timeDepositComputationController()
 	c.timeDepositComputationPreMatureController()
 
-	// Charges rate scheme
 	c.chargesRateSchemeController()
 	c.chargesRateByRangeOrMinimumAmountController()
 	c.chargesRateSchemeModeOfPaymentController()

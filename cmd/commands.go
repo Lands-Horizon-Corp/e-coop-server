@@ -27,7 +27,6 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-// Command groups with their configurations
 var commandGroups = map[string]struct {
 	Parent   *cobra.Command
 	Children []CommandConfig
@@ -93,7 +92,6 @@ var commandGroups = map[string]struct {
 				Use:   "performance-seed",
 				Short: "Run database performance tests (creates test tables and data)",
 				RunFunc: func(_ *cobra.Command, args []string) {
-					// parse multiplier from args if provided
 					if len(args) == 0 {
 						seedDatabasePerformance(1)
 						return
@@ -125,7 +123,6 @@ var commandGroups = map[string]struct {
 	},
 }
 
-// Standalone commands
 var standaloneCommands = []CommandConfig{
 	{
 		Use:   "server",

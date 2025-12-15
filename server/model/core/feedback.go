@@ -10,7 +10,6 @@ import (
 )
 
 type (
-	// Feedback represents the Feedback model.
 	Feedback struct {
 		ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 
@@ -25,9 +24,7 @@ type (
 		Media        *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
 	}
 
-	// FeedbackResponse represents the response structure for feedback data
 
-	// FeedbackResponse represents the response structure for Feedback.
 	FeedbackResponse struct {
 		ID           uuid.UUID      `json:"id"`
 		Email        string         `json:"email"`
@@ -39,9 +36,7 @@ type (
 		UpdatedAt    string         `json:"updatedAt"`
 	}
 
-	// FeedbackRequest represents the request structure for creating/updating feedback
 
-	// FeedbackRequest represents the request structure for Feedback.
 	FeedbackRequest struct {
 		ID           *uuid.UUID `json:"id,omitempty"`
 		Email        string     `json:"email"        validate:"required,email"`

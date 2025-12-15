@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// Fetch HaGeZi Ultimate list
 	url := "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -32,7 +31,6 @@ func main() {
 	var mu sync.Mutex // To safely write to the map
 	var wg sync.WaitGroup
 
-	// Limit the number of concurrent Goroutines
 	concurrency := 20
 	sem := make(chan struct{}, concurrency)
 

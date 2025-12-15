@@ -11,10 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// InterestType represents the type of interest calculation
 type InterestType string
 
-// Interest type constants
 const (
 	InterestTypeYear   InterestType = "year"
 	InterestTypeDate   InterestType = "date"
@@ -23,7 +21,6 @@ const (
 )
 
 type (
-	// BrowseReference represents a reference configuration for browsing accounts
 	BrowseReference struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -59,13 +56,11 @@ type (
 		DefaultMinimumBalance float64 `gorm:"type:decimal(15,2);default:0" json:"default_minimum_balance"`
 		DefaultInterestRate   float64 `gorm:"type:decimal(15,6);default:0" json:"default_interest_rate"`
 
-		// Relationships
 		InterestRatesByYear   []*InterestRateByYear   `gorm:"foreignKey:BrowseReferenceID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"interest_rates_by_year,omitempty"`
 		InterestRatesByDate   []*InterestRateByDate   `gorm:"foreignKey:BrowseReferenceID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"interest_rates_by_date,omitempty"`
 		InterestRatesByAmount []*InterestRateByAmount `gorm:"foreignKey:BrowseReferenceID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"interest_rates_by_amount,omitempty"`
 	}
 
-	// BrowseReferenceResponse represents the response structure for browse reference data
 	BrowseReferenceResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -97,7 +92,6 @@ type (
 		InterestRatesByAmount []*InterestRateByAmountResponse `json:"interest_rates_by_amount,omitempty"`
 	}
 
-	// BrowseReferenceRequest represents the request structure for creating/updating browse references
 	BrowseReferenceRequest struct {
 		ID          *uuid.UUID `json:"id"`
 		Name        string     `json:"name" validate:"required,max=255"`
@@ -114,12 +108,10 @@ type (
 		DefaultMinimumBalance float64 `json:"default_minimum_balance"`
 		DefaultInterestRate   float64 `json:"default_interest_rate"`
 
-		// Nested relationships for creation/update
 		InterestRatesByYear   []*InterestRateByYearRequest   `json:"interest_rates_by_year,omitempty"`
 		InterestRatesByDate   []*InterestRateByDateRequest   `json:"interest_rates_by_date,omitempty"`
 		InterestRatesByAmount []*InterestRateByAmountRequest `json:"interest_rates_by_amount,omitempty"`
 
-		// Delete IDs for nested relationships
 		InterestRatesByYearDeleted   uuid.UUIDs `json:"interest_rates_by_year_deleted,omitempty"`
 		InterestRatesByDateDeleted   uuid.UUIDs `json:"interest_rates_by_date_deleted,omitempty"`
 		InterestRatesByAmountDeleted uuid.UUIDs `json:"interest_rates_by_amount_deleted,omitempty"`
@@ -201,7 +193,6 @@ func (m *Core) browseReference() {
 	})
 }
 
-// BrowseReferenceCurrentBranch retrieves browse references for the specified branch and organization
 func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -211,7 +202,6 @@ func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizatio
 	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
-// BrowseReferenceByMemberType retrieves browse references for a specific member type
 func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -222,7 +212,6 @@ func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID
 	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
 }
 
-// BrowseReferenceByInterestType retrieves browse references by interest type
 func (m *Core) BrowseReferenceByInterestType(context context.Context, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -241,7 +230,6 @@ func (m *Core) BrowseReferenceByField(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	// Add filters based on provided parameters
 	if memberTypeID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "member_type_id", Op: query.ModeEqual, Value: *memberTypeID,

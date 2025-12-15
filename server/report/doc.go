@@ -12,10 +12,8 @@ import (
 )
 
 type Reports struct {
-	// Services
 	provider *server.Provider
 	core     *core.Core
-	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	usecase               *usecase.UsecaseService
@@ -28,18 +26,15 @@ type ReportData struct {
 }
 
 func NewReports(
-	// Services
 	provider *server.Provider,
 	core *core.Core,
 
-	// Tokens
 	userOrganizationToken *tokens.UserOrganizationToken,
 	userToken *tokens.UserToken,
 	usecase *usecase.UsecaseService,
 
 ) (*Reports, error) {
 	return &Reports{
-		// Services
 		provider: provider,
 		core:     core,
 
@@ -49,14 +44,11 @@ func NewReports(
 	}, nil
 }
 
-// handlerEntry is package-level so the handler registration function can return it.
 type handlerEntry struct {
 	name string
 	fn   func(context.Context, ReportData) ([]byte, error)
 }
 
-// reportHandlers returns the ordered list of handlers to run for reports.
-// Edit this function to add/remove report handlers — only the list needs updating.
 func reportHandlers(r *Reports) []handlerEntry {
 	return []handlerEntry{
 		{name: "bankReport", fn: r.bankReport},
@@ -64,8 +56,6 @@ func reportHandlers(r *Reports) []handlerEntry {
 	}
 }
 
-// Generate now returns one or more results produced by handlers.
-// The handler list is defined in reportHandlers so you only need to edit that.
 func (r *Reports) Generate(ctx context.Context, generatedReport core.GeneratedReport) (results []byte, err error) {
 	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
 	report := handlers.PDFOptions[any]{

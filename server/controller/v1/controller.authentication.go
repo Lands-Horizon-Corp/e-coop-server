@@ -17,7 +17,6 @@ import (
 func (c *Controller) authenticationController() {
 	req := c.provider.Service.Request
 
-	// Rate limiting middleware using the reusable RateLimiter
 	rateLimiterConfig := horizon.RateLimiterConfig{
 		RequestsPerSecond: 0,               // Use requests per minute instead
 		RequestsPerMinute: 5,               // 3 requests per minute for auth endpoints
@@ -30,7 +29,6 @@ func (c *Controller) authenticationController() {
 		c.provider.Service.Logger,
 		rateLimiterConfig)
 
-	// Returns the current authenticated user and their user organization, if any.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/current",
 		Method:       "GET",
@@ -54,7 +52,6 @@ func (c *Controller) authenticationController() {
 			UserOrganization: userOrg,
 		})
 	})
-	// Logout all users including itself for the session
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/authentication/current-logged-in-accounts/logout",
 		Method: "POST",
@@ -72,7 +69,6 @@ func (c *Controller) authenticationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Returns all currently logged-in users for the session
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/current-logged-in-accounts",
 		Note:         "Returns all currently logged-in users for the session.",
@@ -96,7 +92,6 @@ func (c *Controller) authenticationController() {
 		responses := resp.UserCSRFModels(loggedInPtrs)
 		return ctx.JSON(http.StatusOK, responses)
 	})
-	// Authenticate user login
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
@@ -136,7 +131,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Logout the current user
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/authentication/logout",
 		Method: "POST",
@@ -152,7 +146,6 @@ func (c *Controller) authenticationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Register a new user
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/register",
 		Method:       "POST",
@@ -225,7 +218,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Forgot password flow
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/authentication/forgot-password",
 		Method:      "POST",
@@ -304,7 +296,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Verify password reset link
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/authentication/verify-reset-link/:reset_id",
 		Method: "GET",
@@ -329,7 +320,6 @@ func (c *Controller) authenticationController() {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	// Change password using the reset link
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/authentication/change-password/:reset_id",
 		Method:      "POST",
@@ -406,7 +396,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Send OTP for contact number verification
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/authentication/apply-contact-number",
 		Method: "POST",
@@ -452,7 +441,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Verify OTP for contact number
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
 		Method:       "POST",
@@ -542,7 +530,6 @@ func (c *Controller) authenticationController() {
 		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
 	})
 
-	// Send OTP for email verification
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/authentication/apply-email",
 		Method: "POST",
@@ -588,7 +575,6 @@ func (c *Controller) authenticationController() {
 		return handlers.GetClientIP(c)
 	}))
 
-	// Verify user with password for self-protected actions
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/verify-with-password",
 		Method:       "POST",
@@ -652,7 +638,6 @@ func (c *Controller) authenticationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Verify OTP for email
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/authentication/verify-email",
 		Method:       "POST",

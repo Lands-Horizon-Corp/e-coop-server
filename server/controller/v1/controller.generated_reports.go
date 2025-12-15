@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GeneratedReports manages endpoints for generated report resources.
 func (c *Controller) generatedReports() {
 	req := c.provider.Service.Request
 
-	// GET /api/v1/generated-report/:generated_report_id/download
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/download",
 		Method:       "POST",
@@ -68,7 +66,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModel(media))
 	})
 
-	// POST
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report",
 		Method:       "POST",
@@ -153,7 +150,6 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		// Only delete media if it exists
 		if generatedReport.MediaID != nil {
 			if err := c.core.MediaDelete(context, *generatedReport.MediaID); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -229,7 +225,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
 
-	// POST /api/v1/generated-report/download-user
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/download-user",
 		Method:       "POST",
@@ -292,7 +287,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportsDownloadUsersManager.ToModel(downloadUser))
 	})
 
-	// PUT /api/v1/generated-report/:generated_report_id/favorite: Mark or unmark a generated report as favorite.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/favorite",
 		Method:       "PUT",
@@ -308,7 +302,6 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		// Toggle the IsFavorite field
 		generatedReport.IsFavorite = !generatedReport.IsFavorite
 		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update favorite status: " + err.Error()})
@@ -316,8 +309,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
 
-	// =======================================[FILTERED]==========================================================
-	// GET /generated-report/:generated_report_id: Get a specific generated report by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "GET",
@@ -336,7 +327,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
 	})
 
-	// GET /api/v1/generated-report/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/search",
 		Method:       "GET",
@@ -362,7 +352,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/search",
 		Method:       "GET",
@@ -389,7 +378,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/pdf/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/pdf/search",
 		Method:       "GET",
@@ -415,7 +403,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/pdf/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/pdf/search",
 		Method:       "GET",
@@ -442,7 +429,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/excel/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/excel/search",
 		Method:       "GET",
@@ -467,7 +453,6 @@ func (c *Controller) generatedReports() {
 		}
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
-	// GET /api/v1/generated-report/me/excel/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/excel/search",
 		Method:       "GET",
@@ -494,7 +479,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/favorites/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/favorites/search",
 		Method:       "GET",
@@ -521,7 +505,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/favorites/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/favorites/search",
 		Method:       "GET",
@@ -548,7 +531,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/available-models
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/available-models",
 		Method:       "GET",
@@ -570,7 +552,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, models)
 	})
 
-	// GET /api/v1/generated-report/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/model/:model/search",
 		Method:       "GET",
@@ -597,7 +578,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/model/:model/search",
 		Method:       "GET",
@@ -625,7 +605,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/pdf/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/pdf/model/:model/search",
 		Method:       "GET",
@@ -653,7 +632,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/pdf/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/pdf/model/:model/search",
 		Method:       "GET",
@@ -682,7 +660,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/excel/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/excel/model/:model/search",
 		Method:       "GET",
@@ -710,7 +687,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/excel/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/excel/model/:model/search",
 		Method:       "GET",
@@ -739,7 +715,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/favorites/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/favorites/model/:model/search",
 		Method:       "GET",
@@ -767,7 +742,6 @@ func (c *Controller) generatedReports() {
 		return ctx.JSON(http.StatusOK, generatedReports)
 	})
 
-	// GET /api/v1/generated-report/me/favorites/model/:model/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-report/me/favorites/model/:model/search",
 		Method:       "GET",

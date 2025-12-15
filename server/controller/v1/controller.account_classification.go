@@ -13,7 +13,6 @@ import (
 func (c *Controller) accountClassificationController() {
 	req := c.provider.Service.Request
 
-	// GET endpoints (no footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/search",
 		Method:       "GET",
@@ -80,7 +79,6 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
 	})
 
-	// POST - Create (with footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "POST",
@@ -143,7 +141,6 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusCreated, c.core.AccountClassificationManager.ToModel(accountClassification))
 	})
 
-	// PUT - Update (with footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "PUT",
@@ -218,7 +215,6 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
 	})
 
-	// DELETE (single) - with footstep
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-classification/:account_classification_id",
 		Method: "DELETE",
@@ -276,7 +272,6 @@ func (c *Controller) accountClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
 	})
 
-	// BULK DELETE (with footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",

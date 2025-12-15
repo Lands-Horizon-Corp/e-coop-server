@@ -1,7 +1,3 @@
-// Package cmd contains CLI command wiring and helper actions for the e-coop-server.
-//
-// It defines CLI commands used for database migration, seeding, cache management,
-// and running the server in development or test environments.
 package cmd
 
 import (
@@ -37,12 +33,10 @@ func enforceBlocklist() {
 						cacheKey := "blocked_ip:" + ip
 						timestamp := float64(time.Now().Unix())
 
-						// Use ZAdd for consistent sorted set tracking
 						if err := prov.Service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
 							color.Red("Failed to add IP %s to registry: %v", ip, err)
 						}
 
-						// Keep the original Set for backward compatibility with middleware
 						if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
 							color.Red("Failed to cache IP %s: %v", ip, err)
 						}
@@ -59,7 +53,6 @@ func enforceBlocklist() {
 	color.Green("HaGeZi blocklist enforced and cached successfully.")
 }
 
-// clearBlockedIPs removes all blocked IP entries from Redis cache
 func clearBlockedIPs() {
 	color.Blue("Clearing blocked IPs from cache...")
 	app := fx.New(
@@ -73,14 +66,12 @@ func clearBlockedIPs() {
 						return err
 					}
 
-					// Get all blocked IP keys
 					keys, err := prov.Service.Cache.Keys(ctx, "blocked_ip:*")
 					if err != nil {
 						color.Red("Failed to get blocked IP keys: %v", err)
 						return err
 					}
 
-					// Delete each blocked IP key
 					count := 0
 					for _, key := range keys {
 						if err := prov.Service.Cache.Delete(ctx, key); err != nil {

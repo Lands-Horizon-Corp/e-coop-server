@@ -24,7 +24,6 @@ const (
 )
 
 type (
-	// Notification represents a system notification sent to users
 	Notification struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -45,7 +44,6 @@ type (
 		UserType UserOrganizationType `gorm:"type:varchar(50);not null"`
 	}
 
-	// NotificationResponse represents the JSON response structure for notification data
 	NotificationResponse struct {
 		ID     uuid.UUID     `json:"id"`
 		UserID uuid.UUID     `json:"user_id"`
@@ -65,7 +63,6 @@ type (
 	}
 )
 
-// Notification initializes the Notification model and its repository manager
 func (m *Core) notification() {
 	m.Migration = append(m.Migration, &Notification{})
 	m.NotificationManager = *registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
@@ -117,7 +114,6 @@ func (m *Core) notification() {
 	})
 }
 
-// GetNotificationByUser retrieves all notifications for a specific user
 func (m *Core) GetNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
 	return m.NotificationManager.Find(context, &Notification{
 		UserID: userID,

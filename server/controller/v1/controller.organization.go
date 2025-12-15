@@ -14,7 +14,6 @@ import (
 func (c *Controller) organizationController() {
 	req := c.provider.Service.Request
 
-	// Get all public organizations
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization",
 		Method:       "GET",
@@ -29,7 +28,6 @@ func (c *Controller) organizationController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.ToModels(organization))
 	})
 
-	// Get an organization by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "GET",
@@ -49,7 +47,6 @@ func (c *Controller) organizationController() {
 		return ctx.JSON(http.StatusOK, organization)
 	})
 
-	// Create a new organization (user must be logged in)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization",
 		Method:       "POST",
@@ -170,7 +167,6 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 
-		// Create default branch settings for the new branch
 		branchSetting := &core.BranchSetting{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
@@ -178,7 +174,6 @@ func (c *Controller) organizationController() {
 
 			CurrencyID: *req.CurrencyID,
 
-			// Withdraw Settings
 			WithdrawAllowUserInput: true,
 			WithdrawPrefix:         "WD",
 			WithdrawORStart:        1,
@@ -188,7 +183,6 @@ func (c *Controller) organizationController() {
 			WithdrawORUnique:       true,
 			WithdrawUseDateOR:      false,
 
-			// Deposit Settings
 			DepositAllowUserInput: true,
 			DepositPrefix:         "DP",
 			DepositORStart:        1,
@@ -198,7 +192,6 @@ func (c *Controller) organizationController() {
 			DepositORUnique:       true,
 			DepositUseDateOR:      false,
 
-			// Loan Settings
 			LoanAllowUserInput: true,
 			LoanPrefix:         "LN",
 			LoanORStart:        1,
@@ -208,7 +201,6 @@ func (c *Controller) organizationController() {
 			LoanORUnique:       true,
 			LoanUseDateOR:      false,
 
-			// Check Voucher Settings
 			CheckVoucherAllowUserInput: true,
 			CheckVoucherPrefix:         "CV",
 			CheckVoucherORStart:        1,
@@ -218,7 +210,6 @@ func (c *Controller) organizationController() {
 			CheckVoucherORUnique:       true,
 			CheckVoucherUseDateOR:      false,
 
-			// Default Member Type - can be set later
 			DefaultMemberTypeID:       nil,
 			LoanAppliedEqualToBalance: true,
 		}
@@ -334,7 +325,6 @@ func (c *Controller) organizationController() {
 		})
 	})
 
-	// Update an organization (user must be logged in)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "PUT",
@@ -483,7 +473,6 @@ func (c *Controller) organizationController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.ToModel(organization))
 	})
 
-	// Delete an organization (user must be logged in)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/organization/:organization_id",
 		Method: "DELETE",
@@ -615,7 +604,6 @@ func (c *Controller) organizationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /api/v1/organization/featured
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/featured",
 		Method:       "GET",
@@ -630,7 +618,6 @@ func (c *Controller) organizationController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.ToModels(organizations))
 	})
 
-	// GET /api/v1/organization/recently
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/recently",
 		Method:       "GET",
@@ -645,7 +632,6 @@ func (c *Controller) organizationController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationManager.ToModels(organizations))
 	})
 
-	// GET /api/v1/organization/category
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization/category",
 		Method:       "GET",

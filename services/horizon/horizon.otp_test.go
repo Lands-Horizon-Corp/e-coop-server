@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/otp_test.go
-// --- Setup helpers ---
 func setupSecurityUtilsOTP() SecurityService {
 	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")
@@ -41,7 +39,6 @@ func setupHorizonOTP() OTPService {
 	return NewHorizonOTP([]byte("secret"), cache, security)
 }
 
-// --- Tests ---
 
 func TestGenerateOTP(t *testing.T) {
 	otp := setupHorizonOTP()
@@ -53,28 +50,23 @@ func TestGenerateOTP(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, code, 6, "OTP should be 6 digits")
 
-		// Verify code can be validated
 		valid, err := otp.Verify(ctx, key, code)
 		assert.True(t, valid)
 		assert.NoError(t, err)
 	})
 
 	t.Run("replaces existing OTP", func(t *testing.T) {
-		// First generation
 		code1, err := otp.Generate(ctx, key)
 		require.NoError(t, err)
 
-		// Second generation
 		code2, err := otp.Generate(ctx, key)
 		require.NoError(t, err)
 		assert.NotEqual(t, code1, code2, "New OTP should be different")
 
-		// First code should be invalid
 		valid, err := otp.Verify(ctx, key, code1)
 		assert.False(t, valid)
 		assert.NoError(t, err) // Updated assertion
 
-		// Second code should work
 		valid, err = otp.Verify(ctx, key, code2)
 		assert.True(t, valid)
 		assert.NoError(t, err)
@@ -92,7 +84,6 @@ func TestVerifyOTP(t *testing.T) {
 		assert.True(t, valid)
 		assert.NoError(t, err)
 
-		// Should be revoked after successful verification
 		valid, err = otp.Verify(ctx, key, code)
 		assert.False(t, valid)
 		assert.Error(t, err)
@@ -102,22 +93,18 @@ func TestVerifyOTP(t *testing.T) {
 		_, err := otp.Generate(ctx, key) // Reset state
 		require.NoError(t, err)
 
-		// First invalid attempt
 		valid, err := otp.Verify(ctx, key, "000000")
 		assert.False(t, valid)
 		assert.NoError(t, err)
 
-		// Second invalid attempt
 		valid, err = otp.Verify(ctx, key, "111111")
 		assert.False(t, valid)
 		assert.NoError(t, err)
 
-		// Third invalid attempt should lock
 		valid, err = otp.Verify(ctx, key, "222222")
 		assert.False(t, valid)
 		assert.ErrorContains(t, err, "maximum verification attempts reached")
 
-		// Subsequent attempts should fail
 		valid, err = otp.Verify(ctx, key, code)
 		assert.False(t, valid)
 		assert.Error(t, err)

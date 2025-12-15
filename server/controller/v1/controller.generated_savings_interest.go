@@ -14,7 +14,6 @@ func (c *Controller) generateSavingsInterest() {
 
 	req := c.provider.Service.Request
 
-	// GET /api/v1/generated-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest",
 		Method:       "GET",
@@ -39,7 +38,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
 	})
 
-	// GET /api/v1/generated-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
@@ -58,7 +56,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
 	})
 
-	// GET /api/v1/generated-savings-interest/:genereated_savings_interest/view
 	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
@@ -242,7 +239,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print
 	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
@@ -278,7 +274,6 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo
 	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
@@ -317,7 +312,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
 
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/post
 	req.RegisterWebRoute(handlers.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",

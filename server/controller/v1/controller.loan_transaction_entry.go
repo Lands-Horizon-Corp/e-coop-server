@@ -14,7 +14,6 @@ import (
 func (c *Controller) loanTransactionEntryController() {
 	req := c.provider.Service.Request
 
-	// POST /api/v1/loan-transaction/:loan_transaction_id/deduction
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
 		Method:       "POST",
@@ -101,7 +100,6 @@ func (c *Controller) loanTransactionEntryController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
-	// PUT /api/v1/loan-transaction/deduction/:loan_transaction_entry_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
@@ -191,7 +189,6 @@ func (c *Controller) loanTransactionEntryController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
 	})
 
-	// DELETE /api/v1/loan-transaction-entry/:loan_transaction_entry_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id",
 		Method: "DELETE",
@@ -225,12 +222,10 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
 		}
 
-		// Check if the loan transaction entry belongs to the user's organization and branch
 		if loanTransactionEntry.OrganizationID != userOrg.OrganizationID || loanTransactionEntry.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction entry"})
 		}
 
-		// Set deleted by user
 		loanTransactionEntry.DeletedByID = &userOrg.UserID
 
 		if err := c.core.LoanTransactionEntryManager.Delete(context, loanTransactionEntry.ID); err != nil {
@@ -255,7 +250,6 @@ func (c *Controller) loanTransactionEntryController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
 	})
 
-	// PUT /api/v1/loan-transaction-entry/:loan_transaction_entry_id/restore
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/restore",
 		Method: "PUT",
@@ -280,22 +274,18 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
 
-		// Check if the loan transaction entry belongs to the user's organization and branch
 		if loanTransactionEntry.OrganizationID != userOrg.OrganizationID || loanTransactionEntry.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction entry"})
 		}
 
-		// Only allow restoring automatic loan deductions
 		if loanTransactionEntry.Type != core.LoanTransactionAutomaticDeduction {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Only automatic loan deduction entries can be restored"})
 		}
 
-		// Check if it's actually marked as deleted
 		if !loanTransactionEntry.IsAutomaticLoanDeductionDeleted {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction entry is not marked as deleted"})
 		}
 
-		// Restore the automatic loan deduction
 		loanTransactionEntry.IsAutomaticLoanDeductionDeleted = false
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID

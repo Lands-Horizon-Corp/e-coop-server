@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/sms_test.go
 func injectMockTwilio(h *SMS) {
 	err := h.Run(context.Background())
 	if err != nil {

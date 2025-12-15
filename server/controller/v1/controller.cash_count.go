@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CashCountController provides endpoints for managing cash counts during the transaction batch workflow.
 func (c *Controller) cashCountController() {
 	req := c.provider.Service.Request
 
@@ -68,7 +67,6 @@ func (c *Controller) cashCountController() {
 		return ctx.JSON(http.StatusOK, cashCount)
 	})
 
-	// GET /cash-count: Retrieve all cash count bills for the current active transaction batch for the user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "GET",
@@ -104,7 +102,6 @@ func (c *Controller) cashCountController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCountManager.ToModels(cashCounts))
 	})
 
-	// POST /cash-count: Add a cash count bill to the current transaction batch before ending. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "POST",
@@ -163,7 +160,6 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		// Validate and set required fields
 		if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -212,7 +208,6 @@ func (c *Controller) cashCountController() {
 		return ctx.JSON(http.StatusCreated, c.core.CashCountManager.ToModel(newCashCount))
 	})
 
-	// PUT /cash-count: Update a list of cash count bills for the current transaction batch before ending. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "PUT",
@@ -421,7 +416,6 @@ func (c *Controller) cashCountController() {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	// DELETE /cash-count/:id: Delete a specific cash count by ID from the current transaction batch. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cash-count/:id",
 		Method: "DELETE",
@@ -498,7 +492,6 @@ func (c *Controller) cashCountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /cash-count/:id: Retrieve a specific cash count by ID from the current transaction batch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-count/:id",
 		Method:       "GET",

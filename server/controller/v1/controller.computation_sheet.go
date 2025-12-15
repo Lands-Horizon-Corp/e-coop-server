@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ComputationSheetController registers routes for managing computation sheets.
 func (c *Controller) computationSheetController() {
 	req := c.provider.Service.Request
 
-	// POST /computation-sheet/:computation_sheet_id/calculator: Returns sample calculation data.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
@@ -71,7 +69,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.JSON(http.StatusOK, computed)
 	})
 
-	// GET /computation-sheet: List all computation sheets for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "GET",
@@ -93,7 +90,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.JSON(http.StatusOK, c.core.ComputationSheetManager.ToModels(sheets))
 	})
 
-	// GET /computation-sheet/:id: Get specific computation sheet by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "GET",
@@ -112,7 +108,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.JSON(http.StatusOK, sheet)
 	})
 
-	// POST /computation-sheet: Create a new computation sheet.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "POST",
@@ -181,7 +176,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.JSON(http.StatusCreated, c.core.ComputationSheetManager.ToModel(sheet))
 	})
 
-	// PUT /computation-sheet/:id: Update computation sheet by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "PUT",
@@ -253,7 +247,6 @@ func (c *Controller) computationSheetController() {
 		return ctx.JSON(http.StatusOK, c.core.ComputationSheetManager.ToModel(sheet))
 	})
 
-	// DELETE /computation-sheet/:id: Delete a computation sheet by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/computation-sheet/:id",
 		Method: "DELETE",

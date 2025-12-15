@@ -13,7 +13,6 @@ import (
 func (c *Controller) subscriptionPlanController() {
 	req := c.provider.Service.Request
 
-	// Get all subscription plans
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
@@ -28,7 +27,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModels(categories))
 	})
 
-	// Get a subscription plan by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
@@ -49,7 +47,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.JSON(http.StatusOK, subscriptionPlan)
 	})
 
-	// Create a new subscription plan
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
@@ -107,7 +104,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModel(subscriptionPlan))
 	})
 
-	// Update a subscription plan by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
@@ -182,7 +178,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager.ToModel(subscriptionPlan))
 	})
 
-	// Delete a subscription plan by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
@@ -227,7 +222,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for subscription plans (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
@@ -277,7 +271,6 @@ func (c *Controller) subscriptionPlanController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /api/v1/subscription-plan/currency/:currency_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",

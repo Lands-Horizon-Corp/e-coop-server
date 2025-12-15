@@ -11,12 +11,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// MediaController manages endpoints for media records.
 func (c *Controller) mediaController() {
 
 	req := c.provider.Service.Request
 
-	// GET /media: List all media records. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media",
 		Method:       "GET",
@@ -31,7 +29,6 @@ func (c *Controller) mediaController() {
 		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModels(media))
 	})
 
-	// GET /media/:media_id: Get a specific media record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "GET",
@@ -51,7 +48,6 @@ func (c *Controller) mediaController() {
 		return ctx.JSON(http.StatusOK, media)
 	})
 
-	// POST /media: Upload a new media file. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media",
 		Method:       "POST",
@@ -68,11 +64,9 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Missing file in upload"})
 		}
-		// Ensure filename has proper extension based on content type
 		fileName := file.Filename
 		contentType := file.Header.Get("Content-Type")
 
-		// If filename doesn't have extension, add it based on content type
 		if fileName != "" && !handlers.HasFileExtension(fileName) {
 			if ext := handlers.GetExtensionFromContentType(contentType); ext != "" {
 				fileName += ext
@@ -145,7 +139,6 @@ func (c *Controller) mediaController() {
 		return ctx.JSON(http.StatusCreated, c.core.MediaManager.ToModel(completed))
 	})
 
-	// PUT /media/:media_id: Update media file's name. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
@@ -199,7 +192,6 @@ func (c *Controller) mediaController() {
 		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModel(media))
 	})
 
-	// DELETE /media/:media_id: Delete a media record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/media/:media_id",
 		Method: "DELETE",
@@ -240,7 +232,6 @@ func (c *Controller) mediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for media (moves storage + DB work into manager)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",

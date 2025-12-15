@@ -13,7 +13,6 @@ import (
 func (c *Controller) paymentTypeController() {
 	req := c.provider.Service.Request
 
-	// Get all payment types for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModels(paymentTypes))
 	})
 
-	// Paginate payment types for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/search",
 		Method:       "GET",
@@ -54,7 +52,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Get a payment type by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "GET",
@@ -73,7 +70,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.JSON(http.StatusOK, paymentType)
 	})
 
-	// Create a new payment type
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "POST",
@@ -132,7 +128,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModel(paymentType))
 	})
 
-	// Update a payment type by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "PUT",
@@ -201,7 +196,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModel(paymentType))
 	})
 
-	// Delete a payment type by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/payment-type/:payment_type_id",
 		Method: "DELETE",
@@ -242,7 +236,6 @@ func (c *Controller) paymentTypeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for payment types (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/payment-type/bulk-delete",
 		Method:      "DELETE",

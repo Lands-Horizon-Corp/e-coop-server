@@ -10,7 +10,6 @@ import (
 )
 
 type (
-	// GeneratedReportsDownloadUsers represents the GeneratedReportsDownloadUsers model.
 	GeneratedReportsDownloadUsers struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -38,7 +37,6 @@ type (
 		GeneratedReport   *GeneratedReport `gorm:"foreignKey:GeneratedReportID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"generated_report,omitempty"`
 	}
 
-	// GeneratedReportsDownloadUsersResponse represents the response structure for generated reports download users data
 	GeneratedReportsDownloadUsersResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -62,7 +60,6 @@ type (
 		GeneratedReport   *GeneratedReportResponse `json:"generated_report,omitempty"`
 	}
 
-	// GeneratedReportsDownloadUsersRequest represents the request structure for creating/updating generated reports download users
 	GeneratedReportsDownloadUsersRequest struct {
 		UserID             uuid.UUID `json:"user_id" validate:"required"`
 		UserOrganizationID uuid.UUID `json:"user_organization_id" validate:"required"`

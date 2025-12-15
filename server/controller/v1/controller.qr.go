@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// QRCodeController registers the route for decoding QR codes and fetching the associated user.
 func (c *Controller) qRCodeController() {
 	req := c.provider.Service.Request
 

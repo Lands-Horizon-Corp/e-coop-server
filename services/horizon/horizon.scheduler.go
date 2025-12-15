@@ -8,24 +8,17 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// SchedulerService defines the interface for scheduling and managing cron jobs
 type SchedulerService interface {
-	// Start initializes the scheduler and in-memory job store
 	Run(ctx context.Context) error
 
-	// Stop gracefully shuts down the scheduler and clears all timers
 	Stop(ctx context.Context) error
 
-	// CreateJob registers a new cron-style job with the specified schedule
 	CreateJob(ctx context.Context, jobID string, schedule string, task func()) error
 
-	// ExecuteJob runs a job immediately
 	ExecuteJob(ctx context.Context, jobID string) error
 
-	// RemoveJob deletes a job by its ID from the scheduler
 	RemoveJob(ctx context.Context, jobID string) error
 
-	// ListJobs returns all registered job IDs
 	ListJobs(ctx context.Context) ([]string, error)
 }
 
@@ -35,14 +28,12 @@ type job struct {
 	task     func()
 }
 
-// Schedule provides a cron-based implementation of SchedulerService.
 type Schedule struct {
 	cron  *cron.Cron
 	jobs  map[string]job
 	mutex sync.Mutex
 }
 
-// NewSchedule creates a new scheduler service instance.
 func NewSchedule() SchedulerService {
 	return &Schedule{
 		cron: cron.New(),
@@ -50,7 +41,6 @@ func NewSchedule() SchedulerService {
 	}
 }
 
-// CreateJob implements Scheduler.
 func (h *Schedule) CreateJob(_ context.Context, jobID string, schedule string, task func()) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -65,7 +55,6 @@ func (h *Schedule) CreateJob(_ context.Context, jobID string, schedule string, t
 	return nil
 }
 
-// ListJobs implements Scheduler.
 func (h *Schedule) ListJobs(_ context.Context) ([]string, error) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -78,7 +67,6 @@ func (h *Schedule) ListJobs(_ context.Context) ([]string, error) {
 
 }
 
-// RemoveJob implements Scheduler.
 func (h *Schedule) RemoveJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -91,7 +79,6 @@ func (h *Schedule) RemoveJob(_ context.Context, jobID string) error {
 	return nil
 }
 
-// ExecuteJob implements Scheduler.
 func (h *Schedule) ExecuteJob(_ context.Context, jobID string) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -103,13 +90,11 @@ func (h *Schedule) ExecuteJob(_ context.Context, jobID string) error {
 	return nil
 }
 
-// Run starts the scheduler.
 func (h *Schedule) Run(_ context.Context) error {
 	h.cron.Start()
 	return nil
 }
 
-// Stop implements Scheduler.
 func (h *Schedule) Stop(_ context.Context) error {
 	h.cron.Stop()
 	return nil

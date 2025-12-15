@@ -12,11 +12,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// HolidayController manages endpoints for holiday records.
 func (c *Controller) holidayController() {
 	req := c.provider.Service.Request
 
-	// GET /holiday: List all holidays for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "GET",
@@ -38,7 +36,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(holiday))
 	})
 
-	// GET /holiday/search: Paginated search of holidays for current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/search",
 		Method:       "GET",
@@ -63,7 +60,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, holidays)
 	})
 
-	// GET /holiday/:holiday_id: Get a specific holiday record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
@@ -83,7 +79,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, holiday)
 	})
 
-	// POST /holiday: Create a new holiday record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
@@ -146,7 +141,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusCreated, c.core.HolidayManager.ToModel(holiday))
 	})
 
-	// PUT /holiday/:holiday_id: Update a holiday record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
@@ -221,7 +215,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModel(holiday))
 	})
 
-	// DELETE /holiday/:holiday_id: Delete a holiday record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/holiday/:holiday_id",
 		Method: "DELETE",
@@ -262,7 +255,6 @@ func (c *Controller) holidayController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for holidays (mirrors the feedback bulk-delete pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
@@ -311,7 +303,6 @@ func (c *Controller) holidayController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// api/v1/holiday/year-available
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year-available",
 		Method:       "GET",
@@ -334,7 +325,6 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch years with holiday records: " + err.Error()})
 		}
 
-		// Count holidays by year
 		yearCount := make(map[int]int)
 		maxYear := 0
 		for _, holiday := range holidays {
@@ -345,13 +335,11 @@ func (c *Controller) holidayController() {
 			}
 		}
 
-		// If no holidays found, add current year with count 0
 		if len(yearCount) == 0 {
 			currentYear := time.Now().UTC().Year()
 			yearCount[currentYear] = 0
 			yearCount[currentYear+1] = 0 // Add next year as well
 		} else {
-			// Add one more year beyond the latest existing year with count 0
 			yearCount[maxYear+1] = 0
 		}
 
@@ -368,7 +356,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	// api/v1/holiday/year-available
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
 		Method:       "GET",
@@ -396,7 +383,6 @@ func (c *Controller) holidayController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch years with holiday records: " + err.Error()})
 		}
 
-		// Count holidays by year
 		yearCount := make(map[int]int)
 		maxYear := 0
 		for _, holiday := range holidays {
@@ -407,13 +393,11 @@ func (c *Controller) holidayController() {
 			}
 		}
 
-		// If no holidays found, add current year with count 0
 		if len(yearCount) == 0 {
 			currentYear := time.Now().UTC().Year()
 			yearCount[currentYear] = 0
 			yearCount[currentYear+1] = 0 // Add next year as well
 		} else {
-			// Add one more year beyond the latest existing year with count 0
 			yearCount[maxYear+1] = 0
 		}
 
@@ -430,7 +414,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	// GET api/v1/holiday/year/:year
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year",
 		Method:       "GET",
@@ -466,7 +449,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(result))
 	})
 
-	// GET api/v1/holiday/currency/:currency_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id",
 		Method:       "GET",
@@ -499,7 +481,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(holiday))
 	})
 
-	// GET api/v1/holiday/year/:year/currency/:currency_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
 		Method:       "GET",
@@ -543,7 +524,6 @@ func (c *Controller) holidayController() {
 		return ctx.JSON(http.StatusOK, c.core.HolidayManager.ToModels(result))
 	})
 
-	// POST /api/v1/holiday/year/:year/currency/:currency/copy/:year
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
 		Method:       "POST",

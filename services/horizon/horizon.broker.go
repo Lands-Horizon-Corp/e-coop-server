@@ -9,7 +9,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// MessageBrokerService defines the interface for pub/sub messaging systems.
 type MessageBrokerService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -18,7 +17,6 @@ type MessageBrokerService interface {
 	Subscribe(topic string, handler func(any) error) error
 }
 
-// MessageBroker provides a NATS-based implementation of MessageBrokerService.
 type MessageBroker struct {
 	host     string
 	port     int
@@ -38,7 +36,6 @@ func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass
 	}
 }
 
-// Run starts the message broker connection to NATS.
 func (h *MessageBroker) Run(_ context.Context) error {
 	natsURL := fmt.Sprintf("nats://%s:%d", h.host, h.port)
 	options := []nats.Option{
@@ -56,7 +53,6 @@ func (h *MessageBroker) Run(_ context.Context) error {
 	return nil
 }
 
-// Stop closes the message broker connection to NATS.
 func (h *MessageBroker) Stop(_ context.Context) error {
 	if h.nc != nil {
 		h.nc.Close()
@@ -65,13 +61,11 @@ func (h *MessageBroker) Stop(_ context.Context) error {
 	return nil
 }
 
-// Dispatch publishes the same payload to multiple topics efficiently.
 func (h *MessageBroker) Dispatch(topics []string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
 	}
 
-	// Marshal payload once, reuse for all topics
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal payload")
@@ -89,7 +83,6 @@ func (h *MessageBroker) Dispatch(topics []string, payload any) error {
 	return nil
 }
 
-// Publish sends a payload to a single topic (high performance).
 func (h *MessageBroker) Publish(topic string, payload any) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")
@@ -112,7 +105,6 @@ func (h *MessageBroker) Publish(topic string, payload any) error {
 	return nil
 }
 
-// Subscribe registers a handler function for messages on a specific topic.
 func (h *MessageBroker) Subscribe(topic string, handler func(any) error) error {
 	if h.nc == nil {
 		return eris.New("NATS connection not initialized")

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ComakerCollateral represents the ComakerCollateral model.
 	ComakerCollateral struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -41,9 +40,7 @@ type (
 		YearCount   int     `gorm:"type:int;default:0" json:"year_count"`
 	}
 
-	// ComakerCollateralResponse represents the response structure for comakercollateral data
 
-	// ComakerCollateralResponse represents the response structure for ComakerCollateral.
 	ComakerCollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,9 +66,7 @@ type (
 		YearCount   int     `json:"year_count"`
 	}
 
-	// ComakerCollateralRequest represents the request structure for creating/updating comakercollateral
 
-	// ComakerCollateralRequest represents the request structure for ComakerCollateral.
 	ComakerCollateralRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
@@ -147,7 +142,6 @@ func (m *Core) comakerCollateral() {
 	})
 }
 
-// ComakerCollateralCurrentBranch retrieves all comaker collaterals for the specified organization and branch
 func (m *Core) ComakerCollateralCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
 		OrganizationID: organizationID,
@@ -155,7 +149,6 @@ func (m *Core) ComakerCollateralCurrentBranch(context context.Context, organizat
 	})
 }
 
-// ComakerCollateralByLoanTransaction retrieves all comaker collaterals for the specified loan transaction
 func (m *Core) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerCollateral, error) {
 	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
 		LoanTransactionID: loanTransactionID,

@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CashCheckVoucherTagController registers routes for managing cash check voucher tags.
 func (c *Controller) cashCheckVoucherTagController() {
 	req := c.provider.Service.Request
 
-	// GET /cash-check-voucher-tag: List all cash check voucher tags for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModels(tags))
 	})
 
-	// GET /cash-check-voucher-tag/search: Paginated search of cash check voucher tags for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		return ctx.JSON(http.StatusOK, tags)
 	})
 
-	// GET /cash-check-voucher-tag/:tag_id: Get specific cash check voucher tag by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		return ctx.JSON(http.StatusOK, tag)
 	})
 
-	// POST /cash-check-voucher-tag: Create a new cash check voucher tag. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "POST",
@@ -147,7 +142,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		return ctx.JSON(http.StatusCreated, c.core.CashCheckVoucherTagManager.ToModel(tag))
 	})
 
-	// PUT /cash-check-voucher-tag/:tag_id: Update cash check voucher tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "PUT",
@@ -217,7 +211,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModel(tag))
 	})
 
-	// DELETE /cash-check-voucher-tag/:tag_id: Delete a cash check voucher tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method: "DELETE",
@@ -303,8 +296,6 @@ func (c *Controller) cashCheckVoucherTagController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	// cash check voucher tag
-	// GET /api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",

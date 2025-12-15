@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// MemberAddressController manages endpoints for member address records.
 func (c *Controller) memberAddressController() {
 	req := c.provider.Service.Request
 
-	// POST /member-address/member-profile/:member_profile_id: Create a new address record for a member.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -93,7 +91,6 @@ func (c *Controller) memberAddressController() {
 		return ctx.JSON(http.StatusCreated, c.core.MemberAddressManager.ToModel(value))
 	})
 
-	// PUT /member-address/:member_address_id: Update an existing address record for a member.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-address/:member_address_id",
 		Method:       "PUT",
@@ -178,7 +175,6 @@ func (c *Controller) memberAddressController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberAddressManager.ToModel(value))
 	})
 
-	// DELETE /member-address/:member_address_id: Delete a member's address record by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-address/:member_address_id",
 		Method: "DELETE",

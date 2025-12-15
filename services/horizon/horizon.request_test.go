@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -v services/horizon/request_test.go
 var apiPort = handlers.GetFreePort()
 
 func TestMain(m *testing.M) {
@@ -28,7 +27,6 @@ func TestMain(m *testing.M) {
 
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 
-	// Assign package-level variables, do NOT use := to avoid shadowing
 	testCtx := context.Background()
 
 	service := NewHorizonAPIService(cache, apiPort, false)
@@ -38,12 +36,10 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	// Wait for server to be ready
 	if !waitForServerReady(baseURL+"/health", 10*time.Second) {
 		panic("server did not become ready in time")
 	}
 
-	// Run all tests
 	code := m.Run()
 
 	time.Sleep(100 * time.Millisecond) // allow graceful shutdown

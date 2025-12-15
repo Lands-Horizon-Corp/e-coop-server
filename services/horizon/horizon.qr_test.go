@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test ./services/horizon/qr_test.go
 
 func setupSecurityUtilsQR() SecurityService {
 	env := NewEnvironmentService("../../.env")
@@ -28,28 +27,23 @@ func TestHorizonQRService_EncodeDecode(t *testing.T) {
 	mockSecurity := setupSecurityUtilsQR()
 	qrService := NewHorizonQRService(mockSecurity)
 
-	// Sample data to encode
 	inputData := map[string]any{
 		"user": "john_doe",
 		"role": "admin",
 	}
 
-	// Encode the data
 	qrResult, err := qrService.EncodeQR(ctx, inputData, "user_data")
 	assert.NoError(t, err)
 	assert.Equal(t, "user_data", qrResult.Type)
 
-	// Decode the data
 	decodedData, err := qrService.DecodeQR(ctx, qrResult)
 	assert.NoError(t, err)
 
-	// Convert decodedData (*any) to a map
 	decodedMap, ok := (*decodedData).(map[string]any)
 	assert.True(t, ok)
 	assert.Equal(t, "john_doe", decodedMap["user"])
 	assert.Equal(t, "admin", decodedMap["role"])
 
-	// Optionally: Re-marshal and compare the JSON string representations
 	originalJSON, _ := json.Marshal(inputData)
 	decodedJSON, _ := json.Marshal(decodedMap)
 	assert.JSONEq(t, string(originalJSON), string(decodedJSON))

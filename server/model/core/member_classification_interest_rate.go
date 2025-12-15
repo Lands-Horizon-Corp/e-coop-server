@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberClassificationInterestRate represents the MemberClassificationInterestRate model.
 	MemberClassificationInterestRate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -62,7 +61,6 @@ type (
 		Header22 int `gorm:"default:640"`
 	}
 
-	// MemberClassificationInterestRateResponse represents the response structure for MemberClassificationInterestRate.
 	MemberClassificationInterestRateResponse struct {
 		ID                     uuid.UUID                     `json:"id"`
 		CreatedAt              string                        `json:"created_at"`
@@ -106,9 +104,7 @@ type (
 		Header22 int `json:"header22"`
 	}
 
-	// MemberClassificationInterestRateRequest represents the request structure for creating/updating memberclassificationinterestrate
 
-	// MemberClassificationInterestRateRequest represents the request structure for MemberClassificationInterestRate.
 	MemberClassificationInterestRateRequest struct {
 		Name                        string     `json:"name" validate:"required,min=1,max=255"`
 		Description                 string     `json:"description,omitempty"`
@@ -228,7 +224,6 @@ func (m *Core) memberClassificationInterestRate() {
 	})
 }
 
-// MemberClassificationInterestRateCurrentBranch returns MemberClassificationInterestRateCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberClassificationInterestRateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationInterestRate, error) {
 	return m.MemberClassificationInterestRateManager.Find(context, &MemberClassificationInterestRate{
 		OrganizationID: organizationID,

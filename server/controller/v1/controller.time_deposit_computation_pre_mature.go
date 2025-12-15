@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// TimeDepositComputationPreMatureController registers routes for managing time deposit computation pre mature.
 func (c *Controller) timeDepositComputationPreMatureController() {
 	req := c.provider.Service.Request
 
-	// POST /time-deposit-computation-pre-mature: Create a new time deposit computation pre mature. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
@@ -89,7 +87,6 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		return ctx.JSON(http.StatusCreated, c.core.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
 	})
 
-	// PUT /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Update time deposit computation pre mature by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
@@ -158,7 +155,6 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		return ctx.JSON(http.StatusOK, c.core.TimeDepositComputationPreMatureManager.ToModel(timeDepositComputationPreMature))
 	})
 
-	// DELETE /time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id: Delete a time deposit computation pre mature by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method: "DELETE",
@@ -199,7 +195,6 @@ func (c *Controller) timeDepositComputationPreMatureController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for time deposit computation pre-mature (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",

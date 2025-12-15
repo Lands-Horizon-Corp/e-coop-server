@@ -15,12 +15,10 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// sanitizeHeader removes CR and LF to prevent header injection
 func sanitizeHeader(s string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(s, "\r", ""), "\n", "")
 }
 
-// SMTPRequest represents a templated SMTP request with dynamic variables as map[string]string
 type SMTPRequest struct {
 	To      string            // Recipient SMTP address
 	Subject string            // SMTP subject line
@@ -28,22 +26,16 @@ type SMTPRequest struct {
 	Vars    map[string]string // Dynamic variables for template interpolation
 }
 
-// SMTPService defines the interface for SMTP email operations.
 type SMTPService interface {
-	// Run initializes internal resources like rate limiter
 	Run(ctx context.Context) error
 
-	// Stop cleans up resources
 	Stop(ctx context.Context) error
 
-	// Format processes template and injects variables
 	Format(ctx context.Context, req SMTPRequest) (*SMTPRequest, error)
 
-	// Send dispatches the formatted SMTP to the recipient
 	Send(ctx context.Context, req SMTPRequest) error
 }
 
-// SMTP provides an implementation of SMTPService.
 type SMTP struct {
 	host     string
 	port     int
@@ -55,7 +47,6 @@ type SMTP struct {
 	limiter     *rate.Limiter
 }
 
-// NewSMTP constructs a new SMTP client
 func NewSMTP(host string, port int, username, password string, from string) SMTPService {
 	return &SMTP{
 		host:     host,
@@ -66,7 +57,6 @@ func NewSMTP(host string, port int, username, password string, from string) SMTP
 	}
 }
 
-// Run implements SMTPService.
 func (h *SMTP) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
 		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
@@ -74,13 +64,11 @@ func (h *SMTP) Run(_ context.Context) error {
 	return nil
 }
 
-// Stop implements SMTPService.
 func (h *SMTP) Stop(_ context.Context) error {
 	h.limiter = nil
 	return nil
 }
 
-// Format implements SMTPService.
 func (h *SMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) {
 	var tmplBody string
 
@@ -106,7 +94,6 @@ func (h *SMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) 
 	return &req, nil
 }
 
-// Send implements SMTPService.
 func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	if !handlers.IsValidEmail(req.To) {
 		return eris.New("Recipient email format is invalid")
@@ -115,7 +102,6 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 		return eris.New("Admin email format is invalid")
 	}
 
-	// Wait for rate limiter token (blocking)
 	if err := h.limiter.Wait(ctx); err != nil {
 		return eris.Wrap(err, "rate limit wait failed")
 	}
@@ -127,7 +113,6 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	}
 	req.Body = finalBody.Body
 
-	// Sanitize headers to prevent injection
 	safeFrom := sanitizeHeader(h.from)
 	safeTo := sanitizeHeader(req.To)
 	safeSubject := sanitizeHeader(req.Subject)

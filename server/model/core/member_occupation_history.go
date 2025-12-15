@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberOccupationHistory represents the MemberOccupationHistory model.
 	MemberOccupationHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,7 @@ type (
 		MemberOccupation   *MemberOccupation `gorm:"foreignKey:MemberOccupationID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_occupation,omitempty"`
 	}
 
-	// MemberOccupationHistoryResponse represents the response structure for memberoccupationhistory data
 
-	// MemberOccupationHistoryResponse represents the response structure for MemberOccupationHistory.
 	MemberOccupationHistoryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -57,9 +54,7 @@ type (
 		MemberOccupation   *MemberOccupationResponse `json:"member_occupation,omitempty"`
 	}
 
-	// MemberOccupationHistoryRequest represents the request structure for creating/updating memberoccupationhistory
 
-	// MemberOccupationHistoryRequest represents the request structure for MemberOccupationHistory.
 	MemberOccupationHistoryRequest struct {
 		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`
 		MemberOccupationID uuid.UUID `json:"member_occupation_id" validate:"required"`
@@ -128,7 +123,6 @@ func (m *Core) memberOccupationHistory() {
 	})
 }
 
-// MemberOccupationHistoryCurrentBranch returns MemberOccupationHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberOccupationHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID: organizationID,
@@ -136,7 +130,6 @@ func (m *Core) MemberOccupationHistoryCurrentBranch(context context.Context, org
 	})
 }
 
-// MemberOccupationHistoryMemberProfileID returns MemberOccupationHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *Core) MemberOccupationHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberOccupationHistory, error) {
 	return m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		OrganizationID:  organizationID,

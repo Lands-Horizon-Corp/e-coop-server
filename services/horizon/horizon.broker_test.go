@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/broker_test.go
 
 func TestHorizonMessageBroker(t *testing.T) {
 	env := NewEnvironmentService("../../.env")
@@ -43,7 +42,6 @@ func TestHorizonMessageBroker(t *testing.T) {
 		received := make(chan struct{})
 		errChan := make(chan error, 1)
 
-		// Subscribe to topic
 		err = broker.Subscribe(topic, func(payload any) error {
 			data, ok := payload.(map[string]any)
 			if !ok {
@@ -59,14 +57,11 @@ func TestHorizonMessageBroker(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Publish message
 		err = broker.Publish(topic, map[string]string{"message": "hello"})
 		require.NoError(t, err)
 
-		// Wait for result
 		select {
 		case <-received:
-			// Success
 		case err := <-errChan:
 			t.Fatalf("Handler error: %v", err)
 		case <-time.After(2 * time.Second):
@@ -92,7 +87,6 @@ func TestHorizonMessageBroker(t *testing.T) {
 		wg.Add(2)
 		errChan := make(chan error, 2)
 
-		// Subscribe to topic1
 		err = broker.Subscribe(topic1, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
@@ -103,7 +97,6 @@ func TestHorizonMessageBroker(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Subscribe to topic2
 		err = broker.Subscribe(topic2, func(payload any) error {
 			defer wg.Done()
 			if _, ok := payload.(map[string]any); !ok {
@@ -114,11 +107,9 @@ func TestHorizonMessageBroker(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// Dispatch to both topics
 		err = broker.Dispatch([]string{topic1, topic2}, map[string]string{"data": "value"})
 		require.NoError(t, err)
 
-		// Wait for both messages or timeout
 		done := make(chan struct{})
 		go func() {
 			wg.Wait()
@@ -127,12 +118,10 @@ func TestHorizonMessageBroker(t *testing.T) {
 
 		select {
 		case <-done:
-			// Check for handler errors
 			select {
 			case err := <-errChan:
 				t.Fatalf("Handler error: %v", err)
 			default:
-				// No errors
 			}
 		case <-time.After(2 * time.Second):
 			t.Fatal("Timeout waiting for messages")
@@ -141,7 +130,6 @@ func TestHorizonMessageBroker(t *testing.T) {
 
 	t.Run("Publish Without Connection", func(t *testing.T) {
 		broker := NewHorizonMessageBroker(host, port, "test-client", "", "")
-		// Intentionally not calling Run
 
 		err := broker.Publish("test.topic", "payload")
 		require.Error(t, err)
@@ -150,7 +138,6 @@ func TestHorizonMessageBroker(t *testing.T) {
 
 	t.Run("Subscribe Without Connection", func(t *testing.T) {
 		broker := NewHorizonMessageBroker(host, port, "test-client", "", "")
-		// Intentionally not calling Run
 
 		err := broker.Subscribe("test.topic", func(any) error { return nil })
 		require.Error(t, err)

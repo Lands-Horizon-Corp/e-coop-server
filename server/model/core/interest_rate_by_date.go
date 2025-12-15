@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// InterestRateByDate represents interest rate configurations for specific date ranges
 	InterestRateByDate struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,7 +37,6 @@ type (
 		InterestRate float64   `gorm:"type:decimal(15,6);not null" json:"interest_rate" validate:"required,min=0"`
 	}
 
-	// InterestRateByDateResponse represents the response structure for interest rate by date data
 	InterestRateByDateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,7 +57,6 @@ type (
 		InterestRate      float64                  `json:"interest_rate"`
 	}
 
-	// InterestRateByDateRequest represents the request structure for creating/updating interest rate by date
 	InterestRateByDateRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		BrowseReferenceID uuid.UUID  `json:"browse_reference_id" validate:"required"`
@@ -136,7 +133,6 @@ func (m *Core) interestRateByDate() {
 	})
 }
 
-// InterestRateByDateForBrowseReference retrieves interest rates for a specific browse reference
 func (m *Core) InterestRateByDateForBrowseReference(context context.Context, browseReferenceID uuid.UUID) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
@@ -145,7 +141,6 @@ func (m *Core) InterestRateByDateForBrowseReference(context context.Context, bro
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
-// InterestRateByDateForRange retrieves interest rates for a specific date range
 func (m *Core) InterestRateByDateForRange(context context.Context, browseReferenceID uuid.UUID, date time.Time) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
@@ -156,7 +151,6 @@ func (m *Core) InterestRateByDateForRange(context context.Context, browseReferen
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
-// InterestRateByDateCurrentBranch retrieves interest rates for the specified branch and organization
 func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByDate, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -166,7 +160,6 @@ func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organiza
 	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
 }
 
-// GetInterestRateForDate gets the applicable interest rate for a specific browse reference and date
 func (m *Core) GetInterestRateForDate(context context.Context, browseReferenceID uuid.UUID, date time.Time) (*InterestRateByDate, error) {
 	rates, err := m.InterestRateByDateForRange(context, browseReferenceID, date)
 	if err != nil {
@@ -177,6 +170,5 @@ func (m *Core) GetInterestRateForDate(context context.Context, browseReferenceID
 		return nil, nil
 	}
 
-	// Return the first matching rate (should be only one due to range constraints)
 	return rates[0], nil
 }

@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// Timesheet represents an employee time tracking record in the database
 	Timesheet struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -42,7 +41,6 @@ type (
 		TimeOut *time.Time `gorm:""`
 	}
 
-	// TimesheetResponse represents the response structure for timesheet data
 	TimesheetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -65,7 +63,6 @@ type (
 		TimeOut        *string               `json:"time_out,omitempty"`
 	}
 
-	// TimesheetRequest represents the request structure for timesheet operations
 	TimesheetRequest struct {
 		MediaID *uuid.UUID `json:"media_id,omitempty"`
 	}
@@ -149,7 +146,6 @@ func (m *Core) timesheet() {
 	})
 }
 
-// TimesheetCurrentBranch gets timesheets for the current branch
 func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -159,7 +155,6 @@ func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uu
 	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
 
-// GetUserTimesheet retrieves timesheets for a specific user in a branch
 func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "user_id", Op: query.ModeEqual, Value: userID},
@@ -170,7 +165,6 @@ func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID,
 	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
 
-// TimeSheetActiveUsers gets all users with active timesheets in the branch
 func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},

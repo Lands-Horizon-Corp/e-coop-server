@@ -14,7 +14,6 @@ import (
 func (c *Controller) memberTypeController() {
 	req := c.provider.Service.Request
 
-	// Get all member type history for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
@@ -33,7 +32,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberTypeHistoryManager.ToModels(memberTypeHistory))
 	})
 
-	// Get member type history by member profile ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -60,7 +58,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, memberTypeHistory)
 	})
 
-	// Get all member types for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
@@ -79,7 +76,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModels(memberType))
 	})
 
-	// Get paginated member types for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
@@ -101,7 +97,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Create a new member type
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
@@ -159,7 +154,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModel(memberType))
 	})
 
-	// Update an existing member type by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
@@ -230,7 +224,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModel(memberType))
 	})
 
-	// Delete a member type by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-type/:member_type_id",
 		Method: "DELETE",
@@ -271,7 +264,6 @@ func (c *Controller) memberTypeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member types (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",

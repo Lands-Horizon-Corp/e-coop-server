@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CancelledCashCheckVoucherController registers routes for managing cancelled cash check vouchers.
 func (c *Controller) cancelledCashCheckVoucherController() {
 	req := c.provider.Service.Request
 
-	// GET /cancelled-cash-check-voucher: List all cancelled cash check vouchers for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.ToModels(cancelledVouchers))
 	})
 
-	// GET /cancelled-cash-check-voucher/search: Paginated search of cancelled cash check vouchers for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, cancelledVouchers)
 	})
 
-	// GET /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Get specific cancelled cash check voucher by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, cancelledVoucher)
 	})
 
-	// POST /cancelled-cash-check-voucher: Create a new cancelled cash check voucher. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "POST",
@@ -144,7 +139,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.JSON(http.StatusCreated, c.core.CancelledCashCheckVoucherManager.ToModel(cancelledVoucher))
 	})
 
-	// PUT /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Update cancelled cash check voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "PUT",
@@ -211,7 +205,6 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.ToModel(cancelledVoucher))
 	})
 
-	// DELETE /cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id: Delete a cancelled cash check voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method: "DELETE",

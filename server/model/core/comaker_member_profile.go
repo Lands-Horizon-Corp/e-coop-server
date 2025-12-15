@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ComakerMemberProfile represents the ComakerMemberProfile model.
 	ComakerMemberProfile struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -41,9 +40,7 @@ type (
 		YearCount   int     `gorm:"type:int;default:0" json:"year_count"`
 	}
 
-	// ComakerMemberProfileResponse represents the response structure for comakermemberprofile data
 
-	// ComakerMemberProfileResponse represents the response structure for ComakerMemberProfile.
 	ComakerMemberProfileResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,9 +66,7 @@ type (
 		YearCount   int     `json:"year_count"`
 	}
 
-	// ComakerMemberProfileRequest represents the request structure for creating/updating comakermemberprofile
 
-	// ComakerMemberProfileRequest represents the request structure for ComakerMemberProfile.
 	ComakerMemberProfileRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
@@ -147,7 +142,6 @@ func (m *Core) comakerMemberProfile() {
 	})
 }
 
-// ComakerMemberProfileCurrentBranch retrieves all comaker member profiles for the specified organization and branch
 func (m *Core) ComakerMemberProfileCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
 		OrganizationID: organizationID,
@@ -155,7 +149,6 @@ func (m *Core) ComakerMemberProfileCurrentBranch(context context.Context, organi
 	})
 }
 
-// ComakerMemberProfileByLoanTransaction retrieves all comaker member profiles for the specified loan transaction
 func (m *Core) ComakerMemberProfileByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerMemberProfile, error) {
 	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
 		LoanTransactionID: loanTransactionID,

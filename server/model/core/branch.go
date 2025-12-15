@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// Branch represents the Branch model.
 	Branch struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -47,7 +46,6 @@ type (
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 		IsMainBranch  bool     `gorm:"not null;default:false" json:"is_main_branch"`
 
-		// 1-to-1 relationship with BranchSetting
 		BranchSetting *BranchSetting `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch_setting,omitempty"`
 
 		Footsteps           []*Footstep           `gorm:"foreignKey:BranchID" json:"footsteps,omitempty"`
@@ -59,9 +57,7 @@ type (
 		TaxIdentificationNumber *string `gorm:"type:varchar(100)" json:"tax_identification_number,omitempty"`
 	}
 
-	// BranchRequest represents the request structure for creating/updating branch
 
-	// BranchRequest represents the request structure for Branch.
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -85,9 +81,7 @@ type (
 		TaxIdentificationNumber *string `json:"tax_identification_number,omitempty"`
 	}
 
-	// BranchResponse represents the response structure for branch data
 
-	// BranchResponse represents the response structure for Branch.
 	BranchResponse struct {
 		ID           uuid.UUID             `json:"id"`
 		CreatedAt    string                `json:"created_at"`
@@ -221,12 +215,10 @@ func (m *Core) branch() {
 	})
 }
 
-// GetBranchesByOrganization retrieves all branches associated with a specific organization.
 func (m *Core) GetBranchesByOrganization(context context.Context, organizationID uuid.UUID) ([]*Branch, error) {
 	return m.BranchManager.Find(context, &Branch{OrganizationID: organizationID})
 }
 
-// GetBranchesByOrganizationCount retrieves the count of branches associated with a specific organization.
 func (m *Core) GetBranchesByOrganizationCount(context context.Context, organizationID uuid.UUID) (int64, error) {
 	return m.BranchManager.Count(context, &Branch{OrganizationID: organizationID})
 }

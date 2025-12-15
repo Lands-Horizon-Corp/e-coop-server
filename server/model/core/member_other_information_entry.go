@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberOtherInformationEntry represents the MemberOtherInformationEntry model.
 	MemberOtherInformationEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -34,9 +33,7 @@ type (
 		EntryDate   time.Time `gorm:"type:timestamp"`
 	}
 
-	// MemberOtherInformationEntryResponse represents the response structure for memberotherinformationentry data
 
-	// MemberOtherInformationEntryResponse represents the response structure for MemberOtherInformationEntry.
 	MemberOtherInformationEntryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,9 +51,7 @@ type (
 		EntryDate      string                `json:"entry_date"`
 	}
 
-	// MemberOtherInformationEntryRequest represents the request structure for creating/updating memberotherinformationentry
 
-	// MemberOtherInformationEntryRequest represents the request structure for MemberOtherInformationEntry.
 	MemberOtherInformationEntryRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
@@ -121,7 +116,6 @@ func (m *Core) memberOtherInformationEntry() {
 	})
 }
 
-// MemberOtherInformationEntryCurrentBranch returns MemberOtherInformationEntryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberOtherInformationEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
 	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
 		OrganizationID: organizationID,

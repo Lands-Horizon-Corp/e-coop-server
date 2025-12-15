@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// CollectorsMemberAccountEntry represents the CollectorsMemberAccountEntry model.
 	CollectorsMemberAccountEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,7 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// CollectorsMemberAccountEntryResponse represents the response structure for collectorsmemberaccountentry data
 
-	// CollectorsMemberAccountEntryResponse represents the response structure for CollectorsMemberAccountEntry.
 	CollectorsMemberAccountEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -63,9 +60,7 @@ type (
 		Description     string                 `json:"description"`
 	}
 
-	// CollectorsMemberAccountEntryRequest represents the request structure for creating/updating collectorsmemberaccountentry
 
-	// CollectorsMemberAccountEntryRequest represents the request structure for CollectorsMemberAccountEntry.
 	CollectorsMemberAccountEntryRequest struct {
 		CollectorUserID *uuid.UUID `json:"collector_user_id,omitempty"`
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
@@ -139,7 +134,6 @@ func (m *Core) collectorsMemberAccountEntry() {
 	})
 }
 
-// CollectorsMemberAccountEntryCurrentBranch retrieves all collectors member account entries for the specified organization and branch
 func (m *Core) CollectorsMemberAccountEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
 	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
 		OrganizationID: organizationID,

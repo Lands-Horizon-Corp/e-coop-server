@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// AdjustmentTag represents the AdjustmentTag model.
 	AdjustmentTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -39,9 +38,7 @@ type (
 		Icon        string `gorm:"type:varchar(20)" json:"icon"`
 	}
 
-	// AdjustmentTagResponse represents the response structure for adjustmenttag data
 
-	// AdjustmentTagResponse represents the response structure for AdjustmentTag.
 	AdjustmentTagResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -63,9 +60,7 @@ type (
 		Icon              string                   `json:"icon"`
 	}
 
-	// AdjustmentTagRequest represents the request structure for creating/updating adjustmenttag
 
-	// AdjustmentTagRequest represents the request structure for AdjustmentTag.
 	AdjustmentTagRequest struct {
 		AdjustmentEntryID *uuid.UUID `json:"adjustment_entry_id,omitempty"`
 		Name              string     `json:"name,omitempty"`
@@ -140,7 +135,6 @@ func (m *Core) adjustmentTag() {
 	})
 }
 
-// AdjustmentTagCurrentBranch retrieves adjustment tags for a specific organization and branch
 func (m *Core) AdjustmentTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentTag, error) {
 	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
 		OrganizationID: organizationID,

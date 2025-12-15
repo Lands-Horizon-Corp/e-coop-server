@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// OrganizationMediaController registers routes for managing organization media.
 func (c *Controller) organizationMediaController() {
 	req := c.provider.Service.Request
 
-	// GET /organization-media: List all organization media for the current user's organization. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media",
 		Method:       "GET",
@@ -33,7 +31,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.ToModels(organizationMedia))
 	})
 
-	// GET /organization-media/search: Paginated search of organization media for the current organization. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/search",
 		Method:       "GET",
@@ -54,7 +51,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusOK, organizationMedia)
 	})
 
-	// GET /organization-media/organization/:organization_id: Get all media for a specific organization by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/organization/:organization_id",
 		Method:       "GET",
@@ -75,7 +71,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusOK, organizationMedias)
 	})
 
-	// GET /organization-media/:media_id: Get specific organization media by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/:media_id",
 		Method:       "GET",
@@ -94,7 +89,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusOK, organizationMedia)
 	})
 
-	// POST /organization-media: Create a new organization media. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media",
 		Method:       "POST",
@@ -138,7 +132,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusCreated, c.core.OrganizationMediaManager.ToModel(organizationMedia))
 	})
 
-	// PUT /organization-media/: Update organization media by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "PUT",
@@ -198,7 +191,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationMediaManager.ToModel(organizationMedia))
 	})
 
-	// DELETE /organization-media/:media_id: Delete an organization media by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/organization-media/:media_id",
 		Method: "DELETE",
@@ -241,7 +233,6 @@ func (c *Controller) organizationMediaController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for organization media (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/organization-media/bulk-delete",
 		Method:      "DELETE",

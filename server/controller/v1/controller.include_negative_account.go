@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// IncludeNegativeAccountController registers routes for managing include negative accounts.
 func (c *Controller) includeNegativeAccountController() {
 	req := c.provider.Service.Request
 
-	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
@@ -44,7 +42,6 @@ func (c *Controller) includeNegativeAccountController() {
 		return ctx.JSON(http.StatusOK, records)
 	})
 
-	// GET /include-negative-accounts/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
@@ -74,7 +71,6 @@ func (c *Controller) includeNegativeAccountController() {
 		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager.ToModels(records))
 	})
 
-	// POST /include-negative-accounts
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
@@ -138,7 +134,6 @@ func (c *Controller) includeNegativeAccountController() {
 		return ctx.JSON(http.StatusCreated, c.core.IncludeNegativeAccountManager.ToModel(record))
 	})
 
-	// PUT /include-negative-accounts/:include_negative_accounts_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
@@ -206,7 +201,6 @@ func (c *Controller) includeNegativeAccountController() {
 		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager.ToModel(record))
 	})
 
-	// DELETE /include-negative-accounts/:include_negative_accounts_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
@@ -247,7 +241,6 @@ func (c *Controller) includeNegativeAccountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for include-negative-accounts (matches feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",

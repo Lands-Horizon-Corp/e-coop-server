@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CollateralController manages endpoints for collateral operations.
 func (c *Controller) collateralController() {
 	req := c.provider.Service.Request
 
-	// GET /collateral: List all collaterals for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) collateralController() {
 		return ctx.JSON(http.StatusOK, c.core.CollateralManager.ToModels(collaterals))
 	})
 
-	// GET /collateral/search: Paginated search of collaterals for current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) collateralController() {
 		return ctx.JSON(http.StatusOK, collaterals)
 	})
 
-	// GET /collateral/:collateral_id: Get a specific collateral record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) collateralController() {
 		return ctx.JSON(http.StatusOK, collateral)
 	})
 
-	// POST /collateral: Create a new collateral record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
@@ -145,7 +140,6 @@ func (c *Controller) collateralController() {
 		return ctx.JSON(http.StatusCreated, c.core.CollateralManager.ToModel(collateral))
 	})
 
-	// PUT /collateral/:collateral_id: Update a collateral record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
@@ -212,7 +206,6 @@ func (c *Controller) collateralController() {
 		return ctx.JSON(http.StatusOK, c.core.CollateralManager.ToModel(collateral))
 	})
 
-	// DELETE /collateral/:collateral_id: Delete a collateral record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/collateral/:collateral_id",
 		Method: "DELETE",

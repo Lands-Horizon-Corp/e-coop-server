@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// JournalVoucherEntry represents the JournalVoucherEntry model.
 	JournalVoucherEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -46,9 +45,7 @@ type (
 		Credit      float64 `gorm:"type:decimal"`
 	}
 
-	// JournalVoucherEntryResponse represents the response structure for journalvoucherentry data
 
-	// JournalVoucherEntryResponse represents the response structure for JournalVoucherEntry.
 	JournalVoucherEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -76,7 +73,6 @@ type (
 		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
 	}
 
-	// JournalVoucherEntryRequest represents the request structure for JournalVoucherEntry.
 	JournalVoucherEntryRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`
 		AccountID         uuid.UUID  `json:"account_id" validate:"required"`
@@ -161,7 +157,6 @@ func (m *Core) journalVoucherEntry() {
 	})
 }
 
-// JournalVoucherEntryCurrentBranch returns JournalVoucherEntryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) JournalVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherEntry, error) {
 	return m.JournalVoucherEntryManager.Find(context, &JournalVoucherEntry{
 		OrganizationID: organizationID,

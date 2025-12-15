@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// GeneralAccountGroupingNetSurplusNegative represents the GeneralAccountGroupingNetSurplusNegative model.
 	GeneralAccountGroupingNetSurplusNegative struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,9 +37,7 @@ type (
 		Percentage2 float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// GeneralAccountGroupingNetSurplusNegativeResponse represents the response structure for generalaccountgroupingnetsurplusnegative data
 
-	// GeneralAccountGroupingNetSurplusNegativeResponse represents the response structure for GeneralAccountGroupingNetSurplusNegative.
 	GeneralAccountGroupingNetSurplusNegativeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -61,9 +58,7 @@ type (
 		Percentage2    float64               `json:"percentage_2"`
 	}
 
-	// GeneralAccountGroupingNetSurplusNegativeRequest represents the request structure for creating/updating generalaccountgroupingnetsurplusnegative
 
-	// GeneralAccountGroupingNetSurplusNegativeRequest represents the request structure for GeneralAccountGroupingNetSurplusNegative.
 	GeneralAccountGroupingNetSurplusNegativeRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
@@ -138,7 +133,6 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 	})
 }
 
-// GeneralAccountGroupingNetSurplusNegativeCurrentBranch returns GeneralAccountGroupingNetSurplusNegativeCurrentBranch for the current branch or organization where applicable.
 func (m *Core) GeneralAccountGroupingNetSurplusNegativeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
 	return m.Generalaccountgroupingnetsurplusnegativemanager.Find(context, &GeneralAccountGroupingNetSurplusNegative{
 		OrganizationID: organizationID,

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberAddress represents a member's address information in the database
 	MemberAddress struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -43,7 +42,6 @@ type (
 		Longitude     *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
 
-	// MemberAddressResponse represents the response structure for member address data
 	MemberAddressResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -72,7 +70,6 @@ type (
 		Latitude      *float64 `json:"latitude,omitempty"`
 	}
 
-	// MemberAddressRequest represents the request structure for member address data
 	MemberAddressRequest struct {
 		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
 
@@ -155,7 +152,6 @@ func (m *Core) memberAddress() {
 	})
 }
 
-// MemberAddressCurrentBranch retrieves member addresses for the current branch
 func (m *Core) MemberAddressCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
 	return m.MemberAddressManager.Find(context, &MemberAddress{
 		OrganizationID: organizationID,

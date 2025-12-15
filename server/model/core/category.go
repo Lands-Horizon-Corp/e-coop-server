@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// Category represents the Category model.
 	Category struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -25,9 +24,7 @@ type (
 		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:CategoryID"` // organization category
 	}
 
-	// CategoryResponse represents the response structure for category data
 
-	// CategoryResponse represents the response structure for Category.
 	CategoryResponse struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"createdAt"`
@@ -40,9 +37,7 @@ type (
 		OrganizationCategories []*OrganizationCategoryResponse `json:"organizaton_categories"`
 	}
 
-	// CategoryRequest represents the request structure for creating/updating category
 
-	// CategoryRequest represents the request structure for Category.
 	CategoryRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 

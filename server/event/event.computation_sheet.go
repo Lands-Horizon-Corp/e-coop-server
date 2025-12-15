@@ -133,7 +133,6 @@ func (e *Event) ComputationSheetCalculator(
 				return nil, eris.Wrap(err, fmt.Sprintf("failed to get charges rate scheme for automatic loan deduction ID %s", ald.ID))
 			}
 
-			// Create MemberProfile with proper nil handling
 			memberProfile := &core.MemberProfile{}
 			if lcscr.MemberTypeID != nil {
 				memberProfile.MemberTypeID = lcscr.MemberTypeID
@@ -179,7 +178,6 @@ func (e *Event) ComputationSheetCalculator(
 		return nil, eris.New("debit and credit are not equal")
 	}
 
-	// Loan Amortization Schedule ==========================================
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: computationSheet.OrganizationID,
 		BranchID:       computationSheet.BranchID,
@@ -196,18 +194,15 @@ func (e *Event) ComputationSheetCalculator(
 
 	currency := account.Currency
 
-	// Excluding
 	excludeSaturday := lcscr.ExcludeSaturday
 	excludeSunday := lcscr.ExcludeSunday
 	excludeHolidays := lcscr.ExcludeHoliday
 
-	// Payment custom days
 	isMonthlyExactDay := lcscr.ModeOfPaymentMonthlyExactDay
 	weeklyExactDay := lcscr.ModeOfPaymentWeekly
 	semiMonthlyExactDay1 := lcscr.ModeOfPaymentSemiMonthlyPay1
 	semiMonthlyExactDay2 := lcscr.ModeOfPaymentSemiMonthlyPay2
 
-	// Typically, start date comes from loanTransaction (adjust as needed)
 	amortization := []*ComputationSheetScheduleResponse{}
 	accountsSchedule := []*ComputationSheetAccountValue{}
 	for _, acc := range lcscr.Accounts {
@@ -313,13 +308,11 @@ func (e *Event) ComputationSheetCalculator(
 
 		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 
-		// ✅ CREATE INDEPENDENT ACCOUNT SLICE FOR THIS PERIOD
 		periodAccounts := make([]*ComputationSheetAccountValue, len(accountsSchedule))
 
 		if i > 0 {
 			for j := range accountsSchedule {
 
-				// Create a new account entry for this period
 				periodAccounts[j] = &ComputationSheetAccountValue{
 					Account: accountsSchedule[j].Account,
 					Value:   0,                         // Will be calculated below
@@ -331,7 +324,6 @@ func (e *Event) ComputationSheetCalculator(
 					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
 						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
 
-					// Update cumulative total in original slice
 					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 					periodAccounts[j].Total = accountsSchedule[j].Total
 
@@ -349,13 +341,11 @@ func (e *Event) ComputationSheetCalculator(
 							e.convertAccountRequestToAccount(accountsSchedule[j].Account),
 						)
 
-						// Update cumulative total in original slice
 						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
 						periodAccounts[j].Total = accountsSchedule[j].Total
 					}
 
 				default:
-					// Interest calculations...
 					switch accountsSchedule[j].Account.ComputationType {
 					case core.Straight:
 						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
@@ -385,7 +375,6 @@ func (e *Event) ComputationSheetCalculator(
 				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
 			}
 		} else {
-			// First iteration (i=0), just copy the structure
 			for j := range accountsSchedule {
 				periodAccounts[j] = &ComputationSheetAccountValue{
 					Account: accountsSchedule[j].Account,
@@ -395,14 +384,12 @@ func (e *Event) ComputationSheetCalculator(
 			}
 		}
 
-		// Sort accounts in desired order: Loan → Interest → SVF → Fines
 		sort.Slice(periodAccounts, func(i, j int) bool {
 			return getAccountTypePriority(
 				periodAccounts[i].Account.Type) <
 				getAccountTypePriority(periodAccounts[j].Account.Type)
 		})
 
-		// ✅ NOW append with period-specific accounts
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
@@ -517,7 +504,6 @@ func (e *Event) ComputationSheetCalculator(
 	}, nil
 }
 
-// Add helper function
 func (e *Event) convertAccountRequestToAccount(req *core.AccountRequest) core.Account {
 	return core.Account{
 		GeneralLedgerDefinitionID:             req.GeneralLedgerDefinitionID,
@@ -596,8 +582,6 @@ func (e *Event) convertAccountRequestToAccount(req *core.AccountRequest) core.Ac
 	}
 }
 
-// getAccountTypePriority returns the sort priority for account types
-// Lower numbers = higher priority (sorted first)
 func getAccountTypePriority(accountType core.AccountType) int {
 	switch accountType {
 	case core.AccountTypeLoan:

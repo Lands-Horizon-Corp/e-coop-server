@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// LoanStatusController manages endpoints for loan status records.
 func (c *Controller) loanStatusController() {
 	req := c.provider.Service.Request
 
-	// GET /loan-status: List all loan statuses for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanStatusManager.ToModels(statuses))
 	})
 
-	// GET /loan-status/search: Paginated search of loan statuses for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-status/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// GET /loan-status/:loan_status_id: Get a specific loan status record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.JSON(http.StatusOK, status)
 	})
 
-	// POST /loan-status: Create a new loan status record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "POST",
@@ -143,7 +138,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.JSON(http.StatusCreated, c.core.LoanStatusManager.ToModel(status))
 	})
 
-	// PUT /loan-status/:loan_status_id: Update a loan status record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "PUT",
@@ -218,7 +212,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanStatusManager.ToModel(status))
 	})
 
-	// DELETE /loan-status/:loan_status_id: Delete a loan status record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-status/:loan_status_id",
 		Method: "DELETE",
@@ -259,7 +252,6 @@ func (c *Controller) loanStatusController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for loan statuses (mirrors the feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-status/bulk-delete",
 		Method:      "DELETE",

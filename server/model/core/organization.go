@@ -14,7 +14,6 @@ import (
 )
 
 type (
-	// Organization represents a cooperative organization in the system
 	Organization struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -72,7 +71,6 @@ type (
 		UserOrganizations      []*UserOrganization       `gorm:"foreignKey:OrganizationID" json:"user_organizations,omitempty"`       // user organization
 	}
 
-	// OrganizationResponse represents the JSON response structure for organization data
 	OrganizationResponse struct {
 		ID          uuid.UUID     `json:"id"`
 		CreatedAt   string        `json:"created_at"`
@@ -127,7 +125,6 @@ type (
 		UserOrganizations      []*UserOrganizationResponse       `json:"user_organizations,omitempty"`
 	}
 
-	// OrganizationRequest represents the request payload for organization operations
 	OrganizationRequest struct {
 		ID *string `json:"id,omitempty"`
 
@@ -162,27 +159,23 @@ type (
 		CurrencyID *uuid.UUID `json:"currency_id,omitempty"`
 	}
 
-	// OrganizationSubscriptionRequest represents the request payload for organization subscription operations
 	OrganizationSubscriptionRequest struct {
 		OrganizationID           uuid.UUID `json:"organization_id" validate:"required,uuid4"`
 		SubscriptionPlanID       uuid.UUID `json:"subscription_plan_id" validate:"required,uuid4"`
 		SubscriptionPlanIsYearly *bool     `json:"subscription_plan_is_yearly,omitempty"`
 	}
 
-	// CreateOrganizationResponse represents the response structure for organization creation
 	CreateOrganizationResponse struct {
 		Organization     *OrganizationResponse     `json:"organization"`
 		UserOrganization *UserOrganizationResponse `json:"user_organization"`
 	}
 
-	// OrganizationPerCategoryResponse represents organization data grouped by category
 	OrganizationPerCategoryResponse struct {
 		Category      *CategoryResponse       `json:"category"`
 		Organizations []*OrganizationResponse `json:"organizations"`
 	}
 )
 
-// Organization initializes the Organization model and its repository manager
 func (m *Core) organization() {
 	m.Migration = append(m.Migration, &Organization{})
 	m.OrganizationManager = *registry.NewRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
@@ -273,7 +266,6 @@ func (m *Core) organization() {
 	})
 }
 
-// GetPublicOrganization retrieves all organizations marked as public
 func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
@@ -281,17 +273,11 @@ func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, erro
 	return m.OrganizationManager.ArrFind(ctx, filters, nil)
 }
 
-// GetFeaturedOrganization retrieves organizations marked as featured for promotional display
 func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
-	// Featured organizations are:
-	// 1. Public (not private)
-	// 2. Have a cover media (more visually appealing)
-	// 3. Have a description (complete profile)
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
-	// Get organizations with preloads to check branches
 	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, nil, "Media", "CoverMedia",
 		"SubscriptionPlan", "Branches",
 		"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
@@ -300,7 +286,6 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 		return nil, err
 	}
 
-	// Filter organizations that have at least 2 branches for "featured" status
 	var featuredOrganizations []*Organization
 	for _, org := range organizations {
 		if len(org.Branches) >= 2 {
@@ -308,7 +293,6 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 		}
 	}
 
-	// Limit to top 10 featured organizations
 	if len(featuredOrganizations) > 10 {
 		featuredOrganizations = featuredOrganizations[:10]
 	}
@@ -316,9 +300,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	return featuredOrganizations, nil
 }
 
-// GetOrganizationsByCategoryID retrieves all organizations belonging to a specific category
 func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
-	// Get organization categories that match the category ID
 	filters := []registry.FilterSQL{
 		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
@@ -329,11 +311,9 @@ func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid
 	}
 
 	var organizations []*Organization
-	// Collect unique organizations that are public
 	seen := make(map[uuid.UUID]bool)
 	for _, orgCat := range orgCategories {
 		if orgCat.Organization != nil && !orgCat.Organization.IsPrivate {
-			// Avoid duplicates
 			if !seen[orgCat.Organization.ID] {
 				organizations = append(organizations, orgCat.Organization)
 				seen[orgCat.Organization.ID] = true
@@ -344,7 +324,6 @@ func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid
 	return organizations, nil
 }
 
-// GetRecentlyAddedOrganization retrieves organizations that were created within the last 30 days
 func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
@@ -362,7 +341,6 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 		return nil, err
 	}
 
-	// Limit to top 15 recently added organizations
 	if len(organizations) > 15 {
 		organizations = organizations[:15]
 	}

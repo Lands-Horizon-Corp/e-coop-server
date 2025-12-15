@@ -18,7 +18,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// StorageService defines the interface for storage operations
 type StorageService interface {
 	Run(ctx context.Context) error
 	Stop(ctx context.Context) error
@@ -34,7 +33,6 @@ type StorageService interface {
 	UploadFromBinaryWithContentType(ctx context.Context, data []byte, fileName string, contentType string, cb ProgressCallback) (*Storage, error)
 }
 
-// Storage represents metadata about a stored file
 type Storage struct {
 	FileName   string
 	FileSize   int64
@@ -46,10 +44,8 @@ type Storage struct {
 	Progress   int64
 }
 
-// ProgressCallback is a function that gets called to report upload progress
 type ProgressCallback func(progress int64, total int64, storage *Storage)
 
-// StorageImpl is the default implementation of StorageService using MinIO
 type StorageImpl struct {
 	driver           string
 	storageAccessKey string
@@ -63,7 +59,6 @@ type StorageImpl struct {
 	ssl              bool
 }
 
-// progressReader wraps an io.Reader to report upload progress
 type progressReader struct {
 	reader    io.Reader
 	callback  ProgressCallback
@@ -72,7 +67,6 @@ type progressReader struct {
 	storage   *Storage
 }
 
-// BinaryFileInput represents a file to be uploaded from a binary source
 type BinaryFileInput struct {
 	Data        io.Reader
 	Size        int64
@@ -80,7 +74,6 @@ type BinaryFileInput struct {
 	ContentType string
 }
 
-// NewStorageImplService creates a new instance of StorageImpl
 func NewStorageImplService(
 	accessKey,
 	secretKey,
@@ -103,9 +96,7 @@ func NewStorageImplService(
 	}
 }
 
-// Run initializes the storage service and ensures the bucket exists
 func (h *StorageImpl) Run(ctx context.Context) error {
-	// Check for missing keys
 	if h.endpoint == "" {
 		return eris.New("missing storage endpoint")
 	}
@@ -119,7 +110,6 @@ func (h *StorageImpl) Run(ctx context.Context) error {
 		return eris.New("missing storage bucket name")
 	}
 
-	// Initialize MinIO client
 	client, err := minio.New(h.endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(h.storageAccessKey, h.storageSecretKey, ""),
 		Secure: h.ssl,
@@ -136,13 +126,11 @@ func (h *StorageImpl) Run(ctx context.Context) error {
 	}
 	h.client = client
 
-	// Check whether the bucket exists
 	exists, err := client.BucketExists(ctx, h.storageBucket)
 	if err != nil {
 		return eris.Wrap(err, "failed to check bucket exists")
 	}
 	if !exists {
-		// Create the bucket if it does not exist
 		err = client.MakeBucket(ctx, h.storageBucket, minio.MakeBucketOptions{Region: h.region})
 		if err != nil {
 			return eris.Wrapf(err, "failed to create bucket %s", h.storageBucket)
@@ -151,13 +139,11 @@ func (h *StorageImpl) Run(ctx context.Context) error {
 	return nil
 }
 
-// Stop cleans up the storage service resources
 func (h *StorageImpl) Stop(_ context.Context) error {
 	h.client = nil
 	return nil
 }
 
-// Read reads data from the underlying reader and reports progress
 func (pr *progressReader) Read(p []byte) (int, error) {
 	n, err := pr.reader.Read(p)
 	if n > 0 {
@@ -172,7 +158,6 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// Upload uploads a file to the storage service based on the input type
 func (h *StorageImpl) Upload(ctx context.Context, file any, onProgress ProgressCallback) (*Storage, error) {
 	switch v := file.(type) {
 	case string:
@@ -189,7 +174,6 @@ func (h *StorageImpl) Upload(ctx context.Context, file any, onProgress ProgressC
 	}
 }
 
-// UploadFromPath uploads a file from a local path to the storage service
 func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb ProgressCallback) (*Storage, error) {
 	if handlers.IsSuspiciousPath(path) {
 		return nil, eris.New("suspicious file path")
@@ -205,7 +189,6 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 		return nil, eris.Wrapf(err, "failed to stat %s", path)
 	}
 
-	// Validate file size
 	if h.maxFileSize > 0 && info.Size() > h.maxFileSize {
 		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", info.Size(), h.maxFileSize)
 	}
@@ -255,9 +238,7 @@ func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb Progre
 	return storage, nil
 }
 
-// UploadFromBinary uploads a file from binary data to the storage service
 func (h *StorageImpl) UploadFromBinary(ctx context.Context, data []byte, cb ProgressCallback) (*Storage, error) {
-	// Validate file size
 	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
 		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
 	}
@@ -299,9 +280,7 @@ func (h *StorageImpl) UploadFromBinary(ctx context.Context, data []byte, cb Prog
 	return storage, nil
 }
 
-// UploadFromURL uploads a file from a URL to the storage service
 func (h *StorageImpl) UploadFromURL(ctx context.Context, url string, cb ProgressCallback) (*Storage, error) {
-	// Download the file from the URL
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to create HTTP request for URL")
@@ -328,19 +307,16 @@ func (h *StorageImpl) UploadFromURL(ctx context.Context, url string, cb Progress
 		fileName = "file"
 	}
 
-	// Detect content type
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
 
-	// Read file data to buffer to get the size (since MinIO needs content length)
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to read file data from URL response")
 	}
 
-	// Validate file size
 	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
 		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
 	}
@@ -382,9 +358,7 @@ func (h *StorageImpl) UploadFromURL(ctx context.Context, url string, cb Progress
 	return storage, nil
 }
 
-// UploadFromHeader uploads a file from a multipart header to the storage service
 func (h *StorageImpl) UploadFromHeader(ctx context.Context, header *multipart.FileHeader, cb ProgressCallback) (*Storage, error) {
-	// Validate file size
 	if h.maxFileSize > 0 && header.Size > h.maxFileSize {
 		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", header.Size, h.maxFileSize)
 	}
@@ -435,7 +409,6 @@ func (h *StorageImpl) UploadFromHeader(ctx context.Context, header *multipart.Fi
 	return storage, nil
 }
 
-// GeneratePresignedURL generates a presigned URL for accessing the stored file
 func (h *StorageImpl) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
 	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
@@ -448,7 +421,6 @@ func (h *StorageImpl) GeneratePresignedURL(ctx context.Context, storage *Storage
 	return presignedURL.String(), nil
 }
 
-// DeleteFile deletes a file from the storage service
 func (h *StorageImpl) DeleteFile(ctx context.Context, storage *Storage) error {
 	if h.client == nil {
 		return eris.New("not initialized")
@@ -463,9 +435,7 @@ func (h *StorageImpl) DeleteFile(ctx context.Context, storage *Storage) error {
 	return nil
 }
 
-// Add new method implementation
 func (h *StorageImpl) UploadFromBinaryWithContentType(ctx context.Context, data []byte, fileName string, contentType string, cb ProgressCallback) (*Storage, error) {
-	// Validate file size
 	if h.maxFileSize > 0 && int64(len(data)) > h.maxFileSize {
 		return nil, eris.Errorf("file size %d bytes exceeds maximum allowed size of %d bytes", len(data), h.maxFileSize)
 	}
@@ -509,7 +479,6 @@ func (h *StorageImpl) UploadFromBinaryWithContentType(ctx context.Context, data 
 	return storage, nil
 }
 
-// RemoveAllFiles removes all files from the storage bucket
 func (h *StorageImpl) RemoveAllFiles(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("not initialized")
@@ -549,12 +518,10 @@ func (h *StorageImpl) RemoveAllFiles(ctx context.Context) error {
 	return nil
 }
 
-// GenerateUniqueName generates a unique file name based on the original name and content type
 func (h *StorageImpl) GenerateUniqueName(_ context.Context, original string, contentType string) (string, error) {
 	ext := filepath.Ext(original)
 	base := strings.TrimSuffix(original, ext)
 
-	// If no extension in original filename, try to get it from content type
 	if ext == "" && contentType != "" {
 		ext = handlers.GetExtensionFromContentType(contentType)
 	}

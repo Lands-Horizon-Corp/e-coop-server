@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// MemberGroup represents the MemberGroup model.
 	MemberGroup struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -34,9 +33,7 @@ type (
 		Description string `gorm:"type:text;not null"`
 	}
 
-	// MemberGroupResponse represents the response structure for membergroup data
 
-	// MemberGroupResponse represents the response structure for MemberGroup.
 	MemberGroupResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,9 +50,7 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// MemberGroupRequest represents the request structure for creating/updating membergroup
 
-	// MemberGroupRequest represents the request structure for MemberGroup.
 	MemberGroupRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=50"`
 		Description string `json:"description" validate:"required"`
@@ -185,7 +180,6 @@ func (m *Core) memberGroupSeed(context context.Context, tx *gorm.DB, userID uuid
 	return nil
 }
 
-// MemberGroupCurrentBranch returns MemberGroupCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberGroupCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroup, error) {
 	return m.MemberGroupManager.Find(context, &MemberGroup{
 		OrganizationID: organizationID,

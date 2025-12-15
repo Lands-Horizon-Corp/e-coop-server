@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// VoucherPayTo represents a payee entity for voucher transactions within an organization
 	VoucherPayTo struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,7 +34,6 @@ type (
 		Description string     `gorm:"type:varchar(255)"`
 	}
 
-	// VoucherPayToResponse represents the response structure for voucher payee data
 	VoucherPayToResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -54,7 +52,6 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// VoucherPayToRequest represents the request structure for creating or updating a voucher payee
 	VoucherPayToRequest struct {
 		Name        string     `json:"name,omitempty"`
 		MediaID     *uuid.UUID `json:"media_id,omitempty"`
@@ -62,7 +59,6 @@ type (
 	}
 )
 
-// VoucherPayTo initializes the voucher pay to repository and sets up migration
 func (m *Core) voucherPayTo() {
 	m.Migration = append(m.Migration, &VoucherPayTo{})
 	m.VoucherPayToManager = *registry.NewRegistry(registry.RegistryParams[
@@ -124,7 +120,6 @@ func (m *Core) voucherPayTo() {
 	})
 }
 
-// VoucherPayToCurrentBranch retrieves all voucher payees for the specified organization and branch
 func (m *Core) VoucherPayToCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*VoucherPayTo, error) {
 	return m.VoucherPayToManager.Find(context, &VoucherPayTo{
 		OrganizationID: organizationID,

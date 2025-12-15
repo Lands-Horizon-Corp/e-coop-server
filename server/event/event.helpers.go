@@ -6,9 +6,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 )
 
-// helper: returns the next date after 'from' that falls on 'weekday'
 func (e Event) nextWeekday(from time.Time, weekday time.Weekday) time.Time {
-	// Move to the next day to avoid returning the current day if matches
 	d := from.AddDate(0, 0, 1)
 	for d.Weekday() != weekday {
 		d = d.AddDate(0, 0, 1)
@@ -65,7 +63,6 @@ func (e Event) skippedDate(date time.Time, currency *core.Currency, excludeSatur
 }
 
 func (e Event) isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {
-	// Convert to the currency's timezone
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
 		return false, err
