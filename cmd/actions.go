@@ -314,7 +314,7 @@ func cleanCache() {
 func refreshDatabase() {
 	color.Blue("Refreshing database...")
 	app := fx.New(
-		fx.StartTimeout(3*time.Hour), // Longer timeout for full refresh
+		fx.StartTimeout(3*time.Hour),
 		fx.Provide(
 			server.NewProvider,
 			core.NewCore,
