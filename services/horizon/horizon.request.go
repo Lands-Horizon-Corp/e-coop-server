@@ -586,23 +586,27 @@ func NewHorizonAPIService(
 func (h *APIServiceImpl) Client() *echo.Echo {
 	return h.service
 }
+
 func (h *APIServiceImpl) RegisterWebRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 
 	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
 	}
+
+	routePath := strings.TrimPrefix(route.Route, "/")
+	routePath = "/web/" + routePath
 	switch method {
 	case http.MethodGet:
-		h.service.GET(route.Route, callback, m...)
+		h.service.GET(routePath, callback, m...)
 	case http.MethodPost:
-		h.service.POST(route.Route, callback, m...)
+		h.service.POST(routePath, callback, m...)
 	case http.MethodPut:
-		h.service.PUT(route.Route, callback, m...)
+		h.service.PUT(routePath, callback, m...)
 	case http.MethodPatch:
-		h.service.PATCH(route.Route, callback, m...)
+		h.service.PATCH(routePath, callback, m...)
 	case http.MethodDelete:
-		h.service.DELETE(route.Route, callback, m...)
+		h.service.DELETE(routePath, callback, m...)
 	}
 }
 
