@@ -2,7 +2,12 @@ package cable
 
 import (
 	"context"
+	"log"
+	"os"
+	"strconv"
+	"time"
 
+	"github.com/fatih/color"
 	"github.com/google/wire"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
@@ -40,4 +45,29 @@ func InitializeDatabaseMigrator() (*DatabaseMigrator, error) {
 		NewDatabaseMigrator,
 	)
 	return nil, nil
+}
+
+func MigrateDatabase() {
+	color.Blue("Running database migrations...")
+
+	migrator, err := InitializeDatabaseMigrator()
+	if err != nil {
+		log.Fatalf("Failed to initialize database migrator: %v", err)
+	}
+
+	timeout := 30 * time.Minute
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			timeout = time.Duration(minutes) * time.Minute
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := migrator.Migrate(ctx); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
+
+	color.Green("Database migration completed successfully.")
 }

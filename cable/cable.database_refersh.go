@@ -2,11 +2,16 @@ package cable
 
 import (
 	"context"
+	"log"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
+	"github.com/fatih/color"
 	"github.com/google/wire"
 )
 
@@ -63,4 +68,28 @@ func InitializeDatabaseRefresher() (*DatabaseRefresher, error) {
 		NewDatabaseRefresher,
 	)
 	return nil, nil
+}
+
+func RefreshDatabase() {
+	color.Blue("Refreshing database...")
+
+	refresher, err := InitializeDatabaseRefresher()
+	if err != nil {
+		log.Fatalf("Failed to initialize database refresher: %v", err)
+	}
+
+	timeout := 3 * time.Hour
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			timeout = time.Duration(minutes) * time.Minute
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := refresher.Refresh(ctx); err != nil {
+		log.Fatalf("Database refresh failed: %v", err)
+	}
+
+	color.Green("Database reset completed successfully.")
 }

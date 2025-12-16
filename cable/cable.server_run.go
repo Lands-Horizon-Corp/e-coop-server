@@ -2,6 +2,10 @@ package cable
 
 import (
 	"context"
+	"log"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
@@ -11,6 +15,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
+	"github.com/fatih/color"
 	"github.com/google/wire"
 )
 
@@ -82,4 +87,28 @@ func InitializeMainServer() (*MainServer, error) {
 		NewMainServer,
 	)
 	return nil, nil
+}
+
+func StartServer() {
+	color.Blue("Starting main server...")
+	serverInstance, err := InitializeMainServer()
+	if err != nil {
+		log.Fatalf("Failed to initialize server: %v", err)
+	}
+	timeout := 2 * time.Hour
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			timeout = time.Duration(minutes) * time.Minute
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	if err := serverInstance.Start(ctx); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+	defer func() {
+		if err := serverInstance.Stop(ctx); err != nil {
+			log.Printf("Failed to stop server: %v", err)
+		}
+	}()
 }

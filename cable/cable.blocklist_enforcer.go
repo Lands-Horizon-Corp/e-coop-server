@@ -2,6 +2,9 @@ package cable
 
 import (
 	"context"
+	"log"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
@@ -45,4 +48,38 @@ func InitializeBlocklistEnforcer() (*BlocklistEnforcer, error) {
 		NewBlocklistEnforcer,
 	)
 	return nil, nil
+}
+
+func EnforceBlocklist() {
+	color.Blue("Starting blocklist enforcement...")
+
+	enforcer, err := InitializeBlocklistEnforcer()
+	if err != nil {
+		log.Fatalf("Failed to initialize blocklist enforcer: %v", err)
+	}
+
+	timeout := 30 * time.Minute
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			timeout = time.Duration(minutes) * time.Minute
+		}
+	}
+
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	} else {
+		ctx, cancel = context.WithCancel(context.Background())
+	}
+	defer cancel()
+
+	if err := enforcer.Enforce(ctx); err != nil {
+		log.Fatalf("Blocklist enforcement failed: %v", err)
+	}
+
+	color.Green("Blocklist enforcer stopped.")
 }

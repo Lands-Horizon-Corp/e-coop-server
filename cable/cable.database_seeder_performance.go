@@ -2,10 +2,15 @@ package cable
 
 import (
 	"context"
+	"log"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/fatih/color"
 	"github.com/google/wire"
 )
 
@@ -50,4 +55,28 @@ func InitializeDatabasePerformanceSeeder() (*DatabasePerformanceSeeder, error) {
 		NewDatabasePerformanceSeeder,
 	)
 	return nil, nil
+}
+
+func SeedDatabasePerformance(multiplier int32) {
+	color.Blue("Seeding database for performance benchmark...")
+
+	perfSeeder, err := InitializeDatabasePerformanceSeeder()
+	if err != nil {
+		log.Fatalf("Failed to initialize performance seeder: %v", err)
+	}
+
+	timeout := 4 * time.Hour
+	if timeoutStr := os.Getenv("OPERATION_TIMEOUT_MINUTES"); timeoutStr != "" {
+		if minutes, err := strconv.Atoi(timeoutStr); err == nil {
+			timeout = time.Duration(minutes) * time.Minute
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := perfSeeder.SeedPerformance(ctx, multiplier); err != nil {
+		log.Fatalf("Performance database seeding failed: %v", err)
+	}
+
+	color.Green("Database performance seeding completed successfully.")
 }
