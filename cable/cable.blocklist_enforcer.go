@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/fatih/color"
+	"github.com/google/wire"
 )
 
 type BlocklistEnforcer struct {
@@ -37,11 +38,11 @@ func (b *BlocklistEnforcer) Enforce(ctx context.Context) error {
 	})
 }
 
-// func InitializeBlocklistEnforcer() (*BlocklistEnforcer, error) {
-// 	wire.Build(
-// 		server.NewProvider,
-// 		core.NewCore,
-// 		NewBlocklistEnforcer,
-// 	)
-// 	return nil, nil
-// }
+func InitializeBlocklistEnforcer() (*BlocklistEnforcer, error) {
+	wire.Build(
+		server.NewProvider,
+		core.NewCore,
+		NewBlocklistEnforcer,
+	)
+	return nil, nil
+}

@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services"
-	"github.com/go-playground/validator"
 )
 
 type Provider struct {
@@ -18,8 +17,4 @@ func NewProvider() *Provider {
 	return &Provider{
 		Service: horizonService,
 	}
-}
-
-func NewValidator() *validator.Validate {
-	return validator.New()
 }

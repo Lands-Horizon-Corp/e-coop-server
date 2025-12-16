@@ -251,7 +251,6 @@ func startServer() {
 		fx.StartTimeout(2*time.Hour),
 		fx.Provide(
 			server.NewProvider,
-			server.NewValidator,
 			core.NewCore,
 			v1.NewController,
 			event.NewEvent,
