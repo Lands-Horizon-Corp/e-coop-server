@@ -299,9 +299,9 @@ func (c *Controller) organizationMediaController() {
 		ResponseType: core.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID"})
 		}
 
 		var req core.IDSRequest
@@ -320,7 +320,7 @@ func (c *Controller) organizationMediaController() {
 				MediaID:        mediaID,
 				CreatedAt:      time.Now().UTC(),
 				UpdatedAt:      time.Now().UTC(),
-				OrganizationID: userOrg.OrganizationID,
+				OrganizationID: *organizationID,
 				Name:           media.FileName,
 				Description:    &descruption,
 			}
