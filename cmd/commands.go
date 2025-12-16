@@ -3,7 +3,6 @@ package cmd
 import (
 	"strconv"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/cable"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -28,6 +27,7 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+// Command groups with their configurations
 var commandGroups = map[string]struct {
 	Parent   *cobra.Command
 	Children []CommandConfig
@@ -42,7 +42,7 @@ var commandGroups = map[string]struct {
 				Use:   "clean",
 				Short: "Clean the application cache",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.CleanCache()
+					cleanCache()
 				},
 			},
 		},
@@ -57,14 +57,14 @@ var commandGroups = map[string]struct {
 				Use:   "enforce",
 				Short: "Update HaGeZi blocklist",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.EnforceBlocklist()
+					enforceBlocklist()
 				},
 			},
 			{
 				Use:   "clear",
 				Short: "Clear all blocked IPs from cache",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.AbandonBlockedIPs()
+					clearBlockedIPs()
 				},
 			},
 		},
@@ -79,57 +79,59 @@ var commandGroups = map[string]struct {
 				Use:   "migrate",
 				Short: "Automigrate all tables in the database",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.MigrateDatabase()
+					migrateDatabase()
 				},
 			},
 			{
 				Use:   "seed",
 				Short: "Seed the database with initial data",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.SeedDatabase()
+					seedDatabase()
 				},
 			},
 			{
 				Use:   "performance-seed",
 				Short: "Run database performance tests (creates test tables and data)",
 				RunFunc: func(_ *cobra.Command, args []string) {
+					// parse multiplier from args if provided
 					if len(args) == 0 {
-						cable.SeedDatabasePerformance(1)
+						seedDatabasePerformance(1)
 						return
 					}
 					multiplier, err := strconv.ParseInt(args[0], 10, 32)
 					if err != nil {
 						color.Red("Invalid multiplier, using default 1")
-						cable.SeedDatabasePerformance(1)
+						seedDatabasePerformance(1)
 						return
 					}
-					cable.SeedDatabasePerformance(int32(multiplier))
+					seedDatabasePerformance(int32(multiplier))
 				},
 			},
 			{
 				Use:   "reset",
 				Short: "Reset the database (drops and recreates)",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.ResetDatabase()
+					resetDatabase()
 				},
 			},
 			{
 				Use:   "refresh",
 				Short: "Reset the database and seed it with initial data",
 				RunFunc: func(_ *cobra.Command, _ []string) {
-					cable.RefreshDatabase()
+					refreshDatabase()
 				},
 			},
 		},
 	},
 }
 
+// Standalone commands
 var standaloneCommands = []CommandConfig{
 	{
 		Use:   "server",
 		Short: "Start the main server",
 		RunFunc: func(_ *cobra.Command, _ []string) {
-			cable.StartServer()
+			startServer()
 		},
 	},
 }
