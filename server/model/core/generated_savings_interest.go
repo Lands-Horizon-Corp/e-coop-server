@@ -64,11 +64,11 @@ type (
 
 		PrintedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PrintedByUser   *User      `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:SET NULL;" json:"printed_by_user,omitempty"`
-		PrintedDate     *time.Time `gorm:"" json:"printed_date,omitempty"`
+		PrintedDate     *time.Time `gorm:"default:NULL" json:"printed_date,omitempty"`
 
 		PostedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
-		PostedDate     *time.Time `gorm:"" json:"posted_date,omitempty"`
+		PostedDate     *time.Time `gorm:"default:NULL" json:"posted_date,omitempty"`
 
 		CheckVoucherNumber *string `gorm:"type:varchar(255)" json:"check_voucher_number,omitempty"`
 

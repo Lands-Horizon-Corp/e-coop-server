@@ -65,7 +65,7 @@ type (
 
 		PrintedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PrintedByUser   *User      `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:SET NULL;" json:"printed_by_user,omitempty"`
-		PrintedDate     *time.Time `gorm:"" json:"printed_date,omitempty"`
+		PrintedDate     *time.Time `gorm:"default:NULL" json:"printed_date,omitempty"`
 
 		PostedDate     *time.Time `json:"posted_date,omitempty"`
 		PostedByUserID *uuid.UUID `gorm:"type:uuid" json:"posted_by_user_id,omitempty"`

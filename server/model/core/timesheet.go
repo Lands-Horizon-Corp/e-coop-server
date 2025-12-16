@@ -38,7 +38,7 @@ type (
 		MediaOut   *Media     `gorm:"foreignKey:MediaOutID;constraint:OnDelete:RESTRICT;" json:"media_out,omitempty"`
 
 		TimeIn  time.Time  `gorm:"not null;default:now()"`
-		TimeOut *time.Time `gorm:""`
+		TimeOut *time.Time `gorm:"default:NULL"`
 	}
 
 	TimesheetResponse struct {
