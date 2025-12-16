@@ -106,7 +106,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 		if e.provider.Service.Decimal.IsLessThan(lastBalance, memberBrowseRef.BrowseReference.MinimumBalance) {
 			fmt.Printf("DEBUG: lastBalance < MinimumBalance, Charges=%v\n", memberBrowseRef.BrowseReference.Charges)
 			if memberBrowseRef.BrowseReference.Charges == 0 {
-				continue // No charges configured, skip this account
+				continue
 			}
 
 			savingsComputed = &usecase.SavingsInterestComputationResult{
