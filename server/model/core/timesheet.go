@@ -113,7 +113,7 @@ func (m *Core) timesheet() {
 				MediaOut:       m.MediaManager.ToModel(data.MediaOut),
 				TimeIn:         data.TimeIn.Format(time.RFC3339),
 				TimeOut:        timeOutStr,
-			}
+			} 
 		},
 
 		Created: func(data *Timesheet) registry.Topics {
@@ -174,3 +174,4 @@ func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, bra
 
 	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
+;
