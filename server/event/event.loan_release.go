@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -12,7 +13,11 @@ import (
 )
 
 func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTransactionID uuid.UUID) (*core.LoanTransaction, error) {
+	fmt.Println("DEBUG 0: Entering LoanRelease - loanTransactionID:", loanTransactionID)
+
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
+	fmt.Println("DEBUG 1: Transaction started")
+
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -22,8 +27,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
+	fmt.Println("DEBUG 2: Got userOrg - UserID:", userOrg.UserID, "BranchID nil?", userOrg.BranchID == nil)
+
 	now := time.Now().UTC()
 	currentTime := userOrg.UserOrgTime()
+	fmt.Println("DEBUG 3: Calculated currentTime")
 
 	if userOrg.BranchID == nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -33,6 +41,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.New("invalid user organization data"))
 	}
+	fmt.Println("DEBUG 4: BranchID validated")
 
 	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Account", "Account.Currency")
 	if err != nil {
@@ -43,8 +52,11 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
+	fmt.Println("DEBUG 5: Got loanTransaction - ID:", loanTransaction.ID, "Account nil?", loanTransaction.Account == nil)
 
 	loanAccountCurrency := loanTransaction.Account.Currency
+	fmt.Println("DEBUG 6: Accessed Account.Currency - nil?", loanAccountCurrency == nil)
+
 	if loanAccountCurrency == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "currency-validation-failed",
@@ -53,6 +65,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.New("currency data is nil"))
 	}
+	fmt.Println("DEBUG 7: Currency validated - CurrencyID:", loanAccountCurrency.ID)
 
 	transactionBatch, err := e.core.TransactionBatchCurrent(context, *loanTransaction.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
@@ -63,6 +76,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch - The one who created the loan must have created the transaction batch"))
 	}
+	fmt.Println("DEBUG 8: Got transactionBatch - nil?", transactionBatch == nil)
+
 	if transactionBatch == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "batch-validation-failed",
@@ -71,6 +86,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.New("transaction batch is nil"))
 	}
+	fmt.Println("DEBUG 9: Transaction batch validated")
+
 	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -80,6 +97,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 	}
+	fmt.Println("DEBUG 10: Got memberProfile - nil?", memberProfile == nil)
 
 	if memberProfile == nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -98,10 +116,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction entries"))
 	}
+	fmt.Println("DEBUG 11: Retrieved loanTransactionEntries - count:", len(loanTransactionEntries))
 
 	var addOnEntry *core.LoanTransactionEntry
 	var filteredEntries []*core.LoanTransactionEntry
-
 	for _, entry := range loanTransactionEntries {
 		if entry.Type == core.LoanTransactionAddOn {
 			addOnEntry = entry
@@ -109,17 +127,27 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			filteredEntries = append(filteredEntries, entry)
 		}
 	}
+
 	for _, entry := range filteredEntries {
 		if entry.Type == core.LoanTransactionStatic && handlers.UUIDPtrEqual(entry.AccountID, loanTransaction.AccountID) {
 			entry.Debit += addOnEntry.Debit
 		}
 	}
 	loanTransactionEntries = filteredEntries
+	fmt.Println("DEBUG 12: Processed add-on entries")
 
-	for _, entry := range loanTransactionEntries {
+	for i, entry := range loanTransactionEntries {
+		fmt.Printf("DEBUG 13.%d: Processing entry - IsAutomaticLoanDeductionDeleted: %v, AccountID nil? %v\n", i, entry.IsAutomaticLoanDeductionDeleted, entry.AccountID == nil)
+
 		if entry.IsAutomaticLoanDeductionDeleted {
 			continue
 		}
+
+		if entry.AccountID == nil {
+			fmt.Println("DEBUG 13.ERROR: entry.AccountID is nil - skipping or failing?")
+			return nil, endTx(eris.New("entry.AccountID is nil"))
+		}
+
 		accountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 			context,
 			*entry.AccountID,
@@ -130,12 +158,14 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		if err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to retrieve account history"))
 		}
+		fmt.Printf("DEBUG 14.%d: Got accountHistory - nil? %v\n", i, accountHistory == nil)
 
-		account := e.core.AccountHistoryToModel(accountHistory)
 		if accountHistory == nil {
 			return nil, endTx(eris.New("account history not found for entry"))
 		}
 
+		account := e.core.AccountHistoryToModel(accountHistory)
+		fmt.Printf("DEBUG 15.%d: Converted account - DefaultPaymentTypeID nil? %v\n", i, account.DefaultPaymentTypeID == nil)
 
 		if account.DefaultPaymentType == nil && account.DefaultPaymentTypeID != nil {
 			paymentType, err := e.core.PaymentTypeManager.GetByID(context, *account.DefaultPaymentTypeID)
@@ -143,12 +173,15 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 				return nil, endTx(eris.Wrap(err, "failed to retrieve payment type"))
 			}
 			account.DefaultPaymentType = paymentType
+			fmt.Printf("DEBUG 16.%d: Loaded DefaultPaymentType\n", i)
 		}
 
 		var typeOfPaymentType core.TypeOfPaymentType
 		if account.DefaultPaymentType != nil {
 			typeOfPaymentType = account.DefaultPaymentType.Type
 		}
+		fmt.Printf("DEBUG 17.%d: Determined typeOfPaymentType\n", i)
+
 		memberLedgerEntry := &core.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
@@ -171,9 +204,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			Debit:                      entry.Debit,
 			CurrencyID:                 &loanAccountCurrency.ID,
 			LoanTransactionID:          &loanTransaction.ID,
-
-			Account: account,
+			Account:                    account,
 		}
+
+		fmt.Printf("DEBUG 18.%d: About to create GeneralLedger entry for AccountID: %s\n", i, account.ID)
 
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, memberLedgerEntry); err != nil {
 			e.Footstep(ctx, FootstepEvent{
@@ -183,9 +217,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			})
 			return nil, endTx(eris.Wrap(err, "failed to create member ledger entry"))
 		}
-
+		fmt.Printf("DEBUG 19.%d: Successfully created ledger entry\n", i)
 	}
 
+	fmt.Println("DEBUG 20: Starting loan-related accounts processing")
 
 	loanRelatedAccounts, err := e.core.GetAccountHistoriesByFiltersAtTime(
 		context,
@@ -203,10 +238,14 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String()))
 	}
+	fmt.Println("DEBUG 21: Got loanRelatedAccounts - count:", len(loanRelatedAccounts))
 
 	loanRelatedAccounts = append(loanRelatedAccounts, loanTransaction.Account)
+	fmt.Println("DEBUG 22: Appended main loan account")
 
-	for _, interestAccount := range loanRelatedAccounts {
+	for i, interestAccount := range loanRelatedAccounts {
+		fmt.Printf("DEBUG 23.%d: Processing interestAccount ID: %s\n", i, interestAccount.ID)
+
 		interestAccountHistory, err := e.core.GetAccountHistoryLatestByTimeHistory(
 			context,
 			interestAccount.ID,
@@ -217,6 +256,12 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		if err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to retrieve interest account history"))
 		}
+		fmt.Printf("DEBUG 24.%d: Got interestAccountHistory - nil? %v\n", i, interestAccountHistory == nil)
+
+		if interestAccountHistory == nil {
+			return nil, endTx(eris.New("interest account history is nil"))
+		}
+
 		if err := e.core.LoanAccountManager.CreateWithTx(context, tx, &core.LoanAccount{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
@@ -231,7 +276,10 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		}); err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to create loan account"))
 		}
+		fmt.Printf("DEBUG 25.%d: Created LoanAccount entry\n", i)
 	}
+
+	fmt.Println("DEBUG 26: Updating loanTransaction fields")
 
 	loanTransaction.ReleasedDate = &currentTime
 	loanTransaction.ReleasedByID = &userOrg.UserID
@@ -243,6 +291,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
+	fmt.Println("DEBUG 27: Updated loanTransaction")
 
 	if err := endTx(nil); err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -252,6 +301,8 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
+	fmt.Println("DEBUG 28: Transaction committed successfully")
+
 	updatedloanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
@@ -261,11 +312,15 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		})
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
+	fmt.Println("DEBUG 29: Retrieved final updated loan transaction")
+
 	e.Footstep(ctx, FootstepEvent{
 		Activity:    "loan-release-completed",
 		Description: "Successfully completed loan release for transaction " + updatedloanTransaction.ID.String(),
 		Module:      "Loan Release",
 	})
+
+	fmt.Println("DEBUG 30: Loan release completed successfully - returning")
 
 	return updatedloanTransaction, nil
 }
