@@ -174,4 +174,3 @@ func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, bra
 
 	return m.TimesheetManager.ArrFind(context, filters, nil)
 }
-;
