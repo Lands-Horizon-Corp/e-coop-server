@@ -222,16 +222,6 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		_, err = c.userOrganizationToken.CurrentUserOrganization(context, ctx)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Organization media delete failed (/organization-media/:organization_media_id), user org error: " + err.Error(),
-				Module:      "OrganizationMedia",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-
 		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMediaID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
