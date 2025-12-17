@@ -120,21 +120,48 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 
 	var addOnEntry *core.LoanTransactionEntry
 	var filteredEntries []*core.LoanTransactionEntry
-	for _, entry := range loanTransactionEntries {
+
+	fmt.Println("DEBUG 12.0: Starting to classify entries - addOnEntry is currently nil")
+
+	for i, entry := range loanTransactionEntries {
+		fmt.Printf("DEBUG 12.%d: Processing entry - Type: %v, AccountID: %v\n", i, entry.Type, entry.AccountID)
+
 		if entry.Type == core.LoanTransactionAddOn {
 			addOnEntry = entry
+			fmt.Printf("DEBUG 12.ADDON: Found add-on entry! Debit = %.2f\n", entry.Debit)
 		} else {
 			filteredEntries = append(filteredEntries, entry)
+			fmt.Printf("DEBUG 12.REGULAR: Added regular entry (Type: %v)\n", entry.Type)
 		}
 	}
 
-	for _, entry := range filteredEntries {
+	fmt.Printf("DEBUG 12.1: Classification done. addOnEntry is nil? %v\n", addOnEntry == nil)
+	if addOnEntry == nil {
+		fmt.Println("DEBUG 12.2: WARNING - No add-on entry found! Will use 0 for add-on debit")
+	}
+
+	for i, entry := range filteredEntries {
+		fmt.Printf("DEBUG 13.%d: Checking entry for add-on adjustment - Type: %v, AccountID: %v\n",
+			i, entry.Type, entry.AccountID)
+
 		if entry.Type == core.LoanTransactionStatic && handlers.UUIDPtrEqual(entry.AccountID, loanTransaction.AccountID) {
-			entry.Debit += addOnEntry.Debit
+			fmt.Printf("DEBUG 13.%d.MATCH: Found matching static entry! Current Debit = %.2f\n", i, entry.Debit)
+
+			if addOnEntry == nil {
+				fmt.Println("DEBUG 13.ERROR: addOnEntry is nil - cannot add debit!")
+				// You can decide what to do: either skip, set to 0, or panic explicitly
+				// For now, let's just log and continue safely
+				// entry.Debit += 0
+			} else {
+				entry.Debit += addOnEntry.Debit
+				fmt.Printf("DEBUG 13.%d.MATCH: Added add-on debit (%.2f) → New Debit = %.2f\n",
+					i, addOnEntry.Debit, entry.Debit)
+			}
 		}
 	}
+
 	loanTransactionEntries = filteredEntries
-	fmt.Println("DEBUG 12: Processed add-on entries")
+	fmt.Println("DEBUG 13.FINAL: Processed add-on entries - filteredEntries count:", len(filteredEntries))
 
 	for i, entry := range loanTransactionEntries {
 		fmt.Printf("DEBUG 13.%d: Processing entry - IsAutomaticLoanDeductionDeleted: %v, AccountID nil? %v\n", i, entry.IsAutomaticLoanDeductionDeleted, entry.AccountID == nil)
