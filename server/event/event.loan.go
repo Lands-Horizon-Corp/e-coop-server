@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -44,7 +43,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 	account, err := e.core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
-		fmt.Println("[DEBUG LoanBalancing] ERROR 04 - Failed to get loan account:", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get loan account during loan balancing: " + err.Error(),
@@ -59,7 +57,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		BranchID:          *userOrg.BranchID,
 	})
 	if err != nil {
-		fmt.Println("[DEBUG LoanBalancing] ERROR 05 - Failed to get loan transaction entries:", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to get loan transaction entries during loan balancing: " + err.Error(),
@@ -133,11 +130,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if static[0].Account != nil && static[0].Account.CashAndCashEquivalence {
 			result = append(result, static[0])
 			result = append(result, static[1])
-			fmt.Println("[DEBUG LoanBalancing] 10 - Order: Cash first, then Loan")
 		} else {
 			result = append(result, static[1])
 			result = append(result, static[0])
-			fmt.Println("[DEBUG LoanBalancing] 10 - Order: Loan first, then Cash")
 		}
 	}
 
@@ -236,7 +231,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	if (loanTransaction.LoanType == core.LoanTypeRestructured ||
 		loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
 		loanTransaction.LoanType == core.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
-		fmt.Println("[DEBUG LoanBalancing] 15 - Adding previous loan balance entry")
 		previous := loanTransaction.PreviousLoan
 		if previous == nil {
 		} else {
@@ -254,7 +248,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 
-	fmt.Println("[DEBUG LoanBalancing] 16 - Adjusting first entry (principal/credit side)")
 	if loanTransaction.IsAddOn {
 		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalNonAddOns)
 	} else {
@@ -368,7 +361,6 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	if err := endTx(nil); err != nil {
-		fmt.Println("[DEBUG LoanBalancing] ERROR 23 - Failed to commit:", err)
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "db-commit-error",
 			Description: "Failed to commit transaction during loan balancing: " + err.Error(),
