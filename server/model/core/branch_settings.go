@@ -183,6 +183,7 @@ type (
 		PaidUpSharedCapitalAccount   *AccountResponse `json:"paid_up_shared_capital_account,omitempty"`
 		CompassionFundAccountID      *uuid.UUID       `json:"compassion_fund_account_id,omitempty"`
 		CompassionFundAccount        *AccountResponse `json:"compassion_fund_account,omitempty"`
+		AnnualDivisor                int              `json:"annual_divisor"`
 
 		UnbalancedAccounts []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
 	}
@@ -270,6 +271,7 @@ func (m *Core) branchSetting() {
 				CompassionFundAccount:        m.AccountManager.ToModel(data.CompassionFundAccount),
 
 				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
+				AnnualDivisor:      data.AnnualDivisor,
 			}
 		},
 		Created: func(data *BranchSetting) registry.Topics {
