@@ -106,6 +106,8 @@ func (e *Event) GenerateMutualFundEntries(
 				MemberProfileID: profile.ID,
 				MemberProfile:   profile,
 				Amount:          amount,
+				Account:         mutualFund.Account,
+				AccountID:       mutualFund.ID,
 			})
 		}
 	}
