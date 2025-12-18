@@ -288,10 +288,18 @@ func (m *Core) CreateMutualFundValue(
 		}
 		mutualFundTables = append(mutualFundTables, mutualFundTableData)
 	}
-
+	account, err := m.AccountManager.GetByID(context, req.AccountID)
+	if err != nil {
+		return nil
+	}
+	memberProfile, err := m.MemberProfileManager.GetByID(context, req.MemberProfileID)
+	if err != nil {
+		return nil
+	}
 	mutualFund := &MutualFund{
 		ID:                uuid.New(),
 		MemberProfileID:   req.MemberProfileID,
+		MemberProfile:     memberProfile,
 		MemberTypeID:      req.MemberTypeID,
 		Name:              req.Name,
 		Description:       req.Description,
@@ -300,6 +308,7 @@ func (m *Core) CreateMutualFundValue(
 		Amount:            req.Amount,
 		ComputationType:   req.ComputationType,
 		AccountID:         req.AccountID,
+		Account:           account,
 		CreatedAt:         now,
 		CreatedByID:       userOrg.UserID,
 		UpdatedAt:         now,
