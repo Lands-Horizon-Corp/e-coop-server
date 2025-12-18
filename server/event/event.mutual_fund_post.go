@@ -37,7 +37,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	for _, entry := range mutualFundEntries {
 		var credit, debit float64
 		if e.provider.Service.Decimal.IsGreaterThan(entry.Amount, 0) {
-			credit = e.provider.Service.Decimal.Subtract(entry.Amount, entry.Amount)
+			credit = e.provider.Service.Decimal.Abs(entry.Amount)
 			debit = 0
 		} else {
 			credit = 0
