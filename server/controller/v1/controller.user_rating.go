@@ -13,7 +13,6 @@ import (
 func (c *Controller) userRatingController() {
 	req := c.provider.Service.Request
 
-	// Returns all user ratings given by the specified user (rater)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-rater/:user_id",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) userRatingController() {
 		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
 	})
 
-	// Returns all user ratings received by the specified user (ratee)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/user-ratee/:user_id",
 		Method:       "GET",
@@ -51,7 +49,6 @@ func (c *Controller) userRatingController() {
 		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
 	})
 
-	// Returns a specific user rating by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/:user_rating_id",
 		Method:       "GET",
@@ -70,7 +67,6 @@ func (c *Controller) userRatingController() {
 		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModel(userRating))
 	})
 
-	// Returns all user ratings in the current user's active branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating/branch",
 		Method:       "GET",
@@ -89,7 +85,6 @@ func (c *Controller) userRatingController() {
 		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
 	})
 
-	// Creates a new user rating in the current user's branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
@@ -148,7 +143,6 @@ func (c *Controller) userRatingController() {
 		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModel(userRating))
 	})
 
-	// Deletes a user rating by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-rating/:user_rating_id",
 		Method: "DELETE",

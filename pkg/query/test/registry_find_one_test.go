@@ -90,7 +90,6 @@ func TestRegistryRawFindOneVariants(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create a query with model and order
 	queryAll := db.Model(&User{}).Order("age ASC")
 	res, err := r.RawFindOne(ctx, queryAll)
 	assert.NoError(t, err)

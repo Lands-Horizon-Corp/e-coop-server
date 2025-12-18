@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// FinancialStatementController manages endpoints for financial statement groupings and definitions.
 func (c *Controller) financialStatementController() {
 	req := c.provider.Service.Request
 
-	// GET /financial-statement-grouping: List all financial statement groupings for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
@@ -40,7 +38,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementGroupingManager.ToModels(fsGroupings))
 	})
 
-	// PUT /financial-statement-grouping/:financial_statement_grouping_id: Update a financial statement grouping. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
@@ -119,7 +116,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementGroupingManager.ToModel(grouping))
 	})
 
-	// GET /financial-statement-definition: List all financial statement definitions for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "GET",
@@ -144,7 +140,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, fsDefs)
 	})
 
-	// POST /financial-statement-definition: Create a new financial statement definition. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "POST",
@@ -213,7 +208,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusCreated, c.core.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// PUT /financial-statement-definition/:financial_statement_definition_id: Update a financial statement definition. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
@@ -294,7 +288,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// POST /financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect: Connect an account to a financial statement definition. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
@@ -400,7 +393,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// PUT /financial-statement-definition/:financial_statement_definition_id/index/:index: Update the index of a financial statement definition. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
@@ -471,7 +463,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// PUT /financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index: Update the index of an account within a financial statement definition. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
@@ -608,7 +599,6 @@ func (c *Controller) financialStatementController() {
 		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager.ToModel(fsDefinition))
 	})
 
-	// DELETE /financial-statement-definition/:financial_statement_definition_id: Delete a financial statement definition by ID, only if no accounts are linked. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method: "DELETE",

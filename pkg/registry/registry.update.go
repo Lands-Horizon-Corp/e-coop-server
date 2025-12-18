@@ -16,9 +16,10 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByID(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	if err := r.client.WithContext(context).Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Updates(fields).Error; err != nil {
+	if err := r.client.WithContext(context).Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Save(fields).Error; err != nil {
 		return fmt.Errorf("failed to update fields for entity %v: %w", id, err)
 	}
+
 	reloadDb := r.client.WithContext(context).Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id)
 	for _, preload := range preloads {
 		reloadDb = reloadDb.Preload(preload)
@@ -40,7 +41,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	if err := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Updates(fields).Error; err != nil {
+	if err := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Save(fields).Error; err != nil {
 		return fmt.Errorf("failed to update fields for entity %v in transaction: %w", id, err)
 	}
 	reloadDb := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id)

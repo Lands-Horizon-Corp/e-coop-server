@@ -13,7 +13,6 @@ import (
 )
 
 type (
-	// JournalVoucher represents the JournalVoucher model.
 	JournalVoucher struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -43,13 +42,11 @@ type (
 		PostedByID        *uuid.UUID `gorm:"type:uuid"`
 		PostedBy          *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`
 
-		// Employee and transaction batch
 		EmployeeUserID     *uuid.UUID        `gorm:"type:uuid" json:"employee_user_id,omitempty"`
 		EmployeeUser       *User             `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
 		TransactionBatchID *uuid.UUID        `gorm:"type:uuid" json:"transaction_batch_id,omitempty"`
 		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
 
-		// Print and approval fields
 		PrintedDate  *time.Time `gorm:"type:timestamp"`
 		PrintedByID  *uuid.UUID `gorm:"type:uuid"`
 		PrintedBy    *User      `gorm:"foreignKey:PrintedByID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"printed_by,omitempty"`
@@ -63,15 +60,12 @@ type (
 
 		JournalVoucherTags []*JournalVoucherTag `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_tags,omitempty"`
 
-		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntry `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher_entries,omitempty"`
 
-		// Computed fields
 		TotalDebit  float64 `gorm:"type:decimal" json:"total_debit"`
 		TotalCredit float64 `gorm:"type:decimal" json:"total_credit"`
 	}
 
-	// JournalVoucherResponse represents the response structure for JournalVoucher.
 	JournalVoucherResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -97,13 +91,11 @@ type (
 		PostedByID        *uuid.UUID            `json:"posted_by_id,omitempty"`
 		PostedBy          *UserResponse         `json:"posted_by,omitempty"`
 
-		// Employee and transaction batch
 		EmployeeUserID     *uuid.UUID                `json:"employee_user_id,omitempty"`
 		EmployeeUser       *UserResponse             `json:"employee_user,omitempty"`
 		TransactionBatchID *uuid.UUID                `json:"transaction_batch_id,omitempty"`
 		TransactionBatch   *TransactionBatchResponse `json:"transaction_batch,omitempty"`
 
-		// Print and approval fields
 		PrintedDate  *string       `json:"printed_date,omitempty"`
 		PrintedByID  *uuid.UUID    `json:"printed_by_id,omitempty"`
 		PrintedBy    *UserResponse `json:"printed_by,omitempty"`
@@ -117,17 +109,12 @@ type (
 
 		JournalVoucherTags []*JournalVoucherTagResponse `json:"journal_voucher_tags,omitempty"`
 
-		// Relationships
 		JournalVoucherEntries []*JournalVoucherEntryResponse `json:"journal_voucher_entries,omitempty"`
 
-		// Computed fields
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 	}
 
-	// JournalVoucherRequest represents the request structure for creating/updating journalvoucher
-
-	// JournalVoucherRequest represents the request structure for JournalVoucher.
 	JournalVoucherRequest struct {
 		Name              string    `json:"name" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
@@ -137,14 +124,10 @@ type (
 		Status            string    `json:"status,omitempty"`
 		CurrencyID        uuid.UUID `json:"currency_id" validate:"required"`
 
-		// Nested relationships for creation/update
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
 		JournalVoucherEntriesDeleted uuid.UUIDs                    `json:"journal_voucher_entries_deleted,omitempty"`
 	}
 
-	// JournalVoucherPrintRequest represents the request structure for creating/updating journalvoucherprint
-
-	// JournalVoucherPrintRequest represents the request structure for JournalVoucherPrint.
 	JournalVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`
 	}
@@ -264,7 +247,6 @@ func (m *Core) journalVoucher() {
 	})
 }
 
-// JournalVoucherCurrentBranch retrieves all journal vouchers for the specified organization and branch
 func (m *Core) JournalVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucher, error) {
 	return m.JournalVoucherManager.Find(context, &JournalVoucher{
 		OrganizationID: organizationID,
@@ -272,7 +254,6 @@ func (m *Core) JournalVoucherCurrentBranch(context context.Context, organization
 	})
 }
 
-// ValidateJournalVoucherBalance validates that journal voucher entries are balanced (debits equal credits)
 func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 	totalDebit := 0.0
 	totalCredit := 0.0
@@ -289,7 +270,6 @@ func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) err
 	return nil
 }
 
-// JournalVoucherDraft retrieves all journal vouchers that are in draft status for the specified organization and branch
 func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -304,7 +284,6 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 	})
 }
 
-// JournalVoucherPrinted retrieves all journal vouchers that have been printed for the specified organization and branch
 func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -319,7 +298,6 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 	})
 }
 
-// JournalVoucherApproved retrieves all journal vouchers that have been approved but not yet released for the specified organization and branch
 func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -334,7 +312,6 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 	})
 }
 
-// JournalVoucherReleased retrieves all journal vouchers that have been released for the specified organization and branch
 func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -349,7 +326,6 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 	})
 }
 
-// JournalVoucherReleasedCurrentDay retrieves all journal vouchers that were released today for the specified organization and branch
 func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uuid.UUID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

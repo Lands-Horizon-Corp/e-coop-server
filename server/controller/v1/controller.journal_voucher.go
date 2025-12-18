@@ -13,11 +13,9 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// JournalVoucherController registers routes for managing journal vouchers.
 func (c *Controller) journalVoucherController() {
 	req := c.provider.Service.Request
 
-	// GET /journal-voucher: List all journal vouchers for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "GET",
@@ -39,7 +37,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET /journal-voucher/search: Paginated search of journal vouchers for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/search",
 		Method:       "GET",
@@ -64,7 +61,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, journalVouchers)
 	})
 
-	// GET /journal-voucher/:journal_voucher_id: Get specific journal voucher by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
@@ -83,7 +79,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, journalVoucher)
 	})
 
-	// POST /journal-voucher: Create a new journal voucher. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "POST",
@@ -119,7 +114,6 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		balance, err := c.usecase.StrictBalance(usecase.Balance{
@@ -162,7 +156,6 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create journal voucher: " + endTx(err).Error()})
 		}
 
-		// Handle journal voucher entries
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
 				entry := &core.JournalVoucherEntry{
@@ -210,7 +203,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusCreated, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// PUT /journal-voucher/:journal_voucher_id: Update journal voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "PUT",
@@ -270,10 +262,8 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher entries are not balanced: " + err.Error()})
 		}
-		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Update journal voucher fields
 		journalVoucher.Date = request.Date
 		journalVoucher.Description = request.Description
 		journalVoucher.Reference = request.Reference
@@ -283,7 +273,6 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.CashVoucherNumber = request.CashVoucherNumber
 		journalVoucher.Name = request.Name
 		journalVoucher.EmployeeUserID = &userOrg.UserID
-		// Handle deleted entries
 		if request.JournalVoucherEntriesDeleted != nil {
 			for _, deletedID := range request.JournalVoucherEntriesDeleted {
 				entry, err := c.core.JournalVoucherEntryManager.GetByID(context, deletedID)
@@ -374,7 +363,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// DELETE /journal-voucher/:journal_voucher_id: Delete a journal voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/journal-voucher/:journal_voucher_id",
 		Method: "DELETE",
@@ -415,7 +403,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for journal vouchers (mirrors the feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/journal-voucher/bulk-delete",
 		Method:      "DELETE",
@@ -463,7 +450,6 @@ func (c *Controller) journalVoucherController() {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	// PUT /api/v1/journal-voucher/:journal_voucher_id/print
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",
 		Method:       "PUT",
@@ -525,7 +511,6 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been printed"})
 		}
 
-		// Update print details
 		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		journalVoucher.PrintedByID = &userOrg.UserID
@@ -551,7 +536,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// PUT /api/v1/journal-voucher/:journal_voucher_id/print-undo
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-undo",
 		Method:       "PUT",
@@ -600,7 +584,6 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has not been printed yet"})
 		}
 
-		// Revert print details
 		journalVoucher.PrintNumber = 0
 		journalVoucher.PrintedDate = nil
 		journalVoucher.PrintedByID = nil
@@ -625,7 +608,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// PUT /api/v1/journal-voucher/:journal_voucher_id/approve
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve",
 		Method:       "PUT",
@@ -675,7 +657,6 @@ func (c *Controller) journalVoucherController() {
 		}
 
 		timeNow := userOrg.UserOrgTime()
-		// Update approval details
 		journalVoucher.ApprovedDate = handlers.Ptr(timeNow)
 		journalVoucher.ApprovedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
@@ -699,7 +680,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// POST /api/v1/journal-voucher/:journal_voucher_id/print-only
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-only",
 		Method:       "POST",
@@ -769,7 +749,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// POST /api/v1/journal-voucher/:journal_voucher_id/approve-undo
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve-undo",
 		Method:       "POST",
@@ -822,7 +801,6 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot unapprove a released journal voucher"})
 		}
 
-		// Revert approval details
 		journalVoucher.ApprovedDate = nil
 		journalVoucher.ApprovedByID = nil
 		journalVoucher.UpdatedAt = time.Now().UTC()
@@ -846,7 +824,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// POST /api/v1/journal-voucher/:journal_voucher_id/release
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/release",
 		Method:       "POST",
@@ -908,9 +885,6 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
-		// ================================================================================
-		// STEP 1: UPDATE JOURNAL VOUCHER RELEASE DETAILS
-		// ================================================================================
 		timeNow := userOrg.UserOrgTime()
 		journalVoucher.ReleasedDate = &timeNow
 		journalVoucher.ReleasedByID = &userOrg.UserID
@@ -918,9 +892,6 @@ func (c *Controller) journalVoucherController() {
 		journalVoucher.UpdatedByID = userOrg.UserID
 		journalVoucher.TransactionBatchID = &transactionBatch.ID
 
-		// ================================================================================
-		// STEP 2: RETRIEVE ALL JOURNAL VOUCHER ENTRIES FOR TRANSACTION RECORDING
-		// ================================================================================
 		journalVoucherEntries, err := c.core.JournalVoucherEntryManager.Find(context, &core.JournalVoucherEntry{
 			JournalVoucherID: journalVoucher.ID,
 			OrganizationID:   userOrg.OrganizationID,
@@ -935,23 +906,15 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve journal voucher entries: " + err.Error()})
 		}
 
-		// ================================================================================
-		// STEP 3: RECORD TRANSACTIONS FOR EACH JOURNAL VOUCHER ENTRY
-		// ================================================================================
 		for _, entry := range journalVoucherEntries {
-			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
-			// Prepare transaction request with journal voucher entry details
 			transactionRequest := event.RecordTransactionRequest{
-				// Financial amounts from journal entry
 				Debit:  entry.Debit,
 				Credit: entry.Credit,
 
-				// Account and member information
 				AccountID:          entry.AccountID,
 				MemberProfileID:    entry.MemberProfileID,
 				TransactionBatchID: transactionBatch.ID,
 
-				// Transaction metadata
 				ReferenceNumber:       journalVoucher.CashVoucherNumber,
 				Description:           entry.Description,
 				EntryDate:             &timeNow,
@@ -961,7 +924,6 @@ func (c *Controller) journalVoucherController() {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---
 			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
 
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -975,16 +937,12 @@ func (c *Controller) journalVoucherController() {
 			}
 		}
 
-		// Log successful completion of all transaction recordings
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "journal-voucher-transactions-recorded",
 			Description: "Successfully recorded all journal voucher entry transactions in general ledger for voucher: " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
 
-		// ================================================================================
-		// STEP 4: FINALIZE JOURNAL VOUCHER RELEASE
-		// ================================================================================
 		if err := c.core.JournalVoucherManager.UpdateByID(context, journalVoucher.ID, journalVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "release-error",
@@ -1013,7 +971,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModel(journalVoucher))
 	})
 
-	// GET POST /api/v1/journal-voucher/draft
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/draft",
 		Method:       "GET",
@@ -1037,7 +994,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET POST /api/v1/journal-voucher/printed
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/printed",
 		Method:       "GET",
@@ -1061,7 +1017,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET POST /api/v1/journal-voucher/approved
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/approved",
 		Method:       "GET",
@@ -1091,7 +1046,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET /api/v1/journal-voucher/released
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/released",
 		Method:       "GET",
@@ -1116,7 +1070,6 @@ func (c *Controller) journalVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager.ToModels(journalVouchers))
 	})
 
-	// GET /api/v1/journal-voucher/released/today
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/journal-voucher/released/today",
 		Method:       "GET",

@@ -11,7 +11,6 @@ import (
 func (c *Controller) organizationDailyUsage() {
 	req := c.provider.Service.Request
 
-	// Get daily usage records for the current user's organization
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-daily-usage",
 		Method:       "GET",
@@ -30,7 +29,6 @@ func (c *Controller) organizationDailyUsage() {
 		return ctx.JSON(http.StatusOK, c.core.OrganizationDailyUsageManager.ToModels(dailyUsage))
 	})
 
-	// Get a specific organization daily usage record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/organization-daily-usage/:organization_daily_usage_id",
 		Method:       "GET",

@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberOccupationController() {
 	req := c.provider.Service.Request
 
-	// Get all member occupation history for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager.ToModels(memberOccupationHistory))
 	})
 
-	// Get member occupation history by member profile ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -59,7 +57,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, memberOccupationHistory)
 	})
 
-	// Get all member occupations for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "GET",
@@ -78,7 +75,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModels(memberOccupation))
 	})
 
-	// Get paginated member occupations
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/search",
 		Method:       "GET",
@@ -100,7 +96,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Create a new member occupation
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
@@ -157,7 +152,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModel(memberOccupation))
 	})
 
-	// Update an existing member occupation by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
@@ -224,7 +218,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModel(memberOccupation))
 	})
 
-	// Delete a member occupation by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-occupation/:member_occupation_id",
 		Method: "DELETE",
@@ -265,7 +258,6 @@ func (c *Controller) memberOccupationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member occupations (matches feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",

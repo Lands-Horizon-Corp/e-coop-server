@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AutomaticLoanDeductionController registers routes for managing automatic loan deductions.
 func (c *Controller) automaticLoanDeductionController() {
 	req := c.provider.Service.Request
 
-	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
@@ -33,7 +31,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		// Find all for this computation sheet, org, and branch
 		alds, err := c.core.AutomaticLoanDeductionManager.Find(context, &core.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -45,7 +42,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.JSON(http.StatusOK, c.core.AutomaticLoanDeductionManager.ToModels(alds))
 	})
 
-	// GET /automatic-loan-deduction/computation-sheet/:computation_sheet_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
@@ -64,7 +60,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		// Find all for this computation sheet, org, and branch
 		alds, err := c.core.AutomaticLoanDeductionManager.NormalPagination(context, ctx, &core.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -76,7 +71,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.JSON(http.StatusOK, alds)
 	})
 
-	// POST /automatic-loan-deduction
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
@@ -166,7 +160,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.JSON(http.StatusCreated, c.core.AutomaticLoanDeductionManager.ToModel(ald))
 	})
 
-	// PUT /automatic-loan-deduction/:automatic_loan_deduction_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
@@ -261,7 +254,6 @@ func (c *Controller) automaticLoanDeductionController() {
 		return ctx.JSON(http.StatusOK, c.core.AutomaticLoanDeductionManager.ToModel(ald))
 	})
 
-	// DELETE /automatic-loan-deduction/:automatic_loan_deduction_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",

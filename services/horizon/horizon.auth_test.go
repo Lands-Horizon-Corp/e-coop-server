@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// go test -v ./services/horizon/auth_test.go
-
 type TestClaimUserCSRF struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
@@ -32,7 +30,6 @@ func createCacheSetupService(t *testing.T) CacheService {
 		env.GetInt("REDIS_PORT", 6379),
 	)
 
-	// Add connection retry logic
 	var err error
 	maxRetries := 5
 	for i := range maxRetries {
@@ -44,7 +41,6 @@ func createCacheSetupService(t *testing.T) CacheService {
 	}
 	require.NoError(t, err, "Failed to connect to Redis after %d attempts", maxRetries)
 
-	// ignore flush error in setup
 	_ = cache.Flush(ctx)
 	return cache
 }
@@ -53,7 +49,6 @@ func setupTest(t *testing.T) (context.Context, *AuthServiceImpl[TestClaimUserCSR
 	ctx := context.Background()
 	cache := createCacheSetupService(t)
 
-	// Double-check clean state
 	keys, err := cache.Keys(ctx, "test:*")
 	require.NoError(t, err)
 	require.Empty(t, keys, "Cache should be empty before test starts")
@@ -72,26 +67,21 @@ func TestSetAndGetCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
 	defer func() { _ = cache.Flush(ctx) }()
 
-	// Setup test claim
 	claim := TestClaimUserCSRF{
 		UserID: "user123",
 		Email:  "user@example.com",
 	}
 
-	// Create echo context
 	e := echo.New()
 	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
 
-	// Test SetCSRF
 	err := service.SetCSRF(ctx, c, claim, time.Minute)
 	require.NoError(t, err)
 
-	// Verify response headers
 	token := c.Response().Header().Get("X-CSRF-Token")
 	require.NotEmpty(t, token)
 	require.Len(t, token, 36) // Assuming 32-character token
 
-	// Test GetCSRF
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("X-CSRF-Token", token)
 	c2 := e.NewContext(req, httptest.NewRecorder())
@@ -106,7 +96,6 @@ func TestVerifyCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
 	defer func() { _ = cache.Flush(ctx) }()
 
-	// Setup test data
 	claim := TestClaimUserCSRF{
 		UserID: "user456",
 		Email:  "another@example.com",
@@ -117,12 +106,10 @@ func TestVerifyCSRF(t *testing.T) {
 	require.NoError(t, service.SetCSRF(ctx, c, claim, time.Minute))
 	token := c.Response().Header().Get("X-CSRF-Token")
 
-	// Test valid verification
 	verifiedClaim, err := service.VerifyCSRF(ctx, token)
 	require.NoError(t, err)
 	assert.Equal(t, claim.UserID, verifiedClaim.UserID)
 
-	// Test invalid token
 	_, err = service.VerifyCSRF(ctx, "invalid-token-123")
 	require.Error(t, err)
 }
@@ -131,7 +118,6 @@ func TestClearCSRF(t *testing.T) {
 	ctx, service, cache := setupTest(t)
 	defer func() { _ = cache.Flush(ctx) }()
 
-	// Setup test data
 	claim := TestClaimUserCSRF{
 		UserID: "user789",
 		Email:  "clear@example.com",
@@ -141,10 +127,8 @@ func TestClearCSRF(t *testing.T) {
 	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
 	require.NoError(t, service.SetCSRF(ctx, c, claim, time.Minute))
 
-	// Test ClearCSRF
 	service.ClearCSRF(ctx, c)
 
-	// Verify deletion
 	_, err := service.GetCSRF(ctx, c)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "CSRF token not found")
@@ -154,25 +138,21 @@ func TestSessionManagement(t *testing.T) {
 	ctx, service, cache := setupTest(t)
 	defer func() { _ = cache.Flush(ctx) }()
 
-	// Setup test user
 	userID := "multi_session_user"
 	claim := TestClaimUserCSRF{
 		UserID: userID,
 		Email:  "multi@example.com",
 	}
 
-	// Create first session
 	e := echo.New()
 	c1 := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
 	require.NoError(t, service.SetCSRF(ctx, c1, claim, time.Minute))
 	token1 := c1.Response().Header().Get("X-CSRF-Token")
 
-	// Create second session
 	c2 := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
 	require.NoError(t, service.SetCSRF(ctx, c2, claim, time.Minute))
 	token2 := c2.Response().Header().Get("X-CSRF-Token")
 
-	// Test IsLoggedInOnOtherDevice
 	req1 := httptest.NewRequest(http.MethodGet, "/", nil)
 	req1.Header.Set("X-CSRF-Token", token1)
 	c1Check := e.NewContext(req1, httptest.NewRecorder())
@@ -181,29 +161,23 @@ func TestSessionManagement(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, loggedIn)
 
-	// Test GetLoggedInUsers - should return OTHER sessions
 	users, err := service.GetLoggedInUsers(ctx, c1Check)
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
 
-	// Verify the returned session has the correct user ID
 	assert.Equal(t, userID, users[0].UserID, "User ID should match")
 	assert.Equal(t, "multi@example.com", users[0].Email, "Email should match")
 
-	// Test LogoutOtherDevices
 	err = service.LogoutOtherDevices(ctx, c1Check)
 	require.NoError(t, err)
 
-	// Verify second session was removed
 	_, err = service.VerifyCSRF(ctx, token2)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid CSRF token")
 
-	// Verify first session still valid
 	_, err = service.VerifyCSRF(ctx, token1)
 	require.Error(t, err)
 
-	// Verify no remaining other sessions
 	loggedIn, err = service.IsLoggedInOnOtherDevice(ctx, c1Check)
 	require.Error(t, err)
 	assert.False(t, loggedIn)
@@ -213,16 +187,13 @@ func TestEdgeCasesSample(t *testing.T) {
 	ctx, service, cache := setupTest(t)
 	defer func() { _ = cache.Flush(ctx) }()
 
-	// Test empty token verification
 	_, err := service.VerifyCSRF(ctx, "")
 	require.Error(t, err)
 
-	// Test GetCSRF with no token
 	e := echo.New()
 	c := e.NewContext(httptest.NewRequest(http.MethodGet, "/", nil), httptest.NewRecorder())
 	_, err = service.GetCSRF(ctx, c)
 	require.Error(t, err)
 
-	// Test ClearCSRF with no existing token
 	service.ClearCSRF(ctx, c) // Should not panic
 }

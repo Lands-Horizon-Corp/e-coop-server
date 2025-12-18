@@ -24,7 +24,9 @@ type SavingsInterestComputationResult struct {
 	EndingBalance float64
 }
 
-func (t *TransactionService) SavingsInterestComputation(data SavingsInterestComputation) SavingsInterestComputationResult {
+func (t *UsecaseService) SavingsInterestComputation(
+	data SavingsInterestComputation,
+) SavingsInterestComputationResult {
 
 	result := SavingsInterestComputationResult{
 		Interest:      0.0,
@@ -32,80 +34,101 @@ func (t *TransactionService) SavingsInterestComputation(data SavingsInterestComp
 		EndingBalance: 0.0,
 	}
 
-	// Check minimum period requirement
 	daysInPeriod := len(data.DailyBalance)
-	if daysInPeriod < 30 {
+	if daysInPeriod < 30 || daysInPeriod == 0 {
 		return result
 	}
 
-	// Handle empty slice
-	if len(data.DailyBalance) == 0 {
+	interestRate := data.InterestRate
+	interestTaxRate := data.InterestTaxRate
+
+	if interestRate > 1 {
+		interestRate = t.provider.Service.Decimal.Divide(interestRate, 100)
+	}
+
+	if interestTaxRate > 1 {
+		interestTaxRate = t.provider.Service.Decimal.Divide(interestTaxRate, 100)
+	}
+
+	// Extra safety
+	if interestRate <= 0 || interestTaxRate < 0 || interestTaxRate >= 1 {
 		return result
 	}
 
 	var balanceForCalculation float64
-	// Get the actual ending balance (last day's balance)
 	actualEndingBalance := data.DailyBalance[len(data.DailyBalance)-1]
 
-	// Determine which balance to use based on SavingsType for CALCULATION only
 	switch data.SavingsType {
 	case SavingsTypeLowest:
-		// Find the lowest balance in the period using precise decimal comparison
-		lowestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
-				lowestBalance = dailyBalance
+		lowest := data.DailyBalance[0]
+		for _, v := range data.DailyBalance {
+			if t.provider.Service.Decimal.IsLessThan(v, lowest) {
+				lowest = v
 			}
 		}
-		balanceForCalculation = lowestBalance
+		balanceForCalculation = lowest
 
 	case SavingsTypeHighest:
-		// Find the highest balance in the period using precise decimal comparison
-		highestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsGreaterThan(dailyBalance, highestBalance) {
-				highestBalance = dailyBalance
+		highest := data.DailyBalance[0]
+		for _, v := range data.DailyBalance {
+			if t.provider.Service.Decimal.IsGreaterThan(v, highest) {
+				highest = v
 			}
 		}
-		balanceForCalculation = highestBalance
+		balanceForCalculation = highest
 
 	case SavingsTypeAverage:
-		// Calculate average daily balance using precise decimal arithmetic
-		balanceForCalculation = t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) / float64(daysInPeriod)
+		balanceForCalculation =
+			t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) /
+				float64(daysInPeriod)
 
 	case SavingsTypeStart:
-		// Use the first day's balance
 		balanceForCalculation = data.DailyBalance[0]
 
 	case SavingsTypeEnd:
-		// Use the last day's balance
-		balanceForCalculation = data.DailyBalance[len(data.DailyBalance)-1]
+		balanceForCalculation = data.DailyBalance[daysInPeriod-1]
 
 	default:
-		// Default to lowest balance if SavingsType is not recognized
-		lowestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
-				lowestBalance = dailyBalance
+		lowest := data.DailyBalance[0]
+		for _, v := range data.DailyBalance {
+			if t.provider.Service.Decimal.IsLessThan(v, lowest) {
+				lowest = v
 			}
 		}
-		balanceForCalculation = lowestBalance
+		balanceForCalculation = lowest
 	}
 
-	// Skip if balance is 0 or negative using precise decimal comparison
-	if t.provider.Service.Decimal.IsLessThan(balanceForCalculation, 0) || t.provider.Service.Decimal.IsEqual(balanceForCalculation, 0) {
+	if balanceForCalculation <= 0 {
 		return result
 	}
 
-	// Calculate interest using precise decimal arithmetic: Interest = Balance × Interest_Rate × (Days_in_Period ÷ Annual_Divisor)
-	daysPeriodRatio := t.provider.Service.Decimal.Divide(float64(daysInPeriod), float64(data.AnnualDivisor))
-	grossInterest := t.provider.Service.Decimal.MultiplyMultiple(balanceForCalculation, data.InterestRate, daysPeriodRatio)
-	totalTax := t.provider.Service.Decimal.Multiply(grossInterest, data.InterestTaxRate)
-	totalInterest := t.provider.Service.Decimal.Subtract(grossInterest, totalTax)
+	daysPeriodRatio :=
+		t.provider.Service.Decimal.Divide(
+			float64(daysInPeriod),
+			float64(data.AnnualDivisor),
+		)
+
+	grossInterest :=
+		t.provider.Service.Decimal.MultiplyMultiple(
+			balanceForCalculation,
+			interestRate,
+			daysPeriodRatio,
+		)
+
+	if grossInterest <= 0 {
+		return result
+	}
+
+	totalTax :=
+		t.provider.Service.Decimal.Multiply(grossInterest, interestTaxRate)
+
+	totalInterest :=
+		t.provider.Service.Decimal.Subtract(grossInterest, totalTax)
 
 	result.Interest = totalInterest
 	result.InterestTax = totalTax
-	// EndingBalance = Last day's actual balance + Interest earned
-	result.EndingBalance = t.provider.Service.Decimal.Add(actualEndingBalance, totalInterest)
+	result.EndingBalance =
+		t.provider.Service.Decimal.Add(actualEndingBalance, totalInterest)
+
 	return result
 }

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanGuaranteedFundPerMonth represents the guaranteed fund amounts for loans grouped by month.
 	LoanGuaranteedFundPerMonth struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -33,7 +32,6 @@ type (
 		LoanGuaranteedFund int `gorm:"type:int;default:0"`
 	}
 
-	// LoanGuaranteedFundPerMonthResponse represents the response structure for LoanGuaranteedFundPerMonth data.
 	LoanGuaranteedFundPerMonthResponse struct {
 		ID                 uuid.UUID             `json:"id"`
 		CreatedAt          string                `json:"created_at"`
@@ -50,7 +48,6 @@ type (
 		LoanGuaranteedFund int                   `json:"loan_guaranteed_fund"`
 	}
 
-	// LoanGuaranteedFundPerMonthRequest represents the request structure for creating or updating LoanGuaranteedFundPerMonth.
 	LoanGuaranteedFundPerMonthRequest struct {
 		Month              int `json:"month,omitempty"`
 		LoanGuaranteedFund int `json:"loan_guaranteed_fund,omitempty"`
@@ -117,7 +114,6 @@ func (m *Core) loanGuaranteedFundPerMonth() {
 	})
 }
 
-// LoanGuaranteedFundPerMonthCurrentBranch returns LoanGuaranteedFundPerMonth records for the given organization and branch.
 func (m *Core) LoanGuaranteedFundPerMonthCurrentBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFundPerMonth, error) {
 	return m.LoanGuaranteedFundPerMonthManager.Find(ctx, &LoanGuaranteedFundPerMonth{
 		OrganizationID: organizationID,

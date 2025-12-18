@@ -15,7 +15,6 @@ import (
 )
 
 type (
-	// MemberAccountingLedger represents a member's accounting ledger entry in the database
 	MemberAccountingLedger struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -49,7 +48,6 @@ type (
 		LastPay             *time.Time `gorm:"type:timestamp"`
 	}
 
-	// MemberAccountingLedgerResponse represents the response structure for member accounting ledger data
 	MemberAccountingLedgerResponse struct {
 		ID                  uuid.UUID              `json:"id"`
 		CreatedAt           string                 `json:"created_at"`
@@ -77,7 +75,6 @@ type (
 		LastPay             *string                `json:"last_pay,omitempty"`
 	}
 
-	// MemberAccountingLedgerRequest represents the request structure for member accounting ledger data
 	MemberAccountingLedgerRequest struct {
 		OrganizationID      uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID            uuid.UUID  `json:"branch_id" validate:"required"`
@@ -105,7 +102,6 @@ type (
 		LastPayTime     time.Time `validate:"required"`
 	}
 
-	// MemberAccountingLedgerAccountSummary represents an account summary for member accounting ledger
 	MemberAccountingLedgerAccountSummary struct {
 		Balance     float64 `json:"balance"`
 		TotalDebit  float64 `json:"total_debit"`
@@ -198,7 +194,6 @@ func (m *Core) memberAccountingLedger() {
 	})
 }
 
-// MemberAccountingLedgerCurrentBranch retrieves member accounting ledgers for the current branch
 func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
 		OrganizationID: organizationID,
@@ -206,8 +201,6 @@ func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, orga
 	})
 }
 
-// MemberAccountingLedgerMemberProfileEntries retrieves member accounting ledger entries for a specific member profile
-// excluding the cash on hand account
 func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
@@ -219,8 +212,6 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// MemberAccountingLedgerBranchEntries retrieves member accounting ledger entries for a specific branch
-// excluding the cash on hand account
 func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -230,9 +221,6 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// MemberAccountingLedgerFindForUpdate finds and locks a member accounting ledger for concurrent protection
-// Returns nil if not found (without error), allowing for create-or-update patterns
-// MemberAccountingLedgerFindForUpdate returns MemberAccountingLedgerFindForUpdate for the current branch or organization where applicable.
 func (m *Core) MemberAccountingLedgerFindForUpdate(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -264,12 +252,9 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
-	// Validate: Either debit or credit must be non-zero, but not both
 	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
-
-	// First, try to find and lock existing ledger
 	ledger, err := m.MemberAccountingLedgerFindForUpdate(
 		ctx, tx,
 		params.MemberProfileID,
@@ -281,8 +266,8 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
+	// Create new ledger if not found
 	if ledger == nil {
-		// Create new member accounting ledger
 		ledger = &MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -303,28 +288,32 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			PrincipalDue:        0,
 		}
 
+		if tx == nil {
+			return nil, eris.New("database tx is nil")
+		}
 		err = tx.WithContext(ctx).Create(ledger).Error
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
 	} else {
-		// Update existing member accounting ledger
+		// Update existing ledger
 		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
 		ledger.Count++
 
+		if tx == nil {
+			return nil, eris.New("database tx is nil")
+		}
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {
 			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
 	}
-
 	return ledger, nil
 }
 
-// MemberAccountingLedgerFilterByCriteria filters member accounting ledgers based on account and member type criteria
 func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	ctx context.Context,
 	organizationID,
@@ -365,7 +354,6 @@ func (m *Core) MemberAccountingLedgerByBrowseReference(ctx context.Context, incl
 			return nil, eris.Wrap(err, "failed to filter member accounting ledgers by browse reference")
 		}
 
-		// Create MemberAccountingLedgerBrowseReference for each ledger
 		for _, ledger := range ledgers {
 			memberAccountingLedger = append(memberAccountingLedger, &MemberAccountingLedgerBrowseReference{
 				MemberAccountingLedger: ledger,

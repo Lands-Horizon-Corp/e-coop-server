@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberRelativeAccountController() {
 	req := c.provider.Service.Request
 
-	// Create a new relative account record for a member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-relative-account/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -81,7 +80,6 @@ func (c *Controller) memberRelativeAccountController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager.ToModel(value))
 	})
 
-	// Update an existing relative account record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-relative-account/:member_relative_account_id",
 		Method:       "PUT",
@@ -153,7 +151,6 @@ func (c *Controller) memberRelativeAccountController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager.ToModel(value))
 	})
 
-	// Delete a member's relative account record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-relative-account/:member_relative_account_id",
 		Method: "DELETE",

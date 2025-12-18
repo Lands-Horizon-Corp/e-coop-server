@@ -27,7 +27,6 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			return nil, eris.Wrapf(getErr, "Failed to get loan transaction by ID: %s", loanTransactionID)
 		}
 
-		// ensure we have a member profile id before dereferencing
 		if loanTransaction == nil {
 			return nil, eris.Wrapf(nil, "loan transaction %s not found", loanTransactionID)
 		}
@@ -56,7 +55,6 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 		var total_debit float64
 		var total_credit float64
 		for _, entry := range loanTransactionEntries {
-			// be defensive about nested fields
 			var accountName string
 			var debitFmt, creditFmt string
 			if entry.Account != nil {
@@ -76,7 +74,6 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 		}
 
 		amount := total_credit - total_debit
-		// defensive access for nested LoanTransaction fields used below
 		var processorName string
 		if loanTransaction.ReleasedBy != nil {
 			processorName = loanTransaction.ReleasedBy.FullName

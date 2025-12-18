@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// TimeDepositTypeController registers routes for managing time deposit types.
 func (c *Controller) timeDepositTypeController() {
 	req := c.provider.Service.Request
 
-	// GET /time-deposit-type/search: Paginated search of time deposit types for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager.ToModels(timeDepositTypes))
 	})
 
-	// GET /time-deposit-type/:time_deposit_type_id: Get specific time deposit type by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "GET",
@@ -55,7 +52,6 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.JSON(http.StatusOK, timeDepositType)
 	})
 
-	// POST /time-deposit-type: Create a new time deposit type. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "POST",
@@ -122,7 +118,6 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.JSON(http.StatusCreated, c.core.TimeDepositTypeManager.ToModel(timeDepositType))
 	})
 
-	// PUT /time-deposit-type/:time_deposit_type_id: Update time deposit type by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "PUT",
@@ -169,7 +164,6 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
 
-		// Start database transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -180,7 +174,6 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		// Update main time deposit type fields
 		timeDepositType.Name = req.Name
 		timeDepositType.Description = req.Description
 		timeDepositType.CurrencyID = req.CurrencyID
@@ -211,7 +204,6 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit type: " + endTx(err).Error()})
 		}
 
-		// Handle deletions first
 		if req.TimeDepositComputationsDeleted != nil {
 			for _, id := range req.TimeDepositComputationsDeleted {
 				if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, id); err != nil {
@@ -238,11 +230,9 @@ func (c *Controller) timeDepositTypeController() {
 			}
 		}
 
-		// Handle TimeDepositComputations creation/update
 		if req.TimeDepositComputations != nil {
 			for _, computationReq := range req.TimeDepositComputations {
 				if computationReq.ID != nil {
-					// Update existing record
 					existingComputation, err := c.core.TimeDepositComputationManager.GetByID(context, *computationReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + endTx(err).Error()})
@@ -266,7 +256,6 @@ func (c *Controller) timeDepositTypeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newComputation := &core.TimeDepositComputation{
 						TimeDepositTypeID: timeDepositType.ID,
 						MinimumAmount:     computationReq.MinimumAmount,
@@ -296,11 +285,9 @@ func (c *Controller) timeDepositTypeController() {
 			}
 		}
 
-		// Handle TimeDepositComputationPreMatures creation/update
 		if req.TimeDepositComputationPreMatures != nil {
 			for _, preMatureReq := range req.TimeDepositComputationPreMatures {
 				if preMatureReq.ID != nil {
-					// Update existing record
 					existingPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, *preMatureReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation pre mature: " + endTx(err).Error()})
@@ -315,7 +302,6 @@ func (c *Controller) timeDepositTypeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newPreMature := &core.TimeDepositComputationPreMature{
 						TimeDepositTypeID: timeDepositType.ID,
 						Terms:             preMatureReq.Terms,
@@ -336,7 +322,6 @@ func (c *Controller) timeDepositTypeController() {
 			}
 		}
 
-		// Commit the transaction
 		if err := endTx(nil); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -358,7 +343,6 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager.ToModel(newTimeDepositType))
 	})
 
-	// DELETE /time-deposit-type/:time_deposit_type_id: Delete a time deposit type by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method: "DELETE",
@@ -399,7 +383,6 @@ func (c *Controller) timeDepositTypeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for time deposit types (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-type/bulk-delete",
 		Method:      "DELETE",
@@ -448,7 +431,6 @@ func (c *Controller) timeDepositTypeController() {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	// GET /api/v1/time-deposit-type/currency/:currency_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",

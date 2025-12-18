@@ -37,7 +37,7 @@ func (e *Event) GenerateMutualFundEntries(
 		amount := 0.0
 		switch mutualFund.ComputationType {
 		case core.ComputationTypeContinuous:
-			amount = mutualFund.TotalAmount
+			amount = mutualFund.Amount
 		case core.ComputationTypeUpToZero:
 			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
@@ -104,7 +104,11 @@ func (e *Event) GenerateMutualFundEntries(
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				MemberProfileID: profile.ID,
+				MemberProfile:   profile,
 				Amount:          amount,
+				Account:         mutualFund.Account,
+				AccountID:       *mutualFund.AccountID,
+				MutualFundID:    mutualFund.ID,
 			})
 		}
 	}

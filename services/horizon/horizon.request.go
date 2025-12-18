@@ -3,11 +3,8 @@ package horizon
 import (
 	"context"
 	"fmt"
-	"io"
-	"log"
 	"net"
 	"net/http"
-	"os"
 	"slices"
 	"strings"
 	"time"
@@ -43,8 +40,6 @@ type APIServiceImpl struct {
 	serverPort int
 	handler    *handlers.RouteHandler
 	cache      CacheService
-	secured    bool
-	logger     *zap.Logger
 }
 
 type APIService interface {
@@ -52,7 +47,6 @@ type APIService interface {
 	Stop(ctx context.Context) error
 	Client() *echo.Echo
 	RegisterWebRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
-	RegisterMobileRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc)
 }
 
 func getProductionSecurityConfig() SecurityHeaderConfig {
@@ -63,7 +57,24 @@ func getProductionSecurityConfig() SecurityHeaderConfig {
 		HSTSIncludeSubdomains: true,
 		HSTSPreloadEnabled:    true,
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
-		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'nonce-{random}'; style-src 'self' 'nonce-{random}'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; media-src 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; manifest-src 'self'; worker-src 'self'; sandbox allow-scripts allow-same-origin allow-forms; require-trusted-types-for 'script'; report-uri /api/csp-violations; report-to csp-endpoint;",
+		ContentSecurityPolicy: "default-src 'self'; " +
+			"script-src 'self' 'nonce-{random}'; " +
+			"style-src 'self' 'nonce-{random}'; " +
+			"img-src 'self' data: https:; " +
+			"font-src 'self' data:; " +
+			"connect-src 'self' https:; " +
+			"media-src 'self'; " +
+			"object-src 'none'; " +
+			"frame-src 'none'; " +
+			"frame-ancestors 'none'; " +
+			"form-action 'self'; " +
+			"base-uri 'self'; " +
+			"manifest-src 'self'; " +
+			"worker-src 'self'; " +
+			"sandbox allow-scripts allow-same-origin allow-forms; " +
+			"require-trusted-types-for 'script'; " +
+			"report-uri /api/csp-violations; " +
+			"report-to csp-endpoint;",
 	}
 }
 
@@ -75,13 +86,24 @@ func getDevelopmentSecurityConfig() SecurityHeaderConfig {
 		HSTSIncludeSubdomains: false,
 		HSTSPreloadEnabled:    false,
 		ReferrerPolicy:        "no-referrer-when-downgrade",
-		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; img-src 'self' data: https: http:; connect-src 'self' ws: wss: http: https:; frame-src 'self' http: https:; form-action 'self' http: https:;",
+		ContentSecurityPolicy: "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; " +
+			"img-src 'self' data: https: http:; " +
+			"connect-src 'self' ws: wss: http: https:; " +
+			"frame-src 'self' http: https:; " +
+			"form-action 'self' http: https:;",
 	}
 }
 
 func getExtendedSecurityHeaders() ExtendedSecurityHeaders {
 	return ExtendedSecurityHeaders{
-		PermissionsPolicy:             "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), vibrate=()",
+		PermissionsPolicy: "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), " +
+			"camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), " +
+			"encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), " +
+			"fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), " +
+			"microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), " +
+			"publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), " +
+			"xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), " +
+			"speaker-selection=(), vibrate=()",
 		ExpectCT:                      "max-age=86400, enforce",
 		XPermittedCrossDomainPolicies: "none",
 		CrossOriginEmbedderPolicy:     "require-corp",
@@ -105,12 +127,14 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			err := next(c)
-
-			var securityConfig SecurityHeaderConfig
 			if secured {
-				securityConfig = getProductionSecurityConfig()
+				securityConfig := getProductionSecurityConfig()
 				extendedHeaders := getExtendedSecurityHeaders()
-				applyExtendedSecurityHeaders(c, extendedHeaders)
+
+				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
+				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
+				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
+				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
 
 				if securityConfig.HSTSMaxAge > 0 {
 					hstsValue := fmt.Sprintf("max-age=%d", securityConfig.HSTSMaxAge)
@@ -122,21 +146,26 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 					}
 					c.Response().Header().Set("Strict-Transport-Security", hstsValue)
 				}
+				applyExtendedSecurityHeaders(c, extendedHeaders)
 			} else {
-				securityConfig = getDevelopmentSecurityConfig()
+				securityConfig := getDevelopmentSecurityConfig()
+				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
+				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
+				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
+				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
 			}
-
-			c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
-			c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
-			c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
-			c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
 
 			return err
 		}
 	}
 }
 
-func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIService {
+func NewHorizonAPIService(
+	cache CacheService,
+	serverPort int,
+	secured bool,
+) APIService {
+
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
@@ -149,42 +178,84 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		}
 	}()
 
+	origins := []string{
+		"https://ecoop-suite.netlify.app",
+		"https://ecoop-suite.com",
+		"https://www.ecoop-suite.com",
+
+		"https://development.ecoop-suite.com",
+		"https://www.development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+		"https://www.staging.ecoop-suite.com",
+
+		"https://cooperatives-development.fly.dev",
+		"https://cooperatives-staging.fly.dev",
+		"https://cooperatives-production.fly.dev",
+	}
+
+	if !secured {
+		origins = append(origins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+		)
+	}
+
+	allowedHosts := make([]string, 0, len(origins))
+	for _, origin := range origins {
+		hostname := strings.TrimPrefix(origin, "https://")
+		hostname = strings.TrimPrefix(hostname, "http://")
+		allowedHosts = append(allowedHosts, hostname)
+	}
+
 	e.Use(middleware.Recover())
 	e.Pre(middleware.RemoveTrailingSlash())
 
-	// Pre-router handler for OPTIONS preflight to ensure it's handled before routing
+	if secured {
+		e.Pre(middleware.HTTPSRedirect())
+	}
+
 	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().Method != http.MethodOptions {
+			host := handlers.GetHost(c)
+
+			if slices.Contains(allowedHosts, host) {
 				return next(c)
 			}
 
-			origin := c.Request().Header.Get("Origin")
-			if origin == "" {
-				return c.NoContent(http.StatusNoContent)
+			return c.String(http.StatusForbidden, "Host not allowed")
+		}
+	})
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			allowedMethods := map[string]bool{
+				http.MethodGet:     true, // Read operations
+				http.MethodPost:    true, // Create operations
+				http.MethodPut:     true, // Update/replace operations
+				http.MethodPatch:   true, // Partial update operations
+				http.MethodDelete:  true, // Delete operations
+				http.MethodHead:    true, // Header-only requests
+				http.MethodOptions: true, // CORS preflight requests
 			}
 
-			// allow configured origins and localhost in dev
-			if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost") {
-				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-				c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-				c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-				c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-				c.Response().Header().Set("Access-Control-Max-Age", "3600")
-				return c.NoContent(http.StatusNoContent)
+			if !allowedMethods[c.Request().Method] {
+				return echo.NewHTTPError(http.StatusMethodNotAllowed, "Method not allowed")
 			}
 
-			// fallback: respond no content
-			return c.NoContent(http.StatusNoContent)
+			return next(c)
 		}
 	})
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			clientIP := handlers.GetClientIP(c)
+
 			if net.ParseIP(clientIP) == nil {
-				logger.Warn("Invalid IP format detected",
+				logger.Warn("Invalid IP format detected - potential attack",
 					zap.String("raw_ip", clientIP),
 					zap.String("user_agent", handlers.GetUserAgent(c)),
 				)
@@ -194,7 +265,10 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 			cacheKey := "blocked_ip:" + clientIP
 			hostBytes, err := cache.Get(c.Request().Context(), cacheKey)
 			if err != nil {
-				logger.Error("Firewall cache error", zap.String("ip", clientIP), zap.Error(err))
+				logger.Error("Firewall cache error",
+					zap.String("ip", clientIP),
+					zap.Error(err),
+				)
 				return next(c)
 			}
 			if hostBytes != nil {
@@ -206,41 +280,29 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 
 					attemptKey := "blocked_attempts:" + clientIP
 					if err := cache.ZAdd(ctx, attemptKey, timestamp, fmt.Sprintf("%s:%d", c.Request().URL.Path, time.Now().Unix())); err != nil {
-						logger.Debug("Failed to track blocked IP attempt", zap.String("ip", clientIP), zap.Error(err))
+						logger.Debug("Failed to track blocked IP attempt",
+							zap.String("ip", clientIP),
+							zap.Error(err))
 					}
 
 					if err := cache.ZAdd(ctx, "blocked_ips_registry", timestamp, clientIP); err != nil {
-						logger.Debug("Failed to update blocked IPs registry", zap.String("ip", clientIP), zap.Error(err))
+						logger.Debug("Failed to update blocked IPs registry",
+							zap.String("ip", clientIP),
+							zap.Error(err))
 					}
 
 					sevenDaysAgo := time.Now().AddDate(0, 0, -7).Unix()
 					if _, err := cache.ZRemRangeByScore(ctx, attemptKey, "0", fmt.Sprintf("%d", sevenDaysAgo)); err != nil {
-						logger.Debug("Failed to cleanup old blocked attempts", zap.String("ip", clientIP), zap.Error(err))
+						logger.Debug("Failed to cleanup old blocked attempts",
+							zap.String("ip", clientIP),
+							zap.Error(err))
 					}
 				}()
-
-				// In development, avoid blocking loopback addresses (e.g., ::1, 127.0.0.1)
-				if !secured {
-					if parsed := net.ParseIP(clientIP); parsed != nil && parsed.IsLoopback() {
-						logger.Info("IPFirewall: loopback IP detected in dev, skipping block",
-							zap.String("ip", clientIP),
-							zap.String("blocked_host", blockedHost),
-							zap.String("path", c.Request().URL.Path),
-						)
-						log.Printf("IPFirewall(dev): skipping block for loopback IP=%s blocked_host=%s path=%s", clientIP, blockedHost, c.Request().URL.Path)
-						io.WriteString(os.Stdout, fmt.Sprintf("IPFirewall(dev): skipping block for loopback IP=%s blocked_host=%s path=%s\n", clientIP, blockedHost, c.Request().URL.Path))
-						return next(c)
-					}
-				}
-
 				logger.Warn("Blocked IP access attempt",
 					zap.String("ip", clientIP),
 					zap.String("blocked_host", blockedHost),
 					zap.String("path", c.Request().URL.Path),
 				)
-				// extra plain-log for quick visibility
-				log.Printf("IPFirewall: blocked IP=%s blocked_host=%s path=%s", clientIP, blockedHost, c.Request().URL.Path)
-				io.WriteString(os.Stdout, fmt.Sprintf("IPFirewall: blocked IP=%s blocked_host=%s path=%s\n", clientIP, blockedHost, c.Request().URL.Path))
 				return c.JSON(http.StatusForbidden, map[string]string{
 					"error": "Access denied",
 					"code":  "IP_BLOCKED",
@@ -252,47 +314,74 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if handlers.IsSuspiciousPath(c.Request().URL.Path) {
-				clientIP := handlers.GetClientIP(c)
-				host := handlers.GetHost(c)
+			path := handlers.GetPath(c)
+			clientIP := handlers.GetClientIP(c)
 
-				// avoid banning local loopback addresses during development
-				if !secured {
-					if parsed := net.ParseIP(clientIP); parsed != nil && parsed.IsLoopback() {
-						logger.Info("Suspicious path detected on loopback - not banning in dev",
-							zap.String("path", c.Request().URL.Path),
-							zap.String("ip", clientIP),
-						)
-						log.Printf("SuspiciousPath(dev): detected from loopback IP=%s path=%s host=%s (no ban)", clientIP, c.Request().URL.Path, host)
-						io.WriteString(os.Stdout, fmt.Sprintf("SuspiciousPath(dev): detected from loopback IP=%s path=%s host=%s (no ban)\n", clientIP, c.Request().URL.Path, host))
-						return echo.NewHTTPError(http.StatusForbidden, "Access denied")
-					}
-				}
+			suspiciousCacheKey := "suspicious_path:" + path
 
+			cachedResult, err := cache.Get(c.Request().Context(), suspiciousCacheKey)
+			if err == nil && cachedResult != nil {
 				go func() {
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 					defer cancel()
 
-					cacheKey := "blocked_ip:" + clientIP
-					if err := cache.Set(ctx, cacheKey, []byte(host), 24*time.Hour); err != nil {
-						logger.Error("Failed to ban IP", zap.String("ip", clientIP), zap.Error(err))
-					}
-
 					timestamp := float64(time.Now().Unix())
-					if err := cache.ZAdd(ctx, "banned_ips_registry", timestamp, clientIP); err != nil {
-						logger.Debug("Failed to update banned IPs registry", zap.String("ip", clientIP), zap.Error(err))
+					suspiciousKey := "suspicious_attempts:" + clientIP
+					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
+					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+						logger.Debug("Failed to track suspicious path attempt",
+							zap.String("ip", clientIP),
+							zap.String("path", path),
+							zap.Error(err))
 					}
 				}()
 
-				logger.Warn("Suspicious path detected - IP banned",
-					zap.String("path", c.Request().URL.Path),
+				logger.Warn("Suspicious path blocked (cached)",
 					zap.String("ip", clientIP),
-					zap.String("user_agent", handlers.GetUserAgent(c)),
+					zap.String("path", path),
 				)
-				// extra plain-log for quick visibility
-				log.Printf("SuspiciousPath: banning IP=%s path=%s host=%s", clientIP, c.Request().URL.Path, host)
-				io.WriteString(os.Stdout, fmt.Sprintf("SuspiciousPath: banning IP=%s path=%s host=%s\n", clientIP, c.Request().URL.Path, host))
-				return echo.NewHTTPError(http.StatusForbidden, "Access denied")
+				return c.String(http.StatusForbidden, "Access forbidden")
+			}
+
+			if handlers.IsSuspiciousPath(path) {
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+
+					if err := cache.Set(ctx, suspiciousCacheKey, []byte("blocked"), 5*time.Minute); err != nil {
+						logger.Error("Failed to cache suspicious path",
+							zap.String("path", path),
+							zap.Error(err),
+						)
+					}
+
+					timestamp := float64(time.Now().Unix())
+					suspiciousKey := "suspicious_attempts:" + clientIP
+					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
+					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+						logger.Debug("Failed to track suspicious path attempt",
+							zap.String("ip", clientIP),
+							zap.String("path", path),
+							zap.Error(err))
+					}
+
+					thirtyDaysAgo := time.Now().AddDate(0, 0, -30).Unix()
+					if _, err := cache.ZRemRangeByScore(ctx, suspiciousKey, "0", fmt.Sprintf("%d", thirtyDaysAgo)); err != nil {
+						logger.Debug("Failed to cleanup old suspicious attempts",
+							zap.String("ip", clientIP),
+							zap.Error(err))
+					}
+				}()
+
+				logger.Warn("Suspicious path blocked",
+					zap.String("ip", clientIP),
+					zap.String("path", path),
+				)
+				return c.String(http.StatusForbidden, "Access forbidden")
+			}
+
+			if strings.HasPrefix(strings.ToLower(path), "/.well-known/") {
+				return c.String(http.StatusNotFound, "Path not found")
 			}
 			return next(c)
 		}
@@ -300,7 +389,9 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().Method == http.MethodPost || c.Request().Method == http.MethodPut || c.Request().Method == http.MethodPatch {
+			if c.Request().Method == http.MethodPost ||
+				c.Request().Method == http.MethodPut ||
+				c.Request().Method == http.MethodPatch {
 				if c.Request().Header.Get("Content-Length") == "" {
 					return echo.NewHTTPError(http.StatusLengthRequired, "Content-Length header required")
 				}
@@ -311,6 +402,28 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 
 	e.Use(middleware.BodyLimit("4M"))
 
+	if secured {
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				c.Response().Header().Set("Set-Cookie",
+					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
+				return next(c)
+			}
+		})
+	} else {
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				c.Response().Header().Set("Set-Cookie",
+					strings.ReplaceAll(
+						c.Response().Header().Get("Set-Cookie"),
+						"; Path=",
+						"; HttpOnly; SameSite=Lax; Path=",
+					))
+				return next(c)
+			}
+		})
+	}
+
 	rateLimiterConfig := RateLimiterConfig{
 		RequestsPerSecond: 20,
 		BurstCapacity:     100,
@@ -318,11 +431,80 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		KeyPrefix:         "horizon_api",
 	}
 	rateLimiter := NewRateLimiter(cache, logger, rateLimiterConfig)
+
 	e.Use(rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
 		ip := handlers.GetClientIP(c)
 		userAgent := handlers.GetUserAgent(c)
 		return fmt.Sprintf("%s:%s", ip, userAgent)
 	}))
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: origins,
+
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+			http.MethodHead,
+		},
+
+		AllowHeaders: []string{
+
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			echo.HeaderXRequestedWith,
+			echo.HeaderXCSRFToken,
+			echo.HeaderAccessControlRequestMethod,
+			echo.HeaderAccessControlRequestHeaders,
+
+			"X-Longitude",
+			"X-Latitude",
+			"Location",
+			"X-Device-Type",
+			"X-User-Agent",
+		},
+
+		ExposeHeaders: []string{
+			echo.HeaderContentLength,
+			echo.HeaderContentType,
+			echo.HeaderAuthorization,
+		},
+
+		AllowCredentials: true,
+		MaxAge:           3600,
+	}))
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Request().Method == http.MethodOptions {
+				origin := c.Request().Header.Get("Origin")
+				logger.Info("CORS Preflight Request",
+					zap.String("origin", origin),
+					zap.String("path", c.Request().URL.Path),
+					zap.String("method", c.Request().Header.Get("Access-Control-Request-Method")),
+					zap.String("headers", c.Request().Header.Get("Access-Control-Request-Headers")),
+				)
+				if slices.Contains(origins, origin) {
+					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
+					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
+					c.Response().Header().Set("Access-Control-Max-Age", "3600")
+				} else {
+					logger.Warn("CORS request from unauthorized origin",
+						zap.String("origin", origin),
+						zap.String("path", c.Request().URL.Path),
+					)
+				}
+
+				return c.NoContent(http.StatusNoContent)
+			}
+			return next(c)
+		}
+	})
 
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
@@ -331,6 +513,7 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		LogMethod:   true,
 		LogLatency:  true,
 		HandleError: true,
+
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
 				logger.Info("REQUEST",
@@ -383,49 +566,11 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 				zap.Error(err),
 			)
 		},
+
 		Timeout: 1 * time.Minute,
 	}))
 
 	e.Use(SecurityHeadersMiddleware(secured))
-
-	// Global preflight handler: respond to OPTIONS with appropriate CORS headers
-	e.OPTIONS("/*", func(c echo.Context) error {
-		origins := []string{
-			"https://ecoop-suite.netlify.app",
-			"https://ecoop-suite.com",
-			"https://www.ecoop-suite.com",
-			"https://development.ecoop-suite.com",
-			"https://www.development.ecoop-suite.com",
-			"https://staging.ecoop-suite.com",
-			"https://www.staging.ecoop-suite.com",
-			"https://cooperatives-development.fly.dev",
-			"https://cooperatives-staging.fly.dev",
-			"https://cooperatives-production.fly.dev",
-		}
-		if !secured {
-			origins = append(origins,
-				"http://localhost:8000",
-				"http://localhost:8001",
-				"http://localhost:3000",
-				"http://localhost:3001",
-				"http://localhost:3002",
-				"http://localhost:3003",
-			)
-		}
-		origin := c.Request().Header.Get("Origin")
-		if origin == "" {
-			return c.NoContent(http.StatusNoContent)
-		}
-		if slices.Contains(origins, origin) || (!secured && (strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost"))) {
-			c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-			c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-			c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-			c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-			c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-			c.Response().Header().Set("Access-Control-Max-Age", "3600")
-		}
-		return c.NoContent(http.StatusNoContent)
-	})
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
@@ -436,91 +581,43 @@ func NewHorizonAPIService(cache CacheService, serverPort int, secured bool) APIS
 		serverPort: serverPort,
 		handler:    handlers.NewRouteHandler(),
 		cache:      cache,
-		secured:    secured,
-		logger:     logger,
 	}
 }
-
 func (h *APIServiceImpl) Client() *echo.Echo {
 	return h.service
 }
 
 func (h *APIServiceImpl) RegisterWebRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
-	webRoute := handlers.Route{
-		Route:        "/web/" + strings.TrimPrefix(route.Route, "/"),
-		Request:      route.Request,
-		Response:     route.Response,
-		RequestType:  route.RequestType,
-		ResponseType: route.ResponseType,
-		Method:       route.Method,
-		Note:         route.Note,
-		Private:      route.Private,
-	}
+	method := strings.ToUpper(strings.TrimSpace(route.Method))
 
-	method := strings.ToUpper(strings.TrimSpace(webRoute.Method))
-	if err := h.handler.AddRoute(webRoute); err != nil {
+	if err := h.handler.AddRoute(route); err != nil {
 		panic(err)
 	}
 
-	webMiddleware := append([]echo.MiddlewareFunc{h.webMiddleware()}, m...)
-
+	routePath := strings.TrimPrefix(route.Route, "/")
+	routePath = "/web/" + routePath
 	switch method {
 	case http.MethodGet:
-		h.service.GET(webRoute.Route, callback, webMiddleware...)
+		h.service.GET(routePath, callback, m...)
 	case http.MethodPost:
-		h.service.POST(webRoute.Route, callback, webMiddleware...)
+		h.service.POST(routePath, callback, m...)
 	case http.MethodPut:
-		h.service.PUT(webRoute.Route, callback, webMiddleware...)
+		h.service.PUT(routePath, callback, m...)
 	case http.MethodPatch:
-		h.service.PATCH(webRoute.Route, callback, webMiddleware...)
+		h.service.PATCH(routePath, callback, m...)
 	case http.MethodDelete:
-		h.service.DELETE(webRoute.Route, callback, webMiddleware...)
-	}
-}
-
-func (h *APIServiceImpl) RegisterMobileRoute(route handlers.Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) {
-	mobileRoute := handlers.Route{
-		Route:        "/mobile/" + strings.TrimPrefix(route.Route, "/"),
-		Request:      route.Request,
-		Response:     route.Response,
-		RequestType:  route.RequestType,
-		ResponseType: route.ResponseType,
-		Method:       route.Method,
-		Note:         route.Note,
-		Private:      route.Private,
-	}
-
-	method := strings.ToUpper(strings.TrimSpace(mobileRoute.Method))
-	if err := h.handler.AddRoute(mobileRoute); err != nil {
-		panic(err)
-	}
-
-	mobileMiddleware := append([]echo.MiddlewareFunc{h.mobileMiddleware()}, m...)
-
-	switch method {
-	case http.MethodGet:
-		h.service.GET(mobileRoute.Route, callback, mobileMiddleware...)
-	case http.MethodPost:
-		h.service.POST(mobileRoute.Route, callback, mobileMiddleware...)
-	case http.MethodPut:
-		h.service.PUT(mobileRoute.Route, callback, mobileMiddleware...)
-	case http.MethodPatch:
-		h.service.PATCH(mobileRoute.Route, callback, mobileMiddleware...)
-	case http.MethodDelete:
-		h.service.DELETE(mobileRoute.Route, callback, mobileMiddleware...)
+		h.service.DELETE(routePath, callback, m...)
 	}
 }
 
 func (h *APIServiceImpl) Run(_ context.Context) error {
 	grouped := h.handler.GroupedRoutes()
-	h.service.GET("/api/routes", func(c echo.Context) error {
+	h.service.GET("web/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
 	}).Name = "horizon-routes-json"
-
 	h.service.Any("/*", func(c echo.Context) error {
 		return c.String(http.StatusNotFound, "404 - Route not found")
 	})
-
 	go func() {
 		h.service.Logger.Fatal(h.service.Start(fmt.Sprintf(":%d", h.serverPort)))
 	}()
@@ -532,120 +629,4 @@ func (h *APIServiceImpl) Stop(ctx context.Context) error {
 		return eris.New("failed to gracefully shutdown server")
 	}
 	return nil
-}
-
-func (h *APIServiceImpl) webMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			origins := []string{
-				"https://ecoop-suite.netlify.app",
-				"https://ecoop-suite.com",
-				"https://www.ecoop-suite.com",
-				"https://development.ecoop-suite.com",
-				"https://www.development.ecoop-suite.com",
-				"https://staging.ecoop-suite.com",
-				"https://www.staging.ecoop-suite.com",
-				"https://cooperatives-development.fly.dev",
-				"https://cooperatives-staging.fly.dev",
-				"https://cooperatives-production.fly.dev",
-			}
-
-			if !h.secured {
-				origins = append(origins,
-					"http://localhost:8000",
-					"http://localhost:8001",
-					"http://localhost:3000",
-					"http://localhost:3001",
-					"http://localhost:3002",
-					"http://localhost:3003",
-				)
-			}
-
-			allowedHosts := make([]string, 0, len(origins)*2+2)
-			for _, origin := range origins {
-				hostname := strings.TrimPrefix(origin, "https://")
-				hostname = strings.TrimPrefix(hostname, "http://")
-				// add both host:port and host (no port) to allowed hosts
-				allowedHosts = append(allowedHosts, hostname)
-				if strings.Contains(hostname, ":") {
-					hostNoPort := strings.Split(hostname, ":")[0]
-					allowedHosts = append(allowedHosts, hostNoPort)
-				} else {
-					allowedHosts = append(allowedHosts, hostname)
-				}
-			}
-			// always allow common local hosts in development
-			if !h.secured {
-				allowedHosts = append(allowedHosts, "localhost", "127.0.0.1")
-			}
-
-			host := handlers.GetHost(c)
-			// allow loopback hosts in development regardless of port
-			if !h.secured {
-				if strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "127.") || host == "::1" || strings.HasPrefix(host, "[::1") {
-					// continue to CORS handling below
-				} else if slices.Contains(allowedHosts, host) {
-					// allowed host
-				} else {
-					clientIP := handlers.GetClientIP(c)
-					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
-					return c.String(http.StatusForbidden, "Host not allowed")
-				}
-			} else {
-				if !slices.Contains(allowedHosts, host) {
-					clientIP := handlers.GetClientIP(c)
-					log.Printf("HostValidation: blocked host=%s from IP=%s path=%s", host, clientIP, c.Request().URL.Path)
-					io.WriteString(os.Stdout, fmt.Sprintf("HostValidation: blocked host=%s from IP=%s path=%s\n", host, clientIP, c.Request().URL.Path))
-					return c.String(http.StatusForbidden, "Host not allowed")
-				}
-			}
-
-			origin := c.Request().Header.Get("Origin")
-			// allow explicit origins from configured list
-			if slices.Contains(origins, origin) {
-				c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-				c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-				c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-				c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-				c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-				c.Response().Header().Set("Access-Control-Max-Age", "3600")
-			} else if !h.secured && origin != "" {
-				// in development allow localhost/127.0.0.1 origins with arbitrary ports
-				if strings.HasPrefix(origin, "http://localhost") || strings.HasPrefix(origin, "http://127.") || strings.HasPrefix(origin, "http://[::1") || strings.HasPrefix(origin, "https://localhost") {
-					c.Response().Header().Set("Access-Control-Allow-Origin", origin)
-					c.Response().Header().Set("Access-Control-Allow-Credentials", "true")
-					c.Response().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
-					c.Response().Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-Token, X-Longitude, X-Latitude, Location, X-Device-Type, X-User-Agent")
-					c.Response().Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
-					c.Response().Header().Set("Access-Control-Max-Age", "3600")
-				}
-			}
-
-			if c.Request().Method == http.MethodOptions {
-				return c.NoContent(http.StatusNoContent)
-			}
-
-			if h.secured {
-				c.Response().Header().Set("Set-Cookie",
-					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
-			}
-
-			return next(c)
-		}
-	}
-}
-
-func (h *APIServiceImpl) mobileMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Response().Header().Set("Set-Cookie",
-				strings.ReplaceAll(
-					c.Response().Header().Get("Set-Cookie"),
-					"; Path=",
-					"; HttpOnly; SameSite=Lax; Path=",
-				))
-			return next(c)
-		}
-	}
 }

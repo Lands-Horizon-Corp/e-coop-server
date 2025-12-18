@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ChargesRateSchemeController registers routes for managing charges rate schemes.
 func (c *Controller) chargesRateSchemeController() {
 	req := c.provider.Service.Request
 
-	// GET /charges-rate-scheme: Paginated list of charges rate schemes for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeManager.ToModels(chargesRateSchemes))
 	})
 
-	// GET	 /api/v1/charges-rate-scheme/currency/:currency_id: Get charges rate schemes by currency ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
 		Method:       "GET",
@@ -66,7 +63,6 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeManager.ToModels(chargesRateSchemes))
 	})
 
-	// GET /charges-rate-scheme/:charges_rate_scheme_id: Get specific charges rate scheme by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "GET",
@@ -85,7 +81,6 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.JSON(http.StatusOK, chargesRateScheme)
 	})
 
-	// POST /charges-rate-scheme: Create a new charges rate scheme. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "POST",
@@ -122,12 +117,11 @@ func (c *Controller) chargesRateSchemeController() {
 		}
 
 		chargesRateScheme := &core.ChargesRateScheme{
-			MemberTypeID:  req.MemberTypeID,
-			ModeOfPayment: req.ModeOfPayment,
-			Name:          req.Name,
-			Description:   req.Description,
-			Icon:          req.Icon,
-			// ModeOfPayment header fields
+			MemberTypeID:          req.MemberTypeID,
+			ModeOfPayment:         req.ModeOfPayment,
+			Name:                  req.Name,
+			Description:           req.Description,
+			Icon:                  req.Icon,
 			ModeOfPaymentHeader1:  req.ModeOfPaymentHeader1,
 			ModeOfPaymentHeader2:  req.ModeOfPaymentHeader2,
 			ModeOfPaymentHeader3:  req.ModeOfPaymentHeader3,
@@ -150,37 +144,36 @@ func (c *Controller) chargesRateSchemeController() {
 			ModeOfPaymentHeader20: req.ModeOfPaymentHeader20,
 			ModeOfPaymentHeader21: req.ModeOfPaymentHeader21,
 			ModeOfPaymentHeader22: req.ModeOfPaymentHeader22,
-			// ByTerm header fields
-			ByTermHeader1:  req.ByTermHeader1,
-			ByTermHeader2:  req.ByTermHeader2,
-			ByTermHeader3:  req.ByTermHeader3,
-			ByTermHeader4:  req.ByTermHeader4,
-			ByTermHeader5:  req.ByTermHeader5,
-			ByTermHeader6:  req.ByTermHeader6,
-			ByTermHeader7:  req.ByTermHeader7,
-			ByTermHeader8:  req.ByTermHeader8,
-			ByTermHeader9:  req.ByTermHeader9,
-			ByTermHeader10: req.ByTermHeader10,
-			ByTermHeader11: req.ByTermHeader11,
-			ByTermHeader12: req.ByTermHeader12,
-			ByTermHeader13: req.ByTermHeader13,
-			ByTermHeader14: req.ByTermHeader14,
-			ByTermHeader15: req.ByTermHeader15,
-			ByTermHeader16: req.ByTermHeader16,
-			ByTermHeader17: req.ByTermHeader17,
-			ByTermHeader18: req.ByTermHeader18,
-			ByTermHeader19: req.ByTermHeader19,
-			ByTermHeader20: req.ByTermHeader20,
-			ByTermHeader21: req.ByTermHeader21,
-			ByTermHeader22: req.ByTermHeader22,
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-			BranchID:       *userOrg.BranchID,
-			OrganizationID: userOrg.OrganizationID,
-			CurrencyID:     req.CurrencyID,
-			Type:           req.Type,
+			ByTermHeader1:         req.ByTermHeader1,
+			ByTermHeader2:         req.ByTermHeader2,
+			ByTermHeader3:         req.ByTermHeader3,
+			ByTermHeader4:         req.ByTermHeader4,
+			ByTermHeader5:         req.ByTermHeader5,
+			ByTermHeader6:         req.ByTermHeader6,
+			ByTermHeader7:         req.ByTermHeader7,
+			ByTermHeader8:         req.ByTermHeader8,
+			ByTermHeader9:         req.ByTermHeader9,
+			ByTermHeader10:        req.ByTermHeader10,
+			ByTermHeader11:        req.ByTermHeader11,
+			ByTermHeader12:        req.ByTermHeader12,
+			ByTermHeader13:        req.ByTermHeader13,
+			ByTermHeader14:        req.ByTermHeader14,
+			ByTermHeader15:        req.ByTermHeader15,
+			ByTermHeader16:        req.ByTermHeader16,
+			ByTermHeader17:        req.ByTermHeader17,
+			ByTermHeader18:        req.ByTermHeader18,
+			ByTermHeader19:        req.ByTermHeader19,
+			ByTermHeader20:        req.ByTermHeader20,
+			ByTermHeader21:        req.ByTermHeader21,
+			ByTermHeader22:        req.ByTermHeader22,
+			CreatedAt:             time.Now().UTC(),
+			CreatedByID:           userOrg.UserID,
+			UpdatedAt:             time.Now().UTC(),
+			UpdatedByID:           userOrg.UserID,
+			BranchID:              *userOrg.BranchID,
+			OrganizationID:        userOrg.OrganizationID,
+			CurrencyID:            req.CurrencyID,
+			Type:                  req.Type,
 		}
 
 		if err := c.core.ChargesRateSchemeManager.Create(context, chargesRateScheme); err != nil {
@@ -192,7 +185,6 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme: " + err.Error()})
 		}
 
-		// Create associated accounts if provided
 		if len(req.AccountIDs) > 0 {
 			for _, accountID := range req.AccountIDs {
 				chargesRateSchemeAccount := &core.ChargesRateSchemeAccount{
@@ -224,7 +216,6 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.JSON(http.StatusCreated, c.core.ChargesRateSchemeManager.ToModel(chargesRateScheme))
 	})
 
-	// PUT /charges-rate-scheme/:charges_rate_scheme_id: Update charges rate scheme by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "PUT",
@@ -271,7 +262,6 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
 
-		// Start database transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		chargesRateScheme.MemberTypeID = req.MemberTypeID
@@ -280,7 +270,6 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.Description = req.Description
 		chargesRateScheme.Icon = req.Icon
 		chargesRateScheme.Type = req.Type
-		// ModeOfPayment header fields
 		chargesRateScheme.ModeOfPaymentHeader1 = req.ModeOfPaymentHeader1
 		chargesRateScheme.ModeOfPaymentHeader2 = req.ModeOfPaymentHeader2
 		chargesRateScheme.ModeOfPaymentHeader3 = req.ModeOfPaymentHeader3
@@ -303,7 +292,6 @@ func (c *Controller) chargesRateSchemeController() {
 		chargesRateScheme.ModeOfPaymentHeader20 = req.ModeOfPaymentHeader20
 		chargesRateScheme.ModeOfPaymentHeader21 = req.ModeOfPaymentHeader21
 		chargesRateScheme.ModeOfPaymentHeader22 = req.ModeOfPaymentHeader22
-		// ByTerm header fields
 		chargesRateScheme.ByTermHeader1 = req.ByTermHeader1
 		chargesRateScheme.ByTermHeader2 = req.ByTermHeader2
 		chargesRateScheme.ByTermHeader3 = req.ByTermHeader3
@@ -339,7 +327,6 @@ func (c *Controller) chargesRateSchemeController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme: " + endTx(err).Error()})
 		}
 
-		// Handle deletions first
 		if req.ChargesRateSchemeAccountsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeAccountsDeleted {
 				if err := c.core.ChargesRateSchemeAccountManager.DeleteWithTx(context, tx, id); err != nil {
@@ -392,11 +379,9 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		// Handle ChargesRateSchemeAccounts creation/update
 		if req.ChargesRateSchemeAccounts != nil {
 			for _, accountReq := range req.ChargesRateSchemeAccounts {
 				if accountReq.ID != nil {
-					// Update existing record
 					existingAccount, err := c.core.ChargesRateSchemeAccountManager.GetByID(context, *accountReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme account: " + endTx(err).Error()})
@@ -408,7 +393,6 @@ func (c *Controller) chargesRateSchemeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newAccount := &core.ChargesRateSchemeAccount{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						AccountID:           accountReq.AccountID,
@@ -426,11 +410,9 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		// Handle ChargesRateByRangeOrMinimumAmounts creation/update
 		if req.ChargesRateByRangeOrMinimumAmounts != nil {
 			for _, rangeReq := range req.ChargesRateByRangeOrMinimumAmounts {
 				if rangeReq.ID != nil {
-					// Update existing record
 					existingRange, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *rangeReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by range or minimum amount: " + endTx(err).Error()})
@@ -446,7 +428,6 @@ func (c *Controller) chargesRateSchemeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newRange := &core.ChargesRateByRangeOrMinimumAmount{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						From:                rangeReq.From,
@@ -468,11 +449,9 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		// Handle ChargesRateSchemeModeOfPayments creation/update
 		if req.ChargesRateSchemeModeOfPayments != nil {
 			for _, modeReq := range req.ChargesRateSchemeModeOfPayments {
 				if modeReq.ID != nil {
-					// Update existing record
 					existingMode, err := c.core.ChargesRateSchemeModeOfPaymentManager.GetByID(context, *modeReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme mode of payment: " + endTx(err).Error()})
@@ -507,7 +486,6 @@ func (c *Controller) chargesRateSchemeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newMode := &core.ChargesRateSchemeModeOfPayment{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						From:                modeReq.From,
@@ -548,11 +526,9 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		// Handle ChargesRateByTerms creation/update
 		if req.ChargesRateByTerms != nil {
 			for _, termReq := range req.ChargesRateByTerms {
 				if termReq.ID != nil {
-					// Update existing record
 					existingTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *termReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by term: " + endTx(err).Error()})
@@ -588,7 +564,6 @@ func (c *Controller) chargesRateSchemeController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					newTerm := &core.ChargesRateByTerm{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						Name:                termReq.Name,
@@ -630,7 +605,6 @@ func (c *Controller) chargesRateSchemeController() {
 			}
 		}
 
-		// Commit the transaction
 		if err := endTx(nil); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -653,7 +627,6 @@ func (c *Controller) chargesRateSchemeController() {
 		return ctx.JSON(http.StatusOK, newRateScheme)
 	})
 
-	// DELETE /charges-rate-scheme/:charges_rate_scheme_id: Delete a charges rate scheme by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method: "DELETE",

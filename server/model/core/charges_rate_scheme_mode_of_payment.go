@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ChargesRateSchemeModeOfPayment represents the ChargesRateSchemeModeOfPayment model.
 	ChargesRateSchemeModeOfPayment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -59,9 +58,6 @@ type (
 		Column22 float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// ChargesRateSchemeModeOfPaymentResponse represents the response structure for chargesrateschememodeofpayment data
-
-	// ChargesRateSchemeModeOfPaymentResponse represents the response structure for ChargesRateSchemeModeOfPayment.
 	ChargesRateSchemeModeOfPaymentResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -103,9 +99,6 @@ type (
 		Column22 float64 `json:"column22"`
 	}
 
-	// ChargesRateSchemeModeOfPaymentRequest represents the request structure for creating/updating chargesrateschememodeofpayment
-
-	// ChargesRateSchemeModeOfPaymentRequest represents the request structure for ChargesRateSchemeModeOfPayment.
 	ChargesRateSchemeModeOfPaymentRequest struct {
 		ID   *uuid.UUID `json:"id,omitempty"`
 		From float64    `json:"from,omitempty"`
@@ -219,7 +212,6 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 	})
 }
 
-// ChargesRateSchemeModeOfPaymentCurrentBranch retrieves all charges rate scheme mode of payment for the specified organization and branch
 func (m *Core) ChargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
 	return m.ChargesRateSchemeModeOfPaymentManager.Find(context, &ChargesRateSchemeModeOfPayment{
 		OrganizationID: organizationID,

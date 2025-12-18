@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ChargesRateByTerm represents the ChargesRateByTerm model.
 	ChargesRateByTerm struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -60,9 +59,6 @@ type (
 		Rate22 float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// ChargesRateByTermResponse represents the response structure for chargesratebyterm data
-
-	// ChargesRateByTermResponse represents the response structure for ChargesRateByTerm.
 	ChargesRateByTermResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -104,9 +100,6 @@ type (
 		Rate22              float64                    `json:"rate_22"`
 	}
 
-	// ChargesRateByTermRequest represents the request structure for creating/updating chargesratebyterm
-
-	// ChargesRateByTermRequest represents the request structure for ChargesRateByTerm.
 	ChargesRateByTermRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -222,7 +215,6 @@ func (m *Core) chargesRateByTerm() {
 	})
 }
 
-// ChargesRateByTermCurrentBranch retrieves all charges rate by term for the specified organization and branch
 func (m *Core) ChargesRateByTermCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByTerm, error) {
 	return m.ChargesRateByTermManager.Find(context, &ChargesRateByTerm{
 		OrganizationID: organizationID,

@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// GeneratedSavingsInterestEntry represents individual savings interest computation entries
 	GeneratedSavingsInterestEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -44,7 +43,6 @@ type (
 		InterestTax    float64 `gorm:"type:decimal(15,2);not null" json:"interest_tax" validate:"required"`
 	}
 
-	// GeneratedSavingsInterestEntryResponse represents the response structure for generated savings interest entry data
 	GeneratedSavingsInterestEntryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -69,7 +67,6 @@ type (
 		InterestTax                float64                           `json:"interest_tax"`
 	}
 
-	// GenerateSavingsInterestEntryRequest represents the request structure for creating/updating generate savings interest entry
 	GeneratedSavingsInterestEntryRequest struct {
 		AccountID       uuid.UUID `json:"account_id" validate:"required"`
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -171,7 +168,6 @@ func (m *Core) generateSavingsInterestEntry() {
 	})
 }
 
-// GenerateSavingsInterestEntryCurrentBranch retrieves entries for the specified branch and organization
 func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
 	context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
@@ -182,7 +178,6 @@ func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
 	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryByGeneratedSavingsInterest retrieves entries for a specific generated savings interest
 func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 	context context.Context, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
@@ -192,7 +187,6 @@ func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryByAccount retrieves entries for a specific account
 func (m *Core) GenerateSavingsInterestEntryByAccount(
 	context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
@@ -204,7 +198,6 @@ func (m *Core) GenerateSavingsInterestEntryByAccount(
 	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryByMemberProfile retrieves entries for a specific member profile
 func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 	context context.Context, memberProfileID, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
@@ -217,7 +210,6 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
 }
 
-// GenerateSavingsInterestEntryByEndingBalanceRange retrieves entries within a specific ending balance range
 func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 	context context.Context, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
@@ -241,11 +233,10 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 		return nil, err
 	}
 
-	// Get daily balances for this specific entry's account and member profile
 	dailyBalances, err := m.GetDailyEndingBalances(
 		context,
-		generatedSavingsInterest.NewComputationDate,
 		generatedSavingsInterest.LastComputationDate,
+		generatedSavingsInterest.NewComputationDate,
 		generatedSavingsInterestEntry.AccountID,
 		generatedSavingsInterestEntry.MemberProfileID,
 		generatedSavingsInterestEntry.OrganizationID,
@@ -274,7 +265,6 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 	var beginningBalance float64 = -1 // Use -1 to indicate not set
 	var endingBalance float64
 
-	// Convert daily balances to response format
 	currentDate := generatedSavingsInterest.NewComputationDate
 	var previousBalance float64 = -1 // Use -1 to indicate first entry
 	for i, balance := range dailyBalances {
@@ -296,15 +286,12 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 			Type:    changeType,
 		})
 
-		// Update statistics using decimal operations for precision
 		totalBalanceSum = m.provider.Service.Decimal.Add(totalBalanceSum, balance)
 		totalDays++
 
-		// Track beginning balance (first balance encountered)
 		if beginningBalance == -1 {
 			beginningBalance = balance
 		}
-		// Track ending balance (last balance will be the ending balance)
 		endingBalance = balance
 
 		if lowestBalance == -1 || m.provider.Service.Decimal.IsLessThan(balance, lowestBalance) {
@@ -314,11 +301,9 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 			highestBalance = balance
 		}
 
-		// Update previous balance for next iteration
 		previousBalance = balance
 	}
 
-	// Calculate average daily balance using decimal operations
 	averageDailyBalance := float64(0)
 	if totalDays > 0 {
 		averageDailyBalance = m.provider.Service.Decimal.Divide(totalBalanceSum, float64(totalDays))

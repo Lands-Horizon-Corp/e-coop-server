@@ -12,7 +12,6 @@ import (
 
 func (c *Controller) paymentController() {
 	req := c.provider.Service.Request
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",
 		Method:       "POST",
@@ -41,7 +40,6 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
 		}
-
 		var req []core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -61,7 +59,6 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No payment entries provided"})
 		}
 
-		// Validate each payment request
 		for i, payment := range req {
 			if err := c.provider.Service.Validator.Struct(payment); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -75,7 +72,6 @@ func (c *Controller) paymentController() {
 
 		var generalLedgers []*core.GeneralLedger
 
-		// Process each payment
 		for i, payment := range req {
 			tx, endTx := c.provider.Service.Database.StartTransaction(context)
 			if tx.Error != nil {
@@ -86,14 +82,13 @@ func (c *Controller) paymentController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 			}
+
 			generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-				// Will be filled by transaction
 				TransactionID:        &transaction.ID,
 				MemberProfileID:      transaction.MemberProfileID,
 				MemberJointAccountID: transaction.MemberJointAccountID,
 				ReferenceNumber:      transaction.ReferenceNumber,
 
-				// On Request
 				Source:                core.GeneralLedgerSourcePayment,
 				Amount:                payment.Amount,
 				AccountID:             payment.AccountID,
@@ -123,16 +118,10 @@ func (c *Controller) paymentController() {
 					Module:      "Transaction",
 				})
 			}
+
 			generalLedgers = append(generalLedgers, generalLedger)
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "multipayment-success",
-			Description: fmt.Sprintf("Successfully processed %d payments for transaction %v", len(generalLedgers), transactionID),
-			Module:      "Transaction",
-		})
-
-		// Convert to response models
 		var response []core.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
 			response = append(response, *c.core.GeneralLedgerManager.ToModel(gl))
@@ -197,6 +186,7 @@ func (c *Controller) paymentController() {
 		RequestType:  core.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -206,6 +196,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment payload: " + err.Error()})
 		}
+
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-validation-error",
@@ -236,13 +227,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			// On Request
 			Source:                core.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -265,7 +254,9 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		response := c.core.GeneralLedgerManager.ToModel(generalLedger)
+
+		return ctx.JSON(http.StatusOK, response)
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -315,13 +306,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			// On Request
 			Source:                core.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -392,13 +381,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			// On Request
 			Source:                core.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -459,13 +446,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			// On Request
 			Source:                core.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -527,13 +512,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			// On Request
 			Source:                core.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -595,13 +578,11 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger, err := c.event.TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
-			// Will be filled by transaction
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			// On Request
 			Source:                core.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
@@ -705,7 +686,6 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		// Get all general ledger entries for this transaction
 		generalLedgers, err := c.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
 			TransactionID: transactionID,
 		})
@@ -733,9 +713,7 @@ func (c *Controller) paymentController() {
 
 		var reversedLedgers []*core.GeneralLedger
 
-		// Reverse each general ledger entry
 		for _, generalLedger := range generalLedgers {
-			// Calculate the amount to reverse
 			amount := 0.0
 			switch {
 			case generalLedger.Credit > 0:

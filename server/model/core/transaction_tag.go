@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// TransactionTag represents a tag associated with a transaction for categorization
 	TransactionTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,7 +38,6 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	// TransactionTagResponse represents the response structure for transaction tag data
 	TransactionTagResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -61,7 +59,6 @@ type (
 		Icon           string                `json:"icon"`
 	}
 
-	// TransactionTagRequest represents the request structure for creating/updating transaction tags
 	TransactionTagRequest struct {
 		OrganizationID uuid.UUID   `json:"organization_id" validate:"required"`
 		BranchID       uuid.UUID   `json:"branch_id" validate:"required"`
@@ -139,7 +136,6 @@ func (m *Core) transactionTag() {
 	})
 }
 
-// TransactionTagCurrentBranch retrieves transaction tags for a specific organization branch
 func (m *Core) TransactionTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionTag, error) {
 	return m.TransactionTagManager.Find(context, &TransactionTag{
 		OrganizationID: organizationID,

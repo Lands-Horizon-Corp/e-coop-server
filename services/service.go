@@ -1,10 +1,3 @@
-// Package services defines service-layer configuration interfaces and types used
-// across the application. These types describe configuration for external
-// services (storage, SMTP, cache, broker, etc.) and are intentionally
-// lightweight so they can be populated from environment variables or
-// configuration files. Keeping these contracts centralized makes it easier to
-// mock or replace concrete service implementations in tests and different
-// deployment environments.
 package services
 
 import (
@@ -20,12 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// EnvironmentServiceConfig represents the configuration for environment service
 type EnvironmentServiceConfig struct {
 	Path string `env:"APP_ENV"`
 }
 
-// SQLServiceConfig represents the configuration for SQL service
 type SQLServiceConfig struct {
 	DSN         string        `env:"DATABASE_URL"`
 	MaxIdleConn int           `env:"DB_MAX_IDLE_CONN"`
@@ -33,7 +24,6 @@ type SQLServiceConfig struct {
 	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
 }
 
-// SQLLogsServiceConfig represents the configuration for SQL logs service
 type SQLLogsServiceConfig struct {
 	DSN         string        `env:"DATABASE_LOG_URL"`
 	MaxIdleConn int           `env:"DB_MAX_IDLE_CONN"`
@@ -41,7 +31,6 @@ type SQLLogsServiceConfig struct {
 	MaxLifetime time.Duration `env:"DB_MAX_LIFETIME"`
 }
 
-// StorageServiceConfig represents the configuration for storage service
 type StorageServiceConfig struct {
 	AccessKey   string `env:"STORAGE_ACCESS_KEY"`
 	SecretKey   string `env:"STORAGE_SECRET_KEY"`
@@ -52,7 +41,6 @@ type StorageServiceConfig struct {
 	Driver      string `env:"STORAGE_DRIVER"`
 }
 
-// CacheServiceConfig represents the configuration for cache service
 type CacheServiceConfig struct {
 	Host     string `env:"REDIS_HOST"`
 	Password string `env:"REDIS_PASSWORD"`
@@ -60,7 +48,6 @@ type CacheServiceConfig struct {
 	Port     int    `env:"REDIS_PORT"`
 }
 
-// BrokerServiceConfig represents the configuration for broker service
 type BrokerServiceConfig struct {
 	Host     string `env:"NATS_HOST"`
 	Port     int    `env:"NATS_CLIENT_PORT"`
@@ -69,7 +56,6 @@ type BrokerServiceConfig struct {
 	Password string `env:"NATS_PASSWORD"`
 }
 
-// SecurityServiceConfig represents the configuration for security service
 type SecurityServiceConfig struct {
 	Memory      uint32 `env:"PASSWORD_MEMORY"`
 	Iterations  uint32 `env:"PASSWORD_ITERATIONS"`
@@ -79,12 +65,10 @@ type SecurityServiceConfig struct {
 	Secret      []byte `env:"PASSWORD_SECRET"`
 }
 
-// OTPServiceConfig represents the configuration for OTP service
 type OTPServiceConfig struct {
 	Secret []byte `env:"OTP_SECRET"`
 }
 
-// SMSServiceConfig represents the configuration for SMS service
 type SMSServiceConfig struct {
 	AccountSID string `env:"TWILIO_ACCOUNT_SID"`
 	AuthToken  string `env:"TWILIO_AUTH_TOKEN"`
@@ -92,7 +76,6 @@ type SMSServiceConfig struct {
 	MaxChars   int32  `env:"TWILIO_MAX_CHARACTERS"`
 }
 
-// SMTPServiceConfig represents the configuration for SMTP service
 type SMTPServiceConfig struct {
 	Host     string `env:"SMTP_HOST"`
 	Port     int    `env:"SMTP_PORT"`
@@ -101,7 +84,6 @@ type SMTPServiceConfig struct {
 	From     string `env:"SMTP_FROM"`
 }
 
-// RequestServiceConfig represents the configuration for request service
 type RequestServiceConfig struct {
 	AppPort     int    `env:"APP_PORT"`
 	MetricsPort int    `env:"APP_METRICS_PORT"`
@@ -109,12 +91,10 @@ type RequestServiceConfig struct {
 	ClientName  string `env:"APP_CLIENT_NAME"`
 }
 
-// HorizonService manages all application services and their lifecycle.
 type HorizonService struct {
 	Environment horizon.EnvironmentService
 	Database    horizon.SQLDatabaseService
 
-	// LogDatabase horizon.SQLDatabaseService
 	Storage   horizon.StorageService
 	Cache     horizon.CacheService
 	Broker    horizon.MessageBrokerService
@@ -131,12 +111,10 @@ type HorizonService struct {
 	Logger *zap.Logger
 }
 
-// HorizonServiceConfig contains configuration options for initializing HorizonService.
 type HorizonServiceConfig struct {
 	EnvironmentConfig *EnvironmentServiceConfig
 	SQLConfig         *SQLServiceConfig
 
-	// SQLLogConfig         *SQLLogsServiceConfig
 	StorageConfig        *StorageServiceConfig
 	CacheConfig          *CacheServiceConfig
 	BrokerConfig         *BrokerServiceConfig
@@ -147,7 +125,6 @@ type HorizonServiceConfig struct {
 	RequestServiceConfig *RequestServiceConfig
 }
 
-// NewHorizonService creates and initializes a new HorizonService instance.
 func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
@@ -344,7 +321,6 @@ func (h *HorizonService) printStatus(service string, status string) {
 	}
 }
 
-// Run starts all configured services in the correct order.
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	handlers.PrintASCIIArt()
@@ -463,7 +439,6 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	return nil
 }
 
-// Stop gracefully shuts down all running services in reverse order.
 func (h *HorizonService) Stop(ctx context.Context) error {
 	if h.Request != nil {
 		if err := h.Request.Stop(ctx); err != nil {
@@ -515,7 +490,6 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 	return nil
 }
 
-// RunDatabase starts the database service.
 func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	h.Logger.Info("Starting Database Service...")
 	delay := 3 * time.Second
@@ -534,7 +508,6 @@ func (h *HorizonService) RunDatabase(ctx context.Context) error {
 	return nil
 }
 
-// StopDatabase stops the database service.
 func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	h.Logger.Info("Stopping Database Service...")
 
@@ -549,7 +522,6 @@ func (h *HorizonService) StopDatabase(ctx context.Context) error {
 	return nil
 }
 
-// RunCache starts the cache service.
 func (h *HorizonService) RunCache(ctx context.Context) error {
 	h.Logger.Info("Starting Cache Service...")
 	delay := 3 * time.Second
@@ -568,7 +540,6 @@ func (h *HorizonService) RunCache(ctx context.Context) error {
 	return nil
 }
 
-// StopCache stops the cache service.
 func (h *HorizonService) StopCache(ctx context.Context) error {
 	h.Logger.Info("Stopping Cache Service...")
 
@@ -583,7 +554,6 @@ func (h *HorizonService) StopCache(ctx context.Context) error {
 	return nil
 }
 
-// RunStorage starts the storage service.
 func (h *HorizonService) RunStorage(ctx context.Context) error {
 	h.Logger.Info("Starting Storage Service...")
 	delay := 3 * time.Second
@@ -602,7 +572,6 @@ func (h *HorizonService) RunStorage(ctx context.Context) error {
 	return nil
 }
 
-// StopStorage stops the storage service.
 func (h *HorizonService) StopStorage(ctx context.Context) error {
 	h.Logger.Info("Stopping Storage Service...")
 
@@ -617,7 +586,6 @@ func (h *HorizonService) StopStorage(ctx context.Context) error {
 	return nil
 }
 
-// RunBroker starts the message broker service.
 func (h *HorizonService) RunBroker(ctx context.Context) error {
 	h.Logger.Info("Starting Broker Service...")
 	delay := 3 * time.Second

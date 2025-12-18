@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// AccountClassification represents the classification of an account in the database
 	AccountClassification struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -33,7 +32,6 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
-	// AccountClassificationResponse represents the response structure for account classification data
 	AccountClassificationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,7 +48,6 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// AccountClassificationRequest represents the request structure for creating or updating account classification data
 	AccountClassificationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -61,7 +58,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 	now := time.Now().UTC()
 
 	classifications := []*AccountClassification{
-		// Financial Statement Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -112,7 +108,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Expenses",
 			Description:    "Costs incurred in operations including salaries, utilities, and administrative expenses",
 		},
-		// Deposit Account Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -153,7 +148,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Recurring Deposit",
 			Description:    "Regular monthly deposits with compound interest benefits",
 		},
-		// Loan Account Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -214,7 +208,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Emergency Loan",
 			Description:    "Quick disbursement loans for urgent financial needs",
 		},
-		// Account Status Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -255,7 +248,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Closed Account",
 			Description:    "Accounts formally terminated by the member or cooperative",
 		},
-		// Ownership Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -296,7 +288,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Trust Account",
 			Description:    "Fiduciary accounts managed on behalf of someone else",
 		},
-		// Regulatory Classifications for Asset Quality
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -337,7 +328,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Loss Account",
 			Description:    "Loan accounts considered uncollectible and written off",
 		},
-		// Cooperative-Specific Classifications
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -368,7 +358,6 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 			Name:           "Surplus Account",
 			Description:    "Retained earnings from cooperative operations",
 		},
-		// Investment and Special Accounts
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -465,7 +454,6 @@ func (m *Core) accountClassification() {
 	})
 }
 
-// AccountClassificationCurrentBranch retrieves all account classifications for the specified organization and branch
 func (m *Core) AccountClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountClassification, error) {
 	return m.AccountClassificationManager.Find(context, &AccountClassification{
 		OrganizationID: organizationID,

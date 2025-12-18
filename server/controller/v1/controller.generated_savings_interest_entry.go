@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GeneratedSavingsInterestEntryController registers routes for managing generated savings interest entries.
 func (c *Controller) generatedSavingsInterestEntryController() {
 	req := c.provider.Service.Request
 
-	// GET /generated-savings-interest-entry: List all generated savings interest entries for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry",
 		Method:       "GET",
@@ -37,7 +35,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
-	// GET /generated-savings-interest-entry/search: Paginated search of generated savings interest entries for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/search",
 		Method:       "GET",
@@ -62,7 +59,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /generated-savings-interest-entry/:entry_id: Get specific generated savings interest entry by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "GET",
@@ -81,7 +77,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.JSON(http.StatusOK, entry)
 	})
 
-	// POST /generated-savings-interest-entry: Create a new generated savings interest entry. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "POST",
@@ -144,7 +139,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot update entry because the parent generated savings interest is already posted"})
 		}
-		// Get daily ending balances for the computation period
 		dailyBalances, err := c.core.GetDailyEndingBalances(
 			context,
 			generatedSavingsInterest.LastComputationDate,
@@ -163,7 +157,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get daily balances: " + err.Error()})
 		}
 
-		// Compute interest using the usecase
 		var savingsType usecase.SavingsType
 		switch generatedSavingsInterest.SavingsComputationType {
 		case core.SavingsComputationTypeDailyLowestBalance:
@@ -222,7 +215,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.JSON(http.StatusCreated, c.core.GeneratedSavingsInterestEntryManager.ToModel(entry))
 	})
 
-	// PUT /generated-savings-interest-entry/:entry_id: Update generated savings interest entry by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "PUT",
@@ -287,7 +279,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot update entry because the parent generated savings interest is already posted"})
 		}
 
-		// Get daily ending balances for the computation period to get the final balance
 		dailyBalances, err := c.core.GetDailyEndingBalances(
 			context,
 			generatedSavingsInterest.LastComputationDate,
@@ -352,7 +343,6 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModel(entry))
 	})
 
-	// DELETE /generated-savings-interest-entry/:entry_id: Delete a generated savings interest entry by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method: "DELETE",
@@ -417,7 +407,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No entry IDs provided for bulk delete"})
 		}
-ids := make([]any, len(reqBody.IDs))
+		ids := make([]any, len(reqBody.IDs))
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
@@ -438,7 +428,6 @@ ids := make([]any, len(reqBody.IDs))
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /api/v1//generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance",
 		Method:       "GET",

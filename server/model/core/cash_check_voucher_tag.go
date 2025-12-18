@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// CashCheckVoucherTag represents the CashCheckVoucherTag model.
 	CashCheckVoucherTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,6 @@ type (
 		Icon        string `gorm:"type:varchar(20)"`
 	}
 
-	// CashCheckVoucherTagResponse represents the response structure for cashcheckvouchertag data
-
-	// CashCheckVoucherTagResponse represents the response structure for CashCheckVoucherTag.
 	CashCheckVoucherTagResponse struct {
 		ID                 uuid.UUID             `json:"id"`
 		CreatedAt          string                `json:"created_at"`
@@ -62,9 +58,6 @@ type (
 		Icon               string                `json:"icon"`
 	}
 
-	// CashCheckVoucherTagRequest represents the request structure for creating/updating cashcheckvouchertag
-
-	// CashCheckVoucherTagRequest represents the request structure for CashCheckVoucherTag.
 	CashCheckVoucherTagRequest struct {
 		CashCheckVoucherID *uuid.UUID `json:"cash_check_voucher_id,omitempty"`
 		Name               string     `json:"name,omitempty"`
@@ -138,7 +131,6 @@ func (m *Core) cashCheckVoucherTag() {
 	})
 }
 
-// CashCheckVoucherTagCurrentBranch returns all CashCheckVoucherTags for the current branch
 func (m *Core) CashCheckVoucherTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherTag, error) {
 	return m.CashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
 		OrganizationID: organizationID,

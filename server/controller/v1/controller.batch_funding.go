@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// BatchFundingController handles creation and retrieval of batch funding records with proper error handling and authorization checks.
 func (c *Controller) batchFundingController() {
 	req := c.provider.Service.Request
 
-	// POST /batch-funding: Create a new batch funding for the current open transaction batch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
@@ -107,7 +105,6 @@ func (c *Controller) batchFundingController() {
 		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager.ToModel(batchFunding))
 	})
 
-	// GET /batch-funding/transaction-batch/:transaction_batch_id/search: Paginated batch funding for a transaction batch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
@@ -151,7 +148,6 @@ func (c *Controller) batchFundingController() {
 		return ctx.JSON(http.StatusOK, batchFunding)
 	})
 
-	// GET /api/v1/batch-funding/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/batch-funding/search",
 		Method:       "GET",

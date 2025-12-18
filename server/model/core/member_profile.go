@@ -15,7 +15,6 @@ import (
 )
 
 type (
-	// MemberProfile represents a member's profile information in the database
 	MemberProfile struct {
 		ID                             uuid.UUID             `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt                      time.Time             `gorm:"not null;default:now()" json:"created_at"`
@@ -91,7 +90,6 @@ type (
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 	}
-	// MemberProfileResponse represents the response structure for member profile data
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
 		CreatedAt                      string                        `json:"created_at"`
@@ -165,7 +163,6 @@ type (
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 	}
 
-	// MemberProfileRequest represents the request structure for member profile data
 	MemberProfileRequest struct {
 		OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
@@ -202,13 +199,11 @@ type (
 		BirthPlace                     string     `json:"birth_place,omitempty"`
 	}
 
-	// MemberProfileCoordinatesRequest represents the request structure for updating member profile coordinates
 	MemberProfileCoordinatesRequest struct {
 		Latitude  float64 `json:"latitude" validate:"required"`
 		Longitude float64 `json:"longitude" validate:"required"`
 	}
 
-	// MemberProfilePersonalInfoRequest represents the request structure for updating member personal information
 	MemberProfilePersonalInfoRequest struct {
 		FirstName      string     `json:"first_name" validate:"required,min=1,max=255"`
 		MiddleName     string     `json:"middle_name,omitempty" validate:"max=255"`
@@ -231,7 +226,6 @@ type (
 		Description           string     `json:"description,omitempty"`
 	}
 
-	// MemberProfileMembershipInfoRequest represents the request structure for updating member membership information
 	MemberProfileMembershipInfoRequest struct {
 		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
 		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
@@ -246,19 +240,16 @@ type (
 		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
 	}
 
-	// MemberProfileAccountRequest represents the request structure for member account operations
 	MemberProfileAccountRequest struct {
 		UserID *uuid.UUID `json:"user_id,omitempty"`
 	}
 
-	// AccountInfo represents the AccountInfo model.
 	AccountInfo struct {
 		UserName string `json:"user_name" validate:"required,min=1,max=255"`
 		Email    string `json:"email" validate:"required,email,max=255"`
 		Password string `json:"password" validate:"required,min=6,max=128"`
 	}
 
-	// MemberProfileQuickCreateRequest represents the request structure for quickly creating member profiles
 	MemberProfileQuickCreateRequest struct {
 		OldReferenceID       string       `json:"old_reference_id,omitempty" validate:"max=50"`
 		Passbook             string       `json:"passbook,omitempty" validate:"max=255"`
@@ -282,7 +273,6 @@ type (
 		BirthPlace           string       `json:"birth_place,omitempty" validate:"max=255"`
 	}
 
-	// MemberProfileUserAccountRequest represents the request structure for member user account operations
 	MemberProfileUserAccountRequest struct {
 		Password      string     `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
 		UserName      string     `json:"user_name" validate:"required,min=1,max=50"`
@@ -324,7 +314,6 @@ func (m *MemberProfile) Address() string {
 		if addr.CountryCode != "" {
 			write(addr.CountryCode)
 		}
-		// optional landmark appended in parentheses
 		if addr.Landmark != "" {
 			if b.Len() > 0 {
 				b.WriteString(" ")
@@ -484,7 +473,6 @@ func (m *Core) memberProfile() {
 	})
 }
 
-// MemberProfileCurrentBranch retrieves member profiles for the current branch
 func (m *Core) MemberProfileCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
 	return m.MemberProfileManager.Find(context, &MemberProfile{
 		OrganizationID: organizationID,
@@ -492,9 +480,7 @@ func (m *Core) MemberProfileCurrentBranch(context context.Context, organizationI
 	})
 }
 
-// MemberProfileDelete returns MemberProfileDelete for the current branch or organization where applicable.
 func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileID uuid.UUID) error {
-	// Delete MemberEducationalAttainment records
 	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
 		MemberProfileID: memberProfileID,
 	})
@@ -519,7 +505,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberAddress records
 	memberAddresses, err := m.MemberAddressManager.Find(context, &MemberAddress{
 		MemberProfileID: &memberProfileID,
 	})
@@ -532,7 +517,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberContactReference records
 	memberContactReferences, err := m.MemberContactReferenceManager.Find(context, &MemberContactReference{
 		MemberProfileID: memberProfileID,
 	})
@@ -545,7 +529,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberAsset records
 	memberAssets, err := m.MemberAssetManager.Find(context, &MemberAsset{
 		MemberProfileID: &memberProfileID,
 	})
@@ -558,7 +541,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberIncome records
 	memberIncomes, err := m.MemberIncomeManager.Find(context, &MemberIncome{
 		MemberProfileID: memberProfileID,
 	})
@@ -615,7 +597,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberGenderHistory records
 	memberGenderHistories, err := m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -628,7 +609,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberCenterHistory records
 	memberCenterHistories, err := m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -641,7 +621,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberTypeHistory records
 	memberTypeHistories, err := m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -654,7 +633,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberClassificationHistory records
 	memberClassificationHistories, err := m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -667,7 +645,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberOccupationHistory records
 	memberOccupationHistories, err := m.MemberOccupationHistoryManager.Find(context, &MemberOccupationHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -680,7 +657,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 		}
 	}
 
-	// Delete MemberGroupHistory records
 	memberGroupHistories, err := m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
 		MemberProfileID: memberProfileID,
 	})
@@ -696,7 +672,6 @@ func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberP
 	return m.MemberProfileManager.DeleteWithTx(context, tx, memberProfileID)
 }
 
-// MemberProfileFindUserByID returns MemberProfileFindUserByID for the current branch or organization where applicable.
 func (m *Core) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
 	return m.MemberProfileManager.FindOne(ctx, &MemberProfile{
 		UserID:         &userID,
@@ -723,7 +698,6 @@ func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uu
 
 	lastName := branch.Name
 
-	// Create member profile for the organization/branch creator
 	fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
 	passbook := fmt.Sprintf("PB-%s-0001", branch.Name[:min(3, len(branch.Name))])
 
@@ -756,7 +730,6 @@ func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uu
 		IsMicroFinanceMember:  true,
 	}
 
-	// Create the founder member profile
 	if err := m.MemberProfileManager.CreateWithTx(context, tx, memberProfile); err != nil {
 		return eris.Wrapf(err, "failed to create founder member profile %s", memberProfile.FullName)
 	}
@@ -764,7 +737,6 @@ func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uu
 	return nil
 }
 
-// MemberProfileDestroy returns MemberProfileDestroy for the current branch or organization where applicable.
 func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
 	memberProfile, err := m.MemberProfileManager.GetByID(ctx, id)
 	if err != nil {

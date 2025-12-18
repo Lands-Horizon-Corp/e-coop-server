@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// OnlineRemittance represents an online money remittance transaction
 	OnlineRemittance struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -47,7 +46,6 @@ type (
 		Description     string     `gorm:"type:text"`
 	}
 
-	// OnlineRemittanceResponse represents the JSON response structure for online remittance data
 	OnlineRemittanceResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -77,7 +75,6 @@ type (
 		Description        string                    `json:"description"`
 	}
 
-	// OnlineRemittanceRequest represents the request payload for creating or updating online remittance data
 	OnlineRemittanceRequest struct {
 		BankID             uuid.UUID  `json:"bank_id" validate:"required"`
 		MediaID            *uuid.UUID `json:"media_id,omitempty"`
@@ -92,7 +89,6 @@ type (
 	}
 )
 
-// OnlineRemittance initializes the OnlineRemittance model and its repository manager
 func (m *Core) onlineRemittance() {
 	m.Migration = append(m.Migration, &OnlineRemittance{})
 	m.OnlineRemittanceManager = *registry.NewRegistry(registry.RegistryParams[
@@ -172,7 +168,6 @@ func (m *Core) onlineRemittance() {
 	})
 }
 
-// OnlineRemittanceCurrentBranch retrieves all online remittances for the specified organization and branch
 func (m *Core) OnlineRemittanceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*OnlineRemittance, error) {
 	return m.OnlineRemittanceManager.Find(context, &OnlineRemittance{
 		OrganizationID: organizationID,

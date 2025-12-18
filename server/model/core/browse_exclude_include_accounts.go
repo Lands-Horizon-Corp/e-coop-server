@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// BrowseExcludeIncludeAccounts represents the BrowseExcludeIncludeAccounts model.
 	BrowseExcludeIncludeAccounts struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,9 +47,6 @@ type (
 		IncludeExistingLoanAccount   *Account   `gorm:"foreignKey:IncludeExistingLoanAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"include_existing_loan_account,omitempty"`
 	}
 
-	// BrowseExcludeIncludeAccountsResponse represents the response structure for browseexcludeincludeaccounts data
-
-	// BrowseExcludeIncludeAccountsResponse represents the response structure for BrowseExcludeIncludeAccounts.
 	BrowseExcludeIncludeAccountsResponse struct {
 		ID                           uuid.UUID                 `json:"id"`
 		CreatedAt                    string                    `json:"created_at"`
@@ -77,9 +73,6 @@ type (
 		IncludeExistingLoanAccount   *AccountResponse          `json:"include_existing_loan_account,omitempty"`
 	}
 
-	// BrowseExcludeIncludeAccountsRequest represents the request structure for creating/updating browseexcludeincludeaccounts
-
-	// BrowseExcludeIncludeAccountsRequest represents the request structure for BrowseExcludeIncludeAccounts.
 	BrowseExcludeIncludeAccountsRequest struct {
 		ComputationSheetID           *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		FinesAccountID               *uuid.UUID `json:"fines_account_id,omitempty"`
@@ -161,7 +154,6 @@ func (m *Core) browseExcludeIncludeAccounts() {
 	})
 }
 
-// BrowseExcludeIncludeAccountsCurrentBranch retrieves all browse exclude include accounts for the specified organization and branch
 func (m *Core) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
 	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
 		OrganizationID: organizationID,

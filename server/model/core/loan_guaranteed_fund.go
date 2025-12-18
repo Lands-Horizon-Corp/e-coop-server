@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanGuaranteedFund represents the LoanGuaranteedFund model.
 	LoanGuaranteedFund struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -33,9 +32,6 @@ type (
 		IncreasingRate float64 `gorm:"type:decimal;not null"`
 	}
 
-	// LoanGuaranteedFundResponse represents the response structure for loanguaranteedfund data
-
-	// LoanGuaranteedFundResponse represents the response structure for LoanGuaranteedFund.
 	LoanGuaranteedFundResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -52,9 +48,6 @@ type (
 		IncreasingRate float64               `json:"increasing_rate"`
 	}
 
-	// LoanGuaranteedFundRequest represents the request structure for creating/updating loanguaranteedfund
-
-	// LoanGuaranteedFundRequest represents the request structure for LoanGuaranteedFund.
 	LoanGuaranteedFundRequest struct {
 		SchemeNumber   int     `json:"scheme_number" validate:"required"`
 		IncreasingRate float64 `json:"increasing_rate" validate:"required"`
@@ -121,7 +114,6 @@ func (m *Core) loanGuaranteedFund() {
 	})
 }
 
-// LoanGuaranteedFundCurrentBranch returns LoanGuaranteedFundCurrentBranch for the current branch or organization where applicable.
 func (m *Core) LoanGuaranteedFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFund, error) {
 	return m.LoanGuaranteedFundManager.Find(context, &LoanGuaranteedFund{
 		OrganizationID: organizationID,

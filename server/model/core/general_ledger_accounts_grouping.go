@@ -13,7 +13,6 @@ import (
 )
 
 type (
-	// GeneralLedgerAccountsGrouping represents the GeneralLedgerAccountsGrouping model.
 	GeneralLedgerAccountsGrouping struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -41,9 +40,6 @@ type (
 		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definition,omitempty"`
 	}
 
-	// GeneralLedgerAccountsGroupingResponse represents the response structure for generalledgeraccountsgrouping data
-
-	// GeneralLedgerAccountsGroupingResponse represents the response structure for GeneralLedgerAccountsGrouping.
 	GeneralLedgerAccountsGroupingResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -66,9 +62,6 @@ type (
 		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
 	}
 
-	// GeneralLedgerAccountsGroupingRequest represents the request structure for creating/updating generalledgeraccountsgrouping
-
-	// GeneralLedgerAccountsGroupingRequest represents the request structure for GeneralLedgerAccountsGrouping.
 	GeneralLedgerAccountsGroupingRequest struct {
 		Debit       float64 `json:"debit" validate:"omitempty,gt=0"`
 		Credit      float64 `json:"credit" validate:"omitempty,gt=0"`
@@ -206,13 +199,11 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 		},
 	}
 
-	// Create groupings and their definitions
 	for i, groupingData := range generalLedgerAccountsGrouping {
 		if err := m.GeneralLedgerAccountsGroupingManager.CreateWithTx(context, tx, groupingData); err != nil {
 			return eris.Wrapf(err, "failed to seed general ledger accounts grouping %s", groupingData.Name)
 		}
 
-		// Create definitions for each grouping
 		var definitions []*GeneralLedgerDefinition
 
 		switch i {
@@ -239,7 +230,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", currentAssetsParent.Name)
 			}
 
-			// Now create children with ParentID reference
 			definitions = []*GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
@@ -333,7 +323,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				},
 			}
 		case 1: // Liabilities, Equity & Reserves
-			// Create parent for liabilities
 			liabilitiesParent := &GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
@@ -353,7 +342,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
 
-			// Create parent for equity
 			equityParent := &GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
@@ -373,7 +361,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
 
-			// Create parents first
 			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, liabilitiesParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", liabilitiesParent.Name)
 			}
@@ -532,7 +519,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				BeginningBalanceOfTheYearDebit:  0,
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
-			// Create parent first
 			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, operatingExpensesParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", operatingExpensesParent.Name)
 			}
@@ -621,7 +607,6 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 	return nil
 }
 
-// GeneralLedgerAccountsGroupingCurrentBranch returns GeneralLedgerAccountsGroupingCurrentBranch for the current branch or organization where applicable.
 func (m *Core) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,

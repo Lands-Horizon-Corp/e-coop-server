@@ -13,24 +13,21 @@ type SavingsBalanceResult struct {
 	InterestTax    float64 `json:"interest_tax"`
 }
 
-func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
+func (t *UsecaseService) GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
 	result := SavingsBalanceResult{
 		Balance:        0.0,
 		InterestAmount: data.InterestAmount,
 		InterestTax:    data.InterestTax,
 	}
 
-	// Handle empty slice
 	if len(data.DailyBalance) == 0 {
 		return result
 	}
 
 	var balanceForCalculation float64
 
-	// Determine which balance to use based on SavingsType
 	switch data.SavingsType {
 	case SavingsTypeLowest:
-		// Find the lowest balance in the period using precise decimal comparison
 		lowestBalance := data.DailyBalance[0]
 		for _, dailyBalance := range data.DailyBalance {
 			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
@@ -40,7 +37,6 @@ func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputat
 		balanceForCalculation = lowestBalance
 
 	case SavingsTypeHighest:
-		// Find the highest balance in the period using precise decimal comparison
 		highestBalance := data.DailyBalance[0]
 		for _, dailyBalance := range data.DailyBalance {
 			if t.provider.Service.Decimal.IsGreaterThan(dailyBalance, highestBalance) {
@@ -50,19 +46,15 @@ func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputat
 		balanceForCalculation = highestBalance
 
 	case SavingsTypeAverage:
-		// Calculate average daily balance using precise decimal arithmetic
 		balanceForCalculation = t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) / float64(len(data.DailyBalance))
 
 	case SavingsTypeStart:
-		// Use the first day's balance
 		balanceForCalculation = data.DailyBalance[0]
 
 	case SavingsTypeEnd:
-		// Use the last day's balance
 		balanceForCalculation = data.DailyBalance[len(data.DailyBalance)-1]
 
 	default:
-		// Default to lowest balance if SavingsType is not recognized
 		lowestBalance := data.DailyBalance[0]
 		for _, dailyBalance := range data.DailyBalance {
 			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
@@ -72,7 +64,6 @@ func (t *TransactionService) GetSavingsEndingBalance(data SavingsBalanceComputat
 		balanceForCalculation = lowestBalance
 	}
 
-	// Add interest amount to balance (net interest after tax has already been deducted)
 	finalBalance := t.provider.Service.Decimal.Add(balanceForCalculation, data.InterestAmount)
 
 	result.Balance = finalBalance

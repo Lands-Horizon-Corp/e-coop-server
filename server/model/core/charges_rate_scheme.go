@@ -10,10 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// ChargesRateSchemeType represents the type of charges rate scheme calculation method
 type ChargesRateSchemeType string
 
-// Charges rate scheme type constants
 const (
 	ChargesRateSchemeTypeByRange ChargesRateSchemeType = "by_range"
 	ChargesRateSchemeTypeByType  ChargesRateSchemeType = "by_type"
@@ -21,7 +19,6 @@ const (
 )
 
 type (
-	// ChargesRateScheme represents the ChargesRateScheme model.
 	ChargesRateScheme struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -46,7 +43,6 @@ type (
 		Icon        string                `gorm:"type:varchar(255)"`
 		Type        ChargesRateSchemeType `gorm:"type:varchar(50);not null"`
 
-		// By type / MOP / Terms
 		MemberTypeID  *uuid.UUID         `gorm:"type:uuid"`
 		MemberType    *MemberType        `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_type,omitempty"`
 		ModeOfPayment *LoanModeOfPayment `gorm:"type:varchar(20)"`
@@ -74,7 +70,6 @@ type (
 		ModeOfPaymentHeader21 int `gorm:"default:0"`
 		ModeOfPaymentHeader22 int `gorm:"default:0"`
 
-		// By Terms
 		ByTermHeader1  int `gorm:"default:0"`
 		ByTermHeader2  int `gorm:"default:0"`
 		ByTermHeader3  int `gorm:"default:0"`
@@ -104,9 +99,6 @@ type (
 		ChargesRateByTerms                 []*ChargesRateByTerm                 `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"charges_rate_by_terms,omitempty"`
 	}
 
-	// ChargesRateSchemeResponse represents the response structure for chargesratescheme data
-
-	// ChargesRateSchemeResponse represents the response structure for ChargesRateScheme.
 	ChargesRateSchemeResponse struct {
 		ID                        uuid.UUID             `json:"id"`
 		CreatedAt                 string                `json:"created_at"`
@@ -183,9 +175,6 @@ type (
 		ChargesRateByTerms                 []*ChargesRateByTermResponse                 `json:"charges_rate_by_terms,omitempty"`
 	}
 
-	// ChargesRateSchemeRequest represents the request structure for creating/updating chargesratescheme
-
-	// ChargesRateSchemeRequest represents the request structure for ChargesRateScheme.
 	ChargesRateSchemeRequest struct {
 		ChargesRateByTermHeaderID uuid.UUID             `json:"charges_rate_by_term_header_id,omitempty"`
 		Name                      string                `json:"name" validate:"required,min=1,max=255"`
@@ -244,13 +233,11 @@ type (
 		ByTermHeader21 int `json:"by_term_header_21,omitempty"`
 		ByTermHeader22 int `json:"by_term_header_22,omitempty"`
 
-		// Nested relationships for creation/update
 		ChargesRateSchemeAccounts          []*ChargesRateSchemeAccountRequest          `json:"charges_rate_scheme_accounts,omitempty"`
 		ChargesRateByRangeOrMinimumAmounts []*ChargesRateByRangeOrMinimumAmountRequest `json:"charges_rate_by_range_or_minimum_amounts,omitempty"`
 		ChargesRateSchemeModeOfPayments    []*ChargesRateSchemeModeOfPaymentRequest    `json:"charges_rate_scheme_model_of_payments,omitempty"`
 		ChargesRateByTerms                 []*ChargesRateByTermRequest                 `json:"charges_rate_by_terms,omitempty"`
 
-		// Deletion arrays
 		ChargesRateSchemeAccountsDeleted          uuid.UUIDs `json:"charges_rate_scheme_accounts_deleted,omitempty"`
 		ChargesRateByRangeOrMinimumAmountsDeleted uuid.UUIDs `json:"charges_rate_by_range_or_minimum_amounts_deleted,omitempty"`
 		ChargesRateSchemeModeOfPaymentsDeleted    uuid.UUIDs `json:"charges_rate_scheme_model_of_payments_deleted,omitempty"`
@@ -385,7 +372,6 @@ func (m *Core) chargesRateScheme() {
 	})
 }
 
-// ChargesRateSchemeCurrentBranch retrieves all charges rate schemes for the current branch and organization
 func (m *Core) ChargesRateSchemeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
 	return m.ChargesRateSchemeManager.Find(context, &ChargesRateScheme{
 		OrganizationID: organizationID,

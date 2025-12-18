@@ -12,10 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// GeneralLedgerSource represents the source type of a general ledger entry
 type GeneralLedgerSource string
 
-// General ledger source constants
 const (
 	GeneralLedgerSourceWithdraw           GeneralLedgerSource = "withdraw"
 	GeneralLedgerSourceDeposit            GeneralLedgerSource = "deposit"
@@ -29,10 +27,7 @@ const (
 	GeneralLedgerSourceMutualContribution GeneralLedgerSource = "mutual contribution"
 )
 
-// Assumes you have TypeOfPaymentType defined elsewhere, as in your payment_type model
-
 type (
-	// GeneralLedger represents the GeneralLedger model.
 	GeneralLedger struct {
 		ID                         uuid.UUID           `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt                  time.Time           `gorm:"not null;default:now();index"`
@@ -89,7 +84,6 @@ type (
 		PrintNumber           int        `gorm:"default:0"`
 	}
 
-	// GeneralLedgerResponse represents the response structure for GeneralLedger.
 	GeneralLedgerResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -156,9 +150,6 @@ type (
 		AccountHistoryID *uuid.UUID `json:"account_history_id"`
 	}
 
-	// GeneralLedgerRequest represents the request structure for creating/updating generalledger
-
-	// GeneralLedgerRequest represents the request structure for GeneralLedger.
 	GeneralLedgerRequest struct {
 		OrganizationID             uuid.UUID           `json:"organization_id" validate:"required"`
 		BranchID                   uuid.UUID           `json:"branch_id" validate:"required"`
@@ -188,9 +179,6 @@ type (
 		Description           string            `json:"description,omitempty"`
 	}
 
-	// PaymentRequest represents the request structure for creating/updating payment
-
-	// PaymentRequest represents the request structure for Payment.
 	PaymentRequest struct {
 		Amount                float64    `json:"amount" validate:"required,ne=0"`
 		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -204,9 +192,6 @@ type (
 		LoanTransactionID     *uuid.UUID `json:"loan_transaction_id,omitempty"`
 	}
 
-	// PaymentQuickRequest represents the request structure for creating/updating paymentquick
-
-	// PaymentQuickRequest represents the request structure for PaymentQuick.
 	PaymentQuickRequest struct {
 		Amount                float64    `json:"amount" validate:"required,ne=0"`
 		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -225,7 +210,6 @@ type (
 		LoanTransactionID    *uuid.UUID `json:"loan_transaction_id,omitempty"`
 	}
 
-	// MemberGeneralLedgerTotal represents the MemberGeneralLedgerTotal model.
 	MemberGeneralLedgerTotal struct {
 		Balance     float64 `json:"balance"`
 		TotalDebit  float64 `json:"total_debit"`
@@ -322,98 +306,86 @@ func (m *Core) generalLedger() {
 				Balance:               data.Balance}
 		},
 		Created: func(data *GeneralLedger) registry.Topics {
-			return []string{
-				// "general_ledger.create",
-				// fmt.Sprintf("general_ledger.create.%s", data.ID),
-				// fmt.Sprintf("general_ledger.create.branch.%s", data.BranchID),
-				// fmt.Sprintf("general_ledger.create.organization.%s", data.OrganizationID),
-			}
+			return []string{}
 		},
 		Updated: func(data *GeneralLedger) registry.Topics {
-			return []string{
-				// "general_ledger.update",
-				// fmt.Sprintf("general_ledger.update.%s", data.ID),
-				// fmt.Sprintf("general_ledger.update.branch.%s", data.BranchID),
-				// fmt.Sprintf("general_ledger.update.organization.%s", data.OrganizationID),
-			}
+			return []string{}
 		},
 		Deleted: func(data *GeneralLedger) registry.Topics {
-			return []string{
-				// "general_ledger.delete",
-				// fmt.Sprintf("general_ledger.delete.%s", data.ID),
-				// fmt.Sprintf("general_ledger.delete.branch.%s", data.BranchID),
-				// fmt.Sprintf("general_ledger.delete.organization.%s", data.OrganizationID),
-			}
+			return []string{}
 		},
 	})
 }
-
 func (m *Core) CreateGeneralLedgerEntry(
 	context context.Context, tx *gorm.DB, data *GeneralLedger,
 ) error {
-	// Get previous balance
+	if data == nil {
+		return eris.New("CreateGeneralLedgerEntry: data is nil")
+	}
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: data.OrganizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: data.AccountID},
 	}
-	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "member_profile_id", Op: query.ModeEqual, Value: data.MemberProfileID,
 		})
 	}
-	sorts := []query.ArrFilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
+	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
-	}
-	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, sorts)
+	})
 
-	// Use decimal for accurate computation
 	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	} else {
-		previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
+		if ledger != nil {
+			previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
+		}
 	}
-
-	// Convert debit and credit to decimal
 	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
 	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
 
 	var balanceChange = m.provider.Service.Decimal.NewFromFloat(0)
-	switch data.Account.GeneralLedgerType {
-	case GLTypeAssets, GLTypeExpenses:
+	if data.Account == nil {
 		balanceChange = debitDecimal.Sub(creditDecimal)
-	case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
-		balanceChange = creditDecimal.Sub(debitDecimal)
-	default:
-		balanceChange = debitDecimal.Sub(creditDecimal)
+	} else {
+		switch data.Account.GeneralLedgerType {
+		case GLTypeAssets, GLTypeExpenses:
+			balanceChange = debitDecimal.Sub(creditDecimal)
+		case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
+			balanceChange = creditDecimal.Sub(debitDecimal)
+		default:
+			balanceChange = debitDecimal.Sub(creditDecimal)
+		}
 	}
 
-	// Calculate new balance and convert back to float64
 	newBalance := previousBalance.Add(balanceChange)
-	data.Balance, _ = newBalance.Float64()
-
+	nbf, _ := newBalance.Float64()
+	data.Balance = nbf
 	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
 	}
-	if data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+
+	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+		params := MemberAccountingLedgerUpdateOrCreateParams{
+			MemberProfileID: *data.MemberProfileID,
+			AccountID:       *data.AccountID,
+			OrganizationID:  data.OrganizationID,
+			BranchID:        data.BranchID,
+			UserID:          data.CreatedByID,
+			DebitAmount:     data.Debit,
+			CreditAmount:    data.Credit,
+			LastPayTime:     data.EntryDate,
+		}
 		_, err = m.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
 			data.Balance,
-			MemberAccountingLedgerUpdateOrCreateParams{
-				MemberProfileID: *data.MemberProfileID,
-				AccountID:       *data.AccountID,
-				OrganizationID:  data.OrganizationID,
-				BranchID:        data.BranchID,
-				UserID:          data.CreatedByID,
-				DebitAmount:     data.Debit,
-				CreditAmount:    data.Credit,
-				LastPayTime:     data.EntryDate,
-			},
+			params,
 		)
 		if err != nil {
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
@@ -422,7 +394,6 @@ func (m *Core) CreateGeneralLedgerEntry(
 	return nil
 }
 
-// GeneralLedgerPrintMaxNumber retrieves the maximum print number for a member's account ledger entries
 func (m *Core) GeneralLedgerPrintMaxNumber(
 	ctx context.Context,
 	memberProfileID, accountID, branchID, organizationID uuid.UUID,
@@ -436,7 +407,6 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 	return m.GeneralLedgerManager.ArrGetMaxInt(ctx, "print_number", filters)
 }
 
-// GeneralLedgerCurrentBranch retrieves general ledger entries for the current branch
 func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -446,7 +416,6 @@ func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationI
 	return m.GeneralLedgerManager.ArrFind(context, filters, nil)
 }
 
-// GeneralLedgerCurrentMemberAccount retrieves the general ledger entry for a specific member account
 func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -458,7 +427,6 @@ func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, member
 	return m.GeneralLedgerManager.ArrFindOne(context, filters, nil)
 }
 
-// GeneralLedgerExcludeCashonHand retrieves general ledger entries excluding cash on hand accounts
 func (m *Core) GeneralLedgerExcludeCashonHand(
 	ctx context.Context,
 	transactionID, organizationID,
@@ -486,7 +454,6 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// GeneralLedgerExcludeCashonHandWithType retrieves general ledger entries excluding cash on hand accounts with payment type filter
 func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,
@@ -498,7 +465,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	// Add payment type filter if provided
 	if paymentType != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "type_of_payment_type",
@@ -523,7 +489,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// GeneralLedgerExcludeCashonHandWithSource retrieves general ledger entries excluding cash on hand accounts with source filter
 func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,
@@ -534,7 +499,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
-	// Add source filter if provided
 	if source != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "source",
@@ -556,7 +520,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// GeneralLedgerExcludeCashonHandWithFilters retrieves general ledger entries excluding cash on hand accounts with payment type and source filters
 func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context,
 	transactionID, organizationID, branchID uuid.UUID,
@@ -569,7 +532,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	// Add payment type filter if provided
 	if paymentType != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "type_of_payment_type",
@@ -578,7 +540,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	// Add source filter if provided
 	if source != nil {
 		filters = append(filters, registry.FilterSQL{
 			Field: "source",
@@ -603,7 +564,6 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, nil)
 }
 
-// GeneralLedgerAlignments retrieves general ledger groupings with their definition entries for a given organization and branch
 func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
 	glGroupings, err := m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
@@ -643,7 +603,6 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 	return glGroupings, nil
 }
 
-// GeneralLedgerCurrentMemberAccountEntries retrieves all general ledger entries for a specific member account
 func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 	ctx context.Context,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
@@ -662,7 +621,6 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
-// GeneralLedgerMemberAccountTotal retrieves all general ledger entries for computing totals (excludes cash on hand)
 func (m *Core) GeneralLedgerMemberAccountTotal(
 	ctx context.Context,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
@@ -680,7 +638,6 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
-// GeneralLedgerMemberProfileEntries retrieves all general ledger entries for a member profile excluding cash on hand
 func (m *Core) GeneralLedgerMemberProfileEntries(
 	ctx context.Context,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
@@ -697,7 +654,6 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
-// GeneralLedgerMemberProfileEntriesByPaymentType retrieves all general ledger entries for a member profile by payment type, excluding cash on hand
 func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 	ctx context.Context,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
@@ -716,7 +672,6 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
-// GeneralLedgerMemberProfileEntriesBySource retrieves all general ledger entries for a member profile by source, excluding cash on hand
 func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	ctx context.Context,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
@@ -735,7 +690,6 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts)
 }
 
-// GeneralLedgerByLoanTransaction retrieves all general ledger entries for a specific loan transaction
 func (m *Core) GeneralLedgerByLoanTransaction(
 	ctx context.Context,
 	loanTransactionID, organizationID, branchID uuid.UUID,
@@ -771,8 +725,6 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 	return result, nil
 }
 
-// GetGeneralLedgerOfMemberByEndOfDay retrieves general ledger entries for a member by end of day for average daily balance calculations
-// Automatically sets time range from start of day (00:00:00.000) to end of day (23:59:59.999)
 func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 	ctx context.Context,
 	from, to time.Time,
@@ -798,19 +750,17 @@ func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 
 	return m.GeneralLedgerManager.ArrFind(ctx, filters, sorts, "Account")
 }
-
-// GetDailyEndingBalances retrieves daily ending balances for ADB calculations
-// Returns one balance per day, handling multiple entries per day and missing days
 func (m *Core) GetDailyEndingBalances(
 	ctx context.Context,
 	from, to time.Time,
 	accountID, memberProfileID, organizationID, branchID uuid.UUID,
 ) ([]float64, error) {
+
 	if to.Before(from) {
+
 		return nil, eris.New("invalid date range: 'to' date cannot be before 'from' date")
 	}
 
-	// Normalize dates to start/end of day in UTC
 	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
 
@@ -818,15 +768,19 @@ func (m *Core) GetDailyEndingBalances(
 	if err != nil {
 		return nil, err
 	}
+
 	entriesByDate := make(map[string]*GeneralLedger)
 	for _, entry := range entries {
+		if entry == nil {
+			continue
+		}
 		dateStr := entry.CreatedAt.UTC().Format("2006-01-02")
 		if existing, exists := entriesByDate[dateStr]; !exists || entry.CreatedAt.After(existing.CreatedAt) {
 			entriesByDate[dateStr] = entry
+
 		}
 	}
 
-	// Get starting balance (balance before the from date)
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -840,23 +794,26 @@ func (m *Core) GetDailyEndingBalances(
 	}
 
 	startingBalance := 0.0
-	if lastEntry, err := m.GeneralLedgerManager.ArrFindOne(ctx, filters, sorts, "Account"); err == nil {
-		startingBalance = lastEntry.Balance
+	lastEntry, err := m.GeneralLedgerManager.ArrFindOne(ctx, filters, sorts, "Account")
+	if err == nil {
+		if lastEntry != nil {
+			startingBalance = lastEntry.Balance
+		}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
-	// Build daily balances array
 	var dailyBalances []float64
 	currentBalance := startingBalance
 
 	for currentDate := fromDate; currentDate.Before(toDate) || currentDate.Equal(toDate); currentDate = currentDate.AddDate(0, 0, 1) {
 		dateStr := currentDate.Format("2006-01-02")
 		if entry, hasEntry := entriesByDate[dateStr]; hasEntry {
-			currentBalance = entry.Balance
+			if entry != nil {
+				currentBalance = entry.Balance
+			}
 		}
 		dailyBalances = append(dailyBalances, currentBalance)
 	}
-
 	return dailyBalances, nil
 }

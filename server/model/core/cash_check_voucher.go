@@ -11,10 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// CashCheckVoucherStatus represents the status of a cash check voucher
 type CashCheckVoucherStatus string
 
-// Cash check voucher status constants
 const (
 	CashCheckVoucherStatusPending  CashCheckVoucherStatus = "pending"
 	CashCheckVoucherStatusPrinted  CashCheckVoucherStatus = "printed"
@@ -23,7 +21,6 @@ const (
 )
 
 type (
-	// CashCheckVoucher represents the CashCheckVoucher model.
 	CashCheckVoucher struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -117,9 +114,6 @@ type (
 		CashCheckVoucherEntries []*CashCheckVoucherEntry `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_entries,omitempty"`
 	}
 
-	// CashCheckVoucherResponse represents the response structure for cashcheckvoucher data
-
-	// CashCheckVoucherResponse represents the response structure for CashCheckVoucher.
 	CashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -209,9 +203,6 @@ type (
 		CashCheckVoucherEntries []*CashCheckVoucherEntryResponse `json:"cash_check_voucher_entries,omitempty"`
 	}
 
-	// CashCheckVoucherRequest represents the request structure for creating/updating cashcheckvoucher
-
-	// CashCheckVoucherRequest represents the request structure for CashCheckVoucher.
 	CashCheckVoucherRequest struct {
 		CurrencyID uuid.UUID `json:"currency_id" validate:"required"`
 
@@ -266,9 +257,6 @@ type (
 		CashCheckVoucherEntriesDeleted uuid.UUIDs                      `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
 
-	// CashCheckVoucherPrintRequest represents the request structure for creating/updating cashcheckvoucherprint
-
-	// CashCheckVoucherPrintRequest represents the request structure for CashCheckVoucherPrint.
 	CashCheckVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`
 	}
@@ -433,7 +421,6 @@ func (m *Core) cashCheckVoucher() {
 	})
 }
 
-// CashCheckVoucherCurrentBranch retrieves all cash check vouchers for the specified organization and branch
 func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
 	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
 		OrganizationID: organizationID,
@@ -441,9 +428,6 @@ func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizati
 	})
 }
 
-// CashCheckVoucherDraft
-
-// CashCheckVoucherDraft retrieves all draft cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -460,10 +444,8 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 		return nil, err
 	}
 	return cashCheckVouchers, nil
-	// CashCheckVoucherPrinted
 }
 
-// CashCheckVoucherPrinted retrieves all printed cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -479,11 +461,9 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 	if err != nil {
 		return nil, err
 	}
-	// CashCheckVoucherApproved
 	return cashCheckVouchers, nil
 }
 
-// CashCheckVoucherApproved retrieves all approved cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -498,12 +478,10 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 	})
 	if err != nil {
 		return nil, err
-		// CashCheckVoucherReleased
 	}
 	return cashCheckVouchers, nil
 }
 
-// CashCheckVoucherReleased retrieves all released cash check vouchers for the specified organization and branch.
 func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -517,13 +495,11 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
-		// CashCheckVoucherReleasedCurrentDay
 		return nil, err
 	}
 	return cashCheckVouchers, nil
 }
 
-// CashCheckVoucherReleasedCurrentDay retrieves all cash check vouchers released on the current day for the specified organization and branch.
 func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID uuid.UUID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

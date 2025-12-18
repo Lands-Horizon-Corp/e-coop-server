@@ -1,4 +1,3 @@
-// Package horizon provides reusable rate limiting utilities
 package horizon
 
 import (
@@ -10,26 +9,18 @@ import (
 	"go.uber.org/zap"
 )
 
-// RateLimiterConfig holds configuration for the rate limiter
 type RateLimiterConfig struct {
-	// RequestsPerSecond defines the maximum number of requests allowed per second
 	RequestsPerSecond int
 
-	// RequestsPerMinute defines the maximum number of requests allowed per minute
-	// If set to 0, RequestsPerSecond will be used instead
 	RequestsPerMinute int
 
-	// BurstCapacity allows temporary bursts above the normal rate
 	BurstCapacity int
 
-	// WindowDuration defines the time window for rate limiting
 	WindowDuration time.Duration
 
-	// KeyPrefix is used to namespace rate limit keys in Redis
 	KeyPrefix string
 }
 
-// DefaultRateLimiterConfig returns a sensible default configuration
 func DefaultRateLimiterConfig() RateLimiterConfig {
 	return RateLimiterConfig{
 		RequestsPerSecond: 0,  // Use requests per minute instead
@@ -40,24 +31,19 @@ func DefaultRateLimiterConfig() RateLimiterConfig {
 	}
 }
 
-// RateLimiter provides Redis-backed distributed rate limiting functionality
 type RateLimiter struct {
 	cache  CacheService
 	logger *zap.Logger
 	config RateLimiterConfig
 }
 
-// getEffectiveRequestRate returns the effective requests per second based on configuration
 func (rl *RateLimiter) getEffectiveRequestRate() float64 {
 	if rl.config.RequestsPerMinute > 0 {
-		// Use requests per minute, convert to requests per second
 		return float64(rl.config.RequestsPerMinute) / 60.0
 	}
-	// Fallback to requests per second
 	return float64(rl.config.RequestsPerSecond)
 }
 
-// NewRateLimiter creates a new RateLimiter instance
 func NewRateLimiter(cache CacheService, logger *zap.Logger, config RateLimiterConfig) *RateLimiter {
 	return &RateLimiter{
 		cache:  cache,
@@ -66,12 +52,10 @@ func NewRateLimiter(cache CacheService, logger *zap.Logger, config RateLimiterCo
 	}
 }
 
-// NewRateLimiterWithDefaults creates a new RateLimiter with default configuration
 func NewRateLimiterWithDefaults(cache CacheService, logger *zap.Logger) *RateLimiter {
 	return NewRateLimiter(cache, logger, DefaultRateLimiterConfig())
 }
 
-// NewRateLimiterPerMinute creates a new RateLimiter with requests per minute configuration
 func NewRateLimiterPerMinute(cache CacheService, logger *zap.Logger, requestsPerMinute int) *RateLimiter {
 	config := RateLimiterConfig{
 		RequestsPerSecond: 0,
@@ -83,40 +67,31 @@ func NewRateLimiterPerMinute(cache CacheService, logger *zap.Logger, requestsPer
 	return NewRateLimiter(cache, logger, config)
 }
 
-// Allow checks if a request should be allowed based on the rate limit
-// identifier should be a unique string for the entity being rate limited (e.g., IP, user ID, API key)
 func (rl *RateLimiter) Allow(ctx context.Context, identifier string) (bool, error) {
-	// Create context with timeout for Redis operations
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	now := time.Now()
 	windowStart := now.Add(-rl.config.WindowDuration)
 
-	// Generate unique Redis key
 	key := fmt.Sprintf("%s:%s", rl.config.KeyPrefix, identifier)
 
-	// Remove expired entries from the sliding window
 	if err := rl.removeExpiredEntries(timeoutCtx, key, windowStart.Unix()); err != nil {
 		rl.logger.Error("Failed to clean expired rate limit entries",
 			zap.String("identifier", identifier),
 			zap.String("key", key),
 			zap.Error(err))
-		// Continue processing even if cleanup fails
 	}
 
-	// Get current request count in the window
 	currentCount, err := rl.getRequestCount(timeoutCtx, key)
 	if err != nil {
 		rl.logger.Error("Rate limit cache error",
 			zap.String("identifier", identifier),
 			zap.String("key", key),
 			zap.Error(err))
-		// Allow request on cache errors to prevent service disruption
 		return true, nil
 	}
 
-	// Calculate maximum requests allowed in the current window
 	effectiveRate := rl.getEffectiveRequestRate()
 	maxRequests := int(effectiveRate * rl.config.WindowDuration.Seconds())
 
@@ -133,21 +108,18 @@ func (rl *RateLimiter) Allow(ctx context.Context, identifier string) (bool, erro
 		return false, nil
 	}
 
-	// Record the current request
 	if err := rl.addRequest(timeoutCtx, key, now.Unix()); err != nil {
 		rl.logger.Error("Failed to record rate limit request",
 			zap.String("identifier", identifier),
 			zap.String("key", key),
 			zap.Error(err),
 		)
-		// Still allow the request even if we can't record it
 		return true, nil
 	}
 
 	return true, nil
 }
 
-// AllowWithDetails returns rate limit status with additional information
 func (rl *RateLimiter) AllowWithDetails(ctx context.Context, identifier string) (allowed bool, remaining int, resetTime time.Time, err error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -156,14 +128,12 @@ func (rl *RateLimiter) AllowWithDetails(ctx context.Context, identifier string) 
 	windowStart := now.Add(-rl.config.WindowDuration)
 	key := fmt.Sprintf("%s:%s", rl.config.KeyPrefix, identifier)
 
-	// Clean expired entries
 	if cleanErr := rl.removeExpiredEntries(timeoutCtx, key, windowStart.Unix()); cleanErr != nil {
 		rl.logger.Error("Failed to clean expired entries",
 			zap.String("identifier", identifier),
 			zap.Error(cleanErr))
 	}
 
-	// Get current count
 	currentCount, err := rl.getRequestCount(timeoutCtx, key)
 	if err != nil {
 		rl.logger.Error("Rate limit cache error",
@@ -182,7 +152,6 @@ func (rl *RateLimiter) AllowWithDetails(ctx context.Context, identifier string) 
 	allowed = currentCount < maxRequests
 
 	if allowed {
-		// Record the request
 		if addErr := rl.addRequest(timeoutCtx, key, now.Unix()); addErr != nil {
 			rl.logger.Error("Failed to record rate limit request",
 				zap.String("identifier", identifier),
@@ -195,7 +164,6 @@ func (rl *RateLimiter) AllowWithDetails(ctx context.Context, identifier string) 
 	return allowed, remaining, resetTime, nil
 }
 
-// GetStatus returns current rate limit status without consuming a request
 func (rl *RateLimiter) GetStatus(ctx context.Context, identifier string) (current int, remaining int, resetTime time.Time, err error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -204,7 +172,6 @@ func (rl *RateLimiter) GetStatus(ctx context.Context, identifier string) (curren
 	windowStart := now.Add(-rl.config.WindowDuration)
 	key := fmt.Sprintf("%s:%s", rl.config.KeyPrefix, identifier)
 
-	// Clean expired entries
 	if cleanErr := rl.removeExpiredEntries(timeoutCtx, key, windowStart.Unix()); cleanErr != nil {
 		rl.logger.Debug("Failed to clean expired entries",
 			zap.String("identifier", identifier),
@@ -226,7 +193,6 @@ func (rl *RateLimiter) GetStatus(ctx context.Context, identifier string) (curren
 	return current, remaining, resetTime, nil
 }
 
-// Reset clears the rate limit for a specific identifier
 func (rl *RateLimiter) Reset(ctx context.Context, identifier string) error {
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -248,7 +214,6 @@ func (rl *RateLimiter) Reset(ctx context.Context, identifier string) error {
 	return nil
 }
 
-// removeExpiredEntries removes rate limit entries older than the window start time
 func (rl *RateLimiter) removeExpiredEntries(ctx context.Context, key string, windowStart int64) error {
 	_, err := rl.cache.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", windowStart-1))
 	if err != nil {
@@ -260,7 +225,6 @@ func (rl *RateLimiter) removeExpiredEntries(ctx context.Context, key string, win
 	return err
 }
 
-// getRequestCount returns the number of requests in the current window
 func (rl *RateLimiter) getRequestCount(ctx context.Context, key string) (int, error) {
 	count, err := rl.cache.ZCard(ctx, key)
 	if err != nil {
@@ -272,7 +236,6 @@ func (rl *RateLimiter) getRequestCount(ctx context.Context, key string) (int, er
 	return int(count), nil
 }
 
-// addRequest adds a new request timestamp to the rate limit tracking
 func (rl *RateLimiter) addRequest(ctx context.Context, key string, timestamp int64) error {
 	err := rl.cache.ZAdd(ctx, key, float64(timestamp), timestamp)
 	if err != nil {
@@ -285,7 +248,6 @@ func (rl *RateLimiter) addRequest(ctx context.Context, key string, timestamp int
 	return nil
 }
 
-// RateLimitMiddleware creates an Echo middleware function using the RateLimiter
 func (rl *RateLimiter) RateLimitMiddleware(identifierExtractor func(c echo.Context) string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -296,11 +258,9 @@ func (rl *RateLimiter) RateLimitMiddleware(identifierExtractor func(c echo.Conte
 				rl.logger.Error("Rate limiter error",
 					zap.String("identifier", identifier),
 					zap.Error(err))
-				// Allow request on error to prevent service disruption
 				return next(c)
 			}
 
-			// Set rate limit headers
 			if rl.config.RequestsPerMinute > 0 {
 				c.Response().Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d per minute", rl.config.RequestsPerMinute))
 			} else {

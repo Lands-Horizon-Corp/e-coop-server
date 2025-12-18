@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanClearanceAnalysis represents the LoanClearanceAnalysis model.
 	LoanClearanceAnalysis struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,7 +39,6 @@ type (
 		BalancesCount       int     `gorm:"type:int"`
 	}
 
-	// LoanClearanceAnalysisResponse represents the response structure for LoanClearanceAnalysis.
 	LoanClearanceAnalysisResponse struct {
 		ID                          uuid.UUID                `json:"id"`
 		CreatedAt                   string                   `json:"created_at"`
@@ -62,7 +60,6 @@ type (
 		BalancesCount               int                      `json:"balances_count"`
 	}
 
-	// LoanClearanceAnalysisRequest represents the request structure for LoanClearanceAnalysis.
 	LoanClearanceAnalysisRequest struct {
 		ID                          *uuid.UUID `json:"id"`
 		RegularDeductionDescription string     `json:"regular_deduction_description,omitempty"`
@@ -138,7 +135,6 @@ func (m *Core) loanClearanceAnalysis() {
 	})
 }
 
-// LoanClearanceAnalysisCurrentBranch retrieves loan clearance analyses for the given organization and branch.
 func (m *Core) LoanClearanceAnalysisCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysis, error) {
 	return m.LoanClearanceAnalysisManager.Find(context, &LoanClearanceAnalysis{
 		OrganizationID: organizationID,

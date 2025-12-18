@@ -11,10 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// LoanTransactionEntryType represents the kind of loan transaction entry
 type LoanTransactionEntryType string
 
-// LoanTransactionEntryType constants
 const (
 	LoanTransactionStatic             LoanTransactionEntryType = "static"
 	LoanTransactionDeduction          LoanTransactionEntryType = "deduction"
@@ -24,7 +22,6 @@ const (
 )
 
 type (
-	// LoanTransactionEntry represents a single accounting entry related to a loan transaction
 	LoanTransactionEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -65,7 +62,6 @@ type (
 		Amount float64 `gorm:"type:decimal;default:0" json:"amount,omitempty"`
 	}
 
-	// LoanTransactionEntryResponse represents the response structure for loan transaction entry data
 	LoanTransactionEntryResponse struct {
 		ID                              uuid.UUID                       `json:"id"`
 		CreatedAt                       string                          `json:"created_at"`
@@ -95,7 +91,6 @@ type (
 		Amount                          float64                         `json:"amount"`
 	}
 
-	// LoanTransactionEntryRequest represents the request structure for creating/updating loan transaction entries
 	LoanTransactionEntryRequest struct {
 		ID                *uuid.UUID               `json:"id"`
 		LoanTransactionID uuid.UUID                `json:"loan_transaction_id" validate:"required"`
@@ -109,7 +104,6 @@ type (
 		Debit             float64                  `json:"debit,omitempty"`
 	}
 
-	// LoanTransactionDeductionRequest represents the request structure for creating/updating a loan transaction deduction
 	LoanTransactionDeductionRequest struct {
 		AccountID   uuid.UUID `json:"account_id" validate:"required"`
 		Amount      float64   `json:"amount"`
@@ -192,7 +186,6 @@ func (m *Core) loanTransactionEntry() {
 	})
 }
 
-// LoanTransactionEntryCurrentBranch retrieves loan transaction entries for the specified branch and organization
 func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -202,7 +195,6 @@ func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organi
 	return m.LoanTransactionEntryManager.ArrFind(context, filters, nil)
 }
 
-// GetCashOnCashEquivalence returns the cash-on-cash equivalence entry (index 0) for a loan transaction
 func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -217,7 +209,6 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 	)
 }
 
-// GetLoanEntryAccount returns the loan entry account (index 1) for the given loan transaction
 func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},

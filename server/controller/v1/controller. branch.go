@@ -12,11 +12,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// BranchController registers routes related to branch management.
 func (c *Controller) branchController() {
 	req := c.provider.Service.Request
 
-	// GET /branch: List all branches or filter by user's organization from JWT if available.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch",
 		Method:       "GET",
@@ -40,7 +38,6 @@ func (c *Controller) branchController() {
 		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModels(branches))
 	})
 
-	// GET /branch/organization/:organization_id: List branches by organization ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
@@ -59,7 +56,6 @@ func (c *Controller) branchController() {
 		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModels(branches))
 	})
 
-	// POST /branch/organization/:organization_id: Create a branch for an organization.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "POST",
@@ -72,7 +68,6 @@ func (c *Controller) branchController() {
 
 		req, err := c.core.BranchManager.Validate(ctx)
 		if err != nil {
-			// Footstep for create branch error
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to validate branch data for POST /branch/organization/:organization_id: %v", err),
@@ -187,13 +182,11 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 
-		// Create default branch settings for the new branch
 		branchSetting := &core.BranchSetting{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
 			BranchID:  branch.ID,
 
-			// Withdraw Settings
 			WithdrawAllowUserInput: true,
 			WithdrawPrefix:         "WD",
 			WithdrawORStart:        1,
@@ -203,7 +196,6 @@ func (c *Controller) branchController() {
 			WithdrawORUnique:       true,
 			WithdrawUseDateOR:      false,
 
-			// Deposit Settings
 			DepositAllowUserInput: true,
 			DepositPrefix:         "DP",
 			DepositORStart:        1,
@@ -213,7 +205,6 @@ func (c *Controller) branchController() {
 			DepositORUnique:       true,
 			DepositUseDateOR:      false,
 
-			// Loan Settings
 			LoanAllowUserInput: true,
 			LoanPrefix:         "LN",
 			LoanORStart:        1,
@@ -223,7 +214,6 @@ func (c *Controller) branchController() {
 			LoanORUnique:       true,
 			LoanUseDateOR:      false,
 
-			// Check Voucher Settings
 			CheckVoucherAllowUserInput: true,
 			CheckVoucherPrefix:         "CV",
 			CheckVoucherORStart:        1,
@@ -233,7 +223,6 @@ func (c *Controller) branchController() {
 			CheckVoucherORUnique:       true,
 			CheckVoucherUseDateOR:      false,
 
-			// Default Member Type - can be set later
 			DefaultMemberTypeID:       nil,
 			LoanAppliedEqualToBalance: true,
 			CurrencyID:                *req.CurrencyID,
@@ -249,7 +238,6 @@ func (c *Controller) branchController() {
 		}
 
 		if userOrganization.BranchID == nil {
-			// Assign branch to existing user organization
 			userOrganization.BranchID = &branch.ID
 			userOrganization.UpdatedAt = time.Now().UTC()
 			userOrganization.UpdatedByID = user.ID
@@ -263,7 +251,6 @@ func (c *Controller) branchController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + endTx(err).Error()})
 			}
 		} else {
-			// Create new user organization for this branch
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -315,20 +302,17 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		// Event notification
 		c.event.Notification(ctx, event.NotificationEvent{
 			Title:       fmt.Sprintf("Create: %s", branch.Name),
 			Description: fmt.Sprintf("Created a new branch: %s", branch.Name),
 		})
 
-		// Notify all organization members about new branch
 		c.event.OrganizationDirectNotification(ctx, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New branch '%s' has been created by %s %s", branch.Name, *user.FirstName, *user.LastName),
 			Title:            "New Branch Created",
 			NotificationType: core.NotificationInfo,
 		})
 
-		// Footstep for create branch success
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create success",
 			Description: fmt.Sprintf("Created branch: %s, ID: %s", branch.Name, branch.ID),
@@ -338,7 +322,6 @@ func (c *Controller) branchController() {
 		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModel(branch))
 	})
 
-	// PUT /branch/:branch_id: Update an existing branch (only by owner).
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "PUT",
@@ -351,7 +334,6 @@ func (c *Controller) branchController() {
 
 		req, err := c.core.BranchManager.Validate(ctx)
 		if err != nil {
-			// Footstep for update error
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch data for PUT /branch/:branch_id: %v", err),
@@ -411,7 +393,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
-		// Update branch fields
 		branch.UpdatedAt = time.Now().UTC()
 		branch.UpdatedByID = user.ID
 		branch.MediaID = req.MediaID
@@ -446,7 +427,6 @@ func (c *Controller) branchController() {
 			Description: fmt.Sprintf("Updated branch: %s", branch.Name),
 		})
 
-		// Footstep for update branch success
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch: %s, ID: %s", branch.Name, branch.ID),
@@ -456,7 +436,6 @@ func (c *Controller) branchController() {
 		return ctx.JSON(http.StatusOK, c.core.BranchManager.ToModel(branch))
 	})
 
-	// DELETE /branch/:branch_id: Delete a branch (owner only, if fewer than 3 members).
 	req.RegisterWebRoute(handlers.Route{
 		Route:   "/api/v1/branch/:branch_id",
 		Method:  "DELETE",
@@ -577,7 +556,6 @@ func (c *Controller) branchController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Validate the branch settings request
 		var settingsReq core.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -597,7 +575,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		// Get user's current branch
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -608,7 +585,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
 
-		// Check if user has permission to update branch settings
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -618,7 +594,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to update branch settings"})
 		}
 
-		// Get existing branch settings or create new one
 		var branchSetting *core.BranchSetting
 		branchSetting, err = c.core.BranchSettingManager.FindOne(context, &core.BranchSetting{
 			BranchID: *userOrg.BranchID,
@@ -627,13 +602,11 @@ func (c *Controller) branchController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		if err != nil {
-			// Create new branch settings if they don't exist
 			branchSetting = &core.BranchSetting{
 				CreatedAt: time.Now().UTC(),
 				UpdatedAt: time.Now().UTC(),
 				BranchID:  *userOrg.BranchID,
 
-				// Withdraw Settings
 				WithdrawAllowUserInput: settingsReq.WithdrawAllowUserInput,
 				WithdrawPrefix:         settingsReq.WithdrawPrefix,
 				WithdrawORStart:        settingsReq.WithdrawORStart,
@@ -643,7 +616,6 @@ func (c *Controller) branchController() {
 				WithdrawORUnique:       settingsReq.WithdrawORUnique,
 				WithdrawUseDateOR:      settingsReq.WithdrawUseDateOR,
 
-				// Deposit Settings
 				DepositAllowUserInput: settingsReq.DepositAllowUserInput,
 				DepositPrefix:         settingsReq.DepositPrefix,
 				DepositORStart:        settingsReq.DepositORStart,
@@ -653,7 +625,6 @@ func (c *Controller) branchController() {
 				DepositORUnique:       settingsReq.DepositORUnique,
 				DepositUseDateOR:      settingsReq.DepositUseDateOR,
 
-				// Loan Settings
 				LoanAllowUserInput: settingsReq.LoanAllowUserInput,
 				LoanPrefix:         settingsReq.LoanPrefix,
 				LoanORStart:        settingsReq.LoanORStart,
@@ -663,7 +634,6 @@ func (c *Controller) branchController() {
 				LoanORUnique:       settingsReq.LoanORUnique,
 				LoanUseDateOR:      settingsReq.LoanUseDateOR,
 
-				// Check Voucher Settings
 				CheckVoucherAllowUserInput: settingsReq.CheckVoucherAllowUserInput,
 				CheckVoucherPrefix:         settingsReq.CheckVoucherPrefix,
 				CheckVoucherORStart:        settingsReq.CheckVoucherORStart,
@@ -674,7 +644,6 @@ func (c *Controller) branchController() {
 				CheckVoucherUseDateOR:      settingsReq.CheckVoucherUseDateOR,
 				AnnualDivisor:              settingsReq.AnnualDivisor,
 
-				// Default Member Type
 				DefaultMemberTypeID: settingsReq.DefaultMemberTypeID,
 				TaxInterest:         settingsReq.TaxInterest,
 			}
@@ -688,10 +657,8 @@ func (c *Controller) branchController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
 			}
 		} else {
-			// Update existing branch settings
 			branchSetting.UpdatedAt = time.Now().UTC()
 
-			// Withdraw Settings
 			branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
 			branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
 			branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
@@ -701,7 +668,6 @@ func (c *Controller) branchController() {
 			branchSetting.WithdrawORUnique = settingsReq.WithdrawORUnique
 			branchSetting.WithdrawUseDateOR = settingsReq.WithdrawUseDateOR
 
-			// Deposit Settings
 			branchSetting.DepositAllowUserInput = settingsReq.DepositAllowUserInput
 			branchSetting.DepositPrefix = settingsReq.DepositPrefix
 			branchSetting.DepositORStart = settingsReq.DepositORStart
@@ -711,7 +677,6 @@ func (c *Controller) branchController() {
 			branchSetting.DepositORUnique = settingsReq.DepositORUnique
 			branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
 
-			// Loan Settings
 			branchSetting.LoanAllowUserInput = settingsReq.LoanAllowUserInput
 			branchSetting.LoanPrefix = settingsReq.LoanPrefix
 			branchSetting.LoanORStart = settingsReq.LoanORStart
@@ -721,7 +686,6 @@ func (c *Controller) branchController() {
 			branchSetting.LoanORUnique = settingsReq.LoanORUnique
 			branchSetting.LoanUseDateOR = settingsReq.LoanUseDateOR
 
-			// Check Voucher Settings
 			branchSetting.CheckVoucherAllowUserInput = settingsReq.CheckVoucherAllowUserInput
 			branchSetting.CheckVoucherPrefix = settingsReq.CheckVoucherPrefix
 			branchSetting.CheckVoucherORStart = settingsReq.CheckVoucherORStart
@@ -731,7 +695,6 @@ func (c *Controller) branchController() {
 			branchSetting.CheckVoucherORUnique = settingsReq.CheckVoucherORUnique
 			branchSetting.CheckVoucherUseDateOR = settingsReq.CheckVoucherUseDateOR
 
-			// Default Member Type
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
@@ -756,7 +719,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		// Log success
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings for branch ID: %s", userOrg.BranchID),
@@ -780,7 +742,6 @@ func (c *Controller) branchController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		// Validate the branch settings currency request
 		var settingsReq core.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -819,10 +780,10 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
 		}
-		// Start database transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
+		branchSetting.CompassionFundAccountID = settingsReq.CompassionFundAccountID
 		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
@@ -836,7 +797,6 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + endTx(err).Error()})
 		}
 
-		// Handle deletions first
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
 			if err := c.core.UnbalancedAccountManager.DeleteWithTx(context, tx, id); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -848,10 +808,8 @@ func (c *Controller) branchController() {
 			}
 		}
 
-		// Handle UnbalancedAccounts creation/update
 		for _, accountReq := range settingsReq.UnbalancedAccount {
 			if accountReq.ID != nil {
-				// Update existing record
 				existingAccount, err := c.core.UnbalancedAccountManager.GetByID(context, *accountReq.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + endTx(err).Error()})
@@ -871,7 +829,6 @@ func (c *Controller) branchController() {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 				}
 			} else {
-				// Create new record
 				newUnbalancedAccount := &core.UnbalancedAccount{
 					CreatedAt:   time.Now().UTC(),
 					CreatedByID: userOrg.UserID,
@@ -899,7 +856,6 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit unbalanced account update: " + err.Error()})
 		}
-		// Log success
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings currency for branch settings ID: %s", branchSetting.ID),

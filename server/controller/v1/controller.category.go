@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CategoryController manages endpoints for categories.
 func (c *Controller) categoryController() {
 	req := c.provider.Service.Request
 
-	// GET /category: List all categories. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category",
 		Method:       "GET",
@@ -29,7 +27,6 @@ func (c *Controller) categoryController() {
 		return ctx.JSON(http.StatusOK, c.core.CategoryManager.ToModels(categories))
 	})
 
-	// GET /category/:category_id: Get a specific category by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "GET",
@@ -50,7 +47,6 @@ func (c *Controller) categoryController() {
 		return ctx.JSON(http.StatusOK, category)
 	})
 
-	// POST /category: Create a new category. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category",
 		Method:       "POST",
@@ -96,7 +92,6 @@ func (c *Controller) categoryController() {
 		return ctx.JSON(http.StatusCreated, c.core.CategoryManager.ToModel(category))
 	})
 
-	// PUT /category/:category_id: Update a category by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
@@ -159,7 +154,6 @@ func (c *Controller) categoryController() {
 		return ctx.JSON(http.StatusOK, c.core.CategoryManager.ToModel(category))
 	})
 
-	// DELETE /category/:category_id: Delete a category by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/category/:category_id",
 		Method: "DELETE",

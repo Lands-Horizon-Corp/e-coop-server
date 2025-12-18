@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// AccountCategory represents a category for accounts in the database
 	AccountCategory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -34,7 +33,6 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
-	// AccountCategoryResponse represents the response structure for account category data
 	AccountCategoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,7 +49,6 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// AccountCategoryRequest represents the request structure for creating or updating account category data
 	AccountCategoryRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Description string `json:"description,omitempty"`
@@ -115,7 +112,6 @@ func (m *Core) accountCategory() {
 	})
 }
 
-// accountCategorySeed seeds default account categories for a given organization and branch
 func (m *Core) accountCategorySeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	accountCategories := []*AccountCategory{
@@ -230,7 +226,6 @@ func (m *Core) accountCategorySeed(context context.Context, tx *gorm.DB, userID 
 	return nil
 }
 
-// AccountCategoryCurrentBranch retrieves all account categories for the specified organization and branch
 func (m *Core) AccountCategoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountCategory, error) {
 	return m.AccountCategoryManager.Find(context, &AccountCategory{
 		OrganizationID: organizationID,

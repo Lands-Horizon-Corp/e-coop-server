@@ -15,7 +15,6 @@ import (
 func (c *Controller) notificationController() {
 	req := c.provider.Service.Request
 
-	// Get the current (logged in) user's notifications
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/notification/me",
 		Method:       "GET",
@@ -34,7 +33,6 @@ func (c *Controller) notificationController() {
 		return ctx.JSON(http.StatusOK, c.core.NotificationManager.ToModels(notification))
 	})
 
-	// Mark multiple notifications as viewed
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
@@ -119,7 +117,6 @@ func (c *Controller) notificationController() {
 		return ctx.JSON(http.StatusOK, c.core.NotificationManager.ToModels(notifications))
 	})
 
-	// PUT /api/v1/notification/view-all
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/notification/view-all",
 		Method:       "PUT",
@@ -205,7 +202,6 @@ func (c *Controller) notificationController() {
 			})
 		}
 
-		// Success log and response
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
@@ -214,7 +210,6 @@ func (c *Controller) notificationController() {
 		return ctx.JSON(http.StatusOK, c.core.NotificationManager.ToModels(newNotifications))
 	})
 
-	// Delete a notification by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/notification/:notification_id",
 		Method: "DELETE",

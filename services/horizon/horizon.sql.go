@@ -12,43 +12,28 @@ import (
 
 /*
 
-// Example PostgreSQL DSN
-// You can also build this from environment variables:
-// host=localhost user=postgres password=secret dbname=mydb port=5432 sslmode=disable TimeZone=UTC
 dsn := "host=localhost user=postgres password=secret dbname=mydb port=5432 sslmode=disable TimeZone=UTC"
 
-// Configure connection pool: 10 idle, 50 open, 30 minutes conn max lifetime
 database := NewGormDatabase(dsn, 10, 50, 30*time.Minute)
 
-// Start the database connection and pool
 if err := database.Start(ctx); err != nil {
 }
 */
 
-// SQLDatabaseService defines the interface for PostgreSQL operations
 type SQLDatabaseService interface {
-	// Start initializes the connection pool with the database
 	Run(ctx context.Context) error
 
-	// Stop closes all database connections
 	Stop(ctx context.Context) error
 
-	// Client returns the active GORM database client
 	Client() *gorm.DB
 
-	// Ping checks if the database is reachable
 	Ping(ctx context.Context) error
 
-	// StartTransaction begins a new database transaction and returns the transaction and an end function.
-	// The end function will commit if no error occurred, or rollback if an error is provided.
 	StartTransaction(ctx context.Context) (*gorm.DB, func(error) error)
 
-	// StartTransactionWithContext is a convenience wrapper that handles transaction lifecycle.
-	// It executes the provided function within a transaction and automatically commits/rollbacks.
 	StartTransactionWithContext(ctx context.Context, fn func(*gorm.DB) error) error
 }
 
-// GormDatabase provides a GORM-based implementation of SQLDatabaseService.
 type GormDatabase struct {
 	dsn         string
 	db          *gorm.DB
@@ -57,7 +42,6 @@ type GormDatabase struct {
 	maxLifetime time.Duration
 }
 
-// NewGormDatabase constructs a new GormDatabase
 func NewGormDatabase(dsn string, maxIdle, maxOpen int, maxLifetime time.Duration) SQLDatabaseService {
 	return &GormDatabase{
 		dsn:         dsn,
@@ -67,12 +51,10 @@ func NewGormDatabase(dsn string, maxIdle, maxOpen int, maxLifetime time.Duration
 	}
 }
 
-// Client implements SQLDatabase.
 func (g *GormDatabase) Client() *gorm.DB {
 	return g.db
 }
 
-// Ping implements SQLDatabase.
 func (g *GormDatabase) Ping(ctx context.Context) error {
 	if g.db == nil {
 		return eris.New("database not started")
@@ -87,7 +69,6 @@ func (g *GormDatabase) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Run initializes the GORM connection pool
 func (g *GormDatabase) Run(ctx context.Context) error {
 	config := &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
@@ -106,7 +87,6 @@ func (g *GormDatabase) Run(ctx context.Context) error {
 	sqlDB.SetMaxOpenConns(g.maxOpenConn)
 	sqlDB.SetConnMaxLifetime(g.maxLifetime)
 
-	// Ping to verify connectivity
 	if err := sqlDB.PingContext(ctx); err != nil {
 		return eris.Wrap(err, "database ping failed")
 	}
@@ -115,7 +95,6 @@ func (g *GormDatabase) Run(ctx context.Context) error {
 	return nil
 }
 
-// Stop implements SQLDatabase.
 func (g *GormDatabase) Stop(_ context.Context) error {
 	if g.db == nil {
 		return nil
@@ -127,8 +106,6 @@ func (g *GormDatabase) Stop(_ context.Context) error {
 	return eris.Wrap(sqlDB.Close(), "failed to close database")
 }
 
-// StartTransaction begins a new database transaction and returns the transaction and an end function.
-// The end function will commit if no error occurred, or rollback if an error is provided.
 func (g *GormDatabase) StartTransaction(ctx context.Context) (*gorm.DB, func(error) error) {
 	tx := g.db.WithContext(ctx).Begin()
 
@@ -146,8 +123,6 @@ func (g *GormDatabase) StartTransaction(ctx context.Context) (*gorm.DB, func(err
 	return tx, end
 }
 
-// StartTransactionWithContext is a convenience wrapper that handles transaction lifecycle.
-// It executes the provided function within a transaction and automatically commits/rollbacks.
 func (g *GormDatabase) StartTransactionWithContext(ctx context.Context, fn func(*gorm.DB) error) error {
 	tx := g.db.WithContext(ctx).Begin()
 	if tx.Error != nil {

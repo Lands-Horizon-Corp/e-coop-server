@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanComakerMember represents the LoanComakerMember model.
 	LoanComakerMember struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,9 +39,6 @@ type (
 		YearCount   float64 `gorm:"type:decimal"`
 	}
 
-	// LoanComakerMemberResponse represents the response structure for loancomakermember data
-
-	// LoanComakerMemberResponse represents the response structure for LoanComakerMember.
 	LoanComakerMemberResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -65,9 +61,6 @@ type (
 		YearCount         float64                  `json:"year_count"`
 	}
 
-	// LoanComakerMemberRequest represents the request structure for creating/updating loancomakermember
-
-	// LoanComakerMemberRequest represents the request structure for LoanComakerMember.
 	LoanComakerMemberRequest struct {
 		MemberProfileID   uuid.UUID `json:"member_profile_id" validate:"required"`
 		LoanTransactionID uuid.UUID `json:"loan_transaction_id" validate:"required"`
@@ -145,7 +138,6 @@ func (m *Core) loanComakerMember() {
 	})
 }
 
-// LoanComakerMemberCurrentBranch returns LoanComakerMemberCurrentBranch for the current branch or organization where applicable.
 func (m *Core) LoanComakerMemberCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanComakerMember, error) {
 	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
 		OrganizationID: organizationID,

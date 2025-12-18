@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// CashCheckVoucherEntry represents the CashCheckVoucherEntry model.
 	CashCheckVoucherEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -49,9 +48,6 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
-	// CashCheckVoucherEntryResponse represents the response structure for cashcheckvoucherentry data
-
-	// CashCheckVoucherEntryResponse represents the response structure for CashCheckVoucherEntry.
 	CashCheckVoucherEntryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -83,9 +79,6 @@ type (
 		Description     string                 `json:"description"`
 	}
 
-	// CashCheckVoucherEntryRequest represents the request structure for creating/updating cashcheckvoucherentry
-
-	// CashCheckVoucherEntryRequest represents the request structure for CashCheckVoucherEntry.
 	CashCheckVoucherEntryRequest struct {
 		ID                     *uuid.UUID `json:"id,omitempty"`
 		AccountID              uuid.UUID  `json:"account_id" validate:"required"`
@@ -173,7 +166,6 @@ func (m *Core) cashCheckVoucherEntry() {
 	})
 }
 
-// CashCheckVoucherEntryCurrentBranch retrieves all cash check voucher entries for the specified organization and branch
 func (m *Core) CashCheckVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherEntry, error) {
 	return m.CashCheckVoucherEntryManager.Find(context, &CashCheckVoucherEntry{
 		OrganizationID: organizationID,

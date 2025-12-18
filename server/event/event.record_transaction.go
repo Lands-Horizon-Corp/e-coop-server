@@ -11,12 +11,9 @@ import (
 )
 
 type RecordTransactionRequest struct {
-
-	// Amount
 	Debit  float64
 	Credit float64
 
-	// AccountID
 	AccountID       uuid.UUID
 	MemberProfileID *uuid.UUID
 
@@ -35,15 +32,6 @@ type RecordTransactionRequest struct {
 	LoanTransactionID     *uuid.UUID `json:"loan_transaction_id"`
 }
 
-// RecordTransaction handles the complete transaction recording process for both member and subsidiary accounts.
-// This function supports posting for: loans, cash check vouchers, journal vouchers, and adjustment entries.
-//
-// Process Flow:
-// 1. Input validation and database transaction initialization
-// 2. Authentication and organization context retrieval
-// 3. Transaction batch validation
-// 4. Account and payment type resolution
-// 5. General ledger entry creation (member or subsidiary)
 func (e Event) RecordTransaction(
 	context context.Context,
 	echoCtx echo.Context,
@@ -51,16 +39,8 @@ func (e Event) RecordTransaction(
 	source core.GeneralLedgerSource,
 ) error {
 	now := time.Now().UTC()
-	// ================================================================================
-	// STEP 1: DATABASE TRANSACTION INITIALIZATION
-	// ================================================================================
-	// Start database transaction to ensure atomicity of all operations
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
-	// ================================================================================
-	// STEP 2: INPUT VALIDATION
-	// ================================================================================
-	// Validate that at least one amount (credit or debit) is provided
 	if transaction.Credit == 0 && transaction.Debit == 0 {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
@@ -70,7 +50,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("both credit and debit cannot be zero"))
 	}
 
-	// Validate required account ID
 	if transaction.AccountID == uuid.Nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
@@ -80,7 +59,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("account ID is required"))
 	}
 
-	// Validate required reference number
 	if transaction.ReferenceNumber == "" {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "validation-error",
@@ -90,10 +68,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("reference number is required"))
 	}
 
-	// ================================================================================
-	// STEP 3: USER AUTHENTICATION & ORGANIZATION CONTEXT
-	// ================================================================================
-	// Retrieve the current user's organization context for transaction authorization
 	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, echoCtx)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
@@ -104,7 +78,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 
-	// Ensure user organization context exists
 	if userOrg == nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "authentication-failed",
@@ -114,7 +87,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("user organization is nil"))
 	}
 
-	// Validate branch assignment for transaction context
 	if userOrg.BranchID == nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "branch-context-error",
@@ -123,10 +95,6 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("user organization branch ID is nil"))
 	}
-	// ================================================================================
-	// STEP 5: ACCOUNT RESOLUTION AND LOCKING
-	// ================================================================================
-	// Lock the target account for update to prevent concurrent modifications
 	account, err := e.core.AccountLockForUpdate(context, tx, transaction.AccountID)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
@@ -137,10 +105,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.Wrap(err, "failed to lock account for update"))
 	}
 
-	// ================================================================================
-	// STEP 6: PAYMENT TYPE RESOLUTION
-	// ================================================================================
-	// Resolve payment type details if specified
 	var paymentType *core.PaymentType
 	if transaction.PaymentTypeID != nil {
 		paymentType, err = e.core.PaymentTypeManager.GetByID(context, *transaction.PaymentTypeID)
@@ -153,11 +117,7 @@ func (e Event) RecordTransaction(
 			return endTx(eris.Wrap(err, "failed to resolve payment type"))
 		}
 	}
-	// ================================================================================
-	// STEP 7: TRANSACTION PROCESSING
-	// ================================================================================
 
-	// Validate member profile if provided
 	var memberProfile *core.MemberProfile
 	if transaction.MemberProfileID != nil {
 		var err error
@@ -181,7 +141,6 @@ func (e Event) RecordTransaction(
 		}
 	}
 
-	// Validate loan transaction if provided
 	var loanTransactionID *uuid.UUID
 	if transaction.LoanTransactionID != nil {
 		loanTransactionID = transaction.LoanTransactionID
@@ -206,19 +165,16 @@ func (e Event) RecordTransaction(
 		}
 	}
 
-	// Prepare payment type
 	var paymentTypeValue core.TypeOfPaymentType
 	if paymentType != nil {
 		paymentTypeValue = paymentType.Type
 	}
 
-	// Prepare entry date
 	userOrgTime := userOrg.UserOrgTime()
 	if transaction.EntryDate != nil {
 		userOrgTime = *transaction.EntryDate
 	}
 
-	// Create general ledger entry (handles both member and subsidiary accounts)
 	newGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -257,7 +213,6 @@ func (e Event) RecordTransaction(
 		return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 	}
 
-	// Handle loan account updates if loan transaction exists
 	if loanTransactionID != nil {
 		loanAccount, err := e.core.GetLoanAccountByLoanTransaction(
 			context,
@@ -285,14 +240,12 @@ func (e Event) RecordTransaction(
 			return endTx(eris.New("loan account not found"))
 		}
 
-		// Handle Credit (Payment)
 		if transaction.Credit > 0 {
 			loanAccount.TotalPaymentCount += 1
 			loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
 				loanAccount.TotalPayment, transaction.Credit)
 		}
 
-		// Handle Debit (Deduction/Add-on)
 		if transaction.Debit > 0 {
 			loanAccount.TotalDeductionCount += 1
 			loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
@@ -312,7 +265,6 @@ func (e Event) RecordTransaction(
 		}
 	}
 
-	// Log successful transaction completion
 	transactionType := "subsidiary"
 	if memberProfile != nil {
 		transactionType = "member"
@@ -324,17 +276,12 @@ func (e Event) RecordTransaction(
 		Module: "Transaction Recording",
 	})
 
-	// ================================================================================
-	// STEP 9: TRANSACTION COMPLETION
-	// ================================================================================
-	// Log overall transaction success
 	e.Footstep(echoCtx, FootstepEvent{
 		Activity:    "transaction-recording-completed",
 		Description: "Transaction recording completed successfully for reference: " + transaction.ReferenceNumber + " with source: " + string(source),
 		Module:      "Transaction Recording",
 	})
 
-	// Commit the database transaction
 	return endTx(nil)
 
 }

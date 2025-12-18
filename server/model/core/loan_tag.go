@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanTag represents an arbitrary tag that can be attached to a loan transaction.
 	LoanTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,6 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	// LoanTagResponse represents the response structure for loantag data
-
-	// LoanTagResponse represents the response structure for LoanTag.
 	LoanTagResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -63,9 +59,6 @@ type (
 		Icon              string                   `json:"icon"`
 	}
 
-	// LoanTagRequest represents the request structure for creating/updating loantag
-
-	// LoanTagRequest represents the request structure for LoanTag.
 	LoanTagRequest struct {
 		LoanTransactionID *uuid.UUID  `json:"loan_transaction_id" validate:"required"`
 		Name              string      `json:"name" validate:"required,min=1,max=50"`
@@ -141,7 +134,6 @@ func (m *Core) loanTag() {
 	})
 }
 
-// LoanTagCurrentBranch retrieves loan tags for the specified organization and branch.
 func (m *Core) LoanTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTag, error) {
 	return m.LoanTagManager.Find(context, &LoanTag{
 		OrganizationID: organizationID,

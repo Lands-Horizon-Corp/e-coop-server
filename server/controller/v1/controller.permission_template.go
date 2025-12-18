@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// PermissionTemplateController registers all routes related to permission templates.
 func (c *Controller) permissionTemplateController() {
 	req := c.provider.Service.Request
 
-	// Fetch all permission templates associated with the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "GET",
@@ -33,7 +31,6 @@ func (c *Controller) permissionTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModels(permissionTemplates))
 	})
 
-	// Fetch all permission templates (paginated) for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/search",
 		Method:       "GET",
@@ -55,7 +52,6 @@ func (c *Controller) permissionTemplateController() {
 		return ctx.JSON(http.StatusOK, permissionTemplates)
 	})
 
-	// Fetch a single permission template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "GET",
@@ -76,7 +72,6 @@ func (c *Controller) permissionTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(permissionTemplate))
 	})
 
-	// Create a new permission template.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "POST",
@@ -136,7 +131,6 @@ func (c *Controller) permissionTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(newTemplate))
 	})
 
-	// Update an existing permission template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "PUT",
@@ -212,7 +206,6 @@ func (c *Controller) permissionTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(template))
 	})
 
-	// Delete a permission template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/permission-template/:permission_template_id",
 		Method: "DELETE",

@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ContactController manages endpoints for contact records.
 func (c *Controller) contactController() {
 	req := c.provider.Service.Request
 
-	// GET /contact: List all contact records. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact",
 		Method:       "GET",
@@ -29,7 +27,6 @@ func (c *Controller) contactController() {
 		return ctx.JSON(http.StatusOK, c.core.ContactUsManager.ToModels(contacts))
 	})
 
-	// GET /contact/:contact_id: Get a specific contact by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact/:contact_id",
 		Method:       "GET",
@@ -48,7 +45,6 @@ func (c *Controller) contactController() {
 		return ctx.JSON(http.StatusOK, contact)
 	})
 
-	// POST /contact: Create a new contact record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/contact",
 		Method:       "POST",
@@ -95,7 +91,6 @@ func (c *Controller) contactController() {
 		return ctx.JSON(http.StatusCreated, c.core.ContactUsManager.ToModel(contact))
 	})
 
-	// DELETE /contact/:contact_id: Delete a contact record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/contact/:contact_id",
 		Method: "DELETE",

@@ -12,11 +12,9 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// CashCheckVoucherController registers routes for managing cash check vouchers.
 func (c *Controller) cashCheckVoucherController() {
 	req := c.provider.Service.Request
 
-	// GET /cash-check-voucher: List all cash check vouchers for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "GET",
@@ -38,7 +36,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
-	// GET /cash-check-voucher/search: Paginated search of cash check vouchers for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/search",
 		Method:       "GET",
@@ -63,7 +60,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, cashCheckVouchers)
 	})
 
-	// GET /api/v1/cash-check-voucher/draft
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/draft",
 		Method:       "GET",
@@ -90,7 +86,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
-	// GET /api/v1/cash-check-voucher/printed
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/printed",
 		Method:       "GET",
@@ -117,7 +112,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
-	// GET /api/v1/cash-check-voucher/approved
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/approved",
 		Method:       "GET",
@@ -144,7 +138,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
-	// GET /api/v1/cash-check-voucher/released
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/released",
 		Method:       "GET",
@@ -171,7 +164,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModels(cashCheckVouchers))
 	})
 
-	// GET /cash-check-voucher/:cash_check_voucher_id: Get specific cash check voucher by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
@@ -190,7 +182,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, cashCheckVoucher)
 	})
 
-	// POST /cash-check-voucher: Create a new cash check voucher. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
@@ -226,7 +217,6 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		balance, err := c.usecase.StrictBalance(usecase.Balance{
@@ -289,7 +279,6 @@ func (c *Controller) cashCheckVoucherController() {
 			CurrencyID:     request.CurrencyID,
 		}
 
-		// Save cash check voucher first
 		if err := c.core.CashCheckVoucherManager.CreateWithTx(context, tx, cashCheckVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -329,7 +318,6 @@ func (c *Controller) cashCheckVoucherController() {
 			}
 		}
 
-		// Commit transaction
 		if err := endTx(nil); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -350,7 +338,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusCreated, newCashCheckVoucher)
 	})
 
-	// PUT /cash-check-voucher/:cash_check_voucher_id: Update cash check voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
@@ -407,10 +394,8 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + err.Error()})
 		}
 
-		// Start transaction
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Update cash check voucher fields
 		cashCheckVoucher.PayTo = request.PayTo
 		cashCheckVoucher.Status = request.Status
 		cashCheckVoucher.Description = request.Description
@@ -450,7 +435,6 @@ func (c *Controller) cashCheckVoucherController() {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.Name = request.Name
 
-		// Handle deleted entries
 		if request.CashCheckVoucherEntriesDeleted != nil {
 			for _, entryID := range request.CashCheckVoucherEntriesDeleted {
 				entry, err := c.core.CashCheckVoucherEntryManager.GetByID(context, entryID)
@@ -472,11 +456,9 @@ func (c *Controller) cashCheckVoucherController() {
 			}
 		}
 
-		// Handle cash check voucher entries (create new or update existing)
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				if entryReq.ID != nil {
-					// Update existing entry
 					entry, err := c.core.CashCheckVoucherEntryManager.GetByID(context, *entryReq.ID)
 					if err != nil {
 						c.event.Footstep(ctx, event.FootstepEvent{
@@ -533,7 +515,6 @@ func (c *Controller) cashCheckVoucherController() {
 			}
 		}
 
-		// Save updated cash check voucher
 		if err := c.core.CashCheckVoucherManager.UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -543,7 +524,6 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher: " + endTx(err).Error()})
 		}
 
-		// Commit transaction
 		if err := endTx(nil); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -564,7 +544,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, newCashCheckVoucher)
 	})
 
-	// DELETE /cash-check-voucher/:cash_check_voucher_id: Delete a cash check voucher by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method: "DELETE",
@@ -645,7 +624,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/print
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
@@ -689,7 +667,6 @@ func (c *Controller) cashCheckVoucherController() {
 
 		timeNow := userOrg.UserOrgTime()
 
-		// Update print details
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
 		cashCheckVoucher.EntryDate = &timeNow
 		cashCheckVoucher.PrintCount++
@@ -712,7 +689,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/approve
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve",
 		Method:       "PUT",
@@ -772,7 +748,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/release
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/release",
 		Method:       "POST",
@@ -837,18 +812,13 @@ func (c *Controller) cashCheckVoucherController() {
 		}
 
 		for _, entry := range cashCheckVoucherEntries {
-			// --- SUB-STEP 3A: CREATE TRANSACTION REQUEST FOR CURRENT ENTRY ---
-			// Prepare transaction request with journal voucher entry details
 			transactionRequest := event.RecordTransactionRequest{
-				// Financial amounts from journal entry
 				Debit:  entry.Debit,
 				Credit: entry.Credit,
 
-				// Account and member information
 				AccountID:       entry.AccountID,
 				MemberProfileID: entry.MemberProfileID,
 
-				// Transaction metadata
 				ReferenceNumber:       cashCheckVoucher.CashVoucherNumber,
 				Description:           entry.Description,
 				EntryDate:             &timeNow,
@@ -859,7 +829,6 @@ func (c *Controller) cashCheckVoucherController() {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			// --- SUB-STEP 3B: RECORD TRANSACTION IN GENERAL LEDGER ---
 			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
 
 				c.event.Footstep(ctx, event.FootstepEvent{
@@ -895,7 +864,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// PUT /api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo",
 		Method:       "PUT",
@@ -929,7 +897,6 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher has not been printed yet"})
 		}
 
-		// Revert print details
 		cashCheckVoucher.PrintCount = 0
 		cashCheckVoucher.PrintedDate = nil
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPending
@@ -950,7 +917,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/print-only
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-only",
 		Method:       "POST",
@@ -980,7 +946,6 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this cash check voucher"})
 		}
 
-		// Update print details without changing voucher number
 		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
@@ -1001,7 +966,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// POST /api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo",
 		Method:       "POST",
@@ -1039,7 +1003,6 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot unapprove a released cash check voucher"})
 		}
 
-		// Revert approval details
 		cashCheckVoucher.ApprovedDate = nil
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted // Or pending if not printed
 		if cashCheckVoucher.PrintedDate == nil {
@@ -1062,7 +1025,6 @@ func (c *Controller) cashCheckVoucherController() {
 		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager.ToModel(cashCheckVoucher))
 	})
 
-	// GET api/v1/cash-check-voucher/released/today
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/cash-check-voucher/released/today",
 		Method:       "GET",

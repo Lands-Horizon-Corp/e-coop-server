@@ -12,11 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// AdjustmentEntryController registers routes for managing adjustment entries.
 func (c *Controller) adjustmentEntryController() {
 	req := c.provider.Service.Request
 
-	// GET /adjustment-entry: List all adjustment entries for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "GET",
@@ -38,7 +36,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.ToModels(adjustmentEntries))
 	})
 
-	// GET /adjustment-entry/search: Paginated search of adjustment entries for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/search",
 		Method:       "GET",
@@ -63,7 +60,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusOK, adjustmentEntries)
 	})
 
-	// GET /adjustment-entry/:adjustment_entry_id: Get specific adjustment entry by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
@@ -82,7 +78,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusOK, adjustmentEntry)
 	})
 
-	// POST /adjustment-entry: Create a new adjustment entry. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
@@ -153,22 +148,15 @@ func (c *Controller) adjustmentEntryController() {
 			OrganizationID:     userOrg.OrganizationID,
 			TransactionBatchID: &transactionBatch.ID,
 		}
-		// ================================================================================
-		// STEP 2: RECORD TRANSACTION IN GENERAL LEDGER
-		// ================================================================================
-		// Create transaction request for general ledger recording
 		transactionRequest := event.RecordTransactionRequest{
-			// Financial amounts
 			Debit:  req.Debit,
 			Credit: req.Credit,
 
-			// Account and member information
 			AccountID:          req.AccountID,
 			MemberProfileID:    req.MemberProfileID,
 			TransactionBatchID: transactionBatch.ID,
 
-			LoanTransactionID: req.LoanTransactionID,
-			// Transaction metadata
+			LoanTransactionID:     req.LoanTransactionID,
 			ReferenceNumber:       req.ReferenceNumber,
 			Description:           req.Description,
 			EntryDate:             req.EntryDate,
@@ -179,7 +167,6 @@ func (c *Controller) adjustmentEntryController() {
 			ProofOfPaymentMediaID: nil, // Not applicable for adjustment entries
 		}
 
-		// Record the transaction in general ledger with adjustment entry source
 		if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-recording-failed",
@@ -216,7 +203,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusCreated, c.core.AdjustmentEntryManager.ToModel(adjustmentEntry))
 	})
 
-	// DELETE /adjustment-entry/:adjustment_entry_id: Delete an adjustment entry by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method: "DELETE",
@@ -257,7 +243,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// DELETE /adjustment-entry/bulk-delete: Bulk delete adjustment entries by IDs. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/adjustment-entry/bulk-delete",
 		Method:      "DELETE",
@@ -304,7 +289,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// GET /api/v1/adjustment-entry/total
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/total",
 		Method:       "GET",
@@ -337,7 +321,6 @@ func (c *Controller) adjustmentEntryController() {
 		})
 	})
 
-	// GET api/v1/adjustment-entry/currency/:currency_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/search",
 		Method:       "GET",
@@ -382,7 +365,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	// GET api/v1/adjustment-entry/currency/:currency_id/total
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/total",
 		Method:       "GET",
@@ -423,7 +405,6 @@ func (c *Controller) adjustmentEntryController() {
 		})
 	})
 
-	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search",
 		Method:       "GET",
@@ -473,7 +454,6 @@ func (c *Controller) adjustmentEntryController() {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	// GET api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total",
 		Method:       "GET",

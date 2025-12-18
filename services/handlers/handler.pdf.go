@@ -21,7 +21,6 @@ type PDFOptions[T any] struct {
 }
 
 func (p PDFOptions[T]) convertToInches() (width, height float64, err error) {
-	// basic validation
 	if p.Unit == "" {
 		return 0, 0, fmt.Errorf("unit is required")
 	}

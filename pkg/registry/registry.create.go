@@ -24,6 +24,7 @@ func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
 	tx *gorm.DB,
 	data *TData,
 ) error {
+
 	if err := tx.Create(data).WithContext(context).Error; err != nil {
 		return fmt.Errorf("failed to create entity with transaction: %w", err)
 	}

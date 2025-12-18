@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// FinancialStatementDefinition represents the FinancialStatementDefinition model.
 	FinancialStatementDefinition struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -29,11 +28,9 @@ type (
 		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_definition"`
 		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
 
-		// Self-referencing relationship for parent-child hierarchy
 		FinancialStatementDefinitionEntriesID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_entries_id;index" json:"parent_definition_id,omitempty"`
 		FinancialStatementDefinitionEntries   []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionEntriesID" json:"financial_statement_definition_entries,omitempty"`
 
-		// Many-to-one relationship with FinancialStatementGrouping
 		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
 		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
@@ -47,9 +44,6 @@ type (
 		FinancialStatementType string `gorm:"type:varchar(255)"`
 	}
 
-	// FinancialStatementDefinitionResponse represents the response structure for financialstatementdefinition data
-
-	// FinancialStatementDefinitionResponse represents the response structure for FinancialStatementDefinition.
 	FinancialStatementDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -77,9 +71,6 @@ type (
 		FinancialStatementType       string                              `json:"financial_statement_type"`
 	}
 
-	// FinancialStatementDefinitionRequest represents the request structure for creating/updating financialstatementdefinition
-
-	// FinancialStatementDefinitionRequest represents the request structure for FinancialStatementDefinition.
 	FinancialStatementDefinitionRequest struct {
 		Name                                  string     `json:"name" validate:"required,min=1,max=255"`
 		Description                           string     `json:"description,omitempty"`
@@ -111,7 +102,6 @@ func (m *Core) financialStatementDefinition() {
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries",                                     // Children level 4
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Parent of level 4
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries", // Children level 5
-			// Preload accounts for each level
 			"FinancialStatementDefinitionEntries.Accounts",
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
 			"FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.FinancialStatementDefinitionEntries.Accounts",
@@ -181,7 +171,6 @@ func (m *Core) financialStatementDefinition() {
 	})
 }
 
-// FinancialStatementDefinitionCurrentBranch returns FinancialStatementDefinitionCurrentBranch for the current branch or organization where applicable.
 func (m *Core) FinancialStatementDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
 	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
 		OrganizationID: organizationID,

@@ -12,7 +12,6 @@ import (
 func (c *Controller) accountHistory() {
 	req := c.provider.Service.Request
 
-	// GET api/v1/account-history/account/:account_id
 	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
@@ -41,7 +40,6 @@ func (c *Controller) accountHistory() {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	// GET api/v1/account-history/:account_history_id
 	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/:account_history_id",
@@ -61,7 +59,6 @@ func (c *Controller) accountHistory() {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	// POST /api/v1/account-history/account/:account_id/restore
 	req.RegisterWebRoute(handlers.Route{
 		Method:       "POST",
 		Route:        "/api/v1/account-history/:account_history_id/restore",

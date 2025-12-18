@@ -13,7 +13,6 @@ import (
 func (c *Controller) transactionController() {
 	req := c.provider.Service.Request
 
-	// Create transaction
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",

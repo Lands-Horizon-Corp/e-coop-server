@@ -25,9 +25,6 @@ func (e *Event) LoanProcessing(
 	userOrg *core.UserOrganization,
 	loanTransactionID *uuid.UUID,
 ) (*core.LoanTransaction, error) {
-	// ===============================
-	// STEP 1: INITIALIZE TRANSACTION AND BASIC VALIDATION
-	// ===============================
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	loanTransaction, err := e.core.LoanTransactionManager.GetByIDIncludingDeleted(context, *loanTransactionID)
 	if err != nil {
@@ -38,16 +35,10 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("This loan transaction is still being processed"))
 	}
 
-	// ===============================
-	// STEP 2: VALIDATE USER ORGANIZATION AND BRANCH
-	// ===============================
 	if userOrg.BranchID == nil {
 		return nil, endTx(eris.New("loan processing: user organization has no branch assigned"))
 	}
 
-	// ===============================
-	// STEP 3: RETRIEVE AND VALIDATE MEMBER PROFILE
-	// ===============================
 	memberProfile, err := e.core.MemberProfileManager.GetByIDIncludingDeleted(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
@@ -56,9 +47,6 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("member profile not found"))
 	}
 
-	// ===============================
-	// STEP 4: FETCH RELATED ACCOUNTS & CURRENCY
-	// ===============================
 	currency := loanTransaction.Account.Currency
 	loanAccounts, err := e.core.LoanAccountManager.Find(context, &core.LoanAccount{
 		OrganizationID:    userOrg.OrganizationID,
@@ -72,9 +60,6 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("no loan accounts found for the specified loan transaction"))
 	}
 
-	// ===============================
-	// STEP 5: FETCH HOLIDAY CALENDAR
-	// ===============================
 	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
@@ -84,24 +69,16 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve holidays for loan processing schedule"))
 	}
 
-	// ===============================
-	// STEP 6: CALCULATE NUMBER OF PAYMENTS
-	// ===============================
 	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return nil, endTx(eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms))
 	}
 
-	// ===============================
-	// STEP 7: CONFIGURE PAYMENT SCHEDULE SETTINGS
-	// ===============================
-	// Weekend and holiday exclusions
 	excludeSaturday := loanTransaction.ExcludeSaturday
 	excludeSunday := loanTransaction.ExcludeSunday
 	excludeHolidays := loanTransaction.ExcludeHoliday
 
-	// Payment frequency settings
 	isMonthlyExactDay := loanTransaction.ModeOfPaymentMonthlyExactDay
 	weeklyExactDay := loanTransaction.ModeOfPaymentWeekly
 	semiMonthlyExactDay1 := loanTransaction.ModeOfPaymentSemiMonthlyPay1
@@ -111,17 +88,11 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("loan processing: printed date is nil"))
 	}
 
-	// ===============================
-	// STEP 8: INITIALIZE PAYMENT CALCULATION VARIABLES
-	// ===============================
 	currentDate := userOrg.UserOrgTime()
 	paymentDate := *loanTransaction.PrintedDate
 	balance := loanTransaction.TotalPrincipal
 	principal := loanTransaction.TotalPrincipal
 
-	// ===============================
-	// STEP 9: PROCESS PAYMENT SCHEDULE ITERATIONS
-	// ===============================
 	for i := range numberOfPayments + 1 {
 		daysSkipped := 0
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
@@ -130,7 +101,6 @@ func (e *Event) LoanProcessing(
 		}
 
 		if i > 0 {
-			// Adjust payment date and calculate balance
 			scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
 			currentBalance := e.provider.Service.Decimal.Clamp(
 				e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
@@ -144,15 +114,12 @@ func (e *Event) LoanProcessing(
 					if accountHistory == nil {
 						return nil, endTx(eris.New("account history not found"))
 					}
-					// Calculate the amount to add based on account type
 					var amountToAdd float64
 					switch accountHistory.Type {
 					case core.AccountTypeLoan:
-						// LOAN PRINCIPAL: Skip for principal accounts in real-time processing
 						continue
 
 					case core.AccountTypeFines:
-						// FINES CALCULATION: Based on days skipped and penalty rates
 						if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
 							account := e.core.AccountHistoryToModel(accountHistory)
 							amountToAdd = e.usecase.ComputeFines(
@@ -167,27 +134,22 @@ func (e *Event) LoanProcessing(
 						}
 
 					default:
-						// INTEREST CALCULATIONS
 						switch accountHistory.ComputationType {
 						case core.Straight:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								// STRAIGHT INTEREST: Fixed percentage of original principal
 								amountToAdd = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						case core.Diminishing:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								// DIMINISHING INTEREST: Percentage of remaining balance
 								amountToAdd = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						case core.DiminishingStraight:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								// DIMINISHING STRAIGHT: Hybrid calculation method
 								amountToAdd = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						}
 					}
 
-					// Update the loan account with the calculated amount
 					if amountToAdd > 0 {
 						account.TotalAddCount += 1
 						account.TotalAdd = e.provider.Service.Decimal.Add(account.TotalAdd, amountToAdd)
@@ -195,13 +157,11 @@ func (e *Event) LoanProcessing(
 						account.UpdatedByID = userOrg.UserID
 						account.UpdatedAt = currentDate
 
-						// Save the updated loan account
 						if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, account.ID, account); err != nil {
 							return nil, endTx(eris.Wrapf(err, "failed to update loan account ID: %s", account.ID.String()))
 						}
 					}
 				}
-				// Update loan count AFTER successful processing
 				loanTransaction.Count = i + 1
 				if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 					return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
@@ -211,9 +171,6 @@ func (e *Event) LoanProcessing(
 			balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
 		}
 
-		// ===============================
-		// STEP 11: DETERMINE NEXT PAYMENT DATE
-		// ===============================
 		switch loanTransaction.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			paymentDate = paymentDate.AddDate(0, 0, 1)
@@ -253,16 +210,10 @@ func (e *Event) LoanProcessing(
 		}
 	}
 
-	// ===============================
-	// STEP 12: DATABASE TRANSACTION COMMIT
-	// ===============================
 	if err := endTx(nil); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
-	// ===============================
-	// STEP 13: FINAL TRANSACTION RETRIEVAL AND RETURN
-	// ===============================
 	updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
@@ -299,19 +250,13 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 		}
 	}
 
-	// Process asynchronously to avoid blocking the main thread
 	go func() {
 		timeoutContext, cancel := context.WithTimeout(context.Background(), 2*time.Hour)
 		defer cancel()
 
-		// Process each loan transaction
 		for i, entry := range loanTransactions {
-			// Add small delay to prevent overwhelming the system
 			time.Sleep(500 * time.Millisecond)
 
-			// ============================================================
-			// Process Loan Logic Here
-			// ============================================================
 			processedLoan, err := e.LoanProcessing(timeoutContext, userOrg, &entry.ID)
 			if err != nil {
 				e.provider.Service.Logger.Error("failed to process loan transaction",
@@ -322,7 +267,6 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 					zap.Int("iteration", i+1),
 					zap.Int("total", len(loanTransactions)))
 
-				// Mark this transaction as not processing so it can be retried
 				entry.Processing = false
 				if updateErr := e.core.LoanTransactionManager.UpdateByID(timeoutContext, entry.ID, entry); updateErr != nil {
 					e.provider.Service.Logger.Error("failed to unmark processing flag after error",
@@ -332,12 +276,10 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 				continue
 			}
 
-			// Update entry with processed data
 			if processedLoan != nil {
 				entry = processedLoan
 			}
 
-			// Dispatch progress event
 			if err := e.provider.Service.Broker.Dispatch([]string{
 				fmt.Sprintf("loan.process.branch.%s", userOrg.BranchID),
 				fmt.Sprintf("loan.process.organization.%s", userOrg.OrganizationID),
@@ -362,10 +304,8 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 				e.provider.Service.Logger.Error("failed to dispatch loan process event",
 					zap.Error(err),
 					zap.String("loanTransactionID", entry.ID.String()))
-				// Don't return here, continue processing other loans
 			}
 
-			// Check for timeout
 			select {
 			case <-timeoutContext.Done():
 				e.provider.Service.Logger.Warn("loan processing timed out",
@@ -376,7 +316,6 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 			}
 		}
 
-		// Mark all transactions as not processing after completion
 		for _, entry := range loanTransactions {
 			entry.Processing = false
 			if err := e.core.LoanTransactionManager.UpdateByID(timeoutContext, entry.ID, entry); err != nil {
@@ -386,7 +325,6 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 			}
 		}
 
-		// Send completion event
 		if err := e.provider.Service.Broker.Dispatch([]string{
 			fmt.Sprintf("loan.process.completed.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("loan.process.completed.organization.%s", userOrg.OrganizationID),

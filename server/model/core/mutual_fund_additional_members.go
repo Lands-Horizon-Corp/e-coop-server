@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MutualFundAdditionalMembers represents the MutualFundAdditionalMembers model.
 	MutualFundAdditionalMembers struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -38,7 +37,6 @@ type (
 		Ratio           float64     `gorm:"type:decimal(15,4);not null" json:"ratio"`
 	}
 
-	// MutualFundAdditionalMembersResponse represents the response structure for MutualFundAdditionalMembers.
 	MutualFundAdditionalMembersResponse struct {
 		ID              uuid.UUID             `json:"id"`
 		CreatedAt       string                `json:"created_at"`
@@ -59,7 +57,6 @@ type (
 		Ratio           float64               `json:"ratio"`
 	}
 
-	// MutualFundAdditionalMembersRequest represents the request structure for MutualFundAdditionalMembers.
 	MutualFundAdditionalMembersRequest struct {
 		ID              *uuid.UUID `json:"id,omitempty"`
 		MutualFundID    uuid.UUID  `json:"mutual_fund_id" validate:"required"`
@@ -134,7 +131,6 @@ func (m *Core) mutualFundAdditionalMembers() {
 	})
 }
 
-// MutualFundAdditionalMembersCurrentBranch retrieves all mutual fund additional members associated with the specified organization and branch.
 func (m *Core) MutualFundAdditionalMembersCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
 	return m.MutualFundAdditionalMembersManager.Find(context, &MutualFundAdditionalMembers{
 		OrganizationID: organizationID,
@@ -142,7 +138,6 @@ func (m *Core) MutualFundAdditionalMembersCurrentBranch(context context.Context,
 	})
 }
 
-// MutualFundAdditionalMembersByMutualFund retrieves all additional members for a specific mutual fund.
 func (m *Core) MutualFundAdditionalMembersByMutualFund(context context.Context, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
 	return m.MutualFundAdditionalMembersManager.Find(context, &MutualFundAdditionalMembers{
 		MutualFundID:   mutualFundID,

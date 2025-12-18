@@ -17,7 +17,6 @@ import (
 func (c *Controller) accountController() {
 	req := c.provider.Service.Request
 
-	// GET: Search (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/search",
 		Method:       "GET",
@@ -69,7 +68,6 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
-	// GET: /api/v1/account/deposit/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
@@ -96,7 +94,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/cash-and-cash-equivalence/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/paid-up-shared-capital/search",
 		Method:       "GET",
@@ -127,7 +124,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/loan/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/loan/search",
 		Method:       "GET",
@@ -213,7 +209,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	// GET: /api/v1/account/ar-ledger/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ar-ledger/search",
 		Method:       "GET",
@@ -239,7 +234,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/ar-aging/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ar-aging/search",
 		Method:       "GET",
@@ -267,7 +261,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/fines/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/fines/search",
 		Method:       "GET",
@@ -295,7 +288,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/interest/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/interest/search",
 		Method:       "GET",
@@ -322,7 +314,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/svf-ledger/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/svf-ledger/search",
 		Method:       "GET",
@@ -348,7 +339,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/w-off/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/w-off/search",
 		Method:       "GET",
@@ -374,7 +364,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/ap-ledger/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/ap-ledger/search",
 		Method:       "GET",
@@ -401,7 +390,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/other/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/other/search",
 		Method:       "GET",
@@ -428,7 +416,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: /api/v1/account/time-deposit/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/time-deposit/search",
 		Method:       "GET",
@@ -455,7 +442,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET: Search (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account",
 		Method:       "GET",
@@ -480,7 +466,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModels(accounts))
 	})
 
-	// POST: Create (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account",
 		Method:       "POST",
@@ -612,7 +597,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
 		}
 
-		// Create account history
 		if err := c.core.CreateAccountHistory(context, nil, account); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-warning",
@@ -657,7 +641,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusCreated, account)
 	})
 
-	// GET: Get by ID (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "GET",
@@ -676,7 +659,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// PUT: Update (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "PUT",
@@ -814,7 +796,6 @@ func (c *Controller) accountController() {
 		account.InterestMaturity = req.InterestMaturity
 		account.IsTaxable = req.IsTaxable
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -863,7 +844,6 @@ func (c *Controller) accountController() {
 			Description: "Updated account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
-		// Event notification
 		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
 			Description:      fmt.Sprintf("Account: the account has been updated - %s", account.Name),
 			Title:            fmt.Sprintf("Updated account: %s", account.Name),
@@ -873,7 +853,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// DELETE: Single (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account/:account_id",
 		Method: "DELETE",
@@ -890,7 +869,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 
-		// Perform comprehensive delete validation
 		if err := c.core.AccountDeleteCheck(context, *accountID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -900,7 +878,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 
-		// Get account for logging purposes
 		account, err := c.core.AccountManager.GetByID(context, *accountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -911,7 +888,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 
-		// Check user authorization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -931,7 +907,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		// Perform deletion
 		if err := c.core.AccountManager.Delete(context, account.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -950,7 +925,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// DELETE: Bulk (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
@@ -978,7 +952,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
 
-		// Check user authorization
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -998,7 +971,6 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		// Validate each account before deletion
 		var failedAccounts []string
 		for _, accountID := range reqBody.IDs {
 			if err := c.core.AccountDeleteCheck(context, accountID); err != nil {
@@ -1045,7 +1017,6 @@ func (c *Controller) accountController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// PUT: Update index (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/index/:index",
 		Method:       "PUT",
@@ -1103,7 +1074,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1128,7 +1098,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// PUT: Remove GeneralLedgerDefinitionID (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
@@ -1175,7 +1144,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1246,7 +1214,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1271,8 +1238,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// Quick Search
-	// GET: Search (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
@@ -1477,7 +1442,6 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
-	//
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",
@@ -1508,7 +1472,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	// GET - api/v1/computation-sheet/:computation-sheet-id/accounts
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
@@ -1562,7 +1525,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1600,7 +1562,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1615,7 +1576,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// POST api/v1/account/:account_id/connect-to-loan/:account_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/connect-to-loan/:loan_id",
 		Method:       "POST",
@@ -1650,7 +1610,6 @@ func (c *Controller) accountController() {
 		loanAccount.UpdatedAt = time.Now().UTC()
 		loanAccount.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, loanAccount.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1665,7 +1624,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(loanAccount))
 	})
 
-	// POST api/v1/account/:account_id/disconnect-account
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/disconnect-account",
 		Method:       "POST",
@@ -1689,7 +1647,6 @@ func (c *Controller) accountController() {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		// Create account history before update
 		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-warning",
@@ -1704,7 +1661,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
 	})
 
-	// GET /api/v1/account/loan-connectable-account-currency/:currency_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/loan-connectable-account-currency/:currency_id/search",
 		Method:       "GET",
@@ -1739,7 +1695,6 @@ func (c *Controller) accountController() {
 		return ctx.JSON(http.StatusOK, pagination)
 	})
 
-	// GET api/v1/account/:account_id/loan-accounts
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/:account_id/loan-accounts",
 		Method:       "GET",

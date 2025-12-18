@@ -14,7 +14,6 @@ import (
 func (c *Controller) browseReferenceController() {
 	req := c.provider.Service.Request
 
-	// PUT /api/v1/browse-reference/:id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "PUT",
@@ -46,14 +45,12 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
 
-		// Check if the browse reference belongs to the user's organization and branch
 		if browseReference.OrganizationID != userOrg.OrganizationID || browseReference.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this browse reference"})
 		}
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Update main browse reference fields
 		browseReference.Name = request.Name
 		browseReference.Description = request.Description
 		browseReference.InterestRate = request.InterestRate
@@ -67,7 +64,6 @@ func (c *Controller) browseReferenceController() {
 		browseReference.UpdatedAt = time.Now().UTC()
 		browseReference.UpdatedByID = userOrg.UserID
 
-		// Handle deletions first - InterestRatesByYear
 		if request.InterestRatesByYearDeleted != nil {
 			for _, deletedID := range request.InterestRatesByYearDeleted {
 				interestRateByYear, err := c.core.InterestRateByYearManager.GetByID(context, deletedID)
@@ -84,7 +80,6 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Handle deletions - InterestRatesByDate
 		if request.InterestRatesByDateDeleted != nil {
 			for _, deletedID := range request.InterestRatesByDateDeleted {
 				interestRateByDate, err := c.core.InterestRateByDateManager.GetByID(context, deletedID)
@@ -101,7 +96,6 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Handle deletions - InterestRatesByAmount
 		if request.InterestRatesByAmountDeleted != nil {
 			for _, deletedID := range request.InterestRatesByAmountDeleted {
 				interestRateByAmount, err := c.core.InterestRateByAmountManager.GetByID(context, deletedID)
@@ -118,20 +112,16 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Create/Update InterestRatesByYear records
 		if request.InterestRatesByYear != nil {
 			for _, rateReq := range request.InterestRatesByYear {
 				if rateReq.ID != nil {
-					// Update existing record
 					existingRecord, err := c.core.InterestRateByYearManager.GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by year: " + endTx(err).Error()})
 					}
-					// Verify ownership
 					if existingRecord.BrowseReferenceID != browseReference.ID {
 						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update interest rate by year that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 					}
-					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
 					existingRecord.UpdatedByID = userOrg.UserID
 					existingRecord.FromYear = rateReq.FromYear
@@ -142,7 +132,6 @@ func (c *Controller) browseReferenceController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by year: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					rateByYear := &core.InterestRateByYear{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
@@ -163,20 +152,16 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Create/Update InterestRatesByDate records
 		if request.InterestRatesByDate != nil {
 			for _, rateReq := range request.InterestRatesByDate {
 				if rateReq.ID != nil {
-					// Update existing record
 					existingRecord, err := c.core.InterestRateByDateManager.GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by date: " + endTx(err).Error()})
 					}
-					// Verify ownership
 					if existingRecord.BrowseReferenceID != browseReference.ID {
 						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update interest rate by date that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 					}
-					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
 					existingRecord.UpdatedByID = userOrg.UserID
 					existingRecord.FromDate = rateReq.FromDate
@@ -187,7 +172,6 @@ func (c *Controller) browseReferenceController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by date: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					rateByDate := &core.InterestRateByDate{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
@@ -208,20 +192,16 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Create/Update InterestRatesByAmount records
 		if request.InterestRatesByAmount != nil {
 			for _, rateReq := range request.InterestRatesByAmount {
 				if rateReq.ID != nil {
-					// Update existing record
 					existingRecord, err := c.core.InterestRateByAmountManager.GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by amount: " + endTx(err).Error()})
 					}
-					// Verify ownership
 					if existingRecord.BrowseReferenceID != browseReference.ID {
 						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update interest rate by amount that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 					}
-					// Update fields
 					existingRecord.UpdatedAt = time.Now().UTC()
 					existingRecord.UpdatedByID = userOrg.UserID
 					existingRecord.FromAmount = rateReq.FromAmount
@@ -232,7 +212,6 @@ func (c *Controller) browseReferenceController() {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by amount: " + endTx(err).Error()})
 					}
 				} else {
-					// Create new record
 					rateByAmount := &core.InterestRateByAmount{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
@@ -253,7 +232,6 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Update the main browse reference record
 		if err := c.core.BrowseReferenceManager.UpdateByIDWithTx(context, tx, browseReference.ID, browseReference); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update browse reference: " + endTx(err).Error()})
 		}
@@ -267,7 +245,6 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		// Retrieve the updated browse reference with all relationships
 		updatedBrowseReference, err := c.core.BrowseReferenceManager.GetByID(context, browseReference.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated browse reference: " + err.Error()})
@@ -282,7 +259,6 @@ func (c *Controller) browseReferenceController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(updatedBrowseReference))
 	})
 
-	// GET /api/v1/browse-reference/:id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "GET",
@@ -305,7 +281,6 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
 
-		// Check if the browse reference belongs to the user's organization and branch
 		if browseReference.OrganizationID != userOrg.OrganizationID || browseReference.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this browse reference"})
 		}
@@ -313,7 +288,6 @@ func (c *Controller) browseReferenceController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(browseReference))
 	})
 
-	// GET /api/v1/browse-reference
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
@@ -335,7 +309,6 @@ func (c *Controller) browseReferenceController() {
 		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
 	})
 
-	// POST /api/v1/browse-reference
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "POST",
@@ -360,7 +333,6 @@ func (c *Controller) browseReferenceController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		// Create main browse reference
 		browseReference := &core.BrowseReference{
 			CreatedAt:             time.Now().UTC(),
 			UpdatedAt:             time.Now().UTC(),
@@ -384,7 +356,6 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create browse reference: " + endTx(err).Error()})
 		}
 
-		// Create InterestRatesByYear records
 		if request.InterestRatesByYear != nil {
 			for _, rateReq := range request.InterestRatesByYear {
 				rateByYear := &core.InterestRateByYear{
@@ -406,7 +377,6 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Create InterestRatesByDate records
 		if request.InterestRatesByDate != nil {
 			for _, rateReq := range request.InterestRatesByDate {
 				rateByDate := &core.InterestRateByDate{
@@ -428,7 +398,6 @@ func (c *Controller) browseReferenceController() {
 			}
 		}
 
-		// Create InterestRatesByAmount records
 		if request.InterestRatesByAmount != nil {
 			for _, rateReq := range request.InterestRatesByAmount {
 				rateByAmount := &core.InterestRateByAmount{
@@ -459,7 +428,6 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		// Retrieve the created browse reference with all relationships
 		createdBrowseReference, err := c.core.BrowseReferenceManager.GetByID(context, browseReference.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created browse reference: " + err.Error()})
@@ -474,7 +442,6 @@ func (c *Controller) browseReferenceController() {
 		return ctx.JSON(http.StatusCreated, c.core.BrowseReferenceManager.ToModel(createdBrowseReference))
 	})
 
-	// DELETE /api/v1/browse-reference/:id
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/browse-reference/:browse_reference_id",
 		Method: "DELETE",
@@ -499,7 +466,6 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
 
-		// Check if the browse reference belongs to the user's organization and branch
 		if browseReference.OrganizationID != userOrg.OrganizationID || browseReference.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this browse reference"})
 		}
@@ -518,7 +484,6 @@ func (c *Controller) browseReferenceController() {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Browse reference deleted successfully"})
 	})
 
-	// GET /api/v1/browse-reference/by-member-type/:member_type_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
@@ -543,4 +508,49 @@ func (c *Controller) browseReferenceController() {
 
 		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
 	})
+
+	// GET /api/v1/browse-reference/account/:account_id/member-type/:member_type_id
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/browse-reference/account/:account_id/member-type/:member_type_id",
+		Method:       "GET",
+		ResponseType: core.BrowseReferenceResponse{},
+		Note:         "Retrieves browse references by account and member type for the current branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid account ID",
+			})
+		}
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid member type ID",
+			})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "User authentication failed or organization not found",
+			})
+		}
+		browseReference, err := c.core.BrowseReferenceManager.FindOne(
+			context,
+			&core.BrowseReference{
+				AccountID:      accountID,
+				MemberTypeID:   memberTypeID,
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
+			},
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to retrieve browse references: " + err.Error(),
+			})
+		}
+
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(browseReference))
+	})
+
 }

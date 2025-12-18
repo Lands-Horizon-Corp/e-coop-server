@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// MemberClassification represents the MemberClassification model.
 	MemberClassification struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,9 +34,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// MemberClassificationResponse represents the response structure for memberclassification data
-
-	// MemberClassificationResponse represents the response structure for MemberClassification.
 	MemberClassificationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,9 +51,6 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// MemberClassificationRequest represents the request structure for creating/updating memberclassification
-
-	// MemberClassificationRequest represents the request structure for MemberClassification.
 	MemberClassificationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`
 		Icon        string `json:"icon,omitempty"`
@@ -182,7 +175,6 @@ func (m *Core) memberClassificationSeed(context context.Context, tx *gorm.DB, us
 	return nil
 }
 
-// MemberClassificationCurrentBranch returns MemberClassificationCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
 	return m.MemberClassificationManager.Find(context, &MemberClassification{
 		OrganizationID: organizationID,

@@ -13,7 +13,6 @@ import (
 func (c *Controller) transactionBatchController() {
 	req := c.provider.Service.Request
 
-	// List all transaction batches for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
@@ -38,7 +37,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
 	})
 
-	// Paginate transaction batches for current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
@@ -60,7 +58,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, transactionBatch)
 	})
 
-	// Update batch signatures for a transaction batch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
@@ -122,7 +119,6 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found"})
 		}
 
-		// Update all signature fields
 		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
@@ -173,7 +169,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// Get the current active transaction batch for the user
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
@@ -204,7 +199,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// Update deposit in bank amount for a specific transaction batch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
@@ -316,7 +310,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// Create a new transaction batch and batch funding
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
@@ -334,6 +327,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -343,6 +337,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
+
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -351,6 +346,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
+
 		transactionBatch, _ := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if transactionBatch != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -360,6 +356,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "There is an ongoing transaction batch"})
 		}
+
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -369,6 +366,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
+
 		transBatch := &core.TransactionBatch{
 			CreatedAt:                     time.Now().UTC(),
 			CreatedByID:                   userOrg.UserID,
@@ -401,6 +399,7 @@ func (c *Controller) transactionBatchController() {
 			CanView:                       false,
 			RequestView:                   false,
 		}
+
 		if err := c.core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -409,6 +408,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + endTx(err).Error()})
 		}
+
 		batchFunding := &core.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
@@ -424,6 +424,7 @@ func (c *Controller) transactionBatchController() {
 			SignatureMediaID:   batchFundingReq.SignatureMediaID,
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
+
 		if err := c.core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -432,6 +433,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create batch funding: " + endTx(err).Error()})
 		}
+
 		if err := endTx(nil); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -440,19 +442,21 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created transaction batch and batch funding for branch " + userOrg.BranchID.String(),
 			Module:      "TransactionBatch",
 		})
+
 		result, err := c.core.TransactionBatchMinimal(context, transBatch.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 		}
+
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	// End the current transaction batch for the authenticated user
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
@@ -543,7 +547,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// Retrieve a transaction batch by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
@@ -576,7 +579,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// Submit a request to view (blotter) a specific transaction batch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
@@ -664,7 +666,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
 	})
 
-	// List all pending view (blotter) requests for transaction batches
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
@@ -686,7 +687,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
 	})
 
-	// List all ended (closed) batches for the current day
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
@@ -708,7 +708,6 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(batches))
 	})
 
-	// Accept a view (blotter) request for a transaction batch by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",

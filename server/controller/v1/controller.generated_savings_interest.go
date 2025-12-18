@@ -14,9 +14,8 @@ func (c *Controller) generateSavingsInterest() {
 
 	req := c.provider.Service.Request
 
-	// GET /api/v1/generated-savings-interest: List all generated savings interest for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
-		Route:        "/api/v1/generated-savings-interest",
+		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
@@ -29,17 +28,16 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.Find(context, &core.GeneratedSavingsInterest{
+		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated savings interest found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModels(generatedSavingsInterests))
+		return ctx.JSON(http.StatusOK, generatedSavingsInterests)
 	})
 
-	// GET /api/v1/generated-savings-interest/:generated_savings_interest_id: Get specific generated savings interest by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
@@ -58,7 +56,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
 	})
 
-	// GET /api/v1/generated-savings-interest/:genereated_savings_interest/view
 	req.RegisterWebRoute(handlers.Route{
 		Method:       "GET",
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
@@ -145,8 +142,8 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
 			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
-			TotalTax:      totalTax,      // You might want to calculate this value
-			TotalInterest: totalInterest, // You might want to calculate this value
+			TotalTax:      totalTax,
+			TotalInterest: totalInterest,
 		})
 	})
 
@@ -242,7 +239,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
 	})
 
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print
 	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
@@ -278,7 +274,6 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo
 	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
@@ -317,7 +312,6 @@ func (c *Controller) generateSavingsInterest() {
 		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
 	})
 
-	// PUT /api/v1/generated-savings-interest/:generated_savings_interest_id/post
 	req.RegisterWebRoute(handlers.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",

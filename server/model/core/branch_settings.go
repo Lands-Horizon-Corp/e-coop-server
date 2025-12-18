@@ -10,7 +10,6 @@ import (
 )
 
 type (
-	// BranchSetting represents the BranchSetting model.
 	BranchSetting struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -32,7 +31,6 @@ type (
 		CompassionFundAccountID *uuid.UUID `gorm:"type:uuid" json:"compassion_fund_account_id,omitempty"`
 		CompassionFundAccount   *Account   `gorm:"foreignKey:CompassionFundAccountID;constraint:OnDelete:SET NULL;" json:"compassion_fund_account,omitempty"`
 
-		// Withdraw Settings
 		WithdrawAllowUserInput bool   `gorm:"not null;default:true" json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `gorm:"type:varchar(50);not null;default:'WD'" json:"withdraw_prefix"`
 		WithdrawORStart        int    `gorm:"not null;default:1" json:"withdraw_or_start"`
@@ -42,7 +40,6 @@ type (
 		WithdrawORUnique       bool   `gorm:"not null;default:true" json:"withdraw_or_unique"`
 		WithdrawUseDateOR      bool   `gorm:"not null;default:false" json:"withdraw_use_date_or"`
 
-		// Deposit Settings
 		DepositAllowUserInput bool   `gorm:"not null;default:true" json:"deposit_allow_user_input"`
 		DepositPrefix         string `gorm:"type:varchar(50);not null;default:'DP'" json:"deposit_prefix"`
 		DepositORStart        int    `gorm:"not null;default:1" json:"deposit_or_start"`
@@ -52,7 +49,6 @@ type (
 		DepositORUnique       bool   `gorm:"not null;default:true" json:"deposit_or_unique"`
 		DepositUseDateOR      bool   `gorm:"not null;default:false" json:"deposit_use_date_or"`
 
-		// Loan Settings
 		LoanAllowUserInput        bool   `gorm:"not null;default:true" json:"loan_allow_user_input"`
 		LoanPrefix                string `gorm:"type:varchar(50);not null;default:'LN'" json:"loan_prefix"`
 		LoanORStart               int    `gorm:"not null;default:1" json:"loan_or_start"`
@@ -63,7 +59,6 @@ type (
 		LoanUseDateOR             bool   `gorm:"not null;default:false" json:"loan_use_date_or"`
 		LoanAppliedEqualToBalance bool   `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
 
-		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool    `gorm:"not null;default:true" json:"check_voucher_allow_user_input"`
 		CheckVoucherPrefix         string  `gorm:"type:varchar(50);not null;default:'CV'" json:"check_voucher_prefix"`
 		CheckVoucherORStart        int     `gorm:"not null;default:1" json:"check_voucher_or_start"`
@@ -75,20 +70,13 @@ type (
 		AnnualDivisor              int     `gorm:"not null;default:360" json:"annual_divisor"`
 		TaxInterest                float64 `gorm:"not null;default:0" json:"tax_interest"`
 
-		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
 
-		// One-to-many relationship with UnbalancedAccount
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
 	}
 
-	// BranchSettingRequest represents the request structure for creating/updating branchsetting
-
-	// BranchSettingRequest represents the request structure for BranchSetting.
 	BranchSettingRequest struct {
-
-		// Withdraw Settings
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `json:"withdraw_prefix" validate:"omitempty"`
 		WithdrawORStart        int    `json:"withdraw_or_start" validate:"min=0"`
@@ -98,7 +86,6 @@ type (
 		WithdrawORUnique       bool   `json:"withdraw_or_unique"`
 		WithdrawUseDateOR      bool   `json:"withdraw_use_date_or"`
 
-		// Deposit Settings
 		DepositAllowUserInput bool   `json:"deposit_allow_user_input"`
 		DepositPrefix         string `json:"deposit_prefix" validate:"omitempty"`
 		DepositORStart        int    `json:"deposit_or_start" validate:"min=0"`
@@ -108,7 +95,6 @@ type (
 		DepositORUnique       bool   `json:"deposit_or_unique"`
 		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
 
-		// Loan Settings
 		LoanAllowUserInput        bool   `json:"loan_allow_user_input"`
 		LoanPrefix                string `json:"loan_prefix" validate:"omitempty"`
 		LoanORStart               int    `json:"loan_or_start" validate:"min=0"`
@@ -119,7 +105,6 @@ type (
 		LoanUseDateOR             bool   `json:"loan_use_date_or"`
 		LoanAppliedEqualToBalance bool   `json:"loan_applied_equal_to_balance"`
 
-		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool   `json:"check_voucher_allow_user_input"`
 		CheckVoucherPrefix         string `json:"check_voucher_prefix" validate:"omitempty"`
 		CheckVoucherORStart        int    `json:"check_voucher_or_start" validate:"min=0"`
@@ -129,15 +114,11 @@ type (
 		CheckVoucherORUnique       bool   `json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool   `json:"check_voucher_use_date_or"`
 
-		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
 		AnnualDivisor       int        `json:"annual_divisor" validate:"min=0"`
 		TaxInterest         float64    `json:"tax_interest" validate:"min=0"`
 	}
 
-	// BranchSettingsCurrencyRequest represents the request structure for creating/updating branchsettingscurrency
-
-	// BranchSettingsCurrencyRequest represents the request structure for BranchSettingsCurrency.
 	BranchSettingsCurrencyRequest struct {
 		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
 		PaidUpSharedCapitalAccountID uuid.UUID  `json:"paid_up_shared_capital_account_id" validate:"required"`
@@ -148,9 +129,6 @@ type (
 		UnbalancedAccountDeleteIDs uuid.UUIDs                 `json:"unbalanced_account_delete_ids,omitempty"`
 	}
 
-	// BranchSettingResponse represents the response structure for branchsetting data
-
-	// BranchSettingResponse represents the response structure for BranchSetting.
 	BranchSettingResponse struct {
 		ID         uuid.UUID         `json:"id"`
 		CreatedAt  string            `json:"created_at"`
@@ -159,7 +137,6 @@ type (
 		CurrencyID uuid.UUID         `json:"currency_id"`
 		Currency   *CurrencyResponse `json:"currency,omitempty"`
 
-		// Withdraw Settings
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `json:"withdraw_prefix"`
 		WithdrawORStart        int    `json:"withdraw_or_start"`
@@ -169,7 +146,6 @@ type (
 		WithdrawORUnique       bool   `json:"withdraw_or_unique"`
 		WithdrawUseDateOR      bool   `json:"withdraw_use_date_or"`
 
-		// Deposit Settings
 		DepositAllowUserInput bool   `json:"deposit_allow_user_input"`
 		DepositPrefix         string `json:"deposit_prefix"`
 		DepositORStart        int    `json:"deposit_or_start"`
@@ -179,7 +155,6 @@ type (
 		DepositORUnique       bool   `json:"deposit_or_unique"`
 		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
 
-		// Loan Settings
 		LoanAllowUserInput        bool   `json:"loan_allow_user_input"`
 		LoanPrefix                string `json:"loan_prefix"`
 		LoanORStart               int    `json:"loan_or_start"`
@@ -190,7 +165,6 @@ type (
 		LoanUseDateOR             bool   `json:"loan_use_date_or"`
 		LoanAppliedEqualToBalance bool   `json:"loan_applied_equal_to_balance"`
 
-		// Check Voucher Settings
 		CheckVoucherAllowUserInput bool   `json:"check_voucher_allow_user_input"`
 		CheckVoucherPrefix         string `json:"check_voucher_prefix"`
 		CheckVoucherORStart        int    `json:"check_voucher_or_start"`
@@ -200,7 +174,6 @@ type (
 		CheckVoucherORUnique       bool   `json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool   `json:"check_voucher_use_date_or"`
 
-		// Default Member Type
 		DefaultMemberTypeID *uuid.UUID          `json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberTypeResponse `json:"default_member_type,omitempty"`
 
@@ -210,8 +183,8 @@ type (
 		PaidUpSharedCapitalAccount   *AccountResponse `json:"paid_up_shared_capital_account,omitempty"`
 		CompassionFundAccountID      *uuid.UUID       `json:"compassion_fund_account_id,omitempty"`
 		CompassionFundAccount        *AccountResponse `json:"compassion_fund_account,omitempty"`
+		AnnualDivisor                int              `json:"annual_divisor"`
 
-		// One-to-many relationship with UnbalancedAccount
 		UnbalancedAccounts []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
 	}
 )
@@ -226,6 +199,7 @@ func (m *Core) branchSetting() {
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
 			"CompassionFundAccount",
+			"CompassionFundAccount.Currency",
 			"UnbalancedAccounts",
 			"UnbalancedAccounts.Currency",
 
@@ -298,6 +272,7 @@ func (m *Core) branchSetting() {
 				CompassionFundAccount:        m.AccountManager.ToModel(data.CompassionFundAccount),
 
 				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
+				AnnualDivisor:      data.AnnualDivisor,
 			}
 		},
 		Created: func(data *BranchSetting) registry.Topics {

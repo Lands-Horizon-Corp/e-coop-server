@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// AdjustmentEntry represents the AdjustmentEntry model.
 	AdjustmentEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -62,9 +61,6 @@ type (
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 	}
 
-	// AdjustmentEntryResponse represents the response structure for adjustmententry data
-
-	// AdjustmentEntryResponse represents the response structure for AdjustmentEntry.
 	AdjustmentEntryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -100,9 +96,6 @@ type (
 		LoanTransaction    *LoanTransactionResponse  `json:"loan_transaction,omitempty"`
 	}
 
-	// AdjustmentEntryRequest represents the request structure for creating/updating adjustmententry
-
-	// AdjustmentEntryRequest represents the request structure for AdjustmentEntry.
 	AdjustmentEntryRequest struct {
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
 		SignatureMediaID   *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -118,9 +111,6 @@ type (
 		LoanTransactionID  *uuid.UUID `json:"loan_transaction_id,omitempty"`
 	}
 
-	// AdjustmentEntryTotalResponse represents the response structure for adjustmententrytotal data
-
-	// AdjustmentEntryTotalResponse represents the response structure for AdjustmentEntryTotal.
 	AdjustmentEntryTotalResponse struct {
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
@@ -128,9 +118,6 @@ type (
 		IsBalanced  bool    `json:"is_balanced"`
 	}
 
-	// AdjustmentEntrySummaryRequest represents the request structure for creating/updating adjustmententrysummary
-
-	// AdjustmentEntrySummaryRequest represents the request structure for AdjustmentEntrySummary.
 	AdjustmentEntrySummaryRequest struct {
 		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`
 		UserOrganizationID *uuid.UUID `json:"user_organization_id,omitempty"`
@@ -229,7 +216,6 @@ func (m *Core) adjustmentEntry() {
 	})
 }
 
-// AdjustmentEntryCurrentBranch retrieves adjustment entries for a specific organization and branch.
 func (m *Core) AdjustmentEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentEntry, error) {
 	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
 		OrganizationID: organizationID,

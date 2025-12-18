@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ChargesRateSchemeModeOfPaymentController registers routes for managing charges rate scheme model of payment.
 func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 	req := c.provider.Service.Request
 
-	// POST /charges-rate-scheme-mode-of-payment: Create a new charges rate scheme model of payment. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
@@ -109,7 +107,6 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		return ctx.JSON(http.StatusCreated, c.core.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
 	})
 
-	// PUT /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Update charges rate scheme model of payment by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
@@ -197,7 +194,6 @@ func (c *Controller) chargesRateSchemeModeOfPaymentController() {
 		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeModeOfPaymentManager.ToModel(chargesRateSchemeModeOfPayment))
 	})
 
-	// DELETE /charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id: Delete a charges rate scheme model of payment by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method: "DELETE",

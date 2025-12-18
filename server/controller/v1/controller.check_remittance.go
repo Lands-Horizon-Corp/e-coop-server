@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CheckRemittanceController manages endpoints for check remittance operations within the current transaction batch.
 func (c *Controller) checkRemittanceController() {
 	req := c.provider.Service.Request
 
-	// GET /check-remittance: List all check remittances for the active transaction batch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
@@ -55,7 +53,6 @@ func (c *Controller) checkRemittanceController() {
 		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModels(checkRemittance))
 	})
 
-	// POST /check-remittance: Create a new check remittance for the current transaction batch. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
@@ -160,7 +157,6 @@ func (c *Controller) checkRemittanceController() {
 		return ctx.JSON(http.StatusCreated, c.core.CheckRemittanceManager.ToModel(checkRemittance))
 	})
 
-	// PUT /check-remittance/:check_remittance_id: Update a check remittance by ID for the current transaction batch. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
@@ -291,7 +287,6 @@ func (c *Controller) checkRemittanceController() {
 		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModel(updatedRemittance))
 	})
 
-	// DELETE /check-remittance/:check_remittance_id: Delete a check remittance by ID for the current transaction batch. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/check-remittance/:check_remittance_id",
 		Method: "DELETE",

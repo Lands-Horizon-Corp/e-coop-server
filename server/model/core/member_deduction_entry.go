@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberDeductionEntry represents the MemberDeductionEntry model.
 	MemberDeductionEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,7 +39,6 @@ type (
 		MembershipDate time.Time `gorm:"type:timestamp"`
 	}
 
-	// MemberDeductionEntryResponse represents the response structure for member deduction entry data
 	MemberDeductionEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -62,7 +60,6 @@ type (
 		MembershipDate  string                 `json:"membership_date"`
 	}
 
-	// MemberDeductionEntryRequest represents the request structure for creating/updating member deduction entries
 	MemberDeductionEntryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		AccountID       uuid.UUID `json:"account_id" validate:"required"`
@@ -137,7 +134,6 @@ func (m *Core) memberDeductionEntry() {
 	})
 }
 
-// MemberDeductionEntryCurrentBranch returns MemberDeductionEntryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberDeductionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDeductionEntry, error) {
 	return m.MemberDeductionEntryManager.Find(context, &MemberDeductionEntry{
 		OrganizationID: organizationID,

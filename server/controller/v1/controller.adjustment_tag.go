@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AdjustmentTagController registers routes for managing adjustment tags.
 func (c *Controller) adjustmentTagController() {
 	req := c.provider.Service.Request
 
-	// GET /adjustment-tag: List all adjustment tags for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "GET",
@@ -37,7 +35,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
 	})
 
-	// GET /adjustment-tag/search: Paginated search of adjustment tags for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/search",
 		Method:       "GET",
@@ -62,7 +59,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusOK, tags)
 	})
 
-	// GET /adjustment-tag/:tag_id: Get specific adjustment tag by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "GET",
@@ -81,7 +77,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusOK, tag)
 	})
 
-	// POST /adjustment-tag: Create a new adjustment tag. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "POST",
@@ -154,7 +149,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusCreated, c.core.AdjustmentTagManager.ToModel(tag))
 	})
 
-	// "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
@@ -185,7 +179,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
 	})
 
-	// PUT /adjustment-tag/:tag_id: Update adjustment tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "PUT",
@@ -255,7 +248,6 @@ func (c *Controller) adjustmentTagController() {
 		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModel(tag))
 	})
 
-	// DELETE /adjustment-tag/:tag_id: Delete an adjustment tag by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/adjustment-tag/:tag_id",
 		Method: "DELETE",

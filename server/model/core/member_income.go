@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberIncome represents a member's income information in the database
 	MemberIncome struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -40,7 +39,6 @@ type (
 		ReleaseDate *time.Time `gorm:"type:timestamp"`
 	}
 
-	// MemberIncomeResponse represents the response structure for member income data
 	MemberIncomeResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -63,7 +61,6 @@ type (
 		ReleaseDate     *string                `json:"release_date,omitempty"`
 	}
 
-	// MemberIncomeRequest represents the request structure for creating/updating member income
 	MemberIncomeRequest struct {
 		MediaID     *uuid.UUID `json:"media_id"`
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
@@ -140,7 +137,6 @@ func (m *Core) memberIncome() {
 	})
 }
 
-// MemberIncomeCurrentBranch retrieves member income records for a specific organization branch
 func (m *Core) MemberIncomeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberIncome, error) {
 	return m.MemberIncomeManager.Find(context, &MemberIncome{
 		OrganizationID: organizationID,

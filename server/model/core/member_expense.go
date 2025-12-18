@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberExpense represents the MemberExpense model.
 	MemberExpense struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,9 +36,6 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
-	// MemberExpenseResponse represents the response structure for memberexpense data
-
-	// MemberExpenseResponse represents the response structure for MemberExpense.
 	MemberExpenseResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -59,9 +55,6 @@ type (
 		Description     string                 `json:"description"`
 	}
 
-	// MemberExpenseRequest represents the request structure for creating/updating memberexpense
-
-	// MemberExpenseRequest represents the request structure for MemberExpense.
 	MemberExpenseRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
 		Name            string    `json:"name" validate:"required,min=1,max=255"`
@@ -129,7 +122,6 @@ func (m *Core) memberExpense() {
 	})
 }
 
-// MemberExpenseCurrentBranch returns MemberExpenseCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberExpenseCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberExpense, error) {
 	return m.MemberExpenseManager.Find(context, &MemberExpense{
 		OrganizationID: organizationID,

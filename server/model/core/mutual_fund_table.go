@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MutualFundTable represents the MutualFundTable model.
 	MutualFundTable struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -37,7 +36,6 @@ type (
 		Amount    float64 `gorm:"type:decimal(15,4);not null" json:"amount"`
 	}
 
-	// MutualFundTableResponse represents the response structure for MutualFundTable.
 	MutualFundTableResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -57,7 +55,6 @@ type (
 		Amount         float64               `json:"amount"`
 	}
 
-	// MutualFundTableRequest represents the request structure for MutualFundTable.
 	MutualFundTableRequest struct {
 		ID           *uuid.UUID `json:"id,omitempty"`
 		MutualFundID uuid.UUID  `json:"mutual_fund_id" validate:"required"`
@@ -128,7 +125,6 @@ func (m *Core) mutualFundTable() {
 	})
 }
 
-// MutualFundTableCurrentBranch retrieves all mutual fund tables associated with the specified organization and branch.
 func (m *Core) MutualFundTableCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundTable, error) {
 	return m.MutualFundTableManager.Find(context, &MutualFundTable{
 		OrganizationID: organizationID,
@@ -136,7 +132,6 @@ func (m *Core) MutualFundTableCurrentBranch(context context.Context, organizatio
 	})
 }
 
-// MutualFundTableByMutualFund retrieves all table entries for a specific mutual fund.
 func (m *Core) MutualFundTableByMutualFund(context context.Context, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundTable, error) {
 	return m.MutualFundTableManager.Find(context, &MutualFundTable{
 		MutualFundID:   mutualFundID,

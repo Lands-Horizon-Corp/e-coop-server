@@ -13,7 +13,6 @@ import (
 )
 
 type (
-	// PermissionTemplate represents predefined sets of permissions for users within organizations and branches
 	PermissionTemplate struct {
 		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt      time.Time      `gorm:"not null;default:now()"`
@@ -35,7 +34,6 @@ type (
 		Permissions pq.StringArray `gorm:"type:varchar[];default:'{}'"`
 	}
 
-	// PermissionTemplateRequest represents the request structure for creating or updating permission templates
 	PermissionTemplateRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -44,7 +42,6 @@ type (
 		Permissions []string `json:"permissions,omitempty"`
 	}
 
-	// PermissionTemplateResponse represents the response structure for permission template data
 	PermissionTemplateResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -76,7 +73,6 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Super Admin",
 			Description: "Full access to all resources and actions in the system",
 			Permissions: pq.StringArray{
-				// Member Management
 				"MemberType:Create", "MemberType:Read", "MemberType:Update", "MemberType:Delete", "MemberType:Export",
 				"MemberType:OwnRead", "MemberType:OwnUpdate", "MemberType:OwnDelete", "MemberType:OwnExport",
 				"MemberGroup:Create", "MemberGroup:Read", "MemberGroup:Update", "MemberGroup:Delete", "MemberGroup:Export",
@@ -91,19 +87,16 @@ func (m *Core) permissionTemplateSeed(
 				"MemberClassification:OwnRead", "MemberClassification:OwnUpdate", "MemberClassification:OwnDelete", "MemberClassification:OwnExport",
 				"MemberProfile:Create", "MemberProfile:Read", "MemberProfile:Update", "MemberProfile:Delete", "MemberProfile:Export",
 				"MemberProfile:OwnRead", "MemberProfile:OwnUpdate", "MemberProfile:OwnDelete", "MemberProfile:OwnExport",
-				// Banking & Finance
 				"Banks:Create", "Banks:Read", "Banks:Update", "Banks:Delete", "Banks:Export",
 				"Banks:OwnRead", "Banks:OwnUpdate", "Banks:OwnDelete", "Banks:OwnExport",
 				"BillsAndCoin:Create", "BillsAndCoin:Read", "BillsAndCoin:Update", "BillsAndCoin:Delete", "BillsAndCoin:Export",
 				"BillsAndCoin:OwnRead", "BillsAndCoin:OwnUpdate", "BillsAndCoin:OwnDelete", "BillsAndCoin:OwnExport",
-				// Loan Management
 				"Loan:Create", "Loan:Read", "Loan:Update", "Loan:Delete", "Loan:Export",
 				"Loan:OwnRead", "Loan:OwnUpdate", "Loan:OwnDelete", "Loan:OwnExport",
 				"LoanStatus:Create", "LoanStatus:Read", "LoanStatus:Update", "LoanStatus:Delete", "LoanStatus:Export",
 				"LoanStatus:OwnRead", "LoanStatus:OwnUpdate", "LoanStatus:OwnDelete", "LoanStatus:OwnExport",
 				"LoanPurpose:Create", "LoanPurpose:Read", "LoanPurpose:Update", "LoanPurpose:Delete", "LoanPurpose:Export",
 				"LoanPurpose:OwnRead", "LoanPurpose:OwnUpdate", "LoanPurpose:OwnDelete", "LoanPurpose:OwnExport",
-				// System & Administration
 				"Approvals:Read", "Approvals:Approve",
 				"Holidays:Create", "Holidays:Read", "Holidays:Update", "Holidays:Delete", "Holidays:Export",
 				"Holidays:OwnRead", "Holidays:OwnUpdate", "Holidays:OwnDelete", "Holidays:OwnExport",
@@ -121,20 +114,14 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Branch Manager",
 			Description: "Manage branch operations, approve loans and transactions",
 			Permissions: pq.StringArray{
-				// Member Management - Full access
 				"MemberProfile:Create", "MemberProfile:Read", "MemberProfile:Update", "MemberProfile:Export",
 				"MemberType:Read", "MemberGroup:Read", "MemberCenter:Read",
 				"MemberGender:Read", "MemberOccupation:Read", "MemberClassification:Read",
-				// Loan Management - Full access
 				"Loan:Create", "Loan:Read", "Loan:Update", "Loan:Export",
 				"LoanStatus:Read", "LoanPurpose:Read",
-				// Approvals
 				"Approvals:Read", "Approvals:Approve",
-				// Banking
 				"Banks:Read", "BillsAndCoin:Read",
-				// Transactions
 				"TransactionBatch:Create", "TransactionBatch:Read", "TransactionBatch:Update", "TransactionBatch:Export",
-				// System
 				"Holidays:Read", "Timesheet:Read", "Footstep:Read",
 			},
 		},
@@ -142,17 +129,12 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Loan Officer",
 			Description: "Process and manage loan applications and payments",
 			Permissions: pq.StringArray{
-				// Member - Read only
 				"MemberProfile:Read", "MemberProfile:Export",
 				"MemberType:Read", "MemberGroup:Read", "MemberCenter:Read",
-				// Loan Management - Full access except delete
 				"Loan:Create", "Loan:Read", "Loan:Update", "Loan:Export",
 				"LoanStatus:Read", "LoanPurpose:Read",
-				// Transactions
 				"TransactionBatch:Create", "TransactionBatch:Read", "TransactionBatch:Export",
-				// Banking
 				"Banks:Read", "BillsAndCoin:Read",
-				// Own records
 				"Loan:OwnRead", "Loan:OwnUpdate", "Loan:OwnExport",
 			},
 		},
@@ -160,16 +142,11 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Teller",
 			Description: "Handle daily transactions and member services",
 			Permissions: pq.StringArray{
-				// Member - Read and basic updates
 				"MemberProfile:Read", "MemberProfile:Update",
 				"MemberType:Read", "MemberGroup:Read", "MemberCenter:Read",
-				// Transactions
 				"TransactionBatch:Create", "TransactionBatch:Read",
-				// Loan - Read only
 				"Loan:Read", "LoanStatus:Read",
-				// Banking
 				"Banks:Read", "BillsAndCoin:Read",
-				// Own records
 				"TransactionBatch:OwnRead", "TransactionBatch:OwnUpdate",
 				"Timesheet:Create", "Timesheet:OwnRead", "Timesheet:OwnUpdate",
 			},
@@ -178,17 +155,12 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Accountant",
 			Description: "Manage financial records and generate reports",
 			Permissions: pq.StringArray{
-				// Member - Read only
 				"MemberProfile:Read", "MemberProfile:Export",
-				// Loan - Read and export
 				"Loan:Read", "Loan:Export",
 				"LoanStatus:Read", "LoanPurpose:Read",
-				// Transactions - Full access
 				"TransactionBatch:Create", "TransactionBatch:Read", "TransactionBatch:Update", "TransactionBatch:Export",
-				// Banking
 				"Banks:Read", "Banks:Export",
 				"BillsAndCoin:Read", "BillsAndCoin:Export",
-				// System
 				"Holidays:Read",
 			},
 		},
@@ -196,13 +168,10 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Member Services",
 			Description: "Handle member inquiries and basic account management",
 			Permissions: pq.StringArray{
-				// Member Management
 				"MemberProfile:Read", "MemberProfile:Update",
 				"MemberType:Read", "MemberGroup:Read", "MemberCenter:Read",
 				"MemberGender:Read", "MemberOccupation:Read", "MemberClassification:Read",
-				// Loan - Read only
 				"Loan:Read", "LoanStatus:Read",
-				// Own records
 				"MemberProfile:OwnRead", "MemberProfile:OwnUpdate",
 				"Timesheet:Create", "Timesheet:OwnRead",
 			},
@@ -211,7 +180,6 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Auditor",
 			Description: "Read-only access for audit and compliance purposes",
 			Permissions: pq.StringArray{
-				// Read and export all
 				"MemberProfile:Read", "MemberProfile:Export",
 				"MemberType:Read", "MemberGroup:Read", "MemberCenter:Read",
 				"Loan:Read", "Loan:Export",
@@ -228,16 +196,13 @@ func (m *Core) permissionTemplateSeed(
 			Name:        "Basic User",
 			Description: "Limited access for general staff members",
 			Permissions: pq.StringArray{
-				// Own records only
 				"MemberProfile:OwnRead",
 				"Timesheet:Create", "Timesheet:OwnRead", "Timesheet:OwnUpdate",
 				"Footstep:OwnRead",
-				// System - Read only
 				"Holidays:Read",
 			},
 		},
 
-		// Additional cooperative-specific roles
 		{
 			Name:        "Collections Officer",
 			Description: "Manage loan collections, track repayments and follow-up overdue accounts",
@@ -307,7 +272,6 @@ func (m *Core) permissionTemplateSeed(
 	return nil
 }
 
-// PermissionTemplate initializes the permission template model and its repository manager
 func (m *Core) permissionTemplate() {
 	m.Migration = append(m.Migration, &PermissionTemplate{})
 	m.PermissionTemplateManager = *registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
@@ -379,7 +343,6 @@ func (m *Core) permissionTemplate() {
 	})
 }
 
-// GetPermissionTemplateBybranch retrieves permission templates for a specific branch within an organization
 func (m *Core) GetPermissionTemplateBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
 	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
 		OrganizationID: organizationID,

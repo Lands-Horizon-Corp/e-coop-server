@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// IncludeNegativeAccount represents the IncludeNegativeAccount model.
 	IncludeNegativeAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,9 +36,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// IncludeNegativeAccountResponse represents the response structure for includenegativeaccount data
-
-	// IncludeNegativeAccountResponse represents the response structure for IncludeNegativeAccount.
 	IncludeNegativeAccountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -59,9 +55,6 @@ type (
 		Description        string                    `json:"description"`
 	}
 
-	// IncludeNegativeAccountRequest represents the request structure for creating/updating includenegativeaccount
-
-	// IncludeNegativeAccountRequest represents the request structure for IncludeNegativeAccount.
 	IncludeNegativeAccountRequest struct {
 		ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
 		AccountID          *uuid.UUID `json:"account_id,omitempty"`
@@ -132,7 +125,6 @@ func (m *Core) includeNegativeAccount() {
 	})
 }
 
-// IncludeNegativeAccountCurrentBranch retrieves all include negative accounts for the specified organization and branch
 func (m *Core) IncludeNegativeAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*IncludeNegativeAccount, error) {
 	return m.IncludeNegativeAccountManager.Find(context, &IncludeNegativeAccount{
 		OrganizationID: organizationID,

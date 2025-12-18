@@ -13,14 +13,8 @@ func (e *Event) LoanAdjustment(
 	la core.LoanTransactionAdjustmentRequest,
 ) error {
 
-	// ========================================
-	// STEP 1: Initialize transaction and dates
-	// ========================================
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
-	// ========================================
-	// STEP 4: Validate account information
-	// ========================================
 	loanAccount, err := e.core.LoanAccountManager.GetByIDLock(context, tx, la.LoanAccount, "Account")
 	if err != nil {
 		return endTx(eris.Wrap(err, "Account not found for adjustment"))
@@ -34,9 +28,6 @@ func (e *Event) LoanAdjustment(
 		return endTx(eris.New("Cannot adjust loan account for unreleased loan transaction"))
 	}
 
-	// ========================================
-	// STEP 5: Calculate adjustment amounts
-	// ========================================
 	amount := 0.0
 	switch la.AdjustmentType {
 	case core.LoanAdjustmentTypeAdd:
@@ -56,9 +47,6 @@ func (e *Event) LoanAdjustment(
 		return endTx(eris.Wrap(err, "Failed to update loan account balance"))
 	}
 
-	// ========================================
-	// STEP 8: Commit transaction
-	// ========================================
 	if err := endTx(nil); err != nil {
 		return eris.Wrap(err, "Failed to save loan adjustment changes")
 	}

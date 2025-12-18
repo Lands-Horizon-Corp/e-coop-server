@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// go test -v ./services/horizon/schedule_test.go
 func TestHorizonSchedule_CreateAndListJobs(t *testing.T) {
 	s := NewSchedule()
 	ctx := context.Background()

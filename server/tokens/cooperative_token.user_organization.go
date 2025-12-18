@@ -56,7 +56,6 @@ type UserOrganizationCSRFResponse struct {
 	AcceptLanguage string  `json:"accept_language"`
 }
 
-// UserOrganizationCSRFModel maps a UserOrganizationCSRF to a UserOrganizationCSRFResponse.
 func (m *UserOrganizationCSRFResponse) UserOrganizationCSRFModel(data *UserOrganizationCSRF) *UserOrganizationCSRFResponse {
 	if data == nil {
 		return nil
@@ -91,7 +90,6 @@ type UserOrganizationToken struct {
 	CSRF horizon.AuthService[UserOrganizationCSRF]
 }
 
-// NewUserOrganizationToken initializes a new UserOrganizationToken.
 func NewUserOrganizationToken(provider *server.Provider, core *core.Core) (*UserOrganizationToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 

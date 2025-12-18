@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberJointAccount represents a joint account for multiple members in the database
 	MemberJointAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -48,7 +47,6 @@ type (
 		FamilyRelationship string    `gorm:"type:varchar(255);not null"` // Enum handled on frontend/validation
 	}
 
-	// MemberJointAccountResponse represents the response structure for member joint account data
 	MemberJointAccountResponse struct {
 		ID                 uuid.UUID              `json:"id"`
 		CreatedAt          string                 `json:"created_at"`
@@ -77,7 +75,6 @@ type (
 		FamilyRelationship string                 `json:"family_relationship"`
 	}
 
-	// MemberJointAccountRequest represents the request structure for member joint account data
 	MemberJointAccountRequest struct {
 		PictureMediaID     uuid.UUID `json:"picture_media_id" validate:"required"`
 		SignatureMediaID   uuid.UUID `json:"signature_media_id" validate:"required"`
@@ -163,7 +160,6 @@ func (m *Core) memberJointAccount() {
 	})
 }
 
-// MemberJointAccountCurrentBranch retrieves member joint accounts for the current branch
 func (m *Core) MemberJointAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
 	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
 		OrganizationID: organizationID,

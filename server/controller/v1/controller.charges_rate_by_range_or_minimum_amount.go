@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// ChargesRateByRangeOrMinimumAmountController registers routes for managing charges rate by range or minimum amount.
 func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 	req := c.provider.Service.Request
 
-	// POST /charges-rate-by-range-or-minimum-amount: Create a new charges rate by range or minimum amount. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
@@ -90,7 +88,6 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
-	// PUT /charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id: Update charges rate by range or minimum amount by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method:       "PUT",
@@ -159,7 +156,6 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		return ctx.JSON(http.StatusOK, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
-	// DELETE /charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id: Delete a charges rate by range or minimum amount by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method: "DELETE",

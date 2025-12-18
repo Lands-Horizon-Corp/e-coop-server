@@ -7,13 +7,12 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-// ComputationType represents the mutual fund computation type
 type MutualFundComputationType string
 
-// Computation type constants
 const (
 	ComputationTypeContinuous MutualFundComputationType = "continuous"
 	ComputationTypeUpToZero   MutualFundComputationType = "up_to_zero"
@@ -24,7 +23,6 @@ const (
 )
 
 type (
-	// MutualFund represents the MutualFund model.
 	MutualFund struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -68,14 +66,13 @@ type (
 
 		PrintedByUserID *uuid.UUID `gorm:"type:uuid"`
 		PrintedByUser   *User      `gorm:"foreignKey:PrintedByUserID;constraint:OnDelete:SET NULL;" json:"printed_by_user,omitempty"`
-		PrintedDate     *time.Time `gorm:"" json:"printed_date,omitempty"`
+		PrintedDate     *time.Time `gorm:"default:NULL" json:"printed_date,omitempty"`
 
 		PostedDate     *time.Time `json:"posted_date,omitempty"`
 		PostedByUserID *uuid.UUID `gorm:"type:uuid" json:"posted_by_user_id,omitempty"`
 		PostedByUser   *User      `gorm:"foreignKey:PostedByUserID;constraint:OnDelete:SET NULL;" json:"posted_by_user,omitempty"`
 	}
 
-	// MutualFundResponse represents the response structure for mutual fund data
 	MutualFundResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -116,7 +113,6 @@ type (
 		PostedByUser   *UserResponse `json:"posted_by_user,omitempty"`
 	}
 
-	// MutualFundRequest represents the request structure for creating/updating mutual fund
 	MutualFundRequest struct {
 		MemberProfileID uuid.UUID                 `json:"member_profile_id" validate:"required"`
 		MemberTypeID    *uuid.UUID                `json:"member_type_id,omitempty"`
@@ -240,7 +236,6 @@ func (m *Core) mutualFund() {
 	})
 }
 
-// MutualFundCurrentBranch retrieves all mutual funds associated with the specified organization and branch.
 func (m *Core) MutualFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
 	return m.MutualFundManager.Find(context, &MutualFund{
 		OrganizationID: organizationID,
@@ -248,7 +243,6 @@ func (m *Core) MutualFundCurrentBranch(context context.Context, organizationID u
 	})
 }
 
-// MutualFundByMember retrieves all mutual funds for a specific member profile.
 func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
 	return m.MutualFundManager.Find(context, &MutualFund{
 		MemberProfileID: memberProfileID,
@@ -256,17 +250,17 @@ func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.
 		BranchID:        branchID,
 	})
 }
-
-// CreateMutualFundValue creates a mutual fund object with additional members and tables without saving to database.
 func (m *Core) CreateMutualFundValue(
-	context context.Context,
-	req *MutualFundRequest, userOrg *UserOrganization) *MutualFund {
+	ctx context.Context,
+	req *MutualFundRequest,
+	userOrg *UserOrganization,
+) (*MutualFund, error) {
+
 	now := time.Now().UTC()
 
-	// Create additional members objects
 	var additionalMembers []*MutualFundAdditionalMembers
 	for _, additionalMember := range req.MutualFundAdditionalMembers {
-		additionalMemberData := &MutualFundAdditionalMembers{
+		additionalMembers = append(additionalMembers, &MutualFundAdditionalMembers{
 			ID:              uuid.New(),
 			MemberTypeID:    additionalMember.MemberTypeID,
 			NumberOfMembers: additionalMember.NumberOfMembers,
@@ -277,32 +271,39 @@ func (m *Core) CreateMutualFundValue(
 			UpdatedByID:     userOrg.UserID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
-		}
-		additionalMembers = append(additionalMembers, additionalMemberData)
+		})
 	}
 
-	// Create mutual fund tables objects
 	var mutualFundTables []*MutualFundTable
-	for _, mutualFundTable := range req.MutualFundTables {
-		mutualFundTableData := &MutualFundTable{
+	for _, table := range req.MutualFundTables {
+		mutualFundTables = append(mutualFundTables, &MutualFundTable{
 			ID:             uuid.New(),
-			MonthFrom:      mutualFundTable.MonthFrom,
-			MonthTo:        mutualFundTable.MonthTo,
-			Amount:         mutualFundTable.Amount,
+			MonthFrom:      table.MonthFrom,
+			MonthTo:        table.MonthTo,
+			Amount:         table.Amount,
 			CreatedAt:      now,
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
 			UpdatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
-		}
-		mutualFundTables = append(mutualFundTables, mutualFundTableData)
+		})
 	}
 
-	// Create the mutual fund object
+	account, err := m.AccountManager.GetByID(ctx, req.AccountID)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get account")
+	}
+
+	memberProfile, err := m.MemberProfileManager.GetByID(ctx, req.MemberProfileID)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get member profile")
+	}
+
 	mutualFund := &MutualFund{
 		ID:                uuid.New(),
 		MemberProfileID:   req.MemberProfileID,
+		MemberProfile:     memberProfile,
 		MemberTypeID:      req.MemberTypeID,
 		Name:              req.Name,
 		Description:       req.Description,
@@ -311,6 +312,7 @@ func (m *Core) CreateMutualFundValue(
 		Amount:            req.Amount,
 		ComputationType:   req.ComputationType,
 		AccountID:         req.AccountID,
+		Account:           account,
 		CreatedAt:         now,
 		CreatedByID:       userOrg.UserID,
 		UpdatedAt:         now,
@@ -321,13 +323,13 @@ func (m *Core) CreateMutualFundValue(
 		MutualFundTables:  mutualFundTables,
 	}
 
-	// Set the MutualFundID for the child objects
 	for _, additionalMember := range additionalMembers {
 		additionalMember.MutualFundID = mutualFund.ID
 	}
-	for _, mutualFundTable := range mutualFundTables {
-		mutualFundTable.MutualFundID = mutualFund.ID
+
+	for _, table := range mutualFundTables {
+		table.MutualFundID = mutualFund.ID
 	}
 
-	return mutualFund
+	return mutualFund, nil
 }

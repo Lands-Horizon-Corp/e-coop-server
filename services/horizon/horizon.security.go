@@ -22,30 +22,22 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-// SecurityService provides cryptographic and security-related functions
 type SecurityService interface {
-	// GenerateUUID creates a new UUIDv4
 	GenerateUUID(ctx context.Context) (string, error)
 
-	// HashPassword creates an Argon2 hashed password
 	HashPassword(ctx context.Context, password string) (string, error)
 
-	// VerifyPassword compares a password with its hash
 	VerifyPassword(ctx context.Context, hash, password string) (bool, error)
 
-	// Encrypt performs AES encryption on plaintext
 	Encrypt(ctx context.Context, plaintext string) (string, error)
 
-	// Decrypt performs AES decryption on ciphertext
 	Decrypt(ctx context.Context, ciphertext string) (string, error)
 
 	GenerateUUIDv5(ctx context.Context, name string) (string, error)
 
-	// Firewall fetches HaGeZi Ultimate blocklist and calls callback for each resolved domain
 	Firewall(ctx context.Context, callback func(ip, host string)) error
 }
 
-// Security is a concrete implementation of SecurityService
 type Security struct {
 	memory      uint32
 	iterations  uint32
@@ -56,7 +48,6 @@ type Security struct {
 	mu          sync.RWMutex
 }
 
-// NewSecurityService returns a new instance of SecurityUtils
 func NewSecurityService(
 	memory uint32,
 	iterations uint32,
@@ -76,7 +67,6 @@ func NewSecurityService(
 	}
 }
 
-// Decrypt implements SecurityUtils.
 func (h *Security) Decrypt(_ context.Context, ciphertext string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
@@ -103,7 +93,6 @@ func (h *Security) Decrypt(_ context.Context, ciphertext string) (string, error)
 	return string(plaintext), nil
 }
 
-// Encrypt implements SecurityUtils.
 func (h *Security) Encrypt(_ context.Context, plaintext string) (string, error) {
 	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
 	if err != nil {
@@ -122,7 +111,6 @@ func (h *Security) Encrypt(_ context.Context, plaintext string) (string, error) 
 	return string(ciphertext), nil
 }
 
-// GenerateUUID implements SecurityUtils.
 func (h *Security) GenerateUUID(_ context.Context) (string, error) {
 	u, err := uuid.NewRandom()
 	if err != nil {
@@ -131,7 +119,6 @@ func (h *Security) GenerateUUID(_ context.Context) (string, error) {
 	return u.String(), nil
 }
 
-// HashPassword creates an Argon2 hashed password.
 func (h *Security) HashPassword(_ context.Context, password string) (string, error) {
 	salt, err := handlers.GenerateRandomBytes(h.saltLength)
 	if err != nil {
@@ -144,7 +131,6 @@ func (h *Security) HashPassword(_ context.Context, password string) (string, err
 	return encodedHash, nil
 }
 
-// VerifyPassword implements SecurityUtils.
 func (h *Security) VerifyPassword(_ context.Context, hash string, password string) (bool, error) {
 	vals := strings.Split(hash, "$")
 	if len(vals) != 6 {
@@ -190,7 +176,6 @@ func (h *Security) VerifyPassword(_ context.Context, hash string, password strin
 	return false, nil
 }
 
-// GenerateUUIDv5 creates a new UUIDv5 based on the given name.
 func (h *Security) GenerateUUIDv5(_ context.Context, name string) (string, error) {
 	namespace := uuid.NameSpaceX500
 	if name == "" {
@@ -201,7 +186,6 @@ func (h *Security) GenerateUUIDv5(_ context.Context, name string) (string, error
 	return uuid5.String(), nil
 }
 
-// Firewall fetches HaGeZi Ultimate blocklist and calls callback for each resolved domain
 func (h *Security) Firewall(ctx context.Context, callback func(ip, host string)) error {
 	url := "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/ultimate.txt"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -223,7 +207,6 @@ func (h *Security) Firewall(ctx context.Context, callback func(ip, host string))
 	scanner := bufio.NewScanner(resp.Body)
 	domains := []string{}
 	for scanner.Scan() {
-		// Check for context cancellation
 		select {
 		case <-ctx.Done():
 			return ctx.Err()

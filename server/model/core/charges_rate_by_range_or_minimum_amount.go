@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ChargesRateByRangeOrMinimumAmount represents the ChargesRateByRangeOrMinimumAmount model.
 	ChargesRateByRangeOrMinimumAmount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,6 @@ type (
 		MinimumAmount float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// ChargesRateByRangeOrMinimumAmountResponse represents the response structure for chargesratebyrangeorminimumamount data
-
-	// ChargesRateByRangeOrMinimumAmountResponse represents the response structure for ChargesRateByRangeOrMinimumAmount.
 	ChargesRateByRangeOrMinimumAmountResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -63,9 +59,6 @@ type (
 		MinimumAmount       float64                    `json:"minimum_amount"`
 	}
 
-	// ChargesRateByRangeOrMinimumAmountRequest represents the request structure for creating/updating chargesratebyrangeorminimumamount
-
-	// ChargesRateByRangeOrMinimumAmountRequest represents the request structure for ChargesRateByRangeOrMinimumAmount.
 	ChargesRateByRangeOrMinimumAmountRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`
 		From          float64    `json:"from,omitempty"`
@@ -140,7 +133,6 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 	})
 }
 
-// ChargesRateByRangeOrMinimumAmountCurrentBranch retrieves all charges rate by range or minimum amount for the specified organization and branch
 func (m *Core) ChargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
 	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
 		OrganizationID: organizationID,

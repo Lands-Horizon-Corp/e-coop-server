@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// JournalVoucherTag represents the JournalVoucherTag model.
 	JournalVoucherTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -39,9 +38,6 @@ type (
 		Icon        string `gorm:"type:varchar(20)"`
 	}
 
-	// JournalVoucherTagResponse represents the response structure for journalvouchertag data
-
-	// JournalVoucherTagResponse represents the response structure for JournalVoucherTag.
 	JournalVoucherTagResponse struct {
 		ID               uuid.UUID             `json:"id"`
 		CreatedAt        string                `json:"created_at"`
@@ -62,9 +58,6 @@ type (
 		Icon             string                `json:"icon"`
 	}
 
-	// JournalVoucherTagRequest represents the request structure for creating/updating journalvouchertag
-
-	// JournalVoucherTagRequest represents the request structure for JournalVoucherTag.
 	JournalVoucherTagRequest struct {
 		JournalVoucherID *uuid.UUID `json:"journal_voucher_id,omitempty"`
 		Name             string     `json:"name,omitempty"`
@@ -139,7 +132,6 @@ func (m *Core) journalVoucherTag() {
 	})
 }
 
-// JournalVoucherTagCurrentBranch returns JournalVoucherTagCurrentBranch for the current branch or organization where applicable.
 func (m *Core) JournalVoucherTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherTag, error) {
 	return m.JournalVoucherTagManager.Find(context, &JournalVoucherTag{
 		OrganizationID: organizationID,

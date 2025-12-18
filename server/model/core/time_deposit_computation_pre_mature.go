@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// TimeDepositComputationPreMature represents the TimeDepositComputationPreMature model.
 	TimeDepositComputationPreMature struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,9 +37,6 @@ type (
 		Rate  float64 `gorm:"type:decimal;default:0"`
 	}
 
-	// TimeDepositComputationPreMatureResponse represents the response structure for timedepositcomputationpremature data
-
-	// TimeDepositComputationPreMatureResponse represents the response structure for TimeDepositComputationPreMature.
 	TimeDepositComputationPreMatureResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -61,9 +57,6 @@ type (
 		Rate              float64                  `json:"rate"`
 	}
 
-	// TimeDepositComputationPreMatureRequest represents the request structure for creating/updating timedepositcomputationpremature
-
-	// TimeDepositComputationPreMatureRequest represents the request structure for TimeDepositComputationPreMature.
 	TimeDepositComputationPreMatureRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`
 		TimeDepositTypeID uuid.UUID  `json:"time_deposit_type_id" validate:"required"`
@@ -138,7 +131,6 @@ func (m *Core) timeDepositComputationPreMature() {
 	})
 }
 
-// TimeDepositComputationPreMatureCurrentBranch returns TimeDepositComputationPreMatureCurrentBranch for the current branch or organization where applicable.
 func (m *Core) TimeDepositComputationPreMatureCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputationPreMature, error) {
 	return m.TimeDepositComputationPreMatureManager.Find(context, &TimeDepositComputationPreMature{
 		OrganizationID: organizationID,

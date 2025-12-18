@@ -1,3 +1,16 @@
 {
-    "vscord.enable": true
+    "go.useLanguageServer": true,
+    "gopls": {
+        "ui.semanticTokens": true,
+        "memoryMode": "DegradeClosed",
+        "experimentalWorkspaceModule": false,
+        "staticcheck": false
+    },
+    "files.watcherExclude": {
+        "**/.git/**": true,
+        "**/vendor/**": true,
+        "**/node_modules/**": true,
+        "**/tmp/**": true,
+        "**/bin/**": true
+    }
 }

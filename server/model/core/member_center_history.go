@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberCenterHistory represents the MemberCenterHistory model.
 	MemberCenterHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,6 @@ type (
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 	}
 
-	// MemberCenterHistoryResponse represents the response structure for membercenterhistory data
-
-	// MemberCenterHistoryResponse represents the response structure for MemberCenterHistory.
 	MemberCenterHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -57,9 +53,6 @@ type (
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
 
-	// MemberCenterHistoryRequest represents the request structure for creating/updating membercenterhistory
-
-	// MemberCenterHistoryRequest represents the request structure for MemberCenterHistory.
 	MemberCenterHistoryRequest struct {
 		MemberCenterID  uuid.UUID `json:"member_center_id" validate:"required"`
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -127,7 +120,6 @@ func (m *Core) memberCenterHistory() {
 	})
 }
 
-// MemberCenterHistoryCurrentBranch returns MemberCenterHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberCenterHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenterHistory, error) {
 	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		OrganizationID: organizationID,
@@ -135,7 +127,6 @@ func (m *Core) MemberCenterHistoryCurrentBranch(context context.Context, organiz
 	})
 }
 
-// MemberCenterHistoryMemberProfileID returns MemberCenterHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *Core) MemberCenterHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberCenterHistory, error) {
 	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
 		OrganizationID:  organizationID,

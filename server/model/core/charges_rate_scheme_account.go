@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ChargesRateSchemeAccount represents the ChargesRateSchemeAccount model.
 	ChargesRateSchemeAccount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,6 @@ type (
 		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
 	}
 
-	// ChargesRateSchemeAccountResponse represents the response structure for chargesrateschemeaccount data
-
-	// ChargesRateSchemeAccountResponse represents the response structure for ChargesRateSchemeAccount.
 	ChargesRateSchemeAccountResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -57,9 +53,6 @@ type (
 		Account             *AccountResponse           `json:"account,omitempty"`
 	}
 
-	// ChargesRateSchemeAccountRequest represents the request structure for creating/updating chargesrateschemeaccount
-
-	// ChargesRateSchemeAccountRequest represents the request structure for ChargesRateSchemeAccount.
 	ChargesRateSchemeAccountRequest struct {
 		ID        *uuid.UUID `json:"id,omitempty"`
 		AccountID uuid.UUID  `json:"account_id" validate:"required"`
@@ -127,7 +120,6 @@ func (m *Core) chargesRateSchemeAccount() {
 	})
 }
 
-// ChargesRateSchemeAccountCurrentBranch retrieves all charges rate scheme accounts for the specified organization and branch
 func (m *Core) ChargesRateSchemeAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
 	return m.ChargesRateSchemeAccountManager.Find(context, &ChargesRateSchemeAccount{
 		OrganizationID: organizationID,

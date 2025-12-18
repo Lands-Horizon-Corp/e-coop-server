@@ -7,24 +7,20 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// QRResult represents the structure of QR code data.
 type QRResult struct {
 	Data string `json:"data"`
 	Type string `json:"type"`
 }
 
-// QRService defines the interface for QR code operations.
 type QRService interface {
 	DecodeQR(ctx context.Context, data *QRResult) (*any, error)
 	EncodeQR(ctx context.Context, data any, qrType string) (*QRResult, error)
 }
 
-// QRServiceImpl provides an implementation of QRService.
 type QRServiceImpl struct {
 	security SecurityService
 }
 
-// NewHorizonQRService creates a new QR service instance.
 func NewHorizonQRService(
 	security SecurityService,
 ) QRService {
@@ -33,7 +29,6 @@ func NewHorizonQRService(
 	}
 }
 
-// DecodeQR decodes and decrypts QR code data.
 func (h *QRServiceImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
 	decrypted, err := h.security.Decrypt(ctx, data.Data)
 	if err != nil {
@@ -46,7 +41,6 @@ func (h *QRServiceImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, err
 	return &decoded, nil
 }
 
-// EncodeQR encrypts and encodes data for QR code generation.
 func (h *QRServiceImpl) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {

@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// InterestRateByAmount represents interest rate configurations for specific amount ranges
 	InterestRateByAmount struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -38,7 +37,6 @@ type (
 		InterestRate float64 `gorm:"type:decimal(15,6);not null" json:"interest_rate" validate:"required,min=0"`
 	}
 
-	// InterestRateByAmountResponse represents the response structure for interest rate by amount data
 	InterestRateByAmountResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,7 +57,6 @@ type (
 		InterestRate      float64                  `json:"interest_rate"`
 	}
 
-	// InterestRateByAmountRequest represents the request structure for creating/updating interest rate by amount
 	InterestRateByAmountRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		BrowseReferenceID uuid.UUID  `json:"browse_reference_id" validate:"required"`
@@ -136,7 +133,6 @@ func (m *Core) interestRateByAmount() {
 	})
 }
 
-// InterestRateByAmountForBrowseReference retrieves interest rates for a specific browse reference
 func (m *Core) InterestRateByAmountForBrowseReference(context context.Context, browseReferenceID uuid.UUID) ([]*InterestRateByAmount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
@@ -145,7 +141,6 @@ func (m *Core) InterestRateByAmountForBrowseReference(context context.Context, b
 	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
-// InterestRateByAmountForRange retrieves interest rates for a specific amount range
 func (m *Core) InterestRateByAmountForRange(context context.Context, browseReferenceID uuid.UUID, amount float64) ([]*InterestRateByAmount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
@@ -156,7 +151,6 @@ func (m *Core) InterestRateByAmountForRange(context context.Context, browseRefer
 	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
-// InterestRateByAmountCurrentBranch retrieves interest rates for the specified branch and organization
 func (m *Core) InterestRateByAmountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByAmount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -166,7 +160,6 @@ func (m *Core) InterestRateByAmountCurrentBranch(context context.Context, organi
 	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
 }
 
-// GetInterestRateForAmount gets the applicable interest rate for a specific browse reference and amount
 func (m *Core) GetInterestRateForAmount(context context.Context, browseReferenceID uuid.UUID, amount float64) (*InterestRateByAmount, error) {
 	rates, err := m.InterestRateByAmountForRange(context, browseReferenceID, amount)
 	if err != nil {
@@ -177,6 +170,5 @@ func (m *Core) GetInterestRateForAmount(context context.Context, browseReference
 		return nil, nil
 	}
 
-	// Return the first matching rate (should be only one due to range constraints)
 	return rates[0], nil
 }

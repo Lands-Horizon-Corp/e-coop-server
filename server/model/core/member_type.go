@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// MemberType represents the MemberType model.
 	MemberType struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,11 +34,9 @@ type (
 		Description                string `gorm:"type:text"`
 		BrowseReferenceDescription string `gorm:"type:text"`
 
-		// Relationships
 		BrowseReferences []*BrowseReference `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"browse_references,omitempty"`
 	}
 
-	// MemberTypeResponse represents the response structure for member type data
 	MemberTypeResponse struct {
 		ID                         uuid.UUID                  `json:"id"`
 		CreatedAt                  string                     `json:"created_at"`
@@ -59,7 +56,6 @@ type (
 		BrowseReferences           []*BrowseReferenceResponse `json:"browse_references,omitempty"`
 	}
 
-	// MemberTypeRequest represents the request structure for creating/updating member types
 	MemberTypeRequest struct {
 		Prefix                     string `json:"prefix,omitempty"`
 		Name                       string `json:"name,omitempty"`
@@ -315,7 +311,6 @@ func (m *Core) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.
 	return nil
 }
 
-// MemberTypeCurrentBranch returns MemberTypeCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
 	return m.MemberTypeManager.Find(context, &MemberType{
 		OrganizationID: organizationID,

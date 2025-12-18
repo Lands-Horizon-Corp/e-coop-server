@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MutualFundEntry represents the MutualFundEntry model.
 	MutualFundEntry struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -41,7 +40,6 @@ type (
 		Amount float64 `gorm:"type:decimal(15,4);not null" json:"amount"`
 	}
 
-	// MutualFundEntryResponse represents the response structure for MutualFundEntry.
 	MutualFundEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -63,7 +61,6 @@ type (
 		MutualFund      *MutualFundResponse    `json:"mutual_fund,omitempty"`
 	}
 
-	// MutualFundEntryRequest represents the request structure for MutualFundEntry.
 	MutualFundEntryRequest struct {
 		ID              *uuid.UUID `json:"id,omitempty"`
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
@@ -143,7 +140,6 @@ func (m *Core) mutualFundEntry() {
 	})
 }
 
-// MutualFundEntryCurrentBranch retrieves all mutual fund entries associated with the specified organization and branch.
 func (m *Core) MutualFundEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
 	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
 		OrganizationID: organizationID,
@@ -151,7 +147,6 @@ func (m *Core) MutualFundEntryCurrentBranch(context context.Context, organizatio
 	})
 }
 
-// MutualFundEntryByMember retrieves all mutual fund entries for a specific member profile.
 func (m *Core) MutualFundEntryByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
 	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
 		MemberProfileID: memberProfileID,
@@ -160,7 +155,6 @@ func (m *Core) MutualFundEntryByMember(context context.Context, memberProfileID 
 	})
 }
 
-// MutualFundEntryByAccount retrieves all mutual fund entries for a specific account.
 func (m *Core) MutualFundEntryByAccount(context context.Context, accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
 	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
 		AccountID:      accountID,

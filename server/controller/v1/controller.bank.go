@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// BankController registers routes for managing banks.
 func (c *Controller) bankController() {
 	req := c.provider.Service.Request
 
-	// GET /bank: List all banks for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) bankController() {
 		return ctx.JSON(http.StatusOK, c.core.BankManager.ToModels(banks))
 	})
 
-	// GET /bank/search: Paginated search of banks for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) bankController() {
 		return ctx.JSON(http.StatusOK, banks)
 	})
 
-	// GET /bank/:bank_id: Get specific bank by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) bankController() {
 		return ctx.JSON(http.StatusOK, bank)
 	})
 
-	// POST /bank: Create a new bank. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank",
 		Method:       "POST",
@@ -144,7 +139,6 @@ func (c *Controller) bankController() {
 		return ctx.JSON(http.StatusCreated, c.core.BankManager.ToModel(bank))
 	})
 
-	// PUT /bank/:bank_id: Update bank by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
@@ -211,7 +205,6 @@ func (c *Controller) bankController() {
 		return ctx.JSON(http.StatusOK, c.core.BankManager.ToModel(bank))
 	})
 
-	// DELETE /bank/:bank_id: Delete a bank by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/bank/:bank_id",
 		Method: "DELETE",

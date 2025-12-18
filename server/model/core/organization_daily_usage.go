@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// OrganizationDailyUsage represents daily usage statistics and metrics for organizations
 	OrganizationDailyUsage struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt time.Time      `gorm:"not null;default:now()"`
@@ -38,7 +37,6 @@ type (
 		TotalReportRenderTime float64 `gorm:"not null"`
 	}
 
-	// OrganizationDailyUsageRequest represents the request structure for creating or updating organization daily usage data
 	OrganizationDailyUsageRequest struct {
 		ID *string `json:"id,omitempty"`
 
@@ -61,7 +59,6 @@ type (
 		TotalReportRenderTime float64 `json:"total_report_render_time" validate:"required,min=0"`
 	}
 
-	// OrganizationDailyUsageResponse represents the response structure for organization daily usage data
 	OrganizationDailyUsageResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		OrganizationID uuid.UUID             `json:"organization_id"`
@@ -87,7 +84,6 @@ type (
 	}
 )
 
-// OrganizationDailyUsage initializes the organization daily usage model and its repository manager
 func (m *Core) organizationDailyUsage() {
 	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
 	m.OrganizationDailyUsageManager = *registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
@@ -150,7 +146,6 @@ func (m *Core) organizationDailyUsage() {
 	})
 }
 
-// GetOrganizationDailyUsageByOrganization retrieves daily usage data for a specific organization
 func (m *Core) GetOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
 	return m.OrganizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
 		OrganizationID: organizationID,

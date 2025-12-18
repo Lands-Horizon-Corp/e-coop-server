@@ -13,28 +13,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// LoanModeOfPayment enumerates available loan payment modes (daily, weekly, monthly, etc.).
 type LoanModeOfPayment string
 
-// Weekdays represents the weekday used when a weekly mode of payment is selected.
 type Weekdays string
 
-// LoanCollectorPlace represents where a loan collector will collect payments (office/field).
 type LoanCollectorPlace string
 
-// LoanComakerType enumerates types of comakers for a loan (member, deposit, others).
 type LoanComakerType string
 
-// LoanType enumerates the classification of a loan (standard, restructured, renewal, etc.).
 type LoanType string
 
-// LoanAmortizationType enumerates amortization strategies (suggested, none).
 type LoanAmortizationType string
 
 type LoanAdjustmentType string
 
-// LoanModeOfPayment and related constants define valid values for loan payment modes and
-// related enums used in loan processing.
 const (
 	LoanModeOfPaymentDaily       LoanModeOfPayment = "daily"
 	LoanModeOfPaymentWeekly      LoanModeOfPayment = "weekly"
@@ -76,10 +68,7 @@ const (
 	LoanAdjustmentTypeAdjusted LoanAdjustmentType = "adjusted"
 )
 
-// LoanTransaction represents a loan transaction record including relationships and
-// computed totals used by services and APIs.
 type (
-	// LoanTransaction struct contains the persisted loan transaction fields.
 	LoanTransaction struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -168,7 +157,6 @@ type (
 		ReleasedDate *time.Time `gorm:"type:timestamp"`
 		PrintNumber  int        `gorm:"type:int;default:0"`
 
-		// User relationships for tracking who performed actions
 		ReleasedByID *uuid.UUID `gorm:"type:uuid"`
 		ReleasedBy   *User      `gorm:"foreignKey:ReleasedByID;constraint:OnDelete:SET NULL;" json:"released_by,omitempty"`
 		PrintedByID  *uuid.UUID `gorm:"type:uuid"`
@@ -221,7 +209,6 @@ type (
 		PaidByName             string     `gorm:"type:varchar(255)"`
 		PaidByPosition         string     `gorm:"type:varchar(255)"`
 
-		// Relationships
 		LoanTags                              []*LoanTag                               `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_tags,omitempty"`
 		LoanTransactionEntries                []*LoanTransactionEntry                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_transaction_entries,omitempty"`
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysis                 `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_clearance_analysis,omitempty"`
@@ -244,7 +231,6 @@ type (
 		Processing     bool       `gorm:"default:false" json:"processing"`
 	}
 
-	// LoanTransactionResponse represents the response structure for LoanTransaction.
 	LoanTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -329,7 +315,6 @@ type (
 		ApprovedDate *time.Time `json:"approved_date,omitempty"`
 		ReleasedDate *time.Time `json:"released_date,omitempty"`
 
-		// User relationships for tracking who performed actions
 		ReleasedByID *uuid.UUID    `json:"released_by_id,omitempty"`
 		ReleasedBy   *UserResponse `json:"released_by,omitempty"`
 		PrintedByID  *uuid.UUID    `json:"printed_by_id,omitempty"`
@@ -382,7 +367,6 @@ type (
 		PaidByName             string         `json:"paid_by_name"`
 		PaidByPosition         string         `json:"paid_by_position"`
 
-		// Relationships
 		LoanTags                              []*LoanTagResponse                               `json:"loan_tags,omitempty"`
 		LoanTransactionEntries                []*LoanTransactionEntryResponse                  `json:"loan_transaction_entries,omitempty"`
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysisResponse                 `json:"loan_clearance_analysis,omitempty"`
@@ -403,7 +387,6 @@ type (
 		Processing bool `json:"processing"`
 	}
 
-	// LoanTransactionTotalResponse contains aggregated totals for a set of loan transactions.
 	LoanTransactionTotalResponse struct {
 		Balance     float64 `json:"balance"`
 		TotalDebit  float64 `json:"total_debit"`
@@ -416,7 +399,6 @@ type (
 		AdjustmentType LoanAdjustmentType `json:"adjustment_type"`
 		Amount         float64            `json:"amount"`
 	}
-	// LoanTransactionRequest represents the request structure for LoanTransaction.
 	LoanTransactionRequest struct {
 		OfficialReceiptNumber string     `json:"official_receipt_number,omitempty"`
 		Voucher               string     `json:"voucher,omitempty"`
@@ -508,7 +490,6 @@ type (
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 
-		// Nested relationships for creation/update
 		LoanTags []*LoanTagRequest `json:"loan_tags,omitempty"`
 
 		LoanClearanceAnalysis                 []*LoanClearanceAnalysisRequest                 `json:"loan_clearance_analysis,omitempty"`
@@ -528,14 +509,12 @@ type (
 		ComakerCollateralsDeleted                    uuid.UUIDs `json:"comaker_collaterals_deleted,omitempty"`
 	}
 
-	// LoanTransactionPrintRequest represents the request structure for LoanTransactionPrint.
 	LoanTransactionPrintRequest struct {
 		Voucher     string     `json:"voucher"`
 		CheckNumber string     `json:"check_number"`
 		CheckDate   *time.Time `json:"check_date"`
 	}
 
-	// LoanTransactionSignatureRequest represents the request structure for LoanTransactionSignature.
 	LoanTransactionSignatureRequest struct {
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty" validate:"omitempty,uuid"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty" validate:"omitempty,max=255"`
@@ -574,7 +553,6 @@ type (
 		PaidByPosition         string     `json:"paid_by_position,omitempty" validate:"omitempty,max=255"`
 	}
 
-	// LoanTransactionSuggestedRequest represents the request structure for LoanTransactionSuggested.
 	LoanTransactionSuggestedRequest struct {
 		Amount        float64           `json:"amount" validate:"required,gt=0"`
 		Principal     float64           `json:"principal" validate:"required,gt=0"`
@@ -582,7 +560,6 @@ type (
 		FixedDays     int               `json:"fixed_days,omitempty" validate:"omitempty"`
 	}
 
-	// LoanTransactionSuggestedResponse represents the response structure for loantransactionsuggested data
 	LoanTransactionSuggestedResponse struct {
 		Terms int `json:"terms"`
 	}
@@ -595,8 +572,6 @@ func (m *LoanTransaction) ReadableReleaseDate() string {
 	return ""
 }
 
-// ReadableDueDate returns the next payment (due) date as a human readable string.
-// It computes the next due date based on ReleasedDate, ModeOfPayment and related fields.
 func (m *LoanTransaction) ReadableDueDate() string {
 	if m.ReleasedDate == nil {
 		return ""
@@ -606,13 +581,11 @@ func (m *LoanTransaction) ReadableDueDate() string {
 }
 
 func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
-	// start from the release moment; compute the next payment date strictly after it
 	var due time.Time
 	switch m.ModeOfPayment {
 	case LoanModeOfPaymentDaily:
 		due = from.AddDate(0, 0, 1)
 	case LoanModeOfPaymentWeekly:
-		// map stored weekday to time.Weekday and find next occurrence
 		var target time.Weekday
 		switch m.ModeOfPaymentWeekly {
 		case WeekdaySunday:
@@ -630,7 +603,6 @@ func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
 		case WeekdaySaturday:
 			target = time.Saturday
 		default:
-			// fallback to same weekday next week
 			target = from.Weekday()
 		}
 		d := from.AddDate(0, 0, 1)
@@ -645,7 +617,6 @@ func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
 		if day < 15 {
 			due = time.Date(year, month, 15, from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
 		} else {
-			// last day of current month
 			firstNext := time.Date(year, month+1, 1, from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
 			last := firstNext.AddDate(0, 0, -1)
 			due = time.Date(last.Year(), last.Month(), last.Day(), from.Hour(), from.Minute(), from.Second(), from.Nanosecond(), from.Location())
@@ -661,7 +632,6 @@ func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
 		due = handlers.AddMonthsPreserveDay(from, 6)
 
 	case LoanModeOfPaymentLumpsum:
-		// due at end of term (terms interpreted as months)
 		if m.Terms > 0 {
 			due = handlers.AddMonthsPreserveDay(from, m.Terms)
 		} else {
@@ -676,11 +646,9 @@ func (m *LoanTransaction) nextDueDate(from time.Time) time.Time {
 		}
 
 	default:
-		// safe fallback: next day
 		due = from.AddDate(0, 0, 1)
 	}
 
-	// Skip weekend days if configured
 	for {
 		if m.ExcludeSaturday && due.Weekday() == time.Saturday {
 			due = due.AddDate(0, 0, 1)
@@ -757,7 +725,6 @@ func (m *Core) loanTransaction() {
 			if data == nil {
 				return nil
 			}
-
 			return &LoanTransactionResponse{
 				ID:                                     data.ID,
 				CreatedAt:                              data.CreatedAt.Format(time.RFC3339),
@@ -913,7 +880,6 @@ func (m *Core) loanTransaction() {
 	})
 }
 
-// LoanTransactionCurrentBranch retrieves loan transactions for the given organization and branch.
 func (m *Core) LoanTransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransaction, error) {
 	return m.LoanTransactionManager.Find(context, &LoanTransaction{
 		OrganizationID: organizationID,
@@ -921,17 +887,14 @@ func (m *Core) LoanTransactionCurrentBranch(context context.Context, organizatio
 	})
 }
 
-// Helper function to map loan transaction entries
 func (m *Core) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*LoanTransactionEntryResponse {
 	if entries == nil {
 		return nil
 	}
 
-	// Sort entries by Index field
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].Index < entries[j].Index
 	})
-	// Map entries to response models
 	var result []*LoanTransactionEntryResponse
 	for _, entry := range entries {
 		if entry != nil {
@@ -941,7 +904,6 @@ func (m *Core) mapLoanTransactionEntries(entries []*LoanTransactionEntry) []*Loa
 	return result
 }
 
-// LoanTransactionWithDatesNotNull returns loan transactions for a member where printed/approved/released dates are set.
 func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberID},
@@ -957,7 +919,6 @@ func (m *Core) LoanTransactionWithDatesNotNull(ctx context.Context, memberID, br
 	})
 }
 
-// LoanTransactionsMemberAccount returns loan transactions for a member filtered by account and branch/org.
 func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, accountID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 
 	account, err := m.AccountManager.GetByID(ctx, accountID)
@@ -982,7 +943,6 @@ func (m *Core) LoanTransactionsMemberAccount(ctx context.Context, memberID, acco
 	})
 }
 
-// LoanTransactionDraft returns loan transactions that are in draft state (not printed/approved/released)
 func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -997,7 +957,6 @@ func (m *Core) LoanTransactionDraft(ctx context.Context, branchID, organizationI
 	})
 }
 
-// LoanTransactionPrinted returns loan transactions that have been printed but not approved or released
 func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -1012,7 +971,6 @@ func (m *Core) LoanTransactionPrinted(ctx context.Context, branchID, organizatio
 	})
 }
 
-// LoanTransactionApproved returns loan transactions that have been approved but not yet released
 func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -1027,7 +985,6 @@ func (m *Core) LoanTransactionApproved(ctx context.Context, branchID, organizati
 	})
 }
 
-// LoanTransactionReleased returns loan transactions that have been released
 func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -1042,7 +999,6 @@ func (m *Core) LoanTransactionReleased(ctx context.Context, branchID, organizati
 	})
 }
 
-// LoanTransactionReleasedCurrentDay returns loan transactions released during the current UTC day
 func (m *Core) LoanTransactionReleasedCurrentDay(ctx context.Context, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

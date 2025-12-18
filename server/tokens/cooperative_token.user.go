@@ -1,4 +1,3 @@
-// Package tokens provides authentication and authorization token management for the e-cooperative application
 package tokens
 
 import (
@@ -77,7 +76,6 @@ type UserCSRFResponse struct {
 	AcceptLanguage string  `json:"accept_language"`
 }
 
-// UserCSRFModel maps a UserCSRF to a UserCSRFResponse.
 func (m *UserCSRFResponse) UserCSRFModel(data *UserCSRF) *UserCSRFResponse {
 	if data == nil {
 		return nil
@@ -116,7 +114,6 @@ type UserToken struct {
 	CSRF horizon.AuthService[UserCSRF]
 }
 
-// NewUserToken initializes a new UserToken.
 func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
 

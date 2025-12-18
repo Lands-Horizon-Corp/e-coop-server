@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// Holiday represents the Holiday model.
 	Holiday struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,9 +36,6 @@ type (
 		Description string    `gorm:"type:text"`
 	}
 
-	// HolidayResponse represents the response structure for holiday data
-
-	// HolidayResponse represents the response structure for Holiday.
 	HolidayResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,16 +55,12 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// HolidayRequest represents the request structure for creating/updating holiday
-
-	// HolidayRequest represents the request structure for Holiday.
 	HolidayRequest struct {
 		EntryDate   time.Time `json:"entry_date" validate:"required"`
 		Name        string    `json:"name" validate:"required,min=1,max=255"`
 		Description string    `json:"description,omitempty"`
 		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
 	}
-	// HoldayYearAvaiable represents the HoldayYearAvaiable model.
 	HoldayYearAvaiable struct {
 		Year  int `json:"year"`
 		Count int `json:"count"`
@@ -1446,7 +1438,6 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			}
 
 		default:
-			// For currencies without specific holidays, add common international holidays
 			holidays = []*Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
@@ -1464,7 +1455,6 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-// HolidayCurrentBranch returns HolidayCurrentBranch for the current branch or organization where applicable.
 func (m *Core) HolidayCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
 	return m.HolidayManager.Find(context, &Holiday{
 		OrganizationID: organizationID,

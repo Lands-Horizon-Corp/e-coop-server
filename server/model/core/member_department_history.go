@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// MemberDepartmentHistory represents the MemberDepartmentHistory model.
 	MemberDepartmentHistory struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,6 @@ type (
 		MemberDepartment   *MemberDepartment `gorm:"foreignKey:MemberDepartmentID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_department,omitempty"`
 	}
 
-	// MemberDepartmentHistoryResponse represents the response structure for memberdepartmenthistory data
-
-	// MemberDepartmentHistoryResponse represents the response structure for MemberDepartmentHistory.
 	MemberDepartmentHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,9 +55,6 @@ type (
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
 
-	// MemberDepartmentHistoryRequest represents the request structure for creating/updating memberdepartmenthistory
-
-	// MemberDepartmentHistoryRequest represents the request structure for MemberDepartmentHistory.
 	MemberDepartmentHistoryRequest struct {
 		MemberDepartmentID uuid.UUID `json:"member_department_id" validate:"required"`
 		MemberProfileID    uuid.UUID `json:"member_profile_id" validate:"required"`
@@ -137,7 +130,6 @@ func (m *Core) memberDepartmentHistory() {
 	})
 }
 
-// MemberDepartmentHistoryCurrentBranch returns MemberDepartmentHistoryCurrentBranch for the current branch or organization where applicable.
 func (m *Core) MemberDepartmentHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
 	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID: organizationID,
@@ -145,7 +137,6 @@ func (m *Core) MemberDepartmentHistoryCurrentBranch(context context.Context, org
 	})
 }
 
-// MemberDepartmentHistoryMemberProfileID returns MemberDepartmentHistoryMemberProfileID for the current branch or organization where applicable.
 func (m *Core) MemberDepartmentHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
 	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
 		OrganizationID:  organizationID,

@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// Collateral represents the Collateral model.
 	Collateral struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,9 +34,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// CollateralResponse represents the response structure for collateral data
-
-	// CollateralResponse represents the response structure for Collateral.
 	CollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,9 +51,6 @@ type (
 		Description    string                `json:"description"`
 	}
 
-	// CollateralRequest represents the request structure for creating/updating collateral
-
-	// CollateralRequest represents the request structure for Collateral.
 	CollateralRequest struct {
 		Icon        string `json:"icon,omitempty"`
 		Name        string `json:"name" validate:"required,min=1,max=255"`
@@ -237,7 +230,6 @@ func (m *Core) collateralSeed(context context.Context, tx *gorm.DB, userID uuid.
 	return nil
 }
 
-// CollateralCurrentBranch returns all collaterals for the given organization and branch.
 func (m *Core) CollateralCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Collateral, error) {
 	return m.CollateralManager.Find(context, &Collateral{
 		OrganizationID: organizationID,

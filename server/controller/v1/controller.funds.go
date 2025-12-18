@@ -13,7 +13,6 @@ import (
 func (c *Controller) fundsController() {
 	req := c.provider.Service.Request
 
-	// Get all funds for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) fundsController() {
 		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModels(funds))
 	})
 
-	// Get paginated funds
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
@@ -54,7 +52,6 @@ func (c *Controller) fundsController() {
 		return ctx.JSON(http.StatusOK, funds)
 	})
 
-	// Create a new funds record
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
@@ -114,7 +111,6 @@ func (c *Controller) fundsController() {
 		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModel(funds))
 	})
 
-	// Update an existing funds record by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
@@ -184,7 +180,6 @@ func (c *Controller) fundsController() {
 		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModel(funds))
 	})
 
-	// Delete a funds record by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/funds/:funds_id",
 		Method: "DELETE",

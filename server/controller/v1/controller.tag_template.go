@@ -13,7 +13,6 @@ import (
 func (c *Controller) tagTemplateController() {
 	req := c.provider.Service.Request
 
-	// Returns all tag templates for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
@@ -35,7 +34,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.ToModels(templates))
 	})
 
-	// Returns paginated tag templates for the current user's branch.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
@@ -57,7 +55,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Returns a single tag template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
@@ -76,7 +73,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.JSON(http.StatusOK, template)
 	})
 
-	// Creates a new tag template.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
@@ -136,7 +132,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.ToModel(template))
 	})
 
-	// Updates an existing tag template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
@@ -206,7 +201,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.JSON(http.StatusOK, c.core.TagTemplateManager.ToModel(template))
 	})
 
-	// Deletes a tag template by its ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/tag-template/:tag_template_id",
 		Method: "DELETE",
@@ -247,7 +241,6 @@ func (c *Controller) tagTemplateController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for tag templates (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",

@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// LoanTermsAndConditionSuggestedPayment represents a suggested payment option related to loan terms and conditions.
 	LoanTermsAndConditionSuggestedPayment struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -36,9 +35,6 @@ type (
 		Description string `gorm:"type:varchar(255)"`
 	}
 
-	// LoanTermsAndConditionSuggestedPaymentResponse represents the response structure for loantermsandconditionsuggestedpayment data
-
-	// LoanTermsAndConditionSuggestedPaymentResponse represents the response structure for LoanTermsAndConditionSuggestedPayment.
 	LoanTermsAndConditionSuggestedPaymentResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -57,9 +53,6 @@ type (
 		Description       string                   `json:"description"`
 	}
 
-	// LoanTermsAndConditionSuggestedPaymentRequest represents the request structure for creating/updating loantermsandconditionsuggestedpayment
-
-	// LoanTermsAndConditionSuggestedPaymentRequest represents the request structure for LoanTermsAndConditionSuggestedPayment.
 	LoanTermsAndConditionSuggestedPaymentRequest struct {
 		ID                *uuid.UUID `json:"id"`
 		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
@@ -130,7 +123,6 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 	})
 }
 
-// LoanTermsAndConditionSuggestedPaymentCurrentBranch returns LoanTermsAndConditionSuggestedPaymentCurrentBranch for the current branch or organization where applicable.
 func (m *Core) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
 	return m.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &LoanTermsAndConditionSuggestedPayment{
 		OrganizationID: organizationID,

@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberClassificationController() {
 	req := c.provider.Service.Request
 
-	// Get all member classification history for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification-history",
 		Method:       "GET",
@@ -32,7 +31,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
 	})
 
-	// Get member classification history by member profile ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -59,7 +57,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, memberClassificationHistory)
 	})
 
-	// Get all member classifications for the current branch
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "GET",
@@ -78,7 +75,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModels(memberClassification))
 	})
 
-	// Get paginated member classifications
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification/search",
 		Method:       "GET",
@@ -100,7 +96,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// Create a new member classification
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "POST",
@@ -158,7 +153,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModel(memberClassification))
 	})
 
-	// Update an existing member classification by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-classification/:member_classification_id",
 		Method:       "PUT",
@@ -226,7 +220,6 @@ func (c *Controller) memberClassificationController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModel(memberClassification))
 	})
 
-	// Delete a member classification by ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-classification/:member_classification_id",
 		Method: "DELETE",

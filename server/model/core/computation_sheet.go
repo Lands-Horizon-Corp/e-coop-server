@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// ComputationSheet represents the ComputationSheet model.
 	ComputationSheet struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -41,9 +40,6 @@ type (
 		ExistAccount      bool    `gorm:"type:boolean;default:false"`
 	}
 
-	// ComputationSheetResponse represents the response structure for computationsheet data
-
-	// ComputationSheetResponse represents the response structure for ComputationSheet.
 	ComputationSheetResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -67,9 +63,6 @@ type (
 		ExistAccount      bool                  `json:"exist_account"`
 	}
 
-	// ComputationSheetRequest represents the request structure for creating/updating computationsheet
-
-	// ComputationSheetRequest represents the request structure for ComputationSheet.
 	ComputationSheetRequest struct {
 		Name              string    `json:"name" validate:"required,min=1,max=254"`
 		Description       string    `json:"description,omitempty"`
@@ -148,7 +141,6 @@ func (m *Core) computationSheet() {
 	})
 }
 
-// ComputationSheetCurrentBranch returns all computation sheets for the given organization and branch.
 func (m *Core) ComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComputationSheet, error) {
 	return m.ComputationSheetManager.Find(context, &ComputationSheet{
 		OrganizationID: organizationID,

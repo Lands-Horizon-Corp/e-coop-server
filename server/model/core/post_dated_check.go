@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// PostDatedCheck represents post-dated checks received from members as collateral or payment
 	PostDatedCheck struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -35,7 +34,6 @@ type (
 		FullName       string `gorm:"type:varchar(255)"`
 		PassbookNumber string `gorm:"type:varchar(255)"`
 
-		// Check info
 		CheckNumber string    `gorm:"type:varchar(255)"`
 		CheckDate   time.Time `gorm:"type:timestamp"`
 		ClearDays   int       `gorm:"type:int"`
@@ -44,7 +42,6 @@ type (
 		Bank        *Bank     `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
 		Amount      float64   `gorm:"type:decimal;default:0"`
 
-		// OR info
 		ReferenceNumber     string    `gorm:"type:varchar(255)"`
 		OfficialReceiptDate time.Time `gorm:"type:timestamp"`
 		CollateralUserID    uuid.UUID `gorm:"type:uuid"`
@@ -52,7 +49,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-	// PostDatedCheckResponse represents the response structure for post-dated check data
 	PostDatedCheckResponse struct {
 		ID                  uuid.UUID              `json:"id"`
 		CreatedAt           string                 `json:"created_at"`
@@ -82,7 +78,6 @@ type (
 		Description         string                 `json:"description"`
 	}
 
-	// PostDatedCheckRequest represents the request structure for creating or updating post-dated check records
 	PostDatedCheckRequest struct {
 		MemberProfileID     uuid.UUID `json:"member_profile_id,omitempty"`
 		FullName            string    `json:"full_name,omitempty"`
@@ -100,7 +95,6 @@ type (
 	}
 )
 
-// PostDatedCheck initializes the PostDatedCheck model and its repository manager
 func (m *Core) postDatedCheck() {
 	m.Migration = append(m.Migration, &PostDatedCheck{})
 	m.PostDatedCheckManager = *registry.NewRegistry(registry.RegistryParams[
@@ -174,7 +168,6 @@ func (m *Core) postDatedCheck() {
 	})
 }
 
-// PostDatedCheckCurrentBranch retrieves all postdatedcheck records for the specified organization and branch
 func (m *Core) PostDatedCheckCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
 	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
 		OrganizationID: organizationID,

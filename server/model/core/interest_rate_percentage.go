@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// InterestRatePercentage represents the InterestRatePercentage model.
 	InterestRatePercentage struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -37,9 +36,6 @@ type (
 		MemberClassificationInterestRate   *MemberClassificationInterestRate `gorm:"foreignKey:MemberClassificationInterestRateID;constraint:OnDelete:SET NULL;" json:"member_classification_interest_rate,omitempty"`
 	}
 
-	// InterestRatePercentageResponse represents the response structure for interestratepercentage data
-
-	// InterestRatePercentageResponse represents the response structure for InterestRatePercentage.
 	InterestRatePercentageResponse struct {
 		ID                                 uuid.UUID                                 `json:"id"`
 		CreatedAt                          string                                    `json:"created_at"`
@@ -60,9 +56,6 @@ type (
 		MemberClassificationInterestRate   *MemberClassificationInterestRateResponse `json:"member_classification_interest_rate,omitempty"`
 	}
 
-	// InterestRatePercentageRequest represents the request structure for creating/updating interestratepercentage
-
-	// InterestRatePercentageRequest represents the request structure for InterestRatePercentage.
 	InterestRatePercentageRequest struct {
 		Name                               string    `json:"name,omitempty"`
 		Description                        string    `json:"description,omitempty"`
@@ -135,7 +128,6 @@ func (m *Core) interestRatePercentage() {
 	})
 }
 
-// InterestRatePercentageCurrentBranch returns InterestRatePercentageCurrentBranch for the current branch or organization where applicable.
 func (m *Core) InterestRatePercentageCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRatePercentage, error) {
 	return m.InterestRatePercentageManager.Find(context, &InterestRatePercentage{
 		OrganizationID: organizationID,

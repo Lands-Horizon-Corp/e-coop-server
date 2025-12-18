@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
 func (c *Controller) generalLedgerController() {
 	req := c.provider.Service.Request
 
@@ -89,9 +88,7 @@ func (c *Controller) generalLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, entry)
 	})
-	// BRANCH GENERAL LEDGER ROUTES
 
-	// GET z
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/search",
 		Method:       "GET",
@@ -120,7 +117,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/check-entry/search",
 		Method:       "GET",
@@ -150,7 +146,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/online-entry/search",
 		Method:       "GET",
@@ -180,7 +175,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/cash-entry/search",
 		Method:       "GET",
@@ -210,7 +204,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/payment-entry/search",
 		Method:       "GET",
@@ -240,7 +233,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/withdraw-entry/search",
 		Method:       "GET",
@@ -270,7 +262,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/deposit-entry/search",
 		Method:       "GET",
@@ -300,7 +291,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/journal-entry/search",
 		Method:       "GET",
@@ -330,7 +320,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/adjustment-entry/search",
 		Method:       "GET",
@@ -360,7 +349,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/journal-voucher/search",
 		Method:       "GET",
@@ -390,7 +378,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/branch/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/branch/check-voucher/search",
 		Method:       "GET",
@@ -419,21 +406,7 @@ func (c *Controller) generalLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, entries)
 	})
-	// ME
-	// GET /api/v1/general-ledger/current/search
-	// GET /api/v1/general-ledger/current/check-entry/search
-	// GET /api/v1/general-ledger/current/online-entry/search
-	// GET /api/v1/general-ledger/current/cash-entry/search
-	// GET /api/v1/general-ledger/current/payment-entry/search
-	// GET /api/v1/general-ledger/current/withdraw-entry/search
-	// GET /api/v1/general-ledger/current/deposit-entry/search
-	// GET /api/v1/general-ledger/current/journal-entry/search
-	// GET /api/v1/general-ledger/current/adjustment-entry/search
-	// GET /api/v1/general-ledger/current/journal-voucher/search
-	// GET /api/v1/general-ledger/current/check-voucher/search
-	// ME GENERAL LEDGER ROUTES
 
-	// GET /api/v1/general-ledger/current/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/search",
 		Method:       "GET",
@@ -485,7 +458,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/check-entry/search",
 		Method:       "GET",
@@ -539,7 +511,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/online-entry/search",
 		Method:       "GET",
@@ -593,7 +564,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/cash-entry/search",
 		Method:       "GET",
@@ -647,7 +617,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/payment-entry/search",
 		Method:       "GET",
@@ -701,7 +670,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/withdraw-entry/search",
 		Method:       "GET",
@@ -755,7 +723,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/deposit-entry/search",
 		Method:       "GET",
@@ -809,7 +776,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/journal-entry/search",
 		Method:       "GET",
@@ -863,7 +829,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/adjustment-entry/search",
 		Method:       "GET",
@@ -917,7 +882,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/journal-voucher/search",
 		Method:       "GET",
@@ -971,7 +935,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// GET /api/v1/general-ledger/current/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/current/check-voucher/search",
 		Method:       "GET",
@@ -1025,21 +988,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-	// EMPLOYEE
-	// GET /api/v1/general-ledger/employee/:user_organization_id/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/check-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/online-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/cash-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/payment-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/deposit-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/journal-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/employee/:user_organization_id/journal-voucher
-	// GET /api/v1/general-ledger/employee/:user_organization_id/check-voucher
-	// EMPLOYEE GENERAL LEDGER ROUTES
-
-	// GET /api/v1/general-ledger/employee/:user_organization_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/search",
 		Method:       "GET",
@@ -1073,7 +1021,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/check-entry/search",
 		Method:       "GET",
@@ -1108,7 +1055,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/online-entry/search",
 		Method:       "GET",
@@ -1143,7 +1089,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/cash-entry/search",
 		Method:       "GET",
@@ -1178,7 +1123,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/payment-entry/search",
 		Method:       "GET",
@@ -1213,7 +1157,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/withdraw-entry/search",
 		Method:       "GET",
@@ -1248,7 +1191,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/deposit-entry/search",
 		Method:       "GET",
@@ -1283,7 +1225,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/journal-entry/search",
 		Method:       "GET",
@@ -1318,7 +1259,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/adjustment-entry/search",
 		Method:       "GET",
@@ -1353,7 +1293,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/journal-voucher
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/journal-voucher/search",
 		Method:       "GET",
@@ -1388,7 +1327,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/employee/:user_organization_id/check-voucher
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/check-voucher/search",
 		Method:       "GET",
@@ -1423,21 +1361,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// MEMBER
-	// MEMBER GENERAL LEDGER ROUTES
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/online-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/cash-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/payment-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/deposit-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/journal-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/journal-voucher/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-voucher/search
-
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
@@ -1475,7 +1398,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/check-entry/search",
 		Method:       "GET",
@@ -1514,7 +1436,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/online-entry/search",
 		Method:       "GET",
@@ -1553,7 +1474,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/cash-entry/search",
 		Method:       "GET",
@@ -1592,7 +1512,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/payment-entry/search",
 		Method:       "GET",
@@ -1631,7 +1550,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/withdraw-entry/search",
 		Method:       "GET",
@@ -1670,7 +1588,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/deposit-entry/search",
 		Method:       "GET",
@@ -1709,7 +1626,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/journal-entry/search",
 		Method:       "GET",
@@ -1748,7 +1664,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/adjustment-entry/search",
 		Method:       "GET",
@@ -1787,7 +1702,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/journal-voucher/search",
 		Method:       "GET",
@@ -1826,7 +1740,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/check-voucher/search",
 		Method:       "GET",
@@ -1865,21 +1778,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// MEMBER ACCOUNT
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/online-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/cash-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/payment-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/deposit-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-voucher/search
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-voucher/search
-	// MEMBER ACCOUNT GENERAL LEDGER ROUTES
-
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
 		Method:       "GET",
@@ -1914,7 +1812,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-entry/search",
 		Method:       "GET",
@@ -1950,7 +1847,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/online-entry/search",
 		Method:       "GET",
@@ -1986,7 +1882,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/cash-entry/search",
 		Method:       "GET",
@@ -2022,7 +1917,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/payment-entry/search",
 		Method:       "GET",
@@ -2058,7 +1952,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/withdraw-entry/search",
 		Method:       "GET",
@@ -2094,7 +1987,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/deposit-entry/search",
 		Method:       "GET",
@@ -2130,7 +2022,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-entry/search",
 		Method:       "GET",
@@ -2166,7 +2057,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/adjustment-entry/search",
 		Method:       "GET",
@@ -2202,7 +2092,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-voucher/search",
 		Method:       "GET",
@@ -2238,7 +2127,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-voucher/search",
 		Method:       "GET",
@@ -2274,21 +2162,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// TRANSACTION BATCH
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/online-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/cash-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/payment-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/deposit-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-voucher/search
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-voucher/search
-	// TRANSACTION BATCH GENERAL LEDGER ROUTES
-
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
@@ -2318,7 +2191,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-entry/search",
 		Method:       "GET",
@@ -2349,7 +2221,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/online-entry/search",
 		Method:       "GET",
@@ -2380,7 +2251,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/cash-entry/search",
 		Method:       "GET",
@@ -2411,7 +2281,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/payment-entry/search",
 		Method:       "GET",
@@ -2442,7 +2311,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/withdraw-entry/search",
 		Method:       "GET",
@@ -2473,7 +2341,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/deposit-entry/search",
 		Method:       "GET",
@@ -2504,7 +2371,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-entry/search",
 		Method:       "GET",
@@ -2535,7 +2401,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/adjustment-entry/search",
 		Method:       "GET",
@@ -2566,7 +2431,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-voucher/search",
 		Method:       "GET",
@@ -2597,7 +2461,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-voucher/search",
 		Method:       "GET",
@@ -2628,21 +2491,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// TRANSACTION
-	// GET /api/v1/general-ledger/transaction/:transaction_id/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/online-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/cash-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/payment-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/deposit-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-voucher/search
-	// GET /api/v1/general-ledger/transaction/:transaction_id/check-voucher/search
-	// TRANSACTION GENERAL LEDGER ROUTES
-
-	// GET /api/v1/general-ledger/transaction/:transaction_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id",
 		Method:       "GET",
@@ -2669,7 +2517,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModels(entries))
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/check-entry/search",
 		Method:       "GET",
@@ -2700,7 +2547,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/online-entry/search",
 		Method:       "GET",
@@ -2731,7 +2577,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/cash-entry/search",
 		Method:       "GET",
@@ -2762,7 +2607,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/payment-entry/search",
 		Method:       "GET",
@@ -2793,7 +2637,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/withdraw-entry/search",
 		Method:       "GET",
@@ -2824,7 +2667,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/deposit-entry/search",
 		Method:       "GET",
@@ -2851,7 +2693,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/journal-entry/search",
 		Method:       "GET",
@@ -2878,7 +2719,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/adjustment-entry/search",
 		Method:       "GET",
@@ -2905,7 +2745,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/journal-voucher/search",
 		Method:       "GET",
@@ -2932,7 +2771,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/transaction/:transaction_id/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/check-voucher/search",
 		Method:       "GET",
@@ -2959,21 +2797,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// ACCOUNTS
-	// GET /api/v1/general-ledger/account/:account_id/search
-	// GET /api/v1/general-ledger/account/:account_id/check-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/online-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/cash-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/payment-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/withdraw-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/deposit-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/journal-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/adjustment-entry/search
-	// GET /api/v1/general-ledger/account/:account_id/journal-voucher/search
-	// GET /api/v1/general-ledger/account/:account_id/check-voucher/search
-	// ACCOUNTS GENERAL LEDGER ROUTES
-
-	// GET /api/v1/general-ledger/account/:account_id/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/search",
 		Method:       "GET",
@@ -3003,7 +2826,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/check-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/check-entry/search",
 		Method:       "GET",
@@ -3034,7 +2856,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/online-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/online-entry/search",
 		Method:       "GET",
@@ -3065,7 +2886,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/cash-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/cash-entry/search",
 		Method:       "GET",
@@ -3096,7 +2916,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/payment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/payment-entry/search",
 		Method:       "GET",
@@ -3127,7 +2946,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/withdraw-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/withdraw-entry/search",
 		Method:       "GET",
@@ -3158,7 +2976,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/deposit-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/deposit-entry/search",
 		Method:       "GET",
@@ -3189,7 +3006,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/journal-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/journal-entry/search",
 		Method:       "GET",
@@ -3220,7 +3036,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/adjustment-entry/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/adjustment-entry/search",
 		Method:       "GET",
@@ -3251,7 +3066,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/journal-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/journal-voucher/search",
 		Method:       "GET",
@@ -3282,7 +3096,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/account/:account_id/check-voucher/search
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/check-voucher/search",
 		Method:       "GET",
@@ -3313,7 +3126,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-	// GET /api/v1/general-ledger/loan-transaction/:loan_transaction_id
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/loan-transaction/:loan_transaction_id",
 		Method:       "GET",

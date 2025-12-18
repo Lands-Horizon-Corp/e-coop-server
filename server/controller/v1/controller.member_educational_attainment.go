@@ -13,7 +13,6 @@ import (
 func (c *Controller) memberEducationalAttainmentController() {
 	req := c.provider.Service.Request
 
-	// Create a new educational attainment record for a member profile
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -83,7 +82,6 @@ func (c *Controller) memberEducationalAttainmentController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager.ToModel(value))
 	})
 
-	// Update an existing educational attainment record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
@@ -157,7 +155,6 @@ func (c *Controller) memberEducationalAttainmentController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager.ToModel(value))
 	})
 
-	// Delete an educational attainment record by its ID
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
@@ -198,7 +195,6 @@ func (c *Controller) memberEducationalAttainmentController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for member educational attainments (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",

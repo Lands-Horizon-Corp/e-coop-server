@@ -30,7 +30,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-// ANSI color escape codes
 const (
 	Green  = "\033[32m"
 	Blue   = "\033[34m"
@@ -40,14 +39,10 @@ const (
 	Cyan   = "\033[36m"
 )
 
-// Sanitize cleans and sanitizes user input to prevent XSS attacks
 func Sanitize(input string) string {
 	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
 }
 
-// File operations ------------------------------------------------------------
-
-// IsValidFilePath validates whether the given file path exists and is accessible
 func IsValidFilePath(p string) error {
 	info, err := os.Stat(p)
 	if os.IsNotExist(err) {
@@ -62,7 +57,6 @@ func IsValidFilePath(p string) error {
 	return nil
 }
 
-// FileExists checks if a file exists and is not a directory
 func FileExists(filename string) bool {
 	if filename = strings.TrimSpace(filename); filename == "" {
 		return false
@@ -71,7 +65,6 @@ func FileExists(filename string) bool {
 	return err == nil && !info.IsDir()
 }
 
-// LoadTemplatesIfExists initializes Echo renderer if templates match pattern
 func LoadTemplatesIfExists(e *echo.Echo, pattern string) {
 	if matches, _ := filepath.Glob(pattern); len(matches) > 0 {
 		e.Renderer = &TemplateRenderer{
@@ -80,19 +73,14 @@ func LoadTemplatesIfExists(e *echo.Echo, pattern string) {
 	}
 }
 
-// TemplateRenderer implements echo.Renderer interface
 type TemplateRenderer struct {
 	templates *template.Template
 }
 
-// Render executes the named template with the provided data
 func (t *TemplateRenderer) Render(w io.Writer, name string, data any, _ echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-// Validation helpers ---------------------------------------------------------
-
-// Validate binds and validates request using validator
 func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	var req T
 	if err := ctx.Bind(&req); err != nil {
@@ -104,7 +92,6 @@ func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	return &req, nil
 }
 
-// EngineUUIDParam extracts UUID from Echo path parameter
 func EngineUUIDParam(ctx echo.Context, param string) (*uuid.UUID, error) {
 	id, err := uuid.Parse(ctx.Param(param))
 	if err != nil {
@@ -113,9 +100,6 @@ func EngineUUIDParam(ctx echo.Context, param string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
-// String operations ----------------------------------------------------------
-
-// Capitalize first rune in string
 func Capitalize(s string) string {
 	if s == "" {
 		return s
@@ -124,7 +108,6 @@ func Capitalize(s string) string {
 	return string(unicode.ToUpper(r)) + s[size:]
 }
 
-// StringFormat safely dereferences string pointer
 func StringFormat(s *string) string {
 	if s == nil {
 		return ""
@@ -132,7 +115,6 @@ func StringFormat(s *string) string {
 	return *s
 }
 
-// UniqueStrings returns deduplicated slice
 func UniqueStrings(input []string) []string {
 	seen := make(map[string]struct{}, len(input))
 	result := make([]string, 0, len(input))
@@ -146,7 +128,6 @@ func UniqueStrings(input []string) []string {
 	return result
 }
 
-// MergeStrings combines and deduplicates slices with capitalization
 func MergeStrings(defaults, overrides []string) []string {
 	seen := make(map[string]struct{}, len(defaults)+len(overrides))
 	result := make([]string, 0, len(defaults)+len(overrides))
@@ -165,14 +146,10 @@ func MergeStrings(defaults, overrides []string) []string {
 	return result
 }
 
-// IsZero checks if value is type's zero-value
 func IsZero[T comparable](v T) bool {
 	return v == *new(T)
 }
 
-// Network utilities ----------------------------------------------------------
-
-// GetFreePort finds available TCP port bound to localhost (avoids binding all interfaces)
 func GetFreePort() int {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -182,9 +159,6 @@ func GetFreePort() int {
 	return l.Addr().(*net.TCPAddr).Port
 }
 
-// Security helpers -----------------------------------------------------------
-
-// GenerateToken creates random UUID token
 func GenerateToken() (string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -193,14 +167,12 @@ func GenerateToken() (string, error) {
 	return id.String(), nil
 }
 
-// GenerateRandomBytes produces cryptographic random data
 func GenerateRandomBytes(n uint32) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
 	return b, err
 }
 
-// Create32ByteKey ensures 32-byte key length
 func Create32ByteKey(key []byte) []byte {
 	if len(key) >= 32 {
 		return key[:32]
@@ -210,22 +182,17 @@ func Create32ByteKey(key []byte) []byte {
 	return padded
 }
 
-// Data validation ------------------------------------------------------------
-
 var phoneRegex = regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`)
 
-// IsValidEmail validates email format
 func IsValidEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
-// IsValidPhoneNumber validates international phone format
 func IsValidPhoneNumber(phone string) bool {
 	return phoneRegex.MatchString(phone)
 }
 
-// IsValidURL validates http/https URLs
 func IsValidURL(rawURL string) bool {
 	if rawURL == "" {
 		return false
@@ -237,7 +204,6 @@ func IsValidURL(rawURL string) bool {
 		!strings.ContainsAny(rawURL, `<>"`)
 }
 
-// ParseCoordinate safely parses float coordinates
 func ParseCoordinate(value string) float64 {
 	if value == "" {
 		return 0.0
@@ -246,9 +212,6 @@ func ParseCoordinate(value string) float64 {
 	return coord
 }
 
-// UUID handling --------------------------------------------------------------
-
-// ParseUUID safely parses UUID from string pointer
 func ParseUUID(s *string) uuid.UUID {
 	if s == nil || *s == "" {
 		return uuid.Nil
@@ -260,9 +223,6 @@ func ParseUUID(s *string) uuid.UUID {
 	return id
 }
 
-// Math utilities -------------------------------------------------------------
-
-// GenerateRandomDigits creates n-digit random number
 func GenerateRandomDigits(size int) (int, error) {
 	switch {
 	case size > 8:
@@ -282,9 +242,6 @@ func GenerateRandomDigits(size int) (int, error) {
 	return int(n.Add(n, minVal).Int64()), nil
 }
 
-// Concurrency helpers --------------------------------------------------------
-
-// Retry executes operation with backoff
 func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() error) error {
 	var err error
 	for range maxAttempts {
@@ -300,9 +257,6 @@ func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() 
 	return eris.Wrapf(err, "after %d attempts", maxAttempts)
 }
 
-// UI helpers -----------------------------------------------------------------
-
-// PrintASCIIArt renders colored horizon logo
 func PrintASCIIArt() {
 	art := `
            ..............                            
@@ -339,12 +293,10 @@ func PrintASCIIArt() {
 	}
 }
 
-// Ptr returns a pointer to the given value
 func Ptr[T any](v T) *T {
 	return &v
 }
 
-// UUIDPtrEqual compares two UUID pointers for equality
 func UUIDPtrEqual(a, b *uuid.UUID) bool {
 	if a == nil && b == nil {
 		return true
@@ -355,7 +307,6 @@ func UUIDPtrEqual(a, b *uuid.UUID) bool {
 	return *a == *b
 }
 
-// Zip combines two slices into a slice of pairs
 func Zip[T, U any](slice1 []T, slice2 []U) []struct {
 	First  T
 	Second U
@@ -375,16 +326,12 @@ func Zip[T, U any](slice1 []T, slice2 []U) []struct {
 	return result
 }
 
-// HasFileExtension checks if the given filename has a file extension
 func HasFileExtension(filename string) bool {
 	return strings.Contains(filename, ".") && !strings.HasSuffix(filename, ".")
 }
 
-// GetExtensionFromContentType returns the file extension based on the content type
 func GetExtensionFromContentType(contentType string) string {
-	// Comprehensive content type to extension mappings based on MDN Web Docs
 	contentTypeMap := map[string]string{
-		// Audio formats (original + additions)
 		"audio/aac":    ".aac",
 		"audio/midi":   ".mid",
 		"audio/x-midi": ".midi",
@@ -398,7 +345,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"audio/x-aiff": ".aiff", // Added: Audio Interchange File Format
 		"audio/mp4":    ".m4a",  // Added: MPEG-4 Audio
 
-		// Video formats (original + additions)
 		"video/x-msvideo":  ".avi",
 		"video/mp4":        ".mp4",
 		"video/mpeg":       ".mpeg",
@@ -411,7 +357,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"video/x-matroska": ".mkv", // Added: Matroska Video
 		"video/x-flv":      ".flv", // Added: Flash Video
 
-		// Image formats (original + additions)
 		"image/apng":               ".apng",
 		"image/avif":               ".avif",
 		"image/bmp":                ".bmp",
@@ -426,7 +371,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"image/heic":               ".heic", // Added: High Efficiency Image Container
 		"image/heif":               ".heif", // Added: High Efficiency Image Format
 
-		// Font formats (original + additions)
 		"font/otf":        ".otf",
 		"font/ttf":        ".ttf",
 		"font/woff":       ".woff",
@@ -434,7 +378,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"font/collection": ".ttc", // Added: TrueType Collection
 		"font/sfnt":       ".ttf", // Added: Generic SFNT font (often TrueType)
 
-		// Application formats (original + additions)
 		"application/x-abiword":        ".abw",
 		"application/x-freearc":        ".arc",
 		"application/vnd.amazon.ebook": ".azw",
@@ -482,7 +425,6 @@ func GetExtensionFromContentType(contentType string) string {
 		"application/x-debian-package":            ".deb",        // Added: Debian Package
 		"application/x-redhat-package-manager":    ".rpm",        // Added: RPM Package
 
-		// Text formats (original + additions)
 		"text/css":           ".css",
 		"text/csv":           ".csv",
 		"text/html":          ".html",
@@ -497,25 +439,19 @@ func GetExtensionFromContentType(contentType string) string {
 		"text/yaml":          ".yaml", // Added: YAML
 		"text/x-yaml":        ".yml",  // Added: YAML alternative
 
-		// Additional categories
-		// 3D models and graphics
 		"model/gltf+json":   ".gltf", // Added: glTF JSON
 		"model/gltf-binary": ".glb",  // Added: glTF Binary
 		"model/obj":         ".obj",  // Added: Wavefront OBJ
 		"model/stl":         ".stl",  // Added: Stereolithography
 
-		// Subtitles and captions
 		"text/vtt":             ".vtt", // Added: WebVTT
 		"application/x-subrip": ".srt", // Added: SubRip
 
-		// Executables and binaries
 		"application/x-msdownload":      ".exe", // Added: Windows Executable
 		"application/x-shockwave-flash": ".swf", // Added: Shockwave Flash
 
-		// Database and data
 		"application/sql": ".sql", // Added: SQL script
 
-		// Web-related
 		"application/rss+xml":  ".rss",  // Added: RSS Feed
 		"application/atom+xml": ".atom", // Added: Atom Feed
 		"application/wasm":     ".wasm", // Added: WebAssembly

@@ -11,20 +11,15 @@ import (
 	"gorm.io/gorm"
 )
 
-// TransactionBatchBalanceStatus represents the balance status of a transaction batch
 type TransactionBatchBalanceStatus string
 
-// Transaction batch balance status constants
 const (
-	// TransactionBatchBalanced indicates the transaction batch is balanced
-	TransactionBatchBalanced TransactionBatchBalanceStatus = "balanced"
-	// TransactionBatchBalanceOverage indicates the transaction batch has excess funds
+	TransactionBatchBalanced        TransactionBatchBalanceStatus = "balanced"
 	TransactionBatchBalanceOverage  TransactionBatchBalanceStatus = "balance overage"
 	TransactionBatchBalanceShortage TransactionBatchBalanceStatus = "balance shortage"
 )
 
 type (
-	// TransactionBatch represents a batch of transactions processed together
 	TransactionBatch struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
@@ -128,7 +123,6 @@ type (
 		EndedAt *time.Time `gorm:"type:timestamp"`
 	}
 
-	// TransactionBatchResponse represents the response structure for transaction batch data
 	TransactionBatchResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -225,7 +219,6 @@ type (
 		EndedAt *string `json:"ended_at,omitempty"`
 	}
 
-	// TransactionBatchRequest represents the request structure for creating/updating transaction batches
 	TransactionBatchRequest struct {
 		OrganizationID                uuid.UUID  `json:"organization_id" validate:"required"`
 		BranchID                      uuid.UUID  `json:"branch_id" validate:"required"`
@@ -289,59 +282,47 @@ type (
 		EndedAt                       *time.Time     `json:"ended_at,omitempty"`
 	}
 
-	// TransactionBatchSignatureRequest represents the request structure for transaction batch signatures
 	TransactionBatchSignatureRequest struct {
-		// Employee signature fields
 		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeByName             string     `json:"employee_by_name,omitempty"`
 		EmployeeByPosition         string     `json:"employee_by_position,omitempty"`
 
-		// Approved signature fields
 		ApprovedBySignatureMediaID *uuid.UUID `json:"approved_by_signature_media_id,omitempty"`
 		ApprovedByName             string     `json:"approved_by_name,omitempty"`
 		ApprovedByPosition         string     `json:"approved_by_position,omitempty"`
 
-		// Prepared signature fields
 		PreparedBySignatureMediaID *uuid.UUID `json:"prepared_by_signature_media_id,omitempty"`
 		PreparedByName             string     `json:"prepared_by_name,omitempty"`
 		PreparedByPosition         string     `json:"prepared_by_position,omitempty"`
 
-		// Certified signature fields
 		CertifiedBySignatureMediaID *uuid.UUID `json:"certified_by_signature_media_id,omitempty"`
 		CertifiedByName             string     `json:"certified_by_name,omitempty"`
 		CertifiedByPosition         string     `json:"certified_by_position,omitempty"`
 
-		// Verified signature fields
 		VerifiedBySignatureMediaID *uuid.UUID `json:"verified_by_signature_media_id,omitempty"`
 		VerifiedByName             string     `json:"verified_by_name,omitempty"`
 		VerifiedByPosition         string     `json:"verified_by_position,omitempty"`
 
-		// Check signature fields
 		CheckBySignatureMediaID *uuid.UUID `json:"check_by_signature_media_id,omitempty"`
 		CheckByName             string     `json:"check_by_name,omitempty"`
 		CheckByPosition         string     `json:"check_by_position,omitempty"`
 
-		// Acknowledge signature fields
 		AcknowledgeBySignatureMediaID *uuid.UUID `json:"acknowledge_by_signature_media_id,omitempty"`
 		AcknowledgeByName             string     `json:"acknowledge_by_name,omitempty"`
 		AcknowledgeByPosition         string     `json:"acknowledge_by_position,omitempty"`
 
-		// Noted signature fields
 		NotedBySignatureMediaID *uuid.UUID `json:"noted_by_signature_media_id,omitempty"`
 		NotedByName             string     `json:"noted_by_name,omitempty"`
 		NotedByPosition         string     `json:"noted_by_position,omitempty"`
 
-		// Posted signature fields
 		PostedBySignatureMediaID *uuid.UUID `json:"posted_by_signature_media_id,omitempty"`
 		PostedByName             string     `json:"posted_by_name,omitempty"`
 		PostedByPosition         string     `json:"posted_by_position,omitempty"`
 
-		// Paid signature fields
 		PaidBySignatureMediaID *uuid.UUID `json:"paid_by_signature_media_id,omitempty"`
 		PaidByName             string     `json:"paid_by_name,omitempty"`
 		PaidByPosition         string     `json:"paid_by_position,omitempty"`
 	}
-	// TransactionBatchEndRequest represents the request structure for ending transaction batches
 	TransactionBatchEndRequest struct {
 		EmployeeBySignatureMediaID *uuid.UUID `json:"employee_by_signature_media_id,omitempty"`
 		EmployeeByName             string     `json:"employee_by_name"`
@@ -502,7 +483,6 @@ func (m *Core) transactionBatch() {
 	})
 }
 
-// TransactionBatchMinimal retrieves a transaction batch by ID and returns a minimal representation.
 func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
 	data, err := m.TransactionBatchManager.GetByID(context, id)
 	if err != nil {
@@ -543,7 +523,6 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 	}, nil
 }
 
-// TransactionBatchCurrent retrieves the current active transaction batch for a user
 func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 
 	return m.TransactionBatchManager.ArrFindOne(context, []registry.FilterSQL{
@@ -556,7 +535,6 @@ func (m *Core) TransactionBatchCurrent(context context.Context, userID, organiza
 	})
 }
 
-// TransactionBatchViewRequests retrieves transaction batches with pending view requests
 func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	return m.TransactionBatchManager.ArrFind(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -569,7 +547,6 @@ func (m *Core) TransactionBatchViewRequests(context context.Context, organizatio
 	})
 }
 
-// TransactionBatchCurrentDay retrieves all closed transaction batches for the current day.
 func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)

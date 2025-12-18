@@ -11,7 +11,6 @@ import (
 )
 
 type (
-	// AccountTag represents the AccountTag model.
 	AccountTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -39,9 +38,6 @@ type (
 		Icon        string      `gorm:"type:varchar(20)" json:"icon"`
 	}
 
-	// AccountTagResponse represents the response structure for accounttag data
-
-	// AccountTagResponse represents the response structure for AccountTag.
 	AccountTagResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -63,9 +59,6 @@ type (
 		Icon           string                `json:"icon"`
 	}
 
-	// AccountTagRequest represents the request structure for creating/updating accounttag
-
-	// AccountTagRequest represents the request structure for AccountTag.
 	AccountTagRequest struct {
 		AccountID   uuid.UUID   `json:"account_id" validate:"required"`
 		Name        string      `json:"name" validate:"required,min=1,max=50"`
@@ -138,7 +131,6 @@ func (m *Core) accountTag() {
 	})
 }
 
-// AccountTagCurrentBranch retrieves account tags for a specific organization and branch.
 func (m *Core) AccountTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountTag, error) {
 	return m.AccountTagManager.Find(context, &AccountTag{
 		OrganizationID: organizationID,

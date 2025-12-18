@@ -11,11 +11,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GeneralLedgerController manages endpoints for general ledger accounts, definitions, and member ledgers.
 func (c *Controller) generalLedgerGroupingController() {
 	req := c.provider.Service.Request
 
-	// GET /general-ledger-accounts-grouping
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping",
 		Method:       "GET",
@@ -38,7 +36,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerAccountsGroupingManager.ToModels(gl))
 	})
 
-	// PUT /general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:       "PUT",
@@ -116,7 +113,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerAccountsGroupingManager.ToModel(grouping))
 	})
 
-	// GET /general-ledger-definition
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "GET",
@@ -141,7 +137,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, gl)
 	})
 
-	// POST /general-ledger-definition (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "POST",
@@ -210,7 +205,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusCreated, c.core.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-definition/:general_ledger_definition_id (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id",
 		Method:       "PUT",
@@ -291,7 +285,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// POST /general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:       "POST",
@@ -397,7 +390,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-definition/:general_ledger_definition_id/index/:index (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:       "PUT",
@@ -468,7 +460,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// PUT /general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:       "PUT",
@@ -605,7 +596,6 @@ func (c *Controller) generalLedgerGroupingController() {
 		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerDefinitionManager.ToModel(glDefinition))
 	})
 
-	// DELETE /general-ledger-definition/:general_definition_id (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/general-ledger-definition/:general_definition_id",
 		Method: "DELETE",

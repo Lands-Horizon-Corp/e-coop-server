@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// LoanPurposeController manages endpoints for loan purpose records.
 func (c *Controller) loanPurposeController() {
 	req := c.provider.Service.Request
 
-	// GET /loan-purpose: List all loan purposes for the current user's branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "GET",
@@ -36,7 +34,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.ToModels(purposes))
 	})
 
-	// GET /loan-purpose/search: Paginated search of loan purposes for the current branch. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/search",
 		Method:       "GET",
@@ -61,7 +58,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	// GET /loan-purpose/:loan_purpose_id: Get a specific loan purpose record by ID. (NO footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
@@ -80,7 +76,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.JSON(http.StatusOK, purpose)
 	})
 
-	// POST /loan-purpose: Create a new loan purpose record. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "POST",
@@ -141,7 +136,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.JSON(http.StatusCreated, c.core.LoanPurposeManager.ToModel(purpose))
 	})
 
-	// PUT /loan-purpose/:loan_purpose_id: Update a loan purpose record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
@@ -214,7 +208,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.ToModel(purpose))
 	})
 
-	// DELETE /loan-purpose/:loan_purpose_id: Delete a loan purpose record by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/loan-purpose/:loan_purpose_id",
 		Method: "DELETE",
@@ -255,7 +248,6 @@ func (c *Controller) loanPurposeController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for loan purposes (mirrors the feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/loan-purpose/bulk-delete",
 		Method:      "DELETE",

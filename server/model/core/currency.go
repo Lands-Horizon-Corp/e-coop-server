@@ -15,7 +15,6 @@ import (
 )
 
 type (
-	// Currency represents the Currency model.
 	Currency struct {
 		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
@@ -36,9 +35,6 @@ type (
 		Timezone       string `gorm:"type:varchar(50)" json:"timezone"`        // Country timezone
 	}
 
-	// CurrencyResponse represents the response structure for currency data
-
-	// CurrencyResponse represents the response structure for Currency.
 	CurrencyResponse struct {
 		ID             uuid.UUID `json:"id"`
 		CreatedAt      string    `json:"created_at"`
@@ -57,9 +53,6 @@ type (
 		Timezone       string    `json:"timezone"`
 	}
 
-	// CurrencyRequest represents the request structure for creating/updating currency
-
-	// CurrencyRequest represents the request structure for Currency.
 	CurrencyRequest struct {
 		Name           string `json:"name" validate:"required,min=1,max=255"`
 		Country        string `json:"country" validate:"required,min=1,max=255"`
@@ -196,7 +189,6 @@ func (m *Core) currencySeed(context context.Context) error {
 	return nil
 }
 
-// CurrencyFindByAlpha2 retrieves a currency by its ISO 3166-1 alpha-2 code
 func (m *Core) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
 	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
@@ -205,7 +197,6 @@ func (m *Core) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 strin
 	return currencies, nil
 }
 
-// CurrencyFindByCode retrieves a currency by its currency code
 func (m *Core) CurrencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
 	currency, err := m.CurrencyManager.FindOne(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {

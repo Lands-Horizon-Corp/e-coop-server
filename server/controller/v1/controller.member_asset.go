@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// MemberAssetController manages endpoints for member asset records.
 func (c *Controller) memberAssetController() {
 	req := c.provider.Service.Request
 
-	// POST /member-asset/member-profile/:member_profile_id: Create a new asset record for a member.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
@@ -88,7 +86,6 @@ func (c *Controller) memberAssetController() {
 		return ctx.JSON(http.StatusCreated, c.core.MemberAssetManager.ToModel(value))
 	})
 
-	// PUT /member-asset/:member_asset_id: Update an existing asset record for a member.
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-asset/:member_asset_id",
 		Method:       "PUT",
@@ -167,7 +164,6 @@ func (c *Controller) memberAssetController() {
 		return ctx.JSON(http.StatusOK, c.core.MemberAssetManager.ToModel(value))
 	})
 
-	// DELETE /member-asset/:member_asset_id: Delete a member's asset record by ID.
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/member-asset/:member_asset_id",
 		Method: "DELETE",

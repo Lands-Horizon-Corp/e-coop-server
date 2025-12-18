@@ -10,11 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// TimeDepositComputationController registers routes for managing time deposit computations.
 func (c *Controller) timeDepositComputationController() {
 	req := c.provider.Service.Request
 
-	// POST /time-deposit-computation: Create a new time deposit computation. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
@@ -98,7 +96,6 @@ func (c *Controller) timeDepositComputationController() {
 		return ctx.JSON(http.StatusCreated, c.core.TimeDepositComputationManager.ToModel(timeDepositComputation))
 	})
 
-	// PUT /time-deposit-computation/:time_deposit_computation_id: Update time deposit computation by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
@@ -175,7 +172,6 @@ func (c *Controller) timeDepositComputationController() {
 		return ctx.JSON(http.StatusOK, c.core.TimeDepositComputationManager.ToModel(timeDepositComputation))
 	})
 
-	// DELETE /time-deposit-computation/:time_deposit_computation_id: Delete a time deposit computation by ID. (WITH footstep)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method: "DELETE",
@@ -216,7 +212,6 @@ func (c *Controller) timeDepositComputationController() {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	// Simplified bulk-delete handler for time deposit computations (mirrors feedback/holiday pattern)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
