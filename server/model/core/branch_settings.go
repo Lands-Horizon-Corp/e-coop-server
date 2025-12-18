@@ -199,6 +199,7 @@ func (m *Core) branchSetting() {
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
 			"CompassionFundAccount",
+			"CompassionFundAccount.Currency",
 			"UnbalancedAccounts",
 			"UnbalancedAccounts.Currency",
 
