@@ -41,7 +41,6 @@ type (
 		EmployeeName    string    `gorm:"type:varchar(100)"`
 	}
 
-
 	DisbursementTransactionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -65,7 +64,6 @@ type (
 		ReferenceNumber string  `json:"reference_number"`
 		Amount          float64 `json:"amount"`
 	}
-
 
 	DisbursementTransactionRequest struct {
 		DisbursementID *uuid.UUID `json:"disbursement_id" validate:"required"`

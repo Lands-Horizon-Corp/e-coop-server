@@ -35,7 +35,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	MemberCloseRemarkResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -53,7 +52,6 @@ type (
 		Reason          string                 `json:"reason"`
 		Description     string                 `json:"description"`
 	}
-
 
 	MemberCloseRemarkRequest struct {
 		Reason      string `json:"reason,omitempty"`

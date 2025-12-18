@@ -24,7 +24,6 @@ type (
 		OrganizationCategories []*OrganizationCategory `gorm:"foreignKey:CategoryID"` // organization category
 	}
 
-
 	CategoryResponse struct {
 		ID        uuid.UUID `json:"id"`
 		CreatedAt string    `json:"createdAt"`
@@ -36,7 +35,6 @@ type (
 		Icon                   string                          `json:"icon"`
 		OrganizationCategories []*OrganizationCategoryResponse `json:"organizaton_categories"`
 	}
-
 
 	CategoryRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`

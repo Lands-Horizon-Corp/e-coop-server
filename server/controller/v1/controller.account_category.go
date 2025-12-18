@@ -80,7 +80,6 @@ func (c *Controller) accountCategoryController() {
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(category))
 	})
 
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
@@ -143,7 +142,6 @@ func (c *Controller) accountCategoryController() {
 		})
 		return ctx.JSON(http.StatusCreated, c.core.AccountCategoryManager.ToModel(accountCategory))
 	})
-
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
@@ -218,7 +216,6 @@ func (c *Controller) accountCategoryController() {
 		})
 		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(accountCategory))
 	})
-
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/account-category/:account_category_id",

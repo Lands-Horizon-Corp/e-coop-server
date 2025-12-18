@@ -12,8 +12,8 @@ import (
 )
 
 type Reports struct {
-	provider *server.Provider
-	core     *core.Core
+	provider              *server.Provider
+	core                  *core.Core
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	usecase               *usecase.UsecaseService

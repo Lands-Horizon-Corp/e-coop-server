@@ -128,7 +128,6 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
 
-
 	AccountHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -230,12 +229,10 @@ type (
 		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
 	}
 
-
 	AccountHistoryRequest struct {
 		AccountID uuid.UUID `json:"account_id" validate:"required"`
 	}
 )
-
 
 func (m *Core) accountHistory() {
 	m.Migration = append(m.Migration, &AccountHistory{})

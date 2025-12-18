@@ -35,7 +35,6 @@ type (
 		Description string `gorm:"type:varchar(255)"`
 	}
 
-
 	LoanTermsAndConditionSuggestedPaymentResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -53,7 +52,6 @@ type (
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 	}
-
 
 	LoanTermsAndConditionSuggestedPaymentRequest struct {
 		ID                *uuid.UUID `json:"id"`

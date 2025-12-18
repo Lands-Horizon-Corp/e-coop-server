@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func TestHorizonMessageBroker(t *testing.T) {
 	env := NewEnvironmentService("../../.env")
 	host := env.GetString("NATS_HOST", "localhost")

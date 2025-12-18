@@ -104,7 +104,6 @@ type (
 		Header22 int `json:"header22"`
 	}
 
-
 	MemberClassificationInterestRateRequest struct {
 		Name                        string     `json:"name" validate:"required,min=1,max=255"`
 		Description                 string     `json:"description,omitempty"`

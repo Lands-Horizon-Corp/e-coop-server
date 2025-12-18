@@ -39,7 +39,6 @@ type (
 		Value float64 `gorm:"type:decimal;not null" json:"value"`
 	}
 
-
 	BillAndCoinsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -59,7 +58,6 @@ type (
 		Name           string                `json:"name"`
 		Value          float64               `json:"value"`
 	}
-
 
 	BillAndCoinsRequest struct {
 		Name       string     `json:"name" validate:"required,min=1,max=255"`

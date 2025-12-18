@@ -61,7 +61,6 @@ type (
 		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
 	}
 
-
 	AdjustmentEntryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -97,7 +96,6 @@ type (
 		LoanTransaction    *LoanTransactionResponse  `json:"loan_transaction,omitempty"`
 	}
 
-
 	AdjustmentEntryRequest struct {
 		TransactionBatchID *uuid.UUID `json:"transaction_batch_id,omitempty"`
 		SignatureMediaID   *uuid.UUID `json:"signature_media_id,omitempty"`
@@ -113,14 +111,12 @@ type (
 		LoanTransactionID  *uuid.UUID `json:"loan_transaction_id,omitempty"`
 	}
 
-
 	AdjustmentEntryTotalResponse struct {
 		TotalDebit  float64 `json:"total_debit"`
 		TotalCredit float64 `json:"total_credit"`
 		Balance     float64 `json:"balance"`
 		IsBalanced  bool    `json:"is_balanced"`
 	}
-
 
 	AdjustmentEntrySummaryRequest struct {
 		CurrencyID         uuid.UUID  `json:"currency_id" validate:"required"`

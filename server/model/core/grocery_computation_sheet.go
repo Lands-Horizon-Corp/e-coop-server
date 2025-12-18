@@ -32,7 +32,6 @@ type (
 		Description  string `gorm:"type:text"`
 	}
 
-
 	GroceryComputationSheetResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -48,7 +47,6 @@ type (
 		SchemeNumber   int                   `json:"scheme_number"`
 		Description    string                `json:"description"`
 	}
-
 
 	GroceryComputationSheetRequest struct {
 		SchemeNumber int    `json:"scheme_number" validate:"required"`

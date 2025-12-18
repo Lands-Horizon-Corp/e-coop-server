@@ -37,7 +37,6 @@ type (
 		GLBooks     string  `gorm:"type:varchar(255)" json:"gl_books"`
 	}
 
-
 	FundsResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -57,7 +56,6 @@ type (
 		Icon           *string               `json:"icon,omitempty"`
 		GLBooks        string                `json:"gl_books"`
 	}
-
 
 	FundsRequest struct {
 		AccountID   *uuid.UUID `json:"account_id,omitempty"`

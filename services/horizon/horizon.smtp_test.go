@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func TestHorizonSMTP_Run_Stop(t *testing.T) {
 	env := NewEnvironmentService("../../.env")
 

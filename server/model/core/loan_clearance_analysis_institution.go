@@ -35,7 +35,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	LoanClearanceAnalysisInstitutionResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -53,7 +52,6 @@ type (
 		Name              string                   `json:"name"`
 		Description       string                   `json:"description"`
 	}
-
 
 	LoanClearanceAnalysisInstitutionRequest struct {
 		ID                *uuid.UUID `json:"id"`

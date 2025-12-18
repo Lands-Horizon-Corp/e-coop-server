@@ -57,7 +57,6 @@ type (
 		TaxIdentificationNumber *string `gorm:"type:varchar(100)" json:"tax_identification_number,omitempty"`
 	}
 
-
 	BranchRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`
 
@@ -80,7 +79,6 @@ type (
 		IsMainBranch            bool    `json:"is_main_branch,omitempty"`
 		TaxIdentificationNumber *string `json:"tax_identification_number,omitempty"`
 	}
-
 
 	BranchResponse struct {
 		ID           uuid.UUID             `json:"id"`

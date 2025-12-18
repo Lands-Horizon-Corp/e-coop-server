@@ -58,7 +58,6 @@ type (
 		Column22 float64 `gorm:"type:decimal;default:0"`
 	}
 
-
 	ChargesRateSchemeModeOfPaymentResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -99,7 +98,6 @@ type (
 		Column21 float64 `json:"column21"`
 		Column22 float64 `json:"column22"`
 	}
-
 
 	ChargesRateSchemeModeOfPaymentRequest struct {
 		ID   *uuid.UUID `json:"id,omitempty"`

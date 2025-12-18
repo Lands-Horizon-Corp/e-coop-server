@@ -35,7 +35,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	LoanStatusResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -53,7 +52,6 @@ type (
 		Color          string                `json:"color"`
 		Description    string                `json:"description"`
 	}
-
 
 	LoanStatusRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

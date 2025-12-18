@@ -33,7 +33,6 @@ type (
 		Icon        string `gorm:"type:varchar(255)"`
 	}
 
-
 	LoanPurposeResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -49,7 +48,6 @@ type (
 		Description    string                `json:"description"`
 		Icon           string                `json:"icon"`
 	}
-
 
 	LoanPurposeRequest struct {
 		Description string `json:"description,omitempty"`

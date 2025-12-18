@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 type TestClaimUserCSRF struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`

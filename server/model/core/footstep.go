@@ -57,7 +57,6 @@ type (
 		Level          FootstepLevel        `gorm:"type:varchar(255)" json:"level"`
 	}
 
-
 	FootstepResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -91,7 +90,6 @@ type (
 		AcceptLanguage string               `json:"accept_language"`
 		Level          FootstepLevel        `json:"level"`
 	}
-
 
 	FootstepRequest struct {
 		Level       FootstepLevel `json:"level" validate:"required,oneof=info warning error debug"`
@@ -188,7 +186,6 @@ func (m *Core) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*
 		UserID: &userID,
 	})
 }
-
 
 func (m *Core) GetFootstepBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
 	return m.FootstepManager.Find(context, &Footstep{

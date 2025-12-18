@@ -36,7 +36,6 @@ type (
 		Birthdate   *time.Time `gorm:"type:timestamp"`
 	}
 
-
 	MemberDamayanExtensionEntryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -55,7 +54,6 @@ type (
 		Description     string                 `json:"description"`
 		Birthdate       *string                `json:"birthdate,omitempty"`
 	}
-
 
 	MemberDamayanExtensionEntryRequest struct {
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`

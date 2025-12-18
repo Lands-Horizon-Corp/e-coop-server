@@ -45,7 +45,6 @@ type (
 		Credit      float64 `gorm:"type:decimal"`
 	}
 
-
 	JournalVoucherEntryResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`

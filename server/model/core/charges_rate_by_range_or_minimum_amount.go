@@ -38,7 +38,6 @@ type (
 		MinimumAmount float64 `gorm:"type:decimal;default:0"`
 	}
 
-
 	ChargesRateByRangeOrMinimumAmountResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -59,7 +58,6 @@ type (
 		Amount              float64                    `json:"amount"`
 		MinimumAmount       float64                    `json:"minimum_amount"`
 	}
-
 
 	ChargesRateByRangeOrMinimumAmountRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`

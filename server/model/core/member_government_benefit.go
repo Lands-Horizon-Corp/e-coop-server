@@ -69,7 +69,6 @@ type (
 		ExpiryDate      *string                `json:"expiry_date,omitempty"`
 	}
 
-
 	MemberGovernmentBenefitRequest struct {
 		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
 		FrontMediaID    *uuid.UUID `json:"front_media_id,omitempty"`

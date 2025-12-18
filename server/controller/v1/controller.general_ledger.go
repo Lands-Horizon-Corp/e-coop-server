@@ -988,7 +988,6 @@ func (c *Controller) generalLedgerController() {
 		}
 	})
 
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/search",
 		Method:       "GET",
@@ -1361,7 +1360,6 @@ func (c *Controller) generalLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, entries)
 	})
-
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search",
@@ -1780,7 +1778,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
 		Method:       "GET",
@@ -2165,7 +2162,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
@@ -2495,7 +2491,6 @@ func (c *Controller) generalLedgerController() {
 		return ctx.JSON(http.StatusOK, entries)
 	})
 
-
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id",
 		Method:       "GET",
@@ -2801,7 +2796,6 @@ func (c *Controller) generalLedgerController() {
 		}
 		return ctx.JSON(http.StatusOK, entries)
 	})
-
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/search",

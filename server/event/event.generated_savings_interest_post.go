@@ -84,8 +84,7 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 		totalInterest = e.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
 
 	}
-	
-	
+
 	generateSavingsInterest.PostedDate = &now
 	generateSavingsInterest.PostedByUserID = &userOrg.UserID
 	generateSavingsInterest.PostAccountID = request.PostAccountID

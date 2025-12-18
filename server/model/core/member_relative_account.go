@@ -38,7 +38,6 @@ type (
 		Description        string `gorm:"type:text"`
 	}
 
-
 	MemberRelativeAccountResponse struct {
 		ID                      uuid.UUID              `json:"id"`
 		CreatedAt               string                 `json:"created_at"`
@@ -58,7 +57,6 @@ type (
 		FamilyRelationship      string                 `json:"family_relationship"`
 		Description             string                 `json:"description"`
 	}
-
 
 	MemberRelativeAccountRequest struct {
 		MemberProfileID         uuid.UUID `json:"member_profile_id" validate:"required"`

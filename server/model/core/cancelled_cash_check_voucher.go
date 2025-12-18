@@ -33,7 +33,6 @@ type (
 		Description string    `gorm:"type:text" json:"description"`
 	}
 
-
 	CancelledCashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,7 +49,6 @@ type (
 		EntryDate      string                `json:"entry_date"`
 		Description    string                `json:"description"`
 	}
-
 
 	CancelledCashCheckVoucherRequest struct {
 		CheckNumber string    `json:"check_number" validate:"required,min=1,max=255"`

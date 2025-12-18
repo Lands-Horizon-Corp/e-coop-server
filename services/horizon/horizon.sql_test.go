@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
 func TestGormDatabaseLifecycle(t *testing.T) {
 	env := NewEnvironmentService("../../.env")
 	dsn := env.GetString("DATABASE_URL", "")

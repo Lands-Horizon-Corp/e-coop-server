@@ -48,7 +48,6 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
-
 	CashCheckVoucherEntryResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -79,7 +78,6 @@ type (
 		Credit          float64                `json:"credit"`
 		Description     string                 `json:"description"`
 	}
-
 
 	CashCheckVoucherEntryRequest struct {
 		ID                     *uuid.UUID `json:"id,omitempty"`

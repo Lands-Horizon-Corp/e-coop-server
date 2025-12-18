@@ -39,7 +39,6 @@ func setupHorizonOTP() OTPService {
 	return NewHorizonOTP([]byte("secret"), cache, security)
 }
 
-
 func TestGenerateOTP(t *testing.T) {
 	otp := setupHorizonOTP()
 	ctx := context.Background()

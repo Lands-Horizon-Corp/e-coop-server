@@ -156,7 +156,7 @@ func (c *Controller) adjustmentEntryController() {
 			MemberProfileID:    req.MemberProfileID,
 			TransactionBatchID: transactionBatch.ID,
 
-			LoanTransactionID: req.LoanTransactionID,
+			LoanTransactionID:     req.LoanTransactionID,
 			ReferenceNumber:       req.ReferenceNumber,
 			Description:           req.Description,
 			EntryDate:             req.EntryDate,

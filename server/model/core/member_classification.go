@@ -34,7 +34,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	MemberClassificationResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,7 +50,6 @@ type (
 		Icon           string                `json:"icon"`
 		Description    string                `json:"description"`
 	}
-
 
 	MemberClassificationRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

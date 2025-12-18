@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func setupSecurityUtilsQR() SecurityService {
 	env := NewEnvironmentService("../../.env")
 	token := env.GetByteSlice("APP_TOKEN", "")

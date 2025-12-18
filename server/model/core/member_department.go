@@ -34,7 +34,6 @@ type (
 		Icon        *string `gorm:"type:varchar(255)" json:"icon,omitempty"`
 	}
 
-
 	MemberDepartmentResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,7 +50,6 @@ type (
 		Description    string                `json:"description"`
 		Icon           *string               `json:"icon,omitempty"`
 	}
-
 
 	MemberDepartmentRequest struct {
 		Name        string  `json:"name" validate:"required,min=1,max=255"`

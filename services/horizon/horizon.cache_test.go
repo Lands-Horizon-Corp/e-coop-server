@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestHorizonCache(t *testing.T) {
 	ctx := context.Background()
 

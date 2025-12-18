@@ -36,7 +36,6 @@ type (
 		LoanGuaranteedFundRate float64 `gorm:"type:decimal;default:0"`
 	}
 
-
 	GroceryComputationSheetMonthlyResponse struct {
 		ID                        uuid.UUID                        `json:"id"`
 		CreatedAt                 string                           `json:"created_at"`
@@ -55,7 +54,6 @@ type (
 		InterestRate              float64                          `json:"interest_rate"`
 		LoanGuaranteedFundRate    float64                          `json:"loan_guaranteed_fund_rate"`
 	}
-
 
 	GroceryComputationSheetMonthlyRequest struct {
 		GroceryComputationSheetID uuid.UUID `json:"grocery_computation_sheet_id" validate:"required"`

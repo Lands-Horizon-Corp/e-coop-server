@@ -14,19 +14,19 @@ import (
 type UserOrganizationStatus string
 
 const (
-	UserOrganizationStatusOnline UserOrganizationStatus = "online"
-	UserOrganizationStatusOffline UserOrganizationStatus = "offline"
-	UserOrganizationStatusBusy UserOrganizationStatus = "busy"
-	UserOrganizationStatusVacation UserOrganizationStatus = "vacation"
+	UserOrganizationStatusOnline    UserOrganizationStatus = "online"
+	UserOrganizationStatusOffline   UserOrganizationStatus = "offline"
+	UserOrganizationStatusBusy      UserOrganizationStatus = "busy"
+	UserOrganizationStatusVacation  UserOrganizationStatus = "vacation"
 	UserOrganizationStatusCommuting UserOrganizationStatus = "commuting"
 )
 
 type UserOrganizationType string
 
 const (
-	UserOrganizationTypeOwner UserOrganizationType = "owner"
+	UserOrganizationTypeOwner    UserOrganizationType = "owner"
 	UserOrganizationTypeEmployee UserOrganizationType = "employee"
-	UserOrganizationTypeMember UserOrganizationType = "member"
+	UserOrganizationTypeMember   UserOrganizationType = "member"
 )
 
 type (

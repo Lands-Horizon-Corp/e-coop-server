@@ -13,7 +13,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-
 func (c *Controller) loanTransactionController() {
 	req := c.provider.Service.Request
 

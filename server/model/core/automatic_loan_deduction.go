@@ -56,7 +56,6 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
-
 	AutomaticLoanDeductionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -97,7 +96,6 @@ type (
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
-
 
 	AutomaticLoanDeductionRequest struct {
 		AccountID           *uuid.UUID `json:"account_id" validate:"required"`

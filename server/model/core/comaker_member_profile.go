@@ -40,7 +40,6 @@ type (
 		YearCount   int     `gorm:"type:int;default:0" json:"year_count"`
 	}
 
-
 	ComakerMemberProfileResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -65,7 +64,6 @@ type (
 		MonthsCount int     `json:"months_count"`
 		YearCount   int     `json:"year_count"`
 	}
-
 
 	ComakerMemberProfileRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`

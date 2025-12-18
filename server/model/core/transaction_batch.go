@@ -14,7 +14,7 @@ import (
 type TransactionBatchBalanceStatus string
 
 const (
-	TransactionBatchBalanced TransactionBatchBalanceStatus = "balanced"
+	TransactionBatchBalanced        TransactionBatchBalanceStatus = "balanced"
 	TransactionBatchBalanceOverage  TransactionBatchBalanceStatus = "balance overage"
 	TransactionBatchBalanceShortage TransactionBatchBalanceStatus = "balance shortage"
 )

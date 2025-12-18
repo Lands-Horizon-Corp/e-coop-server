@@ -22,7 +22,6 @@ type (
 		DeletedAt     gorm.DeletedAt `gorm:"index"`
 	}
 
-
 	ContactUsResponse struct {
 		ID            uuid.UUID `json:"id"`
 		FirstName     string    `json:"first_name"`
@@ -33,7 +32,6 @@ type (
 		CreatedAt     string    `json:"created_at"`
 		UpdatedAt     string    `json:"updated_at"`
 	}
-
 
 	ContactUsRequest struct {
 		ID            *uuid.UUID `json:"id,omitempty"`

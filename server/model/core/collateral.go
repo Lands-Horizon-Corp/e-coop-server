@@ -34,7 +34,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	CollateralResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -51,7 +50,6 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
-
 
 	CollateralRequest struct {
 		Icon        string `json:"icon,omitempty"`

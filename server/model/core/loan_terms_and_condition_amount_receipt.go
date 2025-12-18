@@ -37,7 +37,6 @@ type (
 		Amount float64 `gorm:"type:decimal"`
 	}
 
-
 	LoanTermsAndConditionAmountReceiptResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -56,7 +55,6 @@ type (
 		Account           *AccountResponse         `json:"account,omitempty"`
 		Amount            float64                  `json:"amount"`
 	}
-
 
 	LoanTermsAndConditionAmountReceiptRequest struct {
 		ID                *uuid.UUID `json:"id"`

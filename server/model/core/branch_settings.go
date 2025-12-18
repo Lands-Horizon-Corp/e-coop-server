@@ -76,9 +76,7 @@ type (
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
 	}
 
-
 	BranchSettingRequest struct {
-
 		WithdrawAllowUserInput bool   `json:"withdraw_allow_user_input"`
 		WithdrawPrefix         string `json:"withdraw_prefix" validate:"omitempty"`
 		WithdrawORStart        int    `json:"withdraw_or_start" validate:"min=0"`
@@ -121,7 +119,6 @@ type (
 		TaxInterest         float64    `json:"tax_interest" validate:"min=0"`
 	}
 
-
 	BranchSettingsCurrencyRequest struct {
 		CurrencyID                   uuid.UUID  `json:"currency_id" validate:"required"`
 		PaidUpSharedCapitalAccountID uuid.UUID  `json:"paid_up_shared_capital_account_id" validate:"required"`
@@ -131,7 +128,6 @@ type (
 		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
 		UnbalancedAccountDeleteIDs uuid.UUIDs                 `json:"unbalanced_account_delete_ids,omitempty"`
 	}
-
 
 	BranchSettingResponse struct {
 		ID         uuid.UUID         `json:"id"`

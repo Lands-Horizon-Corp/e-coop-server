@@ -46,7 +46,6 @@ type (
 		Description     string     `gorm:"type:text"`
 	}
 
-
 	CheckRemittanceResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -75,7 +74,6 @@ type (
 		DateEntry          *string                   `json:"date_entry,omitempty"`
 		Description        string                    `json:"description"`
 	}
-
 
 	CheckRemittanceRequest struct {
 		BankID             uuid.UUID  `json:"bank_id" validate:"required"`

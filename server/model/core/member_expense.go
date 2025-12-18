@@ -36,7 +36,6 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
-
 	MemberExpenseResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -55,7 +54,6 @@ type (
 		Amount          float64                `json:"amount"`
 		Description     string                 `json:"description"`
 	}
-
 
 	MemberExpenseRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

@@ -9,9 +9,9 @@ import (
 )
 
 type Controller struct {
-	provider *server.Provider
-	core     *core.Core
-	event    *event.Event
+	provider              *server.Provider
+	core                  *core.Core
+	event                 *event.Event
 	userOrganizationToken *tokens.UserOrganizationToken
 	userToken             *tokens.UserToken
 	usecase               *usecase.UsecaseService

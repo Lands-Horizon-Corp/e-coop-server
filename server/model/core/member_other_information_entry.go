@@ -33,7 +33,6 @@ type (
 		EntryDate   time.Time `gorm:"type:timestamp"`
 	}
 
-
 	MemberOtherInformationEntryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -50,7 +49,6 @@ type (
 		Description    string                `json:"description"`
 		EntryDate      string                `json:"entry_date"`
 	}
-
 
 	MemberOtherInformationEntryRequest struct {
 		Name        string    `json:"name" validate:"required,min=1,max=255"`

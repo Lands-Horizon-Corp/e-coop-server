@@ -33,7 +33,6 @@ type (
 		Description string `gorm:"type:text"`
 	}
 
-
 	MemberCenterResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -49,7 +48,6 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
-
 
 	MemberCenterRequest struct {
 		Name        string `json:"name" validate:"required,min=1,max=255"`

@@ -38,7 +38,6 @@ type (
 		Description string `gorm:"type:text" json:"description"`
 	}
 
-
 	MemberProfileMediaResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`

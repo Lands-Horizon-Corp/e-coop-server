@@ -35,7 +35,6 @@ type (
 		MemberDepartment   *MemberDepartment `gorm:"foreignKey:MemberDepartmentID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_department,omitempty"`
 	}
 
-
 	MemberDepartmentHistoryResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,7 +54,6 @@ type (
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
-
 
 	MemberDepartmentHistoryRequest struct {
 		MemberDepartmentID uuid.UUID `json:"member_department_id" validate:"required"`

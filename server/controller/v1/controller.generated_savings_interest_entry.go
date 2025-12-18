@@ -407,7 +407,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No entry IDs provided for bulk delete"})
 		}
-ids := make([]any, len(reqBody.IDs))
+		ids := make([]any, len(reqBody.IDs))
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}

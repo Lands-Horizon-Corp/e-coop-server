@@ -130,7 +130,6 @@ const (
 	DiminishingStraight ComputationType = "DiminishingStraight"
 )
 
-
 type (
 	Account struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
@@ -264,7 +263,6 @@ type (
 	}
 )
 
-
 type AccountResponse struct {
 	ID             uuid.UUID             `json:"id"`
 	CreatedAt      string                `json:"created_at"`
@@ -370,7 +368,7 @@ type AccountResponse struct {
 	ShowInGeneralLedgerSourcePayment        bool   `json:"show_in_general_ledger_source_payment"`
 	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
 	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
-	ShowInGeneralLedgerSourceCheckVoucher bool `json:"show_in_general_ledger_source_check_voucher"`
+	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
 
 	CompassionFund              bool                        `json:"compassion_fund"`
 	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
@@ -477,7 +475,6 @@ type AccountRequest struct {
 	InterestMaturity            float64                     `json:"interest_maturity,omitempty"`
 	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
 }
-
 
 func (m *Core) account() {
 	m.Migration = append(m.Migration, &Account{})

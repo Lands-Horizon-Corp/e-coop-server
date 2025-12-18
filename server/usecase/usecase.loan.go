@@ -381,7 +381,6 @@ func (t *UsecaseService) SuggestedNumberOfTerms(
 	return numberOfTerms, nil
 }
 
-
 func (t *UsecaseService) ComputeFines(
 	balance float64,
 	finesAmortRate float64,

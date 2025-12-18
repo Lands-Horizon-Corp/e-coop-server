@@ -43,7 +43,6 @@ func Sanitize(input string) string {
 	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
 }
 
-
 func IsValidFilePath(p string) error {
 	info, err := os.Stat(p)
 	if os.IsNotExist(err) {
@@ -82,7 +81,6 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data any, _ echo.Con
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
-
 func Validate[T any](ctx echo.Context, v *validator.Validate) (*T, error) {
 	var req T
 	if err := ctx.Bind(&req); err != nil {
@@ -101,7 +99,6 @@ func EngineUUIDParam(ctx echo.Context, param string) (*uuid.UUID, error) {
 	}
 	return &id, nil
 }
-
 
 func Capitalize(s string) string {
 	if s == "" {
@@ -153,7 +150,6 @@ func IsZero[T comparable](v T) bool {
 	return v == *new(T)
 }
 
-
 func GetFreePort() int {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -162,7 +158,6 @@ func GetFreePort() int {
 	defer func() { _ = l.Close() }()
 	return l.Addr().(*net.TCPAddr).Port
 }
-
 
 func GenerateToken() (string, error) {
 	id, err := uuid.NewRandom()
@@ -186,7 +181,6 @@ func Create32ByteKey(key []byte) []byte {
 	copy(padded, key)
 	return padded
 }
-
 
 var phoneRegex = regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`)
 
@@ -218,7 +212,6 @@ func ParseCoordinate(value string) float64 {
 	return coord
 }
 
-
 func ParseUUID(s *string) uuid.UUID {
 	if s == nil || *s == "" {
 		return uuid.Nil
@@ -229,7 +222,6 @@ func ParseUUID(s *string) uuid.UUID {
 	}
 	return id
 }
-
 
 func GenerateRandomDigits(size int) (int, error) {
 	switch {
@@ -250,7 +242,6 @@ func GenerateRandomDigits(size int) (int, error) {
 	return int(n.Add(n, minVal).Int64()), nil
 }
 
-
 func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() error) error {
 	var err error
 	for range maxAttempts {
@@ -265,7 +256,6 @@ func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() 
 	}
 	return eris.Wrapf(err, "after %d attempts", maxAttempts)
 }
-
 
 func PrintASCIIArt() {
 	art := `

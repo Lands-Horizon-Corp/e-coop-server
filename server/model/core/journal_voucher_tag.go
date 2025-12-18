@@ -38,7 +38,6 @@ type (
 		Icon        string `gorm:"type:varchar(20)"`
 	}
 
-
 	JournalVoucherTagResponse struct {
 		ID               uuid.UUID             `json:"id"`
 		CreatedAt        string                `json:"created_at"`
@@ -58,7 +57,6 @@ type (
 		Color            string                `json:"color"`
 		Icon             string                `json:"icon"`
 	}
-
 
 	JournalVoucherTagRequest struct {
 		JournalVoucherID *uuid.UUID `json:"journal_voucher_id,omitempty"`

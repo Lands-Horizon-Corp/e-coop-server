@@ -115,7 +115,6 @@ type (
 		TotalCredit float64 `json:"total_credit"`
 	}
 
-
 	JournalVoucherRequest struct {
 		Name              string    `json:"name" validate:"required"`
 		CashVoucherNumber string    `json:"cash_voucher_number,omitempty"`
@@ -128,7 +127,6 @@ type (
 		JournalVoucherEntries        []*JournalVoucherEntryRequest `json:"journal_voucher_entries,omitempty"`
 		JournalVoucherEntriesDeleted uuid.UUIDs                    `json:"journal_voucher_entries_deleted,omitempty"`
 	}
-
 
 	JournalVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number,omitempty"`

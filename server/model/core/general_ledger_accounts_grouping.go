@@ -40,7 +40,6 @@ type (
 		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definition,omitempty"`
 	}
 
-
 	GeneralLedgerAccountsGroupingResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -62,7 +61,6 @@ type (
 
 		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
 	}
-
 
 	GeneralLedgerAccountsGroupingRequest struct {
 		Debit       float64 `json:"debit" validate:"omitempty,gt=0"`

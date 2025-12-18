@@ -36,7 +36,6 @@ type (
 		MemberClassificationInterestRate   *MemberClassificationInterestRate `gorm:"foreignKey:MemberClassificationInterestRateID;constraint:OnDelete:SET NULL;" json:"member_classification_interest_rate,omitempty"`
 	}
 
-
 	InterestRatePercentageResponse struct {
 		ID                                 uuid.UUID                                 `json:"id"`
 		CreatedAt                          string                                    `json:"created_at"`
@@ -56,7 +55,6 @@ type (
 		MemberClassificationInterestRateID uuid.UUID                                 `json:"member_classification_interest_rate_id"`
 		MemberClassificationInterestRate   *MemberClassificationInterestRateResponse `json:"member_classification_interest_rate,omitempty"`
 	}
-
 
 	InterestRatePercentageRequest struct {
 		Name                               string    `json:"name,omitempty"`

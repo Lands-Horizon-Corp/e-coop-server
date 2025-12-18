@@ -45,7 +45,6 @@ type (
 		Description string  `gorm:"type:text" json:"description"`
 	}
 
-
 	BatchFundingResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
@@ -70,7 +69,6 @@ type (
 		Amount             float64                   `json:"amount"`
 		Description        string                    `json:"description"`
 	}
-
 
 	BatchFundingRequest struct {
 		ProvidedByUserID uuid.UUID  `json:"provided_by_user_id" validate:"required"`

@@ -40,7 +40,6 @@ type (
 		ExistAccount      bool    `gorm:"type:boolean;default:false"`
 	}
 
-
 	ComputationSheetResponse struct {
 		ID                uuid.UUID             `json:"id"`
 		CreatedAt         string                `json:"created_at"`
@@ -63,7 +62,6 @@ type (
 		ComakerAccount    float64               `json:"comaker_account"`
 		ExistAccount      bool                  `json:"exist_account"`
 	}
-
 
 	ComputationSheetRequest struct {
 		Name              string    `json:"name" validate:"required,min=1,max=254"`

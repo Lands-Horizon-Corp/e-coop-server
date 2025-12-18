@@ -114,7 +114,6 @@ type (
 		CashCheckVoucherEntries []*CashCheckVoucherEntry `gorm:"foreignKey:CashCheckVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"cash_check_voucher_entries,omitempty"`
 	}
 
-
 	CashCheckVoucherResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -204,7 +203,6 @@ type (
 		CashCheckVoucherEntries []*CashCheckVoucherEntryResponse `json:"cash_check_voucher_entries,omitempty"`
 	}
 
-
 	CashCheckVoucherRequest struct {
 		CurrencyID uuid.UUID `json:"currency_id" validate:"required"`
 
@@ -258,7 +256,6 @@ type (
 		CashCheckVoucherEntries        []*CashCheckVoucherEntryRequest `json:"cash_check_voucher_entries,omitempty"`
 		CashCheckVoucherEntriesDeleted uuid.UUIDs                      `json:"cash_check_voucher_entries_deleted,omitempty"`
 	}
-
 
 	CashCheckVoucherPrintRequest struct {
 		CashVoucherNumber string `json:"cash_voucher_number" validate:"required"`
@@ -430,7 +427,6 @@ func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizati
 		BranchID:       branchID,
 	})
 }
-
 
 func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{

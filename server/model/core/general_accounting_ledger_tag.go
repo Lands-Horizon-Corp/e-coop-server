@@ -10,7 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type (
 	GeneralLedgerTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -39,7 +38,6 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-
 	GeneralLedgerTagResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -60,7 +58,6 @@ type (
 		Color           string                 `json:"color"`
 		Icon            string                 `json:"icon"`
 	}
-
 
 	GeneralLedgerTagRequest struct {
 		GeneralLedgerID uuid.UUID   `json:"general_ledger_id" validate:"required"`

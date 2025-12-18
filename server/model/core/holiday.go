@@ -36,7 +36,6 @@ type (
 		Description string    `gorm:"type:text"`
 	}
 
-
 	HolidayResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -55,7 +54,6 @@ type (
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
 	}
-
 
 	HolidayRequest struct {
 		EntryDate   time.Time `json:"entry_date" validate:"required"`

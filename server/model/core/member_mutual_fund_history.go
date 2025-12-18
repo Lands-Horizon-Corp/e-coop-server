@@ -30,7 +30,6 @@ type (
 		Description string  `gorm:"type:text"`
 	}
 
-
 	MemberMutualFundHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -45,7 +44,6 @@ type (
 		Amount          float64                `json:"amount"`
 		Description     string                 `json:"description"`
 	}
-
 
 	MemberMutualFundHistoryRequest struct {
 		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`

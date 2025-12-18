@@ -36,7 +36,6 @@ type (
 		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
 	}
 
-
 	MemberTypeHistoryResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
@@ -54,7 +53,6 @@ type (
 		MemberProfileID uuid.UUID              `json:"member_profile_id"`
 		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
 	}
-
 
 	MemberTypeHistoryRequest struct {
 		MemberTypeID    uuid.UUID `json:"member_type_id" validate:"required"`

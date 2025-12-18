@@ -39,7 +39,6 @@ type (
 		Category    string `gorm:"type:varchar(100);index" json:"category"`
 	}
 
-
 	MemberProfileArchiveResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`

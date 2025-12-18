@@ -11,7 +11,6 @@ import (
 )
 
 type RecordTransactionRequest struct {
-
 	Debit  float64
 	Credit float64
 

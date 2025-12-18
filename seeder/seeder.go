@@ -13,7 +13,6 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-
 const country_code = "PH"
 
 type Seeder struct {
@@ -241,23 +240,23 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					return eris.Wrap(err, "failed to find currency for account seeding")
 				}
 				branch := &core.Branch{
-					CreatedAt:      time.Now().UTC(),
-					CreatedByID:    user.ID,
-					UpdatedAt:      time.Now().UTC(),
-					UpdatedByID:    user.ID,
-					OrganizationID: organization.ID,
-					Type:           []string{"main", "satellite", "branch"}[k%3],
-					Name:           s.faker.Company().Name(),
-					Email:          s.faker.Internet().Email(),
-					Address:        s.faker.Address().Address(),
-					Province:       s.faker.Address().State(),
-					City:           s.faker.Address().City(),
-					Region:         s.faker.Address().State(),
-					Barangay:       s.faker.Address().StreetName(),
-					PostalCode:     s.faker.Address().PostCode(),
-					CurrencyID:     &currency.ID,
-					ContactNumber:  ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
-					MediaID:        &branchMedia.ID,
+					CreatedAt:               time.Now().UTC(),
+					CreatedByID:             user.ID,
+					UpdatedAt:               time.Now().UTC(),
+					UpdatedByID:             user.ID,
+					OrganizationID:          organization.ID,
+					Type:                    []string{"main", "satellite", "branch"}[k%3],
+					Name:                    s.faker.Company().Name(),
+					Email:                   s.faker.Internet().Email(),
+					Address:                 s.faker.Address().Address(),
+					Province:                s.faker.Address().State(),
+					City:                    s.faker.Address().City(),
+					Region:                  s.faker.Address().State(),
+					Barangay:                s.faker.Address().StreetName(),
+					PostalCode:              s.faker.Address().PostCode(),
+					CurrencyID:              &currency.ID,
+					ContactNumber:           ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
+					MediaID:                 &branchMedia.ID,
 					Latitude:                ptr(4.0 + float64(s.faker.IntBetween(0, 1700))/100.0),
 					Longitude:               ptr(116.0 + float64(s.faker.IntBetween(0, 1100))/100.0),
 					TaxIdentificationNumber: ptr(fmt.Sprintf("%09d", s.faker.IntBetween(100000000, 999999999))),

@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -833,38 +832,29 @@ func (m *Core) GetDailyEndingBalances(
 	from, to time.Time,
 	accountID, memberProfileID, organizationID, branchID uuid.UUID,
 ) ([]float64, error) {
-	fmt.Println("GetDailyEndingBalances started")
+
 	if to.Before(from) {
-		fmt.Println("Error: 'to' date is before 'from' date")
+
 		return nil, eris.New("invalid date range: 'to' date cannot be before 'from' date")
 	}
 
 	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
 
-	fmt.Printf("FromDate: %v, ToDate: %v\n", fromDate, toDate)
-
 	entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
 	if err != nil {
-		fmt.Printf("Error getting general ledger entries: %v\n", err)
 		return nil, err
 	}
-	fmt.Printf("Got %d ledger entries\n", len(entries))
 
 	entriesByDate := make(map[string]*GeneralLedger)
-	for i, entry := range entries {
+	for _, entry := range entries {
 		if entry == nil {
-			fmt.Printf("Nil entry at index %d of entries\n", i)
 			continue
 		}
 		dateStr := entry.CreatedAt.UTC().Format("2006-01-02")
 		if existing, exists := entriesByDate[dateStr]; !exists || entry.CreatedAt.After(existing.CreatedAt) {
 			entriesByDate[dateStr] = entry
-			if existing == nil {
-				fmt.Printf("Set entry for date %s\n", dateStr)
-			} else {
-				fmt.Printf("Updated entry for date %s with later CreatedAt\n", dateStr)
-			}
+
 		}
 	}
 
@@ -883,17 +873,11 @@ func (m *Core) GetDailyEndingBalances(
 	startingBalance := 0.0
 	lastEntry, err := m.GeneralLedgerManager.ArrFindOne(ctx, filters, sorts, "Account")
 	if err == nil {
-		if lastEntry == nil {
-			fmt.Println("lastEntry is nil after ArrFindOne but err is nil")
-		} else {
-			fmt.Printf("Found starting last entry balance: %v\n", lastEntry.Balance)
+		if lastEntry != nil {
 			startingBalance = lastEntry.Balance
 		}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		fmt.Printf("Error getting starting balance: %v\n", err)
 		return nil, err
-	} else {
-		fmt.Println("No lastEntry found before fromDate")
 	}
 
 	var dailyBalances []float64
@@ -901,21 +885,12 @@ func (m *Core) GetDailyEndingBalances(
 
 	for currentDate := fromDate; currentDate.Before(toDate) || currentDate.Equal(toDate); currentDate = currentDate.AddDate(0, 0, 1) {
 		dateStr := currentDate.Format("2006-01-02")
-		fmt.Printf("Processing date: %s\n", dateStr)
 		if entry, hasEntry := entriesByDate[dateStr]; hasEntry {
-			if entry == nil {
-				fmt.Printf("Nil entry found for date %s in entriesByDate\n", dateStr)
-			} else {
+			if entry != nil {
 				currentBalance = entry.Balance
-				fmt.Printf("  Updated currentBalance to %v from ledger entry at %s\n", currentBalance, entry.CreatedAt)
 			}
-		} else {
-			fmt.Printf("  No ledger entry found for date %s, using previous/currentBalance = %v\n", dateStr, currentBalance)
 		}
 		dailyBalances = append(dailyBalances, currentBalance)
 	}
-
-	fmt.Printf("Returning dailyBalances: %v\n", dailyBalances)
-	fmt.Println("GetDailyEndingBalances completed")
 	return dailyBalances, nil
 }

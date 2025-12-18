@@ -59,7 +59,6 @@ type (
 		Rate22 float64 `gorm:"type:decimal;default:0"`
 	}
 
-
 	ChargesRateByTermResponse struct {
 		ID                  uuid.UUID                  `json:"id"`
 		CreatedAt           string                     `json:"created_at"`
@@ -100,7 +99,6 @@ type (
 		Rate21              float64                    `json:"rate_21"`
 		Rate22              float64                    `json:"rate_22"`
 	}
-
 
 	ChargesRateByTermRequest struct {
 		ID *uuid.UUID `json:"id,omitempty"`

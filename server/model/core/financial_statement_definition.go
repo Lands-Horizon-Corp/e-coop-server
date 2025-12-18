@@ -44,7 +44,6 @@ type (
 		FinancialStatementType string `gorm:"type:varchar(255)"`
 	}
 
-
 	FinancialStatementDefinitionResponse struct {
 		ID             uuid.UUID             `json:"id"`
 		CreatedAt      string                `json:"created_at"`
@@ -71,7 +70,6 @@ type (
 		IsPosting                    bool                                `json:"is_posting"`
 		FinancialStatementType       string                              `json:"financial_statement_type"`
 	}
-
 
 	FinancialStatementDefinitionRequest struct {
 		Name                                  string     `json:"name" validate:"required,min=1,max=255"`

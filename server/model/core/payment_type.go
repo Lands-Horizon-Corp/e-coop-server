@@ -13,11 +13,11 @@ import (
 type TypeOfPaymentType string
 
 const (
-	PaymentTypeCash TypeOfPaymentType = "cash"
-	PaymentTypeCheck TypeOfPaymentType = "check"
-	PaymentTypeOnline TypeOfPaymentType = "online"
+	PaymentTypeCash       TypeOfPaymentType = "cash"
+	PaymentTypeCheck      TypeOfPaymentType = "check"
+	PaymentTypeOnline     TypeOfPaymentType = "online"
 	PaymentTypeAdjustment TypeOfPaymentType = "adjustment"
-	PaymentTypeSystem TypeOfPaymentType = "system"
+	PaymentTypeSystem     TypeOfPaymentType = "system"
 )
 
 type (

@@ -37,7 +37,6 @@ type (
 		Rate  float64 `gorm:"type:decimal;default:0"`
 	}
 
-
 	TimeDepositComputationPreMatureResponse struct {
 		ID                uuid.UUID                `json:"id"`
 		CreatedAt         string                   `json:"created_at"`
@@ -57,7 +56,6 @@ type (
 		To                int                      `json:"to"`
 		Rate              float64                  `json:"rate"`
 	}
-
 
 	TimeDepositComputationPreMatureRequest struct {
 		ID                *uuid.UUID `json:"id,omitempty"`

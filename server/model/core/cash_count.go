@@ -42,7 +42,6 @@ type (
 		Amount     float64 `gorm:"type:decimal"`
 	}
 
-
 	CashCountResponse struct {
 		ID                 uuid.UUID                 `json:"id"`
 		CreatedAt          string                    `json:"created_at"`
