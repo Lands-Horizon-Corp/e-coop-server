@@ -124,7 +124,7 @@ func (m *Core) browseReference() {
 		BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "Organization", "Branch", "Account", "Account.Currency",
+			"Account", "Account.Currency",
 			"MemberType", "InterestRatesByYear", "InterestRatesByDate", "InterestRatesByAmount",
 		},
 		Database: m.provider.Service.Database.Client(),

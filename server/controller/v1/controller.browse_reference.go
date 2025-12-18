@@ -508,4 +508,49 @@ func (c *Controller) browseReferenceController() {
 
 		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
 	})
+
+	// GET /api/v1/browse-reference/account/:account_id/member-type/:member_type_id
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/browse-reference/account/:account_id/member-type/:member_type_id",
+		Method:       "GET",
+		ResponseType: core.BrowseReferenceResponse{},
+		Note:         "Retrieves browse references by account and member type for the current branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid account ID",
+			})
+		}
+		memberTypeID, err := handlers.EngineUUIDParam(ctx, "member_type_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid member type ID",
+			})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "User authentication failed or organization not found",
+			})
+		}
+		browseReference, err := c.core.BrowseReferenceManager.FindOne(
+			context,
+			&core.BrowseReference{
+				AccountID:      accountID,
+				MemberTypeID:   memberTypeID,
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
+			},
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to retrieve browse references: " + err.Error(),
+			})
+		}
+
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(browseReference))
+	})
+
 }
