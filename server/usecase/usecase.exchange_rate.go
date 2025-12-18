@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -63,7 +62,6 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 
 	data, err := fetchJSON(mainURL)
 	if err != nil {
-		log.Printf("Primary source failed, trying fallback... (%v)", err)
 		data, err = fetchJSON(fallbackURL)
 		if err != nil {
 			return nil, eris.Wrap(err, "both sources failed")

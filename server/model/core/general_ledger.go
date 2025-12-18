@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
@@ -320,117 +319,57 @@ func (m *Core) generalLedger() {
 func (m *Core) CreateGeneralLedgerEntry(
 	context context.Context, tx *gorm.DB, data *GeneralLedger,
 ) error {
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: entry (data nil? %v)", data == nil)
 	if data == nil {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: data is nil - returning error")
 		return eris.New("CreateGeneralLedgerEntry: data is nil")
 	}
-
-	// Check common nil-able fields up front and log them
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: OrganizationID=%v BranchID=%v AccountID=%v MemberProfileID=%v",
-		data.OrganizationID, data.BranchID, data.AccountID, data.MemberProfileID)
-
-	if data.Account == nil {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: data.Account is nil")
-	} else {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: data.Account.ID=%v Type=%v GeneralLedgerType=%v",
-			data.Account.ID, data.Account.Type, data.Account.GeneralLedgerType)
-	}
-
-	// Build filters (log each addition)
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: data.OrganizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: data.AccountID},
 	}
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: base filters=%+v", filters)
-
 	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
-		f := registry.FilterSQL{
+		filters = append(filters, registry.FilterSQL{
 			Field: "member_profile_id", Op: query.ModeEqual, Value: data.MemberProfileID,
-		}
-		filters = append(filters, f)
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: appended member_profile filter=%+v", f)
-	} else {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: skipping member_profile filter (account nil? %v, account.Type=%v, memberProfileID nil? %v)",
-			data.Account == nil,
-			func() interface{} {
-				if data.Account == nil {
-					return "<account-nil>"
-				}
-				return data.Account.Type
-			}(),
-			data.MemberProfileID == nil,
-		)
+		})
 	}
-
-	sorts := []query.ArrFilterSortSQL{
-		{Field: "entry_date", Order: "DESC NULLS LAST"},
+	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
-	}
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: sorts=%+v", sorts)
-
-	// Attempt to find the last ledger entry with lock
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: calling GeneralLedgerManager.ArrFindOneWithLock")
-	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, sorts)
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: ArrFindOneWithLock returned ledger nil? %v err=%v", ledger == nil, err)
+	})
 
 	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: ArrFindOneWithLock unexpected error: %v", err)
 			return err
 		}
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: no previous ledger found (record not found) - using zero previousBalance")
 	} else {
-		// ledger may still be nil defensively check
-		if ledger == nil {
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: ledger is nil despite no error - using zero previousBalance")
-		} else {
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: previous ledger found ID=%v Balance=%v", ledger.ID, ledger.Balance)
+		if ledger != nil {
 			previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
 		}
 	}
-
-	// Convert debit/credit to decimals
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: converting Debit=%v Credit=%v to decimals", data.Debit, data.Credit)
 	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
 	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: debitDecimal=%v creditDecimal=%v previousBalance=%v", debitDecimal, creditDecimal, previousBalance)
 
-	// Compute balance change depending on GL type (guard if Account nil)
 	var balanceChange = m.provider.Service.Decimal.NewFromFloat(0)
 	if data.Account == nil {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: data.Account is nil - defaulting to debit - credit calculation")
 		balanceChange = debitDecimal.Sub(creditDecimal)
 	} else {
 		switch data.Account.GeneralLedgerType {
 		case GLTypeAssets, GLTypeExpenses:
 			balanceChange = debitDecimal.Sub(creditDecimal)
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: GLTypeAssets/Expenses -> balanceChange=%v", balanceChange)
 		case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
 			balanceChange = creditDecimal.Sub(debitDecimal)
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: GLTypeLiabilities/Equity/Revenue -> balanceChange=%v", balanceChange)
 		default:
 			balanceChange = debitDecimal.Sub(creditDecimal)
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: default GLType -> balanceChange=%v", balanceChange)
 		}
 	}
 
 	newBalance := previousBalance.Add(balanceChange)
 	nbf, _ := newBalance.Float64()
 	data.Balance = nbf
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: computed newBalance=%v assigned to data.Balance=%v", newBalance, data.Balance)
-
-	// Create the ledger entry
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: calling GeneralLedgerManager.CreateWithTx (about to persist entry)")
 	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: CreateWithTx error: %v", err)
 		return eris.Wrap(err, "failed to create general ledger entry")
 	}
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: GeneralLedgerManager.CreateWithTx succeeded for entry (Balance=%v)", data.Balance)
 
-	// If applicable, update/create member accounting ledger
 	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
 		params := MemberAccountingLedgerUpdateOrCreateParams{
 			MemberProfileID: *data.MemberProfileID,
@@ -442,7 +381,6 @@ func (m *Core) CreateGeneralLedgerEntry(
 			CreditAmount:    data.Credit,
 			LastPayTime:     data.EntryDate,
 		}
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: calling MemberAccountingLedgerUpdateOrCreate with params=%+v", params)
 		_, err = m.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
@@ -450,24 +388,9 @@ func (m *Core) CreateGeneralLedgerEntry(
 			params,
 		)
 		if err != nil {
-			log.Printf("[DEBUG] CreateGeneralLedgerEntry: MemberAccountingLedgerUpdateOrCreate error: %v", err)
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
 		}
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: MemberAccountingLedgerUpdateOrCreate succeeded")
-	} else {
-		log.Printf("[DEBUG] CreateGeneralLedgerEntry: skipping MemberAccountingLedgerUpdateOrCreate (account nil? %v, account.Type=%v, memberProfileID nil? %v)",
-			data.Account == nil,
-			func() interface{} {
-				if data.Account == nil {
-					return "<account-nil>"
-				}
-				return data.Account.Type
-			}(),
-			data.MemberProfileID == nil,
-		)
 	}
-
-	log.Printf("[DEBUG] CreateGeneralLedgerEntry: exit success")
 	return nil
 }
 
