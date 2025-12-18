@@ -136,7 +136,18 @@ func (c *Controller) mutualFundsController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		mutualFund := c.core.CreateMutualFundValue(context, req, userOrg)
+		mutualFund, err := c.core.CreateMutualFundValue(context, req, userOrg)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Mutual fund creation failed (/mutual-fund), validation error: " + err.Error(),
+				Module:      "MutualFund",
+			})
+			return ctx.JSON(
+				http.StatusBadRequest,
+				map[string]string{"error": err.Error()},
+			)
+		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if err := c.core.MutualFundManager.CreateWithTx(context, tx, mutualFund); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -522,47 +533,72 @@ func (c *Controller) mutualFundsController() {
 		ResponseType: core.MutualFundView{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MutualFundManager.Validate(ctx)
+		reqData, err := c.core.MutualFundManager.Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Mutual fund creation failed (/mutual-fund), validation error: " + err.Error(),
+				Activity:    "view-error",
+				Description: "Mutual fund view failed (/mutual-fund/view), validation error: " + err.Error(),
 				Module:      "MutualFund",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund data: " + err.Error()})
+			return ctx.JSON(
+				http.StatusBadRequest,
+				map[string]string{"error": "Invalid mutual fund data: " + err.Error()},
+			)
 		}
 		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Mutual fund creation failed (/mutual-fund), user org error: " + err.Error(),
+				Activity:    "view-error",
+				Description: "Mutual fund view failed (/mutual-fund/view), user org error: " + err.Error(),
 				Module:      "MutualFund",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+			return ctx.JSON(
+				http.StatusUnauthorized,
+				map[string]string{"error": "User organization not found or authentication failed"},
+			)
 		}
 		if userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Mutual fund creation failed (/mutual-fund), user not assigned to branch.",
+				Activity:    "view-error",
+				Description: "Mutual fund view failed (/mutual-fund/view), user not assigned to branch.",
 				Module:      "MutualFund",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+			return ctx.JSON(
+				http.StatusBadRequest,
+				map[string]string{"error": "User is not assigned to a branch"},
+			)
 		}
-		if userOrg.BranchID == nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		mutualFund := c.core.CreateMutualFundValue(context, req, userOrg)
-		mutualFundView, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFund)
+		mutualFund, err := c.core.CreateMutualFundValue(context, reqData, userOrg)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "view-error",
+				Description: "Mutual fund view failed (/mutual-fund/view), build error: " + err.Error(),
+				Module:      "MutualFund",
+			})
+			return ctx.JSON(
+				http.StatusBadRequest,
+				map[string]string{"error": err.Error()},
+			)
+		}
+		mutualFundEntries, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFund)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "view-error",
+				Description: "Mutual fund view failed (/mutual-fund/view), entry generation error: " + err.Error(),
+				Module:      "MutualFund",
+			})
+			return ctx.JSON(
+				http.StatusInternalServerError,
+				map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()},
+			)
 		}
 		total := 0.0
-		for _, entry := range mutualFundView {
+		for _, entry := range mutualFundEntries {
 			total += entry.Amount
 		}
 		return ctx.JSON(http.StatusOK, core.MutualFundView{
 			TotalAmount:       total,
-			MutualFundEntries: c.core.MutualFundEntryManager.ToModels(mutualFundView),
+			MutualFundEntries: c.core.MutualFundEntryManager.ToModels(mutualFundEntries),
 		})
 	})
 

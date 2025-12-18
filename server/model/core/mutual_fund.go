@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -249,15 +250,17 @@ func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.
 		BranchID:        branchID,
 	})
 }
-
 func (m *Core) CreateMutualFundValue(
-	context context.Context,
-	req *MutualFundRequest, userOrg *UserOrganization) *MutualFund {
+	ctx context.Context,
+	req *MutualFundRequest,
+	userOrg *UserOrganization,
+) (*MutualFund, error) {
+
 	now := time.Now().UTC()
 
 	var additionalMembers []*MutualFundAdditionalMembers
 	for _, additionalMember := range req.MutualFundAdditionalMembers {
-		additionalMemberData := &MutualFundAdditionalMembers{
+		additionalMembers = append(additionalMembers, &MutualFundAdditionalMembers{
 			ID:              uuid.New(),
 			MemberTypeID:    additionalMember.MemberTypeID,
 			NumberOfMembers: additionalMember.NumberOfMembers,
@@ -268,34 +271,35 @@ func (m *Core) CreateMutualFundValue(
 			UpdatedByID:     userOrg.UserID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
-		}
-		additionalMembers = append(additionalMembers, additionalMemberData)
+		})
 	}
 
 	var mutualFundTables []*MutualFundTable
-	for _, mutualFundTable := range req.MutualFundTables {
-		mutualFundTableData := &MutualFundTable{
+	for _, table := range req.MutualFundTables {
+		mutualFundTables = append(mutualFundTables, &MutualFundTable{
 			ID:             uuid.New(),
-			MonthFrom:      mutualFundTable.MonthFrom,
-			MonthTo:        mutualFundTable.MonthTo,
-			Amount:         mutualFundTable.Amount,
+			MonthFrom:      table.MonthFrom,
+			MonthTo:        table.MonthTo,
+			Amount:         table.Amount,
 			CreatedAt:      now,
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
 			UpdatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
-		}
-		mutualFundTables = append(mutualFundTables, mutualFundTableData)
+		})
 	}
-	account, err := m.AccountManager.GetByID(context, req.AccountID)
+
+	account, err := m.AccountManager.GetByID(ctx, req.AccountID)
 	if err != nil {
-		return nil
+		return nil, eris.Wrap(err, "failed to get account")
 	}
-	memberProfile, err := m.MemberProfileManager.GetByID(context, req.MemberProfileID)
+
+	memberProfile, err := m.MemberProfileManager.GetByID(ctx, req.MemberProfileID)
 	if err != nil {
-		return nil
+		return nil, eris.Wrap(err, "failed to get member profile")
 	}
+
 	mutualFund := &MutualFund{
 		ID:                uuid.New(),
 		MemberProfileID:   req.MemberProfileID,
@@ -322,9 +326,10 @@ func (m *Core) CreateMutualFundValue(
 	for _, additionalMember := range additionalMembers {
 		additionalMember.MutualFundID = mutualFund.ID
 	}
-	for _, mutualFundTable := range mutualFundTables {
-		mutualFundTable.MutualFundID = mutualFund.ID
+
+	for _, table := range mutualFundTables {
+		table.MutualFundID = mutualFund.ID
 	}
 
-	return mutualFund
+	return mutualFund, nil
 }
