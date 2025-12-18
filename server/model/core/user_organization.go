@@ -320,6 +320,9 @@ func (m *Core) userOrganization() {
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
 
+			"Branch.BranchSetting.CompassionFundAccount",
+			"Branch.BranchSetting.CompassionFundAccount.Currency",
+
 			"Branch.BranchSetting.UnbalancedAccounts.Currency",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
