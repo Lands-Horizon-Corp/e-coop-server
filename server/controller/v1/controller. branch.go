@@ -783,6 +783,7 @@ func (c *Controller) branchController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
+		branchSetting.CompassionFundAccountID = settingsReq.CompassionFundAccountID
 		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
