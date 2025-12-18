@@ -24,7 +24,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		MutualFundID:   mutualFund.ID,
-	}, "MemberProfile", "Account.Currency")
+	}, "MemberProfile", "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
@@ -43,7 +43,6 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			credit = e.provider.Service.Decimal.Abs(entry.Amount)
 			debit = 0
 		}
-
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
@@ -67,7 +66,6 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			return endTx(eris.Wrap(err, "failed to create general ledger entry - (member ledger)"))
 		}
 		if mutualFund.PostAccountID != nil {
-
 			if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 				CreatedAt:         now,
 				CreatedByID:       userOrg.UserID,
@@ -94,12 +92,10 @@ func (e *Event) GenerateMutualFundEntriesPost(
 
 		totalAmount = e.provider.Service.Decimal.Add(totalAmount, entry.Amount)
 	}
-
 	mutualFund.PostedDate = &now
 	mutualFund.PostedByUserID = &userOrg.UserID
 	mutualFund.TotalAmount = totalAmount
 	mutualFund.PostAccountID = request.PostAccountID
-
 	if err := e.core.MutualFundManager.UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
