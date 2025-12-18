@@ -104,6 +104,7 @@ func (e *Event) GenerateMutualFundEntries(
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				MemberProfileID: profile.ID,
+				MemberProfile:   profile,
 				Amount:          amount,
 			})
 		}
