@@ -43,7 +43,8 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			credit = e.provider.Service.Decimal.Abs(entry.Amount)
 			debit = 0
 		}
-		memberLedger := &core.GeneralLedger{
+
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         now,
@@ -62,13 +63,12 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			Debit:             debit,
 			CurrencyID:        entry.Account.CurrencyID,
 			Account:           entry.Account,
-		}
-
-		if err := e.core.CreateGeneralLedgerEntry(context, tx, memberLedger); err != nil {
+		}); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry - (member ledger)"))
 		}
 		if mutualFund.PostAccountID != nil {
-			postLedger := &core.GeneralLedger{
+
+			if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 				CreatedAt:         now,
 				CreatedByID:       userOrg.UserID,
 				UpdatedAt:         now,
@@ -87,9 +87,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 				Debit:             credit,
 				CurrencyID:        mutualFund.PostAccount.CurrencyID,
 				Account:           mutualFund.PostAccount,
-			}
-
-			if err := e.core.CreateGeneralLedgerEntry(context, tx, postLedger); err != nil {
+			}); err != nil {
 				return endTx(eris.Wrap(err, "failed to create general ledger entry - (post account)"))
 			}
 		}
