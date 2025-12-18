@@ -235,8 +235,8 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 
 	dailyBalances, err := m.GetDailyEndingBalances(
 		context,
-		generatedSavingsInterest.NewComputationDate,
 		generatedSavingsInterest.LastComputationDate,
+		generatedSavingsInterest.NewComputationDate,
 		generatedSavingsInterestEntry.AccountID,
 		generatedSavingsInterestEntry.MemberProfileID,
 		generatedSavingsInterestEntry.OrganizationID,
