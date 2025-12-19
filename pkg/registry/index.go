@@ -52,6 +52,10 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 	if params.Database != nil {
 		client = params.Database.Model(new(TData))
 	}
+	if params.Database == nil {
+		panic("NewRegistry: params.Database must not be nil")
+	}
+
 	return &Registry[TData, TResponse, TRequest]{
 		columnDefaultID:   params.ColumnDefaultID,
 		columnDefaultSort: params.ColumnDefaultSort,
