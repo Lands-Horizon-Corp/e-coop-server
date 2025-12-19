@@ -16,7 +16,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	request core.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID)
+	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID, "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
@@ -62,6 +62,16 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			Debit:             debit,
 			CurrencyID:        entry.Account.CurrencyID,
 			Account:           entry.Account,
+
+			// TransactionBatchID:         &transactionBatch.ID,
+			// TransactionID:              &transaction.ID,
+			// SignatureMediaID:           data.SignatureMediaID,
+			// ProofOfPaymentMediaID:      data.ProofOfPaymentMediaID,
+			// BankID:                     data.BankID,
+			// MemberJointAccountID:       memberJointAccountID,
+			// PaymentTypeID:              &paymentType.ID,
+			// TransactionReferenceNumber: data.ReferenceNumber,
+
 		}); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry - (member ledger)"))
 		}

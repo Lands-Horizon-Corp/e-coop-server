@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -20,15 +21,16 @@ func (r *Registry[TData, TResponse, TRequest]) Create(
 }
 
 func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
-	context context.Context,
+	ctx context.Context,
 	tx *gorm.DB,
 	data *TData,
 ) error {
-
-	if err := tx.Create(data).WithContext(context).Error; err != nil {
+	if tx == nil {
+		return eris.New("tx is nil")
+	}
+	if err := tx.WithContext(ctx).Create(data).Error; err != nil {
 		return fmt.Errorf("failed to create entity with transaction: %w", err)
 	}
-	r.OnCreate(context, data)
 	return nil
 }
 
@@ -48,7 +50,7 @@ func (r *Registry[TData, TResponse, TRequest]) CreateManyWithTx(
 	tx *gorm.DB,
 	data []*TData,
 ) error {
-	if err := tx.Create(data).WithContext(context).Error; err != nil {
+	if err := tx.WithContext(context).Create(data).Error; err != nil {
 		return fmt.Errorf("failed to create entities with transaction: %w", err)
 	}
 	for _, entity := range data {

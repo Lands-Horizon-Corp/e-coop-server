@@ -238,7 +238,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, nil)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil // Not found, but not an error - allows create-or-update pattern
+			return nil, nil
 		}
 		return nil, err
 	}
