@@ -89,6 +89,12 @@ func (e *Event) GenerateMutualFundEntries(
 
 		case core.ComputationTypeSufficient:
 			fmt.Printf("[DEBUG] Entering ComputationTypeSufficient branch\n")
+
+			fmt.Printf("[DEBUG] About to query MemberAccountingLedger for profile ID=%v\n", profile.ID)
+			fmt.Printf("[DEBUG]   - AccountID: %v (pointer: %p, deref: %v)\n", mutualFund.AccountID, mutualFund.AccountID, *mutualFund.AccountID)
+			fmt.Printf("[DEBUG]   - BranchID: %v (pointer: %p, deref: %v)\n", userOrg.BranchID, userOrg.BranchID, *userOrg.BranchID)
+			fmt.Printf("[DEBUG]   - OrganizationID: %v\n", userOrg.OrganizationID)
+			fmt.Printf("[DEBUG]   - MemberProfileID: %v\n", profile.ID)
 			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
