@@ -104,9 +104,6 @@ func (p *Pagination[T]) NormalFindOne(
 	var entity T
 	err := db.First(&entity).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to find entity: %w", err)
 	}
 	return &entity, nil
