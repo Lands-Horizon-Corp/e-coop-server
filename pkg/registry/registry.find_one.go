@@ -24,7 +24,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneWithLock(
 	fields *TData,
 	preloads ...string,
 ) (*TData, error) {
-	entity, err := r.pagination.NormalFindOneWithLock(r.client.WithContext(context), *fields, r.preload(preloads...)...)
+	entity, err := r.pagination.NormalFindOneWithLock(r.client.WithContext(context), fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneWithLockRaw(
 	fields *TData,
 	preloads ...string,
 ) (*TResponse, error) {
-	entity, err := r.pagination.NormalFindOneWithLock(tx, *fields, r.preload(preloads...)...)
+	entity, err := r.pagination.NormalFindOneWithLock(tx, fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
