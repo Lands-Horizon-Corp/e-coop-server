@@ -120,7 +120,7 @@ type (
 
 func (m *Core) automaticLoanDeduction() {
 	m.Migration = append(m.Migration, &AutomaticLoanDeduction{})
-	m.AutomaticLoanDeductionManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AutomaticLoanDeductionManager = registry.NewRegistry(registry.RegistryParams[
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
 	]{
 		Preloads: []string{

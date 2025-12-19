@@ -68,7 +68,7 @@ type (
 
 func (m *Core) generalAccountGroupingNetSurplusNegative() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusNegative{})
-	m.Generalaccountgroupingnetsurplusnegativemanager = *registry.NewRegistry(registry.RegistryParams[
+	m.Generalaccountgroupingnetsurplusnegativemanager = registry.NewRegistry(registry.RegistryParams[
 		GeneralAccountGroupingNetSurplusNegative,
 		GeneralAccountGroupingNetSurplusNegativeResponse,
 		GeneralAccountGroupingNetSurplusNegativeRequest,

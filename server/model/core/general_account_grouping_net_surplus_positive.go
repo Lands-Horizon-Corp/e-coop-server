@@ -68,7 +68,7 @@ type (
 
 func (m *Core) generalAccountGroupingNetSurplusPositive() {
 	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusPositive{})
-	m.GeneralAccountGroupingNetSurplusPositiveManager = *registry.NewRegistry(registry.RegistryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
+	m.GeneralAccountGroupingNetSurplusPositiveManager = registry.NewRegistry(registry.RegistryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},

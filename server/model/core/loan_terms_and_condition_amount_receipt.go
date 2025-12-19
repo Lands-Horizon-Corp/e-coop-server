@@ -66,7 +66,7 @@ type (
 
 func (m *Core) loanTermsAndConditionAmountReceipt() {
 	m.Migration = append(m.Migration, &LoanTermsAndConditionAmountReceipt{})
-	m.LoanTermsAndConditionAmountReceiptManager = *registry.NewRegistry(registry.RegistryParams[
+	m.LoanTermsAndConditionAmountReceiptManager = registry.NewRegistry(registry.RegistryParams[
 		LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest,
 	]{
 		Preloads: []string{

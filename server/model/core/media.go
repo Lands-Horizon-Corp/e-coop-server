@@ -52,7 +52,7 @@ type (
 
 func (m *Core) media() {
 	m.Migration = append(m.Migration, &Media{})
-	m.MediaManager = *registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
+	m.MediaManager = registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
 		Preloads: nil,
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

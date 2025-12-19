@@ -71,7 +71,7 @@ type (
 
 func (m *Core) generalLedgerTag() {
 	m.Migration = append(m.Migration, &GeneralLedgerTag{})
-	m.GeneralLedgerTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.GeneralLedgerTagManager = registry.NewRegistry(registry.RegistryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{

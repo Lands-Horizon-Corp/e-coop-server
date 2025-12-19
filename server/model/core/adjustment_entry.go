@@ -126,7 +126,7 @@ type (
 
 func (m *Core) adjustmentEntry() {
 	m.Migration = append(m.Migration, &AdjustmentEntry{})
-	m.AdjustmentEntryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AdjustmentEntryManager = registry.NewRegistry(registry.RegistryParams[
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{

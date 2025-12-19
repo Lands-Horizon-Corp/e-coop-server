@@ -56,7 +56,7 @@ type (
 
 func (m *Core) groceryComputationSheet() {
 	m.Migration = append(m.Migration, &GroceryComputationSheet{})
-	m.GroceryComputationSheetManager = *registry.NewRegistry(registry.RegistryParams[
+	m.GroceryComputationSheetManager = registry.NewRegistry(registry.RegistryParams[
 		GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest,
 	]{
 		Preloads: []string{

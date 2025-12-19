@@ -71,7 +71,7 @@ type (
 
 func (m *Core) accountTag() {
 	m.Migration = append(m.Migration, &AccountTag{})
-	m.AccountTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AccountTagManager = registry.NewRegistry(registry.RegistryParams[
 		AccountTag, AccountTagResponse, AccountTagRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},

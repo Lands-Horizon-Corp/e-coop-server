@@ -61,7 +61,7 @@ type (
 
 func (m *Core) memberCloseRemark() {
 	m.Migration = append(m.Migration, &MemberCloseRemark{})
-	m.MemberCloseRemarkManager = *registry.NewRegistry(registry.RegistryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
+	m.MemberCloseRemarkManager = registry.NewRegistry(registry.RegistryParams[MemberCloseRemark, MemberCloseRemarkResponse, MemberCloseRemarkRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

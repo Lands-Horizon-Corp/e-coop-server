@@ -123,7 +123,7 @@ type (
 
 func (m *Core) branch() {
 	m.Migration = append(m.Migration, &Branch{})
-	m.BranchManager = *registry.NewRegistry(registry.RegistryParams[Branch, BranchResponse, BranchRequest]{
+	m.BranchManager = registry.NewRegistry(registry.RegistryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{
 			"Media",
 			"CreatedBy",

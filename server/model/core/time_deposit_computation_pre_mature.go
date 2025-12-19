@@ -69,7 +69,7 @@ type (
 
 func (m *Core) timeDepositComputationPreMature() {
 	m.Migration = append(m.Migration, &TimeDepositComputationPreMature{})
-	m.TimeDepositComputationPreMatureManager = *registry.NewRegistry(registry.RegistryParams[
+	m.TimeDepositComputationPreMatureManager = registry.NewRegistry(registry.RegistryParams[
 		TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest,
 	]{
 		Preloads: []string{

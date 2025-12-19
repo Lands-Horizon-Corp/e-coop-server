@@ -55,7 +55,7 @@ type (
 
 func (m *Core) memberMutualFundHistory() {
 	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
-	m.MemberMutualFundHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+	m.MemberMutualFundHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

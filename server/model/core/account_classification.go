@@ -399,7 +399,7 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 }
 func (m *Core) accountClassification() {
 	m.Migration = append(m.Migration, &AccountClassification{})
-	m.AccountClassificationManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AccountClassificationManager = registry.NewRegistry(registry.RegistryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

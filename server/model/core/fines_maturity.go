@@ -65,7 +65,7 @@ type (
 
 func (m *Core) finesMaturity() {
 	m.Migration = append(m.Migration, &FinesMaturity{})
-	m.FinesMaturityManager = *registry.NewRegistry(registry.RegistryParams[
+	m.FinesMaturityManager = registry.NewRegistry(registry.RegistryParams[
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
 	]{
 		Preloads: []string{

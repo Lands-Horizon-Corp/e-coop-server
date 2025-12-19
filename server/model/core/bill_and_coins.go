@@ -69,7 +69,7 @@ type (
 
 func (m *Core) billAndCoins() {
 	m.Migration = append(m.Migration, &BillAndCoins{})
-	m.BillAndCoinsManager = *registry.NewRegistry(registry.RegistryParams[
+	m.BillAndCoinsManager = registry.NewRegistry(registry.RegistryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},

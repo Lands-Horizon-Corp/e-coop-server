@@ -64,7 +64,7 @@ type (
 
 func (m *Core) bank() {
 	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = *registry.NewRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
+	m.BankManager = registry.NewRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

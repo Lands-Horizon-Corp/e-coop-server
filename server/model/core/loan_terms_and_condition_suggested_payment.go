@@ -63,7 +63,7 @@ type (
 
 func (m *Core) loanTermsAndConditionSuggestedPayment() {
 	m.Migration = append(m.Migration, &LoanTermsAndConditionSuggestedPayment{})
-	m.LoanTermsAndConditionSuggestedPaymentManager = *registry.NewRegistry(registry.RegistryParams[
+	m.LoanTermsAndConditionSuggestedPaymentManager = registry.NewRegistry(registry.RegistryParams[
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{

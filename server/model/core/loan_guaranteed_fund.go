@@ -56,7 +56,7 @@ type (
 
 func (m *Core) loanGuaranteedFund() {
 	m.Migration = append(m.Migration, &LoanGuaranteedFund{})
-	m.LoanGuaranteedFundManager = *registry.NewRegistry(registry.RegistryParams[
+	m.LoanGuaranteedFundManager = registry.NewRegistry(registry.RegistryParams[
 		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{

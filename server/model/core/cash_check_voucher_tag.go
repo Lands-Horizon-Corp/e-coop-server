@@ -70,7 +70,7 @@ type (
 
 func (m *Core) cashCheckVoucherTag() {
 	m.Migration = append(m.Migration, &CashCheckVoucherTag{})
-	m.CashCheckVoucherTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.CashCheckVoucherTagManager = registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest,
 	]{
 		Preloads: []string{

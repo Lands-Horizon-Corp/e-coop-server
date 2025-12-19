@@ -219,7 +219,7 @@ type (
 
 func (m *Core) generalLedger() {
 	m.Migration = append(m.Migration, &GeneralLedger{})
-	m.GeneralLedgerManager = *registry.NewRegistry(registry.RegistryParams[
+	m.GeneralLedgerManager = registry.NewRegistry(registry.RegistryParams[
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{

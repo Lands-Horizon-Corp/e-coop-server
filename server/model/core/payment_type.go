@@ -72,7 +72,7 @@ type (
 
 func (m *Core) paymentType() {
 	m.Migration = append(m.Migration, &PaymentType{})
-	m.PaymentTypeManager = *registry.NewRegistry(registry.RegistryParams[
+	m.PaymentTypeManager = registry.NewRegistry(registry.RegistryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

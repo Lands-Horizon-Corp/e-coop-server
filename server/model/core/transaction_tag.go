@@ -73,7 +73,7 @@ type (
 
 func (m *Core) transactionTag() {
 	m.Migration = append(m.Migration, &TransactionTag{})
-	m.TransactionTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.TransactionTagManager = registry.NewRegistry(registry.RegistryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{

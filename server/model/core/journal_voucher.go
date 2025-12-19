@@ -135,7 +135,7 @@ type (
 
 func (m *Core) journalVoucher() {
 	m.Migration = append(m.Migration, &JournalVoucher{})
-	m.JournalVoucherManager = *registry.NewRegistry(registry.RegistryParams[
+	m.JournalVoucherManager = registry.NewRegistry(registry.RegistryParams[
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{

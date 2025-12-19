@@ -71,7 +71,7 @@ type (
 
 func (m *Core) adjustmentTag() {
 	m.Migration = append(m.Migration, &AdjustmentTag{})
-	m.AdjustmentTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AdjustmentTagManager = registry.NewRegistry(registry.RegistryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{

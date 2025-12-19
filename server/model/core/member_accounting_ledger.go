@@ -116,7 +116,7 @@ type (
 
 func (m *Core) memberAccountingLedger() {
 	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager = *registry.NewRegistry(registry.RegistryParams[
+	m.MemberAccountingLedgerManager = registry.NewRegistry(registry.RegistryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{

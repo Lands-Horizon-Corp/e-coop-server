@@ -180,7 +180,7 @@ type (
 
 func (m *Core) user() {
 	m.Migration = append(m.Migration, &User{})
-	m.UserManager = *registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
+	m.UserManager = registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
 			"SignatureMedia",

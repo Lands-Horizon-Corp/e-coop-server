@@ -68,7 +68,7 @@ type (
 
 func (m *Core) interestRateByAmount() {
 	m.Migration = append(m.Migration, &InterestRateByAmount{})
-	m.InterestRateByAmountManager = *registry.NewRegistry(registry.RegistryParams[
+	m.InterestRateByAmountManager = registry.NewRegistry(registry.RegistryParams[
 		InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest,
 	]{
 		Preloads: []string{

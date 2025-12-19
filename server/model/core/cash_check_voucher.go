@@ -264,7 +264,7 @@ type (
 
 func (m *Core) cashCheckVoucher() {
 	m.Migration = append(m.Migration, &CashCheckVoucher{})
-	m.CashCheckVoucherManager = *registry.NewRegistry(registry.RegistryParams[
+	m.CashCheckVoucherManager = registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
