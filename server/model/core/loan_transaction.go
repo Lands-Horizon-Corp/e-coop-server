@@ -717,7 +717,7 @@ func (m *Core) loanTransaction() {
 			"ComakerCollaterals", "ComakerCollaterals.Collateral",
 			"PreviousLoan.Account",
 			"ReleasedBy", "PrintedBy", "ApprovedBy",
-			"LoanAccounts", "LoanAccounts.Currency",
+			"LoanAccounts", "LoanAccounts.Account", "LoanAccounts.Account.Currency",
 			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
 		Database: m.provider.Service.Database.Client(),
