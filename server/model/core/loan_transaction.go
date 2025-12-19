@@ -217,6 +217,7 @@ type (
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceipt    `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_terms_and_condition_amount_receipt,omitempty"`
 		ComakerMemberProfiles                 []*ComakerMemberProfile                  `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateral                     `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"comaker_collaterals,omitempty"`
+		LoanAccounts                          []*LoanAccount                           `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"loan_accounts,omitempty"`
 
 		Count          int        `gorm:"type:int;default:0" json:"count"`
 		Balance        float64    `gorm:"type:decimal;default:0" json:"balance"`
@@ -375,6 +376,7 @@ type (
 		LoanTermsAndConditionAmountReceipt    []*LoanTermsAndConditionAmountReceiptResponse    `json:"loan_terms_and_condition_amount_receipt,omitempty"`
 		ComakerMemberProfiles                 []*ComakerMemberProfileResponse                  `json:"comaker_member_profiles,omitempty"`
 		ComakerCollaterals                    []*ComakerCollateralResponse                     `json:"comaker_collaterals,omitempty"`
+		LoanAccounts                          []*LoanAccountResponse                           `json:"loan_accounts,omitempty"`
 
 		Count       int        `json:"count"`
 		Balance     float64    `json:"balance"`
@@ -715,6 +717,7 @@ func (m *Core) loanTransaction() {
 			"ComakerCollaterals", "ComakerCollaterals.Collateral",
 			"PreviousLoan.Account",
 			"ReleasedBy", "PrintedBy", "ApprovedBy",
+			"LoanAccounts", "LoanAccounts.Currency",
 			"ReleasedBy.Media", "PrintedBy.Media", "ApprovedBy.Media",
 		},
 		Database: m.provider.Service.Database.Client(),
@@ -842,6 +845,7 @@ func (m *Core) loanTransaction() {
 				LoanTermsAndConditionAmountReceipt:     m.LoanTermsAndConditionAmountReceiptManager.ToModels(data.LoanTermsAndConditionAmountReceipt),
 				ComakerMemberProfiles:                  m.ComakerMemberProfileManager.ToModels(data.ComakerMemberProfiles),
 				ComakerCollaterals:                     m.ComakerCollateralManager.ToModels(data.ComakerCollaterals),
+				LoanAccounts:                           m.LoanAccountManager.ToModels(data.LoanAccounts),
 				Count:                                  data.Count,
 				Balance:                                data.Balance,
 				LastPay:                                data.LastPay,

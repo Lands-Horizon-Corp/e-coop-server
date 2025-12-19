@@ -41,7 +41,7 @@ type LoanAccountSummary struct {
 	NextDueDate      *time.Time               `json:"next_due_date,omitempty"`
 	DaysOverdue      int                      `json:"days_overdue"`
 	OverdueAmount    float64                  `json:"overdue_amount"`
-	CompletionStatus string                   `json:"completion_status"` // "active", "completed", "defaulted"
+	CompletionStatus string                   `json:"completion_status"`
 }
 
 type LoanGuideResponse struct {

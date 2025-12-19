@@ -393,7 +393,6 @@ func (m *Core) CreateGeneralLedgerEntry(
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
 		}
 	}
-
 	return nil
 }
 
