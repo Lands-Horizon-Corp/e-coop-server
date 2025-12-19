@@ -1392,7 +1392,12 @@ func (c *Controller) generalLedgerController() {
 			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
-			{Field: "account_id", Op: query.ModeNotEqual, Value: *userOrg.Branch.BranchSetting.CashOnHandAccountID},
+		}
+		cashOnHandID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		if cashOnHandID != nil {
+			filters = append(filters, registry.FilterSQL{
+				Field: "account_id", Op: query.ModeNotEqual, Value: *userOrg.Branch.BranchSetting.CashOnHandAccountID,
+			})
 		}
 		sorts := []query.ArrFilterSortSQL{
 			{Field: "updated_at", Order: query.SortOrderDesc},
