@@ -254,9 +254,18 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
 ) (*MemberAccountingLedger, error) {
+
+	// Debug: incoming values
+	fmt.Printf("[DEBUG] MemberAccountingLedgerUpdateOrCreate called\n")
+	fmt.Printf("[DEBUG] Params: MemberProfileID=%s, AccountID=%s, OrgID=%s, BranchID=%s, UserID=%s\n",
+		params.MemberProfileID, params.AccountID, params.OrganizationID, params.BranchID, params.UserID)
+	fmt.Printf("[DEBUG] DebitAmount=%.2f, CreditAmount=%.2f, LastPayTime=%v, Balance=%.2f\n",
+		params.DebitAmount, params.CreditAmount, params.LastPayTime, balance)
+
 	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
+
 	ledger, err := m.MemberAccountingLedgerFindForUpdate(
 		ctx, tx,
 		params.MemberProfileID,
@@ -267,7 +276,10 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
+
 	if ledger == nil || ledger.ID == uuid.Nil {
+		fmt.Printf("[DEBUG] Ledger NOT found → creating new one\n")
+
 		ledger = &MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -288,27 +300,51 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			PrincipalDue:        0,
 		}
 
+		fmt.Printf("[DEBUG] Creating ledger with Balance=%.2f, Count=1, LastPay=%v\n",
+			ledger.Balance, ledger.LastPay)
+
 		if tx == nil {
 			return nil, eris.New("database tx is nil")
 		}
 		err = tx.WithContext(ctx).Create(ledger).Error
 		if err != nil {
+			fmt.Printf("[DEBUG] Create FAILED: %v\n", err)
 			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
+		fmt.Printf("[DEBUG] Ledger CREATED successfully, ID=%s, Balance=%.2f\n",
+			ledger.ID, ledger.Balance)
+
 	} else {
+		fmt.Printf("[DEBUG] Ledger FOUND → updating existing one (ID=%s, Old Balance=%.2f, Old Count=%d)\n",
+			ledger.ID, ledger.Balance, ledger.Count)
+
+		oldBalance := ledger.Balance
+		oldCount := ledger.Count
+
 		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
 		ledger.Count++
+
+		fmt.Printf("[DEBUG] Updating: New Balance=%.2f (was %.2f), New Count=%d (was %d)\n",
+			ledger.Balance, oldBalance, ledger.Count, oldCount)
+
 		if tx == nil {
 			return nil, eris.New("database tx is nil")
 		}
 		err = tx.WithContext(ctx).Save(ledger).Error
 		if err != nil {
+			fmt.Printf("[DEBUG] Save FAILED: %v\n", err)
 			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
+		fmt.Printf("[DEBUG] Ledger UPDATED successfully, ID=%s, New Balance=%.2f, New Count=%d\n",
+			ledger.ID, ledger.Balance, ledger.Count)
 	}
+
+	fmt.Printf("[DEBUG] Returning ledger ID=%s, Balance=%.2f, Count=%d\n",
+		ledger.ID, ledger.Balance, ledger.Count)
+
 	return ledger, nil
 }
 
