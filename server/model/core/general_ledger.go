@@ -246,12 +246,12 @@ func (m *Core) generalLedger() {
 				return nil
 			}
 
-			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
-				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
-			)
-			if err != nil {
-				return nil
-			}
+			// accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
+			// 	context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+			// )
+			// if err != nil {
+			// 	return nil
+			// }
 
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
@@ -303,8 +303,8 @@ func (m *Core) generalLedger() {
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
-				AccountHistoryID:      accountHistoryID,
-				Balance:               data.Balance}
+				// AccountHistoryID:      accountHistoryID,
+				Balance: data.Balance}
 		},
 		Created: func(data *GeneralLedger) registry.Topics {
 			return []string{}

@@ -99,7 +99,9 @@ Visit `http://localhost:8000/routes` for interactive API documentation.
 ```bash
 # Format code
 goimports -w .
-gofmt -w .
+
+
+
 
 # Run linter
 golangci-lint run
@@ -256,14 +258,8 @@ This project is proprietary software owned by Lands Horizon Corp.
 
 
 
-- XENDIT Outgoing
-- GCASH MERCHANT Ingoing
-
-- KYC AI 
-- Mobile Banking - 
-- Coop store - Ecoop Mart
-- Ventamo POS - POS
-- Coop Angkas - D
-- Coop indrive
-- Coop Delivery
-- Fleet management (Transport) - (Camera)
+2025/12/19 17:22:04 /home/jerbee/Documents/horizon/e-coop-server/pkg/query/query.structured.go:46
+[6.391ms] [rows:1] SELECT * FROM "general_ledgers" WHERE ("general_ledgers"."organization_id" = 'acabb70d-0463-46d1-9cfa-10cf8b584d71' AND "general_ledgers"."branch_id" = '0f6741bd-4295-4a82-b8bd-b69d382bc40f' AND "general_ledgers"."account_id" = '6c2f56d4-a80b-4df0-a5ce-f17512f66c30' AND "general_ledgers"."member_profile_id" = '7fc09e96-25f3-471c-b594-78848d052212') AND "general_ledgers"."deleted_at" IS NULL ORDER BY created_at DESC LIMIT 10
+{"level":"info","ts":1766136124.3602195,"caller":"horizon/horizon.request.go:519","msg":"REQUEST","remote_ip":"::1","method":"GET","uri":"/web/api/v1/general-ledger/member-profile/7fc09e96-25f3-471c-b594-78848d052212/account/6c2f56d4-a80b-4df0-a5ce-f17512f66c30/search?filter=eyJmaWx0ZXJzIjpbXSwibG9naWMiOiJBTkQifQ%3D%3D&pageIndex=0&pageSize=10&sort=W10%3D","status":200,"latency":"66.856945ms","user_agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","host":"localhost:8000","bytes_in":0}
+SELECT count(*) FROM "loan_transactions" WHERE ("loan_transactions"."organization_id" = 'acabb70d-0463-46d1-9cfa-10cf8b584d71' AND "loan_transactions"."branch_id" = '0f6741bd-4295-4a82-b8bd-b69d382bc40f' AND "loan_transactions"."member_profile_id" = '7fc09e96-25f3-471c-b594-78848d052212') AND "loan_transactions"."deleted_at" IS NULL
+{"level":"info","ts":1766136186.1287234,"caller":"horizon/horizon.request.go:519","msg":"REQUEST","remote_ip":"::1","method":"GET","uri":"/web/api/v1/member-profile/search?filter=eyJmaWx0ZXJzIjpbXSwibG9naWMiOiJBTkQifQ%3D%3D&pageIndex=0&pageSize=10&sort=W10%3D","status":200,"latency":"122.264897ms","user_agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36","host":"localhost:8000","bytes_in":0}
