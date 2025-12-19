@@ -545,19 +545,14 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
-		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
-		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
+	history, err := m.AccountHistoryManager.ArrFindOne(ctx, filters, []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
-		return nil, err
+		return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 	}
 
-	if len(histories) > 0 {
-		return &histories[0].ID, nil
-	}
-
-	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
+	return &history.ID, nil
 }
 
 func (m *Core) GetAccountHistoryLatestByTimeHistory(
