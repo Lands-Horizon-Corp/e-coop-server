@@ -12,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindOne(
 	fields *TData,
 	preloads ...string,
 ) (*TData, error) {
-	entity, err := r.pagination.NormalFindOne(r.client.WithContext(context), *fields, r.preload(preloads...)...)
+	entity, err := r.pagination.NormalFindOne(r.client.WithContext(context), fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindOneRaw(
 	fields *TData,
 	preloads ...string,
 ) (*TResponse, error) {
-	entity, err := r.pagination.NormalFindOne(r.client.WithContext(context), *fields, r.preload(preloads...)...)
+	entity, err := r.pagination.NormalFindOne(r.client.WithContext(context), fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}

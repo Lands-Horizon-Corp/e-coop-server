@@ -94,7 +94,7 @@ func (r *Pagination[T]) NormalFindLock(
 }
 func (p *Pagination[T]) NormalFindOne(
 	db *gorm.DB,
-	filter T,
+	filter *T,
 	preloads ...string,
 ) (*T, error) {
 	db = db.Where(filter)
