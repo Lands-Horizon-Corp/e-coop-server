@@ -12,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) GetByID(
 	id any,
 	preloads ...string,
 ) (*TData, error) {
-	db := r.client.WithContext(context)
+	db := r.Client(context)
 	entity, err := r.pagination.NormalGetByID(db, id, r.preload(preloads...)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entity by ID: %w", err)
@@ -37,7 +37,7 @@ func (r *Registry[TData, TResponse, TRequest]) GetByIDIncludingDeleted(
 	id any,
 	preloads ...string,
 ) (*TData, error) {
-	db := r.client.WithContext(context)
+	db := r.Client(context)
 	entity, err := r.pagination.NormalGetByIDIncludingDeleted(db, id, r.preload(preloads...)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entity by ID including deleted: %w", err)
@@ -75,7 +75,7 @@ func (r *Registry[TData, TResponse, TRequest]) GetByIDIncludingDeletedLock(
 	id any,
 	preloads ...string,
 ) (*TData, error) {
-	tx := r.client.WithContext(context)
+	tx := r.Client(context)
 	result, err := r.pagination.NormalGetByIDIncludingDeletedLock(tx, id, r.preload(preloads...)...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entity by ID including deleted with lock: %w", err)

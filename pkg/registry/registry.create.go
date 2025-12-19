@@ -12,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) Create(
 	context context.Context,
 	data *TData,
 ) error {
-	db := r.client.WithContext(context)
+	db := r.Client(context)
 	if err := db.Create(data).Error; err != nil {
 		return fmt.Errorf("failed to create entity: %w", err)
 	}
@@ -38,7 +38,7 @@ func (r *Registry[TData, TResponse, TRequest]) CreateMany(
 	context context.Context,
 	data []*TData,
 ) error {
-	db := r.client.WithContext(context)
+	db := r.Client(context)
 	if err := db.Create(data).Error; err != nil {
 		return fmt.Errorf("failed to create entities: %w", err)
 	}
