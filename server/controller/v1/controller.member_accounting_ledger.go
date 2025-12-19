@@ -110,12 +110,11 @@ func (c *Controller) memberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		paginatedResult, err := c.core.MemberAccountingLedgerManager.ArrPagination(context, ctx, []registry.FilterSQL{
-			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
-			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
-			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
-			{Field: "account_id", Op: query.ModeNotEqual, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
-		}, nil)
+		paginatedResult, err := c.core.MemberAccountingLedgerManager.NormalPagination(context, ctx, &core.MemberAccountingLedger{
+			MemberProfileID: *memberProfileID,
+			OrganizationID:  userOrg.OrganizationID,
+			BranchID:        *userOrg.BranchID,
+		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to paginate entries: " + err.Error()})
 		}
