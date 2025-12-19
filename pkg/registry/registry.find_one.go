@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"gorm.io/gorm"
@@ -13,47 +12,13 @@ func (r *Registry[TData, TResponse, TRequest]) FindOne(
 	fields *TData,
 	preloads ...string,
 ) (*TData, error) {
-
-	fmt.Println("---- Registry.FindOne START ----")
-
-	if r == nil {
-		panic("Registry.FindOne: r is nil")
-	}
-
-	if r.database == nil {
-		panic("Registry.FindOne: r.database is nil")
-	}
-
-	if fields == nil {
-		panic("Registry.FindOne: fields is nil")
-	}
-
-	fmt.Printf("Registry: %+v\n", r)
-	fmt.Printf("Fields type: %T\n", fields)
-	fmt.Printf("Preloads: %+v\n", preloads)
-
 	db := r.Client(ctx)
 	if db == nil {
 		panic("Registry.FindOne: db is nil after Client()")
 	}
-
-	fmt.Println("Calling NormalFindOne...")
-
-	entity, err := r.pagination.
+	return r.pagination.
 		NormalFindOne(db, fields, r.preload(preloads...)...)
 
-	if err != nil {
-		fmt.Println("NormalFindOne error:", err)
-		return nil, err
-	}
-
-	if entity == nil {
-		fmt.Println("NormalFindOne returned nil entity (no error)")
-		return nil, nil
-	}
-
-	fmt.Println("---- Registry.FindOne END ----")
-	return entity, nil
 }
 
 func (r *Registry[TData, TResponse, TRequest]) FindOneWithLock(

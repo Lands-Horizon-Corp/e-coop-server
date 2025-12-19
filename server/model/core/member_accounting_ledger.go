@@ -235,7 +235,9 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
-	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, nil)
+	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: "DESC"},
+	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -265,9 +267,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
-
-	// Create new ledger if not found
-	if ledger == nil {
+	if ledger == nil || ledger.ID == uuid.Nil {
 		ledger = &MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -296,13 +296,11 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
 	} else {
-		// Update existing ledger
 		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
 		ledger.Count++
-
 		if tx == nil {
 			return nil, eris.New("database tx is nil")
 		}

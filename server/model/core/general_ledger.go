@@ -371,21 +371,20 @@ func (m *Core) CreateGeneralLedgerEntry(
 	}
 
 	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
-		params := MemberAccountingLedgerUpdateOrCreateParams{
-			MemberProfileID: *data.MemberProfileID,
-			AccountID:       *data.AccountID,
-			OrganizationID:  data.OrganizationID,
-			BranchID:        data.BranchID,
-			UserID:          data.CreatedByID,
-			DebitAmount:     data.Debit,
-			CreditAmount:    data.Credit,
-			LastPayTime:     data.EntryDate,
-		}
 		_, err = m.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
 			data.Balance,
-			params,
+			MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: *data.MemberProfileID,
+				AccountID:       *data.AccountID,
+				OrganizationID:  data.OrganizationID,
+				BranchID:        data.BranchID,
+				UserID:          data.CreatedByID,
+				DebitAmount:     data.Debit,
+				CreditAmount:    data.Credit,
+				LastPayTime:     data.EntryDate,
+			},
 		)
 		if err != nil {
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
