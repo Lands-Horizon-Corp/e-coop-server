@@ -22,7 +22,6 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
@@ -88,7 +87,6 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/google/wire v0.7.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/jaswdr/faker v1.19.1
 	github.com/jinzhu/inflection v1.0.0 // indirect
