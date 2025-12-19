@@ -97,7 +97,7 @@ func (p *Pagination[T]) NormalFindOne(
 	filter T,
 	preloads ...string,
 ) (*T, error) {
-	db = db.Where(&filter)
+	db = db.Where(filter)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
@@ -117,7 +117,7 @@ func (p *Pagination[T]) NormalFindOneWithLock(
 	filter T,
 	preloads ...string,
 ) (*T, error) {
-	db = db.Where(&filter)
+	db = db.Where(filter)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
