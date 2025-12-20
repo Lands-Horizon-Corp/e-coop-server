@@ -93,7 +93,7 @@ type (
 
 func (m *Core) generateSavingsInterestEntry() {
 	m.Migration = append(m.Migration, &GeneratedSavingsInterestEntry{})
-	m.GeneratedSavingsInterestEntryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.GeneratedSavingsInterestEntryManager = registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest,
 	]{
 		Preloads: []string{

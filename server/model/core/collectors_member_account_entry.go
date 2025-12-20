@@ -69,7 +69,7 @@ type (
 
 func (m *Core) collectorsMemberAccountEntry() {
 	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
-	m.CollectorsMemberAccountEntryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.CollectorsMemberAccountEntryManager = registry.NewRegistry(registry.RegistryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{

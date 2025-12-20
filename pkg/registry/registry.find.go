@@ -12,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) Find(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFind(r.client.WithContext(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFind(r.Client(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindWithLock(
 	fields *TData,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.NormalFindLock(r.client.WithContext(context), *fields, r.preload(preloads...)...)
+	data, err := r.pagination.NormalFindLock(r.Client(context), *fields, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFind(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFind(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFind(r.Client(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (r *Registry[TData, TResponse, TRequest]) ArrFindWithLock(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.ArrFindLock(r.client.WithContext(context), filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.ArrFindLock(r.Client(context), filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFind(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFind(r.client.WithContext(context), filter)
+	data, err := r.pagination.StructuredFind(r.Client(context), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredFindWithLock(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TData, error) {
-	data, err := r.pagination.StructuredFindLock(r.client.WithContext(context), filter, r.preload(preloads...)...)
+	data, err := r.pagination.StructuredFindLock(r.Client(context), filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (r *Registry[TData, TResponse, TRequest]) RawFind(
 	if filter != nil {
 		db = filter.Model(new(TData))
 	} else {
-		db = r.client.WithContext(context)
+		db = r.Client(context)
 	}
 
 	data, err := r.pagination.RawFind(db, preloads...)
@@ -195,7 +195,7 @@ func (r *Registry[TData, TResponse, TRequest]) RawFindWithLock(
 	if filter != nil {
 		db = filter.Model(new(TData))
 	} else {
-		db = r.client.WithContext(context)
+		db = r.Client(context)
 	}
 
 	data, err := r.pagination.RawFindLock(db, preloads...)

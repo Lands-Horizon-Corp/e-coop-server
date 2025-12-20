@@ -65,7 +65,7 @@ type (
 
 func (m *Core) memberDepartmentHistory() {
 	m.Migration = append(m.Migration, &MemberDepartmentHistory{})
-	m.MemberDepartmentHistoryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.MemberDepartmentHistoryManager = registry.NewRegistry(registry.RegistryParams[
 		MemberDepartmentHistory,
 		MemberDepartmentHistoryResponse,
 		MemberDepartmentHistoryRequest,

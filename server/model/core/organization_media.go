@@ -53,7 +53,7 @@ type (
 
 func (m *Core) organizationMedia() {
 	m.Migration = append(m.Migration, &OrganizationMedia{})
-	m.OrganizationMediaManager = *registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
+	m.OrganizationMediaManager = registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

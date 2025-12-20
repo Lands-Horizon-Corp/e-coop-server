@@ -12,7 +12,7 @@ func (r *Registry[TData, TResponse, TRequest]) NoPagination(
 	echocontext echo.Context,
 	preloads ...string,
 ) ([]*TResponse, error) {
-	data, err := r.pagination.NoPagination(r.client.WithContext(context), echocontext, r.preload(preloads...)...)
+	data, err := r.pagination.NoPagination(r.Client(context), echocontext, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (r *Registry[TData, TResponse, TRequest]) NoPaginationNormal(
 	filter *TData,
 	preloads ...string,
 ) ([]*TResponse, error) {
-	data, err := r.pagination.NoPaginationNormal(r.client.WithContext(context), context, echocontext, filter, r.preload(preloads...)...)
+	data, err := r.pagination.NoPaginationNormal(r.Client(context), context, echocontext, filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (r *Registry[TData, TResponse, TRequest]) NoPaginationArray(
 	sorts []query.ArrFilterSortSQL,
 	preloads ...string,
 ) ([]*TResponse, error) {
-	data, err := r.pagination.NoPaginationArray(r.client.WithContext(context), context, echocontext, filters, sorts, r.preload(preloads...)...)
+	data, err := r.pagination.NoPaginationArray(r.Client(context), context, echocontext, filters, sorts, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *Registry[TData, TResponse, TRequest]) NoPaginationStructured(
 	filter query.StructuredFilter,
 	preloads ...string,
 ) ([]*TResponse, error) {
-	data, err := r.pagination.NoPaginationStructured(r.client.WithContext(context), context, echocontext, filter, r.preload(preloads...)...)
+	data, err := r.pagination.NoPaginationStructured(r.Client(context), context, echocontext, filter, r.preload(preloads...)...)
 	if err != nil {
 		return nil, err
 	}

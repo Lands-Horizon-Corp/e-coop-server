@@ -274,7 +274,7 @@ func (m *Core) permissionTemplateSeed(
 
 func (m *Core) permissionTemplate() {
 	m.Migration = append(m.Migration, &PermissionTemplate{})
-	m.PermissionTemplateManager = *registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
+	m.PermissionTemplateManager = registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

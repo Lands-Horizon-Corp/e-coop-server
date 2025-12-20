@@ -178,7 +178,7 @@ type (
 
 func (m *Core) organization() {
 	m.Migration = append(m.Migration, &Organization{})
-	m.OrganizationManager = *registry.NewRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
+	m.OrganizationManager = registry.NewRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
 		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",

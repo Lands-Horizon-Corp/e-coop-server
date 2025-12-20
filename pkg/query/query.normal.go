@@ -94,19 +94,16 @@ func (r *Pagination[T]) NormalFindLock(
 }
 func (p *Pagination[T]) NormalFindOne(
 	db *gorm.DB,
-	filter T,
+	filter *T,
 	preloads ...string,
 ) (*T, error) {
-	db = db.Where(&filter)
+	db = db.Where(filter)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}
 	var entity T
 	err := db.First(&entity).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
 		return nil, fmt.Errorf("failed to find entity: %w", err)
 	}
 	return &entity, nil
@@ -114,10 +111,10 @@ func (p *Pagination[T]) NormalFindOne(
 
 func (p *Pagination[T]) NormalFindOneWithLock(
 	db *gorm.DB,
-	filter T,
+	filter *T,
 	preloads ...string,
 ) (*T, error) {
-	db = db.Where(&filter)
+	db = db.Where(filter)
 	for _, preload := range preloads {
 		db = db.Preload(preload)
 	}

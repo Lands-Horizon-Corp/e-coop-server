@@ -93,7 +93,7 @@ type (
 
 func (m *Core) loanAccount() {
 	m.Migration = append(m.Migration, &LoanAccount{})
-	m.LoanAccountManager = *registry.NewRegistry(registry.RegistryParams[
+	m.LoanAccountManager = registry.NewRegistry(registry.RegistryParams[
 		LoanAccount, LoanAccountResponse, LoanAccountRequest,
 	]{
 		Preloads: []string{

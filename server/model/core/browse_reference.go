@@ -120,7 +120,7 @@ type (
 
 func (m *Core) browseReference() {
 	m.Migration = append(m.Migration, &BrowseReference{})
-	m.BrowseReferenceManager = *registry.NewRegistry(registry.RegistryParams[
+	m.BrowseReferenceManager = registry.NewRegistry(registry.RegistryParams[
 		BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest,
 	]{
 		Preloads: []string{

@@ -64,7 +64,7 @@ type (
 
 func (m *Core) includeNegativeAccount() {
 	m.Migration = append(m.Migration, &IncludeNegativeAccount{})
-	m.IncludeNegativeAccountManager = *registry.NewRegistry(registry.RegistryParams[
+	m.IncludeNegativeAccountManager = registry.NewRegistry(registry.RegistryParams[
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
 		Preloads: []string{

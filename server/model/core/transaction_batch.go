@@ -336,7 +336,7 @@ type (
 
 func (m *Core) transactionBatch() {
 	m.Migration = append(m.Migration, &TransactionBatch{})
-	m.TransactionBatchManager = *registry.NewRegistry(registry.RegistryParams[
+	m.TransactionBatchManager = registry.NewRegistry(registry.RegistryParams[
 		TransactionBatch, TransactionBatchResponse, TransactionBatchRequest,
 	]{
 		Preloads: []string{

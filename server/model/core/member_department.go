@@ -60,7 +60,7 @@ type (
 
 func (m *Core) memberDepartment() {
 	m.Migration = append(m.Migration, &MemberDepartment{})
-	m.MemberDepartmentManager = *registry.NewRegistry(registry.RegistryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
+	m.MemberDepartmentManager = registry.NewRegistry(registry.RegistryParams[MemberDepartment, MemberDepartmentResponse, MemberDepartmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

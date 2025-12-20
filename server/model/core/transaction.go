@@ -114,7 +114,7 @@ type (
 
 func (m *Core) transaction() {
 	m.Migration = append(m.Migration, &Transaction{})
-	m.TransactionManager = *registry.NewRegistry(registry.RegistryParams[
+	m.TransactionManager = registry.NewRegistry(registry.RegistryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{

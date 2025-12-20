@@ -144,7 +144,7 @@ type (
 
 func (m *Core) mutualFund() {
 	m.Migration = append(m.Migration, &MutualFund{})
-	m.MutualFundManager = *registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
+	m.MutualFundManager = registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

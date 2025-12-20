@@ -59,7 +59,7 @@ type (
 
 func (m *Core) cancelledCashCheckVoucher() {
 	m.Migration = append(m.Migration, &CancelledCashCheckVoucher{})
-	m.CancelledCashCheckVoucherManager = *registry.NewRegistry(registry.RegistryParams[
+	m.CancelledCashCheckVoucherManager = registry.NewRegistry(registry.RegistryParams[
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

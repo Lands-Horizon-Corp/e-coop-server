@@ -70,7 +70,7 @@ type (
 
 func (m *Core) journalVoucherTag() {
 	m.Migration = append(m.Migration, &JournalVoucherTag{})
-	m.JournalVoucherTagManager = *registry.NewRegistry(registry.RegistryParams[
+	m.JournalVoucherTagManager = registry.NewRegistry(registry.RegistryParams[
 		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
 	]{
 		Preloads: []string{

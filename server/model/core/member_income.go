@@ -72,7 +72,7 @@ type (
 
 func (m *Core) memberIncome() {
 	m.Migration = append(m.Migration, &MemberIncome{})
-	m.MemberIncomeManager = *registry.NewRegistry(registry.RegistryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
+	m.MemberIncomeManager = registry.NewRegistry(registry.RegistryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

@@ -59,7 +59,7 @@ type (
 
 func (m *Core) memberOtherInformationEntry() {
 	m.Migration = append(m.Migration, &MemberOtherInformationEntry{})
-	m.MemberOtherInformationEntryManager = *registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
+	m.MemberOtherInformationEntryManager = registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

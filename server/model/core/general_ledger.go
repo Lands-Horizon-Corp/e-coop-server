@@ -219,7 +219,7 @@ type (
 
 func (m *Core) generalLedger() {
 	m.Migration = append(m.Migration, &GeneralLedger{})
-	m.GeneralLedgerManager = *registry.NewRegistry(registry.RegistryParams[
+	m.GeneralLedgerManager = registry.NewRegistry(registry.RegistryParams[
 		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
 	]{
 		Preloads: []string{
@@ -244,14 +244,12 @@ func (m *Core) generalLedger() {
 			if data == nil {
 				return nil
 			}
-
 			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
 				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
 			)
 			if err != nil {
-				return nil
+				accountHistoryID = nil
 			}
-
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
 				EntryDate:                  data.EntryDate.Format(time.RFC3339),
@@ -316,12 +314,14 @@ func (m *Core) generalLedger() {
 		},
 	})
 }
+
 func (m *Core) CreateGeneralLedgerEntry(
 	context context.Context, tx *gorm.DB, data *GeneralLedger,
 ) error {
 	if data == nil {
 		return eris.New("CreateGeneralLedgerEntry: data is nil")
 	}
+
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: data.OrganizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
@@ -332,6 +332,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 			Field: "member_profile_id", Op: query.ModeEqual, Value: data.MemberProfileID,
 		})
 	}
+
 	ledger, err := m.GeneralLedgerManager.ArrFindOneWithLock(context, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	})
@@ -346,6 +347,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 			previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
 		}
 	}
+
 	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
 	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
 
@@ -366,26 +368,26 @@ func (m *Core) CreateGeneralLedgerEntry(
 	newBalance := previousBalance.Add(balanceChange)
 	nbf, _ := newBalance.Float64()
 	data.Balance = nbf
+
 	if err := m.GeneralLedgerManager.CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
 	}
 
 	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
-		params := MemberAccountingLedgerUpdateOrCreateParams{
-			MemberProfileID: *data.MemberProfileID,
-			AccountID:       *data.AccountID,
-			OrganizationID:  data.OrganizationID,
-			BranchID:        data.BranchID,
-			UserID:          data.CreatedByID,
-			DebitAmount:     data.Debit,
-			CreditAmount:    data.Credit,
-			LastPayTime:     data.EntryDate,
-		}
 		_, err = m.MemberAccountingLedgerUpdateOrCreate(
 			context,
 			tx,
 			data.Balance,
-			params,
+			MemberAccountingLedgerUpdateOrCreateParams{
+				MemberProfileID: *data.MemberProfileID,
+				AccountID:       *data.AccountID,
+				OrganizationID:  data.OrganizationID,
+				BranchID:        data.BranchID,
+				UserID:          data.CreatedByID,
+				DebitAmount:     data.Debit,
+				CreditAmount:    data.Credit,
+				LastPayTime:     data.EntryDate,
+			},
 		)
 		if err != nil {
 			return eris.Wrap(err, "failed to update or create member accounting ledger")

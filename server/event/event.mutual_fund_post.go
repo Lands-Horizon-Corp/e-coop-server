@@ -16,7 +16,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	request core.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID)
+	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID, "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
@@ -24,7 +24,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		MutualFundID:   mutualFund.ID,
-	}, "MemberProfile", "Account.Currency")
+	}, "MemberProfile", "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
@@ -37,55 +37,69 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	for _, entry := range mutualFundEntries {
 		var credit, debit float64
 		if e.provider.Service.Decimal.IsGreaterThan(entry.Amount, 0) {
-			credit = e.provider.Service.Decimal.Subtract(entry.Amount, entry.Amount)
-			debit = 0
-		} else {
 			credit = 0
 			debit = e.provider.Service.Decimal.Abs(entry.Amount)
+		} else {
+			credit = e.provider.Service.Decimal.Abs(entry.Amount)
+			debit = 0
 		}
-		newGeneralLedger := &core.GeneralLedger{
-			CreatedAt:                  now,
-			CreatedByID:                userOrg.UserID,
-			UpdatedAt:                  now,
-			UpdatedByID:                userOrg.UserID,
-			BranchID:                   *userOrg.BranchID,
-			OrganizationID:             userOrg.OrganizationID,
-			ReferenceNumber:            *request.CheckVoucherNumber,
-			EntryDate:                  userOrgTime,
-			AccountID:                  &entry.AccountID,
-			MemberProfileID:            &entry.MemberProfileID,
-			TransactionReferenceNumber: *request.CheckVoucherNumber,
-			Source:                     core.GeneralLedgerSourceMutualContribution,
-			EmployeeUserID:             &userOrg.UserID,
-			Description:                entry.Account.Description + " - Generated in mutual fund post",
-			TypeOfPaymentType:          core.PaymentTypeSystem,
-			Credit:                     credit,
-			Debit:                      debit,
-			CurrencyID:                 entry.Account.CurrencyID,
+		if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
+			CreatedAt:       now,
+			CreatedByID:     userOrg.UserID,
+			UpdatedAt:       now,
+			UpdatedByID:     userOrg.UserID,
+			BranchID:        *userOrg.BranchID,
+			OrganizationID:  userOrg.OrganizationID,
+			ReferenceNumber: *request.CheckVoucherNumber,
+			EntryDate:       userOrgTime,
 
-			Account: entry.Account,
-		}
-		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
-			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
+			MemberProfileID:   &entry.MemberProfileID,
+			Source:            core.GeneralLedgerSourceMutualContribution,
+			EmployeeUserID:    &userOrg.UserID,
+			Description:       entry.Account.Description + " - Generated in mutual fund post",
+			TypeOfPaymentType: core.PaymentTypeSystem,
+			Credit:            credit,
+			Debit:             debit,
+
+			CurrencyID: entry.Account.CurrencyID,
+			AccountID:  &entry.AccountID,
+			Account:    entry.Account,
+		}); err != nil {
+			return endTx(eris.Wrap(err, "failed to create general ledger entry - (member ledger)"))
 		}
 		if mutualFund.PostAccountID != nil {
-			newGeneralLedger.Credit = debit
-			newGeneralLedger.Debit = credit
-			newGeneralLedger.AccountID = mutualFund.PostAccountID
-			newGeneralLedger.Account = mutualFund.PostAccount
-			if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
-				return endTx(eris.Wrap(err, "failed to create general ledger entry"))
+			if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
+				CreatedAt:       now,
+				CreatedByID:     userOrg.UserID,
+				UpdatedAt:       now,
+				UpdatedByID:     userOrg.UserID,
+				BranchID:        *userOrg.BranchID,
+				OrganizationID:  userOrg.OrganizationID,
+				ReferenceNumber: *request.CheckVoucherNumber,
+				EntryDate:       userOrgTime,
+
+				MemberProfileID:   &entry.MemberProfileID,
+				Source:            core.GeneralLedgerSourceMutualContribution,
+				EmployeeUserID:    &userOrg.UserID,
+				Description:       mutualFund.PostAccount.Description + " - Generated in mutual fund post",
+				TypeOfPaymentType: core.PaymentTypeSystem,
+				Credit:            debit,
+				Debit:             credit,
+
+				AccountID:  mutualFund.PostAccountID,
+				CurrencyID: mutualFund.PostAccount.CurrencyID,
+				Account:    mutualFund.PostAccount,
+			}); err != nil {
+				return endTx(eris.Wrap(err, "failed to create general ledger entry - (post account)"))
 			}
 		}
+
 		totalAmount = e.provider.Service.Decimal.Add(totalAmount, entry.Amount)
-
 	}
-
 	mutualFund.PostedDate = &now
 	mutualFund.PostedByUserID = &userOrg.UserID
 	mutualFund.TotalAmount = totalAmount
 	mutualFund.PostAccountID = request.PostAccountID
-
 	if err := e.core.MutualFundManager.UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}

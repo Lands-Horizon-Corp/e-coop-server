@@ -292,7 +292,7 @@ type (
 
 func (m *Core) userOrganization() {
 	m.Migration = append(m.Migration, &UserOrganization{})
-	m.UserOrganizationManager = *registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
+	m.UserOrganizationManager = registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

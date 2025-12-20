@@ -27,6 +27,7 @@ func (e *Event) GenerateMutualFundEntries(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member profiles")
 	}
+
 	for _, profile := range memberProfile {
 		if handlers.UUIDPtrEqual(&profile.ID, &mutualFund.MemberProfileID) {
 			continue
@@ -34,6 +35,7 @@ func (e *Event) GenerateMutualFundEntries(
 		if mutualFund.MemberType != nil && !handlers.UUIDPtrEqual(profile.MemberTypeID, mutualFund.MemberTypeID) {
 			continue
 		}
+
 		amount := 0.0
 		switch mutualFund.ComputationType {
 		case core.ComputationTypeContinuous:
@@ -61,7 +63,9 @@ func (e *Event) GenerateMutualFundEntries(
 				}
 				amount = currentBalance - deduction
 			}
+
 		case core.ComputationTypeSufficient:
+
 			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
@@ -82,6 +86,7 @@ func (e *Event) GenerateMutualFundEntries(
 					amount = 0
 				}
 			}
+
 		case core.ComputationTypeByMembershipYear:
 			monthsOfMembership := int(time.Since(profile.CreatedAt).Hours() / 24 / 30)
 			for _, tier := range mutualFund.MutualFundTables {
@@ -96,7 +101,7 @@ func (e *Event) GenerateMutualFundEntries(
 		}
 
 		if amount != 0 {
-			result = append(result, &core.MutualFundEntry{
+			entry := &core.MutualFundEntry{
 				CreatedAt:       now,
 				CreatedByID:     userOrg.UserID,
 				UpdatedAt:       now,
@@ -109,7 +114,8 @@ func (e *Event) GenerateMutualFundEntries(
 				Account:         mutualFund.Account,
 				AccountID:       *mutualFund.AccountID,
 				MutualFundID:    mutualFund.ID,
-			})
+			}
+			result = append(result, entry)
 		}
 	}
 	return result, nil

@@ -71,7 +71,7 @@ type (
 
 func (m *Core) chargesRateByRangeOrMinimumAmount() {
 	m.Migration = append(m.Migration, &ChargesRateByRangeOrMinimumAmount{})
-	m.ChargesRateByRangeOrMinimumAmountManager = *registry.NewRegistry(registry.RegistryParams[
+	m.ChargesRateByRangeOrMinimumAmountManager = registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest,
 	]{
 		Preloads: []string{

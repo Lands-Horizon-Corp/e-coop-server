@@ -12,13 +12,13 @@ func (r *Registry[TData, TResponse, TRequest]) Delete(
 	id any,
 ) error {
 	var entity TData
-	if err := r.client.WithContext(context).
+	if err := r.Client(context).
 		Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).
 		First(&entity).Error; err != nil {
 		return fmt.Errorf("failed to find entity for delete: %w", err)
 	}
 
-	if err := r.client.WithContext(context).Delete(&entity).Error; err != nil {
+	if err := r.Client(context).Delete(&entity).Error; err != nil {
 		return fmt.Errorf("failed to delete entity: %w", err)
 	}
 
@@ -51,7 +51,7 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 	if len(ids) == 0 {
 		return nil
 	}
-	if err := r.client.WithContext(context).
+	if err := r.Client(context).
 		Where(fmt.Sprintf("%s IN ?", r.columnDefaultID), ids).
 		Delete(new(TData)).Error; err != nil {
 		return fmt.Errorf("failed to bulk delete entities: %w", err)

@@ -478,7 +478,7 @@ type AccountRequest struct {
 
 func (m *Core) account() {
 	m.Migration = append(m.Migration, &Account{})
-	m.AccountManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AccountManager = registry.NewRegistry(registry.RegistryParams[
 		Account, AccountResponse, AccountRequest,
 	]{
 		Preloads: []string{

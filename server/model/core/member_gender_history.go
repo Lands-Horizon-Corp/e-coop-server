@@ -61,7 +61,7 @@ type (
 
 func (m *Core) memberGenderHistory() {
 	m.Migration = append(m.Migration, &MemberGenderHistory{})
-	m.MemberGenderHistoryManager = *registry.NewRegistry(registry.RegistryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
+	m.MemberGenderHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

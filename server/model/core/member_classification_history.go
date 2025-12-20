@@ -65,7 +65,7 @@ type (
 
 func (m *Core) memberClassificationHistory() {
 	m.Migration = append(m.Migration, &MemberClassificationHistory{})
-	m.MemberClassificationHistoryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.MemberClassificationHistoryManager = registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationHistory,
 		MemberClassificationHistoryResponse,
 		MemberClassificationHistoryRequest,

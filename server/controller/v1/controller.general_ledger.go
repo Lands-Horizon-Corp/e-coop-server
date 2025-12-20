@@ -3,6 +3,8 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
@@ -1386,12 +1388,21 @@ func (c *Controller) generalLedgerController() {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := c.core.GeneralLedgerMemberProfileEntries(context,
-			*memberProfileID,
-			userOrg.OrganizationID,
-			*userOrg.BranchID,
-			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-		)
+		filters := []registry.FilterSQL{
+			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+		}
+		cashOnHandID := userOrg.Branch.BranchSetting.CashOnHandAccountID
+		if cashOnHandID != nil {
+			filters = append(filters, registry.FilterSQL{
+				Field: "account_id", Op: query.ModeNotEqual, Value: *userOrg.Branch.BranchSetting.CashOnHandAccountID,
+			})
+		}
+		sorts := []query.ArrFilterSortSQL{
+			{Field: "updated_at", Order: query.SortOrderDesc},
+		}
+		entries, err := c.core.GeneralLedgerManager.ArrPagination(context, ctx, filters, sorts)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 		}

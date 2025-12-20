@@ -116,7 +116,7 @@ type (
 
 func (m *Core) memberAccountingLedger() {
 	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager = *registry.NewRegistry(registry.RegistryParams[
+	m.MemberAccountingLedgerManager = registry.NewRegistry(registry.RegistryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
@@ -235,10 +235,12 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
-	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, nil)
+	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: "DESC"},
+	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil // Not found, but not an error - allows create-or-update pattern
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -255,6 +257,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
+
 	ledger, err := m.MemberAccountingLedgerFindForUpdate(
 		ctx, tx,
 		params.MemberProfileID,
@@ -266,8 +269,8 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
 
-	// Create new ledger if not found
-	if ledger == nil {
+	if ledger == nil || ledger.ID == uuid.Nil {
+
 		ledger = &MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -287,7 +290,6 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			StoredValueFacility: 0,
 			PrincipalDue:        0,
 		}
-
 		if tx == nil {
 			return nil, eris.New("database tx is nil")
 		}
@@ -296,7 +298,6 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			return nil, eris.Wrap(err, "failed to create member accounting ledger")
 		}
 	} else {
-		// Update existing ledger
 		ledger.Balance = balance
 		ledger.LastPay = &params.LastPayTime
 		ledger.UpdatedAt = time.Now().UTC()
@@ -311,6 +312,7 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
 	}
+
 	return ledger, nil
 }
 

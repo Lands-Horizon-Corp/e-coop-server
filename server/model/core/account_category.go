@@ -57,7 +57,7 @@ type (
 
 func (m *Core) accountCategory() {
 	m.Migration = append(m.Migration, &AccountCategory{})
-	m.AccountCategoryManager = *registry.NewRegistry(registry.RegistryParams[
+	m.AccountCategoryManager = registry.NewRegistry(registry.RegistryParams[
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

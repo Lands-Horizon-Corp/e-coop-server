@@ -65,7 +65,7 @@ type (
 
 func (m *Core) memberVerification() {
 	m.Migration = append(m.Migration, &MemberVerification{})
-	m.MemberVerificationManager = *registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
+	m.MemberVerificationManager = registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

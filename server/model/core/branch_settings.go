@@ -191,7 +191,7 @@ type (
 
 func (m *Core) branchSetting() {
 	m.Migration = append(m.Migration, &BranchSetting{})
-	m.BranchSettingManager = *registry.NewRegistry(registry.RegistryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
+	m.BranchSettingManager = registry.NewRegistry(registry.RegistryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
 			"Currency",
