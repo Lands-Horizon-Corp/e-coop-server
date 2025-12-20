@@ -28,9 +28,7 @@ func (f *Pagination[T]) StructuredPagination(
 	}
 
 	query := f.structuredQuery(db, filterRoot)
-	for _, preload := range preloads {
-		query = query.Preload(preload)
-	}
+
 	var totalCount int64
 	if err := query.Count(&totalCount).Error; err != nil {
 		return nil, fmt.Errorf("failed to count records: %w", err)
@@ -40,7 +38,9 @@ func (f *Pagination[T]) StructuredPagination(
 	result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
 	offset := result.PageIndex * result.PageSize
 	query = query.Offset(int(offset)).Limit(int(result.PageSize))
-
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
 	var data []*T
 
 	if err := query.Find(&data).Error; err != nil {
