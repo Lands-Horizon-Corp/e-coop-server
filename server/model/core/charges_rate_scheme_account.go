@@ -61,7 +61,7 @@ type (
 
 func (m *Core) chargesRateSchemeAccount() {
 	m.Migration = append(m.Migration, &ChargesRateSchemeAccount{})
-	m.ChargesRateSchemeAccountManager().= registry.NewRegistry(registry.RegistryParams[
+	m.ChargesRateSchemeAccountManager() = registry.NewRegistry(registry.RegistryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{

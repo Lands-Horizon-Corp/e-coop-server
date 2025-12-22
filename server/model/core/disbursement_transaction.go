@@ -78,7 +78,7 @@ type (
 
 func (m *Core) disbursementTransaction() {
 	m.Migration = append(m.Migration, &DisbursementTransaction{})
-	m.DisbursementTransactionManager().= registry.NewRegistry(registry.RegistryParams[
+	m.DisbursementTransactionManager() = registry.NewRegistry(registry.RegistryParams[
 		DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest,
 	]{
 		Preloads: []string{

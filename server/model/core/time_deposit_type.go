@@ -120,7 +120,7 @@ type (
 
 func (m *Core) timeDepositType() {
 	m.Migration = append(m.Migration, &TimeDepositType{})
-	m.TimeDepositTypeManager().= registry.NewRegistry(registry.RegistryParams[
+	m.TimeDepositTypeManager() = registry.NewRegistry(registry.RegistryParams[
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{

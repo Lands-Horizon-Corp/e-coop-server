@@ -87,7 +87,7 @@ type (
 
 func (m *Core) tagTemplate() {
 	m.Migration = append(m.Migration, &TagTemplate{})
-	m.TagTemplateManager().= registry.NewRegistry(registry.RegistryParams[
+	m.TagTemplateManager() = registry.NewRegistry(registry.RegistryParams[
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{

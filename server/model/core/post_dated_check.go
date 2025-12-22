@@ -97,7 +97,7 @@ type (
 
 func (m *Core) postDatedCheck() {
 	m.Migration = append(m.Migration, &PostDatedCheck{})
-	m.PostDatedCheckManager().= registry.NewRegistry(registry.RegistryParams[
+	m.PostDatedCheckManager = registry.NewRegistry(registry.RegistryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{
@@ -132,7 +132,7 @@ func (m *Core) postDatedCheck() {
 				ClearDays:           data.ClearDays,
 				DateCleared:         data.DateCleared.Format(time.RFC3339),
 				BankID:              data.BankID,
-				Bank:                m.BankManager().).ToModel(data.Bank),
+				Bank:                m.BankManager().ToModel(data.Bank),
 				Amount:              data.Amount,
 				ReferenceNumber:     data.ReferenceNumber,
 				OfficialReceiptDate: data.OfficialReceiptDate.Format(time.RFC3339),

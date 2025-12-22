@@ -88,7 +88,7 @@ type (
 
 func (m *Core) memberAddress() {
 	m.Migration = append(m.Migration, &MemberAddress{})
-	m.MemberAddressManager().= registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
+	m.MemberAddressManager() = registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

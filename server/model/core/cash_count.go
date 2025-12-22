@@ -80,7 +80,7 @@ type (
 
 func (m *Core) cashCount() {
 	m.Migration = append(m.Migration, &CashCount{})
-	m.CashCountManager().= registry.NewRegistry(registry.RegistryParams[
+	m.CashCountManager() = registry.NewRegistry(registry.RegistryParams[
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
 		Preloads: []string{

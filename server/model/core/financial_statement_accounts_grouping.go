@@ -77,7 +77,7 @@ type (
 
 func (m *Core) financialStatementGrouping() {
 	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
-	m.FinancialStatementGroupingManager().= registry.NewRegistry(registry.RegistryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
+	m.FinancialStatementGroupingManager() = registry.NewRegistry(registry.RegistryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "IconMedia",
 		},

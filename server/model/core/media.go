@@ -51,7 +51,7 @@ type (
 )
 
 func (m *Core) MediaManager() *registry.Registry[Media, MediaResponse, MediaRequest] {
-	return registry.GetRegistry[Media, MediaResponse, MediaRequest](
+	return registry.GetRegistry(
 		registry.RegistryParams[Media, MediaResponse, MediaRequest]{
 			Preloads: nil,
 			Database: m.provider.Service.Database.Client(),

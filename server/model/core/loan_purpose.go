@@ -57,7 +57,7 @@ type (
 
 func (m *Core) loanPurpose() {
 	m.Migration = append(m.Migration, &LoanPurpose{})
-	m.LoanPurposeManager().= registry.NewRegistry(registry.RegistryParams[
+	m.LoanPurposeManager() = registry.NewRegistry(registry.RegistryParams[
 		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
 	]{
 		Preloads: []string{

@@ -114,7 +114,7 @@ type (
 
 func (m *Core) loanTransactionEntry() {
 	m.Migration = append(m.Migration, &LoanTransactionEntry{})
-	m.LoanTransactionEntryManager().= registry.NewRegistry(registry.RegistryParams[
+	m.LoanTransactionEntryManager() = registry.NewRegistry(registry.RegistryParams[
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{

@@ -121,9 +121,8 @@ type (
 	}
 )
 
-func (m *Core) branch() {
-	m.Migration = append(m.Migration, &Branch{})
-	m.BranchManager().= registry.NewRegistry(registry.RegistryParams[Branch, BranchResponse, BranchRequest]{
+func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, BranchRequest] {
+	return registry.GetRegistry(registry.RegistryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{
 			"Media",
 			"CreatedBy",

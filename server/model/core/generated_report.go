@@ -161,7 +161,7 @@ func (e *GeneratedReport) EXCEL(route string, callback func(params ...string) ([
 
 func (m *Core) generatedReport() {
 	m.Migration = append(m.Migration, &GeneratedReport{})
-	m.GeneratedReportManager().= registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+	m.GeneratedReportManager() = registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"CreatedBy.Media",

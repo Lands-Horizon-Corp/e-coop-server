@@ -90,7 +90,7 @@ type (
 
 func (m *Core) unbalancedAccount() {
 	m.Migration = append(m.Migration, &UnbalancedAccount{})
-	m.UnbalancedAccountManager().= registry.NewRegistry(registry.RegistryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
+	m.UnbalancedAccountManager() = registry.NewRegistry(registry.RegistryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
 			"AccountForShortage", "AccountForOverage",

@@ -101,7 +101,7 @@ type (
 
 func (m *Core) subscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
-	m.SubscriptionPlanManager().= registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+	m.SubscriptionPlanManager() = registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

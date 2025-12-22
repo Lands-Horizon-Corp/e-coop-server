@@ -85,7 +85,7 @@ type (
 
 func (m *Core) invitationCode() {
 	m.Migration = append(m.Migration, &InvitationCode{})
-	m.InvitationCodeManager().= registry.NewRegistry(registry.RegistryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
+	m.InvitationCodeManager() = registry.NewRegistry(registry.RegistryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

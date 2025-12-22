@@ -78,7 +78,7 @@ type (
 
 func (m *Core) comakerMemberProfile() {
 	m.Migration = append(m.Migration, &ComakerMemberProfile{})
-	m.ComakerMemberProfileManager().= registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
+	m.ComakerMemberProfileManager() = registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

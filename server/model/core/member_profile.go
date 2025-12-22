@@ -326,9 +326,9 @@ func (m *MemberProfile) Address() string {
 	return address
 }
 
-func (m *Core) memberProfile() {
+func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberProfileResponse, MemberProfileRequest] {
 	m.Migration = append(m.Migration, &MemberProfile{})
-	m.MemberProfileManager().= registry.NewRegistry(registry.RegistryParams[MemberProfile, MemberProfileResponse, MemberProfileRequest]{
+	return registry.NewRegistry(registry.RegistryParams[MemberProfile, MemberProfileResponse, MemberProfileRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 

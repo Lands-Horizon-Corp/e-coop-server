@@ -82,7 +82,7 @@ type (
 
 func (m *Core) batchFunding() {
 	m.Migration = append(m.Migration, &BatchFunding{})
-	m.BatchFundingManager().= registry.NewRegistry(registry.RegistryParams[
+	m.BatchFundingManager() = registry.NewRegistry(registry.RegistryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{

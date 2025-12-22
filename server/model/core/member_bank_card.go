@@ -77,7 +77,7 @@ type (
 
 func (m *Core) memberBankCard() {
 	m.Migration = append(m.Migration, &MemberBankCard{})
-	m.MemberBankCardManager().= registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
+	m.MemberBankCardManager = registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -100,7 +100,7 @@ func (m *Core) memberBankCard() {
 				BranchID:        data.BranchID,
 				Branch:          m.BranchManager().ToModel(data.Branch),
 				BankID:          data.BankID,
-				Bank:            m.BankManager().).ToModel(data.Bank),
+				Bank:            m.BankManager().ToModel(data.Bank),
 				MemberProfileID: data.MemberProfileID,
 				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				AccountNumber:   data.AccountNumber,

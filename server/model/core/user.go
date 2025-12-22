@@ -178,9 +178,8 @@ type (
 	}
 )
 
-func (m *Core) user() {
-	m.Migration = append(m.Migration, &User{})
-	m.UserManager().= registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
+func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegisterRequest] {
+	return registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
 			"SignatureMedia",

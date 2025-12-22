@@ -217,11 +217,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedger() {
-	m.Migration = append(m.Migration, &GeneralLedger{})
-	m.GeneralLedgerManager().= registry.NewRegistry(registry.RegistryParams[
-		GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest,
-	]{
+func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]{
 		Preloads: []string{
 			"Account",
 			"Account.Currency",
@@ -292,7 +289,7 @@ func (m *Core) generalLedger() {
 				SignatureMedia:             m.MediaManager().ToModel(data.SignatureMedia),
 
 				BankID:                data.BankID,
-				Bank:                  m.BankManager().).ToModel(data.Bank),
+				Bank:                  m.BankManager().ToModel(data.Bank),
 				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
 				ProofOfPaymentMedia:   m.MediaManager().ToModel(data.ProofOfPaymentMedia),
 				CurrencyID:            data.CurrencyID,

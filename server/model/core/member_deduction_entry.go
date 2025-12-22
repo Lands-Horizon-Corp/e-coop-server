@@ -71,7 +71,7 @@ type (
 
 func (m *Core) memberDeductionEntry() {
 	m.Migration = append(m.Migration, &MemberDeductionEntry{})
-	m.MemberDeductionEntryManager().= registry.NewRegistry(registry.RegistryParams[
+	m.MemberDeductionEntryManager() = registry.NewRegistry(registry.RegistryParams[
 		MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest,
 	]{
 		Preloads: []string{

@@ -96,7 +96,7 @@ type (
 
 func (m *Core) timeDepositComputation() {
 	m.Migration = append(m.Migration, &TimeDepositComputation{})
-	m.TimeDepositComputationManager().= registry.NewRegistry(registry.RegistryParams[
+	m.TimeDepositComputationManager() = registry.NewRegistry(registry.RegistryParams[
 		TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest,
 	]{
 		Preloads: []string{

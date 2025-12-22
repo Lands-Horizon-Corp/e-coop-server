@@ -69,7 +69,7 @@ type (
 
 func (m *Core) holiday() {
 	m.Migration = append(m.Migration, &Holiday{})
-	m.HolidayManager().= registry.NewRegistry(registry.RegistryParams[
+	m.HolidayManager() = registry.NewRegistry(registry.RegistryParams[
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{

@@ -63,7 +63,7 @@ type (
 
 func (m *Core) loanClearanceAnalysisInstitution() {
 	m.Migration = append(m.Migration, &LoanClearanceAnalysisInstitution{})
-	m.LoanClearanceAnalysisInstitutionManager().= registry.NewRegistry(registry.RegistryParams[
+	m.LoanClearanceAnalysisInstitutionManager() = registry.NewRegistry(registry.RegistryParams[
 		LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest,
 	]{
 		Preloads: []string{

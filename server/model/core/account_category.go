@@ -55,61 +55,59 @@ type (
 	}
 )
 
-func (m *Core) accountCategory() {
-	m.Migration = append(m.Migration, &AccountCategory{})
-	m.AccountCategoryManager().= registry.NewRegistry(registry.RegistryParams[
-		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
-	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Database: m.provider.Service.Database.Client(),
-		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Service.Broker.Dispatch(topics, payload)
-		},
-		Resource: func(data *AccountCategory) *AccountCategoryResponse {
-			if data == nil {
-				return nil
-			}
-			return &AccountCategoryResponse{
-				ID:             data.ID,
-				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
-				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
-				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
-				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
-				Name:           data.Name,
-				Description:    data.Description,
-			}
-		},
-		Created: func(data *AccountCategory) registry.Topics {
-			return []string{
-				"account_category.create",
-				fmt.Sprintf("account_category.create.%s", data.ID),
-				fmt.Sprintf("account_category.create.branch.%s", data.BranchID),
-				fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
-			}
-		},
-		Updated: func(data *AccountCategory) registry.Topics {
-			return []string{
-				"account_category.update",
-				fmt.Sprintf("account_category.update.%s", data.ID),
-				fmt.Sprintf("account_category.update.branch.%s", data.BranchID),
-				fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
-			}
-		},
-		Deleted: func(data *AccountCategory) registry.Topics {
-			return []string{
-				"account_category.delete",
-				fmt.Sprintf("account_category.delete.%s", data.ID),
-				fmt.Sprintf("account_category.delete.branch.%s", data.BranchID),
-				fmt.Sprintf("account_category.delete.organization.%s", data.OrganizationID),
-			}
-		},
-	})
+func (m *Core) AccountCategoryManager() *registry.Registry[AccountCategory, AccountCategoryResponse, AccountCategoryRequest] {
+	return registry.GetRegistry(
+		registry.RegistryParams[AccountCategory, AccountCategoryResponse, AccountCategoryRequest]{
+			Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+			Database: m.provider.Service.Database.Client(),
+			Dispatch: func(topics registry.Topics, payload any) error {
+				return m.provider.Service.Broker.Dispatch(topics, payload)
+			},
+			Resource: func(data *AccountCategory) *AccountCategoryResponse {
+				if data == nil {
+					return nil
+				}
+				return &AccountCategoryResponse{
+					ID:             data.ID,
+					CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+					CreatedByID:    data.CreatedByID,
+					CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+					UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+					UpdatedByID:    data.UpdatedByID,
+					UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+					OrganizationID: data.OrganizationID,
+					Organization:   m.OrganizationManager().ToModel(data.Organization),
+					BranchID:       data.BranchID,
+					Branch:         m.BranchManager().ToModel(data.Branch),
+					Name:           data.Name,
+					Description:    data.Description,
+				}
+			},
+			Created: func(data *AccountCategory) registry.Topics {
+				return []string{
+					"account_category.create",
+					fmt.Sprintf("account_category.create.%s", data.ID),
+					fmt.Sprintf("account_category.create.branch.%s", data.BranchID),
+					fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
+				}
+			},
+			Updated: func(data *AccountCategory) registry.Topics {
+				return []string{
+					"account_category.update",
+					fmt.Sprintf("account_category.update.%s", data.ID),
+					fmt.Sprintf("account_category.update.branch.%s", data.BranchID),
+					fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
+				}
+			},
+			Deleted: func(data *AccountCategory) registry.Topics {
+				return []string{
+					"account_category.delete",
+					fmt.Sprintf("account_category.delete.%s", data.ID),
+					fmt.Sprintf("account_category.delete.branch.%s", data.BranchID),
+					fmt.Sprintf("account_category.delete.organization.%s", data.OrganizationID),
+				}
+			},
+		})
 }
 
 func (m *Core) accountCategorySeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {

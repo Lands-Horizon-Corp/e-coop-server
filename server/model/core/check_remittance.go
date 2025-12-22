@@ -91,7 +91,7 @@ type (
 
 func (m *Core) checkRemittance() {
 	m.Migration = append(m.Migration, &CheckRemittance{})
-	m.CheckRemittanceManager().= registry.NewRegistry(registry.RegistryParams[
+	m.CheckRemittanceManager = registry.NewRegistry(registry.RegistryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
 		Preloads: []string{
@@ -125,7 +125,7 @@ func (m *Core) checkRemittance() {
 				BranchID:           data.BranchID,
 				Branch:             m.BranchManager().ToModel(data.Branch),
 				BankID:             data.BankID,
-				Bank:               m.BankManager().).ToModel(data.Bank),
+				Bank:               m.BankManager().ToModel(data.Bank),
 				MediaID:            data.MediaID,
 				Media:              m.MediaManager().ToModel(data.Media),
 				EmployeeUserID:     data.EmployeeUserID,

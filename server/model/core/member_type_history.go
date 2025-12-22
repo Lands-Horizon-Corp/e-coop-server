@@ -62,7 +62,7 @@ type (
 
 func (m *Core) memberTypeHistory() {
 	m.Migration = append(m.Migration, &MemberTypeHistory{})
-	m.MemberTypeHistoryManager().= registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
+	m.MemberTypeHistoryManager() = registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberType", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

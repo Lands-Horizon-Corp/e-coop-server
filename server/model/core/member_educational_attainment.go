@@ -72,7 +72,7 @@ type (
 
 func (m *Core) memberEducationalAttainment() {
 	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
-	m.MemberEducationalAttainmentManager().= registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
+	m.MemberEducationalAttainmentManager() = registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

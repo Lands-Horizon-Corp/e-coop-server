@@ -73,7 +73,7 @@ type (
 
 func (m *Core) loanComakerMember() {
 	m.Migration = append(m.Migration, &LoanComakerMember{})
-	m.LoanComakerMemberManager().= registry.NewRegistry(registry.RegistryParams[
+	m.LoanComakerMemberManager() = registry.NewRegistry(registry.RegistryParams[
 		LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest,
 	]{
 		Preloads: []string{

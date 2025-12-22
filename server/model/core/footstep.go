@@ -101,7 +101,7 @@ type (
 
 func (m *Core) footstep() {
 	m.Migration = append(m.Migration, &Footstep{})
-	m.FootstepManager().= registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
+	m.FootstepManager() = registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
 			"User.Media",

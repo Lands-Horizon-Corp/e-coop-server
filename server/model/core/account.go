@@ -476,9 +476,8 @@ type AccountRequest struct {
 	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
 }
 
-func (m *Core) account() {
-	m.Migration = append(m.Migration, &Account{})
-	m.AccountManager().= registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, AccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Account, AccountResponse, AccountRequest,
 	]{
 		Preloads: []string{

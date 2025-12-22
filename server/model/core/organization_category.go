@@ -43,7 +43,7 @@ type (
 
 func (m *Core) organizationCategory() {
 	m.Migration = append(m.Migration, &OrganizationCategory{})
-	m.OrganizationCategoryManager().= registry.NewRegistry(registry.RegistryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
+	m.OrganizationCategoryManager() = registry.NewRegistry(registry.RegistryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
 		Preloads: []string{"Organization", "Category"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

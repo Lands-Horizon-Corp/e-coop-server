@@ -66,7 +66,7 @@ type (
 
 func (m *Core) memberType() {
 	m.Migration = append(m.Migration, &MemberType{})
-	m.MemberTypeManager().= registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
+	m.MemberTypeManager() = registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

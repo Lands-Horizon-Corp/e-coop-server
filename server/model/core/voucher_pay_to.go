@@ -61,7 +61,7 @@ type (
 
 func (m *Core) voucherPayTo() {
 	m.Migration = append(m.Migration, &VoucherPayTo{})
-	m.VoucherPayToManager().= registry.NewRegistry(registry.RegistryParams[
+	m.VoucherPayToManager() = registry.NewRegistry(registry.RegistryParams[
 		VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest,
 	]{
 		Preloads: []string{

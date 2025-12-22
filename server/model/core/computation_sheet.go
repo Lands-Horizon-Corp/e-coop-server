@@ -77,7 +77,7 @@ type (
 
 func (m *Core) computationSheet() {
 	m.Migration = append(m.Migration, &ComputationSheet{})
-	m.ComputationSheetManager().= registry.NewRegistry(registry.RegistryParams[
+	m.ComputationSheetManager() = registry.NewRegistry(registry.RegistryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{

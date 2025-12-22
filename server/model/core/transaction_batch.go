@@ -334,11 +334,8 @@ type (
 	}
 )
 
-func (m *Core) transactionBatch() {
-	m.Migration = append(m.Migration, &TransactionBatch{})
-	m.TransactionBatchManager().= registry.NewRegistry(registry.RegistryParams[
-		TransactionBatch, TransactionBatchResponse, TransactionBatchRequest,
-	]{
+func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest] {
+	return registry.NewRegistry(registry.RegistryParams[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"EmployeeUser",

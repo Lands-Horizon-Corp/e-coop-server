@@ -234,9 +234,8 @@ type (
 	}
 )
 
-func (m *Core) accountHistory() {
-	m.Migration = append(m.Migration, &AccountHistory{})
-	m.AccountHistoryManager().= registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AccountHistoryManager() *registry.Registry[AccountHistory, AccountHistoryResponse, AccountHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},

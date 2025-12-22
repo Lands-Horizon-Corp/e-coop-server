@@ -85,7 +85,7 @@ type (
 
 func (m *Core) browseExcludeIncludeAccounts() {
 	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
-	m.BrowseExcludeIncludeAccountsManager().= registry.NewRegistry(registry.RegistryParams[
+	m.BrowseExcludeIncludeAccountsManager() = registry.NewRegistry(registry.RegistryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
 	]{
 		Preloads: []string{

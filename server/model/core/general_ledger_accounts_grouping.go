@@ -74,7 +74,7 @@ type (
 
 func (m *Core) generalLedgerAccountsGrouping() {
 	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
-	m.GeneralLedgerAccountsGroupingManager().= registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
+	m.GeneralLedgerAccountsGroupingManager() = registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
