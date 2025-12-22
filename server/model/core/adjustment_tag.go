@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) adjustmentTag() {
-	m.Migration = append(m.Migration, &AdjustmentTag{})
-	m.AdjustmentTagManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AdjustmentTagManager() *registry.Registry[AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{

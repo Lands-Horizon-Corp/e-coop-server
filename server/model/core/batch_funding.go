@@ -80,9 +80,8 @@ type (
 	}
 )
 
-func (m *Core) batchFunding() {
-	m.Migration = append(m.Migration, &BatchFunding{})
-	m.BatchFundingManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) BatchFundingManager() *registry.Registry[BatchFunding, BatchFundingResponse, BatchFundingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
 		Preloads: []string{

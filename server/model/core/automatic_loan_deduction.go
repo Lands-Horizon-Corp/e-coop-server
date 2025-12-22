@@ -118,9 +118,8 @@ type (
 	}
 )
 
-func (m *Core) automaticLoanDeduction() {
-	m.Migration = append(m.Migration, &AutomaticLoanDeduction{})
-	m.AutomaticLoanDeductionManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AutomaticLoanDeductionManager() *registry.Registry[AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		AutomaticLoanDeduction, AutomaticLoanDeductionResponse, AutomaticLoanDeductionRequest,
 	]{
 		Preloads: []string{

@@ -124,11 +124,8 @@ type (
 	}
 )
 
-func (m *Core) adjustmentEntry() {
-	m.Migration = append(m.Migration, &AdjustmentEntry{})
-	m.AdjustmentEntryManager() = registry.NewRegistry(registry.RegistryParams[
-		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
-	]{
+func (m *Core) AdjustmentEntryManager() *registry.Registry[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"TransactionBatch",
