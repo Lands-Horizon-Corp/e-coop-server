@@ -397,7 +397,7 @@ type (
 
 	LoanTransactionAdjustmentRequest struct {
 		Voucher        string             `json:"voucher,omitempty"`
-		LoanAccount    uuid.UUID          `json:"loan_account"`
+		LoanAccount    uuid.UUID          `json:"loan_account_id"`
 		AdjustmentType LoanAdjustmentType `json:"adjustment_type"`
 		Amount         float64            `json:"amount"`
 	}
