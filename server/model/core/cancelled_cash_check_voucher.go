@@ -57,9 +57,8 @@ type (
 	}
 )
 
-func (m *Core) cancelledCashCheckVoucher() {
-	m.Migration = append(m.Migration, &CancelledCashCheckVoucher{})
-	m.CancelledCashCheckVoucherManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CancelledCashCheckVoucherManager() *registry.Registry[CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},

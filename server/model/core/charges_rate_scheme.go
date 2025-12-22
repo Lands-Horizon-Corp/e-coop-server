@@ -245,9 +245,8 @@ type (
 	}
 )
 
-func (m *Core) chargesRateScheme() {
-	m.Migration = append(m.Migration, &ChargesRateScheme{})
-	m.ChargesRateSchemeManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ChargesRateSchemeManager() *registry.Registry[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
 		Preloads: []string{

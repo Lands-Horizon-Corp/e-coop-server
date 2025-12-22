@@ -83,9 +83,8 @@ type (
 	}
 )
 
-func (m *Core) browseExcludeIncludeAccounts() {
-	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
-	m.BrowseExcludeIncludeAccountsManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) BrowseExcludeIncludeAccountsManager() *registry.Registry[BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
 	]{
 		Preloads: []string{

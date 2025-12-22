@@ -78,9 +78,8 @@ type (
 	}
 )
 
-func (m *Core) cashCount() {
-	m.Migration = append(m.Migration, &CashCount{})
-	m.CashCountManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CashCountManager() *registry.Registry[CashCount, CashCountResponse, CashCountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
 		Preloads: []string{

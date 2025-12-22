@@ -131,9 +131,8 @@ type (
 	}
 )
 
-func (m *Core) chargesRateByTerm() {
-	m.Migration = append(m.Migration, &ChargesRateByTerm{})
-	m.ChargesRateByTermManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ChargesRateByTermManager() *registry.Registry[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
 	]{
 		Preloads: []string{

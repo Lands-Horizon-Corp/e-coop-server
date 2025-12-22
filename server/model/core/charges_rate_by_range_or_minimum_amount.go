@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) chargesRateByRangeOrMinimumAmount() {
-	m.Migration = append(m.Migration, &ChargesRateByRangeOrMinimumAmount{})
-	m.ChargesRateByRangeOrMinimumAmountManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ChargesRateByRangeOrMinimumAmountManager() *registry.Registry[ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest,
 	]{
 		Preloads: []string{

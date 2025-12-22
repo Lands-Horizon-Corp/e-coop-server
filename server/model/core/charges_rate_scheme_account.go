@@ -59,9 +59,8 @@ type (
 	}
 )
 
-func (m *Core) chargesRateSchemeAccount() {
-	m.Migration = append(m.Migration, &ChargesRateSchemeAccount{})
-	m.ChargesRateSchemeAccountManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ChargesRateSchemeAccountManager() *registry.Registry[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest] {
+\	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{

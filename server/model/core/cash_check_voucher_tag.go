@@ -68,9 +68,8 @@ type (
 	}
 )
 
-func (m *Core) cashCheckVoucherTag() {
-	m.Migration = append(m.Migration, &CashCheckVoucherTag{})
-	m.CashCheckVoucherTagManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CashCheckVoucherTagManager() *registry.Registry[CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest,
 	]{
 		Preloads: []string{

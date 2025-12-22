@@ -262,9 +262,8 @@ type (
 	}
 )
 
-func (m *Core) cashCheckVoucher() {
-	m.Migration = append(m.Migration, &CashCheckVoucher{})
-	m.CashCheckVoucherManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{

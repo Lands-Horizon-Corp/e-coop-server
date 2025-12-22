@@ -267,9 +267,8 @@ func (m *Core) categorySeed(ctx context.Context) error {
 	return nil
 }
 
-func (m *Core) category() {
-	m.Migration = append(m.Migration, &Category{})
-	m.CategoryManager() = registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
+func (m *Core) CategoryManager() *registry.Registry[Category, CategoryResponse, CategoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
