@@ -2,6 +2,9 @@ package registry
 
 import (
 	"context"
+	"fmt"
+	"reflect"
+	"sync"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/go-playground/validator/v10"
@@ -38,6 +41,32 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 	pagination        query.Pagination[TData]
 }
 
+// --------------------
+// Singleton cache
+// --------------------
+var registryCache sync.Map // map[string]interface{}
+
+// GetRegistry returns a singleton instance for the given generic type
+func GetRegistry[TData any, TResponse any, TRequest any](params RegistryParams[TData, TResponse, TRequest]) *Registry[TData, TResponse, TRequest] {
+	// key is based on the type names of generics
+	key := fmt.Sprintf("%s-%s-%s",
+		reflect.TypeFor[TData]().Name(),
+		reflect.TypeFor[TResponse]().Name(),
+		reflect.TypeFor[TRequest]().Name(),
+	)
+
+	if r, ok := registryCache.Load(key); ok {
+		return r.(*Registry[TData, TResponse, TRequest])
+	}
+
+	r := NewRegistry(params)
+	registryCache.Store(key, r)
+	return r
+}
+
+// --------------------
+// Original NewRegistry
+// --------------------
 func NewRegistry[TData any, TResponse any, TRequest any](
 	params RegistryParams[TData, TResponse, TRequest],
 ) *Registry[TData, TResponse, TRequest] {
@@ -68,8 +97,8 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 	}
 }
 
-func (r *Registry[TData, TResponse, TRequest]) Client(context context.Context) *gorm.DB {
-	return r.database.WithContext(context).Model(new(TData))
+func (r *Registry[TData, TResponse, TRequest]) Client(ctx context.Context) *gorm.DB {
+	return r.database.WithContext(ctx).Model(new(TData))
 }
 
 func (r *Registry[TData, TResponse, TRequest]) preload(preloads ...string) []string {

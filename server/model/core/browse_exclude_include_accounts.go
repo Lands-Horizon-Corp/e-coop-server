@@ -85,7 +85,7 @@ type (
 
 func (m *Core) browseExcludeIncludeAccounts() {
 	m.Migration = append(m.Migration, &BrowseExcludeIncludeAccounts{})
-	m.BrowseExcludeIncludeAccountsManager = registry.NewRegistry(registry.RegistryParams[
+	m.BrowseExcludeIncludeAccountsManager().= registry.NewRegistry(registry.RegistryParams[
 		BrowseExcludeIncludeAccounts, BrowseExcludeIncludeAccountsResponse, BrowseExcludeIncludeAccountsRequest,
 	]{
 		Preloads: []string{
@@ -105,26 +105,26 @@ func (m *Core) browseExcludeIncludeAccounts() {
 				ID:                           data.ID,
 				CreatedAt:                    data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                  data.CreatedByID,
-				CreatedBy:                    m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                    m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                    data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                  data.UpdatedByID,
-				UpdatedBy:                    m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                    m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:               data.OrganizationID,
-				Organization:                 m.OrganizationManager.ToModel(data.Organization),
+				Organization:                 m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                     data.BranchID,
-				Branch:                       m.BranchManager.ToModel(data.Branch),
+				Branch:                       m.BranchManager().ToModel(data.Branch),
 				ComputationSheetID:           data.ComputationSheetID,
-				ComputationSheet:             m.ComputationSheetManager.ToModel(data.ComputationSheet),
+				ComputationSheet:             m.ComputationSheetManager().ToModel(data.ComputationSheet),
 				FinesAccountID:               data.FinesAccountID,
-				FinesAccount:                 m.AccountManager.ToModel(data.FinesAccount),
+				FinesAccount:                 m.AccountManager().ToModel(data.FinesAccount),
 				ComakerAccountID:             data.ComakerAccountID,
-				ComakerAccount:               m.AccountManager.ToModel(data.ComakerAccount),
+				ComakerAccount:               m.AccountManager().ToModel(data.ComakerAccount),
 				InterestAccountID:            data.InterestAccountID,
-				InterestAccount:              m.AccountManager.ToModel(data.InterestAccount),
+				InterestAccount:              m.AccountManager().ToModel(data.InterestAccount),
 				DeliquentAccountID:           data.DeliquentAccountID,
-				DeliquentAccount:             m.AccountManager.ToModel(data.DeliquentAccount),
+				DeliquentAccount:             m.AccountManager().ToModel(data.DeliquentAccount),
 				IncludeExistingLoanAccountID: data.IncludeExistingLoanAccountID,
-				IncludeExistingLoanAccount:   m.AccountManager.ToModel(data.IncludeExistingLoanAccount),
+				IncludeExistingLoanAccount:   m.AccountManager().ToModel(data.IncludeExistingLoanAccount),
 			}
 		},
 		Created: func(data *BrowseExcludeIncludeAccounts) registry.Topics {
@@ -155,7 +155,7 @@ func (m *Core) browseExcludeIncludeAccounts() {
 }
 
 func (m *Core) BrowseExcludeIncludeAccountsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseExcludeIncludeAccounts, error) {
-	return m.BrowseExcludeIncludeAccountsManager.Find(context, &BrowseExcludeIncludeAccounts{
+	return m.BrowseExcludeIncludeAccountsManager().Find(context, &BrowseExcludeIncludeAccounts{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

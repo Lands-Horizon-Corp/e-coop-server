@@ -66,7 +66,7 @@ type (
 
 func (m *Core) memberType() {
 	m.Migration = append(m.Migration, &MemberType{})
-	m.MemberTypeManager = registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
+	m.MemberTypeManager().= registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -88,19 +88,19 @@ func (m *Core) memberType() {
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                  m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                  m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:             data.OrganizationID,
-				Organization:               m.OrganizationManager.ToModel(data.Organization),
+				Organization:               m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                   data.BranchID,
-				Branch:                     m.BranchManager.ToModel(data.Branch),
+				Branch:                     m.BranchManager().ToModel(data.Branch),
 				Prefix:                     data.Prefix,
 				Name:                       data.Name,
 				Description:                data.Description,
 				BrowseReferenceDescription: data.BrowseReferenceDescription,
-				BrowseReferences:           m.BrowseReferenceManager.ToModels(data.BrowseReferences),
+				BrowseReferences:           m.BrowseReferenceManager().ToModels(data.BrowseReferences),
 			}
 		},
 
@@ -304,7 +304,7 @@ func (m *Core) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.
 		},
 	}
 	for _, data := range memberType {
-		if err := m.MemberTypeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberTypeManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
 		}
 	}
@@ -312,7 +312,7 @@ func (m *Core) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.
 }
 
 func (m *Core) MemberTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
-	return m.MemberTypeManager.Find(context, &MemberType{
+	return m.MemberTypeManager().Find(context, &MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

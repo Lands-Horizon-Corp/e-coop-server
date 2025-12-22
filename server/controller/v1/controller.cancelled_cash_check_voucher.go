@@ -31,7 +31,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cancelled cash check vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.ToModels(cancelledVouchers))
+		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager().ToModels(cancelledVouchers))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -48,7 +48,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager.NormalPagination(context, ctx, &core.CancelledCashCheckVoucher{
+		cancelledVouchers, err := c.core.CancelledCashCheckVoucherManager().NormalPagination(context, ctx, &core.CancelledCashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -69,7 +69,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cancelled cash check voucher ID"})
 		}
-		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager.GetByIDRaw(context, *cancelledVoucherID)
+		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager().GetByIDRaw(context, *cancelledVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cancelled cash check voucher not found"})
 		}
@@ -84,7 +84,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		ResponseType: core.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CancelledCashCheckVoucherManager.Validate(ctx)
+		req, err := c.core.CancelledCashCheckVoucherManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.CancelledCashCheckVoucherManager.Create(context, cancelledVoucher); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager().Create(context, cancelledVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cancelled cash check voucher creation failed (/cancelled-cash-check-voucher), db error: " + err.Error(),
@@ -136,7 +136,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			Description: "Created cancelled cash check voucher (/cancelled-cash-check-voucher): " + cancelledVoucher.CheckNumber,
 			Module:      "CancelledCashCheckVoucher",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.CancelledCashCheckVoucherManager.ToModel(cancelledVoucher))
+		return ctx.JSON(http.StatusCreated, c.core.CancelledCashCheckVoucherManager().ToModel(cancelledVoucher))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -157,7 +157,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cancelled cash check voucher ID"})
 		}
 
-		req, err := c.core.CancelledCashCheckVoucherManager.Validate(ctx)
+		req, err := c.core.CancelledCashCheckVoucherManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -175,7 +175,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager.GetByID(context, *cancelledVoucherID)
+		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager().GetByID(context, *cancelledVoucherID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -189,7 +189,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		cancelledVoucher.Description = req.Description
 		cancelledVoucher.UpdatedAt = time.Now().UTC()
 		cancelledVoucher.UpdatedByID = userOrg.UserID
-		if err := c.core.CancelledCashCheckVoucherManager.UpdateByID(context, cancelledVoucher.ID, cancelledVoucher); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager().UpdateByID(context, cancelledVoucher.ID, cancelledVoucher); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cancelled cash check voucher update failed (/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id), db error: " + err.Error(),
@@ -202,7 +202,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			Description: "Updated cancelled cash check voucher (/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id): " + cancelledVoucher.CheckNumber,
 			Module:      "CancelledCashCheckVoucher",
 		})
-		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager.ToModel(cancelledVoucher))
+		return ctx.JSON(http.StatusOK, c.core.CancelledCashCheckVoucherManager().ToModel(cancelledVoucher))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -220,7 +220,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cancelled cash check voucher ID"})
 		}
-		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager.GetByID(context, *cancelledVoucherID)
+		cancelledVoucher, err := c.core.CancelledCashCheckVoucherManager().GetByID(context, *cancelledVoucherID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -229,7 +229,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cancelled cash check voucher not found"})
 		}
-		if err := c.core.CancelledCashCheckVoucherManager.Delete(context, *cancelledVoucherID); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager().Delete(context, *cancelledVoucherID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cancelled cash check voucher delete failed (/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id), db error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) cancelledCashCheckVoucherController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CancelledCashCheckVoucherManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.CancelledCashCheckVoucherManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete cancelled cash check vouchers (/cancelled-cash-check-voucher/bulk-delete) | error: " + err.Error(),

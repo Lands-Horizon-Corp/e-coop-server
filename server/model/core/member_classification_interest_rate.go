@@ -138,7 +138,7 @@ type (
 
 func (m *Core) memberClassificationInterestRate() {
 	m.Migration = append(m.Migration, &MemberClassificationInterestRate{})
-	m.MemberClassificationInterestRateManager = registry.NewRegistry(registry.RegistryParams[
+	m.MemberClassificationInterestRateManager().= registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest,
 	]{
 		Preloads: []string{
@@ -157,20 +157,20 @@ func (m *Core) memberClassificationInterestRate() {
 				ID:                     data.ID,
 				CreatedAt:              data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:            data.CreatedByID,
-				CreatedBy:              m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:              m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:            data.UpdatedByID,
-				UpdatedBy:              m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:              m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:         data.OrganizationID,
-				Organization:           m.OrganizationManager.ToModel(data.Organization),
+				Organization:           m.OrganizationManager().ToModel(data.Organization),
 				BranchID:               data.BranchID,
-				Branch:                 m.BranchManager.ToModel(data.Branch),
+				Branch:                 m.BranchManager().ToModel(data.Branch),
 				Name:                   data.Name,
 				Description:            data.Description,
 				InterestRateSchemeID:   data.InterestRateSchemeID,
-				InterestRateScheme:     m.InterestRateSchemeManager.ToModel(data.InterestRateScheme),
+				InterestRateScheme:     m.InterestRateSchemeManager().ToModel(data.InterestRateScheme),
 				MemberClassificationID: data.MemberClassificationID,
-				MemberClassification:   m.MemberClassificationManager.ToModel(data.MemberClassification),
+				MemberClassification:   m.MemberClassificationManager().ToModel(data.MemberClassification),
 
 				Header1:  data.Header1,
 				Header2:  data.Header2,
@@ -224,7 +224,7 @@ func (m *Core) memberClassificationInterestRate() {
 }
 
 func (m *Core) MemberClassificationInterestRateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationInterestRate, error) {
-	return m.MemberClassificationInterestRateManager.Find(context, &MemberClassificationInterestRate{
+	return m.MemberClassificationInterestRateManager().Find(context, &MemberClassificationInterestRate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

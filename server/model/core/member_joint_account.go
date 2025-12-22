@@ -91,7 +91,7 @@ type (
 
 func (m *Core) memberJointAccount() {
 	m.Migration = append(m.Migration, &MemberJointAccount{})
-	m.MemberJointAccountManager = registry.NewRegistry(registry.RegistryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
+	m.MemberJointAccountManager().= registry.NewRegistry(registry.RegistryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",
@@ -108,20 +108,20 @@ func (m *Core) memberJointAccount() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
 				PictureMediaID:     data.PictureMediaID,
-				PictureMedia:       m.MediaManager.ToModel(data.PictureMedia),
+				PictureMedia:       m.MediaManager().ToModel(data.PictureMedia),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:     m.MediaManager().ToModel(data.SignatureMedia),
 				Description:        data.Description,
 				FirstName:          data.FirstName,
 				MiddleName:         data.MiddleName,
@@ -161,7 +161,7 @@ func (m *Core) memberJointAccount() {
 }
 
 func (m *Core) MemberJointAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
-	return m.MemberJointAccountManager.Find(context, &MemberJointAccount{
+	return m.MemberJointAccountManager().Find(context, &MemberJointAccount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

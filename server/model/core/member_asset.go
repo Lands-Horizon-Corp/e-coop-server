@@ -75,7 +75,7 @@ type (
 
 func (m *Core) memberAsset() {
 	m.Migration = append(m.Migration, &MemberAsset{})
-	m.MemberAssetManager = registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
+	m.MemberAssetManager().= registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -89,18 +89,18 @@ func (m *Core) memberAsset() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager.ToModel(data.Media),
+				Media:           m.MediaManager().ToModel(data.Media),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				Name:            data.Name,
 				EntryDate:       data.EntryDate.Format(time.RFC3339),
 				Description:     data.Description,
@@ -136,7 +136,7 @@ func (m *Core) memberAsset() {
 }
 
 func (m *Core) MemberAssetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
-	return m.MemberAssetManager.Find(context, &MemberAsset{
+	return m.MemberAssetManager().Find(context, &MemberAsset{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

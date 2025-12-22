@@ -32,7 +32,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager().ToModels(tags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -49,7 +49,7 @@ func (c *Controller) adjustmentTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.AdjustmentTagManager.NormalPagination(context, ctx, &core.AdjustmentTag{
+		tags, err := c.core.AdjustmentTagManager().NormalPagination(context, ctx, &core.AdjustmentTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -70,7 +70,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment tag ID"})
 		}
-		tag, err := c.core.AdjustmentTagManager.GetByIDRaw(context, *tagID)
+		tag, err := c.core.AdjustmentTagManager().GetByIDRaw(context, *tagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "adjustment tag not found"})
 		}
@@ -85,7 +85,7 @@ func (c *Controller) adjustmentTagController() {
 		ResponseType: core.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AdjustmentTagManager.Validate(ctx)
+		req, err := c.core.AdjustmentTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -127,7 +127,7 @@ func (c *Controller) adjustmentTagController() {
 			OrganizationID:    userOrg.OrganizationID,
 		}
 
-		if err := c.core.AdjustmentTagManager.Create(context, tag); err != nil {
+		if err := c.core.AdjustmentTagManager().Create(context, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "adjustment tag creation failed (/adjustment-tag), db error: " + err.Error(),
@@ -146,7 +146,7 @@ func (c *Controller) adjustmentTagController() {
 			Title:            "Journal Vouchers - Approved List Accessed",
 			NotificationType: core.NotificationSystem,
 		})
-		return ctx.JSON(http.StatusCreated, c.core.AdjustmentTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusCreated, c.core.AdjustmentTagManager().ToModel(tag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -168,7 +168,7 @@ func (c *Controller) adjustmentTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tags, err := c.core.AdjustmentTagManager.Find(context, &core.AdjustmentTag{
+		tags, err := c.core.AdjustmentTagManager().Find(context, &core.AdjustmentTag{
 			AdjustmentEntryID: adjustmentEntryID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -176,7 +176,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the given adjustment entry ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModels(tags))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager().ToModels(tags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -197,7 +197,7 @@ func (c *Controller) adjustmentTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment tag ID"})
 		}
 
-		req, err := c.core.AdjustmentTagManager.Validate(ctx)
+		req, err := c.core.AdjustmentTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -215,7 +215,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		tag, err := c.core.AdjustmentTagManager.GetByID(context, *tagID)
+		tag, err := c.core.AdjustmentTagManager().GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -232,7 +232,7 @@ func (c *Controller) adjustmentTagController() {
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = userOrg.UserID
-		if err := c.core.AdjustmentTagManager.UpdateByID(context, tag.ID, tag); err != nil {
+		if err := c.core.AdjustmentTagManager().UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "adjustment tag update failed (/adjustment-tag/:tag_id), db error: " + err.Error(),
@@ -245,7 +245,7 @@ func (c *Controller) adjustmentTagController() {
 			Description: "Updated adjustment tag (/adjustment-tag/:tag_id): " + tag.Name,
 			Module:      "AdjustmentTag",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentTagManager().ToModel(tag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -263,7 +263,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment tag ID"})
 		}
-		tag, err := c.core.AdjustmentTagManager.GetByID(context, *tagID)
+		tag, err := c.core.AdjustmentTagManager().GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -272,7 +272,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "adjustment tag not found"})
 		}
-		if err := c.core.AdjustmentTagManager.Delete(context, *tagID); err != nil {
+		if err := c.core.AdjustmentTagManager().Delete(context, *tagID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "adjustment tag delete failed (/adjustment-tag/:tag_id), db error: " + err.Error(),
@@ -316,7 +316,7 @@ func (c *Controller) adjustmentTagController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.AdjustmentTagManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.AdjustmentTagManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment tags (/adjustment-tag/bulk-delete) | error: " + err.Error(),

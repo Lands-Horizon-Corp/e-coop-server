@@ -56,7 +56,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrg, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -82,7 +82,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.UpdatedAt = time.Now().UTC()
 		userOrg.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission failed: update error: " + err.Error(),
@@ -97,7 +97,7 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -183,7 +183,7 @@ func (c *Controller) userOrganinzationController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to seed organization: " + endTx(err).Error()})
 			}
 			userOrganization.IsSeeded = true
-			if err := c.core.UserOrganizationManager.UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			if err := c.core.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: update seed status error: " + err.Error(),
@@ -221,7 +221,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager().NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeEmployee,
@@ -243,7 +243,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager().NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeOwner,
@@ -265,7 +265,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager().NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -287,7 +287,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.RawPagination(
+		userOrganization, err := c.core.UserOrganizationManager().RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -323,7 +323,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.core.UserManager.GetByID(context, *userID)
+		user, err := c.core.UserManager().GetByID(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found: " + err.Error()})
 		}
@@ -331,7 +331,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(userOrganization))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -350,7 +350,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(userOrganization))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -364,7 +364,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager().NormalPagination(context, ctx, &core.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",
@@ -386,7 +386,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganization, err := c.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",
@@ -394,7 +394,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve join requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(userOrganization))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -410,7 +410,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_id: " + err.Error()})
 		}
 
-		organization, err := c.core.OrganizationManager.GetByID(context, *organizationID)
+		organization, err := c.core.OrganizationManager().GetByID(context, *organizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found: " + err.Error()})
 		}
@@ -420,7 +420,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(userOrganization))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -435,7 +435,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		branch, err := c.core.BranchManager.GetByID(context, *branchID)
+		branch, err := c.core.BranchManager().GetByID(context, *branchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
@@ -443,7 +443,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve user organizations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(userOrganization))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(userOrganization))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -461,7 +461,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -472,7 +472,7 @@ func (c *Controller) userOrganinzationController() {
 			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
-			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrganization))
+			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
 		}
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + string(userOrganization.UserType)})
 	})
@@ -521,7 +521,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		userOrg.DeveloperSecretKey = developerKey + uuid.NewString() + "-horizon"
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Refresh developer key failed: update error: " + err.Error(),
@@ -653,7 +653,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to redeem invitation code: " + endTx(err).Error()})
 		}
-		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
@@ -695,7 +695,7 @@ func (c *Controller) userOrganinzationController() {
 			NotificationType: core.NotificationInfo,
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -724,7 +724,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		req, err := c.core.UserOrganizationManager.Validate(ctx)
+		req, err := c.core.UserOrganizationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -798,7 +798,7 @@ func (c *Controller) userOrganinzationController() {
 			UserSettingNumberPadding: 7,
 		}
 
-		if err := c.core.UserOrganizationManager.Create(context, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().Create(context, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Join organization failed: create user org error: " + err.Error(),
@@ -831,7 +831,7 @@ func (c *Controller) userOrganinzationController() {
 			Title:            "New Member Application",
 			NotificationType: core.NotificationInfo,
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -859,7 +859,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Owners and employees cannot leave an organization"})
 		}
 
-		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
+		if err := c.core.UserOrganizationManager().Delete(context, userOrg.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: delete error: " + err.Error(),
@@ -936,7 +936,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.core.UserOrganizationManager.GetByIDRaw(context, *userOrgID)
+		userOrg, err := c.core.UserOrganizationManager().GetByIDRaw(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -969,7 +969,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -998,7 +998,7 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		userOrganization.ApplicationStatus = "accepted"
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrganization.ID, userOrganization); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrganization.ID, userOrganization); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: update error: " + err.Error(),
@@ -1048,7 +1048,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1076,7 +1076,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You cannot reject your own application"})
 		}
 
-		if err := c.core.UserOrganizationManager.Delete(context, userOrganization.ID); err != nil {
+		if err := c.core.UserOrganizationManager().Delete(context, userOrganization.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: delete error: " + err.Error(),
@@ -1109,7 +1109,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrg, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1118,7 +1118,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if err := c.core.UserOrganizationManager.Delete(context, userOrg.ID); err != nil {
+		if err := c.core.UserOrganizationManager().Delete(context, userOrg.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user organization failed: delete error: " + err.Error(),
@@ -1165,7 +1165,7 @@ func (c *Controller) userOrganinzationController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.UserOrganizationManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.UserOrganizationManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "UserOrganization bulk delete failed (/user-organization/bulk-delete) | error: " + err.Error(),
@@ -1198,7 +1198,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employees: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(employees))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(employees))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1216,7 +1216,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve members: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModels(members))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModels(members))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1251,7 +1251,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		userOrg, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -1273,7 +1273,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
@@ -1288,7 +1288,7 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1342,7 +1342,7 @@ func (c *Controller) userOrganinzationController() {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.TimeMachineTime = req.TimeMachineTime
 
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: update error: " + err.Error(),
@@ -1357,7 +1357,7 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1380,7 +1380,7 @@ func (c *Controller) userOrganinzationController() {
 
 		userOrg.TimeMachineTime = nil
 
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cancel time machine failed: update error: " + err.Error(),
@@ -1395,6 +1395,6 @@ func (c *Controller) userOrganinzationController() {
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager.ToModel(userOrg))
+		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
 }

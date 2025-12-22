@@ -20,11 +20,11 @@ func (c *Controller) categoryController() {
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.core.CategoryManager.List(context)
+		categories, err := c.core.CategoryManager().List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CategoryManager.ToModels(categories))
+		return ctx.JSON(http.StatusOK, c.core.CategoryManager().ToModels(categories))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -39,7 +39,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		category, err := c.core.CategoryManager.GetByIDRaw(context, *categoryID)
+		category, err := c.core.CategoryManager().GetByIDRaw(context, *categoryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Category not found"})
 		}
@@ -55,7 +55,7 @@ func (c *Controller) categoryController() {
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CategoryManager.Validate(ctx)
+		req, err := c.core.CategoryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -74,7 +74,7 @@ func (c *Controller) categoryController() {
 			UpdatedAt:   time.Now().UTC(),
 		}
 
-		if err := c.core.CategoryManager.Create(context, category); err != nil {
+		if err := c.core.CategoryManager().Create(context, category); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Category creation failed (/category), db error: " + err.Error(),
@@ -89,7 +89,7 @@ func (c *Controller) categoryController() {
 			Module:      "Category",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.CategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusCreated, c.core.CategoryManager().ToModel(category))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -110,7 +110,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		req, err := c.core.CategoryManager.Validate(ctx)
+		req, err := c.core.CategoryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -120,7 +120,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category data: " + err.Error()})
 		}
 
-		category, err := c.core.CategoryManager.GetByID(context, *categoryID)
+		category, err := c.core.CategoryManager().GetByID(context, *categoryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -136,7 +136,7 @@ func (c *Controller) categoryController() {
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CategoryManager.UpdateByID(context, category.ID, category); err != nil {
+		if err := c.core.CategoryManager().UpdateByID(context, category.ID, category); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), db error: " + err.Error(),
@@ -151,7 +151,7 @@ func (c *Controller) categoryController() {
 			Module:      "Category",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusOK, c.core.CategoryManager().ToModel(category))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -170,7 +170,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		category, err := c.core.CategoryManager.GetByID(context, *categoryID)
+		category, err := c.core.CategoryManager().GetByID(context, *categoryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -180,7 +180,7 @@ func (c *Controller) categoryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Category not found"})
 		}
 
-		if err := c.core.CategoryManager.Delete(context, *categoryID); err != nil {
+		if err := c.core.CategoryManager().Delete(context, *categoryID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), db error: " + err.Error(),
@@ -229,7 +229,7 @@ func (c *Controller) categoryController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CategoryManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.CategoryManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | error: " + err.Error(),

@@ -178,7 +178,7 @@ type (
 
 func (m *Core) organization() {
 	m.Migration = append(m.Migration, &Organization{})
-	m.OrganizationManager = registry.NewRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
+	m.OrganizationManager().= registry.NewRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
 		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
@@ -196,10 +196,10 @@ func (m *Core) organization() {
 				ID:          data.ID,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID: data.CreatedByID,
-				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:   m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID: data.UpdatedByID,
-				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:   m.UserManager().ToModel(data.UpdatedBy),
 
 				Name:               data.Name,
 				Address:            data.Address,
@@ -222,26 +222,26 @@ func (m *Core) organization() {
 				XLink:               data.XLink,
 
 				MediaID:    data.MediaID,
-				Media:      m.MediaManager.ToModel(data.Media),
-				CoverMedia: m.MediaManager.ToModel(data.CoverMedia),
+				Media:      m.MediaManager().ToModel(data.Media),
+				CoverMedia: m.MediaManager().ToModel(data.CoverMedia),
 
 				SubscriptionPlanMaxBranches:         data.SubscriptionPlanMaxBranches,
 				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
 				SubscriptionPlanID:                  data.SubscriptionPlanID,
 				SubscriptionPlanIsYearly:            false, // TODO
-				SubscriptionPlan:                    m.SubscriptionPlanManager.ToModel(data.SubscriptionPlan),
+				SubscriptionPlan:                    m.SubscriptionPlanManager().ToModel(data.SubscriptionPlan),
 				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
 				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),
 
-				Branches:               m.BranchManager.ToModels(data.Branches),
-				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
-				OrganizationMedias:     m.OrganizationMediaManager.ToModels(data.OrganizationMedias),
-				Footsteps:              m.FootstepManager.ToModels(data.Footsteps),
-				GeneratedReports:       m.GeneratedReportManager.ToModels(data.GeneratedReports),
-				InvitationCodes:        m.InvitationCodeManager.ToModels(data.InvitationCodes),
-				PermissionTemplates:    m.PermissionTemplateManager.ToModels(data.PermissionTemplates),
-				UserOrganizations:      m.UserOrganizationManager.ToModels(data.UserOrganizations),
+				Branches:               m.BranchManager().ToModels(data.Branches),
+				OrganizationCategories: m.OrganizationCategoryManager().ToModels(data.OrganizationCategories),
+				OrganizationMedias:     m.OrganizationMediaManager().ToModels(data.OrganizationMedias),
+				Footsteps:              m.FootstepManager().ToModels(data.Footsteps),
+				GeneratedReports:       m.GeneratedReportManager().ToModels(data.GeneratedReports),
+				InvitationCodes:        m.InvitationCodeManager().ToModels(data.InvitationCodes),
+				PermissionTemplates:    m.PermissionTemplateManager().ToModels(data.PermissionTemplates),
+				UserOrganizations:      m.UserOrganizationManager().ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -270,7 +270,7 @@ func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, erro
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
-	return m.OrganizationManager.ArrFind(ctx, filters, nil)
+	return m.OrganizationManager().ArrFind(ctx, filters, nil)
 }
 
 func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
@@ -278,7 +278,7 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
-	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, nil, "Media", "CoverMedia",
+	organizations, err := m.OrganizationManager().ArrFind(ctx, filters, nil, "Media", "CoverMedia",
 		"SubscriptionPlan", "Branches",
 		"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 		"OrganizationCategories.Category")
@@ -305,7 +305,7 @@ func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid
 		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
 
-	orgCategories, err := m.OrganizationCategoryManager.ArrFind(ctx, filters, nil, "Organization")
+	orgCategories, err := m.OrganizationCategoryManager().ArrFind(ctx, filters, nil, "Organization")
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +336,7 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	organizations, err := m.OrganizationManager.ArrFind(ctx, filters, sorts)
+	organizations, err := m.OrganizationManager().ArrFind(ctx, filters, sorts)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +349,7 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 }
 
 func (m *Core) GetOrganizationPerCategory(context context.Context) ([]OrganizationPerCategoryResponse, error) {
-	categories, err := m.CategoryManager.List(context)
+	categories, err := m.CategoryManager().List(context)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get categories")
 	}
@@ -373,8 +373,8 @@ func (m *Core) GetOrganizationPerCategory(context context.Context) ([]Organizati
 			}
 		}
 		result = append(result, OrganizationPerCategoryResponse{
-			Category:      m.CategoryManager.ToModel(category),
-			Organizations: m.OrganizationManager.ToModels(orgs),
+			Category:      m.CategoryManager().ToModel(category),
+			Organizations: m.OrganizationManager().ToModels(orgs),
 		})
 	}
 	return result, nil

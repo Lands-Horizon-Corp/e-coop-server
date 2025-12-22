@@ -31,7 +31,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
+		transaction, err := c.core.TransactionManager().GetByID(context, *transactionID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "multipayment-transaction-not-found",
@@ -124,7 +124,7 @@ func (c *Controller) paymentController() {
 
 		var response []core.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
-			response = append(response, *c.core.GeneralLedgerManager.ToModel(gl))
+			response = append(response, *c.core.GeneralLedgerManager().ToModel(gl))
 		}
 
 		return ctx.JSON(http.StatusOK, response)
@@ -149,7 +149,7 @@ func (c *Controller) paymentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		generalLedger, err := c.core.GeneralLedgerManager.GetByID(context, *generalLedgerID)
+		generalLedger, err := c.core.GeneralLedgerManager().GetByID(context, *generalLedgerID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-not-found",
@@ -167,7 +167,7 @@ func (c *Controller) paymentController() {
 		}
 
 		generalLedger.PrintNumber = maxNumber + 1
-		if err := c.core.GeneralLedgerManager.UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
+		if err := c.core.GeneralLedgerManager().UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
@@ -175,7 +175,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -254,7 +254,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
 
-		response := c.core.GeneralLedgerManager.ToModel(generalLedger)
+		response := c.core.GeneralLedgerManager().ToModel(generalLedger)
 
 		return ctx.JSON(http.StatusOK, response)
 	})
@@ -331,7 +331,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -406,7 +406,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -472,7 +472,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -538,7 +538,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -604,7 +604,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -617,7 +617,7 @@ func (c *Controller) paymentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		generalLedger, err := c.core.GeneralLedgerManager.GetByID(context, *generalLedgerID)
+		generalLedger, err := c.core.GeneralLedgerManager().GetByID(context, *generalLedgerID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
@@ -666,7 +666,7 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager.ToModel(newGeneralLedger))
+		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(newGeneralLedger))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -686,7 +686,7 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedgers, err := c.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		generalLedgers, err := c.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 			TransactionID: transactionID,
 		})
 		if err != nil {
@@ -752,7 +752,7 @@ func (c *Controller) paymentController() {
 			}
 			reversedLedgers = append(reversedLedgers, newGeneralLedger)
 		}
-		transaction, err := c.core.TransactionManager.GetByIDRaw(context, *transactionID)
+		transaction, err := c.core.TransactionManager().GetByIDRaw(context, *transactionID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",

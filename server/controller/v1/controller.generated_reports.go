@@ -32,7 +32,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager().GetByID(context, *generatedReportID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
@@ -50,7 +50,7 @@ func (c *Controller) generatedReports() {
 			UserOrganizationID: userOrg.ID,
 			GeneratedReportID:  generatedReport.ID,
 		}
-		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, generatedReportsDownloadUsers); err != nil {
+		if err := c.core.GeneratedReportsDownloadUsersManager().Create(context, generatedReportsDownloadUsers); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Generated reports download user creation failed (/generated-report/download), db error: " + err.Error(),
@@ -59,11 +59,11 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated reports download user " + err.Error()})
 		}
 
-		media, err := c.core.MediaManager.GetByID(context, *generatedReport.MediaID)
+		media, err := c.core.MediaManager().GetByID(context, *generatedReport.MediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModel(media))
+		return ctx.JSON(http.StatusOK, c.core.MediaManager().ToModel(media))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -74,7 +74,7 @@ func (c *Controller) generatedReports() {
 		Note:         "Create a new generated report.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.GeneratedReportManager.Validate(ctx)
+		req, err := c.core.GeneratedReportManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -132,7 +132,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager.ToModel(data))
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportManager().ToModel(data))
 
 	})
 
@@ -146,7 +146,7 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
 		}
-		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager().GetByID(context, *generatedReportID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
@@ -160,7 +160,7 @@ func (c *Controller) generatedReports() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 			}
 		}
-		if err := c.core.GeneratedReportManager.Delete(context, *generatedReportID); err != nil {
+		if err := c.core.GeneratedReportManager().Delete(context, *generatedReportID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete generated report: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)
@@ -195,7 +195,7 @@ func (c *Controller) generatedReports() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager().GetByID(context, *generatedReportID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -209,7 +209,7 @@ func (c *Controller) generatedReports() {
 		generatedReport.UpdatedAt = time.Now().UTC()
 		generatedReport.UpdatedByID = userOrg.UserID
 
-		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
+		if err := c.core.GeneratedReportManager().UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Generated report update failed (/generated-report/:generated_report_id), db error: " + err.Error(),
@@ -222,7 +222,7 @@ func (c *Controller) generatedReports() {
 			Description: "Updated generated report (/generated-report/:generated_report_id): " + generatedReport.Name,
 			Module:      "GeneratedReport",
 		})
-		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager().ToModel(generatedReport))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -233,7 +233,7 @@ func (c *Controller) generatedReports() {
 		ResponseType: core.GeneratedReportsDownloadUsersResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.GeneratedReportsDownloadUsersManager.Validate(ctx)
+		req, err := c.core.GeneratedReportsDownloadUsersManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -271,7 +271,7 @@ func (c *Controller) generatedReports() {
 			OrganizationID:     userOrg.OrganizationID,
 		}
 
-		if err := c.core.GeneratedReportsDownloadUsersManager.Create(context, downloadUser); err != nil {
+		if err := c.core.GeneratedReportsDownloadUsersManager().Create(context, downloadUser); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Generated reports download user creation failed (/generated-report/download-user), db error: " + err.Error(),
@@ -284,7 +284,7 @@ func (c *Controller) generatedReports() {
 			Description: "Created generated reports download user (/generated-report/download-user)",
 			Module:      "GeneratedReportsDownloadUsers",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportsDownloadUsersManager.ToModel(downloadUser))
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedReportsDownloadUsersManager().ToModel(downloadUser))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -298,15 +298,15 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
-		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager().GetByID(context, *generatedReportID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
 		generatedReport.IsFavorite = !generatedReport.IsFavorite
-		if err := c.core.GeneratedReportManager.UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
+		if err := c.core.GeneratedReportManager().UpdateByID(context, generatedReport.ID, generatedReport); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update favorite status: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager().ToModel(generatedReport))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -320,11 +320,11 @@ func (c *Controller) generatedReports() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID"})
 		}
-		generatedReport, err := c.core.GeneratedReportManager.GetByID(context, *generatedReportID)
+		generatedReport, err := c.core.GeneratedReportManager().GetByID(context, *generatedReportID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager.ToModel(generatedReport))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedReportManager().ToModel(generatedReport))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -342,7 +342,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -367,7 +367,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -392,7 +392,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -417,7 +417,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -443,7 +443,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -467,7 +467,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -494,7 +494,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -519,7 +519,7 @@ func (c *Controller) generatedReports() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -567,7 +567,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			Model:          model,
@@ -593,7 +593,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -620,7 +620,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -647,7 +647,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -675,7 +675,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -702,7 +702,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -730,7 +730,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -757,7 +757,7 @@ func (c *Controller) generatedReports() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := c.core.GeneratedReportManager.NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := c.core.GeneratedReportManager().NormalPagination(context, ctx, &core.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,

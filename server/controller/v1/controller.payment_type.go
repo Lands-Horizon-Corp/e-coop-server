@@ -28,7 +28,7 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve payment types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModels(paymentTypes))
+		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager().ToModels(paymentTypes))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -42,7 +42,7 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.PaymentTypeManager.NormalPagination(context, ctx, &core.PaymentType{
+		value, err := c.core.PaymentTypeManager().NormalPagination(context, ctx, &core.PaymentType{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -63,7 +63,7 @@ func (c *Controller) paymentTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment_type_id: " + err.Error()})
 		}
-		paymentType, err := c.core.PaymentTypeManager.GetByIDRaw(context, *paymentTypeID)
+		paymentType, err := c.core.PaymentTypeManager().GetByIDRaw(context, *paymentTypeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "PaymentType not found: " + err.Error()})
 		}
@@ -78,7 +78,7 @@ func (c *Controller) paymentTypeController() {
 		Note:         "Creates a new payment type record for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.PaymentTypeManager.Validate(ctx)
+		req, err := c.core.PaymentTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -110,7 +110,7 @@ func (c *Controller) paymentTypeController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.PaymentTypeManager.Create(context, paymentType); err != nil {
+		if err := c.core.PaymentTypeManager().Create(context, paymentType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create payment type failed: create error: " + err.Error(),
@@ -125,7 +125,7 @@ func (c *Controller) paymentTypeController() {
 			Module:      "PaymentType",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModel(paymentType))
+		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager().ToModel(paymentType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -146,7 +146,7 @@ func (c *Controller) paymentTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment_type_id: " + err.Error()})
 		}
 
-		req, err := c.core.PaymentTypeManager.Validate(ctx)
+		req, err := c.core.PaymentTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -165,7 +165,7 @@ func (c *Controller) paymentTypeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		paymentType, err := c.core.PaymentTypeManager.GetByID(context, *paymentTypeID)
+		paymentType, err := c.core.PaymentTypeManager().GetByID(context, *paymentTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -180,7 +180,7 @@ func (c *Controller) paymentTypeController() {
 		paymentType.Type = req.Type
 		paymentType.UpdatedAt = time.Now().UTC()
 		paymentType.UpdatedByID = userOrg.UserID
-		if err := c.core.PaymentTypeManager.UpdateByID(context, paymentType.ID, paymentType); err != nil {
+		if err := c.core.PaymentTypeManager().UpdateByID(context, paymentType.ID, paymentType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update payment type failed: update error: " + err.Error(),
@@ -193,7 +193,7 @@ func (c *Controller) paymentTypeController() {
 			Description: "Updated payment type: " + paymentType.Name,
 			Module:      "PaymentType",
 		})
-		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager.ToModel(paymentType))
+		return ctx.JSON(http.StatusOK, c.core.PaymentTypeManager().ToModel(paymentType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -211,7 +211,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment_type_id: " + err.Error()})
 		}
-		paymentType, err := c.core.PaymentTypeManager.GetByID(context, *paymentTypeID)
+		paymentType, err := c.core.PaymentTypeManager().GetByID(context, *paymentTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -220,7 +220,7 @@ func (c *Controller) paymentTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "PaymentType not found: " + err.Error()})
 		}
-		if err := c.core.PaymentTypeManager.Delete(context, *paymentTypeID); err != nil {
+		if err := c.core.PaymentTypeManager().Delete(context, *paymentTypeID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete payment type failed: delete error: " + err.Error(),
@@ -267,7 +267,7 @@ func (c *Controller) paymentTypeController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.PaymentTypeManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.PaymentTypeManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Payment type bulk delete failed (/payment-type/bulk-delete) | error: " + err.Error(),

@@ -70,7 +70,7 @@ type (
 
 func (m *Core) memberProfileMedia() {
 	m.Migration = append(m.Migration, &MemberProfileMedia{})
-	m.MemberProfileMediaManager = registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+	m.MemberProfileMediaManager().= registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -84,18 +84,18 @@ func (m *Core) memberProfileMedia() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager.ToModel(data.Media),
+				Media:           m.MediaManager().ToModel(data.Media),
 				Name:            data.Name,
 				Description:     data.Description,
 			}
@@ -143,7 +143,7 @@ func (m *Core) memberProfileMedia() {
 }
 
 func (m *Core) MemberProfileMediaCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
-	return m.MemberProfileMediaManager.Find(context, &MemberProfileMedia{
+	return m.MemberProfileMediaManager().Find(context, &MemberProfileMedia{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

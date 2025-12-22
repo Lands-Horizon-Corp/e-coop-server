@@ -85,7 +85,7 @@ type (
 
 func (m *Core) financialStatementDefinition() {
 	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
-	m.FinancialStatementDefinitionManager = registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
+	m.FinancialStatementDefinitionManager().= registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -120,21 +120,21 @@ func (m *Core) financialStatementDefinition() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				FinancialStatementDefinitionEntriesID: data.FinancialStatementDefinitionEntriesID,
-				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager().ToModels(data.FinancialStatementDefinitionEntries),
 
 				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
-				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
-				Accounts:                     m.AccountManager.ToModels(data.Accounts),
+				FinancialStatementGrouping:   m.FinancialStatementGroupingManager().ToModel(data.FinancialStatementGrouping),
+				Accounts:                     m.AccountManager().ToModels(data.Accounts),
 
 				Name:                   data.Name,
 				Description:            data.Description,
@@ -172,7 +172,7 @@ func (m *Core) financialStatementDefinition() {
 }
 
 func (m *Core) FinancialStatementDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
-	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
+	return m.FinancialStatementDefinitionManager().Find(context, &FinancialStatementDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

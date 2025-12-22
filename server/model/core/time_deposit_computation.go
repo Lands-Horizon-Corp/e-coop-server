@@ -96,7 +96,7 @@ type (
 
 func (m *Core) timeDepositComputation() {
 	m.Migration = append(m.Migration, &TimeDepositComputation{})
-	m.TimeDepositComputationManager = registry.NewRegistry(registry.RegistryParams[
+	m.TimeDepositComputationManager().= registry.NewRegistry(registry.RegistryParams[
 		TimeDepositComputation, TimeDepositComputationResponse, TimeDepositComputationRequest,
 	]{
 		Preloads: []string{
@@ -114,16 +114,16 @@ func (m *Core) timeDepositComputation() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				TimeDepositTypeID: data.TimeDepositTypeID,
-				TimeDepositType:   m.TimeDepositTypeManager.ToModel(data.TimeDepositType),
+				TimeDepositType:   m.TimeDepositTypeManager().ToModel(data.TimeDepositType),
 				MinimumAmount:     data.MinimumAmount,
 				MaximumAmount:     data.MaximumAmount,
 				Header1:           data.Header1,
@@ -168,7 +168,7 @@ func (m *Core) timeDepositComputation() {
 }
 
 func (m *Core) TimeDepositComputationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputation, error) {
-	return m.TimeDepositComputationManager.Find(context, &TimeDepositComputation{
+	return m.TimeDepositComputationManager().Find(context, &TimeDepositComputation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

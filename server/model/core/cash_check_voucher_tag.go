@@ -70,7 +70,7 @@ type (
 
 func (m *Core) cashCheckVoucherTag() {
 	m.Migration = append(m.Migration, &CashCheckVoucherTag{})
-	m.CashCheckVoucherTagManager = registry.NewRegistry(registry.RegistryParams[
+	m.CashCheckVoucherTagManager().= registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucherTag, CashCheckVoucherTagResponse, CashCheckVoucherTagRequest,
 	]{
 		Preloads: []string{
@@ -88,14 +88,14 @@ func (m *Core) cashCheckVoucherTag() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				CashCheckVoucherID: data.CashCheckVoucherID,
 				Name:               data.Name,
 				Description:        data.Description,
@@ -132,7 +132,7 @@ func (m *Core) cashCheckVoucherTag() {
 }
 
 func (m *Core) CashCheckVoucherTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherTag, error) {
-	return m.CashCheckVoucherTagManager.Find(context, &CashCheckVoucherTag{
+	return m.CashCheckVoucherTagManager().Find(context, &CashCheckVoucherTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

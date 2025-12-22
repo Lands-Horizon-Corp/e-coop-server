@@ -29,7 +29,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member type history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberTypeHistoryManager.ToModels(memberTypeHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberTypeHistoryManager().ToModels(memberTypeHistory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -47,7 +47,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberTypeHistory, err := c.core.MemberTypeHistoryManager.NormalPagination(context, ctx, &core.MemberTypeHistory{
+		memberTypeHistory, err := c.core.MemberTypeHistoryManager().NormalPagination(context, ctx, &core.MemberTypeHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -73,7 +73,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModels(memberType))
+		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager().ToModels(memberType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -87,7 +87,7 @@ func (c *Controller) memberTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberTypeManager.NormalPagination(context, ctx, &core.MemberType{
+		value, err := c.core.MemberTypeManager().NormalPagination(context, ctx, &core.MemberType{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -105,7 +105,7 @@ func (c *Controller) memberTypeController() {
 		Note:         "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberTypeManager.Validate(ctx)
+		req, err := c.core.MemberTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -136,7 +136,7 @@ func (c *Controller) memberTypeController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberTypeManager.Create(context, memberType); err != nil {
+		if err := c.core.MemberTypeManager().Create(context, memberType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member type failed: " + err.Error(),
@@ -151,7 +151,7 @@ func (c *Controller) memberTypeController() {
 			Module:      "MemberType",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModel(memberType))
+		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager().ToModel(memberType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -181,7 +181,7 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		req, err := c.core.MemberTypeManager.Validate(ctx)
+		req, err := c.core.MemberTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -191,7 +191,7 @@ func (c *Controller) memberTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		memberType, err := c.core.MemberTypeManager.GetByID(context, *memberTypeID)
+		memberType, err := c.core.MemberTypeManager().GetByID(context, *memberTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -208,7 +208,7 @@ func (c *Controller) memberTypeController() {
 		memberType.Name = req.Name
 		memberType.Description = req.Description
 		memberType.Prefix = req.Prefix
-		if err := c.core.MemberTypeManager.UpdateByID(context, memberType.ID, memberType); err != nil {
+		if err := c.core.MemberTypeManager().UpdateByID(context, memberType.ID, memberType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member type failed: update error: " + err.Error(),
@@ -221,7 +221,7 @@ func (c *Controller) memberTypeController() {
 			Description: "Updated member type: " + memberType.Name,
 			Module:      "MemberType",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager.ToModel(memberType))
+		return ctx.JSON(http.StatusOK, c.core.MemberTypeManager().ToModel(memberType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -239,7 +239,7 @@ func (c *Controller) memberTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
-		memberType, err := c.core.MemberTypeManager.GetByID(context, *memberTypeID)
+		memberType, err := c.core.MemberTypeManager().GetByID(context, *memberTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -248,7 +248,7 @@ func (c *Controller) memberTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberType with ID %s not found: %v", memberTypeID, err)})
 		}
-		if err := c.core.MemberTypeManager.Delete(context, *memberTypeID); err != nil {
+		if err := c.core.MemberTypeManager().Delete(context, *memberTypeID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member type failed: " + err.Error(),
@@ -295,7 +295,7 @@ func (c *Controller) memberTypeController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberTypeManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberTypeManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member types failed (/member-type/bulk-delete) | error: " + err.Error(),

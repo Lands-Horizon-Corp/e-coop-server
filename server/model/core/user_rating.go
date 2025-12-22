@@ -71,7 +71,7 @@ type (
 
 func (m *Core) userRating() {
 	m.Migration = append(m.Migration, &UserRating{})
-	m.UserRatingManager = registry.NewRegistry(registry.RegistryParams[UserRating, UserRatingResponse, UserRatingRequest]{
+	m.UserRatingManager().= registry.NewRegistry(registry.RegistryParams[UserRating, UserRatingResponse, UserRatingRequest]{
 		Preloads: []string{"Organization", "Branch", "RateeUser", "RaterUser"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -85,20 +85,20 @@ func (m *Core) userRating() {
 				ID:          data.ID,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID: data.CreatedByID,
-				CreatedBy:   m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:   m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID: data.UpdatedByID,
-				UpdatedBy:   m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:   m.UserManager().ToModel(data.UpdatedBy),
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				RateeUserID: data.RateeUserID,
-				RateeUser:   m.UserManager.ToModel(&data.RateeUser),
+				RateeUser:   m.UserManager().ToModel(&data.RateeUser),
 				RaterUserID: data.RaterUserID,
-				RaterUser:   m.UserManager.ToModel(&data.RaterUser),
+				RaterUser:   m.UserManager().ToModel(&data.RaterUser),
 				Rate:        data.Rate,
 				Remark:      data.Remark,
 			}
@@ -131,19 +131,19 @@ func (m *Core) userRating() {
 }
 
 func (m *Core) GetUserRatee(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+	return m.UserRatingManager().Find(context, &UserRating{
 		RateeUserID: userID,
 	})
 }
 
 func (m *Core) GetUserRater(context context.Context, userID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+	return m.UserRatingManager().Find(context, &UserRating{
 		RaterUserID: userID,
 	})
 }
 
 func (m *Core) UserRatingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserRating, error) {
-	return m.UserRatingManager.Find(context, &UserRating{
+	return m.UserRatingManager().Find(context, &UserRating{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

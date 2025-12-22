@@ -20,11 +20,11 @@ func (c *Controller) feedbackController() {
 		ResponseType: core.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedback, err := c.core.FeedbackManager.List(context)
+		feedback, err := c.core.FeedbackManager().List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve feedback records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FeedbackManager.ToModels(feedback))
+		return ctx.JSON(http.StatusOK, c.core.FeedbackManager().ToModels(feedback))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -39,7 +39,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.core.FeedbackManager.GetByIDRaw(context, *feedbackID)
+		feedback, err := c.core.FeedbackManager().GetByIDRaw(context, *feedbackID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
@@ -55,7 +55,7 @@ func (c *Controller) feedbackController() {
 		RequestType:  core.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.FeedbackManager.Validate(ctx)
+		req, err := c.core.FeedbackManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -74,7 +74,7 @@ func (c *Controller) feedbackController() {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.core.FeedbackManager.Create(context, feedback); err != nil {
+		if err := c.core.FeedbackManager().Create(context, feedback); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), db error: " + err.Error(),
@@ -89,7 +89,7 @@ func (c *Controller) feedbackController() {
 			Module:      "Feedback",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.FeedbackManager.ToModel(feedback))
+		return ctx.JSON(http.StatusCreated, c.core.FeedbackManager().ToModel(feedback))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -108,7 +108,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.core.FeedbackManager.GetByID(context, *feedbackID)
+		feedback, err := c.core.FeedbackManager().GetByID(context, *feedbackID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -118,7 +118,7 @@ func (c *Controller) feedbackController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
 
-		if err := c.core.FeedbackManager.Delete(context, *feedbackID); err != nil {
+		if err := c.core.FeedbackManager().Delete(context, *feedbackID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
@@ -167,7 +167,7 @@ func (c *Controller) feedbackController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.FeedbackManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.FeedbackManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),

@@ -32,7 +32,7 @@ func (c *Controller) mutualFundEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual fund entries found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -49,7 +49,7 @@ func (c *Controller) mutualFundEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.MutualFundEntryManager.NormalPagination(context, ctx, &core.MutualFundEntry{
+		entries, err := c.core.MutualFundEntryManager().NormalPagination(context, ctx, &core.MutualFundEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -81,7 +81,7 @@ func (c *Controller) mutualFundEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual fund entries found for the specified member"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -106,7 +106,7 @@ func (c *Controller) mutualFundEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual fund entries found for the specified account"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -120,7 +120,7 @@ func (c *Controller) mutualFundEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund entry ID"})
 		}
-		entry, err := c.core.MutualFundEntryManager.GetByIDRaw(context, *entryID)
+		entry, err := c.core.MutualFundEntryManager().GetByIDRaw(context, *entryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund entry not found"})
 		}
@@ -135,7 +135,7 @@ func (c *Controller) mutualFundEntryController() {
 		ResponseType: core.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MutualFundEntryManager.Validate(ctx)
+		req, err := c.core.MutualFundEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -174,7 +174,7 @@ func (c *Controller) mutualFundEntryController() {
 			OrganizationID:  userOrg.OrganizationID,
 		}
 
-		if err := c.core.MutualFundEntryManager.Create(context, entry); err != nil {
+		if err := c.core.MutualFundEntryManager().Create(context, entry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Mutual fund entry creation failed (/mutual-fund-entry), db error: " + err.Error(),
@@ -187,7 +187,7 @@ func (c *Controller) mutualFundEntryController() {
 			Description: fmt.Sprintf("Created mutual fund entry (/mutual-fund-entry): Amount %.2f for member %s", entry.Amount, entry.MemberProfileID),
 			Module:      "MutualFundEntry",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MutualFundEntryManager.ToModel(entry))
+		return ctx.JSON(http.StatusCreated, c.core.MutualFundEntryManager().ToModel(entry))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -208,7 +208,7 @@ func (c *Controller) mutualFundEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund entry ID"})
 		}
 
-		req, err := c.core.MutualFundEntryManager.Validate(ctx)
+		req, err := c.core.MutualFundEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -226,7 +226,7 @@ func (c *Controller) mutualFundEntryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		entry, err := c.core.MutualFundEntryManager.GetByID(context, *entryID)
+		entry, err := c.core.MutualFundEntryManager().GetByID(context, *entryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -240,7 +240,7 @@ func (c *Controller) mutualFundEntryController() {
 		entry.Amount = req.Amount
 		entry.UpdatedAt = time.Now().UTC()
 		entry.UpdatedByID = userOrg.UserID
-		if err := c.core.MutualFundEntryManager.UpdateByID(context, entry.ID, entry); err != nil {
+		if err := c.core.MutualFundEntryManager().UpdateByID(context, entry.ID, entry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Mutual fund entry update failed (/mutual-fund-entry/:entry_id), db error: " + err.Error(),
@@ -253,7 +253,7 @@ func (c *Controller) mutualFundEntryController() {
 			Description: fmt.Sprintf("Updated mutual fund entry (/mutual-fund-entry/:entry_id): Amount %.2f for member %s", entry.Amount, entry.MemberProfileID),
 			Module:      "MutualFundEntry",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager.ToModel(entry))
+		return ctx.JSON(http.StatusOK, c.core.MutualFundEntryManager().ToModel(entry))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -271,7 +271,7 @@ func (c *Controller) mutualFundEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund entry ID"})
 		}
-		entry, err := c.core.MutualFundEntryManager.GetByID(context, *entryID)
+		entry, err := c.core.MutualFundEntryManager().GetByID(context, *entryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -280,7 +280,7 @@ func (c *Controller) mutualFundEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund entry not found"})
 		}
-		if err := c.core.MutualFundEntryManager.Delete(context, *entryID); err != nil {
+		if err := c.core.MutualFundEntryManager().Delete(context, *entryID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Mutual fund entry delete failed (/mutual-fund-entry/:entry_id), db error: " + err.Error(),
@@ -325,7 +325,7 @@ func (c *Controller) mutualFundEntryController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MutualFundEntryManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MutualFundEntryManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete mutual fund entries (/mutual-fund-entry/bulk-delete) | error: " + err.Error(),

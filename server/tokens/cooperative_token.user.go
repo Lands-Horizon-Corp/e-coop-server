@@ -147,7 +147,7 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*cor
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user information")
 	}
-	user, err := h.core.UserManager.GetByID(ctx, handlers.ParseUUID(&claim.UserID))
+	user, err := h.core.UserManager().GetByID(ctx, handlers.ParseUUID(&claim.UserID))
 	if err != nil || user == nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user not found")

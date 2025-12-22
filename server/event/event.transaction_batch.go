@@ -13,18 +13,18 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	if transactionBatchID == nil {
 		return eris.New("transactionBatchID is nil")
 	}
-	transactionBatch, err := m.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+	transactionBatch, err := m.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to get transaction batch by ID")
 	}
-	if err := m.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+	if err := m.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 		return eris.Wrap(err, "failed to update transaction batch")
 	}
 	return nil
 }
 
 func (m *Event) TBBatchFunding(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
-	batchFunding, err := m.core.BatchFundingManager.Find(context, &core.BatchFunding{
+	batchFunding, err := m.core.BatchFundingManager().Find(context, &core.BatchFunding{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -40,7 +40,7 @@ func (m *Event) TBBatchFunding(context context.Context, transactionBatchID, orgI
 }
 
 func (m *Event) TBCashCount(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
-	cashCounts, err := m.core.CashCountManager.Find(context, &core.CashCount{
+	cashCounts, err := m.core.CashCountManager().Find(context, &core.CashCount{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -56,7 +56,7 @@ func (m *Event) TBCashCount(context context.Context, transactionBatchID, orgID, 
 }
 
 func (m *Event) TBCheckRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
-	checkRemittances, err := m.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
+	checkRemittances, err := m.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -72,7 +72,7 @@ func (m *Event) TBCheckRemittance(context context.Context, transactionBatchID, o
 }
 
 func (m *Event) TBOnlineRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
-	onlineRemittances, err := m.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
+	onlineRemittances, err := m.core.OnlineRemittanceManager().Find(context, &core.OnlineRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -88,7 +88,7 @@ func (m *Event) TBOnlineRemittance(context context.Context, transactionBatchID, 
 }
 
 func (m *Event) TBDisbursementTransaction(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
-	disbursementTransactions, err := m.core.DisbursementTransactionManager.Find(context, &core.DisbursementTransaction{
+	disbursementTransactions, err := m.core.DisbursementTransactionManager().Find(context, &core.DisbursementTransaction{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -104,7 +104,7 @@ func (m *Event) TBDisbursementTransaction(context context.Context, transactionBa
 }
 
 func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	withdrawals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	withdrawals, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -119,7 +119,7 @@ func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, b
 }
 
 func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	deposits, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	deposits, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -134,7 +134,7 @@ func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, br
 }
 
 func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	journals, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	journals, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -149,7 +149,7 @@ func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, br
 }
 
 func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	payments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	payments, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -164,7 +164,7 @@ func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, br
 }
 
 func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	adjustments, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	adjustments, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -179,7 +179,7 @@ func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID,
 }
 
 func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	journalVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	journalVouchers, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -194,7 +194,7 @@ func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, or
 }
 
 func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	checkVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	checkVouchers, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -209,7 +209,7 @@ func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgI
 }
 
 func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	loanVouchers, err := m.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+	loanVouchers, err := m.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -225,7 +225,7 @@ func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branc
 
 /*
 --------------------------- Batch Funding
-cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
+cashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
 	TransactionBatchID: transactionBatch.ID,
 	OrganizationID:     userOrg.OrganizationID,
 	BranchID:           *userOrg.BranchID,
@@ -248,7 +248,7 @@ transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Se
 transactionBatch.CashCountTotal = totalCashCount
 transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, transactionBatch.DepositInBank)
 
-if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 	c.event.Footstep(ctx, event.FootstepEvent{
 		Activity:    "create-error",
 		Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
@@ -262,7 +262,7 @@ if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID
 
 --------------------------- Check Remittance
 
-allCheckRemittances, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
+allCheckRemittances, err := c.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -289,7 +289,7 @@ transactionBatch.UpdatedByID = userOrg.UserID
 --------------------------- Online Remittance
 
 
-allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
+allOnlineRemittances, err := c.core.OnlineRemittanceManager().Find(context, &core.OnlineRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -313,7 +313,7 @@ allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete online remittance failed: update batch error: " + err.Error(),
@@ -327,7 +327,7 @@ allOnlineRemittances, err := c.core.OnlineRemittanceManager.Find(context, &core.
 
 
 --------------------- Deposit in Bank
-cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
+cashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
 	TransactionBatchID: transactionBatch.ID,
 	OrganizationID:     userOrg.OrganizationID,
 	BranchID:           *userOrg.BranchID,

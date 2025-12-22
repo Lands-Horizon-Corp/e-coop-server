@@ -59,7 +59,7 @@ type (
 
 func (m *Core) cancelledCashCheckVoucher() {
 	m.Migration = append(m.Migration, &CancelledCashCheckVoucher{})
-	m.CancelledCashCheckVoucherManager = registry.NewRegistry(registry.RegistryParams[
+	m.CancelledCashCheckVoucherManager().= registry.NewRegistry(registry.RegistryParams[
 		CancelledCashCheckVoucher, CancelledCashCheckVoucherResponse, CancelledCashCheckVoucherRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -75,14 +75,14 @@ func (m *Core) cancelledCashCheckVoucher() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				CheckNumber:    data.CheckNumber,
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Description:    data.Description,
@@ -116,7 +116,7 @@ func (m *Core) cancelledCashCheckVoucher() {
 }
 
 func (m *Core) CancelledCashCheckVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CancelledCashCheckVoucher, error) {
-	return m.CancelledCashCheckVoucherManager.Find(context, &CancelledCashCheckVoucher{
+	return m.CancelledCashCheckVoucherManager().Find(context, &CancelledCashCheckVoucher{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -28,7 +28,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupation history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager.ToModels(memberOccupationHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationHistoryManager().ToModels(memberOccupationHistory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -46,7 +46,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager.NormalPagination(context, ctx, &core.MemberOccupationHistory{
+		memberOccupationHistory, err := c.core.MemberOccupationHistoryManager().NormalPagination(context, ctx, &core.MemberOccupationHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -72,7 +72,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member occupations: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModels(memberOccupation))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager().ToModels(memberOccupation))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -86,7 +86,7 @@ func (c *Controller) memberOccupationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberOccupationManager.NormalPagination(context, ctx, &core.MemberOccupation{
+		value, err := c.core.MemberOccupationManager().NormalPagination(context, ctx, &core.MemberOccupation{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -104,7 +104,7 @@ func (c *Controller) memberOccupationController() {
 		Note:         "Creates a new member occupation record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberOccupationManager.Validate(ctx)
+		req, err := c.core.MemberOccupationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -134,7 +134,7 @@ func (c *Controller) memberOccupationController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberOccupationManager.Create(context, memberOccupation); err != nil {
+		if err := c.core.MemberOccupationManager().Create(context, memberOccupation); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member occupation failed (/member-occupation), db error: " + err.Error(),
@@ -149,7 +149,7 @@ func (c *Controller) memberOccupationController() {
 			Module:      "MemberOccupation",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModel(memberOccupation))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager().ToModel(memberOccupation))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -178,7 +178,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.MemberOccupationManager.Validate(ctx)
+		req, err := c.core.MemberOccupationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -187,7 +187,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberOccupation, err := c.core.MemberOccupationManager.GetByID(context, *memberOccupationID)
+		memberOccupation, err := c.core.MemberOccupationManager().GetByID(context, *memberOccupationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -202,7 +202,7 @@ func (c *Controller) memberOccupationController() {
 		memberOccupation.BranchID = *userOrg.BranchID
 		memberOccupation.Name = req.Name
 		memberOccupation.Description = req.Description
-		if err := c.core.MemberOccupationManager.UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
+		if err := c.core.MemberOccupationManager().UpdateByID(context, memberOccupation.ID, memberOccupation); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -215,7 +215,7 @@ func (c *Controller) memberOccupationController() {
 			Description: "Updated member occupation (/member-occupation/:member_occupation_id): " + memberOccupation.Name,
 			Module:      "MemberOccupation",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager.ToModel(memberOccupation))
+		return ctx.JSON(http.StatusOK, c.core.MemberOccupationManager().ToModel(memberOccupation))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -233,7 +233,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_occupation_id: " + err.Error()})
 		}
-		value, err := c.core.MemberOccupationManager.GetByID(context, *memberOccupationID)
+		value, err := c.core.MemberOccupationManager().GetByID(context, *memberOccupationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -242,7 +242,7 @@ func (c *Controller) memberOccupationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member occupation not found: " + err.Error()})
 		}
-		if err := c.core.MemberOccupationManager.Delete(context, *memberOccupationID); err != nil {
+		if err := c.core.MemberOccupationManager().Delete(context, *memberOccupationID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member occupation failed (/member-occupation/:member_occupation_id), db error: " + err.Error(),
@@ -289,7 +289,7 @@ func (c *Controller) memberOccupationController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberOccupationManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberOccupationManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member occupations failed (/member-occupation/bulk-delete) | error: " + err.Error(),

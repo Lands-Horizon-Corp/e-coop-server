@@ -50,76 +50,70 @@ type (
 	}
 )
 
-func (m *Core) media() {
-	m.Migration = append(m.Migration, &Media{})
-	m.MediaManager = registry.NewRegistry(registry.RegistryParams[Media, MediaResponse, MediaRequest]{
-		Preloads: nil,
-		Database: m.provider.Service.Database.Client(),
-		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Service.Broker.Dispatch(topics, payload)
+func (m *Core) MediaManager() *registry.Registry[Media, MediaResponse, MediaRequest] {
+	return registry.GetRegistry[Media, MediaResponse, MediaRequest](
+		registry.RegistryParams[Media, MediaResponse, MediaRequest]{
+			Preloads: nil,
+			Database: m.provider.Service.Database.Client(),
+			Dispatch: func(topics registry.Topics, payload any) error {
+				return m.provider.Service.Broker.Dispatch(topics, payload)
+			},
+			Resource: func(data *Media) *MediaResponse {
+				if data == nil {
+					return nil
+				}
+				temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
+					context.Background(),
+					&horizon.Storage{
+						StorageKey: data.StorageKey,
+						BucketName: data.BucketName,
+						FileName:   data.FileName,
+					},
+					time.Hour,
+				)
+				if err != nil {
+					temporary = ""
+				}
+				return &MediaResponse{
+					ID:          data.ID,
+					CreatedAt:   data.CreatedAt.Format(time.RFC3339),
+					UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
+					FileName:    data.FileName,
+					FileSize:    data.FileSize,
+					FileType:    data.FileType,
+					StorageKey:  data.StorageKey,
+					Key:         data.Key,
+					BucketName:  data.BucketName,
+					Status:      data.Status,
+					Progress:    data.Progress,
+					DownloadURL: temporary,
+				}
+			},
+			Created: func(data *Media) registry.Topics {
+				return []string{"media.create", "media.create." + data.ID.String()}
+			},
+			Updated: func(data *Media) registry.Topics {
+				return []string{"media.update", "media.update." + data.ID.String()}
+			},
+			Deleted: func(data *Media) registry.Topics {
+				return []string{"media.delete", "media.delete." + data.ID.String()}
+			},
 		},
-		Resource: func(data *Media) *MediaResponse {
-			context := context.Background()
-			if data == nil {
-				return nil
-			}
-			temporary, err := m.provider.Service.Storage.GeneratePresignedURL(
-				context, &horizon.Storage{
-					StorageKey: data.StorageKey,
-					BucketName: data.BucketName,
-					FileName:   data.FileName,
-				}, time.Hour)
-			if err != nil {
-				temporary = ""
-			}
-			return &MediaResponse{
-				ID:          data.ID,
-				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
-				FileName:    data.FileName,
-				FileSize:    data.FileSize,
-				FileType:    data.FileType,
-				StorageKey:  data.StorageKey,
-				Key:         data.Key,
-				BucketName:  data.BucketName,
-				Status:      data.Status,
-				Progress:    data.Progress,
-				DownloadURL: temporary,
-			}
-		},
-		Created: func(data *Media) registry.Topics {
-			return []string{
-				"media.create",
-				"media.create." + data.ID.String(),
-			}
-		},
-		Updated: func(data *Media) registry.Topics {
-			return []string{
-				"media.update",
-				"media.update." + data.ID.String(),
-			}
-		},
-		Deleted: func(data *Media) registry.Topics {
-			return []string{
-				"media.delete",
-				"media.delete." + data.ID.String(),
-			}
-		},
-	})
+	)
 }
 
 func (m *Core) MediaDelete(context context.Context, mediaID uuid.UUID) error {
 	if mediaID == uuid.Nil {
 		return nil
 	}
-	media, err := m.MediaManager.GetByID(context, mediaID)
+	media, err := m.MediaManager().GetByID(context, mediaID)
 	if err != nil {
 		return err
 	}
 	if media == nil {
 		return nil
 	}
-	if err := m.MediaManager.Delete(context, media.ID); err != nil {
+	if err := m.MediaManager().Delete(context, media.ID); err != nil {
 		return err
 	}
 	if err := m.provider.Service.Storage.DeleteFile(context, &horizon.Storage{
@@ -132,7 +126,6 @@ func (m *Core) MediaDelete(context context.Context, mediaID uuid.UUID) error {
 	}); err != nil {
 		return err
 	}
-
 	return nil
 
 }

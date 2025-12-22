@@ -31,7 +31,7 @@ func (c *Controller) timeDepositTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager.ToModels(timeDepositTypes))
+		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModels(timeDepositTypes))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -45,7 +45,7 @@ func (c *Controller) timeDepositTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager.GetByIDRaw(context, *timeDepositTypeID)
+		timeDepositType, err := c.core.TimeDepositTypeManager().GetByIDRaw(context, *timeDepositTypeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
@@ -60,7 +60,7 @@ func (c *Controller) timeDepositTypeController() {
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.TimeDepositTypeManager.Validate(ctx)
+		req, err := c.core.TimeDepositTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -102,7 +102,7 @@ func (c *Controller) timeDepositTypeController() {
 			CurrencyID:     req.CurrencyID,
 		}
 
-		if err := c.core.TimeDepositTypeManager.Create(context, timeDepositType); err != nil {
+		if err := c.core.TimeDepositTypeManager().Create(context, timeDepositType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), db error: " + err.Error(),
@@ -115,7 +115,7 @@ func (c *Controller) timeDepositTypeController() {
 			Description: "Created time deposit type (/time-deposit-type): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.TimeDepositTypeManager.ToModel(timeDepositType))
+		return ctx.JSON(http.StatusCreated, c.core.TimeDepositTypeManager().ToModel(timeDepositType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -136,7 +136,7 @@ func (c *Controller) timeDepositTypeController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
 
-		req, err := c.core.TimeDepositTypeManager.Validate(ctx)
+		req, err := c.core.TimeDepositTypeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -154,7 +154,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
+		timeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, *timeDepositTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -195,7 +195,7 @@ func (c *Controller) timeDepositTypeController() {
 		timeDepositType.Header10 = req.Header10
 		timeDepositType.Header11 = req.Header11
 
-		if err := c.core.TimeDepositTypeManager.UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
+		if err := c.core.TimeDepositTypeManager().UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
@@ -206,7 +206,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		if req.TimeDepositComputationsDeleted != nil {
 			for _, id := range req.TimeDepositComputationsDeleted {
-				if err := c.core.TimeDepositComputationManager.DeleteWithTx(context, tx, id); err != nil {
+				if err := c.core.TimeDepositComputationManager().DeleteWithTx(context, tx, id); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation: " + err.Error(),
@@ -219,7 +219,7 @@ func (c *Controller) timeDepositTypeController() {
 
 		if req.TimeDepositComputationPreMaturesDeleted != nil {
 			for _, id := range req.TimeDepositComputationPreMaturesDeleted {
-				if err := c.core.TimeDepositComputationPreMatureManager.DeleteWithTx(context, tx, id); err != nil {
+				if err := c.core.TimeDepositComputationPreMatureManager().DeleteWithTx(context, tx, id); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation pre mature: " + err.Error(),
@@ -233,7 +233,7 @@ func (c *Controller) timeDepositTypeController() {
 		if req.TimeDepositComputations != nil {
 			for _, computationReq := range req.TimeDepositComputations {
 				if computationReq.ID != nil {
-					existingComputation, err := c.core.TimeDepositComputationManager.GetByID(context, *computationReq.ID)
+					existingComputation, err := c.core.TimeDepositComputationManager().GetByID(context, *computationReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + endTx(err).Error()})
 					}
@@ -252,7 +252,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingComputation.Header11 = computationReq.Header11
 					existingComputation.UpdatedAt = time.Now().UTC()
 					existingComputation.UpdatedByID = userOrg.UserID
-					if err := c.core.TimeDepositComputationManager.UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
+					if err := c.core.TimeDepositComputationManager().UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + endTx(err).Error()})
 					}
 				} else {
@@ -278,7 +278,7 @@ func (c *Controller) timeDepositTypeController() {
 						BranchID:          *userOrg.BranchID,
 						OrganizationID:    userOrg.OrganizationID,
 					}
-					if err := c.core.TimeDepositComputationManager.CreateWithTx(context, tx, newComputation); err != nil {
+					if err := c.core.TimeDepositComputationManager().CreateWithTx(context, tx, newComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation: " + endTx(err).Error()})
 					}
 				}
@@ -288,7 +288,7 @@ func (c *Controller) timeDepositTypeController() {
 		if req.TimeDepositComputationPreMatures != nil {
 			for _, preMatureReq := range req.TimeDepositComputationPreMatures {
 				if preMatureReq.ID != nil {
-					existingPreMature, err := c.core.TimeDepositComputationPreMatureManager.GetByID(context, *preMatureReq.ID)
+					existingPreMature, err := c.core.TimeDepositComputationPreMatureManager().GetByID(context, *preMatureReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation pre mature: " + endTx(err).Error()})
 					}
@@ -298,7 +298,7 @@ func (c *Controller) timeDepositTypeController() {
 					existingPreMature.Rate = preMatureReq.Rate
 					existingPreMature.UpdatedAt = time.Now().UTC()
 					existingPreMature.UpdatedByID = userOrg.UserID
-					if err := c.core.TimeDepositComputationPreMatureManager.UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
+					if err := c.core.TimeDepositComputationPreMatureManager().UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				} else {
@@ -315,7 +315,7 @@ func (c *Controller) timeDepositTypeController() {
 						BranchID:          *userOrg.BranchID,
 						OrganizationID:    userOrg.OrganizationID,
 					}
-					if err := c.core.TimeDepositComputationPreMatureManager.CreateWithTx(context, tx, newPreMature); err != nil {
+					if err := c.core.TimeDepositComputationPreMatureManager().CreateWithTx(context, tx, newPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				}
@@ -336,11 +336,11 @@ func (c *Controller) timeDepositTypeController() {
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		newTimeDepositType, err := c.core.TimeDepositTypeManager.GetByID(context, timeDepositType.ID)
+		newTimeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, timeDepositType.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated time deposit type: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager.ToModel(newTimeDepositType))
+		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModel(newTimeDepositType))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -358,7 +358,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager.GetByID(context, *timeDepositTypeID)
+		timeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, *timeDepositTypeID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -367,7 +367,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
-		if err := c.core.TimeDepositTypeManager.Delete(context, *timeDepositTypeID); err != nil {
+		if err := c.core.TimeDepositTypeManager().Delete(context, *timeDepositTypeID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
@@ -414,7 +414,7 @@ func (c *Controller) timeDepositTypeController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.TimeDepositTypeManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.TimeDepositTypeManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | error: " + err.Error(),
@@ -451,7 +451,7 @@ func (c *Controller) timeDepositTypeController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositTypes, err := c.core.TimeDepositTypeManager.Find(context, &core.TimeDepositType{
+		timeDepositTypes, err := c.core.TimeDepositTypeManager().Find(context, &core.TimeDepositType{
 			CurrencyID:     *currencyID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -459,6 +459,6 @@ func (c *Controller) timeDepositTypeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager.ToModels(timeDepositTypes))
+		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModels(timeDepositTypes))
 	})
 }

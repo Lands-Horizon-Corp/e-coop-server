@@ -31,7 +31,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager.NormalPagination(context, ctx, &core.IncludeNegativeAccount{
+		records, err := c.core.IncludeNegativeAccountManager().NormalPagination(context, ctx, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -60,7 +60,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager.Find(context, &core.IncludeNegativeAccount{
+		records, err := c.core.IncludeNegativeAccountManager().Find(context, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -68,7 +68,7 @@ func (c *Controller) includeNegativeAccountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager.ToModels(records))
+		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager().ToModels(records))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -79,7 +79,7 @@ func (c *Controller) includeNegativeAccountController() {
 		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.IncludeNegativeAccountManager.Validate(ctx)
+		req, err := c.core.IncludeNegativeAccountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -118,7 +118,7 @@ func (c *Controller) includeNegativeAccountController() {
 			OrganizationID:     userOrg.OrganizationID,
 		}
 
-		if err := c.core.IncludeNegativeAccountManager.Create(context, record); err != nil {
+		if err := c.core.IncludeNegativeAccountManager().Create(context, record); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), db error: " + err.Error(),
@@ -131,7 +131,7 @@ func (c *Controller) includeNegativeAccountController() {
 			Description: "Created include negative account (/include-negative-accounts)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.IncludeNegativeAccountManager.ToModel(record))
+		return ctx.JSON(http.StatusCreated, c.core.IncludeNegativeAccountManager().ToModel(record))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -152,7 +152,7 @@ func (c *Controller) includeNegativeAccountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
 
-		req, err := c.core.IncludeNegativeAccountManager.Validate(ctx)
+		req, err := c.core.IncludeNegativeAccountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -170,7 +170,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		record, err := c.core.IncludeNegativeAccountManager.GetByID(context, *id)
+		record, err := c.core.IncludeNegativeAccountManager().GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -185,7 +185,7 @@ func (c *Controller) includeNegativeAccountController() {
 		record.UpdatedAt = time.Now().UTC()
 		record.UpdatedByID = userOrg.UserID
 
-		if err := c.core.IncludeNegativeAccountManager.UpdateByID(context, record.ID, record); err != nil {
+		if err := c.core.IncludeNegativeAccountManager().UpdateByID(context, record.ID, record); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -198,7 +198,7 @@ func (c *Controller) includeNegativeAccountController() {
 			Description: "Updated include negative account (/include-negative-accounts/:include_negative_accounts_id)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager.ToModel(record))
+		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager().ToModel(record))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -216,7 +216,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
-		record, err := c.core.IncludeNegativeAccountManager.GetByID(context, *id)
+		record, err := c.core.IncludeNegativeAccountManager().GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -225,7 +225,7 @@ func (c *Controller) includeNegativeAccountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Include negative account not found"})
 		}
-		if err := c.core.IncludeNegativeAccountManager.Delete(context, record.ID); err != nil {
+		if err := c.core.IncludeNegativeAccountManager().Delete(context, record.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
@@ -271,7 +271,7 @@ func (c *Controller) includeNegativeAccountController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.IncludeNegativeAccountManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.IncludeNegativeAccountManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | error: " + err.Error(),

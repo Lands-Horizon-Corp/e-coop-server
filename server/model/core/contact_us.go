@@ -45,7 +45,7 @@ type (
 
 func (m *Core) contactUs() {
 	m.Migration = append(m.Migration, &ContactUs{})
-	m.ContactUsManager = registry.NewRegistry(registry.RegistryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
+	m.ContactUsManager().= registry.NewRegistry(registry.RegistryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
 		Preloads: nil,
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

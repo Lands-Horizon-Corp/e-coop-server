@@ -55,7 +55,7 @@ type (
 
 func (m *Core) memberMutualFundHistory() {
 	m.Migration = append(m.Migration, &MemberMutualFundHistory{})
-	m.MemberMutualFundHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+	m.MemberMutualFundHistoryManager().= registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -70,11 +70,11 @@ func (m *Core) memberMutualFundHistory() {
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				Title:           data.Title,
 				Amount:          data.Amount,
 				Description:     data.Description,
@@ -109,7 +109,7 @@ func (m *Core) memberMutualFundHistory() {
 }
 
 func (m *Core) MemberMutualFundHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
-	return m.MemberMutualFundHistoryManager.Find(context, &MemberMutualFundHistory{
+	return m.MemberMutualFundHistoryManager().Find(context, &MemberMutualFundHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

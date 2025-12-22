@@ -20,7 +20,7 @@ func (e *Event) GenerateMutualFundEntries(
 		return result, nil
 	}
 	now := time.Now().UTC()
-	memberProfile, err := e.core.MemberProfileManager.Find(context, &core.MemberProfile{
+	memberProfile, err := e.core.MemberProfileManager().Find(context, &core.MemberProfile{
 		BranchID:       *userOrg.BranchID,
 		OrganizationID: userOrg.OrganizationID,
 	})
@@ -41,7 +41,7 @@ func (e *Event) GenerateMutualFundEntries(
 		case core.ComputationTypeContinuous:
 			amount = mutualFund.Amount
 		case core.ComputationTypeUpToZero:
-			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
+			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager().FindOne(context, &core.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
 				BranchID:        *userOrg.BranchID,
@@ -66,7 +66,7 @@ func (e *Event) GenerateMutualFundEntries(
 
 		case core.ComputationTypeSufficient:
 
-			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
+			memberAccuntingLedger, err := e.core.MemberAccountingLedgerManager().FindOne(context, &core.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
 				BranchID:        *userOrg.BranchID,

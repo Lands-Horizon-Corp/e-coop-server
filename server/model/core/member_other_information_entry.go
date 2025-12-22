@@ -59,7 +59,7 @@ type (
 
 func (m *Core) memberOtherInformationEntry() {
 	m.Migration = append(m.Migration, &MemberOtherInformationEntry{})
-	m.MemberOtherInformationEntryManager = registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
+	m.MemberOtherInformationEntryManager().= registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -73,14 +73,14 @@ func (m *Core) memberOtherInformationEntry() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
@@ -115,7 +115,7 @@ func (m *Core) memberOtherInformationEntry() {
 }
 
 func (m *Core) MemberOtherInformationEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
-	return m.MemberOtherInformationEntryManager.Find(context, &MemberOtherInformationEntry{
+	return m.MemberOtherInformationEntryManager().Find(context, &MemberOtherInformationEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

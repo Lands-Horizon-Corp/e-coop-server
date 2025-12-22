@@ -31,7 +31,7 @@ func (c *Controller) loanPurposeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan purpose records found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.ToModels(purposes))
+		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager().ToModels(purposes))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -48,7 +48,7 @@ func (c *Controller) loanPurposeController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.LoanPurposeManager.NormalPagination(context, ctx, &core.LoanPurpose{
+		value, err := c.core.LoanPurposeManager().NormalPagination(context, ctx, &core.LoanPurpose{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -69,7 +69,7 @@ func (c *Controller) loanPurposeController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan purpose ID"})
 		}
-		purpose, err := c.core.LoanPurposeManager.GetByIDRaw(context, *id)
+		purpose, err := c.core.LoanPurposeManager().GetByIDRaw(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan purpose record not found"})
 		}
@@ -84,7 +84,7 @@ func (c *Controller) loanPurposeController() {
 		Note:         "Creates a new loan purpose record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.LoanPurposeManager.Validate(ctx)
+		req, err := c.core.LoanPurposeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -120,7 +120,7 @@ func (c *Controller) loanPurposeController() {
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		}
-		if err := c.core.LoanPurposeManager.Create(context, purpose); err != nil {
+		if err := c.core.LoanPurposeManager().Create(context, purpose); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan purpose creation failed (/loan-purpose), db error: " + err.Error(),
@@ -133,7 +133,7 @@ func (c *Controller) loanPurposeController() {
 			Description: "Created loan purpose (/loan-purpose): " + purpose.Description,
 			Module:      "LoanPurpose",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.LoanPurposeManager.ToModel(purpose))
+		return ctx.JSON(http.StatusCreated, c.core.LoanPurposeManager().ToModel(purpose))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -153,7 +153,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan purpose ID"})
 		}
-		req, err := c.core.LoanPurposeManager.Validate(ctx)
+		req, err := c.core.LoanPurposeManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -179,7 +179,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		purpose, err := c.core.LoanPurposeManager.GetByID(context, *id)
+		purpose, err := c.core.LoanPurposeManager().GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -192,7 +192,7 @@ func (c *Controller) loanPurposeController() {
 		purpose.Icon = req.Icon
 		purpose.UpdatedAt = time.Now().UTC()
 		purpose.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanPurposeManager.UpdateByID(context, purpose.ID, purpose); err != nil {
+		if err := c.core.LoanPurposeManager().UpdateByID(context, purpose.ID, purpose); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan purpose update failed (/loan-purpose/:loan_purpose_id), db error: " + err.Error(),
@@ -205,7 +205,7 @@ func (c *Controller) loanPurposeController() {
 			Description: "Updated loan purpose (/loan-purpose/:loan_purpose_id): " + purpose.Description,
 			Module:      "LoanPurpose",
 		})
-		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager.ToModel(purpose))
+		return ctx.JSON(http.StatusOK, c.core.LoanPurposeManager().ToModel(purpose))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -223,7 +223,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan purpose ID"})
 		}
-		purpose, err := c.core.LoanPurposeManager.GetByID(context, *id)
+		purpose, err := c.core.LoanPurposeManager().GetByID(context, *id)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -232,7 +232,7 @@ func (c *Controller) loanPurposeController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan purpose record not found"})
 		}
-		if err := c.core.LoanPurposeManager.Delete(context, *id); err != nil {
+		if err := c.core.LoanPurposeManager().Delete(context, *id); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan purpose delete failed (/loan-purpose/:loan_purpose_id), db error: " + err.Error(),
@@ -279,7 +279,7 @@ func (c *Controller) loanPurposeController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.LoanPurposeManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.LoanPurposeManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Loan purpose bulk delete failed (/loan-purpose/bulk-delete) | error: " + err.Error(),

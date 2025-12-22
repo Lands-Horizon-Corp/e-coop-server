@@ -66,7 +66,7 @@ type (
 
 func (m *Core) mutualFundTable() {
 	m.Migration = append(m.Migration, &MutualFundTable{})
-	m.MutualFundTableManager = registry.NewRegistry(registry.RegistryParams[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]{
+	m.MutualFundTableManager().= registry.NewRegistry(registry.RegistryParams[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -80,16 +80,16 @@ func (m *Core) mutualFundTable() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				MutualFundID:   data.MutualFundID,
-				MutualFund:     m.MutualFundManager.ToModel(data.MutualFund),
+				MutualFund:     m.MutualFundManager().ToModel(data.MutualFund),
 				MonthFrom:      data.MonthFrom,
 				MonthTo:        data.MonthTo,
 				Amount:         data.Amount,
@@ -126,14 +126,14 @@ func (m *Core) mutualFundTable() {
 }
 
 func (m *Core) MutualFundTableCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundTable, error) {
-	return m.MutualFundTableManager.Find(context, &MutualFundTable{
+	return m.MutualFundTableManager().Find(context, &MutualFundTable{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MutualFundTableByMutualFund(context context.Context, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundTable, error) {
-	return m.MutualFundTableManager.Find(context, &MutualFundTable{
+	return m.MutualFundTableManager().Find(context, &MutualFundTable{
 		MutualFundID:   mutualFundID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

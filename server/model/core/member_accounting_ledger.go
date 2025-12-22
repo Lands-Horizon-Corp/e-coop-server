@@ -116,7 +116,7 @@ type (
 
 func (m *Core) memberAccountingLedger() {
 	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager = registry.NewRegistry(registry.RegistryParams[
+	m.MemberAccountingLedgerManager().= registry.NewRegistry(registry.RegistryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
@@ -140,18 +140,18 @@ func (m *Core) memberAccountingLedger() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:       m.MemberProfileManager().ToModel(data.MemberProfile),
 				AccountID:           data.AccountID,
-				Account:             m.AccountManager.ToModel(data.Account),
+				Account:             m.AccountManager().ToModel(data.Account),
 				Count:               data.Count,
 				Balance:             data.Balance,
 				Interest:            data.Interest,
@@ -195,7 +195,7 @@ func (m *Core) memberAccountingLedger() {
 }
 
 func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
-	return m.MemberAccountingLedgerManager.Find(context, &MemberAccountingLedger{
+	return m.MemberAccountingLedgerManager().Find(context, &MemberAccountingLedger{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -209,7 +209,7 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 
-	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
+	return m.MemberAccountingLedgerManager().ArrFind(ctx, filters, nil)
 }
 
 func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
@@ -218,7 +218,7 @@ func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organiza
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
-	return m.MemberAccountingLedgerManager.ArrFind(ctx, filters, nil)
+	return m.MemberAccountingLedgerManager().ArrFind(ctx, filters, nil)
 }
 
 func (m *Core) MemberAccountingLedgerFindForUpdate(
@@ -235,7 +235,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
-	ledger, err := m.MemberAccountingLedgerManager.ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
+	ledger, err := m.MemberAccountingLedgerManager().ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	})
 	if err != nil {
@@ -325,7 +325,7 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	includeClosedAccounts bool,
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
-	memberAccountingLedger, err := m.MemberAccountingLedgerManager.ArrFind(ctx, []registry.FilterSQL{
+	memberAccountingLedger, err := m.MemberAccountingLedgerManager().ArrFind(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},

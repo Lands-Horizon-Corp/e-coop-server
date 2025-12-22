@@ -32,7 +32,7 @@ func (c *Controller) accountTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tags not found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModels(accountTags))
+		return ctx.JSON(http.StatusOK, c.core.AccountTagManager().ToModels(accountTags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -49,7 +49,7 @@ func (c *Controller) accountTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := c.core.AccountTagManager.NormalPagination(context, ctx, &core.AccountTag{
+		accountTags, err := c.core.AccountTagManager().NormalPagination(context, ctx, &core.AccountTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -70,7 +70,7 @@ func (c *Controller) accountTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		accountTag, err := c.core.AccountTagManager.GetByIDRaw(context, *accountTagID)
+		accountTag, err := c.core.AccountTagManager().GetByIDRaw(context, *accountTagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account tag not found"})
 		}
@@ -96,7 +96,7 @@ func (c *Controller) accountTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		accountTags, err := c.core.AccountTagManager.Find(context, &core.AccountTag{
+		accountTags, err := c.core.AccountTagManager().Find(context, &core.AccountTag{
 			AccountID:      *accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -115,7 +115,7 @@ func (c *Controller) accountTagController() {
 		RequestType:  core.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountTagManager.Validate(ctx)
+		req, err := c.core.AccountTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -157,7 +157,7 @@ func (c *Controller) accountTagController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.AccountTagManager.Create(context, accountTag); err != nil {
+		if err := c.core.AccountTagManager().Create(context, accountTag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create account tag on POST /account-tag: %v", err),
@@ -172,7 +172,7 @@ func (c *Controller) accountTagController() {
 			Module:      "account-tag",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModel(accountTag))
+		return ctx.JSON(http.StatusOK, c.core.AccountTagManager().ToModel(accountTag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -192,7 +192,7 @@ func (c *Controller) accountTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		req, err := c.core.AccountTagManager.Validate(ctx)
+		req, err := c.core.AccountTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -210,7 +210,7 @@ func (c *Controller) accountTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		accountTag, err := c.core.AccountTagManager.GetByID(context, *accountTagID)
+		accountTag, err := c.core.AccountTagManager().GetByID(context, *accountTagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -228,7 +228,7 @@ func (c *Controller) accountTagController() {
 		accountTag.UpdatedAt = time.Now().UTC()
 		accountTag.UpdatedByID = userOrg.UserID
 
-		if err := c.core.AccountTagManager.UpdateByID(context, accountTag.ID, accountTag); err != nil {
+		if err := c.core.AccountTagManager().UpdateByID(context, accountTag.ID, accountTag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update account tag for PUT /account-tag/:account_tag_id: %v", err),
@@ -243,7 +243,7 @@ func (c *Controller) accountTagController() {
 			Module:      "account-tag",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.AccountTagManager.ToModel(accountTag))
+		return ctx.JSON(http.StatusOK, c.core.AccountTagManager().ToModel(accountTag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -261,7 +261,7 @@ func (c *Controller) accountTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account tag ID"})
 		}
-		if err := c.core.AccountTagManager.Delete(context, *accountTagID); err != nil {
+		if err := c.core.AccountTagManager().Delete(context, *accountTagID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete account tag for DELETE /account-tag/:account_tag_id: %v", err),
@@ -306,7 +306,7 @@ func (c *Controller) accountTagController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.AccountTagManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.AccountTagManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account tags (/account-tag/bulk-delete) | error: " + err.Error(),

@@ -87,7 +87,7 @@ type (
 
 func (m *Core) tagTemplate() {
 	m.Migration = append(m.Migration, &TagTemplate{})
-	m.TagTemplateManager = registry.NewRegistry(registry.RegistryParams[
+	m.TagTemplateManager().= registry.NewRegistry(registry.RegistryParams[
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{
@@ -105,14 +105,14 @@ func (m *Core) tagTemplate() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -934,7 +934,7 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 	}
 
 	for _, data := range tagTemplates {
-		if err := m.TagTemplateManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.TagTemplateManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed tag template %s", data.Name)
 		}
 	}
@@ -942,7 +942,7 @@ func (m *Core) tagTemplateSeed(context context.Context, tx *gorm.DB, userID uuid
 }
 
 func (m *Core) TagTemplateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
-	return m.TagTemplateManager.Find(context, &TagTemplate{
+	return m.TagTemplateManager().Find(context, &TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

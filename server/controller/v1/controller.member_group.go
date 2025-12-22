@@ -28,7 +28,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member group history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupHistoryManager.ToModels(memberGroupHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberGroupHistoryManager().ToModels(memberGroupHistory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -46,7 +46,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := c.core.MemberGroupHistoryManager.NormalPagination(context, ctx, &core.MemberGroupHistory{
+		memberGroupHistory, err := c.core.MemberGroupHistoryManager().NormalPagination(context, ctx, &core.MemberGroupHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -68,7 +68,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := c.core.MemberGroupManager.FindRaw(context, &core.MemberGroup{
+		memberGroup, err := c.core.MemberGroupManager().FindRaw(context, &core.MemberGroup{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -90,7 +90,7 @@ func (c *Controller) memberGroupController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := c.core.MemberGroupManager.NormalPagination(context, ctx, &core.MemberGroup{
+		memberGroup, err := c.core.MemberGroupManager().NormalPagination(context, ctx, &core.MemberGroup{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -108,7 +108,7 @@ func (c *Controller) memberGroupController() {
 		Note:         "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberGroupManager.Validate(ctx)
+		req, err := c.core.MemberGroupManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -138,7 +138,7 @@ func (c *Controller) memberGroupController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberGroupManager.Create(context, memberGroup); err != nil {
+		if err := c.core.MemberGroupManager().Create(context, memberGroup); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member group failed (/member-group), db error: " + err.Error(),
@@ -153,7 +153,7 @@ func (c *Controller) memberGroupController() {
 			Module:      "MemberGroup",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.ToModel(memberGroup))
+		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager().ToModel(memberGroup))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -182,7 +182,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.MemberGroupManager.Validate(ctx)
+		req, err := c.core.MemberGroupManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -191,7 +191,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberGroup, err := c.core.MemberGroupManager.GetByID(context, *memberGroupID)
+		memberGroup, err := c.core.MemberGroupManager().GetByID(context, *memberGroupID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -206,7 +206,7 @@ func (c *Controller) memberGroupController() {
 		memberGroup.BranchID = *userOrg.BranchID
 		memberGroup.Name = req.Name
 		memberGroup.Description = req.Description
-		if err := c.core.MemberGroupManager.UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
+		if err := c.core.MemberGroupManager().UpdateByID(context, memberGroup.ID, memberGroup); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -219,7 +219,7 @@ func (c *Controller) memberGroupController() {
 			Description: "Updated member group (/member-group/:member_group_id): " + memberGroup.Name,
 			Module:      "MemberGroup",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager.ToModel(memberGroup))
+		return ctx.JSON(http.StatusOK, c.core.MemberGroupManager().ToModel(memberGroup))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -237,7 +237,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_group_id: " + err.Error()})
 		}
-		value, err := c.core.MemberGroupManager.GetByID(context, *memberGroupID)
+		value, err := c.core.MemberGroupManager().GetByID(context, *memberGroupID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -246,7 +246,7 @@ func (c *Controller) memberGroupController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member group not found: " + err.Error()})
 		}
-		if err := c.core.MemberGroupManager.Delete(context, *memberGroupID); err != nil {
+		if err := c.core.MemberGroupManager().Delete(context, *memberGroupID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member group failed (/member-group/:member_group_id), db error: " + err.Error(),
@@ -293,7 +293,7 @@ func (c *Controller) memberGroupController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberGroupManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberGroupManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member groups failed (/member-group/bulk-delete) | error: " + err.Error(),

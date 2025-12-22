@@ -57,7 +57,7 @@ type (
 
 func (m *Core) memberGender() {
 	m.Migration = append(m.Migration, &MemberGender{})
-	m.MemberGenderManager = registry.NewRegistry(registry.RegistryParams[MemberGender, MemberGenderResponse, MemberGenderRequest]{
+	m.MemberGenderManager().= registry.NewRegistry(registry.RegistryParams[MemberGender, MemberGenderResponse, MemberGenderRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -71,14 +71,14 @@ func (m *Core) memberGender() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -149,7 +149,7 @@ func (m *Core) memberGenderSeed(context context.Context, tx *gorm.DB, userID uui
 		},
 	}
 	for _, data := range memberGenders {
-		if err := m.MemberGenderManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberGenderManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member gender %s", data.Name)
 		}
 	}
@@ -158,7 +158,7 @@ func (m *Core) memberGenderSeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *Core) MemberGenderCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGender, error) {
-	return m.MemberGenderManager.Find(context, &MemberGender{
+	return m.MemberGenderManager().Find(context, &MemberGender{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

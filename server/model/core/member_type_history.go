@@ -62,7 +62,7 @@ type (
 
 func (m *Core) memberTypeHistory() {
 	m.Migration = append(m.Migration, &MemberTypeHistory{})
-	m.MemberTypeHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
+	m.MemberTypeHistoryManager().= registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberType", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -76,18 +76,18 @@ func (m *Core) memberTypeHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberTypeID:    data.MemberTypeID,
-				MemberType:      m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:      m.MemberTypeManager().ToModel(data.MemberType),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 			}
 		},
 
@@ -122,14 +122,14 @@ func (m *Core) memberTypeHistory() {
 }
 
 func (m *Core) MemberTypeHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
-	return m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
+	return m.MemberTypeHistoryManager().Find(context, &MemberTypeHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberTypeHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
-	return m.MemberTypeHistoryManager.Find(context, &MemberTypeHistory{
+	return m.MemberTypeHistoryManager().Find(context, &MemberTypeHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,
@@ -151,5 +151,5 @@ func (m *Core) GetMemberTypeHistoryLatest(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	return m.MemberTypeHistoryManager.ArrFindOne(context, filters, sorts)
+	return m.MemberTypeHistoryManager().ArrFindOne(context, filters, sorts)
 }

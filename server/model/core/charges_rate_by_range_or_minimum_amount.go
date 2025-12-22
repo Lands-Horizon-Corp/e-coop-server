@@ -71,7 +71,7 @@ type (
 
 func (m *Core) chargesRateByRangeOrMinimumAmount() {
 	m.Migration = append(m.Migration, &ChargesRateByRangeOrMinimumAmount{})
-	m.ChargesRateByRangeOrMinimumAmountManager = registry.NewRegistry(registry.RegistryParams[
+	m.ChargesRateByRangeOrMinimumAmountManager().= registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByRangeOrMinimumAmount, ChargesRateByRangeOrMinimumAmountResponse, ChargesRateByRangeOrMinimumAmountRequest,
 	]{
 		Preloads: []string{
@@ -89,16 +89,16 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   m.ChargesRateSchemeManager().ToModel(data.ChargesRateScheme),
 				From:                data.From,
 				To:                  data.To,
 				Charge:              data.Charge,
@@ -134,7 +134,7 @@ func (m *Core) chargesRateByRangeOrMinimumAmount() {
 }
 
 func (m *Core) ChargesRateByRangeOrMinimumAmountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByRangeOrMinimumAmount, error) {
-	return m.ChargesRateByRangeOrMinimumAmountManager.Find(context, &ChargesRateByRangeOrMinimumAmount{
+	return m.ChargesRateByRangeOrMinimumAmountManager().Find(context, &ChargesRateByRangeOrMinimumAmount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -41,7 +41,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
-		onlineRemittance, err := c.core.OnlineRemittanceManager.Find(context, &core.OnlineRemittance{
+		onlineRemittance, err := c.core.OnlineRemittanceManager().Find(context, &core.OnlineRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -50,7 +50,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittance: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager.ToModels(onlineRemittance))
+		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager().ToModels(onlineRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -62,7 +62,7 @@ func (c *Controller) onlineRemittanceController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.OnlineRemittanceManager.Validate(ctx)
+		req, err := c.core.OnlineRemittanceManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -137,7 +137,7 @@ func (c *Controller) onlineRemittanceController() {
 			onlineRemittance.DateEntry = &now
 		}
 
-		if err := c.core.OnlineRemittanceManager.Create(context, onlineRemittance); err != nil {
+		if err := c.core.OnlineRemittanceManager().Create(context, onlineRemittance); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create online remittance failed: create error: " + err.Error(),
@@ -155,7 +155,7 @@ func (c *Controller) onlineRemittanceController() {
 			Module:      "OnlineRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager.ToModel(onlineRemittance))
+		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager().ToModel(onlineRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -176,7 +176,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid online_remittance_id: " + err.Error()})
 		}
 
-		req, err := c.core.OnlineRemittanceManager.Validate(ctx)
+		req, err := c.core.OnlineRemittanceManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		existingOnlineRemittance, err := c.core.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
+		existingOnlineRemittance, err := c.core.OnlineRemittanceManager().GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -267,7 +267,7 @@ func (c *Controller) onlineRemittanceController() {
 			existingOnlineRemittance.DateEntry = &now
 		}
 
-		if err := c.core.OnlineRemittanceManager.UpdateByID(context, *onlineRemittanceID, existingOnlineRemittance); err != nil {
+		if err := c.core.OnlineRemittanceManager().UpdateByID(context, *onlineRemittanceID, existingOnlineRemittance); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update online remittance failed: update error: " + err.Error(),
@@ -276,7 +276,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update online remittance: " + err.Error()})
 		}
 
-		updatedRemittance, err := c.core.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
+		updatedRemittance, err := c.core.OnlineRemittanceManager().GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -296,7 +296,7 @@ func (c *Controller) onlineRemittanceController() {
 			Module:      "OnlineRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager.ToModel(updatedRemittance))
+		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager().ToModel(updatedRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -333,7 +333,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		existingOnlineRemittance, err := c.core.OnlineRemittanceManager.GetByID(context, *onlineRemittanceID)
+		existingOnlineRemittance, err := c.core.OnlineRemittanceManager().GetByID(context, *onlineRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -386,7 +386,7 @@ func (c *Controller) onlineRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Online remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.core.OnlineRemittanceManager.Delete(context, *onlineRemittanceID); err != nil {
+		if err := c.core.OnlineRemittanceManager().Delete(context, *onlineRemittanceID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete online remittance failed: delete error: " + err.Error(),
@@ -405,6 +405,6 @@ func (c *Controller) onlineRemittanceController() {
 			Module:      "OnlineRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager.ToModel(existingOnlineRemittance))
+		return ctx.JSON(http.StatusOK, c.core.OnlineRemittanceManager().ToModel(existingOnlineRemittance))
 	})
 }

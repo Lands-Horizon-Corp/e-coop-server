@@ -30,7 +30,7 @@ func (c *Controller) memberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.core.MemberExpenseManager.Validate(ctx)
+		req, err := c.core.MemberExpenseManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -62,7 +62,7 @@ func (c *Controller) memberExpenseController() {
 			OrganizationID:  userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberExpenseManager.Create(context, value); err != nil {
+		if err := c.core.MemberExpenseManager().Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member expense failed (/member-expense/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -77,7 +77,7 @@ func (c *Controller) memberExpenseController() {
 			Module:      "MemberExpense",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -97,7 +97,7 @@ func (c *Controller) memberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
-		req, err := c.core.MemberExpenseManager.Validate(ctx)
+		req, err := c.core.MemberExpenseManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -116,7 +116,7 @@ func (c *Controller) memberExpenseController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.core.MemberExpenseManager.GetByID(context, *memberExpenseID)
+		value, err := c.core.MemberExpenseManager().GetByID(context, *memberExpenseID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -135,7 +135,7 @@ func (c *Controller) memberExpenseController() {
 		value.Amount = req.Amount
 		value.Description = req.Description
 
-		if err := c.core.MemberExpenseManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.core.MemberExpenseManager().UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),
@@ -148,7 +148,7 @@ func (c *Controller) memberExpenseController() {
 			Description: "Updated member expense (/member-expense/:member_expense_id): " + value.Name,
 			Module:      "MemberExpense",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberExpenseManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -166,7 +166,7 @@ func (c *Controller) memberExpenseController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_expense_id: " + err.Error()})
 		}
-		value, err := c.core.MemberExpenseManager.GetByID(context, *memberExpenseID)
+		value, err := c.core.MemberExpenseManager().GetByID(context, *memberExpenseID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -175,7 +175,7 @@ func (c *Controller) memberExpenseController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member expense not found: " + err.Error()})
 		}
-		if err := c.core.MemberExpenseManager.Delete(context, *memberExpenseID); err != nil {
+		if err := c.core.MemberExpenseManager().Delete(context, *memberExpenseID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member expense failed (/member-expense/:member_expense_id), db error: " + err.Error(),

@@ -23,11 +23,11 @@ func (c *Controller) currencyController() {
 		Note:         "Returns all currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencies, err := c.core.CurrencyManager.List(context)
+		currencies, err := c.core.CurrencyManager().List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModels(currencies))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currencies))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -47,7 +47,7 @@ func (c *Controller) currencyController() {
 				currency = append(currency, unbal.Currency)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModels(currency))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currency))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -66,7 +66,7 @@ func (c *Controller) currencyController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		accounts, err := c.core.AccountManager.Find(context, &core.Account{
+		accounts, err := c.core.AccountManager().Find(context, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -83,7 +83,7 @@ func (c *Controller) currencyController() {
 		for _, currency := range currencyMap {
 			currencies = append(currencies, currency)
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModels(currencies))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currencies))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -98,7 +98,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager.GetByIDRaw(context, *currencyID)
+		currency, err := c.core.CurrencyManager().GetByIDRaw(context, *currencyID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
@@ -123,7 +123,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModel(currency))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -134,7 +134,7 @@ func (c *Controller) currencyController() {
 		Note:         "Creates a new currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CurrencyManager.Validate(ctx)
+		req, err := c.core.CurrencyManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -155,7 +155,7 @@ func (c *Controller) currencyController() {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.core.CurrencyManager.Create(context, currency); err != nil {
+		if err := c.core.CurrencyManager().Create(context, currency); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create currency failed: create error: " + err.Error(),
@@ -170,7 +170,7 @@ func (c *Controller) currencyController() {
 			Module:      "Currency",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModel(currency))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -191,7 +191,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		req, err := c.core.CurrencyManager.Validate(ctx)
+		req, err := c.core.CurrencyManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -201,7 +201,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager.GetByID(context, *currencyID)
+		currency, err := c.core.CurrencyManager().GetByID(context, *currencyID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -219,7 +219,7 @@ func (c *Controller) currencyController() {
 		currency.Timezone = req.Timezone
 		currency.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CurrencyManager.UpdateByID(context, currency.ID, currency); err != nil {
+		if err := c.core.CurrencyManager().UpdateByID(context, currency.ID, currency); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: update error: " + err.Error(),
@@ -234,7 +234,7 @@ func (c *Controller) currencyController() {
 			Module:      "Currency",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager.ToModel(currency))
+		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -253,7 +253,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager.GetByID(context, *currencyID)
+		currency, err := c.core.CurrencyManager().GetByID(context, *currencyID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -263,7 +263,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
 
-		if err := c.core.CurrencyManager.Delete(context, *currencyID); err != nil {
+		if err := c.core.CurrencyManager().Delete(context, *currencyID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: delete error: " + err.Error(),
@@ -312,7 +312,7 @@ func (c *Controller) currencyController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CurrencyManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.CurrencyManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: " + err.Error(),
@@ -351,11 +351,11 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid amount: " + err.Error()})
 		}
 
-		fromCurrency, err := c.core.CurrencyManager.GetByID(context, *currencyFromID)
+		fromCurrency, err := c.core.CurrencyManager().GetByID(context, *currencyFromID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency from not found: " + err.Error()})
 		}
-		toCurrency, err := c.core.CurrencyManager.GetByID(context, *currencyToID)
+		toCurrency, err := c.core.CurrencyManager().GetByID(context, *currencyToID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
 		}
@@ -379,7 +379,7 @@ func (c *Controller) currencyController() {
 		if timezone == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Timezone is required"})
 		}
-		currency, err := c.core.CurrencyManager.FindOneRaw(context, &core.Currency{Timezone: timezone})
+		currency, err := c.core.CurrencyManager().FindOneRaw(context, &core.Currency{Timezone: timezone})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for timezone: " + err.Error()})
 		}

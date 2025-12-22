@@ -71,7 +71,7 @@ type (
 
 func (m *Core) adjustmentTag() {
 	m.Migration = append(m.Migration, &AdjustmentTag{})
-	m.AdjustmentTagManager = registry.NewRegistry(registry.RegistryParams[
+	m.AdjustmentTagManager().= registry.NewRegistry(registry.RegistryParams[
 		AdjustmentTag, AdjustmentTagResponse, AdjustmentTagRequest,
 	]{
 		Preloads: []string{
@@ -89,16 +89,16 @@ func (m *Core) adjustmentTag() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				AdjustmentEntryID: data.AdjustmentEntryID,
-				AdjustmentEntry:   m.AdjustmentEntryManager.ToModel(data.AdjustmentEntry),
+				AdjustmentEntry:   m.AdjustmentEntryManager().ToModel(data.AdjustmentEntry),
 				Name:              data.Name,
 				Description:       data.Description,
 				Category:          data.Category,
@@ -134,7 +134,7 @@ func (m *Core) adjustmentTag() {
 }
 
 func (m *Core) AdjustmentTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentTag, error) {
-	return m.AdjustmentTagManager.Find(context, &AdjustmentTag{
+	return m.AdjustmentTagManager().Find(context, &AdjustmentTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

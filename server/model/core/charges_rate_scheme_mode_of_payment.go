@@ -131,7 +131,7 @@ type (
 
 func (m *Core) chargesRateSchemeModeOfPayment() {
 	m.Migration = append(m.Migration, &ChargesRateSchemeModeOfPayment{})
-	m.ChargesRateSchemeModeOfPaymentManager = registry.NewRegistry(registry.RegistryParams[
+	m.ChargesRateSchemeModeOfPaymentManager().= registry.NewRegistry(registry.RegistryParams[
 		ChargesRateSchemeModeOfPayment, ChargesRateSchemeModeOfPaymentResponse, ChargesRateSchemeModeOfPaymentRequest,
 	]{
 		Preloads: []string{
@@ -149,16 +149,16 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   m.ChargesRateSchemeManager().ToModel(data.ChargesRateScheme),
 				From:                data.From,
 				To:                  data.To,
 				Column1:             data.Column1,
@@ -213,7 +213,7 @@ func (m *Core) chargesRateSchemeModeOfPayment() {
 }
 
 func (m *Core) ChargesRateSchemeModeOfPaymentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeModeOfPayment, error) {
-	return m.ChargesRateSchemeModeOfPaymentManager.Find(context, &ChargesRateSchemeModeOfPayment{
+	return m.ChargesRateSchemeModeOfPaymentManager().Find(context, &ChargesRateSchemeModeOfPayment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

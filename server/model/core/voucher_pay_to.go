@@ -61,7 +61,7 @@ type (
 
 func (m *Core) voucherPayTo() {
 	m.Migration = append(m.Migration, &VoucherPayTo{})
-	m.VoucherPayToManager = registry.NewRegistry(registry.RegistryParams[
+	m.VoucherPayToManager().= registry.NewRegistry(registry.RegistryParams[
 		VoucherPayTo, VoucherPayToResponse, VoucherPayToRequest,
 	]{
 		Preloads: []string{
@@ -79,17 +79,17 @@ func (m *Core) voucherPayTo() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
+				Media:          m.MediaManager().ToModel(data.Media),
 				Description:    data.Description,
 			}
 		},
@@ -121,7 +121,7 @@ func (m *Core) voucherPayTo() {
 }
 
 func (m *Core) VoucherPayToCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*VoucherPayTo, error) {
-	return m.VoucherPayToManager.Find(context, &VoucherPayTo{
+	return m.VoucherPayToManager().Find(context, &VoucherPayTo{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

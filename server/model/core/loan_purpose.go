@@ -57,7 +57,7 @@ type (
 
 func (m *Core) loanPurpose() {
 	m.Migration = append(m.Migration, &LoanPurpose{})
-	m.LoanPurposeManager = registry.NewRegistry(registry.RegistryParams[
+	m.LoanPurposeManager().= registry.NewRegistry(registry.RegistryParams[
 		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
 	]{
 		Preloads: []string{
@@ -75,14 +75,14 @@ func (m *Core) loanPurpose() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Description:    data.Description,
 				Icon:           data.Icon,
 			}
@@ -255,7 +255,7 @@ func (m *Core) loanPurposeSeed(context context.Context, tx *gorm.DB, userID uuid
 	}
 
 	for _, data := range loanPurposes {
-		if err := m.LoanPurposeManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.LoanPurposeManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed loan purpose %s", data.Description)
 		}
 	}
@@ -264,7 +264,7 @@ func (m *Core) loanPurposeSeed(context context.Context, tx *gorm.DB, userID uuid
 }
 
 func (m *Core) LoanPurposeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanPurpose, error) {
-	return m.LoanPurposeManager.Find(context, &LoanPurpose{
+	return m.LoanPurposeManager().Find(context, &LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

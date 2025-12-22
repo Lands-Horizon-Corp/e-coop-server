@@ -101,7 +101,7 @@ type (
 
 func (m *Core) footstep() {
 	m.Migration = append(m.Migration, &Footstep{})
-	m.FootstepManager = registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
+	m.FootstepManager().= registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
 			"User.Media",
@@ -124,19 +124,19 @@ func (m *Core) footstep() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				UserID:  data.UserID,
-				User:    m.UserManager.ToModel(data.User),
+				User:    m.UserManager().ToModel(data.User),
 				MediaID: data.MediaID,
-				Media:   m.MediaManager.ToModel(data.Media),
+				Media:   m.MediaManager().ToModel(data.Media),
 
 				Description:    data.Description,
 				Activity:       data.Activity,
@@ -182,20 +182,20 @@ func (m *Core) footstep() {
 }
 
 func (m *Core) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager.Find(context, &Footstep{
+	return m.FootstepManager().Find(context, &Footstep{
 		UserID: &userID,
 	})
 }
 
 func (m *Core) GetFootstepBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager.Find(context, &Footstep{
+	return m.FootstepManager().Find(context, &Footstep{
 		OrganizationID: &organizationID,
 		BranchID:       &branchID,
 	})
 }
 
 func (m *Core) GetFootstepByUserOrganization(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager.Find(context, &Footstep{
+	return m.FootstepManager().Find(context, &Footstep{
 		UserID:         &userID,
 		OrganizationID: &organizationID,
 		BranchID:       &branchID,

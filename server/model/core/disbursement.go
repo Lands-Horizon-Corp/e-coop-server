@@ -66,7 +66,7 @@ type (
 
 func (m *Core) disbursement() {
 	m.Migration = append(m.Migration, &Disbursement{})
-	m.DisbursementManager = registry.NewRegistry(registry.RegistryParams[
+	m.DisbursementManager().= registry.NewRegistry(registry.RegistryParams[
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
 		Preloads: []string{
@@ -85,16 +85,16 @@ func (m *Core) disbursement() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager().ToModel(data.Currency),
 				Name:           data.Name,
 				Icon:           data.Icon,
 				Description:    data.Description,
@@ -130,7 +130,7 @@ func (m *Core) disbursement() {
 func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.BranchManager.GetByID(context, branchID)
+	branch, err := m.BranchManager().GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
@@ -273,7 +273,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 	}
 
 	for _, data := range disbursements {
-		if err := m.DisbursementManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.DisbursementManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed disbursement %s", data.Name)
 		}
 	}
@@ -282,7 +282,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *Core) DisbursementCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
-	return m.DisbursementManager.Find(context, &Disbursement{
+	return m.DisbursementManager().Find(context, &Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

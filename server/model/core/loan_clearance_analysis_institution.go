@@ -63,7 +63,7 @@ type (
 
 func (m *Core) loanClearanceAnalysisInstitution() {
 	m.Migration = append(m.Migration, &LoanClearanceAnalysisInstitution{})
-	m.LoanClearanceAnalysisInstitutionManager = registry.NewRegistry(registry.RegistryParams[
+	m.LoanClearanceAnalysisInstitutionManager().= registry.NewRegistry(registry.RegistryParams[
 		LoanClearanceAnalysisInstitution, LoanClearanceAnalysisInstitutionResponse, LoanClearanceAnalysisInstitutionRequest,
 	]{
 		Preloads: []string{
@@ -81,16 +81,16 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
 			}
@@ -124,7 +124,7 @@ func (m *Core) loanClearanceAnalysisInstitution() {
 }
 
 func (m *Core) LoanClearanceAnalysisInstitutionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanClearanceAnalysisInstitution, error) {
-	return m.LoanClearanceAnalysisInstitutionManager.Find(context, &LoanClearanceAnalysisInstitution{
+	return m.LoanClearanceAnalysisInstitutionManager().Find(context, &LoanClearanceAnalysisInstitution{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -21,7 +21,7 @@ func (c *Controller) batchFundingController() {
 		ResponseType: core.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.core.BatchFundingManager.Validate(ctx)
+		batchFundingReq, err := c.core.BatchFundingManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -86,7 +86,7 @@ func (c *Controller) batchFundingController() {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
-		if err := c.core.BatchFundingManager.Create(context, batchFunding); err != nil {
+		if err := c.core.BatchFundingManager().Create(context, batchFunding); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), db error: " + err.Error(),
@@ -102,7 +102,7 @@ func (c *Controller) batchFundingController() {
 			Description: "Created batch funding (/batch-funding): " + batchFunding.Name,
 			Module:      "BatchFunding",
 		})
-		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager.ToModel(batchFunding))
+		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager().ToModel(batchFunding))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -127,7 +127,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to view batch funding records."})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found for this ID."})
 		}
@@ -136,7 +136,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
+		batchFunding, err := c.core.BatchFundingManager().NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -163,7 +163,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.core.BatchFundingManager.NormalPagination(context, ctx, &core.BatchFunding{
+		batchFundings, err := c.core.BatchFundingManager().NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

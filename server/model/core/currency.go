@@ -71,7 +71,7 @@ type (
 
 func (m *Core) currency() {
 	m.Migration = append(m.Migration, &Currency{})
-	m.CurrencyManager = registry.NewRegistry(registry.RegistryParams[Currency, CurrencyResponse, CurrencyRequest]{
+	m.CurrencyManager().= registry.NewRegistry(registry.RegistryParams[Currency, CurrencyResponse, CurrencyRequest]{
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
@@ -182,7 +182,7 @@ func (m *Core) currencySeed(context context.Context) error {
 			Locale:         locales.NumI18Identifier.Locale,
 			Timezone:       strings.Join(locales.NumI18Identifier.Timezone, ","),
 		}
-		if err := m.CurrencyManager.Create(context, currency); err != nil {
+		if err := m.CurrencyManager().Create(context, currency); err != nil {
 			return eris.Wrapf(err, "failed to seed currency %s (%s)", currency.Name, currency.ISO3166Alpha3)
 		}
 	}
@@ -190,7 +190,7 @@ func (m *Core) currencySeed(context context.Context) error {
 }
 
 func (m *Core) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
-	currencies, err := m.CurrencyManager.FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
+	currencies, err := m.CurrencyManager().FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (m *Core) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 strin
 }
 
 func (m *Core) CurrencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
-	currency, err := m.CurrencyManager.FindOne(context, &Currency{CurrencyCode: currencyCode})
+	currency, err := m.CurrencyManager().FindOne(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {
 		return nil, err
 	}

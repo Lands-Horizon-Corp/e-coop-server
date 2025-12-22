@@ -20,7 +20,7 @@ func (c *Controller) footstepController() {
 		ResponseType: core.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.FootstepManager.Validate(ctx)
+		req, err := c.core.FootstepManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -71,7 +71,7 @@ func (c *Controller) footstepController() {
 			OrganizationID: &userOrg.OrganizationID,
 		}
 
-		if err := c.core.FootstepManager.Create(context, footstep); err != nil {
+		if err := c.core.FootstepManager().Create(context, footstep); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Footstep creation failed (/footstep), db error: " + err.Error(),
@@ -84,7 +84,7 @@ func (c *Controller) footstepController() {
 			Description: "Created footstep (/footstep): " + footstep.Activity,
 			Module:      "Footstep",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.FootstepManager.ToModel(footstep))
+		return ctx.JSON(http.StatusCreated, c.core.FootstepManager().ToModel(footstep))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -98,7 +98,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager().NormalPagination(context, ctx, &core.Footstep{
 			UserID: &user.ID,
 		})
 		if err != nil {
@@ -122,7 +122,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found: " + err.Error()})
 		}
@@ -132,7 +132,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager().NormalPagination(context, ctx, &core.Footstep{
 			UserID:         &userOrg.UserID,
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
@@ -153,7 +153,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager().NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 		})
@@ -175,12 +175,12 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id"})
 		}
-		targetUserOrg, err := c.core.UserOrganizationManager.GetByID(context, *userOrgID)
+		targetUserOrg, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 
-		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager().NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       targetUserOrg.BranchID,
 			OrganizationID: &targetUserOrg.OrganizationID,
 			UserID:         &targetUserOrg.UserID,
@@ -202,7 +202,7 @@ func (c *Controller) footstepController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep ID"})
 		}
-		footstep, err := c.core.FootstepManager.GetByIDRaw(context, *footstepID)
+		footstep, err := c.core.FootstepManager().GetByIDRaw(context, *footstepID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Footstep record not found"})
 		}
@@ -224,7 +224,7 @@ func (c *Controller) footstepController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := c.core.FootstepManager.NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := c.core.FootstepManager().NormalPagination(context, ctx, &core.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 			UserID:         &userOrg.UserID,

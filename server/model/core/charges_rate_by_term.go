@@ -133,7 +133,7 @@ type (
 
 func (m *Core) chargesRateByTerm() {
 	m.Migration = append(m.Migration, &ChargesRateByTerm{})
-	m.ChargesRateByTermManager = registry.NewRegistry(registry.RegistryParams[
+	m.ChargesRateByTermManager().= registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
 	]{
 		Preloads: []string{
@@ -151,16 +151,16 @@ func (m *Core) chargesRateByTerm() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager.ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   m.ChargesRateSchemeManager().ToModel(data.ChargesRateScheme),
 				Name:                data.Name,
 				Description:         data.Description,
 				ModeOfPayment:       data.ModeOfPayment,
@@ -216,7 +216,7 @@ func (m *Core) chargesRateByTerm() {
 }
 
 func (m *Core) ChargesRateByTermCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByTerm, error) {
-	return m.ChargesRateByTermManager.Find(context, &ChargesRateByTerm{
+	return m.ChargesRateByTermManager().Find(context, &ChargesRateByTerm{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

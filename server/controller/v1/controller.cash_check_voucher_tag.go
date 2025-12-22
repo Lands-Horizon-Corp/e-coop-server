@@ -31,7 +31,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModels(tags))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager().ToModels(tags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -48,7 +48,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := c.core.CashCheckVoucherTagManager.NormalPagination(context, ctx, &core.CashCheckVoucherTag{
+		tags, err := c.core.CashCheckVoucherTagManager().NormalPagination(context, ctx, &core.CashCheckVoucherTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -69,7 +69,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher tag ID"})
 		}
-		tag, err := c.core.CashCheckVoucherTagManager.GetByIDRaw(context, *tagID)
+		tag, err := c.core.CashCheckVoucherTagManager().GetByIDRaw(context, *tagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher tag not found"})
 		}
@@ -84,7 +84,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		ResponseType: core.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CashCheckVoucherTagManager.Validate(ctx)
+		req, err := c.core.CashCheckVoucherTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -126,7 +126,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			OrganizationID:     userOrg.OrganizationID,
 		}
 
-		if err := c.core.CashCheckVoucherTagManager.Create(context, tag); err != nil {
+		if err := c.core.CashCheckVoucherTagManager().Create(context, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher tag creation failed (/cash-check-voucher-tag), db error: " + err.Error(),
@@ -139,7 +139,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			Description: "Created cash check voucher tag (/cash-check-voucher-tag): " + tag.Name,
 			Module:      "CashCheckVoucherTag",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.CashCheckVoucherTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusCreated, c.core.CashCheckVoucherTagManager().ToModel(tag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -160,7 +160,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher tag ID"})
 		}
 
-		req, err := c.core.CashCheckVoucherTagManager.Validate(ctx)
+		req, err := c.core.CashCheckVoucherTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -178,7 +178,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		tag, err := c.core.CashCheckVoucherTagManager.GetByID(context, *tagID)
+		tag, err := c.core.CashCheckVoucherTagManager().GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -195,7 +195,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		tag.Icon = req.Icon
 		tag.UpdatedAt = time.Now().UTC()
 		tag.UpdatedByID = userOrg.UserID
-		if err := c.core.CashCheckVoucherTagManager.UpdateByID(context, tag.ID, tag); err != nil {
+		if err := c.core.CashCheckVoucherTagManager().UpdateByID(context, tag.ID, tag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher tag update failed (/cash-check-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -208,7 +208,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			Description: "Updated cash check voucher tag (/cash-check-voucher-tag/:tag_id): " + tag.Name,
 			Module:      "CashCheckVoucherTag",
 		})
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModel(tag))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager().ToModel(tag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -226,7 +226,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher tag ID"})
 		}
-		tag, err := c.core.CashCheckVoucherTagManager.GetByID(context, *tagID)
+		tag, err := c.core.CashCheckVoucherTagManager().GetByID(context, *tagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -235,7 +235,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher tag not found"})
 		}
-		if err := c.core.CashCheckVoucherTagManager.Delete(context, *tagID); err != nil {
+		if err := c.core.CashCheckVoucherTagManager().Delete(context, *tagID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher tag delete failed (/cash-check-voucher-tag/:tag_id), db error: " + err.Error(),
@@ -280,7 +280,7 @@ func (c *Controller) cashCheckVoucherTagController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CashCheckVoucherTagManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.CashCheckVoucherTagManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete cash check voucher tags (/cash-check-voucher-tag/bulk-delete) | error: " + err.Error(),
@@ -307,12 +307,12 @@ func (c *Controller) cashCheckVoucherTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		tags, err := c.core.CashCheckVoucherTagManager.Find(context, &core.CashCheckVoucherTag{
+		tags, err := c.core.CashCheckVoucherTagManager().Find(context, &core.CashCheckVoucherTag{
 			CashCheckVoucherID: cashCheckVoucherID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check voucher tags found for the specified cash check voucher ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager.ToModels(tags))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherTagManager().ToModels(tags))
 	})
 }

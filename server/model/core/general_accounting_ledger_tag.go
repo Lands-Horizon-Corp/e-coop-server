@@ -71,7 +71,7 @@ type (
 
 func (m *Core) generalLedgerTag() {
 	m.Migration = append(m.Migration, &GeneralLedgerTag{})
-	m.GeneralLedgerTagManager = registry.NewRegistry(registry.RegistryParams[
+	m.GeneralLedgerTagManager().= registry.NewRegistry(registry.RegistryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{
@@ -89,16 +89,16 @@ func (m *Core) generalLedgerTag() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				GeneralLedgerID: data.GeneralLedgerID,
-				GeneralLedger:   m.GeneralLedgerManager.ToModel(data.GeneralLedger),
+				GeneralLedger:   m.GeneralLedgerManager().ToModel(data.GeneralLedger),
 				Name:            data.Name,
 				Description:     data.Description,
 				Category:        data.Category,
@@ -134,7 +134,7 @@ func (m *Core) generalLedgerTag() {
 }
 
 func (m *Core) GeneralLedgerTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerTag, error) {
-	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
+	return m.GeneralLedgerTagManager().Find(context, &GeneralLedgerTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

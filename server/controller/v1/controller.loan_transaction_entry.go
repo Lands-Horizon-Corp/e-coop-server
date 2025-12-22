@@ -47,7 +47,7 @@ func (c *Controller) loanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		account, err := c.core.AccountManager.GetByID(context, req.AccountID)
+		account, err := c.core.AccountManager().GetByID(context, req.AccountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
@@ -73,7 +73,7 @@ func (c *Controller) loanTransactionEntryController() {
 			Name:              account.Name,
 			Description:       account.Description,
 		}
-		if err := c.core.LoanTransactionEntryManager.Create(context, loanTransaction); err != nil {
+		if err := c.core.LoanTransactionEntryManager().Create(context, loanTransaction); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),
@@ -97,7 +97,7 @@ func (c *Controller) loanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(newLoanTransaction))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -133,7 +133,7 @@ func (c *Controller) loanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		account, err := c.core.AccountManager.GetByID(context, req.AccountID)
+		account, err := c.core.AccountManager().GetByID(context, req.AccountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
@@ -142,7 +142,7 @@ func (c *Controller) loanTransactionEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		loanTransactionEntry, err := c.core.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryID)
+		loanTransactionEntry, err := c.core.LoanTransactionEntryManager().GetByID(context, *loanTransactionEntryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found",
@@ -163,7 +163,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.Amount = req.Amount
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
+		if err := c.core.LoanTransactionEntryManager().UpdateByID(context, *loanTransactionEntryID, loanTransactionEntry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan transaction deduction creation failed: " + err.Error(),
@@ -186,7 +186,7 @@ func (c *Controller) loanTransactionEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(newLoanTransaction))
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(newLoanTransaction))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -208,7 +208,7 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete loan transaction entries"})
 		}
 
-		loanTransactionEntry, err := c.core.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryID)
+		loanTransactionEntry, err := c.core.LoanTransactionEntryManager().GetByID(context, *loanTransactionEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
@@ -216,7 +216,7 @@ func (c *Controller) loanTransactionEntryController() {
 			loanTransactionEntry.IsAutomaticLoanDeductionDeleted = true
 			loanTransactionEntry.UpdatedAt = time.Now().UTC()
 			loanTransactionEntry.UpdatedByID = userOrg.UserID
-			if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			if err := c.core.LoanTransactionEntryManager().UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
@@ -228,7 +228,7 @@ func (c *Controller) loanTransactionEntryController() {
 
 		loanTransactionEntry.DeletedByID = &userOrg.UserID
 
-		if err := c.core.LoanTransactionEntryManager.Delete(context, loanTransactionEntry.ID); err != nil {
+		if err := c.core.LoanTransactionEntryManager().Delete(context, loanTransactionEntry.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 		}
 
@@ -269,7 +269,7 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to restore loan transaction entries"})
 		}
 
-		loanTransactionEntry, err := c.core.LoanTransactionEntryManager.GetByID(context, *loanTransactionEntryID)
+		loanTransactionEntry, err := c.core.LoanTransactionEntryManager().GetByID(context, *loanTransactionEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
@@ -290,7 +290,7 @@ func (c *Controller) loanTransactionEntryController() {
 		loanTransactionEntry.UpdatedAt = time.Now().UTC()
 		loanTransactionEntry.UpdatedByID = userOrg.UserID
 
-		if err := c.core.LoanTransactionEntryManager.UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+		if err := c.core.LoanTransactionEntryManager().UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to restore loan transaction entry: " + err.Error()})
 		}
 
@@ -311,6 +311,6 @@ func (c *Controller) loanTransactionEntryController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager.ToModel(loanTransaction))
+		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(loanTransaction))
 	})
 }

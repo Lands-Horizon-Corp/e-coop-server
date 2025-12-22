@@ -68,7 +68,7 @@ type (
 
 func (m *Core) interestRateByYear() {
 	m.Migration = append(m.Migration, &InterestRateByYear{})
-	m.InterestRateByYearManager = registry.NewRegistry(registry.RegistryParams[
+	m.InterestRateByYearManager().= registry.NewRegistry(registry.RegistryParams[
 		InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest,
 	]{
 		Preloads: []string{
@@ -86,17 +86,17 @@ func (m *Core) interestRateByYear() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				BrowseReferenceID: data.BrowseReferenceID,
-				BrowseReference:   m.BrowseReferenceManager.ToModel(data.BrowseReference),
+				BrowseReference:   m.BrowseReferenceManager().ToModel(data.BrowseReference),
 				FromYear:          data.FromYear,
 				ToYear:            data.ToYear,
 				InterestRate:      data.InterestRate,
@@ -138,7 +138,7 @@ func (m *Core) InterestRateByYearForBrowseReference(context context.Context, bro
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
+	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByYearForRange(context context.Context, browseReferenceID uuid.UUID, year int) ([]*InterestRateByYear, error) {
@@ -148,7 +148,7 @@ func (m *Core) InterestRateByYearForRange(context context.Context, browseReferen
 		{Field: "to_year", Op: query.ModeGTE, Value: year},
 	}
 
-	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
+	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByYearCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByYear, error) {
@@ -157,7 +157,7 @@ func (m *Core) InterestRateByYearCurrentBranch(context context.Context, organiza
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.InterestRateByYearManager.ArrFind(context, filters, nil)
+	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetInterestRateForYear(context context.Context, browseReferenceID uuid.UUID, year int) (*InterestRateByYear, error) {

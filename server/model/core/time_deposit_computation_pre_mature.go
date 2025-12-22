@@ -69,7 +69,7 @@ type (
 
 func (m *Core) timeDepositComputationPreMature() {
 	m.Migration = append(m.Migration, &TimeDepositComputationPreMature{})
-	m.TimeDepositComputationPreMatureManager = registry.NewRegistry(registry.RegistryParams[
+	m.TimeDepositComputationPreMatureManager().= registry.NewRegistry(registry.RegistryParams[
 		TimeDepositComputationPreMature, TimeDepositComputationPreMatureResponse, TimeDepositComputationPreMatureRequest,
 	]{
 		Preloads: []string{
@@ -87,16 +87,16 @@ func (m *Core) timeDepositComputationPreMature() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				TimeDepositTypeID: data.TimeDepositTypeID,
-				TimeDepositType:   m.TimeDepositTypeManager.ToModel(data.TimeDepositType),
+				TimeDepositType:   m.TimeDepositTypeManager().ToModel(data.TimeDepositType),
 				Terms:             data.Terms,
 				From:              data.From,
 				To:                data.To,
@@ -132,7 +132,7 @@ func (m *Core) timeDepositComputationPreMature() {
 }
 
 func (m *Core) TimeDepositComputationPreMatureCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositComputationPreMature, error) {
-	return m.TimeDepositComputationPreMatureManager.Find(context, &TimeDepositComputationPreMature{
+	return m.TimeDepositComputationPreMatureManager().Find(context, &TimeDepositComputationPreMature{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

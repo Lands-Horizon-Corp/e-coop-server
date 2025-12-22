@@ -28,7 +28,7 @@ func (c *Controller) userRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.core.UserRatingManager().ToModels(userRating))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -46,7 +46,7 @@ func (c *Controller) userRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.core.UserRatingManager().ToModels(userRating))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -60,11 +60,11 @@ func (c *Controller) userRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		userRating, err := c.core.UserRatingManager.GetByID(context, *userRatingID)
+		userRating, err := c.core.UserRatingManager().GetByID(context, *userRatingID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user rating: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModel(userRating))
+		return ctx.JSON(http.StatusOK, c.core.UserRatingManager().ToModel(userRating))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -82,7 +82,7 @@ func (c *Controller) userRatingController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings for branch: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModels(userRating))
+		return ctx.JSON(http.StatusOK, c.core.UserRatingManager().ToModels(userRating))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -93,7 +93,7 @@ func (c *Controller) userRatingController() {
 		Note:         "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.UserRatingManager.Validate(ctx)
+		req, err := c.core.UserRatingManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -125,7 +125,7 @@ func (c *Controller) userRatingController() {
 			Remark:         req.Remark,
 		}
 
-		if err := c.core.UserRatingManager.Create(context, userRating); err != nil {
+		if err := c.core.UserRatingManager().Create(context, userRating); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user rating failed: create error: " + err.Error(),
@@ -140,7 +140,7 @@ func (c *Controller) userRatingController() {
 			Module:      "UserRating",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.UserRatingManager.ToModel(userRating))
+		return ctx.JSON(http.StatusOK, c.core.UserRatingManager().ToModel(userRating))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -158,7 +158,7 @@ func (c *Controller) userRatingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_rating_id: " + err.Error()})
 		}
-		if err := c.core.UserRatingManager.Delete(context, *userRatingID); err != nil {
+		if err := c.core.UserRatingManager().Delete(context, *userRatingID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete user rating failed: delete error: " + err.Error(),

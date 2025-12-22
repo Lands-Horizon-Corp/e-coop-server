@@ -144,7 +144,7 @@ type (
 
 func (m *Core) mutualFund() {
 	m.Migration = append(m.Migration, &MutualFund{})
-	m.MutualFundManager = registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
+	m.MutualFundManager().= registry.NewRegistry(registry.RegistryParams[MutualFund, MutualFundResponse, MutualFundRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -171,22 +171,22 @@ func (m *Core) mutualFund() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 
 				MemberTypeID: data.MemberTypeID,
-				MemberType:   m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:   m.MemberTypeManager().ToModel(data.MemberType),
 
-				AdditionalMembers: m.MutualFundAdditionalMembersManager.ToModels(data.AdditionalMembers),
-				MutualFundTables:  m.MutualFundTableManager.ToModels(data.MutualFundTables),
+				AdditionalMembers: m.MutualFundAdditionalMembersManager().ToModels(data.AdditionalMembers),
+				MutualFundTables:  m.MutualFundTableManager().ToModels(data.MutualFundTables),
 				Name:              data.Name,
 				Description:       data.Description,
 				DateOfDeath:       data.DateOfDeath.Format(time.RFC3339),
@@ -197,7 +197,7 @@ func (m *Core) mutualFund() {
 				Account:           data.Account,
 
 				PrintedByUserID: data.PrintedByUserID,
-				PrintedByUser:   m.UserManager.ToModel(data.PrintedByUser),
+				PrintedByUser:   m.UserManager().ToModel(data.PrintedByUser),
 				PrintedDate:     printedDate,
 
 				PostAccountID:  data.PostAccountID,
@@ -237,14 +237,14 @@ func (m *Core) mutualFund() {
 }
 
 func (m *Core) MutualFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
-	return m.MutualFundManager.Find(context, &MutualFund{
+	return m.MutualFundManager().Find(context, &MutualFund{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MutualFundByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFund, error) {
-	return m.MutualFundManager.Find(context, &MutualFund{
+	return m.MutualFundManager().Find(context, &MutualFund{
 		MemberProfileID: memberProfileID,
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
@@ -290,12 +290,12 @@ func (m *Core) CreateMutualFundValue(
 		})
 	}
 
-	account, err := m.AccountManager.GetByID(ctx, req.AccountID)
+	account, err := m.AccountManager().GetByID(ctx, req.AccountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get account")
 	}
 
-	memberProfile, err := m.MemberProfileManager.GetByID(ctx, req.MemberProfileID)
+	memberProfile, err := m.MemberProfileManager().GetByID(ctx, req.MemberProfileID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get member profile")
 	}

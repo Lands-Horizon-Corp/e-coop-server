@@ -28,7 +28,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
+		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager().NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -49,7 +49,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByIDRaw(context, *generatedSavingsInterestID)
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByIDRaw(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest not found"})
 		}
@@ -71,7 +71,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		entries, err := c.core.GeneratedSavingsInterestEntryManager.Find(context, &core.GeneratedSavingsInterestEntry{
+		entries, err := c.core.GeneratedSavingsInterestEntryManager().Find(context, &core.GeneratedSavingsInterestEntry{
 			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			OrganizationID:             userOrg.OrganizationID,
 			BranchID:                   *userOrg.BranchID,
@@ -87,7 +87,7 @@ func (c *Controller) generateSavingsInterest() {
 
 		}
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
-			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
+			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
 			TotalTax:      totalTax,      // You might want to calculate this value
 			TotalInterest: totalInterest, // You might want to calculate this value
 		})
@@ -100,7 +100,7 @@ func (c *Controller) generateSavingsInterest() {
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.core.GeneratedSavingsInterestManager.Validate(ctx)
+		request, err := c.core.GeneratedSavingsInterestManager().Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
@@ -112,7 +112,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
-		branch, err := c.core.BranchManager.GetByID(context, *userOrg.BranchID, "BranchSetting")
+		branch, err := c.core.BranchManager().GetByID(context, *userOrg.BranchID, "BranchSetting")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
 		}
@@ -141,7 +141,7 @@ func (c *Controller) generateSavingsInterest() {
 
 		}
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
-			Entries:       c.core.GeneratedSavingsInterestEntryManager.ToModels(entries),
+			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
 			TotalTax:      totalTax,
 			TotalInterest: totalInterest,
 		})
@@ -155,7 +155,7 @@ func (c *Controller) generateSavingsInterest() {
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.core.GeneratedSavingsInterestManager.Validate(ctx)
+		request, err := c.core.GeneratedSavingsInterestManager().Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
@@ -167,7 +167,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
-		branch, err := c.core.BranchManager.GetByID(context, *userOrg.BranchID, "BranchSetting")
+		branch, err := c.core.BranchManager().GetByID(context, *userOrg.BranchID, "BranchSetting")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
 		}
@@ -194,7 +194,7 @@ func (c *Controller) generateSavingsInterest() {
 			TotalInterest:                   totalInterest,
 			TotalTax:                        totalTax,
 		}
-		if err := c.core.GeneratedSavingsInterestManager.CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
+		if err := c.core.GeneratedSavingsInterestManager().CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
@@ -223,20 +223,20 @@ func (c *Controller) generateSavingsInterest() {
 			entry.CreatedByID = userOrg.UserID
 			entry.UpdatedAt = time.Now().UTC()
 			entry.UpdatedByID = userOrg.UserID
-			if err := c.core.GeneratedSavingsInterestEntryManager.CreateWithTx(context, tx, entry); err != nil {
+			if err := c.core.GeneratedSavingsInterestEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
 			}
 		}
 		generatedSavingsInterest.TotalTax = totalTax
 		generatedSavingsInterest.TotalInterest = totalInterest
-		if err := c.core.GeneratedSavingsInterestManager.UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
+		if err := c.core.GeneratedSavingsInterestManager().UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest: " + err.Error()})
 		}
 
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -256,7 +256,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}
@@ -269,10 +269,10 @@ func (c *Controller) generateSavingsInterest() {
 		now := time.Now().UTC()
 		generateSavingsInterest.PrintedByUserID = &userOrg.UserID
 		generateSavingsInterest.PrintedDate = &now
-		if err := c.core.GeneratedSavingsInterestManager.UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+		if err := c.core.GeneratedSavingsInterestManager().UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest as printed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager().ToModel(generateSavingsInterest))
 	})
 	req.RegisterWebRoute(handlers.Route{
 		Method: "PUT",
@@ -291,7 +291,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo print status of generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}
@@ -306,10 +306,10 @@ func (c *Controller) generateSavingsInterest() {
 		}
 		generateSavingsInterest.PrintedByUserID = nil
 		generateSavingsInterest.PrintedDate = nil
-		if err := c.core.GeneratedSavingsInterestManager.UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+		if err := c.core.GeneratedSavingsInterestManager().UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print status of generated savings interest: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager.ToModel(generateSavingsInterest))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager().ToModel(generateSavingsInterest))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -337,7 +337,7 @@ func (c *Controller) generateSavingsInterest() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}

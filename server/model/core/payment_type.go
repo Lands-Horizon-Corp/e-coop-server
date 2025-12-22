@@ -72,7 +72,7 @@ type (
 
 func (m *Core) paymentType() {
 	m.Migration = append(m.Migration, &PaymentType{})
-	m.PaymentTypeManager = registry.NewRegistry(registry.RegistryParams[
+	m.PaymentTypeManager().= registry.NewRegistry(registry.RegistryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -88,14 +88,14 @@ func (m *Core) paymentType() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				NumberOfDays:   data.NumberOfDays,
@@ -130,7 +130,7 @@ func (m *Core) paymentType() {
 }
 
 func (m *Core) PaymentTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
-	return m.PaymentTypeManager.Find(context, &PaymentType{
+	return m.PaymentTypeManager().Find(context, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

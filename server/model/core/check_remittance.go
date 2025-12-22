@@ -91,7 +91,7 @@ type (
 
 func (m *Core) checkRemittance() {
 	m.Migration = append(m.Migration, &CheckRemittance{})
-	m.CheckRemittanceManager = registry.NewRegistry(registry.RegistryParams[
+	m.CheckRemittanceManager().= registry.NewRegistry(registry.RegistryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
 		Preloads: []string{
@@ -116,24 +116,24 @@ func (m *Core) checkRemittance() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				BankID:             data.BankID,
-				Bank:               m.BankManager.ToModel(data.Bank),
+				Bank:               m.BankManager().).ToModel(data.Bank),
 				MediaID:            data.MediaID,
-				Media:              m.MediaManager.ToModel(data.Media),
+				Media:              m.MediaManager().ToModel(data.Media),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager.ToModel(data.Currency),
+				Currency:           m.CurrencyManager().ToModel(data.Currency),
 				ReferenceNumber:    data.ReferenceNumber,
 				AccountName:        data.AccountName,
 				Amount:             data.Amount,
@@ -169,7 +169,7 @@ func (m *Core) checkRemittance() {
 }
 
 func (m *Core) CheckRemittanceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CheckRemittance, error) {
-	return m.CheckRemittanceManager.Find(context, &CheckRemittance{
+	return m.CheckRemittanceManager().Find(context, &CheckRemittance{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

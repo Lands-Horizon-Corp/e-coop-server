@@ -61,7 +61,7 @@ type (
 
 func (m *Core) memberGenderHistory() {
 	m.Migration = append(m.Migration, &MemberGenderHistory{})
-	m.MemberGenderHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
+	m.MemberGenderHistoryManager().= registry.NewRegistry(registry.RegistryParams[MemberGenderHistory, MemberGenderHistoryResponse, MemberGenderHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGender"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -75,18 +75,18 @@ func (m *Core) memberGenderHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				MemberGenderID:  data.MemberGenderID,
-				MemberGender:    m.MemberGenderManager.ToModel(data.MemberGender),
+				MemberGender:    m.MemberGenderManager().ToModel(data.MemberGender),
 			}
 		},
 
@@ -121,14 +121,14 @@ func (m *Core) memberGenderHistory() {
 }
 
 func (m *Core) MemberGenderHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+	return m.MemberGenderHistoryManager().Find(context, &MemberGenderHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberGenderHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberGenderHistory, error) {
-	return m.MemberGenderHistoryManager.Find(context, &MemberGenderHistory{
+	return m.MemberGenderHistoryManager().Find(context, &MemberGenderHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

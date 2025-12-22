@@ -35,12 +35,12 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update browse references"})
 		}
 
-		request, err := c.core.BrowseReferenceManager.Validate(ctx)
+		request, err := c.core.BrowseReferenceManager().Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		browseReference, err := c.core.BrowseReferenceManager.GetByID(context, *browseReferenceID)
+		browseReference, err := c.core.BrowseReferenceManager().GetByID(context, *browseReferenceID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
@@ -66,7 +66,7 @@ func (c *Controller) browseReferenceController() {
 
 		if request.InterestRatesByYearDeleted != nil {
 			for _, deletedID := range request.InterestRatesByYearDeleted {
-				interestRateByYear, err := c.core.InterestRateByYearManager.GetByID(context, deletedID)
+				interestRateByYear, err := c.core.InterestRateByYearManager().GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find interest rate by year for deletion: " + endTx(err).Error()})
 				}
@@ -74,7 +74,7 @@ func (c *Controller) browseReferenceController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete interest rate by year that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 				}
 				interestRateByYear.DeletedByID = &userOrg.UserID
-				if err := c.core.InterestRateByYearManager.DeleteWithTx(context, tx, interestRateByYear.ID); err != nil {
+				if err := c.core.InterestRateByYearManager().DeleteWithTx(context, tx, interestRateByYear.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete interest rate by year: " + endTx(err).Error()})
 				}
 			}
@@ -82,7 +82,7 @@ func (c *Controller) browseReferenceController() {
 
 		if request.InterestRatesByDateDeleted != nil {
 			for _, deletedID := range request.InterestRatesByDateDeleted {
-				interestRateByDate, err := c.core.InterestRateByDateManager.GetByID(context, deletedID)
+				interestRateByDate, err := c.core.InterestRateByDateManager().GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find interest rate by date for deletion: " + endTx(err).Error()})
 				}
@@ -90,7 +90,7 @@ func (c *Controller) browseReferenceController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete interest rate by date that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 				}
 				interestRateByDate.DeletedByID = &userOrg.UserID
-				if err := c.core.InterestRateByDateManager.DeleteWithTx(context, tx, interestRateByDate.ID); err != nil {
+				if err := c.core.InterestRateByDateManager().DeleteWithTx(context, tx, interestRateByDate.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete interest rate by date: " + endTx(err).Error()})
 				}
 			}
@@ -98,7 +98,7 @@ func (c *Controller) browseReferenceController() {
 
 		if request.InterestRatesByAmountDeleted != nil {
 			for _, deletedID := range request.InterestRatesByAmountDeleted {
-				interestRateByAmount, err := c.core.InterestRateByAmountManager.GetByID(context, deletedID)
+				interestRateByAmount, err := c.core.InterestRateByAmountManager().GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find interest rate by amount for deletion: " + endTx(err).Error()})
 				}
@@ -106,7 +106,7 @@ func (c *Controller) browseReferenceController() {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete interest rate by amount that doesn't belong to this browse reference: " + endTx(eris.New("invalid browse reference")).Error()})
 				}
 				interestRateByAmount.DeletedByID = &userOrg.UserID
-				if err := c.core.InterestRateByAmountManager.DeleteWithTx(context, tx, interestRateByAmount.ID); err != nil {
+				if err := c.core.InterestRateByAmountManager().DeleteWithTx(context, tx, interestRateByAmount.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete interest rate by amount: " + endTx(err).Error()})
 				}
 			}
@@ -115,7 +115,7 @@ func (c *Controller) browseReferenceController() {
 		if request.InterestRatesByYear != nil {
 			for _, rateReq := range request.InterestRatesByYear {
 				if rateReq.ID != nil {
-					existingRecord, err := c.core.InterestRateByYearManager.GetByID(context, *rateReq.ID)
+					existingRecord, err := c.core.InterestRateByYearManager().GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by year: " + endTx(err).Error()})
 					}
@@ -128,7 +128,7 @@ func (c *Controller) browseReferenceController() {
 					existingRecord.ToYear = rateReq.ToYear
 					existingRecord.InterestRate = rateReq.InterestRate
 
-					if err := c.core.InterestRateByYearManager.UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := c.core.InterestRateByYearManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by year: " + endTx(err).Error()})
 					}
 				} else {
@@ -145,7 +145,7 @@ func (c *Controller) browseReferenceController() {
 						InterestRate:      rateReq.InterestRate,
 					}
 
-					if err := c.core.InterestRateByYearManager.CreateWithTx(context, tx, rateByYear); err != nil {
+					if err := c.core.InterestRateByYearManager().CreateWithTx(context, tx, rateByYear); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by year: " + endTx(err).Error()})
 					}
 				}
@@ -155,7 +155,7 @@ func (c *Controller) browseReferenceController() {
 		if request.InterestRatesByDate != nil {
 			for _, rateReq := range request.InterestRatesByDate {
 				if rateReq.ID != nil {
-					existingRecord, err := c.core.InterestRateByDateManager.GetByID(context, *rateReq.ID)
+					existingRecord, err := c.core.InterestRateByDateManager().GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by date: " + endTx(err).Error()})
 					}
@@ -168,7 +168,7 @@ func (c *Controller) browseReferenceController() {
 					existingRecord.ToDate = rateReq.ToDate
 					existingRecord.InterestRate = rateReq.InterestRate
 
-					if err := c.core.InterestRateByDateManager.UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := c.core.InterestRateByDateManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by date: " + endTx(err).Error()})
 					}
 				} else {
@@ -185,7 +185,7 @@ func (c *Controller) browseReferenceController() {
 						InterestRate:      rateReq.InterestRate,
 					}
 
-					if err := c.core.InterestRateByDateManager.CreateWithTx(context, tx, rateByDate); err != nil {
+					if err := c.core.InterestRateByDateManager().CreateWithTx(context, tx, rateByDate); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by date: " + endTx(err).Error()})
 					}
 				}
@@ -195,7 +195,7 @@ func (c *Controller) browseReferenceController() {
 		if request.InterestRatesByAmount != nil {
 			for _, rateReq := range request.InterestRatesByAmount {
 				if rateReq.ID != nil {
-					existingRecord, err := c.core.InterestRateByAmountManager.GetByID(context, *rateReq.ID)
+					existingRecord, err := c.core.InterestRateByAmountManager().GetByID(context, *rateReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing interest rate by amount: " + endTx(err).Error()})
 					}
@@ -208,7 +208,7 @@ func (c *Controller) browseReferenceController() {
 					existingRecord.ToAmount = rateReq.ToAmount
 					existingRecord.InterestRate = rateReq.InterestRate
 
-					if err := c.core.InterestRateByAmountManager.UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := c.core.InterestRateByAmountManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by amount: " + endTx(err).Error()})
 					}
 				} else {
@@ -225,14 +225,14 @@ func (c *Controller) browseReferenceController() {
 						InterestRate:      rateReq.InterestRate,
 					}
 
-					if err := c.core.InterestRateByAmountManager.CreateWithTx(context, tx, rateByAmount); err != nil {
+					if err := c.core.InterestRateByAmountManager().CreateWithTx(context, tx, rateByAmount); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by amount: " + endTx(err).Error()})
 					}
 				}
 			}
 		}
 
-		if err := c.core.BrowseReferenceManager.UpdateByIDWithTx(context, tx, browseReference.ID, browseReference); err != nil {
+		if err := c.core.BrowseReferenceManager().UpdateByIDWithTx(context, tx, browseReference.ID, browseReference); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update browse reference: " + endTx(err).Error()})
 		}
 
@@ -245,7 +245,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		updatedBrowseReference, err := c.core.BrowseReferenceManager.GetByID(context, browseReference.ID)
+		updatedBrowseReference, err := c.core.BrowseReferenceManager().GetByID(context, browseReference.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated browse reference: " + err.Error()})
 		}
@@ -256,7 +256,7 @@ func (c *Controller) browseReferenceController() {
 			Module:      "BrowseReference",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(updatedBrowseReference))
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager().ToModel(updatedBrowseReference))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -276,7 +276,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 
-		browseReference, err := c.core.BrowseReferenceManager.GetByID(context, *browseReferenceID)
+		browseReference, err := c.core.BrowseReferenceManager().GetByID(context, *browseReferenceID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
@@ -285,7 +285,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this browse reference"})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(browseReference))
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager().ToModel(browseReference))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -306,7 +306,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve browse references: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager().ToModels(browseReferences))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -318,7 +318,7 @@ func (c *Controller) browseReferenceController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		request, err := c.core.BrowseReferenceManager.Validate(ctx)
+		request, err := c.core.BrowseReferenceManager().Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
@@ -352,7 +352,7 @@ func (c *Controller) browseReferenceController() {
 			DefaultInterestRate:   request.DefaultInterestRate,
 		}
 
-		if err := c.core.BrowseReferenceManager.CreateWithTx(context, tx, browseReference); err != nil {
+		if err := c.core.BrowseReferenceManager().CreateWithTx(context, tx, browseReference); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create browse reference: " + endTx(err).Error()})
 		}
 
@@ -371,7 +371,7 @@ func (c *Controller) browseReferenceController() {
 					InterestRate:      rateReq.InterestRate,
 				}
 
-				if err := c.core.InterestRateByYearManager.CreateWithTx(context, tx, rateByYear); err != nil {
+				if err := c.core.InterestRateByYearManager().CreateWithTx(context, tx, rateByYear); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by year: " + endTx(err).Error()})
 				}
 			}
@@ -392,7 +392,7 @@ func (c *Controller) browseReferenceController() {
 					InterestRate:      rateReq.InterestRate,
 				}
 
-				if err := c.core.InterestRateByDateManager.CreateWithTx(context, tx, rateByDate); err != nil {
+				if err := c.core.InterestRateByDateManager().CreateWithTx(context, tx, rateByDate); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by date: " + endTx(err).Error()})
 				}
 			}
@@ -413,7 +413,7 @@ func (c *Controller) browseReferenceController() {
 					InterestRate:      rateReq.InterestRate,
 				}
 
-				if err := c.core.InterestRateByAmountManager.CreateWithTx(context, tx, rateByAmount); err != nil {
+				if err := c.core.InterestRateByAmountManager().CreateWithTx(context, tx, rateByAmount); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create interest rate by amount: " + endTx(err).Error()})
 				}
 			}
@@ -428,7 +428,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		createdBrowseReference, err := c.core.BrowseReferenceManager.GetByID(context, browseReference.ID)
+		createdBrowseReference, err := c.core.BrowseReferenceManager().GetByID(context, browseReference.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created browse reference: " + err.Error()})
 		}
@@ -439,7 +439,7 @@ func (c *Controller) browseReferenceController() {
 			Module:      "BrowseReference",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.BrowseReferenceManager.ToModel(createdBrowseReference))
+		return ctx.JSON(http.StatusCreated, c.core.BrowseReferenceManager().ToModel(createdBrowseReference))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -461,7 +461,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete browse references"})
 		}
 
-		browseReference, err := c.core.BrowseReferenceManager.GetByID(context, *browseReferenceID)
+		browseReference, err := c.core.BrowseReferenceManager().GetByID(context, *browseReferenceID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Browse reference not found"})
 		}
@@ -471,7 +471,7 @@ func (c *Controller) browseReferenceController() {
 		}
 
 		browseReference.DeletedByID = &userOrg.UserID
-		if err := c.core.BrowseReferenceManager.Delete(context, browseReference.ID); err != nil {
+		if err := c.core.BrowseReferenceManager().Delete(context, browseReference.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete browse reference: " + err.Error()})
 		}
 
@@ -506,7 +506,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve browse references: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModels(browseReferences))
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager().ToModels(browseReferences))
 	})
 
 	// GET /api/v1/browse-reference/account/:account_id/member-type/:member_type_id
@@ -535,7 +535,7 @@ func (c *Controller) browseReferenceController() {
 				"error": "User authentication failed or organization not found",
 			})
 		}
-		browseReference, err := c.core.BrowseReferenceManager.FindOne(
+		browseReference, err := c.core.BrowseReferenceManager().FindOne(
 			context,
 			&core.BrowseReference{
 				AccountID:      accountID,
@@ -550,7 +550,7 @@ func (c *Controller) browseReferenceController() {
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager.ToModel(browseReference))
+		return ctx.JSON(http.StatusOK, c.core.BrowseReferenceManager().ToModel(browseReference))
 	})
 
 }

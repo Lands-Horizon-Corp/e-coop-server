@@ -30,7 +30,7 @@ func (c *Controller) memberRelativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.core.MemberRelativeAccountManager.Validate(ctx)
+		req, err := c.core.MemberRelativeAccountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -62,7 +62,7 @@ func (c *Controller) memberRelativeAccountController() {
 			OrganizationID:          userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberRelativeAccountManager.Create(context, value); err != nil {
+		if err := c.core.MemberRelativeAccountManager().Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member relative account failed: " + err.Error(),
@@ -77,7 +77,7 @@ func (c *Controller) memberRelativeAccountController() {
 			Module:      "MemberRelativeAccount",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -97,7 +97,7 @@ func (c *Controller) memberRelativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
-		req, err := c.core.MemberRelativeAccountManager.Validate(ctx)
+		req, err := c.core.MemberRelativeAccountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -116,7 +116,7 @@ func (c *Controller) memberRelativeAccountController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.core.MemberRelativeAccountManager.GetByID(context, *memberRelativeAccountID)
+		value, err := c.core.MemberRelativeAccountManager().GetByID(context, *memberRelativeAccountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -135,7 +135,7 @@ func (c *Controller) memberRelativeAccountController() {
 		value.FamilyRelationship = req.FamilyRelationship
 		value.Description = req.Description
 
-		if err := c.core.MemberRelativeAccountManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.core.MemberRelativeAccountManager().UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member relative account failed: update error: " + err.Error(),
@@ -148,7 +148,7 @@ func (c *Controller) memberRelativeAccountController() {
 			Description: "Updated member relative account ID: " + memberRelativeAccountID.String(),
 			Module:      "MemberRelativeAccount",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberRelativeAccountManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -166,7 +166,7 @@ func (c *Controller) memberRelativeAccountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_relative_account_id: " + err.Error()})
 		}
-		if err := c.core.MemberRelativeAccountManager.Delete(context, *memberRelativeAccountID); err != nil {
+		if err := c.core.MemberRelativeAccountManager().Delete(context, *memberRelativeAccountID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member relative account failed: " + err.Error(),

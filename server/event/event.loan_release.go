@@ -37,7 +37,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		return nil, endTx(eris.New("invalid user organization data"))
 	}
 
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Account", "Account.Currency")
+	loanTransaction, err := e.core.LoanTransactionManager().GetByID(context, loanTransactionID, "Account", "Account.Currency")
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "loan-data-retrieval-failed",
@@ -77,7 +77,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		return nil, endTx(eris.New("transaction batch is nil"))
 	}
 
-	memberProfile, err := e.core.MemberProfileManager.GetByID(context, *loanTransaction.MemberProfileID)
+	memberProfile, err := e.core.MemberProfileManager().GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "member-profile-retrieval-failed",
@@ -96,7 +96,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		return nil, endTx(eris.New("member profile not found"))
 	}
 
-	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager().Find(context, &core.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
@@ -155,7 +155,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		account := e.core.AccountHistoryToModel(accountHistory)
 
 		if account.DefaultPaymentType == nil && account.DefaultPaymentTypeID != nil {
-			paymentType, err := e.core.PaymentTypeManager.GetByID(context, *account.DefaultPaymentTypeID)
+			paymentType, err := e.core.PaymentTypeManager().GetByID(context, *account.DefaultPaymentTypeID)
 			if err != nil {
 				return nil, endTx(eris.Wrap(err, "failed to retrieve payment type"))
 			}
@@ -240,7 +240,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			return nil, endTx(eris.New("interest account history is nil"))
 		}
 
-		if err := e.core.LoanAccountManager.CreateWithTx(context, tx, &core.LoanAccount{
+		if err := e.core.LoanAccountManager().CreateWithTx(context, tx, &core.LoanAccount{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         now,
@@ -264,7 +264,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	loanTransaction.TransactionBatchID = &transactionBatch.ID
 	loanTransaction.UpdatedByID = userOrg.UserID
 
-	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+	if err := e.core.LoanTransactionManager().UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
 
@@ -277,7 +277,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
-	updatedloanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
+	updatedloanTransaction, err := e.core.LoanTransactionManager().GetByID(context, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "final-retrieval-failed",

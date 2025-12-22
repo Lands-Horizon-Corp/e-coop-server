@@ -29,7 +29,7 @@ func (c *Controller) memberProfileController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.core.MemberProfileManager.Find(context, &core.MemberProfile{
+		memberProfile, err := c.core.MemberProfileManager().Find(context, &core.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Status:         "pending",
@@ -37,7 +37,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModels(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModels(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -110,7 +110,7 @@ func (c *Controller) memberProfileController() {
 			UpdatedAt:         time.Now().UTC(),
 			Birthdate:         req.BirthDate,
 		}
-		if err := c.core.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+		if err := c.core.UserManager().CreateWithTx(context, tx, userProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user account for member profile failed: create user error: " + err.Error(),
@@ -126,7 +126,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Database error: " + endTx(tx.Error).Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -139,7 +139,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user account for member profile failed: update member profile error: " + err.Error(),
@@ -183,7 +183,7 @@ func (c *Controller) memberProfileController() {
 			UserSettingUsedVoucher:   0,
 			UserSettingNumberPadding: 7,
 		}
-		if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, newUserOrg); err != nil {
+		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, newUserOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user account for member profile failed: create user org error: " + err.Error(),
@@ -207,7 +207,7 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -243,7 +243,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -254,7 +254,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.Status = "verified"
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Approve member profile failed: update error: " + err.Error(),
@@ -267,7 +267,7 @@ func (c *Controller) memberProfileController() {
 			Description: "Approved member profile: " + memberProfile.FullName,
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -303,7 +303,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "reject-error",
@@ -313,7 +313,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.Status = "not allowed"
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "reject-error",
 				Description: "Reject member profile failed: update error: " + err.Error(),
@@ -326,7 +326,7 @@ func (c *Controller) memberProfileController() {
 			Description: "Rejected member profile: " + memberProfile.FullName,
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -344,7 +344,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModels(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModels(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -358,7 +358,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberProfileManager.NormalPagination(context, ctx, &core.MemberProfile{
+		value, err := c.core.MemberProfileManager().NormalPagination(context, ctx, &core.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -379,7 +379,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByIDRaw(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByIDRaw(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
@@ -411,7 +411,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to begin transaction: " + endTx(tx.Error).Error()})
 		}
 
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -475,7 +475,7 @@ func (c *Controller) memberProfileController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberProfileManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberProfileManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member profiles failed (/member-profile/bulk-delete) | error: " + err.Error(),
@@ -527,7 +527,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -537,7 +537,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect member profile to user account failed: update error: " + err.Error(),
@@ -550,7 +550,7 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Connected member profile (%s) to user account.", memberProfile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-profile/quick-create",
@@ -618,7 +618,7 @@ func (c *Controller) memberProfileController() {
 				UpdatedAt:         time.Now().UTC(),
 				Birthdate:         req.BirthDate,
 			}
-			if err := c.core.UserManager.CreateWithTx(context, tx, userProfile); err != nil {
+			if err := c.core.UserManager().CreateWithTx(context, tx, userProfile); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Quick create member profile failed: create user error: " + err.Error(),
@@ -663,7 +663,7 @@ func (c *Controller) memberProfileController() {
 			MemberTypeID:         req.MemberTypeID,
 			BirthPlace:           req.BirthPlace,
 		}
-		if err := c.core.MemberProfileManager.CreateWithTx(context, tx, profile); err != nil {
+		if err := c.core.MemberProfileManager().CreateWithTx(context, tx, profile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Quick create member profile failed: create profile error: " + err.Error(),
@@ -708,7 +708,7 @@ func (c *Controller) memberProfileController() {
 				UserSettingUsedVoucher:   0,
 				UserSettingNumberPadding: 7,
 			}
-			if err := c.core.UserOrganizationManager.CreateWithTx(context, tx, userOrg); err != nil {
+			if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, userOrg); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Quick create member profile failed: create user org error: " + err.Error(),
@@ -733,7 +733,7 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(profile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -770,7 +770,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -811,7 +811,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberGenderID:  *req.MemberGenderID,
 			}
-			if err := c.core.MemberGenderHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberGenderHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile personal info failed: update gender history error: " + err.Error(),
@@ -832,7 +832,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:    *memberProfileID,
 				MemberOccupationID: *req.MemberOccupationID,
 			}
-			if err := c.core.MemberOccupationHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberOccupationHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile personal info failed: update occupation history error: " + err.Error(),
@@ -849,7 +849,7 @@ func (c *Controller) memberProfileController() {
 		profile.Description = req.Description
 		profile.MediaID = req.MediaID
 		profile.SignatureMediaID = req.SignatureMediaID
-		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile personal info failed: update error: " + err.Error(),
@@ -862,7 +862,7 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(profile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -899,7 +899,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -936,7 +936,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:    *memberProfileID,
 				MemberDepartmentID: *req.MemberDepartmentID,
 			}
-			if err := c.core.MemberDepartmentHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberDepartmentHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member department history error: " + err.Error(),
@@ -958,7 +958,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberTypeID:    *req.MemberTypeID,
 			}
-			if err := c.core.MemberTypeHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberTypeHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member type history error: " + err.Error(),
@@ -979,7 +979,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberGroupID:   *req.MemberGroupID,
 			}
-			if err := c.core.MemberGroupHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberGroupHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member group history error: " + err.Error(),
@@ -1000,7 +1000,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID:        *memberProfileID,
 				MemberClassificationID: *req.MemberClassificationID,
 			}
-			if err := c.core.MemberClassificationHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberClassificationHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member classification history error: " + err.Error(),
@@ -1021,7 +1021,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberCenterID:  *req.MemberCenterID,
 			}
-			if err := c.core.MemberCenterHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberCenterHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member center history error: " + err.Error(),
@@ -1035,7 +1035,7 @@ func (c *Controller) memberProfileController() {
 		profile.IsMutualFundMember = req.IsMutualFundMember
 		profile.IsMicroFinanceMember = req.IsMicroFinanceMember
 
-		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile membership info failed: update error: " + err.Error(),
@@ -1048,7 +1048,7 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile membership info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(profile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1070,7 +1070,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1078,10 +1078,10 @@ func (c *Controller) memberProfileController() {
 		memberProfile.User = nil
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1128,7 +1128,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "connect-error",
@@ -1142,7 +1142,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = currentUserOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "connect-error",
 				Description: "Connect member profile to user organization failed: update error: " + err.Error(),
@@ -1151,7 +1151,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
 
-		member, err := c.core.MemberProfileManager.GetByID(context, memberProfile.ID)
+		member, err := c.core.MemberProfileManager().GetByID(context, memberProfile.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "connect-error",
@@ -1166,7 +1166,7 @@ func (c *Controller) memberProfileController() {
 			Module:      "MemberProfile",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(member))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(member))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1196,7 +1196,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
 		}
@@ -1208,7 +1208,7 @@ func (c *Controller) memberProfileController() {
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
 		memberProfile.IsClosed = true
-		if err := c.core.MemberProfileManager.UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+endTx(err).Error())
 		}
 
@@ -1226,7 +1226,7 @@ func (c *Controller) memberProfileController() {
 				OrganizationID:  userOrg.OrganizationID,
 			}
 
-			if err := c.core.MemberCloseRemarkManager.CreateWithTx(context, tx, value); err != nil {
+			if err := c.core.MemberCloseRemarkManager().CreateWithTx(context, tx, value); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to create member close remark: " + endTx(err).Error()})
 			}
 			createdRemarks = append(createdRemarks, value)
@@ -1236,7 +1236,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.MemberCloseRemarkManager.ToModels(createdRemarks))
+		return ctx.JSON(http.StatusOK, c.core.MemberCloseRemarkManager().ToModels(createdRemarks))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1258,15 +1258,15 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
 		}
 		memberProfile.UserID = req.UserID
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to update member profile by specifying user connection: "+err.Error())
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1303,7 +1303,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		profile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		profile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1326,7 +1326,7 @@ func (c *Controller) memberProfileController() {
 		profile.Latitude = &req.Latitude
 		profile.Longitude = &req.Longitude
 
-		if err := c.core.MemberProfileManager.UpdateByID(context, profile.ID, profile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, profile.ID, profile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile coordinates failed: update error: " + err.Error(),
@@ -1339,7 +1339,7 @@ func (c *Controller) memberProfileController() {
 			Description: fmt.Sprintf("Updated member profile coordinates: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(profile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(profile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1357,7 +1357,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberProfiles, err := c.core.MemberProfileManager.NormalPagination(context, ctx, &core.MemberProfile{
+		memberProfiles, err := c.core.MemberProfileManager().NormalPagination(context, ctx, &core.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			MemberTypeID:   memberTypeID,
 			BranchID:       *userOrg.BranchID,
@@ -1383,7 +1383,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
@@ -1402,7 +1402,7 @@ func (c *Controller) memberProfileController() {
 				MemberProfileID: *memberProfileID,
 				MemberTypeID:    *memberTypeID,
 			}
-			if err := c.core.MemberTypeHistoryManager.Create(context, data); err != nil {
+			if err := c.core.MemberTypeHistoryManager().Create(context, data); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Update member profile membership info failed: update member type history error: " + err.Error(),
@@ -1415,10 +1415,10 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -1432,7 +1432,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
@@ -1444,9 +1444,9 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UpdatedAt = time.Now().UTC()
 		memberProfile.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileManager.UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager.ToModel(memberProfile))
+		return ctx.JSON(http.StatusOK, c.core.MemberProfileManager().ToModel(memberProfile))
 	})
 }

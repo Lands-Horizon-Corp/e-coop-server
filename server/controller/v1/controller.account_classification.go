@@ -27,7 +27,7 @@ func (c *Controller) accountClassificationController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.core.AccountClassificationManager.NormalPagination(context, ctx, &core.AccountClassification{
+		classifications, err := c.core.AccountClassificationManager().NormalPagination(context, ctx, &core.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -51,14 +51,14 @@ func (c *Controller) accountClassificationController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		classifications, err := c.core.AccountClassificationManager.Find(context, &core.AccountClassification{
+		classifications, err := c.core.AccountClassificationManager().Find(context, &core.AccountClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account classifications (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModels(classifications))
+		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager().ToModels(classifications))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -72,11 +72,11 @@ func (c *Controller) accountClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.core.AccountClassificationManager.GetByID(context, *id)
+		classification, err := c.core.AccountClassificationManager().GetByID(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager().ToModel(classification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -87,7 +87,7 @@ func (c *Controller) accountClassificationController() {
 		RequestType:  core.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountClassificationManager.Validate(ctx)
+		req, err := c.core.AccountClassificationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -125,7 +125,7 @@ func (c *Controller) accountClassificationController() {
 			Description:    req.Description,
 		}
 
-		if err := c.core.AccountClassificationManager.Create(context, accountClassification); err != nil {
+		if err := c.core.AccountClassificationManager().Create(context, accountClassification); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed to create account classification (/account-classification): db error: " + err.Error(),
@@ -138,7 +138,7 @@ func (c *Controller) accountClassificationController() {
 			Description: "Created account classification (/account-classification): " + accountClassification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.AccountClassificationManager.ToModel(accountClassification))
+		return ctx.JSON(http.StatusCreated, c.core.AccountClassificationManager().ToModel(accountClassification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -149,7 +149,7 @@ func (c *Controller) accountClassificationController() {
 		RequestType:  core.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountClassificationManager.Validate(ctx)
+		req, err := c.core.AccountClassificationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -184,7 +184,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.core.AccountClassificationManager.GetByID(context, *classificationID)
+		classification, err := c.core.AccountClassificationManager().GetByID(context, *classificationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -199,7 +199,7 @@ func (c *Controller) accountClassificationController() {
 		classification.Description = req.Description
 		classification.BranchID = *userOrg.BranchID
 		classification.OrganizationID = userOrg.OrganizationID
-		if err := c.core.AccountClassificationManager.UpdateByID(context, classification.ID, classification); err != nil {
+		if err := c.core.AccountClassificationManager().UpdateByID(context, classification.ID, classification); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -212,7 +212,7 @@ func (c *Controller) accountClassificationController() {
 			Description: "Updated account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager().ToModel(classification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -247,7 +247,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account classification ID: " + err.Error()})
 		}
-		classification, err := c.core.AccountClassificationManager.GetByID(context, *classificationID)
+		classification, err := c.core.AccountClassificationManager().GetByID(context, *classificationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -256,7 +256,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account classification not found: " + err.Error()})
 		}
-		if err := c.core.AccountClassificationManager.Delete(context, classification.ID); err != nil {
+		if err := c.core.AccountClassificationManager().Delete(context, classification.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed to delete account classification (/account-classification/:account_classification_id): db error: " + err.Error(),
@@ -269,7 +269,7 @@ func (c *Controller) accountClassificationController() {
 			Description: "Deleted account classification (/account-classification/:account_classification_id): " + classification.Name,
 			Module:      "AccountClassification",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager.ToModel(classification))
+		return ctx.JSON(http.StatusOK, c.core.AccountClassificationManager().ToModel(classification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -300,7 +300,7 @@ func (c *Controller) accountClassificationController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.AccountClassificationManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.AccountClassificationManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account classifications (/account-classification/bulk-delete) | error: " + err.Error(),

@@ -43,7 +43,7 @@ type (
 
 func (m *Core) organizationCategory() {
 	m.Migration = append(m.Migration, &OrganizationCategory{})
-	m.OrganizationCategoryManager = registry.NewRegistry(registry.RegistryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
+	m.OrganizationCategoryManager().= registry.NewRegistry(registry.RegistryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
 		Preloads: []string{"Organization", "Category"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -59,9 +59,9 @@ func (m *Core) organizationCategory() {
 				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				CategoryID:     data.CategoryID,
-				Category:       m.CategoryManager.ToModel(data.Category),
+				Category:       m.CategoryManager().ToModel(data.Category),
 			}
 		},
 
@@ -90,7 +90,7 @@ func (m *Core) organizationCategory() {
 }
 
 func (m *Core) GetOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
-	return m.OrganizationCategoryManager.Find(context, &OrganizationCategory{
+	return m.OrganizationCategoryManager().Find(context, &OrganizationCategory{
 		OrganizationID: &organizationID,
 	})
 }

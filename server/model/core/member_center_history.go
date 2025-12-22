@@ -61,7 +61,7 @@ type (
 
 func (m *Core) memberCenterHistory() {
 	m.Migration = append(m.Migration, &MemberCenterHistory{})
-	m.MemberCenterHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
+	m.MemberCenterHistoryManager().= registry.NewRegistry(registry.RegistryParams[MemberCenterHistory, MemberCenterHistoryResponse, MemberCenterHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberCenter", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -75,18 +75,18 @@ func (m *Core) memberCenterHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberCenterID:  data.MemberCenterID,
-				MemberCenter:    m.MemberCenterManager.ToModel(data.MemberCenter),
+				MemberCenter:    m.MemberCenterManager().ToModel(data.MemberCenter),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 			}
 		},
 
@@ -121,14 +121,14 @@ func (m *Core) memberCenterHistory() {
 }
 
 func (m *Core) MemberCenterHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenterHistory, error) {
-	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+	return m.MemberCenterHistoryManager().Find(context, &MemberCenterHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberCenterHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberCenterHistory, error) {
-	return m.MemberCenterHistoryManager.Find(context, &MemberCenterHistory{
+	return m.MemberCenterHistoryManager().Find(context, &MemberCenterHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

@@ -26,7 +26,7 @@ func (c *Controller) memberProfileComaker() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		loanTransactions, err := c.core.LoanTransactionManager.Find(context, &core.LoanTransaction{
+		loanTransactions, err := c.core.LoanTransactionManager().Find(context, &core.LoanTransaction{
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 			MemberProfileID: memberProfileID,
@@ -36,7 +36,7 @@ func (c *Controller) memberProfileComaker() {
 		}
 		comakerResponse := []core.ComakerMemberProfileResponse{}
 		for _, lt := range loanTransactions {
-			comakers, err := c.core.ComakerMemberProfileManager.Find(context, &core.ComakerMemberProfile{
+			comakers, err := c.core.ComakerMemberProfileManager().Find(context, &core.ComakerMemberProfile{
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: lt.ID,
@@ -45,7 +45,7 @@ func (c *Controller) memberProfileComaker() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve comaker details: " + err.Error()})
 			}
 			for _, cm := range comakers {
-				comakerResponse = append(comakerResponse, *c.core.ComakerMemberProfileManager.ToModel(cm))
+				comakerResponse = append(comakerResponse, *c.core.ComakerMemberProfileManager().ToModel(cm))
 			}
 		}
 		return ctx.JSON(http.StatusOK, comakerResponse)

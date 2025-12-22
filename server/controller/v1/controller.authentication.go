@@ -44,11 +44,11 @@ func (c *Controller) authenticationController() {
 		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
 		var userOrg *core.UserOrganizationResponse
 		if userOrganization != nil {
-			userOrg = c.core.UserOrganizationManager.ToModel(userOrganization)
+			userOrg = c.core.UserOrganizationManager().ToModel(userOrganization)
 		}
 		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
 			UserID:           user.ID,
-			User:             c.core.UserManager.ToModel(user),
+			User:             c.core.UserManager().ToModel(user),
 			UserOrganization: userOrg,
 		})
 	})
@@ -125,7 +125,7 @@ func (c *Controller) authenticationController() {
 		})
 		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
 			UserID: user.ID,
-			User:   c.core.UserManager.ToModel(user),
+			User:   c.core.UserManager().ToModel(user),
 		})
 	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
 		return handlers.GetClientIP(c)
@@ -154,7 +154,7 @@ func (c *Controller) authenticationController() {
 		Note:         "Registers a new user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.UserManager.Validate(ctx)
+		req, err := c.core.UserManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -189,7 +189,7 @@ func (c *Controller) authenticationController() {
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 		}
-		if err := c.core.UserManager.Create(context, user); err != nil {
+		if err := c.core.UserManager().Create(context, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: create user error: " + err.Error(),
@@ -212,7 +212,7 @@ func (c *Controller) authenticationController() {
 		})
 		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
 			UserID: user.ID,
-			User:   c.core.UserManager.ToModel(user),
+			User:   c.core.UserManager().ToModel(user),
 		})
 	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
 		return handlers.GetClientIP(c)
@@ -314,7 +314,7 @@ func (c *Controller) authenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		_, err = c.core.UserManager.GetByID(context, parsedUserID)
+		_, err = c.core.UserManager().GetByID(context, parsedUserID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
@@ -356,7 +356,7 @@ func (c *Controller) authenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID: " + err.Error()})
 		}
-		user, err := c.core.UserManager.GetByID(context, parsedUserID)
+		user, err := c.core.UserManager().GetByID(context, parsedUserID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
@@ -370,7 +370,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: update user error: " + err.Error(),
@@ -497,7 +497,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsContactVerified = true
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: update user error: " + err.Error(),
@@ -505,7 +505,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.core.UserManager().GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -527,7 +527,7 @@ func (c *Controller) authenticationController() {
 			Description: "Contact number verified for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(updatedUser))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -618,7 +618,7 @@ func (c *Controller) authenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, req.UserOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, req.UserOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -694,7 +694,7 @@ func (c *Controller) authenticationController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		user.IsEmailVerified = true
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: update user error: " + err.Error(),
@@ -702,7 +702,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.core.UserManager().GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -724,7 +724,7 @@ func (c *Controller) authenticationController() {
 			Description: "Email verified for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(updatedUser))
 	})
 
 }

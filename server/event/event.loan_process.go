@@ -26,7 +26,7 @@ func (e *Event) LoanProcessing(
 	loanTransactionID *uuid.UUID,
 ) (*core.LoanTransaction, error) {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	loanTransaction, err := e.core.LoanTransactionManager.GetByIDIncludingDeleted(context, *loanTransactionID)
+	loanTransaction, err := e.core.LoanTransactionManager().GetByIDIncludingDeleted(context, *loanTransactionID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "loan processing: failed to get loan transaction by id"))
 	}
@@ -39,7 +39,7 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("loan processing: user organization has no branch assigned"))
 	}
 
-	memberProfile, err := e.core.MemberProfileManager.GetByIDIncludingDeleted(context, *loanTransaction.MemberProfileID)
+	memberProfile, err := e.core.MemberProfileManager().GetByIDIncludingDeleted(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 	}
@@ -48,7 +48,7 @@ func (e *Event) LoanProcessing(
 	}
 
 	currency := loanTransaction.Account.Currency
-	loanAccounts, err := e.core.LoanAccountManager.Find(context, &core.LoanAccount{
+	loanAccounts, err := e.core.LoanAccountManager().Find(context, &core.LoanAccount{
 		OrganizationID:    userOrg.OrganizationID,
 		BranchID:          *userOrg.BranchID,
 		LoanTransactionID: loanTransaction.ID,
@@ -60,7 +60,7 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.New("no loan accounts found for the specified loan transaction"))
 	}
 
-	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
+	holidays, err := e.core.HolidayManager().Find(context, &core.Holiday{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		CurrencyID:     currency.ID,
@@ -107,7 +107,7 @@ func (e *Event) LoanProcessing(
 
 			if i >= loanTransaction.Count && scheduledDate.Before(currentDate) {
 				for _, account := range loanAccounts {
-					accountHistory, err := e.core.AccountHistoryManager.GetByID(context, *account.AccountHistoryID)
+					accountHistory, err := e.core.AccountHistoryManager().GetByID(context, *account.AccountHistoryID)
 					if err != nil {
 						return nil, endTx(eris.Wrapf(err, "failed to get account history for loan account id: %s", account.ID))
 					}
@@ -157,13 +157,13 @@ func (e *Event) LoanProcessing(
 						account.UpdatedByID = userOrg.UserID
 						account.UpdatedAt = currentDate
 
-						if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, account.ID, account); err != nil {
+						if err := e.core.LoanAccountManager().UpdateByIDWithTx(context, tx, account.ID, account); err != nil {
 							return nil, endTx(eris.Wrapf(err, "failed to update loan account ID: %s", account.ID.String()))
 						}
 					}
 				}
 				loanTransaction.Count = i + 1
-				if err := e.core.LoanTransactionManager.UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+				if err := e.core.LoanTransactionManager().UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 					return nil, endTx(eris.Wrapf(err, "failed to update loan count for loan transaction ID: %s", loanTransaction.ID.String()))
 				}
 
@@ -214,7 +214,7 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
-	updatedLoanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransaction.ID)
+	updatedLoanTransaction, err := e.core.LoanTransactionManager().GetByID(context, loanTransaction.ID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
 	}
@@ -230,7 +230,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 		return eris.New("user organization has no branch assigned")
 	}
 	currentTime := time.Now().UTC()
-	loanTransactions, err := e.core.LoanTransactionManager.FindIncludeDeleted(processContext, &core.LoanTransaction{
+	loanTransactions, err := e.core.LoanTransactionManager().FindIncludeDeleted(processContext, &core.LoanTransaction{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		Processing:     false,
@@ -245,7 +245,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 
 	for _, entry := range loanTransactions {
 		entry.Processing = true
-		if err := e.core.LoanTransactionManager.UpdateByID(processContext, entry.ID, entry); err != nil {
+		if err := e.core.LoanTransactionManager().UpdateByID(processContext, entry.ID, entry); err != nil {
 			return eris.Wrap(err, "failed to mark loan transaction as processing")
 		}
 	}
@@ -268,7 +268,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 					zap.Int("total", len(loanTransactions)))
 
 				entry.Processing = false
-				if updateErr := e.core.LoanTransactionManager.UpdateByID(timeoutContext, entry.ID, entry); updateErr != nil {
+				if updateErr := e.core.LoanTransactionManager().UpdateByID(timeoutContext, entry.ID, entry); updateErr != nil {
 					e.provider.Service.Logger.Error("failed to unmark processing flag after error",
 						zap.Error(updateErr),
 						zap.String("loanTransactionID", entry.ID.String()))
@@ -318,7 +318,7 @@ func (e *Event) ProcessAllLoans(processContext context.Context, userOrg *core.Us
 
 		for _, entry := range loanTransactions {
 			entry.Processing = false
-			if err := e.core.LoanTransactionManager.UpdateByID(timeoutContext, entry.ID, entry); err != nil {
+			if err := e.core.LoanTransactionManager().UpdateByID(timeoutContext, entry.ID, entry); err != nil {
 				e.provider.Service.Logger.Error("failed to unmark loan transaction as processing",
 					zap.Error(err),
 					zap.String("loanTransactionID", entry.ID.String()))

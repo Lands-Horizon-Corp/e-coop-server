@@ -53,7 +53,7 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 			acceptLanguage = claim.AcceptLanguage
 		}
 
-		if err := e.core.FootstepManager.Create(context, &core.Footstep{
+		if err := e.core.FootstepManager().Create(context, &core.Footstep{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userID,
 			UpdatedAt:      time.Now().UTC(),

@@ -52,7 +52,7 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_history_id: " + err.Error()})
 			}
-			accountHistory, err := c.core.AccountHistoryManager.GetByID(context, *accountHistoryID)
+			accountHistory, err := c.core.AccountHistoryManager().GetByID(context, *accountHistoryID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
@@ -75,11 +75,11 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
-			accountHistory, err := c.core.AccountHistoryManager.GetByID(context, *accountHistoryID)
+			accountHistory, err := c.core.AccountHistoryManager().GetByID(context, *accountHistoryID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
-			account, err := c.core.AccountManager.GetByID(context, accountHistory.AccountID)
+			account, err := c.core.AccountManager().GetByID(context, accountHistory.AccountID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 			}
@@ -161,11 +161,11 @@ func (c *Controller) accountHistory() {
 			account.InterestStandardComputation = accountHistory.InterestStandardComputation
 			account.CurrencyID = accountHistory.CurrencyID
 
-			if err := c.core.AccountManager.UpdateByID(context, account.ID, account); err != nil {
+			if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 			}
 
-			return ctx.JSON(http.StatusOK, c.core.AccountManager.ToModel(account))
+			return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
 		})
 
 }

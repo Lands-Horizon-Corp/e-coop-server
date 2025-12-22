@@ -57,7 +57,7 @@ type (
 
 func (m *Core) memberOccupation() {
 	m.Migration = append(m.Migration, &MemberOccupation{})
-	m.MemberOccupationManager = registry.NewRegistry(registry.RegistryParams[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]{
+	m.MemberOccupationManager().= registry.NewRegistry(registry.RegistryParams[MemberOccupation, MemberOccupationResponse, MemberOccupationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -71,14 +71,14 @@ func (m *Core) memberOccupation() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -161,7 +161,7 @@ func (m *Core) memberOccupationSeed(context context.Context, tx *gorm.DB, userID
 		{Name: "Janitor", Description: "Keeps buildings clean and well-maintained.", CreatedAt: now, CreatedByID: userID, UpdatedAt: now, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID},
 	}
 	for _, data := range memberOccupations {
-		if err := m.MemberOccupationManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberOccupationManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member ooccupation %s", data.Name)
 		}
 	}
@@ -169,7 +169,7 @@ func (m *Core) memberOccupationSeed(context context.Context, tx *gorm.DB, userID
 }
 
 func (m *Core) MemberOccupationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOccupation, error) {
-	return m.MemberOccupationManager.Find(context, &MemberOccupation{
+	return m.MemberOccupationManager().Find(context, &MemberOccupation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -65,7 +65,7 @@ type (
 
 func (m *Core) notification() {
 	m.Migration = append(m.Migration, &Notification{})
-	m.NotificationManager = registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
+	m.NotificationManager().= registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
 		Preloads: []string{"Recipient", "Recipient.Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -78,9 +78,9 @@ func (m *Core) notification() {
 			return &NotificationResponse{
 				ID:               data.ID,
 				UserID:           data.UserID,
-				User:             m.UserManager.ToModel(data.User),
+				User:             m.UserManager().ToModel(data.User),
 				RecipientID:      data.RecipientID,
-				Recipient:        m.UserManager.ToModel(data.Recipient),
+				Recipient:        m.UserManager().ToModel(data.Recipient),
 				Title:            data.Title,
 				Description:      data.Description,
 				IsViewed:         data.IsViewed,
@@ -115,7 +115,7 @@ func (m *Core) notification() {
 }
 
 func (m *Core) GetNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
-	return m.NotificationManager.Find(context, &Notification{
+	return m.NotificationManager().Find(context, &Notification{
 		UserID: userID,
 	})
 }

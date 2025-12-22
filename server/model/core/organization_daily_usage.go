@@ -86,7 +86,7 @@ type (
 
 func (m *Core) organizationDailyUsage() {
 	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
-	m.OrganizationDailyUsageManager = registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
+	m.OrganizationDailyUsageManager().= registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -99,7 +99,7 @@ func (m *Core) organizationDailyUsage() {
 			return &OrganizationDailyUsageResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				TotalMembers:   data.TotalMembers,
 				TotalBranches:  data.TotalBranches,
 				TotalEmployees: data.TotalEmployees,
@@ -147,7 +147,7 @@ func (m *Core) organizationDailyUsage() {
 }
 
 func (m *Core) GetOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
-	return m.OrganizationDailyUsageManager.Find(context, &OrganizationDailyUsage{
+	return m.OrganizationDailyUsageManager().Find(context, &OrganizationDailyUsage{
 		OrganizationID: organizationID,
 	})
 }

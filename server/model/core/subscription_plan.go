@@ -101,7 +101,7 @@ type (
 
 func (m *Core) subscriptionPlan() {
 	m.Migration = append(m.Migration, &SubscriptionPlan{})
-	m.SubscriptionPlanManager = registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
+	m.SubscriptionPlanManager().= registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -152,7 +152,7 @@ func (m *Core) subscriptionPlan() {
 				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
 				CurrencyID:             sp.CurrencyID,
-				Currency:               m.CurrencyManager.ToModel(sp.Currency),
+				Currency:               m.CurrencyManager().ToModel(sp.Currency),
 			}
 		},
 
@@ -245,7 +245,7 @@ func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscoun
 }
 
 func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
-	subscriptionPlans, err := m.SubscriptionPlanManager.List(ctx)
+	subscriptionPlans, err := m.SubscriptionPlanManager().List(ctx)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 		return nil
 	}
 
-	currencies, err := m.CurrencyManager.List(ctx)
+	currencies, err := m.CurrencyManager().List(ctx)
 	if err != nil {
 		return err
 	}
@@ -908,7 +908,7 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 		}
 
 		for _, sub := range subscriptions {
-			if err := m.SubscriptionPlanManager.Create(ctx, sub); err != nil {
+			if err := m.SubscriptionPlanManager().Create(ctx, sub); err != nil {
 				return eris.Wrapf(err, "failed to seed subscription %s for  %s", sub.Name, currency.ISO3166Alpha3)
 			}
 		}

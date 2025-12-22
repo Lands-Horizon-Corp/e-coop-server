@@ -212,7 +212,7 @@ func (e *Event) GenerateSavingsInterestEntries(
 		}
 		memberProfile = memberBrowseRef.MemberAccountingLedger.MemberProfile
 
-		account, err = e.core.AccountManager.GetByID(context, account.ID)
+		account, err = e.core.AccountManager().GetByID(context, account.ID)
 		if err != nil {
 
 			return nil, eris.Wrap(err, "failed to get account by ID")

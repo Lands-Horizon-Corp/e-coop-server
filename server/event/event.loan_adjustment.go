@@ -22,7 +22,7 @@ func (e *Event) LoanAdjustment(
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	fmt.Println("[LoanAdjustment] Transaction started")
 
-	loanAccount, err := e.core.LoanAccountManager.GetByIDLock(context, tx, la.LoanAccountID, "Account")
+	loanAccount, err := e.core.LoanAccountManager().GetByIDLock(context, tx, la.LoanAccountID, "Account")
 	if err != nil {
 		fmt.Printf("[LoanAdjustment] ERROR fetching LoanAccount: %v\n", err)
 		return endTx(eris.Wrap(err, "Account not found for adjustment"))
@@ -36,7 +36,7 @@ func (e *Event) LoanAdjustment(
 		loanAccount.TotalDeduction,
 	)
 
-	loanTransaction, err := e.core.LoanTransactionManager.GetByIDLock(
+	loanTransaction, err := e.core.LoanTransactionManager().GetByIDLock(
 		context,
 		tx,
 		loanAccount.LoanTransactionID,
@@ -92,7 +92,7 @@ func (e *Event) LoanAdjustment(
 		loanAccount.TotalDeduction,
 	)
 
-	if err := e.core.LoanAccountManager.UpdateByIDWithTx(
+	if err := e.core.LoanAccountManager().UpdateByIDWithTx(
 		context,
 		tx,
 		loanAccount.ID,

@@ -62,9 +62,8 @@ type (
 	}
 )
 
-func (m *Core) bank() {
-	m.Migration = append(m.Migration, &Bank{})
-	m.BankManager = registry.NewRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
+func (m *Core) BankManager() *registry.Registry[Bank, BankResponse, BankRequest] {
+	return registry.GetRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -78,16 +77,16 @@ func (m *Core) bank() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
+				Media:          m.MediaManager().ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -117,6 +116,7 @@ func (m *Core) bank() {
 			}
 		},
 	})
+
 }
 
 func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
@@ -159,7 +159,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 		{Name: "Cash App", Description: "A US-based mobile wallet enabling peer-to-peer money transfers, Bitcoin transactions, and investing."},
 	}
 
-	branch, err := m.BranchManager.GetByID(context, branchID)
+	branch, err := m.BranchManager().GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch %s for bank seeding", branchID)
 	}
@@ -1321,7 +1321,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 		bank.UpdatedAt = now
 		bank.CreatedByID = userID
 		bank.UpdatedByID = userID
-		if err := m.BankManager.CreateWithTx(context, tx, bank); err != nil {
+		if err := m.BankManager().CreateWithTx(context, tx, bank); err != nil {
 			return eris.Wrapf(err, "failed to seed bank %s", bank.Name)
 		}
 	}
@@ -1330,7 +1330,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 }
 
 func (m *Core) BankCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Bank, error) {
-	return m.BankManager.Find(context, &Bank{
+	return m.BankManager().Find(context, &Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

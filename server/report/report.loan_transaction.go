@@ -18,7 +18,7 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			return nil, eris.Wrapf(err, "invalid loan transaction ID: %s", params[0])
 		}
 
-		loanTransaction, getErr := r.core.LoanTransactionManager.GetByID(
+		loanTransaction, getErr := r.core.LoanTransactionManager().GetByID(
 			ctx, loanTransactionID,
 			"ReleasedBy", "MemberProfile",
 			"Account.Currency",
@@ -34,15 +34,15 @@ func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (r
 			return nil, eris.Wrapf(nil, "loan transaction %s has no member profile id", loanTransactionID)
 		}
 
-		branch, err := r.core.BranchManager.GetByID(ctx, loanTransaction.BranchID)
+		branch, err := r.core.BranchManager().GetByID(ctx, loanTransaction.BranchID)
 		if err != nil {
 			return nil, eris.Wrapf(err, "Failed to get branch by ID: %s", loanTransaction.BranchID)
 		}
-		memberProfile, err := r.core.MemberProfileManager.GetByID(ctx, *loanTransaction.MemberProfileID)
+		memberProfile, err := r.core.MemberProfileManager().GetByID(ctx, *loanTransaction.MemberProfileID)
 		if err != nil {
 			return nil, eris.Wrapf(err, "Failed to get member profile by ID: %s", loanTransaction.MemberProfileID)
 		}
-		loanTransactionEntries, err := r.core.LoanTransactionEntryManager.Find(ctx, &core.LoanTransactionEntry{
+		loanTransactionEntries, err := r.core.LoanTransactionEntryManager().Find(ctx, &core.LoanTransactionEntry{
 			BranchID:          loanTransaction.BranchID,
 			OrganizationID:    loanTransaction.OrganizationID,
 			LoanTransactionID: loanTransaction.ID,

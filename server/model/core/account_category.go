@@ -57,7 +57,7 @@ type (
 
 func (m *Core) accountCategory() {
 	m.Migration = append(m.Migration, &AccountCategory{})
-	m.AccountCategoryManager = registry.NewRegistry(registry.RegistryParams[
+	m.AccountCategoryManager().= registry.NewRegistry(registry.RegistryParams[
 		AccountCategory, AccountCategoryResponse, AccountCategoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -73,14 +73,14 @@ func (m *Core) accountCategory() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -218,7 +218,7 @@ func (m *Core) accountCategorySeed(context context.Context, tx *gorm.DB, userID 
 	}
 
 	for _, data := range accountCategories {
-		if err := m.AccountCategoryManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.AccountCategoryManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account category %s", data.Name)
 		}
 	}
@@ -227,7 +227,7 @@ func (m *Core) accountCategorySeed(context context.Context, tx *gorm.DB, userID 
 }
 
 func (m *Core) AccountCategoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountCategory, error) {
-	return m.AccountCategoryManager.Find(context, &AccountCategory{
+	return m.AccountCategoryManager().Find(context, &AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

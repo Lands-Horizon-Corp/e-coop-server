@@ -12,7 +12,7 @@ import (
 )
 
 func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *core.GeneratedReport) (*core.GeneratedReport, error) {
-	if err := e.core.GeneratedReportManager.Create(ctx, generatedReport); err != nil {
+	if err := e.core.GeneratedReportManager().Create(ctx, generatedReport); err != nil {
 		return nil, eris.Wrapf(err, "Failed to create generated report")
 	}
 	id := generatedReport.ID
@@ -21,21 +21,21 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		defer cancel()
 
 		generatedReport.Status = core.GeneratedReportStatusInProgress
-		if updateErr := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); updateErr != nil {
+		if updateErr := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); updateErr != nil {
 			generatedReport.Status = core.GeneratedReportStatusFailed
 			generatedReport.SystemMessage = "Failed to update report status to in-progress: " + updateErr.Error()
-			if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+			if err := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); err != nil {
 				e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
 			}
 			return
 		}
 		data, err := e.report.Generate(ctx, *generatedReport)
 
-		generatedReport, getErr := e.core.GeneratedReportManager.GetByID(ctx, id)
+		generatedReport, getErr := e.core.GeneratedReportManager().GetByID(ctx, id)
 		if getErr != nil {
 			generatedReport.Status = core.GeneratedReportStatusFailed
 			generatedReport.SystemMessage = "Failed to retrieve report after processing: " + getErr.Error()
-			if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+			if err := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); err != nil {
 				e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
 			}
 			return
@@ -61,10 +61,10 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 				UpdatedAt:  time.Now().UTC(),
 			}
 
-			if mediaErr := e.core.MediaManager.Create(ctx, initial); mediaErr != nil {
+			if mediaErr := e.core.MediaManager().Create(ctx, initial); mediaErr != nil {
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "Failed to create media record: " + mediaErr.Error()
-				if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+				if err := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); err != nil {
 					e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
 				}
 				return
@@ -78,7 +78,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 					initial.Progress = progress
 					initial.UpdatedAt = time.Now().UTC()
 					initial.Status = "progress"
-					if err := e.core.MediaManager.UpdateByID(ctx, initial.ID, initial); err != nil {
+					if err := e.core.MediaManager().UpdateByID(ctx, initial.ID, initial); err != nil {
 						e.provider.Service.Logger.Error("Failed to update media progress", zap.Error(err))
 					}
 				})
@@ -86,13 +86,13 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			if uploadErr != nil {
 				initial.UpdatedAt = time.Now().UTC()
 				initial.Status = "error"
-				if err := e.core.MediaManager.UpdateByID(ctx, initial.ID, initial); err != nil {
+				if err := e.core.MediaManager().UpdateByID(ctx, initial.ID, initial); err != nil {
 					e.provider.Service.Logger.Error("Failed to update media status after upload error", zap.Error(err))
 					return
 				}
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "File upload failed: " + uploadErr.Error()
-				e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport)
+				e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport)
 				return
 			}
 			completed := &core.Media{
@@ -108,10 +108,10 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 				ID:         initial.ID,
 			}
 
-			if mediaUpdateErr := e.core.MediaManager.UpdateByID(ctx, completed.ID, completed); mediaUpdateErr != nil {
+			if mediaUpdateErr := e.core.MediaManager().UpdateByID(ctx, completed.ID, completed); mediaUpdateErr != nil {
 				generatedReport.Status = core.GeneratedReportStatusFailed
 				generatedReport.SystemMessage = "Failed to update media record after upload: " + mediaUpdateErr.Error()
-				if err := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); err != nil {
+				if err := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); err != nil {
 					e.provider.Service.Logger.Error("Failed to update generated report status after failure", zap.Error(err))
 				}
 				return
@@ -127,8 +127,8 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			generatedReport.SystemMessage = "Report generated successfully"
 		}
 
-		if finalUpdateErr := e.core.GeneratedReportManager.UpdateByID(ctx, id, generatedReport); finalUpdateErr != nil {
-			e.core.FootstepManager.Create(ctx, &core.Footstep{
+		if finalUpdateErr := e.core.GeneratedReportManager().UpdateByID(ctx, id, generatedReport); finalUpdateErr != nil {
+			e.core.FootstepManager().Create(ctx, &core.Footstep{
 				OrganizationID: &generatedReport.OrganizationID,
 				BranchID:       &generatedReport.BranchID,
 				UserID:         &generatedReport.CreatedByID,

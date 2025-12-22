@@ -120,7 +120,7 @@ type (
 
 func (m *Core) browseReference() {
 	m.Migration = append(m.Migration, &BrowseReference{})
-	m.BrowseReferenceManager = registry.NewRegistry(registry.RegistryParams[
+	m.BrowseReferenceManager().= registry.NewRegistry(registry.RegistryParams[
 		BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest,
 	]{
 		Preloads: []string{
@@ -139,14 +139,14 @@ func (m *Core) browseReference() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				Name:                  data.Name,
 				Description:           data.Description,
@@ -154,15 +154,15 @@ func (m *Core) browseReference() {
 				MinimumBalance:        data.MinimumBalance,
 				Charges:               data.Charges,
 				AccountID:             data.AccountID,
-				Account:               m.AccountManager.ToModel(data.Account),
+				Account:               m.AccountManager().ToModel(data.Account),
 				MemberTypeID:          data.MemberTypeID,
-				MemberType:            m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:            m.MemberTypeManager().ToModel(data.MemberType),
 				InterestType:          data.InterestType,
 				DefaultMinimumBalance: data.DefaultMinimumBalance,
 				DefaultInterestRate:   data.DefaultInterestRate,
-				InterestRatesByYear:   m.InterestRateByYearManager.ToModels(data.InterestRatesByYear),
-				InterestRatesByDate:   m.InterestRateByDateManager.ToModels(data.InterestRatesByDate),
-				InterestRatesByAmount: m.InterestRateByAmountManager.ToModels(data.InterestRatesByAmount),
+				InterestRatesByYear:   m.InterestRateByYearManager().ToModels(data.InterestRatesByYear),
+				InterestRatesByDate:   m.InterestRateByDateManager().ToModels(data.InterestRatesByDate),
+				InterestRatesByAmount: m.InterestRateByAmountManager().ToModels(data.InterestRatesByAmount),
 			}
 		},
 
@@ -199,7 +199,7 @@ func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizatio
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
+	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
@@ -209,7 +209,7 @@ func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID
 		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
 	}
 
-	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
+	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) BrowseReferenceByInterestType(context context.Context, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
@@ -219,7 +219,7 @@ func (m *Core) BrowseReferenceByInterestType(context context.Context, interestTy
 		{Field: "interest_type", Op: query.ModeEqual, Value: string(interestType)},
 	}
 
-	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
+	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) BrowseReferenceByField(
@@ -242,5 +242,5 @@ func (m *Core) BrowseReferenceByField(
 		})
 	}
 
-	return m.BrowseReferenceManager.ArrFind(context, filters, nil)
+	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
 }

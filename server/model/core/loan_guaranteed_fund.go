@@ -56,7 +56,7 @@ type (
 
 func (m *Core) loanGuaranteedFund() {
 	m.Migration = append(m.Migration, &LoanGuaranteedFund{})
-	m.LoanGuaranteedFundManager = registry.NewRegistry(registry.RegistryParams[
+	m.LoanGuaranteedFundManager().= registry.NewRegistry(registry.RegistryParams[
 		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{
@@ -74,14 +74,14 @@ func (m *Core) loanGuaranteedFund() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				SchemeNumber:   data.SchemeNumber,
 				IncreasingRate: data.IncreasingRate,
 			}
@@ -115,7 +115,7 @@ func (m *Core) loanGuaranteedFund() {
 }
 
 func (m *Core) LoanGuaranteedFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFund, error) {
-	return m.LoanGuaranteedFundManager.Find(context, &LoanGuaranteedFund{
+	return m.LoanGuaranteedFundManager().Find(context, &LoanGuaranteedFund{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

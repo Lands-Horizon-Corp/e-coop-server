@@ -60,7 +60,7 @@ type (
 
 func (m *Core) memberClassification() {
 	m.Migration = append(m.Migration, &MemberClassification{})
-	m.MemberClassificationManager = registry.NewRegistry(registry.RegistryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
+	m.MemberClassificationManager().= registry.NewRegistry(registry.RegistryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -74,14 +74,14 @@ func (m *Core) memberClassification() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Icon:           data.Icon,
 				Description:    data.Description,
@@ -168,7 +168,7 @@ func (m *Core) memberClassificationSeed(context context.Context, tx *gorm.DB, us
 		},
 	}
 	for _, data := range memberClassifications {
-		if err := m.MemberClassificationManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberClassificationManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member classification %s", data.Name)
 		}
 	}
@@ -176,7 +176,7 @@ func (m *Core) memberClassificationSeed(context context.Context, tx *gorm.DB, us
 }
 
 func (m *Core) MemberClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
-	return m.MemberClassificationManager.Find(context, &MemberClassification{
+	return m.MemberClassificationManager().Find(context, &MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

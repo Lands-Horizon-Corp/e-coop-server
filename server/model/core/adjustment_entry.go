@@ -126,7 +126,7 @@ type (
 
 func (m *Core) adjustmentEntry() {
 	m.Migration = append(m.Migration, &AdjustmentEntry{})
-	m.AdjustmentEntryManager = registry.NewRegistry(registry.RegistryParams[
+	m.AdjustmentEntryManager().= registry.NewRegistry(registry.RegistryParams[
 		AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest,
 	]{
 		Preloads: []string{
@@ -158,35 +158,35 @@ func (m *Core) adjustmentEntry() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:     m.MediaManager().ToModel(data.SignatureMedia),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager.ToModel(data.Account),
+				Account:            m.AccountManager().ToModel(data.Account),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				PaymentTypeID:      data.PaymentTypeID,
-				PaymentType:        m.PaymentTypeManager.ToModel(data.PaymentType),
+				PaymentType:        m.PaymentTypeManager().ToModel(data.PaymentType),
 				TypeOfPaymentType:  data.TypeOfPaymentType,
 				Description:        data.Description,
 				ReferenceNumber:    data.ReferenceNumber,
 				EntryDate:          entryDateStr,
 				Debit:              data.Debit,
 				Credit:             data.Credit,
-				AdjustmentTags:     m.AdjustmentTagManager.ToModels(data.AdjustmentTags),
+				AdjustmentTags:     m.AdjustmentTagManager().ToModels(data.AdjustmentTags),
 				LoanTransactionID:  data.LoanTransactionID,
-				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:    m.LoanTransactionManager().ToModel(data.LoanTransaction),
 			}
 		},
 		Created: func(data *AdjustmentEntry) registry.Topics {
@@ -217,7 +217,7 @@ func (m *Core) adjustmentEntry() {
 }
 
 func (m *Core) AdjustmentEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentEntry, error) {
-	return m.AdjustmentEntryManager.Find(context, &AdjustmentEntry{
+	return m.AdjustmentEntryManager().Find(context, &AdjustmentEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

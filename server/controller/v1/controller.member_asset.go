@@ -30,7 +30,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		req, err := c.core.MemberAssetManager.Validate(ctx)
+		req, err := c.core.MemberAssetManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -70,7 +70,7 @@ func (c *Controller) memberAssetController() {
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 		}
-		if err := c.core.MemberAssetManager.Create(context, value); err != nil {
+		if err := c.core.MemberAssetManager().Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member asset failed (/member-asset/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -83,7 +83,7 @@ func (c *Controller) memberAssetController() {
 			Description: "Created member asset (/member-asset/member-profile/:member_profile_id): " + value.Name,
 			Module:      "MemberAsset",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MemberAssetManager.ToModel(value))
+		return ctx.JSON(http.StatusCreated, c.core.MemberAssetManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -103,7 +103,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member asset ID"})
 		}
-		req, err := c.core.MemberAssetManager.Validate(ctx)
+		req, err := c.core.MemberAssetManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -129,7 +129,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
+		value, err := c.core.MemberAssetManager().GetByID(context, *memberAssetID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -148,7 +148,7 @@ func (c *Controller) memberAssetController() {
 		value.Description = req.Description
 		value.Cost = req.Cost
 
-		if err := c.core.MemberAssetManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.core.MemberAssetManager().UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),
@@ -161,7 +161,7 @@ func (c *Controller) memberAssetController() {
 			Description: "Updated member asset (/member-asset/:member_asset_id): " + value.Name,
 			Module:      "MemberAsset",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberAssetManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberAssetManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -179,7 +179,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member asset ID"})
 		}
-		value, err := c.core.MemberAssetManager.GetByID(context, *memberAssetID)
+		value, err := c.core.MemberAssetManager().GetByID(context, *memberAssetID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -188,7 +188,7 @@ func (c *Controller) memberAssetController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member asset record not found"})
 		}
-		if err := c.core.MemberAssetManager.Delete(context, *memberAssetID); err != nil {
+		if err := c.core.MemberAssetManager().Delete(context, *memberAssetID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member asset failed (/member-asset/:member_asset_id), db error: " + err.Error(),

@@ -65,7 +65,7 @@ type (
 
 func (m *Core) finesMaturity() {
 	m.Migration = append(m.Migration, &FinesMaturity{})
-	m.FinesMaturityManager = registry.NewRegistry(registry.RegistryParams[
+	m.FinesMaturityManager().= registry.NewRegistry(registry.RegistryParams[
 		FinesMaturity, FinesMaturityResponse, FinesMaturityRequest,
 	]{
 		Preloads: []string{
@@ -83,16 +83,16 @@ func (m *Core) finesMaturity() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				From:           data.From,
 				To:             data.To,
 				Rate:           data.Rate,
@@ -127,7 +127,7 @@ func (m *Core) finesMaturity() {
 }
 
 func (m *Core) FinesMaturityCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinesMaturity, error) {
-	return m.FinesMaturityManager.Find(context, &FinesMaturity{
+	return m.FinesMaturityManager().Find(context, &FinesMaturity{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

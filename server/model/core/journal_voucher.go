@@ -135,7 +135,7 @@ type (
 
 func (m *Core) journalVoucher() {
 	m.Migration = append(m.Migration, &JournalVoucher{})
-	m.JournalVoucherManager = registry.NewRegistry(registry.RegistryParams[
+	m.JournalVoucherManager().= registry.NewRegistry(registry.RegistryParams[
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
 		Preloads: []string{
@@ -181,16 +181,16 @@ func (m *Core) journalVoucher() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager.ToModel(data.Organization),
+				Organization:          m.OrganizationManager().ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager.ToModel(data.Branch),
+				Branch:                m.BranchManager().ToModel(data.Branch),
 				CurrencyID:            data.CurrencyID,
-				Currency:              m.CurrencyManager.ToModel(data.Currency),
+				Currency:              m.CurrencyManager().ToModel(data.Currency),
 				Name:                  data.Name,
 				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),
@@ -199,23 +199,23 @@ func (m *Core) journalVoucher() {
 				Status:                data.Status,
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
-				PostedBy:              m.UserManager.ToModel(data.PostedBy),
+				PostedBy:              m.UserManager().ToModel(data.PostedBy),
 				EmployeeUserID:        data.EmployeeUserID,
-				EmployeeUser:          m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:          m.UserManager().ToModel(data.EmployeeUser),
 				TransactionBatchID:    data.TransactionBatchID,
-				TransactionBatch:      m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:      m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				PrintedDate:           printedDate,
 				PrintedByID:           data.PrintedByID,
-				PrintedBy:             m.UserManager.ToModel(data.PrintedBy),
+				PrintedBy:             m.UserManager().ToModel(data.PrintedBy),
 				PrintNumber:           data.PrintNumber,
 				ApprovedDate:          approvedDate,
 				ApprovedByID:          data.ApprovedByID,
-				ApprovedBy:            m.UserManager.ToModel(data.ApprovedBy),
+				ApprovedBy:            m.UserManager().ToModel(data.ApprovedBy),
 				ReleasedDate:          releasedDate,
 				ReleasedByID:          data.ReleasedByID,
-				ReleasedBy:            m.UserManager.ToModel(data.ReleasedBy),
-				JournalVoucherTags:    m.JournalVoucherTagManager.ToModels(data.JournalVoucherTags),
-				JournalVoucherEntries: m.JournalVoucherEntryManager.ToModels(data.JournalVoucherEntries),
+				ReleasedBy:            m.UserManager().ToModel(data.ReleasedBy),
+				JournalVoucherTags:    m.JournalVoucherTagManager().ToModels(data.JournalVoucherTags),
+				JournalVoucherEntries: m.JournalVoucherEntryManager().ToModels(data.JournalVoucherEntries),
 				TotalDebit:            data.TotalDebit,
 				TotalCredit:           data.TotalCredit,
 			}
@@ -248,7 +248,7 @@ func (m *Core) journalVoucher() {
 }
 
 func (m *Core) JournalVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucher, error) {
-	return m.JournalVoucherManager.Find(context, &JournalVoucher{
+	return m.JournalVoucherManager().Find(context, &JournalVoucher{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -279,7 +279,7 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -293,7 +293,7 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -307,7 +307,7 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -321,7 +321,7 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -341,7 +341,7 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
-	return m.JournalVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

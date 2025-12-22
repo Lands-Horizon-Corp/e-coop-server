@@ -32,7 +32,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated savings interest entries found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -49,7 +49,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := c.core.GeneratedSavingsInterestEntryManager.NormalPagination(context, ctx, &core.GeneratedSavingsInterestEntry{
+		entries, err := c.core.GeneratedSavingsInterestEntryManager().NormalPagination(context, ctx, &core.GeneratedSavingsInterestEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -70,7 +70,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid entry ID"})
 		}
-		entry, err := c.core.GeneratedSavingsInterestEntryManager.GetByIDRaw(context, *entryID)
+		entry, err := c.core.GeneratedSavingsInterestEntryManager().GetByIDRaw(context, *entryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest entry not found"})
 		}
@@ -94,7 +94,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		req, err := c.core.GeneratedSavingsInterestEntryManager.Validate(ctx)
+		req, err := c.core.GeneratedSavingsInterestEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -121,7 +121,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(
 			context, *generatedSavingsInterestID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -199,7 +199,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			OrganizationID:             userOrg.OrganizationID,
 		}
 
-		if err := c.core.GeneratedSavingsInterestEntryManager.Create(context, entry); err != nil {
+		if err := c.core.GeneratedSavingsInterestEntryManager().Create(context, entry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Generated savings interest entry creation failed (/generated-savings-interest-entry), db error: " + err.Error(),
@@ -212,7 +212,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			Description: "Created generated savings interest entry (/generated-savings-interest-entry): " + entry.ID.String(),
 			Module:      "GeneratedSavingsInterestEntry",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.GeneratedSavingsInterestEntryManager.ToModel(entry))
+		return ctx.JSON(http.StatusCreated, c.core.GeneratedSavingsInterestEntryManager().ToModel(entry))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -233,7 +233,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid entry ID"})
 		}
 
-		req, err := c.core.GeneratedSavingsInterestEntryManager.Validate(ctx)
+		req, err := c.core.GeneratedSavingsInterestEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -251,7 +251,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		entry, err := c.core.GeneratedSavingsInterestEntryManager.GetByID(context, *entryID)
+		entry, err := c.core.GeneratedSavingsInterestEntryManager().GetByID(context, *entryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -261,7 +261,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest entry not found"})
 		}
 
-		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager.GetByID(context, entry.GeneratedSavingsInterestID)
+		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, entry.GeneratedSavingsInterestID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -327,7 +327,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		entry.InterestAmount = result.InterestAmount
 		entry.InterestTax = result.InterestTax
 		entry.UpdatedAt = time.Now().UTC()
-		if err := c.core.GeneratedSavingsInterestEntryManager.UpdateByID(context, entry.ID, entry); err != nil {
+		if err := c.core.GeneratedSavingsInterestEntryManager().UpdateByID(context, entry.ID, entry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Generated savings interest entry update failed (/generated-savings-interest-entry/:entry_id), db error: " + err.Error(),
@@ -340,7 +340,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			Description: "Updated generated savings interest entry (/generated-savings-interest-entry/:entry_id): " + entry.ID.String(),
 			Module:      "GeneratedSavingsInterestEntry",
 		})
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager.ToModel(entry))
+		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager().ToModel(entry))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -358,7 +358,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid entry ID"})
 		}
-		entry, err := c.core.GeneratedSavingsInterestEntryManager.GetByID(context, *entryID)
+		entry, err := c.core.GeneratedSavingsInterestEntryManager().GetByID(context, *entryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -367,7 +367,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest entry not found"})
 		}
-		if err := c.core.GeneratedSavingsInterestEntryManager.Delete(context, *entryID); err != nil {
+		if err := c.core.GeneratedSavingsInterestEntryManager().Delete(context, *entryID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Generated savings interest entry delete failed (/generated-savings-interest-entry/:entry_id), db error: " + err.Error(),
@@ -411,7 +411,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.GeneratedSavingsInterestEntryManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.GeneratedSavingsInterestEntryManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete generated savings interest entries (/generated-savings-interest-entry/bulk-delete) | error: " + err.Error(),

@@ -83,7 +83,7 @@ type (
 
 func (m *Core) memberGovernmentBenefit() {
 	m.Migration = append(m.Migration, &MemberGovernmentBenefit{})
-	m.MemberGovernmentBenefitManager = registry.NewRegistry(registry.RegistryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
+	m.MemberGovernmentBenefitManager().= registry.NewRegistry(registry.RegistryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "FrontMedia", "BackMedia"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -102,20 +102,20 @@ func (m *Core) memberGovernmentBenefit() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				FrontMediaID:    data.FrontMediaID,
-				FrontMedia:      m.MediaManager.ToModel(data.FrontMedia),
+				FrontMedia:      m.MediaManager().ToModel(data.FrontMedia),
 				BackMediaID:     data.BackMediaID,
-				BackMedia:       m.MediaManager.ToModel(data.BackMedia),
+				BackMedia:       m.MediaManager().ToModel(data.BackMedia),
 				CountryCode:     data.CountryCode,
 				Description:     data.Description,
 				Name:            data.Name,
@@ -152,7 +152,7 @@ func (m *Core) memberGovernmentBenefit() {
 }
 
 func (m *Core) MemberGovernmentBenefitCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGovernmentBenefit, error) {
-	return m.MemberGovernmentBenefitManager.Find(context, &MemberGovernmentBenefit{
+	return m.MemberGovernmentBenefitManager().Find(context, &MemberGovernmentBenefit{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

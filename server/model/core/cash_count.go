@@ -80,7 +80,7 @@ type (
 
 func (m *Core) cashCount() {
 	m.Migration = append(m.Migration, &CashCount{})
-	m.CashCountManager = registry.NewRegistry(registry.RegistryParams[
+	m.CashCountManager().= registry.NewRegistry(registry.RegistryParams[
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
 		Preloads: []string{
@@ -99,20 +99,20 @@ func (m *Core) cashCount() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager.ToModel(data.Currency),
+				Currency:           m.CurrencyManager().ToModel(data.Currency),
 				BillAmount:         data.BillAmount,
 				Quantity:           data.Quantity,
 				Amount:             data.Amount,
@@ -147,7 +147,7 @@ func (m *Core) cashCount() {
 }
 
 func (m *Core) CashCountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCount, error) {
-	return m.CashCountManager.Find(context, &CashCount{
+	return m.CashCountManager().Find(context, &CashCount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

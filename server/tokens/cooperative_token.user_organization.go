@@ -115,7 +115,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		userOrganization, err := h.core.UserOrganizationManager.FindOne(ctx, &core.UserOrganization{
+		userOrganization, err := h.core.UserOrganizationManager().FindOne(ctx, &core.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 
@@ -135,7 +135,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.core.UserOrganizationManager.GetByID(
+	userOrganization, err := h.core.UserOrganizationManager().GetByID(
 		ctx, handlers.ParseUUID(&claim.UserOrganizationID),
 	)
 	if err != nil || userOrganization == nil {

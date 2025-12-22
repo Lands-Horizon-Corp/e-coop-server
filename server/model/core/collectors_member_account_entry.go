@@ -69,7 +69,7 @@ type (
 
 func (m *Core) collectorsMemberAccountEntry() {
 	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
-	m.CollectorsMemberAccountEntryManager = registry.NewRegistry(registry.RegistryParams[
+	m.CollectorsMemberAccountEntryManager().= registry.NewRegistry(registry.RegistryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{
@@ -88,20 +88,20 @@ func (m *Core) collectorsMemberAccountEntry() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				CollectorUserID: data.CollectorUserID,
-				CollectorUser:   m.UserManager.ToModel(data.CollectorUser),
+				CollectorUser:   m.UserManager().ToModel(data.CollectorUser),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				AccountID:       data.AccountID,
-				Account:         m.AccountManager.ToModel(data.Account),
+				Account:         m.AccountManager().ToModel(data.Account),
 				Description:     data.Description,
 			}
 		},
@@ -133,7 +133,7 @@ func (m *Core) collectorsMemberAccountEntry() {
 }
 
 func (m *Core) CollectorsMemberAccountEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CollectorsMemberAccountEntry, error) {
-	return m.CollectorsMemberAccountEntryManager.Find(context, &CollectorsMemberAccountEntry{
+	return m.CollectorsMemberAccountEntryManager().Find(context, &CollectorsMemberAccountEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

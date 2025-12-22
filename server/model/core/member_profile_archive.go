@@ -82,7 +82,7 @@ type (
 
 func (m *Core) memberProfileArchive() {
 	m.Migration = append(m.Migration, &MemberProfileArchive{})
-	m.MemberProfileArchiveManager = registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
+	m.MemberProfileArchiveManager().= registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -96,18 +96,18 @@ func (m *Core) memberProfileArchive() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager.ToModel(data.Media),
+				Media:           m.MediaManager().ToModel(data.Media),
 				Name:            data.Name,
 				Description:     data.Description,
 				Category:        data.Category,
@@ -156,7 +156,7 @@ func (m *Core) memberProfileArchive() {
 }
 
 func (m *Core) MemberProfileArchiveCurrentBranch(context context.Context, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileArchive, error) {
-	return m.MemberProfileArchiveManager.Find(context, &MemberProfileArchive{
+	return m.MemberProfileArchiveManager().Find(context, &MemberProfileArchive{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -180,7 +180,7 @@ type (
 
 func (m *Core) user() {
 	m.Migration = append(m.Migration, &User{})
-	m.UserManager = registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
+	m.UserManager().= registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
 			"SignatureMedia",
@@ -229,14 +229,14 @@ func (m *Core) user() {
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
 				MediaID:          data.MediaID,
-				Media:            m.MediaManager.ToModel(data.Media),
+				Media:            m.MediaManager().ToModel(data.Media),
 				SignatureMediaID: data.SignatureMediaID,
-				SignatureMedia:   m.MediaManager.ToModel(data.SignatureMedia),
-				Footsteps:        m.FootstepManager.ToModels(data.Footsteps),
-				GeneratedReports: m.GeneratedReportManager.ToModels(data.GeneratedReports),
-				Notifications:    m.NotificationManager.ToModels(data.Notification),
+				SignatureMedia:   m.MediaManager().ToModel(data.SignatureMedia),
+				Footsteps:        m.FootstepManager().ToModels(data.Footsteps),
+				GeneratedReports: m.GeneratedReportManager().ToModels(data.GeneratedReports),
+				Notifications:    m.NotificationManager().ToModels(data.Notification),
 
-				UserOrganizations: m.UserOrganizationManager.ToModels(data.UserOrganizations),
+				UserOrganizations: m.UserOrganizationManager().ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -262,15 +262,15 @@ func (m *Core) user() {
 }
 
 func (m *Core) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{ContactNumber: contactNumber})
+	return m.UserManager().FindOne(context, &User{ContactNumber: contactNumber})
 }
 
 func (m *Core) GetUserByEmail(context context.Context, email string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{Email: email})
+	return m.UserManager().FindOne(context, &User{Email: email})
 }
 
 func (m *Core) GetUserByUserName(context context.Context, userName string) (*User, error) {
-	return m.UserManager.FindOne(context, &User{UserName: userName})
+	return m.UserManager().FindOne(context, &User{UserName: userName})
 }
 
 func (m *Core) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {

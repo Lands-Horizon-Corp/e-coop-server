@@ -2,37 +2,44 @@ package registry
 
 import (
 	"context"
+	"log"
 )
 
-func (r *Registry[TData, TResponse, TRequest]) OnCreate(context context.Context, data *TData) {
+func (r *Registry[TData, TResponse, TRequest]) OnCreate(ctx context.Context, data *TData) {
 	go func() {
-		<-context.Done()
+		<-ctx.Done()
 		if r.dispatch != nil {
 			topics := r.created(data)
 			payload := r.ToModel(data)
-			r.dispatch(topics, payload)
+			if err := r.dispatch(topics, payload); err != nil {
+				log.Fatalf("OnCreate dispatch failed: %v", err)
+			}
 		}
 	}()
 }
 
-func (r *Registry[TData, TResponse, TRequest]) OnUpdate(context context.Context, data *TData) {
+func (r *Registry[TData, TResponse, TRequest]) OnUpdate(ctx context.Context, data *TData) {
 	go func() {
-		<-context.Done()
+		<-ctx.Done()
 		if r.dispatch != nil {
 			topics := r.created(data)
 			payload := r.ToModel(data)
-			r.dispatch(topics, payload)
+			if err := r.dispatch(topics, payload); err != nil {
+				log.Fatalf("OnUpdate dispatch failed: %v", err)
+			}
 		}
 	}()
 }
 
-func (r *Registry[TData, TResponse, TRequest]) OnDelete(context context.Context, data *TData) {
+func (r *Registry[TData, TResponse, TRequest]) OnDelete(ctx context.Context, data *TData) {
 	go func() {
-		<-context.Done()
+		<-ctx.Done()
 		if r.dispatch != nil {
 			topics := r.created(data)
 			payload := r.ToModel(data)
-			r.dispatch(topics, payload)
+			if err := r.dispatch(topics, payload); err != nil {
+				log.Fatalf("OnDelete dispatch failed: %v", err)
+			}
 		}
 	}()
 }

@@ -41,7 +41,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance, err := c.core.CheckRemittanceManager.Find(context, &core.CheckRemittance{
+		checkRemittance, err := c.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -50,7 +50,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve check remittances: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModels(checkRemittance))
+		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModels(checkRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -61,7 +61,7 @@ func (c *Controller) checkRemittanceController() {
 		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CheckRemittanceManager.Validate(ctx)
+		req, err := c.core.CheckRemittanceManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -136,7 +136,7 @@ func (c *Controller) checkRemittanceController() {
 			checkRemittance.DateEntry = &now
 		}
 
-		if err := c.core.CheckRemittanceManager.Create(context, checkRemittance); err != nil {
+		if err := c.core.CheckRemittanceManager().Create(context, checkRemittance); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), db error: " + err.Error(),
@@ -154,7 +154,7 @@ func (c *Controller) checkRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.CheckRemittanceManager.ToModel(checkRemittance))
+		return ctx.JSON(http.StatusCreated, c.core.CheckRemittanceManager().ToModel(checkRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -175,7 +175,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance ID"})
 		}
 
-		req, err := c.core.CheckRemittanceManager.Validate(ctx)
+		req, err := c.core.CheckRemittanceManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -203,7 +203,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update check remittances"})
 		}
 
-		existingCheckRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
+		existingCheckRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -267,7 +267,7 @@ func (c *Controller) checkRemittanceController() {
 			updatedCheckRemittance.DateEntry = &now
 		}
 
-		if err := c.core.CheckRemittanceManager.UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
+		if err := c.core.CheckRemittanceManager().UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -279,12 +279,12 @@ func (c *Controller) checkRemittanceController() {
 		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-		updatedRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
+		updatedRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated check remittance: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModel(updatedRemittance))
+		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModel(updatedRemittance))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -321,7 +321,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete check remittance"})
 		}
 
-		existingCheckRemittance, err := c.core.CheckRemittanceManager.GetByID(context, *checkRemittanceID)
+		existingCheckRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -372,7 +372,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Check remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.core.CheckRemittanceManager.Delete(context, *checkRemittanceID); err != nil {
+		if err := c.core.CheckRemittanceManager().Delete(context, *checkRemittanceID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
@@ -391,6 +391,6 @@ func (c *Controller) checkRemittanceController() {
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager.ToModel(existingCheckRemittance))
+		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModel(existingCheckRemittance))
 	})
 }

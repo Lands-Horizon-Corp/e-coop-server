@@ -28,7 +28,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member department history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentHistoryManager.ToModels(memberDepartmentHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentHistoryManager().ToModels(memberDepartmentHistory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -46,7 +46,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager.NormalPagination(context, ctx, &core.MemberDepartmentHistory{
+		memberDepartmentHistory, err := c.core.MemberDepartmentHistoryManager().NormalPagination(context, ctx, &core.MemberDepartmentHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -72,7 +72,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member departments: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.ToModels(memberDepartment))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager().ToModels(memberDepartment))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -86,7 +86,7 @@ func (c *Controller) memberDepartmentController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberDepartment, err := c.core.MemberDepartmentManager.NormalPagination(context, ctx, &core.MemberDepartment{
+		memberDepartment, err := c.core.MemberDepartmentManager().NormalPagination(context, ctx, &core.MemberDepartment{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -104,7 +104,7 @@ func (c *Controller) memberDepartmentController() {
 		Note:         "Creates a new member department record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberDepartmentManager.Validate(ctx)
+		req, err := c.core.MemberDepartmentManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -135,7 +135,7 @@ func (c *Controller) memberDepartmentController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberDepartmentManager.Create(context, memberDepartment); err != nil {
+		if err := c.core.MemberDepartmentManager().Create(context, memberDepartment); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member department failed (/member-department), db error: " + err.Error(),
@@ -150,7 +150,7 @@ func (c *Controller) memberDepartmentController() {
 			Module:      "MemberDepartment",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.ToModel(memberDepartment))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager().ToModel(memberDepartment))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -179,7 +179,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.MemberDepartmentManager.Validate(ctx)
+		req, err := c.core.MemberDepartmentManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberDepartment, err := c.core.MemberDepartmentManager.GetByID(context, *memberDepartmentID)
+		memberDepartment, err := c.core.MemberDepartmentManager().GetByID(context, *memberDepartmentID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) memberDepartmentController() {
 		memberDepartment.Name = req.Name
 		memberDepartment.Description = req.Description
 		memberDepartment.Icon = req.Icon
-		if err := c.core.MemberDepartmentManager.UpdateByID(context, memberDepartment.ID, memberDepartment); err != nil {
+		if err := c.core.MemberDepartmentManager().UpdateByID(context, memberDepartment.ID, memberDepartment); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member department failed (/member-department/:member_department_id), db error: " + err.Error(),
@@ -217,7 +217,7 @@ func (c *Controller) memberDepartmentController() {
 			Description: "Updated member department (/member-department/:member_department_id): " + memberDepartment.Name,
 			Module:      "MemberDepartment",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager.ToModel(memberDepartment))
+		return ctx.JSON(http.StatusOK, c.core.MemberDepartmentManager().ToModel(memberDepartment))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -235,7 +235,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_department_id: " + err.Error()})
 		}
-		value, err := c.core.MemberDepartmentManager.GetByID(context, *memberDepartmentID)
+		value, err := c.core.MemberDepartmentManager().GetByID(context, *memberDepartmentID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -244,7 +244,7 @@ func (c *Controller) memberDepartmentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member department not found: " + err.Error()})
 		}
-		if err := c.core.MemberDepartmentManager.Delete(context, *memberDepartmentID); err != nil {
+		if err := c.core.MemberDepartmentManager().Delete(context, *memberDepartmentID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member department failed (/member-department/:member_department_id), db error: " + err.Error(),
@@ -291,7 +291,7 @@ func (c *Controller) memberDepartmentController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberDepartmentManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberDepartmentManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member departments failed (/member-department/bulk-delete) | error: " + err.Error(),
