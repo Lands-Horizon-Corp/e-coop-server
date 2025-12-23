@@ -687,9 +687,8 @@ func (m *Core) LoanWeeklyIota(weekday Weekdays) int {
 	}
 }
 
-func (m *Core) loanTransaction() {
-	m.Migration = append(m.Migration, &LoanTransaction{})
-	m.LoanTransactionManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTransactionManager() *registry.Registry[LoanTransaction, LoanTransactionResponse, LoanTransactionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{

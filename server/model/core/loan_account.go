@@ -91,9 +91,8 @@ type (
 	}
 )
 
-func (m *Core) loanAccount() {
-	m.Migration = append(m.Migration, &LoanAccount{})
-	m.LoanAccountManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanAccountManager() *registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanAccount, LoanAccountResponse, LoanAccountRequest,
 	]{
 		Preloads: []string{
