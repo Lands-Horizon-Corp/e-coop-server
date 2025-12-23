@@ -68,9 +68,8 @@ type (
 	}
 )
 
-func (m *Core) timesheet() {
-	m.Migration = append(m.Migration, &Timesheet{})
-	m.TimesheetManager() = registry.NewRegistry(registry.RegistryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
+func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetResponse, TimesheetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

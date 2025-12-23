@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) mutualFundAdditionalMembers() {
-	m.Migration = append(m.Migration, &MutualFundAdditionalMembers{})
-	m.MutualFundAdditionalMembersManager() = registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
+func (m *Core) MutualFundAdditionalMembersManager() *registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

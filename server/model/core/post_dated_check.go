@@ -95,9 +95,8 @@ type (
 	}
 )
 
-func (m *Core) postDatedCheck() {
-	m.Migration = append(m.Migration, &PostDatedCheck{})
-	m.PostDatedCheckManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{

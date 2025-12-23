@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) notification() {
-	m.Migration = append(m.Migration, &Notification{})
-	m.NotificationManager() = registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
+func (m *Core) NotificationManager() *registry.Registry[Notification, NotificationResponse, any] {
+	return registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
 		Preloads: []string{"Recipient", "Recipient.Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

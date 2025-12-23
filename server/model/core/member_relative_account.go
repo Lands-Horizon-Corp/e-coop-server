@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) memberRelativeAccount() {
-	m.Migration = append(m.Migration, &MemberRelativeAccount{})
-	m.MemberRelativeAccountManager() = registry.NewRegistry(registry.RegistryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
+func (m *Core) MemberRelativeAccountManager() *registry.Registry[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberRelativeAccount, MemberRelativeAccountResponse, MemberRelativeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "RelativeMemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

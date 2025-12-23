@@ -64,9 +64,8 @@ type (
 	}
 )
 
-func (m *Core) mutualFundTable() {
-	m.Migration = append(m.Migration, &MutualFundTable{})
-	m.MutualFundTableManager() = registry.NewRegistry(registry.RegistryParams[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]{
+func (m *Core) MutualFundTableManager() *registry.Registry[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MutualFundTable, MutualFundTableResponse, MutualFundTableRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

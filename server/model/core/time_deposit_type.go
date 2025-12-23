@@ -118,9 +118,8 @@ type (
 	}
 )
 
-func (m *Core) timeDepositType() {
-	m.Migration = append(m.Migration, &TimeDepositType{})
-	m.TimeDepositTypeManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TimeDepositTypeManager() *registry.Registry[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{

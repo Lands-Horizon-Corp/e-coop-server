@@ -84,9 +84,8 @@ type (
 	}
 )
 
-func (m *Core) organizationDailyUsage() {
-	m.Migration = append(m.Migration, &OrganizationDailyUsage{})
-	m.OrganizationDailyUsageManager() = registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
+func (m *Core) OrganizationDailyUsageManager() *registry.Registry[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest] {
+	return registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

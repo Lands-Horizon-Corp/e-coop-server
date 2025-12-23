@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) mutualFundEntry() {
-	m.Migration = append(m.Migration, &MutualFundEntry{})
-	m.MutualFundEntryManager() = registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
+func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

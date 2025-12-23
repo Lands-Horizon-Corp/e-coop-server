@@ -60,7 +60,7 @@ type (
 )
 
 func (m *Core) ChargesRateSchemeAccountManager() *registry.Registry[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest] {
-\	return registry.NewRegistry(registry.RegistryParams[
+	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
 	]{
 		Preloads: []string{

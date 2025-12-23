@@ -112,9 +112,8 @@ type (
 	}
 )
 
-func (m *Core) transaction() {
-	m.Migration = append(m.Migration, &Transaction{})
-	m.TransactionManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionResponse, TransactionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{

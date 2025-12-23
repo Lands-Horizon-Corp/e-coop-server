@@ -85,9 +85,8 @@ type (
 	}
 )
 
-func (m *Core) tagTemplate() {
-	m.Migration = append(m.Migration, &TagTemplate{})
-	m.TagTemplateManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TagTemplateManager() *registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		TagTemplate, TagTemplateResponse, TagTemplateRequest,
 	]{
 		Preloads: []string{

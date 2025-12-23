@@ -89,9 +89,8 @@ type (
 	}
 )
 
-func (m *Core) onlineRemittance() {
-	m.Migration = append(m.Migration, &OnlineRemittance{})
-	m.OnlineRemittanceManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) OnlineRemittanceManager() *registry.Registry[OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		OnlineRemittance, OnlineRemittanceResponse, OnlineRemittanceRequest,
 	]{
 		Preloads: []string{

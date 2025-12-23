@@ -71,7 +71,7 @@ type (
 	}
 )
 
-func (m *Core) transactionTag() {
+func (m *Core) TransactionTagManager() {
 	m.Migration = append(m.Migration, &TransactionTag{})
 	m.TransactionTagManager() = registry.NewRegistry(registry.RegistryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
