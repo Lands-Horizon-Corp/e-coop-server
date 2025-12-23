@@ -75,9 +75,8 @@ type (
 	}
 )
 
-func (m *Core) ComputationSheetManager() {
-	m.Migration = append(m.Migration, &ComputationSheet{})
-	m.ComputationSheetManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ComputationSheetManager() *registry.Registry[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{

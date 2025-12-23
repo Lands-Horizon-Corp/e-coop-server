@@ -58,7 +58,152 @@ func NewCore(provider *server.Provider) (*Core, error) {
 }
 
 func (m *Core) Start() error {
-
+	m.Migration = append(m.Migration, []any{
+		AccountCategory{},
+		AccountClassification{},
+		Account{},
+		AccountHistory{},
+		AccountTag{},
+		AdjustmentEntry{},
+		AdjustmentTag{},
+		AutomaticLoanDeduction{},
+		Bank{},
+		BatchFunding{},
+		BillAndCoins{},
+		Branch{},
+		BranchSetting{},
+		BrowseExcludeIncludeAccounts{},
+		BrowseReference{},
+		CancelledCashCheckVoucher{},
+		CashCheckVoucherEntry{},
+		CashCheckVoucher{},
+		CashCheckVoucherTag{},
+		CashCount{},
+		Category{},
+		ChargesRateByRangeOrMinimumAmount{},
+		ChargesRateByTerm{},
+		ChargesRateSchemeAccount{},
+		ChargesRateScheme{},
+		ChargesRateSchemeModeOfPayment{},
+		CheckRemittance{},
+		Collateral{},
+		CollectorsMemberAccountEntry{},
+		ComakerCollateral{},
+		ComakerMemberProfile{},
+		Company{},
+		ComputationSheet{},
+		ContactUs{},
+		Currency{},
+		Disbursement{},
+		DisbursementTransaction{},
+		Feedback{},
+		FinancialStatementAccountsGrouping{},
+		FinancialStatementDefinition{},
+		FinesMaturity{},
+		Footstep{},
+		Funds{},
+		GeneralAccountGroupingNetSurplusNegative{},
+		GeneralAccountGroupingNetSurplusPositive{},
+		GeneralAccountingLedgerTag{},
+		GeneralLedgerAccountsGrouping{},
+		GeneralLedgerDefinition{},
+		GeneralLedger{},
+		GeneratedReport{},
+		GeneratedReportsDownloadUsers{},
+		GeneratedSavingsInterestEntry{},
+		GeneratedSavingsInterest{},
+		GroceryComputationSheet{},
+		GroceryComputationSheetMonthly{},
+		Holiday{},
+		IncludeNegativeAccount{},
+		InterestMaturity{},
+		InterestRateByAmount{},
+		InterestRateByDate{},
+		InterestRateByTerm{},
+		InterestRateByYear{},
+		InterestRatePercentage{},
+		InterestRateScheme{},
+		InvitationCode{},
+		JournalVoucherEntry{},
+		JournalVoucher{},
+		JournalVoucherTag{},
+		LoanAccount{},
+		LoanClearanceAnalysis{},
+		LoanClearanceAnalysisInstitution{},
+		LoanComakerMember{},
+		LoanGuaranteedFund{},
+		LoanGuaranteedFundPerMonth{},
+		LoanPurpose{},
+		LoanStatus{},
+		LoanTag{},
+		LoanTermsAndConditionAmountReceipt{},
+		LoanTermsAndConditionSuggestedPayment{},
+		LoanTransactionEntry{},
+		LoanTransaction{},
+		Media{},
+		MemberAccountingLedger{},
+		MemberAddress{},
+		MemberAsset{},
+		MemberBankCard{},
+		MemberCenter{},
+		MemberCenterHistory{},
+		MemberClassification{},
+		MemberClassificationHistory{},
+		MemberClassificationInterestRate{},
+		MemberCloseRemark{},
+		MemberContactReference{},
+		MemberDamayanExtensionEntry{},
+		MemberDeductionEntry{},
+		MemberDepartment{},
+		MemberDepartmentHistory{},
+		MemberEducationalAttainment{},
+		MemberExpense{},
+		MemberGender{},
+		MemberGenderHistory{},
+		MemberGovernmentBenefit{},
+		MemberGroup{},
+		MemberGroupHistory{},
+		MemberIncome{},
+		MemberJointAccount{},
+		MemberMutualFundHistory{},
+		MemberOccupation{},
+		MemberOccupationHistory{},
+		MemberOtherInformationEntry{},
+		MemberProfileArchive{},
+		MemberProfile{},
+		MemberProfileMedia{},
+		MemberRelativeAccount{},
+		MemberType{},
+		MemberTypeHistory{},
+		MemberVerification{},
+		MutualFundAdditionalMembers{},
+		MutualFundEntry{},
+		MutualFund{},
+		MutualFundTable{},
+		Notification{},
+		OnlineRemittance{},
+		OrganizationCategory{},
+		OrganizationDailyUsage{},
+		Organization{},
+		OrganizationMedia{},
+		PaymentType{},
+		PermissionTemplate{},
+		PostDatedCheck{},
+		SubscriptionPlan{},
+		TagTemplate{},
+		TimeDepositComputation{},
+		TimeDepositComputationPreMature{},
+		TimeDepositType{},
+		Timesheet{},
+		TransactionBatch{},
+		Transaction{},
+		TransactionTag{},
+		UnbalancedAccount{},
+		User{},
+		UserOrganization{},
+		UserRating{},
+		VoucherPayTo{},
+	}...)
 	return nil
 }
 
@@ -112,7 +257,7 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	if err := m.generalLedgerAccountsGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.financialStatementGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := m.FinancialStatementAccountsGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	if err := m.accountSeed(context, tx, userID, organizationID, branchID); err != nil {
@@ -317,15 +462,15 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		}
 	}
 
-	FinancialStatementGroupings, err := m.FinancialStatementGroupingManager().Find(ctx, &FinancialStatementGrouping{
+	FinancialStatementAccountsGroupings, err := m.FinancialStatementAccountsGroupingManager().Find(ctx, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get financial statement accounts groupings")
 	}
-	for _, data := range FinancialStatementGroupings {
-		if err := m.FinancialStatementGroupingManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+	for _, data := range FinancialStatementAccountsGroupings {
+		if err := m.FinancialStatementAccountsGroupingManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
 		}
 	}

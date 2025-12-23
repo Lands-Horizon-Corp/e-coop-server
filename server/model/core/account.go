@@ -3899,18 +3899,18 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
 	}
 
-	unbalancedAccount, err := m.UnbalancedAccountManager().FindOne(ctx, &UnbalancedAccount{
+	UnbalancedAccount, err := m.UnbalancedAccountManager().FindOne(ctx, &UnbalancedAccount{
 		BranchSettingsID: branchSetting.ID,
 	})
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
 		return eris.Wrap(err, "failed to check unbalanced account references")
 	}
 
-	if unbalancedAccount != nil {
-		if unbalancedAccount.AccountForShortageID == accountID {
+	if UnbalancedAccount != nil {
+		if UnbalancedAccount.AccountForShortageID == accountID {
 			return eris.New("cannot delete account: it is currently set as the shortage account in branch settings")
 		}
-		if unbalancedAccount.AccountForOverageID == accountID {
+		if UnbalancedAccount.AccountForOverageID == accountID {
 			return eris.New("cannot delete account: it is currently set as the overage account in branch settings")
 		}
 	}
