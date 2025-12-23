@@ -98,9 +98,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerDefinition() {
-	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
-	m.GeneralLedgerDefinitionManager() = registry.NewRegistry(registry.RegistryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
+func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"Accounts",

@@ -75,7 +75,7 @@ type (
 	}
 )
 
-func (m *Core) computationSheet() {
+func (m *Core) ComputationSheetManager() {
 	m.Migration = append(m.Migration, &ComputationSheet{})
 	m.ComputationSheetManager() = registry.NewRegistry(registry.RegistryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,

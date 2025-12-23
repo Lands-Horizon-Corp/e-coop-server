@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerTag() {
-	m.Migration = append(m.Migration, &GeneralLedgerTag{})
-	m.GeneralLedgerTagManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GeneralLedgerTagManager() *registry.Registry[GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
 	]{
 		Preloads: []string{

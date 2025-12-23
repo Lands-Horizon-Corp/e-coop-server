@@ -290,9 +290,8 @@ type (
 	}
 )
 
-func (m *Core) userOrganization() {
-	m.Migration = append(m.Migration, &UserOrganization{})
-	m.UserOrganizationManager() = registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
+func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, UserOrganizationResponse, UserOrganizationRequest] {
+	return registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

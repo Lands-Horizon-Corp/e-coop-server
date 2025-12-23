@@ -72,9 +72,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerAccountsGrouping() {
-	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
-	m.GeneralLedgerAccountsGroupingManager() = registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
+func (m *Core) GeneralLedgerAccountsGroupingManager() *registry.Registry[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},

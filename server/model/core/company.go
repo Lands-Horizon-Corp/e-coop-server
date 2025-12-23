@@ -61,9 +61,8 @@ type (
 	}
 )
 
-func (m *Core) company() {
-	m.Migration = append(m.Migration, &Company{})
-	m.CompanyManager() = registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
+func (m *Core) CompanyManager() *registry.Registry[Company, CompanyResponse, CompanyRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

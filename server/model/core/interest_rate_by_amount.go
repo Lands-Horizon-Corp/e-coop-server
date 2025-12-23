@@ -66,7 +66,7 @@ type (
 	}
 )
 
-func (m *Core) interestRateByAmount() {
+func (m *Core) InterestRateByAmountManager() {
 	m.Migration = append(m.Migration, &InterestRateByAmount{})
 	m.InterestRateByAmountManager() = registry.NewRegistry(registry.RegistryParams[
 		InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest,

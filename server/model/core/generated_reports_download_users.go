@@ -67,9 +67,8 @@ type (
 	}
 )
 
-func (m *Core) generatedReportsDownloadUsers() {
-	m.Migration = append(m.Migration, &GeneratedReportsDownloadUsers{})
-	m.GeneratedReportsDownloadUsersManager() = registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
+func (m *Core) GeneratedReportsDownloadUsersManager() *registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "User"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

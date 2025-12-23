@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) funds() {
-	m.Migration = append(m.Migration, &Funds{})
-	m.FundsManager() = registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
+func (m *Core) FundsManager() *registry.Registry[Funds, FundsResponse, FundsRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

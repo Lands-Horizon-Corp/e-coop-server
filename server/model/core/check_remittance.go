@@ -89,9 +89,8 @@ type (
 	}
 )
 
-func (m *Core) checkRemittance() {
-	m.Migration = append(m.Migration, &CheckRemittance{})
-	m.CheckRemittanceManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CheckRemittanceManager() *registry.Registry[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
 		Preloads: []string{

@@ -91,9 +91,8 @@ type (
 	}
 )
 
-func (m *Core) generateSavingsInterestEntry() {
-	m.Migration = append(m.Migration, &GeneratedSavingsInterestEntry{})
-	m.GeneratedSavingsInterestEntryManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GeneratedSavingsInterestEntryManager() *registry.Registry[GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest,
 	]{
 		Preloads: []string{

@@ -99,9 +99,8 @@ type (
 	}
 )
 
-func (m *Core) footstep() {
-	m.Migration = append(m.Migration, &Footstep{})
-	m.FootstepManager() = registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
+func (m *Core) FootstepManager() *registry.Registry[Footstep, FootstepResponse, FootstepRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
 			"User.Media",

@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) interestMaturity() {
-	m.Migration = append(m.Migration, &InterestMaturity{})
-	m.InterestMaturityManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestMaturityManager() *registry.Registry[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestMaturity, InterestMaturityResponse, InterestMaturityRequest,
 	]{
 		Preloads: []string{

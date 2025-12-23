@@ -58,9 +58,8 @@ type (
 	}
 )
 
-func (m *Core) collateral() {
-	m.Migration = append(m.Migration, &Collateral{})
-	m.CollateralManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CollateralManager() *registry.Registry[Collateral, CollateralResponse, CollateralRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Collateral, CollateralResponse, CollateralRequest,
 	]{
 		Preloads: []string{

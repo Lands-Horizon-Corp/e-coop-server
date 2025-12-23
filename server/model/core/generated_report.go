@@ -159,9 +159,8 @@ func (e *GeneratedReport) EXCEL(route string, callback func(params ...string) ([
 	return extractor.MatchableRoute(route, callback)
 }
 
-func (m *Core) generatedReport() {
-	m.Migration = append(m.Migration, &GeneratedReport{})
-	m.GeneratedReportManager() = registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"CreatedBy.Media",

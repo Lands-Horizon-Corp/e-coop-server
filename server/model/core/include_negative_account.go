@@ -62,9 +62,8 @@ type (
 	}
 )
 
-func (m *Core) includeNegativeAccount() {
-	m.Migration = append(m.Migration, &IncludeNegativeAccount{})
-	m.IncludeNegativeAccountManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) IncludeNegativeAccountManager() *registry.Registry[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
 		Preloads: []string{

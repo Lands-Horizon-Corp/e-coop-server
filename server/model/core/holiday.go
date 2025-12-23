@@ -67,9 +67,8 @@ type (
 	}
 )
 
-func (m *Core) holiday() {
-	m.Migration = append(m.Migration, &Holiday{})
-	m.HolidayManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) HolidayManager() *registry.Registry[Holiday, HolidayResponse, HolidayRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{

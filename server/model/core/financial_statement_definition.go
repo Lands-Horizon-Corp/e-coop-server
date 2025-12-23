@@ -83,9 +83,8 @@ type (
 	}
 )
 
-func (m *Core) financialStatementDefinition() {
-	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
-	m.FinancialStatementDefinitionManager() = registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
+func (m *Core) FinancialStatementDefinitionManager() *registry.Registry[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",

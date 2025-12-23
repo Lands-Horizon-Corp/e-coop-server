@@ -65,9 +65,8 @@ type (
 	}
 )
 
-func (m *Core) interestRatePercentage() {
-	m.Migration = append(m.Migration, &InterestRatePercentage{})
-	m.InterestRatePercentageManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRatePercentageManager() *registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest,
 	]{
 		Preloads: []string{

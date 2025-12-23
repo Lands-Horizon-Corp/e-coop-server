@@ -76,9 +76,8 @@ type (
 	}
 )
 
-func (m *Core) comakerMemberProfile() {
-	m.Migration = append(m.Migration, &ComakerMemberProfile{})
-	m.ComakerMemberProfileManager() = registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
+func (m *Core) ComakerMemberProfileManager() *registry.Registry[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest] {
+	return registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

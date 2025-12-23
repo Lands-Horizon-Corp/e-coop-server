@@ -64,9 +64,8 @@ type (
 	}
 )
 
-func (m *Core) disbursement() {
-	m.Migration = append(m.Migration, &Disbursement{})
-	m.DisbursementManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) DisbursementManager() *registry.Registry[Disbursement, DisbursementResponse, DisbursementRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
 		Preloads: []string{

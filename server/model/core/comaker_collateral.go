@@ -76,9 +76,8 @@ type (
 	}
 )
 
-func (m *Core) comakerCollateral() {
-	m.Migration = append(m.Migration, &ComakerCollateral{})
-	m.ComakerCollateralManager() = registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
+func (m *Core) ComakerCollateralManager() *registry.Registry[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest] {
+	return registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

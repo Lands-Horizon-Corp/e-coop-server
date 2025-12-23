@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) generalAccountGroupingNetSurplusNegative() {
-	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusNegative{})
-	m.GeneralaccountgroupingnetsurplusnegativeManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GeneralAccountGroupingNetSurplusNegativeManager() *registry.Registry[GeneralAccountGroupingNetSurplusNegative, GeneralAccountGroupingNetSurplusNegativeResponse, GeneralAccountGroupingNetSurplusNegativeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GeneralAccountGroupingNetSurplusNegative,
 		GeneralAccountGroupingNetSurplusNegativeResponse,
 		GeneralAccountGroupingNetSurplusNegativeRequest,
@@ -132,7 +131,7 @@ func (m *Core) generalAccountGroupingNetSurplusNegative() {
 }
 
 func (m *Core) GeneralAccountGroupingNetSurplusNegativeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountGroupingNetSurplusNegative, error) {
-	return m.GeneralaccountgroupingnetsurplusnegativeManager().Find(context, &GeneralAccountGroupingNetSurplusNegative{
+	return m.GeneralAccountGroupingNetSurplusNegativeManager().Find(context, &GeneralAccountGroupingNetSurplusNegative{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

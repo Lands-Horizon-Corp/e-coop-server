@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) groceryComputationSheetMonthly() {
-	m.Migration = append(m.Migration, &GroceryComputationSheetMonthly{})
-	m.GroceryComputationSheetMonthlyManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GroceryComputationSheetMonthlyManager() *registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest,
 	]{
 		Preloads: []string{

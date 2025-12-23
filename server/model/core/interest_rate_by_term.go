@@ -60,9 +60,8 @@ type (
 	}
 )
 
-func (m *Core) interestRateByTerm() {
-	m.Migration = append(m.Migration, &InterestRateByTerm{})
-	m.InterestRateByTermManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRateByTermManager() *registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest,
 	]{
 		Preloads: []string{

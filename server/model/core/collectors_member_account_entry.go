@@ -67,9 +67,8 @@ type (
 	}
 )
 
-func (m *Core) collectorsMemberAccountEntry() {
-	m.Migration = append(m.Migration, &CollectorsMemberAccountEntry{})
-	m.CollectorsMemberAccountEntryManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CollectorsMemberAccountEntryManager() *registry.Registry[CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CollectorsMemberAccountEntry, CollectorsMemberAccountEntryResponse, CollectorsMemberAccountEntryRequest,
 	]{
 		Preloads: []string{
