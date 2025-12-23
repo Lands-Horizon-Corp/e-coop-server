@@ -75,9 +75,8 @@ type (
 	}
 )
 
-func (m *Core) memberBankCard() {
-	m.Migration = append(m.Migration, &MemberBankCard{})
-	m.MemberBankCardManager = registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
+func (m *Core) MemberBankCardManager() *registry.Registry[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) loanTag() {
-	m.Migration = append(m.Migration, &LoanTag{})
-	m.LoanTagManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTagManager() *registry.Registry[LoanTag, LoanTagResponse, LoanTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{

@@ -54,9 +54,8 @@ type (
 	}
 )
 
-func (m *Core) loanGuaranteedFundPerMonth() {
-	m.Migration = append(m.Migration, &LoanGuaranteedFundPerMonth{})
-	m.LoanGuaranteedFundPerMonthManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanGuaranteedFundPerMonthManager() *registry.Registry[LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanGuaranteedFundPerMonth, LoanGuaranteedFundPerMonthResponse, LoanGuaranteedFundPerMonthRequest,
 	]{
 		Preloads: []string{

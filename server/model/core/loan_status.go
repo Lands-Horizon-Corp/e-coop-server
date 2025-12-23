@@ -61,9 +61,8 @@ type (
 	}
 )
 
-func (m *Core) loanStatus() {
-	m.Migration = append(m.Migration, &LoanStatus{})
-	m.LoanStatusManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanStatusManager() *registry.Registry[LoanStatus, LoanStatusResponse, LoanStatusRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanStatus, LoanStatusResponse, LoanStatusRequest,
 	]{
 		Preloads: []string{

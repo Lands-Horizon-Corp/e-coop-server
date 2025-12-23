@@ -81,9 +81,8 @@ type (
 	}
 )
 
-func (m *Core) memberGovernmentBenefit() {
-	m.Migration = append(m.Migration, &MemberGovernmentBenefit{})
-	m.MemberGovernmentBenefitManager() = registry.NewRegistry(registry.RegistryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
+func (m *Core) MemberGovernmentBenefitManager() *registry.Registry[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberGovernmentBenefit, MemberGovernmentBenefitResponse, MemberGovernmentBenefitRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "FrontMedia", "BackMedia"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

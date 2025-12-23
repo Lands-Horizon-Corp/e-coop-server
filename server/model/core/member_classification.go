@@ -58,9 +58,8 @@ type (
 	}
 )
 
-func (m *Core) memberClassification() {
-	m.Migration = append(m.Migration, &MemberClassification{})
-	m.MemberClassificationManager() = registry.NewRegistry(registry.RegistryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
+func (m *Core) MemberClassificationManager() *registry.Registry[MemberClassification, MemberClassificationResponse, MemberClassificationRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

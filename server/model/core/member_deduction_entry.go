@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) memberDeductionEntry() {
-	m.Migration = append(m.Migration, &MemberDeductionEntry{})
-	m.MemberDeductionEntryManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberDeductionEntryManager() *registry.Registry[MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberDeductionEntry, MemberDeductionEntryResponse, MemberDeductionEntryRequest,
 	]{
 		Preloads: []string{

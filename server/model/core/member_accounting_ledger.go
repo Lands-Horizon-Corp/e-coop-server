@@ -114,9 +114,8 @@ type (
 	}
 )
 
-func (m *Core) memberAccountingLedger() {
-	m.Migration = append(m.Migration, &MemberAccountingLedger{})
-	m.MemberAccountingLedgerManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberAccountingLedgerManager() *registry.Registry[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{

@@ -80,9 +80,8 @@ type (
 	}
 )
 
-func (m *Core) memberProfileArchive() {
-	m.Migration = append(m.Migration, &MemberProfileArchive{})
-	m.MemberProfileArchiveManager() = registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
+func (m *Core) MemberProfileArchiveManager() *registry.Registry[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberProfileArchive, MemberProfileArchiveResponse, MemberProfileArchiveRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

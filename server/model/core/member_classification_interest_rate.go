@@ -136,9 +136,8 @@ type (
 	}
 )
 
-func (m *Core) memberClassificationInterestRate() {
-	m.Migration = append(m.Migration, &MemberClassificationInterestRate{})
-	m.MemberClassificationInterestRateManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberClassificationInterestRateManager() *registry.Registry[MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationInterestRate, MemberClassificationInterestRateResponse, MemberClassificationInterestRateRequest,
 	]{
 		Preloads: []string{

@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberDamayanExtensionEntry() {
-	m.Migration = append(m.Migration, &MemberDamayanExtensionEntry{})
-	m.MemberDamayanExtensionEntryManager() = registry.NewRegistry(registry.RegistryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
+func (m *Core) MemberDamayanExtensionEntryManager() *registry.Registry[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

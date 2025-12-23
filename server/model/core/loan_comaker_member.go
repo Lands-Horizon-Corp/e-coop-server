@@ -71,9 +71,8 @@ type (
 	}
 )
 
-func (m *Core) loanComakerMember() {
-	m.Migration = append(m.Migration, &LoanComakerMember{})
-	m.LoanComakerMemberManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanComakerMemberManager() *registry.Registry[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest,
 	]{
 		Preloads: []string{

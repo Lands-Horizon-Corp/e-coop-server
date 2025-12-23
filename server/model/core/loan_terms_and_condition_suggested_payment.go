@@ -61,9 +61,8 @@ type (
 	}
 )
 
-func (m *Core) loanTermsAndConditionSuggestedPayment() {
-	m.Migration = append(m.Migration, &LoanTermsAndConditionSuggestedPayment{})
-	m.LoanTermsAndConditionSuggestedPaymentManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTermsAndConditionSuggestedPaymentManager() *registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{

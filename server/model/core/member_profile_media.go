@@ -68,9 +68,8 @@ type (
 	}
 )
 
-func (m *Core) memberProfileMedia() {
-	m.Migration = append(m.Migration, &MemberProfileMedia{})
-	m.MemberProfileMediaManager() = registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+func (m *Core) MemberProfileMediaManager() *registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

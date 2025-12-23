@@ -73,9 +73,8 @@ type (
 	}
 )
 
-func (m *Core) memberAsset() {
-	m.Migration = append(m.Migration, &MemberAsset{})
-	m.MemberAssetManager() = registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
+func (m *Core) MemberAssetManager() *registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

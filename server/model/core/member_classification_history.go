@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberClassificationHistory() {
-	m.Migration = append(m.Migration, &MemberClassificationHistory{})
-	m.MemberClassificationHistoryManager() = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationHistory,
 		MemberClassificationHistoryResponse,
 		MemberClassificationHistoryRequest,

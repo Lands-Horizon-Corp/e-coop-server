@@ -89,9 +89,8 @@ type (
 	}
 )
 
-func (m *Core) memberJointAccount() {
-	m.Migration = append(m.Migration, &MemberJointAccount{})
-	m.MemberJointAccountManager() = registry.NewRegistry(registry.RegistryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
+func (m *Core) MemberJointAccountManager() *registry.Registry[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",

@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberExpense() {
-	m.Migration = append(m.Migration, &MemberExpense{})
-	m.MemberExpenseManager() = registry.NewRegistry(registry.RegistryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
+func (m *Core) MemberExpenseManager() *registry.Registry[MemberExpense, MemberExpenseResponse, MemberExpenseRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

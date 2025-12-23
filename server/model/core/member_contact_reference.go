@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberContactReference() {
-	m.Migration = append(m.Migration, &MemberContactReference{})
-	m.MemberContactReferenceManager() = registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
+func (m *Core) MemberContactReferenceManager() *registry.Registry[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

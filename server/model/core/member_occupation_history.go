@@ -59,9 +59,8 @@ type (
 	}
 )
 
-func (m *Core) memberOccupationHistory() {
-	m.Migration = append(m.Migration, &MemberOccupationHistory{})
-	m.MemberOccupationHistoryManager() = registry.NewRegistry(registry.RegistryParams[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]{
+func (m *Core) MemberOccupationHistoryManager() *registry.Registry[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberOccupationHistory, MemberOccupationHistoryResponse, MemberOccupationHistoryRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "MemberOccupation",
 		},
