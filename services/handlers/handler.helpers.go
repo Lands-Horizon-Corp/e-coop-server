@@ -182,15 +182,13 @@ func Create32ByteKey(key []byte) []byte {
 	return padded
 }
 
-var phoneRegex = regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`)
-
 func IsValidEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
 func IsValidPhoneNumber(phone string) bool {
-	return phoneRegex.MatchString(phone)
+	return regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`).MatchString(phone)
 }
 
 func IsValidURL(rawURL string) bool {

@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var apiPort = handlers.GetFreePort()
-
 func TestMain(m *testing.M) {
+	apiPort := handlers.GetFreePort()
 	env := NewEnvironmentService("../../.env")
 	cache := NewHorizonCache(
 		env.GetString("REDIS_HOST", "localhost"),
@@ -61,7 +60,7 @@ func waitForServerReady(url string, timeout time.Duration) bool {
 }
 
 func TestNewAPIServiceImpl_HealthCheck(t *testing.T) {
-
+	apiPort := handlers.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/health")
 	assert.NoError(t, err)
@@ -73,7 +72,7 @@ func TestNewAPIServiceImpl_HealthCheck(t *testing.T) {
 }
 
 func TestNewAPIServiceImpl_SuspiciousPath(t *testing.T) {
-
+	apiPort := handlers.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/config.yaml")
 	assert.NoError(t, err)
@@ -85,7 +84,7 @@ func TestNewAPIServiceImpl_SuspiciousPath(t *testing.T) {
 }
 
 func TestNewAPIServiceImpl_WellKnownPath(t *testing.T) {
-
+	apiPort := handlers.GetFreePort()
 	baseURL := "http://localhost:" + fmt.Sprint(apiPort)
 	resp, err := http.Get(baseURL + "/.well-known/security.txt")
 	assert.NoError(t, err)

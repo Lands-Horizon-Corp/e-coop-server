@@ -259,13 +259,13 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 	var allDailyBalances []GeneratedSavingsInterestEntryDailyBalance
 	var totalBalanceSum float64
 	var totalDays int
-	var lowestBalance float64 = -1 // Use -1 to indicate not set
+	lowestBalance := -1.0
 	var highestBalance float64
-	var beginningBalance float64 = -1 // Use -1 to indicate not set
+	beginningBalance := -1.0
 	var endingBalance float64
 
 	currentDate := generatedSavingsInterest.NewComputationDate
-	var previousBalance float64 = -1 // Use -1 to indicate first entry
+	previousBalance := -1.0
 	for i, balance := range dailyBalances {
 		dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
 		var changeType string

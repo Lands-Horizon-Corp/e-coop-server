@@ -334,7 +334,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 		{Field: "created_at", Order: "DESC"},
 	})
 
-	var previousBalance = m.provider.Service.Decimal.NewFromFloat(0)
+	previousBalance := m.provider.Service.Decimal.NewFromFloat(0)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
@@ -348,7 +348,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
 	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
 
-	var balanceChange = m.provider.Service.Decimal.NewFromFloat(0)
+	balanceChange := m.provider.Service.Decimal.NewFromFloat(0)
 	if data.Account == nil {
 		balanceChange = debitDecimal.Sub(creditDecimal)
 	} else {

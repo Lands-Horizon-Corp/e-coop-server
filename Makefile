@@ -1,33 +1,41 @@
-.PHONY: clean wake test refresh resurrect clense teleport webdev
+.PHONY: clean build wake test refresh resurrect clense teleport webdev
+
+# Binary name
+BINARY := ecoop
 
 # Go helpers
 clean:
 	go clean -cache
+	rm -f $(BINARY)
+
+build:
+	go build -o $(BINARY)
 
 wake:
-	go run . server
+	./$(BINARY) server
 
 test:
 	go test -v "./services/horizon_tes"
 
 refresh:
-	go run . db refresh
+	./$(BINARY) db refresh
 
 # Combined / utility targets
 clense:
 	go clean -cache -modcache -testcache -fuzzcache
+	rm -f $(BINARY)
 
-resurrect:
+resurrect: clense
 	clear
-	go clean -cache -modcache -testcache -fuzzcache
 	git pull
-	go run . db refresh
-	go run . server
+	$(MAKE) build
+	$(MAKE) refresh
+	$(MAKE) wake
 
 teleport:
 	clear
 	git pull
-	go run . server
+	$(MAKE) wake
 
 webdev:
 	code & googit pulle-chrome
