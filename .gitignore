@@ -35,3 +35,5 @@ main
 
 vendor/
 app
+
+*.pprof
