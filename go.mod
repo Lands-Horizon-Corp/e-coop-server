@@ -10,6 +10,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/image v0.34.0
 )
 
 require (
@@ -82,7 +83,6 @@ require (
 require (
 	github.com/Lands-Horizon-Corp/numi18n v1.3.0
 	github.com/aymerick/raymond v2.0.2+incompatible
-	github.com/chai2010/webp v1.4.0
 	github.com/chromedp/chromedp v0.14.2
 	github.com/fatih/color v1.18.0
 	github.com/go-playground/validator v9.31.0+incompatible

@@ -11,8 +11,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/chai2010/webp"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/image/webp"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +41,6 @@ func (c *Controller) kycController() {
 				"error": "Username must be lowercase letters, numbers, or underscores only",
 			})
 		}
-
 		_, err := c.core.GetUserByUserName(context, payload.Username)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -59,8 +58,8 @@ func (c *Controller) kycController() {
 			"female": true,
 			"others": true,
 		}
-
-		if !validGenders[payload.Gender] {
+		gender := strings.ToLower(payload.Gender)
+		if !validGenders[gender] {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Gender must be 'male', 'female', or 'others'",
 			})
@@ -237,39 +236,54 @@ func (c *Controller) kycController() {
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/kyc/selfie",
 		Method: "POST",
-		Note:   "Submit selfie image (must be WEBP format, exactly 500x500 pixels)",
+		Note:   "Submit selfie image (WEBP, exactly 500x500)",
 	}, func(ctx echo.Context) error {
+
 		file, err := ctx.FormFile("file")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Missing or invalid file field",
 			})
 		}
+
+		// Hard limit file size (important for KYC security)
+		if file.Size > 5<<20 { // 5MB
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
+				"error": "File too large",
+			})
+		}
+
+		// Content-Type check (soft validation)
 		if file.Header.Get("Content-Type") != "image/webp" {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Only WEBP images are allowed",
 			})
 		}
+
 		src, err := file.Open()
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"error": "Failed to read uploaded file",
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{
+				"error": "Failed to open file",
 			})
 		}
 		defer src.Close()
-		img, err := webp.DecodeConfig(src)
+
+		// Decode only metadata (NO full image allocation)
+		cfg, err := webp.DecodeConfig(src)
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Invalid or corrupted WEBP image",
 			})
 		}
-		if img.Width != 500 || img.Height != 500 {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
+
+		if cfg.Width != 500 || cfg.Height != 500 {
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Image must be exactly 500×500 pixels",
 			})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Selfie image accepted successfully (500×500 WEBP)",
+
+		return ctx.JSON(http.StatusOK, echo.Map{
+			"message": "Selfie image accepted successfully",
 		})
 	})
 
