@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
@@ -105,15 +104,9 @@ func (c *Controller) kycController() {
 				"error": "Password and confirmation do not match",
 			})
 		}
-
 		smsKey := fmt.Sprintf("%s-%s", payload.Password, payload.ContactNumber)
 		smsOtp, err := c.provider.Service.OTP.Generate(context, smsKey)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Apply contact number failed: generate OTP error: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
 		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
@@ -124,21 +117,11 @@ func (c *Controller) kycController() {
 				"name": payload.FullName,
 			},
 		}); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Apply contact number failed: send SMS error: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP SMS: " + err.Error()})
 		}
 		smtpKey := fmt.Sprintf("%s-%s", payload.Password, payload.Email)
 		smtpOtp, err := c.provider.Service.OTP.Generate(context, smtpKey)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Apply email failed: generate OTP error: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
 
@@ -150,11 +133,6 @@ func (c *Controller) kycController() {
 				"otp": smtpOtp,
 			},
 		}); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Apply email failed: send email error: " + err.Error(),
-				Module:      "User",
-			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP email: " + err.Error()})
 		}
 
@@ -170,6 +148,7 @@ func (c *Controller) kycController() {
 		Note:        "Verify email address using OTP",
 		RequestType: core.KYCVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		var payload core.KYCVerifyEmailRequest
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
@@ -177,6 +156,18 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+		key := fmt.Sprintf("%s-%s", payload.Password, payload.Email)
+		ok, err := c.provider.Service.OTP.Verify(context, key, payload.OTP)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
+		}
+		if !ok {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
+		}
+		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
+		}
+
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Email verified successfully",
 		})
@@ -189,6 +180,7 @@ func (c *Controller) kycController() {
 		Note:        "Verify phone number using OTP",
 		RequestType: core.KYCVerifyContactNumberRequest{},
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		var payload core.KYCVerifyContactNumberRequest
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
@@ -196,27 +188,45 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Phone number verified successfully",
-		})
+		key := fmt.Sprintf("%s-%s", payload.Password, payload.ContactNumber)
+		ok, err := c.provider.Service.OTP.Verify(context, key, payload.OTP)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
+		}
+		if !ok {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
+		}
+		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Phone number verified successfully"})
 	})
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
-		Note:        "Submit or verify address information",
-		RequestType: core.KYCVerifyAddressesRequest{},
+		Note:        "Verify one or more addresses (verification only)",
+		RequestType: []core.KYCVerifyAddressesRequest{},
 	}, func(ctx echo.Context) error {
-		var payload core.KYCVerifyAddressesRequest
+		var payload []core.KYCVerifyAddressesRequest
 		if err := ctx.Bind(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid request format",
+			})
 		}
-		if err := validator.Struct(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		if len(payload) == 0 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "At least one address is required",
+			})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Address information received",
-		})
+		for i, addr := range payload {
+			if err := validator.Struct(addr); err != nil {
+				return ctx.JSON(http.StatusBadRequest, map[string]string{
+					"error": fmt.Sprintf("Validation failed at index %d: %s", i, err.Error()),
+				})
+			}
+		}
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Addresses verified successfully"})
 	})
 
 	// Government Benefits / ID Verification
@@ -233,9 +243,7 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Government document information received",
-		})
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Government document information received"})
 	})
 
 	req.RegisterWebRoute(handlers.Route{

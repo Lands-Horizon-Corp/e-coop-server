@@ -30,12 +30,16 @@ type (
 
 	// /api/v1/kyc/verify-email
 	KYCVerifyEmailRequest struct {
-		OTP string `json:"otp" validate:"required,len=6,numeric"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,min=8,max=50"`
+		OTP      string `json:"otp" validate:"required,len=6,numeric"`
 	}
 
 	// /api/v1/kyc/verify-contact-number
 	KYCVerifyContactNumberRequest struct {
-		OTP string `json:"otp" validate:"required,len=6,numeric"`
+		ContactNumber string `json:"contact_number" validate:"required,e164"`
+		Password      string `json:"password" validate:"required,min=8,max=50"`
+		OTP           string `json:"otp" validate:"required,len=6,numeric"`
 	}
 
 	// /api/v1/kyc/verify-addresses
