@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/chai2010/webp"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (c *Controller) kycController() {
@@ -24,6 +27,7 @@ func (c *Controller) kycController() {
 		Note:        "Submit or update basic personal information (step 1 of KYC)",
 		RequestType: core.KYCPersonalDetailsRequest{},
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		var payload core.KYCPersonalDetailsRequest
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
@@ -32,11 +36,35 @@ func (c *Controller) kycController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		// Username
-		// FirstName
-		// MiddleName
-		// LastName
-		// Gender
+		if !regexp.MustCompile(`^[a-z0-9_]+$`).MatchString(payload.Username) {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Username must be lowercase letters, numbers, or underscores only",
+			})
+		}
+
+		_, err := c.core.GetUserByUserName(context, payload.Username)
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Database error: " + err.Error(),
+				})
+			}
+		} else {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Username already taken",
+			})
+		}
+		validGenders := map[string]bool{
+			"male":   true,
+			"female": true,
+			"others": true,
+		}
+
+		if !validGenders[payload.Gender] {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Gender must be 'male', 'female', or 'others'",
+			})
+		}
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Personal details received successfully",
 		})
