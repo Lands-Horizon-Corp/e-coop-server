@@ -236,14 +236,37 @@ func (c *Controller) kycController() {
 		Note:        "Submit government ID or benefits proof",
 		RequestType: core.KYCVerifyGovernmentBenefitsRequest{},
 	}, func(ctx echo.Context) error {
-		var payload core.KYCVerifyGovernmentBenefitsRequest
+		var payload []core.KYCVerifyGovernmentBenefitsRequest
+
 		if err := ctx.Bind(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid request format",
+			})
 		}
-		if err := validator.Struct(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+
+		if len(payload) == 0 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "At least one government document is required",
+			})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Government document information received"})
+
+		for i, doc := range payload {
+			if err := validator.Struct(doc); err != nil {
+				return ctx.JSON(http.StatusBadRequest, map[string]string{
+					"error": fmt.Sprintf("Validation failed at index %d: %s", i, err.Error()),
+				})
+			}
+		}
+
+		// 🔍 verification logic here
+		// - media existence check
+		// - country-specific rules
+		// - expiry validation
+		// - third-party verification
+
+		return ctx.JSON(http.StatusOK, map[string]string{
+			"message": "Government document information received for verification",
+		})
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -319,28 +342,22 @@ func (c *Controller) kycController() {
 		Method: "POST",
 		Note:   "Submit selfie image (WEBP, exactly 500x500)",
 	}, func(ctx echo.Context) error {
-
 		file, err := ctx.FormFile("file")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Missing or invalid file field",
 			})
 		}
-
-		// Hard limit file size (important for KYC security)
-		if file.Size > 5<<20 { // 5MB
+		if file.Size > 5<<20 {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "File too large",
 			})
 		}
-
-		// Content-Type check (soft validation)
 		if file.Header.Get("Content-Type") != "image/webp" {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Only WEBP images are allowed",
 			})
 		}
-
 		src, err := file.Open()
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, echo.Map{
@@ -348,24 +365,18 @@ func (c *Controller) kycController() {
 			})
 		}
 		defer src.Close()
-
-		// Decode only metadata (NO full image allocation)
 		cfg, err := webp.DecodeConfig(src)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Invalid or corrupted WEBP image",
 			})
 		}
-
 		if cfg.Width != 500 || cfg.Height != 500 {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Image must be exactly 500×500 pixels",
 			})
 		}
-
-		return ctx.JSON(http.StatusOK, echo.Map{
-			"message": "Selfie image accepted successfully",
-		})
+		return ctx.JSON(http.StatusOK, echo.Map{"message": "Selfie image accepted successfully"})
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -381,8 +392,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusCreated, map[string]string{
-			"message": "KYC registration submitted successfully",
-		})
+		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
 }
