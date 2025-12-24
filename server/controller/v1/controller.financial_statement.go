@@ -17,7 +17,7 @@ func (c *Controller) financialStatementController() {
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
-		ResponseType: core.FinancialStatementGroupingResponse{},
+		ResponseType: core.FinancialStatementAccountsGroupingResponse{},
 		Note:         "Returns all financial statement groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -28,21 +28,21 @@ func (c *Controller) financialStatementController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement groupings"})
 		}
-		fsGroupings, err := c.core.FinancialStatementGroupingAlignments(
+		fsGroupings, err := c.core.FinancialStatementAccountsGroupingAlignments(
 			context, userOrg.OrganizationID, *userOrg.BranchID,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve financial statement groupings: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementGroupingManager().ToModels(fsGroupings))
+		return ctx.JSON(http.StatusOK, c.core.FinancialStatementAccountsGroupingManager().ToModels(fsGroupings))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
-		RequestType:  core.FinancialStatementGroupingRequest{},
-		ResponseType: core.FinancialStatementGroupingResponse{},
+		RequestType:  core.FinancialStatementAccountsGroupingRequest{},
+		ResponseType: core.FinancialStatementAccountsGroupingResponse{},
 		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -55,7 +55,7 @@ func (c *Controller) financialStatementController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement grouping ID"})
 		}
-		reqBody, err := c.core.FinancialStatementGroupingManager().Validate(ctx)
+		reqBody, err := c.core.FinancialStatementAccountsGroupingManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -81,7 +81,7 @@ func (c *Controller) financialStatementController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement groupings"})
 		}
-		grouping, err := c.core.FinancialStatementGroupingManager().GetByID(context, *groupingID)
+		grouping, err := c.core.FinancialStatementAccountsGroupingManager().GetByID(context, *groupingID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -98,7 +98,7 @@ func (c *Controller) financialStatementController() {
 		grouping.UpdatedAt = time.Now().UTC()
 		grouping.UpdatedByID = userOrg.UserID
 
-		if err := c.core.FinancialStatementGroupingManager().UpdateByID(context, grouping.ID, grouping); err != nil {
+		if err := c.core.FinancialStatementAccountsGroupingManager().UpdateByID(context, grouping.ID, grouping); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), db error: " + err.Error(),
@@ -113,7 +113,7 @@ func (c *Controller) financialStatementController() {
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementGroupingManager().ToModel(grouping))
+		return ctx.JSON(http.StatusOK, c.core.FinancialStatementAccountsGroupingManager().ToModel(grouping))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -180,7 +180,7 @@ func (c *Controller) financialStatementController() {
 			CreatedByID:                           userOrg.UserID,
 			UpdatedByID:                           userOrg.UserID,
 			FinancialStatementDefinitionEntriesID: req.FinancialStatementDefinitionEntriesID,
-			FinancialStatementGroupingID:          req.FinancialStatementGroupingID,
+			FinancialStatementAccountsGroupingID:  req.FinancialStatementAccountsGroupingID,
 			Name:                                  req.Name,
 			Description:                           req.Description,
 			Index:                                 req.Index,
