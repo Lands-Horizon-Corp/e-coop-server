@@ -17,30 +17,38 @@ type CommandConfig struct {
 	RunFunc func(cmd *cobra.Command, args []string)
 }
 
-func init() {
+func buildCommands() {
 	command.AddCommand(versionCmd)
+
 	for _, group := range commandGroups {
 		command.AddCommand(group.Parent)
+
 		for _, childConfig := range group.Children {
-			childCmd := &cobra.Command{
-				Use:   childConfig.Use,
-				Short: childConfig.Short,
-				Run:   childConfig.RunFunc,
-			}
-			group.Parent.AddCommand(childCmd)
+			cfg := childConfig
+			group.Parent.AddCommand(&cobra.Command{
+				Use:   cfg.Use,
+				Short: cfg.Short,
+				Run: func(cmd *cobra.Command, args []string) {
+					cfg.RunFunc(cmd, args)
+				},
+			})
 		}
 	}
-	for _, cmdConfig := range standaloneCommands {
-		cmd := &cobra.Command{
-			Use:   cmdConfig.Use,
-			Short: cmdConfig.Short,
-			Run:   cmdConfig.RunFunc,
-		}
-		command.AddCommand(cmd)
+
+	for _, cfg := range standaloneCommands {
+		cfg := cfg
+		command.AddCommand(&cobra.Command{
+			Use:   cfg.Use,
+			Short: cfg.Short,
+			Run: func(cmd *cobra.Command, args []string) {
+				cfg.RunFunc(cmd, args)
+			},
+		})
 	}
 }
 
 func Execute() {
+	buildCommands()
 	if err := command.Execute(); err != nil {
 		panic(err)
 	}
