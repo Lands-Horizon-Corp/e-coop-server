@@ -67,7 +67,7 @@ type (
 
 	// POST /api/v1/kyc/selfie
 	KYCSelfieRequest struct {
-		SelfieMediaID *uuid.UUID `json:"selfie_media_id" validate:"required"`
+		File *multipart.FileHeader `form:"file" validate:"required"`
 	}
 
 	// POST /api/v1/kyc/register

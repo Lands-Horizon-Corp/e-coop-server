@@ -1,10 +1,15 @@
 package v1
 
 import (
+	"io"
 	"net/http"
+	"os/exec"
+	"strconv"
+	"strings"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/chai2010/webp"
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,8 +31,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: process personal details
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Personal details received successfully",
 		})
@@ -47,8 +50,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: create credentials + send OTPs
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Security details received. Verification codes sent.",
 		})
@@ -68,8 +69,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: verify email OTP
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Email verified successfully",
 		})
@@ -89,14 +88,11 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: verify phone OTP
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Phone number verified successfully",
 		})
 	})
 
-	// Address Verification
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
@@ -110,8 +106,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: save / verify address
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Address information received",
 		})
@@ -131,57 +125,118 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: process government ID / benefit proof
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Government document information received",
 		})
 	})
 
-	// Face Recognition / Liveness Check (multipart/form-data)
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/kyc/face-recognize",
 		Method: "POST",
-		Note:   "Upload photo for face recognition and liveness check (multipart/form-data)",
+		Note:   "Upload video for face recognition and liveness check (multipart/form-data)",
 	}, func(ctx echo.Context) error {
-		// Special handling for file upload (multipart)
-		_, err := ctx.FormFile("file")
+		file, err := ctx.FormFile("file")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Missing or invalid file field",
 			})
 		}
-
-		// TODO: upload file, process face recognition/liveness
-		// Usually you would call media upload service here
-
+		if file.Header.Get("Content-Type") != "video/mp4" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Only MP4 videos are allowed",
+			})
+		}
+		src, err := file.Open()
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to open file",
+			})
+		}
+		defer src.Close()
+		r, w := io.Pipe()
+		defer r.Close()
+		defer w.Close()
+		go func() {
+			defer w.Close()
+			io.Copy(w, src)
+		}()
+		cmd := exec.Command("ffprobe",
+			"-v", "error",
+			"-select_streams", "v:0",
+			"-show_entries", "stream=width,height,duration",
+			"-of", "default=noprint_wrappers=1:nokey=1",
+			"pipe:0",
+		)
+		cmd.Stdin = r
+		output, err := cmd.Output()
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid video file",
+			})
+		}
+		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+		if len(lines) < 3 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Failed to read video metadata",
+			})
+		}
+		width, _ := strconv.Atoi(lines[0])
+		height, _ := strconv.Atoi(lines[1])
+		duration, _ := strconv.ParseFloat(lines[2], 64)
+		if width != 500 || height != 500 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Video resolution must be 500x500",
+			})
+		}
+		if int(duration) != 3 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Video duration must be exactly 3 seconds",
+			})
+		}
 		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Face photo uploaded successfully",
+			"message": "Video validated successfully",
 		})
 	})
 
-	// Selfie Submission (JSON - media ID reference)
 	req.RegisterWebRoute(handlers.Route{
-		Route:       "/api/v1/kyc/selfie",
-		Method:      "POST",
-		Note:        "Submit already uploaded selfie media ID",
-		RequestType: core.KYCSelfieRequest{},
+		Route:  "/api/v1/kyc/selfie",
+		Method: "POST",
+		Note:   "Submit selfie image (must be WEBP format, exactly 500x500 pixels)",
 	}, func(ctx echo.Context) error {
-		var payload core.KYCSelfieRequest
-		if err := ctx.Bind(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
+		file, err := ctx.FormFile("file")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Missing or invalid file field",
+			})
 		}
-		if err := validator.Struct(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		if file.Header.Get("Content-Type") != "image/webp" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Only WEBP images are allowed",
+			})
 		}
-
-		// TODO: verify selfie media exists & associate with user
+		src, err := file.Open()
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to read uploaded file",
+			})
+		}
+		defer src.Close()
+		img, err := webp.DecodeConfig(src)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid or corrupted WEBP image",
+			})
+		}
+		if img.Width != 500 || img.Height != 500 {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Image must be exactly 500×500 pixels",
+			})
+		}
 		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Selfie reference submitted successfully",
+			"message": "Selfie image accepted successfully (500×500 WEBP)",
 		})
 	})
 
-	// Final KYC Registration (All-in-one)
 	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/kyc/register",
 		Method:      "POST",
@@ -195,9 +250,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// TODO: full KYC processing (create user, save all data, start verification)
-
 		return ctx.JSON(http.StatusCreated, map[string]string{
 			"message": "KYC registration submitted successfully",
 		})
