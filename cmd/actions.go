@@ -18,38 +18,30 @@ import (
 
 func enforceBlocklist() {
 	color.Blue("Enforcing HaGeZi blocklist...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunCache(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Security.Firewall(ctx, func(ip, host string) {
-						cacheKey := "blocked_ip:" + ip
-						timestamp := float64(time.Now().Unix())
+	prov := server.NewProvider()
+	ctx := context.Background()
+	if err := prov.Service.RunCache(ctx); err != nil {
+		color.Red("Failed to run cache: %v", err)
+		return
+	}
+	if err := prov.Service.Security.Firewall(ctx, func(ip, host string) {
+		cacheKey := "blocked_ip:" + ip
+		timestamp := float64(time.Now().Unix())
 
-						if err := prov.Service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
-							color.Red("Failed to add IP %s to registry: %v", ip, err)
-						}
+		if err := prov.Service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
+			color.Red("Failed to add IP %s to registry: %v", ip, err)
+		}
 
-						if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
-							color.Red("Failed to cache IP %s: %v", ip, err)
-						}
-						color.Yellow("Cached blocked IP %s from host %s", ip, host)
-					}); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
-	)
-	executeLifecycle(app)
+		if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
+			color.Red("Failed to cache IP %s: %v", ip, err)
+		}
+
+		color.Yellow("Cached blocked IP %s from host %s", ip, host)
+	}); err != nil {
+		color.Red("Firewall enforcement failed: %v", err)
+		return
+	}
+
 	color.Green("HaGeZi blocklist enforced and cached successfully.")
 }
 
@@ -287,26 +279,21 @@ func startServer() {
 
 func cleanCache() {
 	color.Blue("Cleaning cache...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunCache(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Cache.Flush(ctx); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
-	)
+	prov := server.NewProvider()
+	if prov == nil {
+		color.Red("Failed to create provider")
+		return
+	}
 
-	executeLifecycle(app)
+	ctx := context.Background()
+	if err := prov.Service.RunCache(ctx); err != nil {
+		color.Red("Failed to initialize cache: %v", err)
+		return
+	}
+	if err := prov.Service.Cache.Flush(ctx); err != nil {
+		color.Red("Failed to flush cache: %v", err)
+		return
+	}
 	color.Green("Cache cleaned successfully.")
 }
 
