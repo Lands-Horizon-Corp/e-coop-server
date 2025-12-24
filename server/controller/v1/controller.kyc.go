@@ -31,6 +31,12 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+
+		// Username
+		// FirstName
+		// MiddleName
+		// LastName
+		// Gender
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Personal details received successfully",
 		})
