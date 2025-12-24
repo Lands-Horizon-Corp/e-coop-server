@@ -190,3 +190,23 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 	}
 	return nil
 }
+
+func (h *UserOrganizationToken) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
+	orgID := ctx.Request().Header.Get("X-Organization-ID")
+	if orgID == "" {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "organization ID not provided",
+		})
+		return nil, false
+	}
+
+	org, err := h.core.OrganizationManager().GetByID(ctx.Request().Context(), orgID)
+	if err != nil || org == nil {
+		ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": "organization not found",
+		})
+		return nil, false
+	}
+
+	return org, true
+}
