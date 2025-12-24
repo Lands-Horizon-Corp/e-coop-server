@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os/exec"
@@ -9,8 +10,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -35,7 +38,6 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
 		if !regexp.MustCompile(`^[a-z0-9_]+$`).MatchString(payload.Username) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Username must be lowercase letters, numbers, or underscores only",
@@ -53,20 +55,12 @@ func (c *Controller) kycController() {
 				"error": "Username already taken",
 			})
 		}
-		validGenders := map[string]bool{
-			"male":   true,
-			"female": true,
-			"others": true,
+		switch strings.ToLower(payload.Gender) {
+		case "male", "female", "others":
+		default:
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Gender must be 'male', 'female', or 'others'"})
 		}
-		gender := strings.ToLower(payload.Gender)
-		if !validGenders[gender] {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "Gender must be 'male', 'female', or 'others'",
-			})
-		}
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "Personal details received successfully",
-		})
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Personal details received successfully"})
 	})
 
 	// Step 2: Security / Account Credentials
@@ -76,6 +70,7 @@ func (c *Controller) kycController() {
 		Note:        "Create login credentials (email, phone, password)",
 		RequestType: core.KYCSecurityDetailsRequest{},
 	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
 		var payload core.KYCSecurityDetailsRequest
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
@@ -83,8 +78,86 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+		_, err := c.core.GetUserByEmail(ctx.Request().Context(), payload.Email)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Database error: " + err.Error(),
+			})
+		}
+		_, err = c.core.GetUserByContactNumber(ctx.Request().Context(), payload.ContactNumber)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Database error: " + err.Error(),
+			})
+		}
+		if strings.TrimSpace(payload.Password) == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Password must not be empty",
+			})
+		}
+		if strings.TrimSpace(payload.PasswordConfirmation) == "" {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Password confirmation must not be empty",
+			})
+		}
+		if payload.Password != payload.PasswordConfirmation {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Password and confirmation do not match",
+			})
+		}
 
-		// We will send the email and store the OTP to the redis
+		smsKey := fmt.Sprintf("%s-%s", payload.Password, payload.ContactNumber)
+		smsOtp, err := c.provider.Service.OTP.Generate(context, smsKey)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply contact number failed: generate OTP error: " + err.Error(),
+				Module:      "User",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
+		}
+		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+			To:   payload.ContactNumber,
+			Body: "Lands Horizon: Hello {{.name}} Please dont share this to someone else to protect your account and privacy. This is your OTP:{{.otp}}",
+			Vars: map[string]string{
+				"otp":  smsOtp,
+				"name": payload.FullName,
+			},
+		}); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply contact number failed: send SMS error: " + err.Error(),
+				Module:      "User",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP SMS: " + err.Error()})
+		}
+		smtpKey := fmt.Sprintf("%s-%s", payload.Password, payload.Email)
+		smtpOtp, err := c.provider.Service.OTP.Generate(context, smtpKey)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply email failed: generate OTP error: " + err.Error(),
+				Module:      "User",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
+		}
+
+		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+			To:      payload.Email,
+			Body:    "templates/email-otp.html",
+			Subject: "Email Verification: Lands Horizon",
+			Vars: map[string]string{
+				"otp": smtpOtp,
+			},
+		}); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Apply email failed: send email error: " + err.Error(),
+				Module:      "User",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP email: " + err.Error()})
+		}
+
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Security details received. Verification codes sent.",
 		})
