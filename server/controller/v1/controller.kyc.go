@@ -206,7 +206,7 @@ func (c *Controller) kycController() {
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
 		Note:        "Verify one or more addresses (verification only)",
-		RequestType: []core.KYCVerifyAddressesRequest{},
+		RequestType: core.KYCVerifyAddressesRequest{},
 	}, func(ctx echo.Context) error {
 		var payload []core.KYCVerifyAddressesRequest
 		if err := ctx.Bind(&payload); err != nil {
