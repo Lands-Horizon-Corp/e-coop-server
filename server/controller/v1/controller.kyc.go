@@ -84,6 +84,8 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+
+		// We will send the email and store the OTP to the redis
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Security details received. Verification codes sent.",
 		})
