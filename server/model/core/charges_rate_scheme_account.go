@@ -60,12 +60,8 @@ type (
 )
 
 func (m *Core) ChargesRateSchemeAccountManager() *registry.Registry[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest] {
-	return registry.NewRegistry(registry.RegistryParams[
-		ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest,
-	]{
-		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "ChargesRateScheme", "Account",
-		},
+	return registry.NewRegistry(registry.RegistryParams[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", "ChargesRateScheme", "Account"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
