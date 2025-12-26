@@ -73,7 +73,7 @@ type UserOrganizationToken struct {
 	core     *core.Core
 	provider *server.Provider
 
-	CSRF horizon.AuthService[UserOrganizationCSRF]
+	csrf horizon.AuthService[UserOrganizationCSRF]
 }
 
 func NewUserOrganizationToken(provider *server.Provider, core *core.Core) (*UserOrganizationToken, error) {
@@ -87,14 +87,14 @@ func NewUserOrganizationToken(provider *server.Provider, core *core.Core) (*User
 	)
 
 	return &UserOrganizationToken{
-		CSRF:     csrfService,
+		csrf:     csrfService,
 		core:     core,
 		provider: provider,
 	}, nil
 }
 
 func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
-	h.CSRF.ClearCSRF(ctx, echoCtx)
+	h.csrf.ClearCSRF(ctx, echoCtx)
 }
 
 func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
@@ -111,7 +111,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return userOrganization, nil
 	}
 
-	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
+	claim, err := h.csrf.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
@@ -170,7 +170,7 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 		AcceptLanguage:     ctx.Request().Header.Get("Accept-Language"),
 	}
 
-	if err := h.CSRF.SetCSRF(context, ctx, claim, 144*time.Hour); err != nil {
+	if err := h.csrf.SetCSRF(context, ctx, claim, 144*time.Hour); err != nil {
 		h.ClearCurrentToken(context, ctx)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}

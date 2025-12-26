@@ -39,7 +39,7 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 			branchID = userOrganization.BranchID
 		}
 
-		claim, _ := e.userToken.CSRF.GetCSRF(context, ctx)
+		claim, _ := e.userToken.CurrentUserCSRF(context, ctx)
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 

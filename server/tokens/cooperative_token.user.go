@@ -105,7 +105,7 @@ type UserToken struct {
 	core                  *core.Core
 	userOrganizationToken *UserOrganizationToken
 
-	CSRF horizon.AuthService[UserCSRF]
+	csrf horizon.AuthService[UserCSRF]
 }
 
 func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
@@ -119,20 +119,20 @@ func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationTo
 	)
 
 	return &UserToken{
-		CSRF:                  csrfService,
+		csrf:                  csrfService,
 		core:                  core,
 		userOrganizationToken: userOrganizationToken,
 	}, nil
 }
 
 func (h *UserToken) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
-	h.CSRF.ClearCSRF(ctx, echoCtx)
+	h.csrf.ClearCSRF(ctx, echoCtx)
 	h.userOrganizationToken.ClearCurrentToken(ctx, echoCtx)
 
 }
 
 func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
-	claim, err := h.CSRF.GetCSRF(ctx, echoCtx)
+	claim, err := h.csrf.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: "+err.Error())
@@ -151,6 +151,18 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*cor
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user information mismatch")
 	}
 	return user, nil
+}
+
+func (h *UserToken) CurrentUserCSRF(context context.Context, ctx echo.Context) (UserCSRF, error) {
+	return h.csrf.GetCSRF(context, ctx)
+}
+
+func (h *UserToken) LogoutOtherDevices(context context.Context, ctx echo.Context) error {
+	return h.csrf.LogoutOtherDevices(context, ctx)
+}
+
+func (h *UserToken) LoggedInUsers(context context.Context, ctx echo.Context) ([]UserCSRF, error) {
+	return h.csrf.GetLoggedInUsers(context, ctx)
 }
 
 func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
@@ -182,7 +194,7 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *cor
 		Referer:        echoCtx.Request().Referer(),
 		AcceptLanguage: echoCtx.Request().Header.Get("Accept-Language"),
 	}
-	if err := h.CSRF.SetCSRF(ctx, echoCtx, claim, 144*time.Hour); err != nil {
+	if err := h.csrf.SetCSRF(ctx, echoCtx, claim, 144*time.Hour); err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}
