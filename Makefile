@@ -1,4 +1,4 @@
-.PHONY: clean wake test refresh resurrect clense teleport webdev
+.PHONY: clean wake test refresh resurrect clense teleport webdev build
 
 # Go helpers
 clean:
@@ -16,12 +16,6 @@ refresh:
 # Combined / utility targets
 clense:
 	go clean -cache -modcache -testcache -fuzzcache
-
-.PHONY: resurrect
-
-.PHONY: resurrect
-
-.PHONY: resurrect
 
 resurrect:
 	@bash -c '\
@@ -50,5 +44,5 @@ webdev:
 	code & googit pulle-chrome
 
 build:
-	go build -gcflags='all=-N -l' -o app ./...
+	go build -gcflags='all=-N -l' -o . ./...
 
