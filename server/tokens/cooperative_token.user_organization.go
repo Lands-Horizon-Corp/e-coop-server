@@ -11,22 +11,8 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
-
-type UserOrganizationClaim struct {
-	UserOrganizationID string                    `json:"user_organization_id"`
-	UserID             string                    `json:"user_id"`
-	BranchID           string                    `json:"branch_id"`
-	OrganizationID     string                    `json:"organization_id"`
-	UserType           core.UserOrganizationType `json:"user_type"`
-	jwt.RegisteredClaims
-}
-
-func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
-	return &c.RegisteredClaims
-}
 
 type UserOrganizationCSRF struct {
 	UserOrganizationID string                    `json:"user_organization_id"`

@@ -450,7 +450,7 @@ func (c *Controller) userOrganinzationController() {
 		Route:        "/api/v1/user-organization/:user_organization_id/switch",
 		ResponseType: core.UserOrganizationResponse{},
 		Method:       "GET",
-		Note:         "Switches organization and branch in JWT for the current user. No database impact.",
+		Note:         "Switches organization and branch in Cache for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
@@ -480,7 +480,7 @@ func (c *Controller) userOrganinzationController() {
 	req.RegisterWebRoute(handlers.Route{
 		Route:  "/api/v1/user-organization/unswitch",
 		Method: "POST",
-		Note:   "Removes organization and branch from JWT for the current user. No database impact.",
+		Note:   "Removes organization and branch from Cache for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -488,7 +488,7 @@ func (c *Controller) userOrganinzationController() {
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: "User organization and branch removed from JWT (unswitch)",
+			Description: "User organization and branch removed from Cache (unswitch)",
 			Module:      "UserOrganization",
 		})
 

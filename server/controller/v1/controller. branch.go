@@ -18,7 +18,7 @@ func (c *Controller) branchController() {
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch",
 		Method:       "GET",
-		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from JWT.",
+		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from cache.",
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

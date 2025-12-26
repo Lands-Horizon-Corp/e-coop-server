@@ -11,7 +11,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -44,7 +43,6 @@ type UserClaim struct {
 	Latitude       float64 `json:"latitude"`
 	Referer        string  `json:"referer"`
 	AcceptLanguage string  `json:"accept_language"`
-	jwt.RegisteredClaims
 }
 
 type UserCSRF struct {
@@ -101,10 +99,6 @@ func (m *UserCSRFResponse) UserCSRFModels(data []*UserCSRF) []*UserCSRFResponse 
 
 func (m UserCSRF) GetID() string {
 	return m.UserID
-}
-
-func (c UserClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
-	return &c.RegisteredClaims
 }
 
 type UserToken struct {
