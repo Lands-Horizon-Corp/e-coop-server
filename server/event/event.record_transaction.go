@@ -107,7 +107,7 @@ func (e Event) RecordTransaction(
 
 	var paymentType *core.PaymentType
 	if transaction.PaymentTypeID != nil {
-		paymentType, err = e.core.PaymentTypeManager.GetByID(context, *transaction.PaymentTypeID)
+		paymentType, err = e.core.PaymentTypeManager().GetByID(context, *transaction.PaymentTypeID)
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "payment-type-resolution-failed",
@@ -121,7 +121,7 @@ func (e Event) RecordTransaction(
 	var memberProfile *core.MemberProfile
 	if transaction.MemberProfileID != nil {
 		var err error
-		memberProfile, err = e.core.MemberProfileManager.GetByID(context, *transaction.MemberProfileID)
+		memberProfile, err = e.core.MemberProfileManager().GetByID(context, *transaction.MemberProfileID)
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "member-profile-retrieval-failed",
@@ -145,7 +145,7 @@ func (e Event) RecordTransaction(
 	if transaction.LoanTransactionID != nil {
 		loanTransactionID = transaction.LoanTransactionID
 
-		loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, *transaction.LoanTransactionID)
+		loanTransaction, err := e.core.LoanTransactionManager().GetByID(context, *transaction.LoanTransactionID)
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "loan-transaction-retrieval-failed",
@@ -254,7 +254,7 @@ func (e Event) RecordTransaction(
 		loanAccount.UpdatedByID = userOrg.UserID
 		loanAccount.UpdatedAt = now
 
-		if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
+		if err := e.core.LoanAccountManager().UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity: "loan-account-update-failed",
 				Description: "Failed to update loan account " +

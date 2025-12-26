@@ -95,9 +95,8 @@ type (
 	}
 )
 
-func (m *Core) postDatedCheck() {
-	m.Migration = append(m.Migration, &PostDatedCheck{})
-	m.PostDatedCheckManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{
@@ -115,16 +114,16 @@ func (m *Core) postDatedCheck() {
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:       m.MemberProfileManager().ToModel(data.MemberProfile),
 				FullName:            data.FullName,
 				PassbookNumber:      data.PassbookNumber,
 				CheckNumber:         data.CheckNumber,
@@ -132,7 +131,7 @@ func (m *Core) postDatedCheck() {
 				ClearDays:           data.ClearDays,
 				DateCleared:         data.DateCleared.Format(time.RFC3339),
 				BankID:              data.BankID,
-				Bank:                m.BankManager.ToModel(data.Bank),
+				Bank:                m.BankManager().ToModel(data.Bank),
 				Amount:              data.Amount,
 				ReferenceNumber:     data.ReferenceNumber,
 				OfficialReceiptDate: data.OfficialReceiptDate.Format(time.RFC3339),
@@ -169,7 +168,7 @@ func (m *Core) postDatedCheck() {
 }
 
 func (m *Core) PostDatedCheckCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
-	return m.PostDatedCheckManager.Find(context, &PostDatedCheck{
+	return m.PostDatedCheckManager().Find(context, &PostDatedCheck{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

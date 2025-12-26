@@ -76,9 +76,8 @@ type (
 	}
 )
 
-func (m *Core) comakerMemberProfile() {
-	m.Migration = append(m.Migration, &ComakerMemberProfile{})
-	m.ComakerMemberProfileManager = registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
+func (m *Core) ComakerMemberProfileManager() *registry.Registry[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest] {
+	return registry.NewRegistry(registry.RegistryParams[ComakerMemberProfile, ComakerMemberProfileResponse, ComakerMemberProfileRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -92,18 +91,18 @@ func (m *Core) comakerMemberProfile() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				MemberProfileID:   data.MemberProfileID,
-				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:     m.MemberProfileManager().ToModel(data.MemberProfile),
 				Amount:            data.Amount,
 				Description:       data.Description,
 				MonthsCount:       data.MonthsCount,
@@ -141,14 +140,14 @@ func (m *Core) comakerMemberProfile() {
 }
 
 func (m *Core) ComakerMemberProfileCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerMemberProfile, error) {
-	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
+	return m.ComakerMemberProfileManager().Find(context, &ComakerMemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) ComakerMemberProfileByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerMemberProfile, error) {
-	return m.ComakerMemberProfileManager.Find(context, &ComakerMemberProfile{
+	return m.ComakerMemberProfileManager().Find(context, &ComakerMemberProfile{
 		LoanTransactionID: loanTransactionID,
 	})
 }

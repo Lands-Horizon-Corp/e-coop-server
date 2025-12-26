@@ -44,12 +44,12 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.New("branch assignment is required for loan amortization schedule generation")
 	}
 
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(context, loanTransactionID, "Branch", "Account.Currency")
+	loanTransaction, err := e.core.LoanTransactionManager().GetByID(context, loanTransactionID, "Branch", "Account.Currency")
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with ID: %s", loanTransactionID.String())
 	}
 
-	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(context, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager().Find(context, &core.LoanTransactionEntry{
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
 		LoanTransactionID: loanTransaction.ID,
@@ -65,7 +65,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 	}
 
 	currency := loanTransaction.Account.Currency
-	accounts, err := e.core.AccountManager.Find(context, &core.Account{
+	accounts, err := e.core.AccountManager().Find(context, &core.Account{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
 		LoanAccountID:  loanTransaction.AccountID,
@@ -75,7 +75,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String())
 	}
 
-	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
+	holidays, err := e.core.HolidayManager().Find(context, &core.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
 		CurrencyID:     currency.ID,
@@ -344,8 +344,8 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 	}
 
 	return &LoanTransactionAmortizationResponse{
-		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
-		Currency:    *e.core.CurrencyManager.ToModel(currency),
+		Entries:     e.core.LoanTransactionEntryManager().ToModels(loanTransactionEntries),
+		Currency:    *e.core.CurrencyManager().ToModel(currency),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
 		Total:       total,

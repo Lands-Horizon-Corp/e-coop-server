@@ -30,7 +30,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		req, err := c.core.ChargesRateByTermManager.Validate(ctx)
+		req, err := c.core.ChargesRateByTermManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -92,7 +92,7 @@ func (c *Controller) chargesRateByTermController() {
 			OrganizationID:      userOrg.OrganizationID,
 		}
 
-		if err := c.core.ChargesRateByTermManager.Create(context, chargesRateByTerm); err != nil {
+		if err := c.core.ChargesRateByTermManager().Create(context, chargesRateByTerm); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by term creation failed (/charges-rate-by-term), db error: " + err.Error(),
@@ -105,7 +105,7 @@ func (c *Controller) chargesRateByTermController() {
 			Description: "Created charges rate by term (/charges-rate-by-term): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
+		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByTermManager().ToModel(chargesRateByTerm))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -126,7 +126,7 @@ func (c *Controller) chargesRateByTermController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term ID"})
 		}
 
-		req, err := c.core.ChargesRateByTermManager.Validate(ctx)
+		req, err := c.core.ChargesRateByTermManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -144,7 +144,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateByTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
+		chargesRateByTerm, err := c.core.ChargesRateByTermManager().GetByID(context, *chargesRateByTermID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -180,7 +180,7 @@ func (c *Controller) chargesRateByTermController() {
 		chargesRateByTerm.Rate22 = req.Rate22
 		chargesRateByTerm.UpdatedAt = time.Now().UTC()
 		chargesRateByTerm.UpdatedByID = userOrg.UserID
-		if err := c.core.ChargesRateByTermManager.UpdateByID(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
+		if err := c.core.ChargesRateByTermManager().UpdateByID(context, chargesRateByTerm.ID, chargesRateByTerm); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by term update failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -193,7 +193,7 @@ func (c *Controller) chargesRateByTermController() {
 			Description: "Updated charges rate by term (/charges-rate-by-term/:charges_rate_by_term_id): " + chargesRateByTerm.ID.String(),
 			Module:      "ChargesRateByTerm",
 		})
-		return ctx.JSON(http.StatusOK, c.core.ChargesRateByTermManager.ToModel(chargesRateByTerm))
+		return ctx.JSON(http.StatusOK, c.core.ChargesRateByTermManager().ToModel(chargesRateByTerm))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -211,7 +211,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by term ID"})
 		}
-		chargesRateByTerm, err := c.core.ChargesRateByTermManager.GetByID(context, *chargesRateByTermID)
+		chargesRateByTerm, err := c.core.ChargesRateByTermManager().GetByID(context, *chargesRateByTermID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -220,7 +220,7 @@ func (c *Controller) chargesRateByTermController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by term not found"})
 		}
-		if err := c.core.ChargesRateByTermManager.Delete(context, *chargesRateByTermID); err != nil {
+		if err := c.core.ChargesRateByTermManager().Delete(context, *chargesRateByTermID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by term delete failed (/charges-rate-by-term/:charges_rate_by_term_id), db error: " + err.Error(),
@@ -266,7 +266,7 @@ func (c *Controller) chargesRateByTermController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.ChargesRateByTermManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.ChargesRateByTermManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-term/bulk-delete) | error: " + err.Error(),

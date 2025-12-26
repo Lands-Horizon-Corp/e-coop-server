@@ -21,7 +21,7 @@ func (c *Controller) disbursementTransactionController() {
 		RequestType:  core.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.DisbursementTransactionManager.Validate(ctx)
+		req, err := c.core.DisbursementTransactionManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -58,7 +58,7 @@ func (c *Controller) disbursementTransactionController() {
 			ReferenceNumber:    req.ReferenceNumber,
 			Amount:             req.Amount,
 		}
-		if err := c.core.DisbursementTransactionManager.Create(context, data); err != nil {
+		if err := c.core.DisbursementTransactionManager().Create(context, data); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Disbursement transaction creation failed (/disbursement-transaction), db error: " + err.Error(),
@@ -74,7 +74,7 @@ func (c *Controller) disbursementTransactionController() {
 			Description: "Created disbursement transaction (/disbursement-transaction): " + data.ID.String(),
 			Module:      "DisbursementTransaction",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.DisbursementTransactionManager.ToModel(data))
+		return ctx.JSON(http.StatusCreated, c.core.DisbursementTransactionManager().ToModel(data))
 
 	})
 
@@ -96,7 +96,7 @@ func (c *Controller) disbursementTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().NormalPagination(context, ctx, &core.DisbursementTransaction{
 			TransactionBatchID: *transactionBatchID,
 			BranchID:           *userOrg.BranchID,
 			OrganizationID:     userOrg.OrganizationID,
@@ -118,14 +118,14 @@ func (c *Controller) disbursementTransactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().NormalPagination(context, ctx, &core.DisbursementTransaction{
 			CreatedByID:    userOrganization.UserID,
 			BranchID:       *userOrganization.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
@@ -150,7 +150,7 @@ func (c *Controller) disbursementTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().NormalPagination(context, ctx, &core.DisbursementTransaction{
 			CreatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -175,7 +175,7 @@ func (c *Controller) disbursementTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.FindRaw(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().FindRaw(context, &core.DisbursementTransaction{
 			CreatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -200,7 +200,7 @@ func (c *Controller) disbursementTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().NormalPagination(context, ctx, &core.DisbursementTransaction{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -228,7 +228,7 @@ func (c *Controller) disbursementTransactionController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := c.core.DisbursementTransactionManager.NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := c.core.DisbursementTransactionManager().NormalPagination(context, ctx, &core.DisbursementTransaction{
 			DisbursementID: *disbursementID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,

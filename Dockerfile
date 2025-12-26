@@ -1,5 +1,11 @@
-# Use Debian for builder to avoid OOM
-FROM golang:1.25.5 AS builder
+# ---------- Builder ----------
+FROM golang:1.25.5-bookworm AS builder
+
+# Install native deps for CGO
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libwebp-dev \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -8,16 +14,13 @@ RUN go mod download
 
 COPY . .
 
-ENV GOMAXPROCS=1
-ENV GOPARALLEL=1
+ENV CGO_ENABLED=1
+RUN go build -ldflags="-s -w" -o app .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o app .
-
-# Runtime image (Alpine)
+# ---------- Runtime ----------
 FROM alpine:latest
-WORKDIR /app
 
+WORKDIR /app
 RUN apk add --no-cache ffmpeg
 
 COPY --from=builder /app/app .
@@ -26,5 +29,4 @@ COPY entry.sh /entry.sh
 RUN chmod +x /entry.sh
 
 EXPOSE 8000 8001 4222 8222 8080
-
 CMD ["/entry.sh"]

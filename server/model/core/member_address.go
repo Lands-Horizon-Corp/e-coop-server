@@ -86,9 +86,8 @@ type (
 	}
 )
 
-func (m *Core) memberAddress() {
-	m.Migration = append(m.Migration, &MemberAddress{})
-	m.MemberAddressManager = registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
+func (m *Core) MemberAddressManager() *registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -102,16 +101,16 @@ func (m *Core) memberAddress() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				Label:           data.Label,
 				City:            data.City,
 				CountryCode:     data.CountryCode,
@@ -153,7 +152,7 @@ func (m *Core) memberAddress() {
 }
 
 func (m *Core) MemberAddressCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
-	return m.MemberAddressManager.Find(context, &MemberAddress{
+	return m.MemberAddressManager().Find(context, &MemberAddress{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

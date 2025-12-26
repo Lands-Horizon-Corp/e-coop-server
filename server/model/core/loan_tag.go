@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) loanTag() {
-	m.Migration = append(m.Migration, &LoanTag{})
-	m.LoanTagManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTagManager() *registry.Registry[LoanTag, LoanTagResponse, LoanTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTag, LoanTagResponse, LoanTagRequest,
 	]{
 		Preloads: []string{
@@ -89,16 +88,16 @@ func (m *Core) loanTag() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
 				Category:          data.Category,
@@ -135,7 +134,7 @@ func (m *Core) loanTag() {
 }
 
 func (m *Core) LoanTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTag, error) {
-	return m.LoanTagManager.Find(context, &LoanTag{
+	return m.LoanTagManager().Find(context, &LoanTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

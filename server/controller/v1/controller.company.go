@@ -31,7 +31,7 @@ func (c *Controller) companyController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No companies found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModels(companies))
+		return ctx.JSON(http.StatusOK, c.core.CompanyManager().ToModels(companies))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -48,7 +48,7 @@ func (c *Controller) companyController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := c.core.CompanyManager.NormalPagination(context, ctx, &core.Company{
+		companies, err := c.core.CompanyManager().NormalPagination(context, ctx, &core.Company{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -69,7 +69,7 @@ func (c *Controller) companyController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
-		company, err := c.core.CompanyManager.GetByIDRaw(context, *companyID)
+		company, err := c.core.CompanyManager().GetByIDRaw(context, *companyID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
@@ -84,7 +84,7 @@ func (c *Controller) companyController() {
 		ResponseType: core.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CompanyManager.Validate(ctx)
+		req, err := c.core.CompanyManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -123,7 +123,7 @@ func (c *Controller) companyController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.CompanyManager.Create(context, company); err != nil {
+		if err := c.core.CompanyManager().Create(context, company); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Company creation failed (/company), db error: " + err.Error(),
@@ -136,7 +136,7 @@ func (c *Controller) companyController() {
 			Description: "Created company (/company): " + company.Name,
 			Module:      "Company",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.CompanyManager.ToModel(company))
+		return ctx.JSON(http.StatusCreated, c.core.CompanyManager().ToModel(company))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -157,7 +157,7 @@ func (c *Controller) companyController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
 
-		req, err := c.core.CompanyManager.Validate(ctx)
+		req, err := c.core.CompanyManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -175,7 +175,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		company, err := c.core.CompanyManager.GetByID(context, *companyID)
+		company, err := c.core.CompanyManager().GetByID(context, *companyID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -189,7 +189,7 @@ func (c *Controller) companyController() {
 		company.Description = req.Description
 		company.UpdatedAt = time.Now().UTC()
 		company.UpdatedByID = userOrg.UserID
-		if err := c.core.CompanyManager.UpdateByID(context, company.ID, company); err != nil {
+		if err := c.core.CompanyManager().UpdateByID(context, company.ID, company); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Company update failed (/company/:company_id), db error: " + err.Error(),
@@ -202,7 +202,7 @@ func (c *Controller) companyController() {
 			Description: "Updated company (/company/:company_id): " + company.Name,
 			Module:      "Company",
 		})
-		return ctx.JSON(http.StatusOK, c.core.CompanyManager.ToModel(company))
+		return ctx.JSON(http.StatusOK, c.core.CompanyManager().ToModel(company))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -220,7 +220,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid company ID"})
 		}
-		company, err := c.core.CompanyManager.GetByID(context, *companyID)
+		company, err := c.core.CompanyManager().GetByID(context, *companyID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -229,7 +229,7 @@ func (c *Controller) companyController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Company not found"})
 		}
-		if err := c.core.CompanyManager.Delete(context, *companyID); err != nil {
+		if err := c.core.CompanyManager().Delete(context, *companyID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Company delete failed (/company/:company_id), db error: " + err.Error(),
@@ -275,7 +275,7 @@ func (c *Controller) companyController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CompanyManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.CompanyManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/company/bulk-delete) | error: " + err.Error(),

@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) interestMaturity() {
-	m.Migration = append(m.Migration, &InterestMaturity{})
-	m.InterestMaturityManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestMaturityManager() *registry.Registry[InterestMaturity, InterestMaturityResponse, InterestMaturityRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestMaturity, InterestMaturityResponse, InterestMaturityRequest,
 	]{
 		Preloads: []string{
@@ -83,16 +82,16 @@ func (m *Core) interestMaturity() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				From:           data.From,
 				To:             data.To,
 				Rate:           data.Rate,
@@ -126,7 +125,7 @@ func (m *Core) interestMaturity() {
 }
 
 func (m *Core) InterestMaturityCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestMaturity, error) {
-	return m.InterestMaturityManager.Find(context, &InterestMaturity{
+	return m.InterestMaturityManager().Find(context, &InterestMaturity{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

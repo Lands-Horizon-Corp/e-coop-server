@@ -67,9 +67,8 @@ type (
 	}
 )
 
-func (m *Core) generatedReportsDownloadUsers() {
-	m.Migration = append(m.Migration, &GeneratedReportsDownloadUsers{})
-	m.GeneratedReportsDownloadUsersManager = registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
+func (m *Core) GeneratedReportsDownloadUsersManager() *registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "User"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -83,20 +82,20 @@ func (m *Core) generatedReportsDownloadUsers() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				UserID:             data.UserID,
-				User:               m.UserManager.ToModel(data.User),
+				User:               m.UserManager().ToModel(data.User),
 				UserOrganizationID: data.UserOrganizationID,
-				UserOrganization:   m.UserOrganizationManager.ToModel(data.UserOrganization),
+				UserOrganization:   m.UserOrganizationManager().ToModel(data.UserOrganization),
 				GeneratedReportID:  data.GeneratedReportID,
-				GeneratedReport:    m.GeneratedReportManager.ToModel(data.GeneratedReport),
+				GeneratedReport:    m.GeneratedReportManager().ToModel(data.GeneratedReport),
 			}
 		},
 		Created: func(data *GeneratedReportsDownloadUsers) registry.Topics {

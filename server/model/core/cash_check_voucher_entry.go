@@ -92,9 +92,8 @@ type (
 	}
 )
 
-func (m *Core) cashCheckVoucherEntry() {
-	m.Migration = append(m.Migration, &CashCheckVoucherEntry{})
-	m.CashCheckVoucherEntryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CashCheckVoucherEntryManager() *registry.Registry[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest,
 	]{
 		Preloads: []string{
@@ -114,26 +113,26 @@ func (m *Core) cashCheckVoucherEntry() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager.ToModel(data.Account),
+				Account:            m.AccountManager().ToModel(data.Account),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				CashCheckVoucherID: data.CashCheckVoucherID,
-				CashCheckVoucher:   m.CashCheckVoucherManager.ToModel(data.CashCheckVoucher),
+				CashCheckVoucher:   m.CashCheckVoucherManager().ToModel(data.CashCheckVoucher),
 				LoanTransactionID:  data.LoanTransactionID,
-				LoanTransaction:    m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:    m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
 				Debit:              data.Debit,
 				Credit:             data.Credit,
 				Description:        data.Description,
@@ -167,7 +166,7 @@ func (m *Core) cashCheckVoucherEntry() {
 }
 
 func (m *Core) CashCheckVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherEntry, error) {
-	return m.CashCheckVoucherEntryManager.Find(context, &CashCheckVoucherEntry{
+	return m.CashCheckVoucherEntryManager().Find(context, &CashCheckVoucherEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

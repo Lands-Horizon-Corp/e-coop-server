@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberDepartmentHistory() {
-	m.Migration = append(m.Migration, &MemberDepartmentHistory{})
-	m.MemberDepartmentHistoryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberDepartmentHistoryManager() *registry.Registry[MemberDepartmentHistory, MemberDepartmentHistoryResponse, MemberDepartmentHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberDepartmentHistory,
 		MemberDepartmentHistoryResponse,
 		MemberDepartmentHistoryRequest,
@@ -86,18 +85,18 @@ func (m *Core) memberDepartmentHistory() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				MemberDepartmentID: data.MemberDepartmentID,
-				MemberDepartment:   m.MemberDepartmentManager.ToModel(data.MemberDepartment),
+				MemberDepartment:   m.MemberDepartmentManager().ToModel(data.MemberDepartment),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *MemberDepartmentHistory) registry.Topics {
@@ -131,14 +130,14 @@ func (m *Core) memberDepartmentHistory() {
 }
 
 func (m *Core) MemberDepartmentHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
-	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
+	return m.MemberDepartmentHistoryManager().Find(context, &MemberDepartmentHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberDepartmentHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberDepartmentHistory, error) {
-	return m.MemberDepartmentHistoryManager.Find(context, &MemberDepartmentHistory{
+	return m.MemberDepartmentHistoryManager().Find(context, &MemberDepartmentHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

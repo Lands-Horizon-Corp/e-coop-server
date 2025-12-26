@@ -15,8 +15,6 @@ func NewRouteHandlerExtractor[T any](url string) *RouteHandlerExtractor[T] {
 	return &RouteHandlerExtractor[T]{URL: url}
 }
 
-var allowedSegment = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
-
 func splitPath(s string) []string {
 	if s == "" {
 		return []string{}
@@ -54,7 +52,7 @@ func (r *RouteHandlerExtractor[T]) MatchableRoute(route string, fn func(params .
 	if len(patternParts) != len(pathParts) {
 		return zeroValue, nil
 	}
-
+	allowedSegment := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	var params []string
 	for i := range patternParts {
 		pp := patternParts[i]

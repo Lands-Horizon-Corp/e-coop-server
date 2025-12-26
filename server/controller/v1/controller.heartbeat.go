@@ -33,7 +33,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = core.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -74,7 +74,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = core.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "Failed to update user organization status: " + err.Error(),
@@ -119,7 +119,7 @@ func (c *Controller) heartbeat() {
 		}
 		userOrg.Status = req.UserOrganizationStatus
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
 		if err := c.provider.Service.Broker.Dispatch([]string{
@@ -141,14 +141,14 @@ func (c *Controller) heartbeat() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		userOrganizations, err := c.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := c.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organization status"})
 		}
-		statuses := c.core.UserOrganizationManager.ToModels(userOrganizations)
+		statuses := c.core.UserOrganizationManager().ToModels(userOrganizations)
 
 		var (
 			offlineUsers   []*core.UserOrganizationResponse
@@ -198,7 +198,7 @@ func (c *Controller) heartbeat() {
 			OnlineEmployees:      onlineEmployees,
 			TotalEmployees:       totalEmployees,
 			TotalActiveEmployees: len(timesheets),
-			ActiveEmployees:      c.core.TimesheetManager.ToModels(timesheets),
+			ActiveEmployees:      c.core.TimesheetManager().ToModels(timesheets),
 		})
 	})
 

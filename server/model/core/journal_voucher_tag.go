@@ -68,9 +68,8 @@ type (
 	}
 )
 
-func (m *Core) journalVoucherTag() {
-	m.Migration = append(m.Migration, &JournalVoucherTag{})
-	m.JournalVoucherTagManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) JournalVoucherTagManager() *registry.Registry[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
 	]{
 		Preloads: []string{
@@ -88,14 +87,14 @@ func (m *Core) journalVoucherTag() {
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:        m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:        m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
-				Organization:     m.OrganizationManager.ToModel(data.Organization),
+				Organization:     m.OrganizationManager().ToModel(data.Organization),
 				BranchID:         data.BranchID,
-				Branch:           m.BranchManager.ToModel(data.Branch),
+				Branch:           m.BranchManager().ToModel(data.Branch),
 				JournalVoucherID: data.JournalVoucherID,
 				Name:             data.Name,
 				Description:      data.Description,
@@ -133,7 +132,7 @@ func (m *Core) journalVoucherTag() {
 }
 
 func (m *Core) JournalVoucherTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherTag, error) {
-	return m.JournalVoucherTagManager.Find(context, &JournalVoucherTag{
+	return m.JournalVoucherTagManager().Find(context, &JournalVoucherTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -234,9 +234,8 @@ type (
 	}
 )
 
-func (m *Core) accountHistory() {
-	m.Migration = append(m.Migration, &AccountHistory{})
-	m.AccountHistoryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AccountHistoryManager() *registry.Registry[AccountHistory, AccountHistoryResponse, AccountHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},
@@ -254,13 +253,13 @@ func (m *Core) accountHistory() {
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				Name:                         data.Name,
 				Description:                  data.Description,
@@ -482,7 +481,7 @@ func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*A
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
@@ -494,7 +493,7 @@ func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organization
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
@@ -515,7 +514,7 @@ func (m *Core) GetAccountHistoryLatestByTime(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
@@ -545,7 +544,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	history, err := m.AccountHistoryManager.ArrFindOne(ctx, filters, []query.ArrFilterSortSQL{
+	history, err := m.AccountHistoryManager().ArrFindOne(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -570,7 +569,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistory(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
@@ -615,7 +614,7 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 		})
 	}
 
-	histories, err := m.AccountHistoryManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "account_id", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderDesc},
 	})

@@ -26,7 +26,7 @@ func (c *Controller) organizationDailyUsage() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization daily usage records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.OrganizationDailyUsageManager.ToModels(dailyUsage))
+		return ctx.JSON(http.StatusOK, c.core.OrganizationDailyUsageManager().ToModels(dailyUsage))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -40,7 +40,7 @@ func (c *Controller) organizationDailyUsage() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization_daily_usage_id: " + err.Error()})
 		}
-		dailyUsage, err := c.core.OrganizationDailyUsageManager.GetByIDRaw(context, *dailyUsageID)
+		dailyUsage, err := c.core.OrganizationDailyUsageManager().GetByIDRaw(context, *dailyUsageID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization daily usage by ID: " + err.Error()})
 		}

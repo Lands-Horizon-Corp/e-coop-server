@@ -76,9 +76,8 @@ type (
 	}
 )
 
-func (m *Core) disbursementTransaction() {
-	m.Migration = append(m.Migration, &DisbursementTransaction{})
-	m.DisbursementTransactionManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) DisbursementTransactionManager() *registry.Registry[DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		DisbursementTransaction, DisbursementTransactionResponse, DisbursementTransactionRequest,
 	]{
 		Preloads: []string{
@@ -98,20 +97,20 @@ func (m *Core) disbursementTransaction() {
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager.ToModel(data.Organization),
+				Organization:       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager.ToModel(data.Branch),
+				Branch:             m.BranchManager().ToModel(data.Branch),
 				DisbursementID:     data.DisbursementID,
-				Disbursement:       m.DisbursementManager.ToModel(data.Disbursement),
+				Disbursement:       m.DisbursementManager().ToModel(data.Disbursement),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				ReferenceNumber:    data.ReferenceNumber,
 				Amount:             data.Amount,
 			}
@@ -144,7 +143,7 @@ func (m *Core) disbursementTransaction() {
 }
 
 func (m *Core) DisbursementTransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*DisbursementTransaction, error) {
-	return m.DisbursementTransactionManager.Find(context, &DisbursementTransaction{
+	return m.DisbursementTransactionManager().Find(context, &DisbursementTransaction{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

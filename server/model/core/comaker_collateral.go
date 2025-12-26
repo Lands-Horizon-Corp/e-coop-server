@@ -76,9 +76,8 @@ type (
 	}
 )
 
-func (m *Core) comakerCollateral() {
-	m.Migration = append(m.Migration, &ComakerCollateral{})
-	m.ComakerCollateralManager = registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
+func (m *Core) ComakerCollateralManager() *registry.Registry[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest] {
+	return registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -92,18 +91,18 @@ func (m *Core) comakerCollateral() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				CollateralID:      data.CollateralID,
-				Collateral:        m.CollateralManager.ToModel(data.Collateral),
+				Collateral:        m.CollateralManager().ToModel(data.Collateral),
 				Amount:            data.Amount,
 				Description:       data.Description,
 				MonthsCount:       data.MonthsCount,
@@ -141,14 +140,14 @@ func (m *Core) comakerCollateral() {
 }
 
 func (m *Core) ComakerCollateralCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerCollateral, error) {
-	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
+	return m.ComakerCollateralManager().Find(context, &ComakerCollateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerCollateral, error) {
-	return m.ComakerCollateralManager.Find(context, &ComakerCollateral{
+	return m.ComakerCollateralManager().Find(context, &ComakerCollateral{
 		LoanTransactionID: loanTransactionID,
 	})
 }

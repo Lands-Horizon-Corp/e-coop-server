@@ -159,9 +159,8 @@ func (e *GeneratedReport) EXCEL(route string, callback func(params ...string) ([
 	return extractor.MatchableRoute(route, callback)
 }
 
-func (m *Core) generatedReport() {
-	m.Migration = append(m.Migration, &GeneratedReport{})
-	m.GeneratedReportManager = registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
+func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"CreatedBy.Media",
@@ -182,7 +181,7 @@ func (m *Core) generatedReport() {
 			}
 			var media *MediaResponse
 			if data.Media != nil {
-				media = m.MediaManager.ToModel(data.Media)
+				media = m.MediaManager().ToModel(data.Media)
 				media.DownloadURL = ""
 			}
 			return &GeneratedReportResponse{
@@ -190,17 +189,17 @@ func (m *Core) generatedReport() {
 				GeneratedReportType: data.GeneratedReportType,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager.ToModel(data.Organization),
+				Organization:        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager.ToModel(data.Branch),
+				Branch:              m.BranchManager().ToModel(data.Branch),
 				SystemMessage:       data.SystemMessage,
 				UserID:              data.UserID,
-				User:                m.UserManager.ToModel(data.User),
+				User:                m.UserManager().ToModel(data.User),
 				MediaID:             data.MediaID,
 				Media:               media,
 				Name:                data.Name,
@@ -216,7 +215,7 @@ func (m *Core) generatedReport() {
 				Unit:                data.Unit,
 				Landscape:           data.Landscape,
 
-				DownloadUsers: m.GeneratedReportsDownloadUsersManager.ToModels(data.DownloadUsers),
+				DownloadUsers: m.GeneratedReportsDownloadUsersManager().ToModels(data.DownloadUsers),
 			}
 		},
 		Created: func(data *GeneratedReport) registry.Topics {
@@ -251,7 +250,7 @@ func (m *Core) generatedReport() {
 
 func (e *Core) GeneratedReportAvailableModels(context context.Context, organizationID, branchID uuid.UUID) ([]GeneratedReportAvailableModelsResponse, error) {
 	var results []GeneratedReportAvailableModelsResponse
-	err := e.GeneratedReportManager.Client(context).
+	err := e.GeneratedReportManager().Client(context).
 		Select("model, COUNT(*) as count").
 		Where("organization_id = ? AND branch_id = ?", organizationID, branchID).
 		Group("model").

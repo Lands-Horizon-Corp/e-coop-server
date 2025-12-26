@@ -33,9 +33,9 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID"})
 		}
 
-		// Optional: verify organization exists (using core.OrganizationManager if needed)
+		// Optional: verify organization exists (using core.OrganizationManager().if needed)
 		// For parity with member profile controller we call GetByID
-		organization, err := c.core.OrganizationManager.GetByID(context, *organizationID)
+		organization, err := c.core.OrganizationManager().GetByID(context, *organizationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "organization-media-search-error",
@@ -45,7 +45,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
 		}
 
-		organizationMediaList, err := c.core.OrganizationMediaManager.FindRaw(context, &core.OrganizationMedia{
+		organizationMediaList, err := c.core.OrganizationMediaManager().FindRaw(context, &core.OrganizationMedia{
 			OrganizationID: organization.ID,
 		})
 		if err != nil {
@@ -76,7 +76,7 @@ func (c *Controller) organizationMediaController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.OrganizationMediaManager.Validate(ctx)
+		req, err := c.core.OrganizationMediaManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -114,7 +114,7 @@ func (c *Controller) organizationMediaController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
+		if err := c.core.OrganizationMediaManager().Create(context, organizationMedia); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Organization media creation failed (/organization-media), db error: " + err.Error(),
@@ -129,7 +129,7 @@ func (c *Controller) organizationMediaController() {
 			Module:      "OrganizationMedia",
 		})
 
-		result, err := c.core.OrganizationMediaManager.GetByID(context, organizationMedia.ID)
+		result, err := c.core.OrganizationMediaManager().GetByID(context, organizationMedia.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created organization media: " + err.Error()})
 		}
@@ -157,7 +157,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		req, err := c.core.OrganizationMediaManager.Validate(ctx)
+		req, err := c.core.OrganizationMediaManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -167,7 +167,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media data: " + err.Error()})
 		}
 
-		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMediaID)
+		organizationMedia, err := c.core.OrganizationMediaManager().GetByID(context, *organizationMediaID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -181,7 +181,7 @@ func (c *Controller) organizationMediaController() {
 		organizationMedia.Description = req.Description
 		organizationMedia.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.OrganizationMediaManager.UpdateByID(context, organizationMedia.ID, organizationMedia); err != nil {
+		if err := c.core.OrganizationMediaManager().UpdateByID(context, organizationMedia.ID, organizationMedia); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Organization media update failed (/organization-media/:organization_media_id), db error: " + err.Error(),
@@ -196,7 +196,7 @@ func (c *Controller) organizationMediaController() {
 			Module:      "OrganizationMedia",
 		})
 
-		result, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMediaID)
+		result, err := c.core.OrganizationMediaManager().GetByID(context, *organizationMediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated organization media: " + err.Error()})
 		}
@@ -222,7 +222,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		organizationMedia, err := c.core.OrganizationMediaManager.GetByID(context, *organizationMediaID)
+		organizationMedia, err := c.core.OrganizationMediaManager().GetByID(context, *organizationMediaID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -241,7 +241,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
 
-		if err := c.core.OrganizationMediaManager.Delete(context, organizationMedia.ID); err != nil {
+		if err := c.core.OrganizationMediaManager().Delete(context, organizationMedia.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Organization media delete failed (/organization-media/:organization_media_id), db error: " + err.Error(),
@@ -273,7 +273,7 @@ func (c *Controller) organizationMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization media ID"})
 		}
 
-		organizationMedia, err := c.core.OrganizationMediaManager.GetByIDRaw(context, *organizationMediaID)
+		organizationMedia, err := c.core.OrganizationMediaManager().GetByIDRaw(context, *organizationMediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
@@ -301,7 +301,7 @@ func (c *Controller) organizationMediaController() {
 
 		var createdMedia []*core.OrganizationMedia
 		for _, mediaID := range req.IDs {
-			media, err := c.core.MediaManager.GetByID(context, mediaID)
+			media, err := c.core.MediaManager().GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
@@ -315,13 +315,13 @@ func (c *Controller) organizationMediaController() {
 				Description:    &descruption,
 			}
 
-			if err := c.core.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
+			if err := c.core.OrganizationMediaManager().Create(context, organizationMedia); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create organization media: " + err.Error()})
 			}
 
 			createdMedia = append(createdMedia, organizationMedia)
 		}
 
-		return ctx.JSON(http.StatusCreated, c.core.OrganizationMediaManager.ToModels(createdMedia))
+		return ctx.JSON(http.StatusCreated, c.core.OrganizationMediaManager().ToModels(createdMedia))
 	})
 }

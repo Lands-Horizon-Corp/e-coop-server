@@ -91,9 +91,8 @@ type (
 	}
 )
 
-func (m *Core) loanAccount() {
-	m.Migration = append(m.Migration, &LoanAccount{})
-	m.LoanAccountManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanAccountManager() *registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanAccount, LoanAccountResponse, LoanAccountRequest,
 	]{
 		Preloads: []string{
@@ -111,20 +110,20 @@ func (m *Core) loanAccount() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				AccountID:         data.AccountID,
-				Account:           m.AccountManager.ToModel(data.Account),
+				Account:           m.AccountManager().ToModel(data.Account),
 				AccountHistoryID:  data.AccountHistoryID,
-				AccountHistory:    m.AccountHistoryManager.ToModel(data.AccountHistory),
+				AccountHistory:    m.AccountHistoryManager().ToModel(data.AccountHistory),
 				Amount:            data.Amount,
 
 				TotalAdd:            data.TotalAdd,
@@ -169,7 +168,7 @@ func (m *Core) LoanAccountCurrentBranch(context context.Context, organizationID 
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.LoanAccountManager.ArrFind(context, filters, nil)
+	return m.LoanAccountManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetLoanAccountByLoanTransaction(
@@ -181,7 +180,7 @@ func (m *Core) GetLoanAccountByLoanTransaction(
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.LoanAccountManager.ArrFindOneWithLock(
+	return m.LoanAccountManager().ArrFindOneWithLock(
 		ctx, tx, filters, nil, "Account", "Account.DefaultPaymentType", "AccountHistory",
 	)
 }

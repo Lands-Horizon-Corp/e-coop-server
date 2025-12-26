@@ -84,9 +84,8 @@ type (
 	}
 )
 
-func (m *Core) journalVoucherEntry() {
-	m.Migration = append(m.Migration, &JournalVoucherEntry{})
-	m.JournalVoucherEntryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) JournalVoucherEntryManager() *registry.Registry[JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		JournalVoucherEntry, JournalVoucherEntryResponse, JournalVoucherEntryRequest,
 	]{
 		Preloads: []string{
@@ -106,24 +105,24 @@ func (m *Core) journalVoucherEntry() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				AccountID:         data.AccountID,
-				Account:           m.AccountManager.ToModel(data.Account),
+				Account:           m.AccountManager().ToModel(data.Account),
 				MemberProfileID:   data.MemberProfileID,
-				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:     m.MemberProfileManager().ToModel(data.MemberProfile),
 				EmployeeUserID:    data.EmployeeUserID,
-				EmployeeUser:      m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:      m.UserManager().ToModel(data.EmployeeUser),
 				JournalVoucherID:  data.JournalVoucherID,
-				JournalVoucher:    m.JournalVoucherManager.ToModel(data.JournalVoucher),
+				JournalVoucher:    m.JournalVoucherManager().ToModel(data.JournalVoucher),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Description:       data.Description,
 				Debit:             data.Debit,
 				Credit:            data.Credit,
@@ -157,7 +156,7 @@ func (m *Core) journalVoucherEntry() {
 }
 
 func (m *Core) JournalVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherEntry, error) {
-	return m.JournalVoucherEntryManager.Find(context, &JournalVoucherEntry{
+	return m.JournalVoucherEntryManager().Find(context, &JournalVoucherEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

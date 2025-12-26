@@ -78,7 +78,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 		UpdatedAt:  time.Now().UTC(),
 	}
 
-	if err := s.core.MediaManager.Create(ctx, media); err != nil {
+	if err := s.core.MediaManager().Create(ctx, media); err != nil {
 		return nil, eris.Wrap(err, "failed to create media record")
 	}
 

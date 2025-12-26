@@ -22,11 +22,11 @@ func (c *Controller) mediaController() {
 		ResponseType: core.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		media, err := c.core.MediaManager.List(context)
+		media, err := c.core.MediaManager().List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve media records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModels(media))
+		return ctx.JSON(http.StatusOK, c.core.MediaManager().ToModels(media))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -41,7 +41,7 @@ func (c *Controller) mediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
 
-		media, err := c.core.MediaManager.GetByIDRaw(context, *mediaID)
+		media, err := c.core.MediaManager().GetByIDRaw(context, *mediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media record not found"})
 		}
@@ -83,7 +83,7 @@ func (c *Controller) mediaController() {
 			CreatedAt:  time.Now().UTC(),
 			UpdatedAt:  time.Now().UTC(),
 		}
-		if err := c.core.MediaManager.Create(context, initial); err != nil {
+		if err := c.core.MediaManager().Create(context, initial); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), db error: " + err.Error(),
@@ -92,14 +92,14 @@ func (c *Controller) mediaController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create media record: " + err.Error()})
 		}
 		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
-			_ = c.core.MediaManager.UpdateByID(context, initial.ID, &core.Media{
+			_ = c.core.MediaManager().UpdateByID(context, initial.ID, &core.Media{
 				Progress:  progress,
 				Status:    "progress",
 				UpdatedAt: time.Now().UTC(),
 			})
 		})
 		if err != nil {
-			_ = c.core.MediaManager.UpdateByID(context, initial.ID, &core.Media{
+			_ = c.core.MediaManager().UpdateByID(context, initial.ID, &core.Media{
 				ID:        initial.ID,
 				Status:    "error",
 				UpdatedAt: time.Now().UTC(),
@@ -123,7 +123,7 @@ func (c *Controller) mediaController() {
 			UpdatedAt:  time.Now().UTC(),
 			ID:         initial.ID,
 		}
-		if err := c.core.MediaManager.UpdateByID(context, completed.ID, completed); err != nil {
+		if err := c.core.MediaManager().UpdateByID(context, completed.ID, completed); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),
@@ -136,7 +136,7 @@ func (c *Controller) mediaController() {
 			Description: "Uploaded and created media (/media): " + completed.FileName,
 			Module:      "Media",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MediaManager.ToModel(completed))
+		return ctx.JSON(http.StatusCreated, c.core.MediaManager().ToModel(completed))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -156,7 +156,7 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
-		req, err := c.core.MediaManager.Validate(ctx)
+		req, err := c.core.MediaManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -165,7 +165,7 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media data: " + err.Error()})
 		}
-		media, err := c.core.MediaManager.GetByID(context, *mediaID)
+		media, err := c.core.MediaManager().GetByID(context, *mediaID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -176,7 +176,7 @@ func (c *Controller) mediaController() {
 		}
 		media.FileName = req.FileName
 		media.UpdatedAt = time.Now().UTC()
-		if err := c.core.MediaManager.UpdateByID(context, *mediaID, media); err != nil {
+		if err := c.core.MediaManager().UpdateByID(context, *mediaID, media); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), db error: " + err.Error(),
@@ -189,7 +189,7 @@ func (c *Controller) mediaController() {
 			Description: "Updated media (/media/:media_id): " + media.FileName,
 			Module:      "Media",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MediaManager.ToModel(media))
+		return ctx.JSON(http.StatusOK, c.core.MediaManager().ToModel(media))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -207,7 +207,7 @@ func (c *Controller) mediaController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
-		media, err := c.core.MediaManager.GetByID(context, *mediaID)
+		media, err := c.core.MediaManager().GetByID(context, *mediaID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -263,7 +263,7 @@ func (c *Controller) mediaController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MediaManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MediaManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Media bulk delete failed (/media/bulk-delete) | error: " + err.Error(),

@@ -67,9 +67,8 @@ type (
 	}
 )
 
-func (m *Core) billAndCoins() {
-	m.Migration = append(m.Migration, &BillAndCoins{})
-	m.BillAndCoinsManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) BillAndCoinsManager() *registry.Registry[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
@@ -85,18 +84,18 @@ func (m *Core) billAndCoins() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager.ToModel(data.Media),
+				Media:          m.MediaManager().ToModel(data.Media),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager().ToModel(data.Currency),
 				Name:           data.Name,
 				Value:          data.Value,
 			}
@@ -130,7 +129,7 @@ func (m *Core) billAndCoins() {
 
 func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	curency, err := m.CurrencyManager.List(context)
+	curency, err := m.CurrencyManager().List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for bill and coins seeding")
 	}
@@ -1407,7 +1406,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 			}
 		}
 		for _, data := range billAndCoins {
-			if err := m.BillAndCoinsManager.CreateWithTx(context, tx, data); err != nil {
+			if err := m.BillAndCoinsManager().CreateWithTx(context, tx, data); err != nil {
 				return eris.Wrapf(err, "failed to seed bill or coin %s", data.Name)
 			}
 		}
@@ -1417,7 +1416,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *Core) BillAndCoinsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
-	return m.BillAndCoinsManager.Find(context, &BillAndCoins{
+	return m.BillAndCoinsManager().Find(context, &BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

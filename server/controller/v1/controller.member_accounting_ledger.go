@@ -60,7 +60,7 @@ func (c *Controller) memberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
 
-		entries, err := c.core.GeneralLedgerManager.Find(context, &core.GeneralLedger{
+		entries, err := c.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			AccountID:       accountID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -110,7 +110,7 @@ func (c *Controller) memberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		paginatedResult, err := c.core.MemberAccountingLedgerManager.NormalPagination(context, ctx, &core.MemberAccountingLedger{
+		paginatedResult, err := c.core.MemberAccountingLedgerManager().NormalPagination(context, ctx, &core.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -158,7 +158,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member accounting ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.ToModels(entries))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager().ToModels(entries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -186,7 +186,7 @@ func (c *Controller) memberAccountingLedgerController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		paginatedResult, err := c.core.MemberAccountingLedgerManager.ArrPagination(context, ctx, []registry.FilterSQL{
+		paginatedResult, err := c.core.MemberAccountingLedgerManager().ArrPagination(context, ctx, []registry.FilterSQL{
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
 			{Field: "account_id", Op: query.ModeNotEqual, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},
@@ -221,7 +221,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if userOrg.Branch.BranchSetting.CompassionFundAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Compassion fund account not set for branch"})
 		}
-		ledger, err := c.core.MemberAccountingLedgerManager.FindOne(context, &core.MemberAccountingLedger{
+		ledger, err := c.core.MemberAccountingLedgerManager().FindOne(context, &core.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			AccountID:       *userOrg.Branch.BranchSetting.CompassionFundAccountID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -233,7 +233,7 @@ func (c *Controller) memberAccountingLedgerController() {
 		if ledger == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member accounting ledger entry not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager.ToModel(ledger))
+		return ctx.JSON(http.StatusOK, c.core.MemberAccountingLedgerManager().ToModel(ledger))
 	})
 
 }

@@ -87,7 +87,7 @@ func (c *Controller) transactionController() {
 		}
 		if req.IsReferenceNumberChecked {
 			userOrg.UserSettingUsedOR++
-			if err := c.core.UserOrganizationManager.UpdateByID(context, userOrg.ID, userOrg); err != nil {
+			if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to update user organization (/transaction): " + err.Error(),
@@ -96,7 +96,7 @@ func (c *Controller) transactionController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + err.Error()})
 			}
 		}
-		if err := c.core.TransactionManager.Create(context, transaction); err != nil {
+		if err := c.core.TransactionManager().Create(context, transaction); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Transaction creation failed (/transaction), db error: " + err.Error(),
@@ -109,7 +109,7 @@ func (c *Controller) transactionController() {
 			Description: "Transaction created successfully (/transaction), transaction_id: " + transaction.ID.String(),
 			Module:      "Transaction",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.TransactionManager.ToModel(transaction))
+		return ctx.JSON(http.StatusCreated, c.core.TransactionManager().ToModel(transaction))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -156,7 +156,7 @@ func (c *Controller) transactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
+		transaction, err := c.core.TransactionManager().GetByID(context, *transactionID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "not-found-error",
@@ -169,7 +169,7 @@ func (c *Controller) transactionController() {
 		transaction.ReferenceNumber = req.ReferenceNumber
 		transaction.UpdatedAt = time.Now().UTC()
 		transaction.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionManager.UpdateByID(context, transaction.ID, transaction); err != nil {
+		if err := c.core.TransactionManager().UpdateByID(context, transaction.ID, transaction); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to update transaction (/transaction/:transaction_id): " + err.Error(),
@@ -183,7 +183,7 @@ func (c *Controller) transactionController() {
 			Description: "Transaction description updated successfully (/transaction/:transaction_id), transaction_id: " + transaction.ID.String(),
 			Module:      "Transaction",
 		})
-		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
+		return ctx.JSON(http.StatusOK, c.core.TransactionManager().ToModel(transaction))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -204,11 +204,11 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
-		transaction, err := c.core.TransactionManager.GetByID(context, *transactionID)
+		transaction, err := c.core.TransactionManager().GetByID(context, *transactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModel(transaction))
+		return ctx.JSON(http.StatusOK, c.core.TransactionManager().ToModel(transaction))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -226,7 +226,7 @@ func (c *Controller) transactionController() {
 		}
 		var filter core.Transaction
 		if userOrg.UserType == core.UserOrganizationTypeMember {
-			memberProfile, err := c.core.MemberProfileManager.FindOne(context, &core.MemberProfile{
+			memberProfile, err := c.core.MemberProfileManager().FindOne(context, &core.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
 			if err != nil {
@@ -241,7 +241,7 @@ func (c *Controller) transactionController() {
 
 		filter.OrganizationID = userOrg.OrganizationID
 		filter.BranchID = *userOrg.BranchID
-		transactionPagination, err := c.core.TransactionManager.NormalPagination(context, ctx, &filter)
+		transactionPagination, err := c.core.TransactionManager().NormalPagination(context, ctx, &filter)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Failed to paginate transactions: " + err.Error(),
@@ -265,7 +265,7 @@ func (c *Controller) transactionController() {
 		}
 		var filter core.Transaction
 		if userOrg.UserType == core.UserOrganizationTypeMember {
-			memberProfile, err := c.core.MemberProfileManager.FindOne(context, &core.MemberProfile{
+			memberProfile, err := c.core.MemberProfileManager().FindOne(context, &core.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
 			if err != nil {
@@ -280,13 +280,13 @@ func (c *Controller) transactionController() {
 		filter.OrganizationID = userOrg.OrganizationID
 		filter.BranchID = *userOrg.BranchID
 
-		transactions, err := c.core.TransactionManager.Find(context, &filter)
+		transactions, err := c.core.TransactionManager().Find(context, &filter)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Failed to retrieve transactions: " + err.Error(),
 			})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
+		return ctx.JSON(http.StatusOK, c.core.TransactionManager().ToModels(transactions))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -307,11 +307,11 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager().NormalPagination(context, ctx, &core.Transaction{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -340,11 +340,11 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID: " + err.Error()})
 		}
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.Find(context, &core.Transaction{
+		transactions, err := c.core.TransactionManager().Find(context, &core.Transaction{
 			MemberProfileID: &memberProfile.ID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -352,7 +352,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionManager.ToModels(transactions))
+		return ctx.JSON(http.StatusOK, c.core.TransactionManager().ToModels(transactions))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -369,7 +369,7 @@ func (c *Controller) transactionController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager().NormalPagination(context, ctx, &core.Transaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -394,7 +394,7 @@ func (c *Controller) transactionController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactions, err := c.core.TransactionManager.NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := c.core.TransactionManager().NormalPagination(context, ctx, &core.Transaction{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

@@ -44,9 +44,8 @@ type (
 	}
 )
 
-func (m *Core) feedback() {
-	m.Migration = append(m.Migration, &Feedback{})
-	m.FeedbackManager = registry.NewRegistry(registry.RegistryParams[Feedback, FeedbackResponse, FeedbackRequest]{
+func (m *Core) FeedbackManager() *registry.Registry[Feedback, FeedbackResponse, FeedbackRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -62,7 +61,7 @@ func (m *Core) feedback() {
 				Description:  data.Description,
 				FeedbackType: data.FeedbackType,
 				MediaID:      data.MediaID,
-				Media:        m.MediaManager.ToModel(data.Media),
+				Media:        m.MediaManager().ToModel(data.Media),
 				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}

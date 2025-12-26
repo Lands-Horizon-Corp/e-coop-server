@@ -112,9 +112,8 @@ type (
 	}
 )
 
-func (m *Core) transaction() {
-	m.Migration = append(m.Migration, &Transaction{})
-	m.TransactionManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionResponse, TransactionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
 		Preloads: []string{
@@ -138,24 +137,24 @@ func (m *Core) transaction() {
 				ID:                   data.ID,
 				CreatedAt:            data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:          data.CreatedByID,
-				CreatedBy:            m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:            m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:            data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:          data.UpdatedByID,
-				UpdatedBy:            m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:            m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:       data.OrganizationID,
-				Organization:         m.OrganizationManager.ToModel(data.Organization),
+				Organization:         m.OrganizationManager().ToModel(data.Organization),
 				BranchID:             data.BranchID,
-				Branch:               m.BranchManager.ToModel(data.Branch),
+				Branch:               m.BranchManager().ToModel(data.Branch),
 				SignatureMediaID:     data.SignatureMediaID,
-				SignatureMedia:       m.MediaManager.ToModel(data.SignatureMedia),
+				SignatureMedia:       m.MediaManager().ToModel(data.SignatureMedia),
 				TransactionBatchID:   data.TransactionBatchID,
-				TransactionBatch:     m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:     m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				EmployeeUserID:       data.EmployeeUserID,
-				EmployeeUser:         m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:         m.UserManager().ToModel(data.EmployeeUser),
 				MemberProfileID:      data.MemberProfileID,
-				MemberProfile:        m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:        m.MemberProfileManager().ToModel(data.MemberProfile),
 				MemberJointAccountID: data.MemberJointAccountID,
-				MemberJointAccount:   m.MemberJointAccountManager.ToModel(data.MemberJointAccount),
+				MemberJointAccount:   m.MemberJointAccountManager().ToModel(data.MemberJointAccount),
 				LoanBalance:          data.LoanBalance,
 				LoanDue:              data.LoanDue,
 				TotalDue:             data.TotalDue,
@@ -166,7 +165,7 @@ func (m *Core) transaction() {
 				Amount:               data.Amount,
 				Description:          data.Description,
 				CurrencyID:           data.CurrencyID,
-				Currency:             m.CurrencyManager.ToModel(data.Currency),
+				Currency:             m.CurrencyManager().ToModel(data.Currency),
 			}
 		},
 
@@ -225,7 +224,7 @@ func (m *Core) transaction() {
 }
 
 func (m *Core) TransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
-	return m.TransactionManager.Find(context, &Transaction{
+	return m.TransactionManager().Find(context, &Transaction{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -241,7 +240,7 @@ func (m *Core) TransactionsByUserType(
 	var filter Transaction
 
 	if userType == UserOrganizationTypeMember {
-		memberProfile, err := m.MemberProfileManager.FindOne(context, &MemberProfile{
+		memberProfile, err := m.MemberProfileManager().FindOne(context, &MemberProfile{
 			UserID: &userID,
 		})
 		if err != nil {
@@ -255,5 +254,5 @@ func (m *Core) TransactionsByUserType(
 	filter.OrganizationID = organizationID
 	filter.BranchID = branchID
 
-	return m.TransactionManager.Find(context, &filter)
+	return m.TransactionManager().Find(context, &filter)
 }

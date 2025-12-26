@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	FinancialStatementGrouping struct {
+	FinancialStatementAccountsGrouping struct {
 		ID             uuid.UUID     `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_financial_statement_grouping"`
 		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
@@ -39,10 +39,10 @@ type (
 		UpdatedAt time.Time      `gorm:"not null;default:now()"`
 		DeletedAt gorm.DeletedAt `gorm:"index"`
 
-		FinancialStatementDefinitionEntries []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementGroupingID" json:"financial_statement_definition_entries,omitempty"`
+		FinancialStatementDefinitionEntries []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementAccountsGroupingID" json:"financial_statement_definition_entries,omitempty"`
 	}
 
-	FinancialStatementGroupingResponse struct {
+	FinancialStatementAccountsGroupingResponse struct {
 		ID                                  uuid.UUID                               `json:"id"`
 		OrganizationID                      uuid.UUID                               `json:"organization_id"`
 		Organization                        *OrganizationResponse                   `json:"organization,omitempty"`
@@ -66,7 +66,7 @@ type (
 		FinancialStatementDefinitionEntries []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 	}
 
-	FinancialStatementGroupingRequest struct {
+	FinancialStatementAccountsGroupingRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=50"`
 		Description string     `json:"description" validate:"required"`
 		Debit       float64    `json:"debit" validate:"omitempty,gt=0"`
@@ -75,9 +75,8 @@ type (
 	}
 )
 
-func (m *Core) financialStatementGrouping() {
-	m.Migration = append(m.Migration, &FinancialStatementGrouping{})
-	m.FinancialStatementGroupingManager = registry.NewRegistry(registry.RegistryParams[FinancialStatementGrouping, FinancialStatementGroupingResponse, FinancialStatementGroupingRequest]{
+func (m *Core) FinancialStatementAccountsGroupingManager() *registry.Registry[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "IconMedia",
 		},
@@ -85,7 +84,7 @@ func (m *Core) financialStatementGrouping() {
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *FinancialStatementGrouping) *FinancialStatementGroupingResponse {
+		Resource: func(data *FinancialStatementAccountsGrouping) *FinancialStatementAccountsGroupingResponse {
 			if data == nil {
 				return nil
 			}
@@ -94,20 +93,20 @@ func (m *Core) financialStatementGrouping() {
 				t := data.DeletedAt.Time.Format(time.RFC3339)
 				deletedAt = &t
 			}
-			return &FinancialStatementGroupingResponse{
+			return &FinancialStatementAccountsGroupingResponse{
 				ID:                                  data.ID,
 				OrganizationID:                      data.OrganizationID,
-				Organization:                        m.OrganizationManager.ToModel(data.Organization),
+				Organization:                        m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                            data.BranchID,
-				Branch:                              m.BranchManager.ToModel(data.Branch),
+				Branch:                              m.BranchManager().ToModel(data.Branch),
 				CreatedByID:                         data.CreatedByID,
-				CreatedBy:                           m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                           m.UserManager().ToModel(data.CreatedBy),
 				UpdatedByID:                         data.UpdatedByID,
-				UpdatedBy:                           m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                           m.UserManager().ToModel(data.UpdatedBy),
 				DeletedByID:                         data.DeletedByID,
-				DeletedBy:                           m.UserManager.ToModel(data.DeletedBy),
+				DeletedBy:                           m.UserManager().ToModel(data.DeletedBy),
 				IconMediaID:                         data.IconMediaID,
-				IconMedia:                           m.MediaManager.ToModel(data.IconMedia),
+				IconMedia:                           m.MediaManager().ToModel(data.IconMedia),
 				Name:                                data.Name,
 				Description:                         data.Description,
 				Debit:                               data.Debit,
@@ -115,10 +114,10 @@ func (m *Core) financialStatementGrouping() {
 				CreatedAt:                           data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                           data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                           deletedAt,
-				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager().ToModels(data.FinancialStatementDefinitionEntries),
 			}
 		},
-		Created: func(data *FinancialStatementGrouping) registry.Topics {
+		Created: func(data *FinancialStatementAccountsGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.create",
 				fmt.Sprintf("financial_statement_grouping.create.%s", data.ID),
@@ -126,7 +125,7 @@ func (m *Core) financialStatementGrouping() {
 				fmt.Sprintf("financial_statement_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *FinancialStatementGrouping) registry.Topics {
+		Updated: func(data *FinancialStatementAccountsGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.update",
 				fmt.Sprintf("financial_statement_grouping.update.%s", data.ID),
@@ -134,7 +133,7 @@ func (m *Core) financialStatementGrouping() {
 				fmt.Sprintf("financial_statement_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *FinancialStatementGrouping) registry.Topics {
+		Deleted: func(data *FinancialStatementAccountsGrouping) registry.Topics {
 			return []string{
 				"financial_statement_grouping.delete",
 				fmt.Sprintf("financial_statement_grouping.delete.%s", data.ID),
@@ -145,10 +144,10 @@ func (m *Core) financialStatementGrouping() {
 	})
 }
 
-func (m *Core) financialStatementGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func (m *Core) FinancialStatementAccountsGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	financialStatementGrouping := []*FinancialStatementGrouping{
+	FinancialStatementAccountsGrouping := []*FinancialStatementAccountsGrouping{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -210,23 +209,23 @@ func (m *Core) financialStatementGroupingSeed(context context.Context, tx *gorm.
 			Credit:         0.0,
 		},
 	}
-	for _, data := range financialStatementGrouping {
-		if err := m.FinancialStatementGroupingManager.CreateWithTx(context, tx, data); err != nil {
+	for _, data := range FinancialStatementAccountsGrouping {
+		if err := m.FinancialStatementAccountsGroupingManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed financial statement accounts grouping %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) FinancialStatementGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
-	return m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
+func (m *Core) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
+	return m.FinancialStatementAccountsGroupingManager().Find(context, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) FinancialStatementGroupingAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementGrouping, error) {
-	fsGroupings, err := m.FinancialStatementGroupingManager.Find(context, &FinancialStatementGrouping{
+func (m *Core) FinancialStatementAccountsGroupingAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
+	fsGroupings, err := m.FinancialStatementAccountsGroupingManager().Find(context, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -236,7 +235,7 @@ func (m *Core) FinancialStatementGroupingAlignments(context context.Context, org
 	for _, grouping := range fsGroupings {
 		if grouping != nil {
 			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
-			entries, err := m.FinancialStatementDefinitionManager.ArrFind(context,
+			entries, err := m.FinancialStatementDefinitionManager().ArrFind(context,
 				[]registry.FilterSQL{
 					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},

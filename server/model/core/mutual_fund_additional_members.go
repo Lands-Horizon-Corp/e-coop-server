@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) mutualFundAdditionalMembers() {
-	m.Migration = append(m.Migration, &MutualFundAdditionalMembers{})
-	m.MutualFundAdditionalMembersManager = registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
+func (m *Core) MutualFundAdditionalMembersManager() *registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -82,18 +81,18 @@ func (m *Core) mutualFundAdditionalMembers() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MutualFundID:    data.MutualFundID,
-				MutualFund:      m.MutualFundManager.ToModel(data.MutualFund),
+				MutualFund:      m.MutualFundManager().ToModel(data.MutualFund),
 				MemberTypeID:    data.MemberTypeID,
-				MemberType:      m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:      m.MemberTypeManager().ToModel(data.MemberType),
 				NumberOfMembers: data.NumberOfMembers,
 				Ratio:           data.Ratio,
 			}
@@ -132,14 +131,14 @@ func (m *Core) mutualFundAdditionalMembers() {
 }
 
 func (m *Core) MutualFundAdditionalMembersCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return m.MutualFundAdditionalMembersManager.Find(context, &MutualFundAdditionalMembers{
+	return m.MutualFundAdditionalMembersManager().Find(context, &MutualFundAdditionalMembers{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MutualFundAdditionalMembersByMutualFund(context context.Context, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return m.MutualFundAdditionalMembersManager.Find(context, &MutualFundAdditionalMembers{
+	return m.MutualFundAdditionalMembersManager().Find(context, &MutualFundAdditionalMembers{
 		MutualFundID:   mutualFundID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

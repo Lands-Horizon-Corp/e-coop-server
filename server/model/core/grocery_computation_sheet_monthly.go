@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) groceryComputationSheetMonthly() {
-	m.Migration = append(m.Migration, &GroceryComputationSheetMonthly{})
-	m.GroceryComputationSheetMonthlyManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GroceryComputationSheetMonthlyManager() *registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest,
 	]{
 		Preloads: []string{
@@ -83,16 +82,16 @@ func (m *Core) groceryComputationSheetMonthly() {
 				ID:                        data.ID,
 				CreatedAt:                 data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:               data.CreatedByID,
-				CreatedBy:                 m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                 m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                 data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:               data.UpdatedByID,
-				UpdatedBy:                 m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                 m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:            data.OrganizationID,
-				Organization:              m.OrganizationManager.ToModel(data.Organization),
+				Organization:              m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                  data.BranchID,
-				Branch:                    m.BranchManager.ToModel(data.Branch),
+				Branch:                    m.BranchManager().ToModel(data.Branch),
 				GroceryComputationSheetID: data.GroceryComputationSheetID,
-				GroceryComputationSheet:   m.GroceryComputationSheetManager.ToModel(data.GroceryComputationSheet),
+				GroceryComputationSheet:   m.GroceryComputationSheetManager().ToModel(data.GroceryComputationSheet),
 				Months:                    data.Months,
 				InterestRate:              data.InterestRate,
 				LoanGuaranteedFundRate:    data.LoanGuaranteedFundRate,
@@ -126,7 +125,7 @@ func (m *Core) groceryComputationSheetMonthly() {
 }
 
 func (m *Core) GroceryComputationSheetMonthlyCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheetMonthly, error) {
-	return m.GroceryComputationSheetMonthlyManager.Find(context, &GroceryComputationSheetMonthly{
+	return m.GroceryComputationSheetMonthlyManager().Find(context, &GroceryComputationSheetMonthly{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

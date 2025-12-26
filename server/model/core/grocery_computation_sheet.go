@@ -54,9 +54,8 @@ type (
 	}
 )
 
-func (m *Core) groceryComputationSheet() {
-	m.Migration = append(m.Migration, &GroceryComputationSheet{})
-	m.GroceryComputationSheetManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GroceryComputationSheetManager() *registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest,
 	]{
 		Preloads: []string{
@@ -74,14 +73,14 @@ func (m *Core) groceryComputationSheet() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				SchemeNumber:   data.SchemeNumber,
 				Description:    data.Description,
 			}
@@ -114,7 +113,7 @@ func (m *Core) groceryComputationSheet() {
 }
 
 func (m *Core) GroceryComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheet, error) {
-	return m.GroceryComputationSheetManager.Find(context, &GroceryComputationSheet{
+	return m.GroceryComputationSheetManager().Find(context, &GroceryComputationSheet{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

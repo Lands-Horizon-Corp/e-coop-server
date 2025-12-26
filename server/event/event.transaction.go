@@ -151,7 +151,7 @@ func (e *Event) TransactionPayment(
 	var transaction *core.Transaction
 	now := time.Now().UTC()
 	if data.TransactionID != nil {
-		transaction, err = e.core.TransactionManager.GetByID(context, *data.TransactionID)
+		transaction, err = e.core.TransactionManager().GetByID(context, *data.TransactionID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			transaction = nil
 		} else if err != nil {
@@ -169,7 +169,7 @@ func (e *Event) TransactionPayment(
 		memberProfileID = transaction.MemberProfileID
 	}
 	if data.MemberProfileID != nil {
-		memberProfile, err := e.core.MemberProfileManager.GetByID(context, *data.MemberProfileID)
+		memberProfile, err := e.core.MemberProfileManager().GetByID(context, *data.MemberProfileID)
 		if err != nil {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "member-error",
@@ -289,7 +289,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("cash on hand account is nil"))
 	}
 
-	paymentType, err := e.core.PaymentTypeManager.GetByID(context, *data.PaymentTypeID)
+	paymentType, err := e.core.PaymentTypeManager().GetByID(context, *data.PaymentTypeID)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "payment-type-error",
@@ -342,7 +342,7 @@ func (e *Event) TransactionPayment(
 			InterestDue:          0,
 			CurrencyID:           *account.CurrencyID,
 		}
-		if err := e.core.TransactionManager.CreateWithTx(context, tx, transaction); err != nil {
+		if err := e.core.TransactionManager().CreateWithTx(context, tx, transaction); err != nil {
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "transaction-create-error",
 				Description: "Failed to create transaction (/transaction/payment/:transaction_id): " + err.Error(),
@@ -444,7 +444,7 @@ func (e *Event) TransactionPayment(
 			loanAccount.UpdatedByID = userOrg.UserID
 			loanAccount.UpdatedAt = now
 
-			if err := e.core.LoanAccountManager.UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
+			if err := e.core.LoanAccountManager().UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
 				e.Footstep(ctx, FootstepEvent{
 					Activity: "loan-account-update-failed",
 					Description: "Failed to update loan account " +
@@ -543,7 +543,7 @@ func (e *Event) TransactionPayment(
 
 	transaction.UpdatedAt = now
 	transaction.UpdatedByID = userOrg.UserID
-	if err := e.core.TransactionManager.UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
+	if err := e.core.TransactionManager().UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "transaction-update-error",
 			Description: "Failed to update transaction (/transaction/payment/:transaction_id): " + err.Error(),

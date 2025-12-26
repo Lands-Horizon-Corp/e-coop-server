@@ -70,9 +70,8 @@ type (
 	}
 )
 
-func (m *Core) memberEducationalAttainment() {
-	m.Migration = append(m.Migration, &MemberEducationalAttainment{})
-	m.MemberEducationalAttainmentManager = registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
+func (m *Core) MemberEducationalAttainmentManager() *registry.Registry[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberEducationalAttainment, MemberEducationalAttainmentResponse, MemberEducationalAttainmentRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -86,16 +85,16 @@ func (m *Core) memberEducationalAttainment() {
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:             m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:             m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager.ToModel(data.Organization),
+				Organization:          m.OrganizationManager().ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager.ToModel(data.Branch),
+				Branch:                m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:       data.MemberProfileID,
-				MemberProfile:         m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:         m.MemberProfileManager().ToModel(data.MemberProfile),
 				SchoolName:            data.SchoolName,
 				SchoolYear:            data.SchoolYear,
 				ProgramCourse:         data.ProgramCourse,
@@ -132,7 +131,7 @@ func (m *Core) memberEducationalAttainment() {
 }
 
 func (m *Core) MemberEducationalAttainmentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberEducationalAttainment, error) {
-	return m.MemberEducationalAttainmentManager.Find(context, &MemberEducationalAttainment{
+	return m.MemberEducationalAttainmentManager().Find(context, &MemberEducationalAttainment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

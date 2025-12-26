@@ -68,9 +68,8 @@ type (
 	}
 )
 
-func (m *Core) timesheet() {
-	m.Migration = append(m.Migration, &Timesheet{})
-	m.TimesheetManager = registry.NewRegistry(registry.RegistryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
+func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetResponse, TimesheetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -97,20 +96,20 @@ func (m *Core) timesheet() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				UserID:         data.UserID,
-				User:           m.UserManager.ToModel(data.User),
+				User:           m.UserManager().ToModel(data.User),
 				MediaInID:      data.MediaInID,
-				MediaIn:        m.MediaManager.ToModel(data.MediaIn),
+				MediaIn:        m.MediaManager().ToModel(data.MediaIn),
 				MediaOutID:     data.MediaOutID,
-				MediaOut:       m.MediaManager.ToModel(data.MediaOut),
+				MediaOut:       m.MediaManager().ToModel(data.MediaOut),
 				TimeIn:         data.TimeIn.Format(time.RFC3339),
 				TimeOut:        timeOutStr,
 			}
@@ -152,7 +151,7 @@ func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uu
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.TimesheetManager.ArrFind(context, filters, nil)
+	return m.TimesheetManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
@@ -162,7 +161,7 @@ func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID,
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.TimesheetManager.ArrFind(context, filters, nil)
+	return m.TimesheetManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
@@ -172,5 +171,5 @@ func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, bra
 		{Field: "time_out", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.TimesheetManager.ArrFind(context, filters, nil)
+	return m.TimesheetManager().ArrFind(context, filters, nil)
 }

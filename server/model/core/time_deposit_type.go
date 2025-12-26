@@ -118,9 +118,8 @@ type (
 	}
 )
 
-func (m *Core) timeDepositType() {
-	m.Migration = append(m.Migration, &TimeDepositType{})
-	m.TimeDepositTypeManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TimeDepositTypeManager() *registry.Registry[TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		TimeDepositType, TimeDepositTypeResponse, TimeDepositTypeRequest,
 	]{
 		Preloads: []string{
@@ -138,16 +137,16 @@ func (m *Core) timeDepositType() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager().ToModel(data.Currency),
 
 				Header1:  data.Header1,
 				Header2:  data.Header2,
@@ -167,8 +166,8 @@ func (m *Core) timeDepositType() {
 				PreMatureRate: data.PreMatureRate,
 				Excess:        data.Excess,
 
-				TimeDepositComputations:          m.TimeDepositComputationManager.ToModels(data.TimeDepositComputations),
-				TimeDepositComputationPreMatures: m.TimeDepositComputationPreMatureManager.ToModels(data.TimeDepositComputationPreMatures),
+				TimeDepositComputations:          m.TimeDepositComputationManager().ToModels(data.TimeDepositComputations),
+				TimeDepositComputationPreMatures: m.TimeDepositComputationPreMatureManager().ToModels(data.TimeDepositComputationPreMatures),
 			}
 		},
 
@@ -200,7 +199,7 @@ func (m *Core) timeDepositType() {
 }
 
 func (m *Core) TimeDepositTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TimeDepositType, error) {
-	return m.TimeDepositTypeManager.Find(context, &TimeDepositType{
+	return m.TimeDepositTypeManager().Find(context, &TimeDepositType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -28,7 +28,7 @@ func (c *Controller) cashCountController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCount, err := c.core.CashCountManager.NormalPagination(context, ctx, &core.CashCount{
+		cashCount, err := c.core.CashCountManager().NormalPagination(context, ctx, &core.CashCount{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -56,7 +56,7 @@ func (c *Controller) cashCountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		cashCount, err := c.core.CashCountManager.NormalPagination(context, ctx, &core.CashCount{
+		cashCount, err := c.core.CashCountManager().NormalPagination(context, ctx, &core.CashCount{
 			TransactionBatchID: *transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -90,7 +90,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		cashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
+		cashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -99,7 +99,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash counts: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CashCountManager.ToModels(cashCounts))
+		return ctx.JSON(http.StatusOK, c.core.CashCountManager().ToModels(cashCounts))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -188,7 +188,7 @@ func (c *Controller) cashCountController() {
 			Name:               cashCountReq.Name,
 		}
 
-		if err := c.core.CashCountManager.Create(context, newCashCount); err != nil {
+		if err := c.core.CashCountManager().Create(context, newCashCount); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), db error: " + err.Error(),
@@ -205,7 +205,7 @@ func (c *Controller) cashCountController() {
 			Description: "Created cash count (/cash-count): " + newCashCount.Name,
 			Module:      "CashCount",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.CashCountManager.ToModel(newCashCount))
+		return ctx.JSON(http.StatusCreated, c.core.CashCountManager().ToModel(newCashCount))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -275,7 +275,7 @@ func (c *Controller) cashCountController() {
 
 		if batchRequest.DeletedCashCounts != nil {
 			for _, deletedID := range *batchRequest.DeletedCashCounts {
-				if err := c.core.CashCountManager.Delete(context, deletedID); err != nil {
+				if err := c.core.CashCountManager().Delete(context, deletedID); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count delete failed during update (/cash-count), db error: " + err.Error(),
@@ -300,7 +300,7 @@ func (c *Controller) cashCountController() {
 			cashCountReq.EmployeeUserID = userOrg.UserID
 			cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
 			if cashCountReq.ID != nil {
-				updatedCashCount, err := c.core.CashCountManager.GetByID(context, *cashCountReq.ID)
+				updatedCashCount, err := c.core.CashCountManager().GetByID(context, *cashCountReq.ID)
 				if err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
@@ -322,7 +322,7 @@ func (c *Controller) cashCountController() {
 				updatedCashCount.UpdatedByID = userOrg.UserID
 				updatedCashCount.OrganizationID = userOrg.OrganizationID
 				updatedCashCount.BranchID = *userOrg.BranchID
-				if err := c.core.CashCountManager.UpdateByID(context, *cashCountReq.ID, updatedCashCount); err != nil {
+				if err := c.core.CashCountManager().UpdateByID(context, *cashCountReq.ID, updatedCashCount); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count update failed during update (/cash-count), db error: " + err.Error(),
@@ -347,7 +347,7 @@ func (c *Controller) cashCountController() {
 					Amount:             cashCountReq.Amount,
 					Name:               cashCountReq.Name,
 				}
-				if err := c.core.CashCountManager.Create(context, newCashCount); err != nil {
+				if err := c.core.CashCountManager().Create(context, newCashCount); err != nil {
 					c.event.Footstep(ctx, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash count creation failed during update (/cash-count), db error: " + err.Error(),
@@ -358,7 +358,7 @@ func (c *Controller) cashCountController() {
 				updatedCashCounts = append(updatedCashCounts, newCashCount)
 			}
 		}
-		allCashCounts, err := c.core.CashCountManager.Find(context, &core.CashCount{
+		allCashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -449,7 +449,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete cash counts"})
 		}
 
-		cashCount, err := c.core.CashCountManager.GetByID(context, *cashCountID)
+		cashCount, err := c.core.CashCountManager().GetByID(context, *cashCountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -459,7 +459,7 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash count not found for the given ID"})
 		}
 
-		if err := c.core.CashCountManager.Delete(context, *cashCountID); err != nil {
+		if err := c.core.CashCountManager().Delete(context, *cashCountID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash count delete failed (/cash-count/:id), db error: " + err.Error(),
@@ -510,10 +510,10 @@ func (c *Controller) cashCountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view this cash count"})
 		}
-		cashCount, err := c.core.CashCountManager.GetByID(context, *cashCountID)
+		cashCount, err := c.core.CashCountManager().GetByID(context, *cashCountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash count not found for the given ID"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCountManager.ToModel(cashCount))
+		return ctx.JSON(http.StatusOK, c.core.CashCountManager().ToModel(cashCount))
 	})
 }

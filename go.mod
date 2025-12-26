@@ -4,12 +4,13 @@ go 1.25.5
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20250803210736-d308e07a266d
-	github.com/go-playground/validator/v10 v10.29.0
+	github.com/go-playground/validator/v10 v10.30.0
 	github.com/labstack/echo/v4 v4.14.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/image v0.34.0
 )
 
 require (
@@ -85,7 +86,7 @@ require (
 	github.com/chromedp/chromedp v0.14.2
 	github.com/fatih/color v1.18.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/jaswdr/faker v1.19.1

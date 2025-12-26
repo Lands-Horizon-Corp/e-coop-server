@@ -189,9 +189,8 @@ type (
 	}
 )
 
-func (m *Core) branchSetting() {
-	m.Migration = append(m.Migration, &BranchSetting{})
-	m.BranchSettingManager = registry.NewRegistry(registry.RegistryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
+func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSettingResponse, BranchSettingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
 			"Currency",
@@ -222,7 +221,7 @@ func (m *Core) branchSetting() {
 				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
 				BranchID:   data.BranchID,
 				CurrencyID: data.CurrencyID,
-				Currency:   m.CurrencyManager.ToModel(data.Currency),
+				Currency:   m.CurrencyManager().ToModel(data.Currency),
 
 				WithdrawAllowUserInput: data.WithdrawAllowUserInput,
 				WithdrawPrefix:         data.WithdrawPrefix,
@@ -262,16 +261,16 @@ func (m *Core) branchSetting() {
 				CheckVoucherUseDateOR:      data.CheckVoucherUseDateOR,
 
 				DefaultMemberTypeID: data.DefaultMemberTypeID,
-				DefaultMemberType:   m.MemberTypeManager.ToModel(data.DefaultMemberType),
+				DefaultMemberType:   m.MemberTypeManager().ToModel(data.DefaultMemberType),
 
 				CashOnHandAccountID:          data.CashOnHandAccountID,
-				CashOnHandAccount:            m.AccountManager.ToModel(data.CashOnHandAccount),
+				CashOnHandAccount:            m.AccountManager().ToModel(data.CashOnHandAccount),
 				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
-				PaidUpSharedCapitalAccount:   m.AccountManager.ToModel(data.PaidUpSharedCapitalAccount),
+				PaidUpSharedCapitalAccount:   m.AccountManager().ToModel(data.PaidUpSharedCapitalAccount),
 				CompassionFundAccountID:      data.CompassionFundAccountID,
-				CompassionFundAccount:        m.AccountManager.ToModel(data.CompassionFundAccount),
+				CompassionFundAccount:        m.AccountManager().ToModel(data.CompassionFundAccount),
 
-				UnbalancedAccounts: m.UnbalancedAccountManager.ToModels(data.UnbalancedAccounts),
+				UnbalancedAccounts: m.UnbalancedAccountManager().ToModels(data.UnbalancedAccounts),
 				AnnualDivisor:      data.AnnualDivisor,
 			}
 		},

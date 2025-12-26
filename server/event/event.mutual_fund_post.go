@@ -16,11 +16,11 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	request core.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	mutualFund, err := e.core.MutualFundManager.GetByID(context, *mutualFundID, "Account", "Account.Currency")
+	mutualFund, err := e.core.MutualFundManager().GetByID(context, *mutualFundID, "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
-	mutualFundEntries, err := e.core.MutualFundEntryManager.Find(context, &core.MutualFundEntry{
+	mutualFundEntries, err := e.core.MutualFundEntryManager().Find(context, &core.MutualFundEntry{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		MutualFundID:   mutualFund.ID,
@@ -100,7 +100,7 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	mutualFund.PostedByUserID = &userOrg.UserID
 	mutualFund.TotalAmount = totalAmount
 	mutualFund.PostAccountID = request.PostAccountID
-	if err := e.core.MutualFundManager.UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
+	if err := e.core.MutualFundManager().UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
 	if err := endTx(nil); err != nil {

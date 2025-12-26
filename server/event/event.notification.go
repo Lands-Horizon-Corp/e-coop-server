@@ -41,7 +41,7 @@ func (e *Event) createNotificationForUsers(context context.Context, users []*cor
 			UserType:         org.UserType,
 		}
 
-		if err := e.core.NotificationManager.Create(context, notification); err != nil {
+		if err := e.core.NotificationManager().Create(context, notification); err != nil {
 			continue // Continue with other notifications if one fails
 		}
 	}
@@ -82,7 +82,7 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 			return
 		}
 
-		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 		})
@@ -105,7 +105,7 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 			return
 		}
 
-		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
@@ -121,7 +121,7 @@ func (e *Event) OrganizationDirectNotification(ctx echo.Context, organizationID 
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {
@@ -137,7 +137,7 @@ func (e *Event) OrganizationAdminsDirectNotification(ctx echo.Context, organizat
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrganizations, err := e.core.UserOrganizationManager.Find(context, &core.UserOrganization{
+		userOrganizations, err := e.core.UserOrganizationManager().Find(context, &core.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {

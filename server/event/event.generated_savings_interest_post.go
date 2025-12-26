@@ -16,11 +16,11 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 	request core.GenerateSavingsInterestPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
-	generateSavingsInterest, err := e.core.GeneratedSavingsInterestManager.GetByID(context, *generateSavingsInterestID)
+	generateSavingsInterest, err := e.core.GeneratedSavingsInterestManager().GetByID(context, *generateSavingsInterestID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to get generated savings interest"))
 	}
-	generatedSavinggEntry, err := e.core.GeneratedSavingsInterestEntryManager.Find(context, &core.GeneratedSavingsInterestEntry{
+	generatedSavinggEntry, err := e.core.GeneratedSavingsInterestEntryManager().Find(context, &core.GeneratedSavingsInterestEntry{
 		OrganizationID:             userOrg.OrganizationID,
 		BranchID:                   *userOrg.BranchID,
 		GeneratedSavingsInterestID: *generateSavingsInterestID,
@@ -90,7 +90,7 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 	generateSavingsInterest.PostAccountID = request.PostAccountID
 	generateSavingsInterest.TotalInterest = totalInterest
 	generateSavingsInterest.TotalTax = totalTax
-	if err := e.core.GeneratedSavingsInterestManager.UpdateByIDWithTx(context, tx, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+	if err := e.core.GeneratedSavingsInterestManager().UpdateByIDWithTx(context, tx, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
 	if err := endTx(nil); err != nil {

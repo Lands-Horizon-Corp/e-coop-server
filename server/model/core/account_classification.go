@@ -391,15 +391,14 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 	}
 
 	for _, classification := range classifications {
-		if err := m.AccountClassificationManager.CreateWithTx(context, tx, classification); err != nil {
+		if err := m.AccountClassificationManager().CreateWithTx(context, tx, classification); err != nil {
 			return fmt.Errorf("failed to seed account classification %s: %w", classification.Name, err)
 		}
 	}
 	return nil
 }
-func (m *Core) accountClassification() {
-	m.Migration = append(m.Migration, &AccountClassification{})
-	m.AccountClassificationManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AccountClassificationManager() *registry.Registry[AccountClassification, AccountClassificationResponse, AccountClassificationRequest] {
+	return registry.GetRegistry(registry.RegistryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
@@ -415,14 +414,14 @@ func (m *Core) accountClassification() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -455,7 +454,7 @@ func (m *Core) accountClassification() {
 }
 
 func (m *Core) AccountClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountClassification, error) {
-	return m.AccountClassificationManager.Find(context, &AccountClassification{
+	return m.AccountClassificationManager().Find(context, &AccountClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

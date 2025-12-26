@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) interestRateByDate() {
-	m.Migration = append(m.Migration, &InterestRateByDate{})
-	m.InterestRateByDateManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRateByDateManager() *registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest,
 	]{
 		Preloads: []string{
@@ -86,17 +85,17 @@ func (m *Core) interestRateByDate() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				BrowseReferenceID: data.BrowseReferenceID,
-				BrowseReference:   m.BrowseReferenceManager.ToModel(data.BrowseReference),
+				BrowseReference:   m.BrowseReferenceManager().ToModel(data.BrowseReference),
 				FromDate:          data.FromDate.Format(time.RFC3339),
 				ToDate:            data.ToDate.Format(time.RFC3339),
 				InterestRate:      data.InterestRate,
@@ -138,7 +137,7 @@ func (m *Core) InterestRateByDateForBrowseReference(context context.Context, bro
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
+	return m.InterestRateByDateManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByDateForRange(context context.Context, browseReferenceID uuid.UUID, date time.Time) ([]*InterestRateByDate, error) {
@@ -148,7 +147,7 @@ func (m *Core) InterestRateByDateForRange(context context.Context, browseReferen
 		{Field: "to_date", Op: query.ModeGTE, Value: date},
 	}
 
-	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
+	return m.InterestRateByDateManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByDate, error) {
@@ -157,7 +156,7 @@ func (m *Core) InterestRateByDateCurrentBranch(context context.Context, organiza
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.InterestRateByDateManager.ArrFind(context, filters, nil)
+	return m.InterestRateByDateManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetInterestRateForDate(context context.Context, browseReferenceID uuid.UUID, date time.Time) (*InterestRateByDate, error) {

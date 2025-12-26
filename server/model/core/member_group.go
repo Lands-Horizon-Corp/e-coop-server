@@ -55,9 +55,8 @@ type (
 	}
 )
 
-func (m *Core) memberGroup() {
-	m.Migration = append(m.Migration, &MemberGroup{})
-	m.MemberGroupManager = registry.NewRegistry(registry.RegistryParams[MemberGroup, MemberGroupResponse, MemberGroupRequest]{
+func (m *Core) MemberGroupManager() *registry.Registry[MemberGroup, MemberGroupResponse, MemberGroupRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberGroup, MemberGroupResponse, MemberGroupRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -71,14 +70,14 @@ func (m *Core) memberGroup() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -171,7 +170,7 @@ func (m *Core) memberGroupSeed(context context.Context, tx *gorm.DB, userID uuid
 		},
 	}
 	for _, data := range memberGroup {
-		if err := m.MemberGroupManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberGroupManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member group %s", data.Name)
 		}
 	}
@@ -179,7 +178,7 @@ func (m *Core) memberGroupSeed(context context.Context, tx *gorm.DB, userID uuid
 }
 
 func (m *Core) MemberGroupCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroup, error) {
-	return m.MemberGroupManager.Find(context, &MemberGroup{
+	return m.MemberGroupManager().Find(context, &MemberGroup{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

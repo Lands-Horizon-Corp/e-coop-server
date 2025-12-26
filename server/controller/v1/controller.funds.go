@@ -28,7 +28,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get funds: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModels(funds))
+		return ctx.JSON(http.StatusOK, c.core.FundsManager().ToModels(funds))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -42,7 +42,7 @@ func (c *Controller) fundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := c.core.FundsManager.NormalPagination(context, ctx, &core.Funds{
+		funds, err := c.core.FundsManager().NormalPagination(context, ctx, &core.Funds{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -60,7 +60,7 @@ func (c *Controller) fundsController() {
 		Note:         "Creates a new funds record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.FundsManager.Validate(ctx)
+		req, err := c.core.FundsManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -93,7 +93,7 @@ func (c *Controller) fundsController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.FundsManager.Create(context, funds); err != nil {
+		if err := c.core.FundsManager().Create(context, funds); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create funds failed (/funds), db error: " + err.Error(),
@@ -108,7 +108,7 @@ func (c *Controller) fundsController() {
 			Module:      "Funds",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModel(funds))
+		return ctx.JSON(http.StatusOK, c.core.FundsManager().ToModel(funds))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -137,7 +137,7 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.FundsManager.Validate(ctx)
+		req, err := c.core.FundsManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -146,7 +146,7 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		funds, err := c.core.FundsManager.GetByID(context, *fundsID)
+		funds, err := c.core.FundsManager().GetByID(context, *fundsID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -164,7 +164,7 @@ func (c *Controller) fundsController() {
 		funds.Description = req.Description
 		funds.Icon = req.Icon
 		funds.GLBooks = req.GLBooks
-		if err := c.core.FundsManager.UpdateByID(context, funds.ID, funds); err != nil {
+		if err := c.core.FundsManager().UpdateByID(context, funds.ID, funds); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -177,7 +177,7 @@ func (c *Controller) fundsController() {
 			Description: "Updated funds (/funds/:funds_id): " + funds.Type,
 			Module:      "Funds",
 		})
-		return ctx.JSON(http.StatusOK, c.core.FundsManager.ToModel(funds))
+		return ctx.JSON(http.StatusOK, c.core.FundsManager().ToModel(funds))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -195,7 +195,7 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid funds_id: " + err.Error()})
 		}
-		value, err := c.core.FundsManager.GetByID(context, *fundsID)
+		value, err := c.core.FundsManager().GetByID(context, *fundsID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -204,7 +204,7 @@ func (c *Controller) fundsController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Funds not found: " + err.Error()})
 		}
-		if err := c.core.FundsManager.Delete(context, *fundsID); err != nil {
+		if err := c.core.FundsManager().Delete(context, *fundsID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete funds failed (/funds/:funds_id), db error: " + err.Error(),
@@ -250,7 +250,7 @@ func (c *Controller) fundsController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.FundsManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.FundsManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete funds failed (/funds/bulk-delete) | error: " + err.Error(),

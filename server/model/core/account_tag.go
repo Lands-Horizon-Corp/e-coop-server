@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) accountTag() {
-	m.Migration = append(m.Migration, &AccountTag{})
-	m.AccountTagManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) AccountTagManager() *registry.Registry[AccountTag, AccountTagResponse, AccountTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		AccountTag, AccountTagResponse, AccountTagRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
@@ -87,16 +86,16 @@ func (m *Core) accountTag() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -132,7 +131,7 @@ func (m *Core) accountTag() {
 }
 
 func (m *Core) AccountTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountTag, error) {
-	return m.AccountTagManager.Find(context, &AccountTag{
+	return m.AccountTagManager().Find(context, &AccountTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

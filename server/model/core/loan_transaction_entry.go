@@ -112,9 +112,8 @@ type (
 	}
 )
 
-func (m *Core) loanTransactionEntry() {
-	m.Migration = append(m.Migration, &LoanTransactionEntry{})
-	m.LoanTransactionEntryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTransactionEntryManager() *registry.Registry[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
@@ -132,23 +131,23 @@ func (m *Core) loanTransactionEntry() {
 				ID:                              data.ID,
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                     data.CreatedByID,
-				CreatedBy:                       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                     data.UpdatedByID,
-				UpdatedBy:                       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:                  data.OrganizationID,
-				Organization:                    m.OrganizationManager.ToModel(data.Organization),
+				Organization:                    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                        data.BranchID,
-				Branch:                          m.BranchManager.ToModel(data.Branch),
+				Branch:                          m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID:               data.LoanTransactionID,
-				LoanTransaction:                 m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:                 m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Index:                           data.Index,
 				Type:                            data.Type,
 				IsAddOn:                         data.IsAddOn,
 				AccountID:                       data.AccountID,
-				Account:                         m.AccountManager.ToModel(data.Account),
+				Account:                         m.AccountManager().ToModel(data.Account),
 				AutomaticLoanDeductionID:        data.AutomaticLoanDeductionID,
-				AutomaticLoanDeduction:          m.AutomaticLoanDeductionManager.ToModel(data.AutomaticLoanDeduction),
+				AutomaticLoanDeduction:          m.AutomaticLoanDeductionManager().ToModel(data.AutomaticLoanDeduction),
 				IsAutomaticLoanDeductionDeleted: data.IsAutomaticLoanDeductionDeleted,
 
 				Name:        data.Name,
@@ -192,7 +191,7 @@ func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organi
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.LoanTransactionEntryManager.ArrFind(context, filters, nil)
+	return m.LoanTransactionEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
@@ -204,7 +203,7 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.ArrFindOne(
+	return m.LoanTransactionEntryManager().ArrFindOne(
 		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
 	)
 }
@@ -218,5 +217,5 @@ func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organ
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager.ArrFindOne(ctx, filters, nil)
+	return m.LoanTransactionEntryManager().ArrFindOne(ctx, filters, nil)
 }

@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) interestRateByAmount() {
-	m.Migration = append(m.Migration, &InterestRateByAmount{})
-	m.InterestRateByAmountManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRateByAmountManager() *registry.Registry[InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateByAmount, InterestRateByAmountResponse, InterestRateByAmountRequest,
 	]{
 		Preloads: []string{
@@ -86,17 +85,17 @@ func (m *Core) interestRateByAmount() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				BrowseReferenceID: data.BrowseReferenceID,
-				BrowseReference:   m.BrowseReferenceManager.ToModel(data.BrowseReference),
+				BrowseReference:   m.BrowseReferenceManager().ToModel(data.BrowseReference),
 				FromAmount:        data.FromAmount,
 				ToAmount:          data.ToAmount,
 				InterestRate:      data.InterestRate,
@@ -138,7 +137,7 @@ func (m *Core) InterestRateByAmountForBrowseReference(context context.Context, b
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
+	return m.InterestRateByAmountManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByAmountForRange(context context.Context, browseReferenceID uuid.UUID, amount float64) ([]*InterestRateByAmount, error) {
@@ -148,7 +147,7 @@ func (m *Core) InterestRateByAmountForRange(context context.Context, browseRefer
 		{Field: "to_amount", Op: query.ModeGTE, Value: amount},
 	}
 
-	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
+	return m.InterestRateByAmountManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) InterestRateByAmountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByAmount, error) {
@@ -157,7 +156,7 @@ func (m *Core) InterestRateByAmountCurrentBranch(context context.Context, organi
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.InterestRateByAmountManager.ArrFind(context, filters, nil)
+	return m.InterestRateByAmountManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GetInterestRateForAmount(context context.Context, browseReferenceID uuid.UUID, amount float64) (*InterestRateByAmount, error) {

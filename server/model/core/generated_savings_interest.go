@@ -141,9 +141,8 @@ type (
 	}
 )
 
-func (m *Core) generatedSavingsInterest() {
-	m.Migration = append(m.Migration, &GeneratedSavingsInterest{})
-	m.GeneratedSavingsInterestManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GeneratedSavingsInterestManager() *registry.Registry[GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest,
 	]{
 		Preloads: []string{
@@ -181,22 +180,22 @@ func (m *Core) generatedSavingsInterest() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				DocumentNo:                      data.DocumentNo,
 				LastComputationDate:             data.LastComputationDate.Format(time.RFC3339),
 				NewComputationDate:              data.NewComputationDate.Format(time.RFC3339),
 				AccountID:                       data.AccountID,
-				Account:                         m.AccountManager.ToModel(data.Account),
+				Account:                         m.AccountManager().ToModel(data.Account),
 				MemberTypeID:                    data.MemberTypeID,
-				MemberType:                      m.MemberTypeManager.ToModel(data.MemberType),
+				MemberType:                      m.MemberTypeManager().ToModel(data.MemberType),
 				SavingsComputationType:          data.SavingsComputationType,
 				IncludeClosedAccount:            data.IncludeClosedAccount,
 				IncludeExistingComputedInterest: data.IncludeExistingComputedInterest,
@@ -204,15 +203,15 @@ func (m *Core) generatedSavingsInterest() {
 				TotalInterest:                   data.TotalInterest,
 				TotalTax:                        data.TotalTax,
 				PrintedByUserID:                 data.PrintedByUserID,
-				PrintedByUser:                   m.UserManager.ToModel(data.PrintedByUser),
+				PrintedByUser:                   m.UserManager().ToModel(data.PrintedByUser),
 				PrintedDate:                     printedDate,
 				PostedByUserID:                  data.PostedByUserID,
-				PostedByUser:                    m.UserManager.ToModel(data.PostedByUser),
+				PostedByUser:                    m.UserManager().ToModel(data.PostedByUser),
 				PostedDate:                      postedDate,
 				CheckVoucherNumber:              data.CheckVoucherNumber,
 				PostAccountID:                   data.PostAccountID,
-				PostAccount:                     m.AccountManager.ToModel(data.PostAccount),
-				Entries:                         m.GeneratedSavingsInterestEntryManager.ToModels(data.Entries),
+				PostAccount:                     m.AccountManager().ToModel(data.PostAccount),
+				Entries:                         m.GeneratedSavingsInterestEntryManager().ToModels(data.Entries),
 			}
 		},
 

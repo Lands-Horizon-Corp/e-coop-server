@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) funds() {
-	m.Migration = append(m.Migration, &Funds{})
-	m.FundsManager = registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
+func (m *Core) FundsManager() *registry.Registry[Funds, FundsResponse, FundsRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -82,16 +81,16 @@ func (m *Core) funds() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				Type:           data.Type,
 				Description:    data.Description,
 				Icon:           data.Icon,
@@ -126,7 +125,7 @@ func (m *Core) funds() {
 }
 
 func (m *Core) FundsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Funds, error) {
-	return m.FundsManager.Find(context, &Funds{
+	return m.FundsManager().Find(context, &Funds{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

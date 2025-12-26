@@ -75,9 +75,8 @@ type (
 	}
 )
 
-func (m *Core) computationSheet() {
-	m.Migration = append(m.Migration, &ComputationSheet{})
-	m.ComputationSheetManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) ComputationSheetManager() *registry.Registry[ComputationSheet, ComputationSheetResponse, ComputationSheetRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		ComputationSheet, ComputationSheetResponse, ComputationSheetRequest,
 	]{
 		Preloads: []string{
@@ -95,14 +94,14 @@ func (m *Core) computationSheet() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				Name:              data.Name,
 				Description:       data.Description,
 				DeliquentAccount:  data.DeliquentAccount,
@@ -111,7 +110,7 @@ func (m *Core) computationSheet() {
 				ComakerAccount:    data.ComakerAccount,
 				ExistAccount:      data.ExistAccount,
 				CurrencyID:        data.CurrencyID,
-				Currency:          m.CurrencyManager.ToModel(data.Currency),
+				Currency:          m.CurrencyManager().ToModel(data.Currency),
 			}
 		},
 		Created: func(data *ComputationSheet) registry.Topics {
@@ -142,7 +141,7 @@ func (m *Core) computationSheet() {
 }
 
 func (m *Core) ComputationSheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComputationSheet, error) {
-	return m.ComputationSheetManager.Find(context, &ComputationSheet{
+	return m.ComputationSheetManager().Find(context, &ComputationSheet{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

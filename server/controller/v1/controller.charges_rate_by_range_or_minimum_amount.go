@@ -30,7 +30,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
+		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -72,7 +72,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			OrganizationID:      userOrg.OrganizationID,
 		}
 
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Create(context, chargesRateByRangeOrMinimumAmount); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager().Create(context, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate by range or minimum amount creation failed (/charges-rate-by-range-or-minimum-amount), db error: " + err.Error(),
@@ -85,7 +85,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			Description: "Created charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount): " + chargesRateByRangeOrMinimumAmount.ID.String(),
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
+		return ctx.JSON(http.StatusCreated, c.core.ChargesRateByRangeOrMinimumAmountManager().ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -106,7 +106,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount ID"})
 		}
 
-		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager.Validate(ctx)
+		req, err := c.core.ChargesRateByRangeOrMinimumAmountManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -124,7 +124,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
+		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager().GetByID(context, *chargesRateByRangeOrMinimumAmountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -140,7 +140,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		chargesRateByRangeOrMinimumAmount.MinimumAmount = req.MinimumAmount
 		chargesRateByRangeOrMinimumAmount.UpdatedAt = time.Now().UTC()
 		chargesRateByRangeOrMinimumAmount.UpdatedByID = userOrg.UserID
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.UpdateByID(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager().UpdateByID(context, chargesRateByRangeOrMinimumAmount.ID, chargesRateByRangeOrMinimumAmount); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate by range or minimum amount update failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -153,7 +153,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			Description: "Updated charges rate by range or minimum amount (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id): " + chargesRateByRangeOrMinimumAmount.ID.String(),
 			Module:      "ChargesRateByRangeOrMinimumAmount",
 		})
-		return ctx.JSON(http.StatusOK, c.core.ChargesRateByRangeOrMinimumAmountManager.ToModel(chargesRateByRangeOrMinimumAmount))
+		return ctx.JSON(http.StatusOK, c.core.ChargesRateByRangeOrMinimumAmountManager().ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -171,7 +171,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate by range or minimum amount ID"})
 		}
-		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager.GetByID(context, *chargesRateByRangeOrMinimumAmountID)
+		chargesRateByRangeOrMinimumAmount, err := c.core.ChargesRateByRangeOrMinimumAmountManager().GetByID(context, *chargesRateByRangeOrMinimumAmountID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -180,7 +180,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate by range or minimum amount not found"})
 		}
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.Delete(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager().Delete(context, *chargesRateByRangeOrMinimumAmountID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate by range or minimum amount delete failed (/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id), db error: " + err.Error(),
@@ -225,7 +225,7 @@ func (c *Controller) chargesRateByRangeOrMinimumAmountController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.ChargesRateByRangeOrMinimumAmountManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.ChargesRateByRangeOrMinimumAmountManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-by-range-or-minimum-amount/bulk-delete) | error: " + err.Error(),

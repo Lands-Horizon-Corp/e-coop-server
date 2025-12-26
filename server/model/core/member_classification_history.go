@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberClassificationHistory() {
-	m.Migration = append(m.Migration, &MemberClassificationHistory{})
-	m.MemberClassificationHistoryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationHistory,
 		MemberClassificationHistoryResponse,
 		MemberClassificationHistoryRequest,
@@ -86,18 +85,18 @@ func (m *Core) memberClassificationHistory() {
 				ID:                     data.ID,
 				CreatedAt:              data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:            data.CreatedByID,
-				CreatedBy:              m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:              m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:            data.UpdatedByID,
-				UpdatedBy:              m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:              m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:         data.OrganizationID,
-				Organization:           m.OrganizationManager.ToModel(data.Organization),
+				Organization:           m.OrganizationManager().ToModel(data.Organization),
 				BranchID:               data.BranchID,
-				Branch:                 m.BranchManager.ToModel(data.Branch),
+				Branch:                 m.BranchManager().ToModel(data.Branch),
 				MemberClassificationID: data.MemberClassificationID,
-				MemberClassification:   m.MemberClassificationManager.ToModel(data.MemberClassification),
+				MemberClassification:   m.MemberClassificationManager().ToModel(data.MemberClassification),
 				MemberProfileID:        data.MemberProfileID,
-				MemberProfile:          m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:          m.MemberProfileManager().ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *MemberClassificationHistory) registry.Topics {
@@ -131,14 +130,14 @@ func (m *Core) memberClassificationHistory() {
 }
 
 func (m *Core) MemberClassificationHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
-	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
+	return m.MemberClassificationHistoryManager().Find(context, &MemberClassificationHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
-	return m.MemberClassificationHistoryManager.Find(context, &MemberClassificationHistory{
+	return m.MemberClassificationHistoryManager().Find(context, &MemberClassificationHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

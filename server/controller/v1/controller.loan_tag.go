@@ -31,7 +31,7 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
+		return ctx.JSON(http.StatusOK, c.core.LoanTagManager().ToModels(loanTags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -52,7 +52,7 @@ func (c *Controller) loanTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.core.LoanTagManager.Find(context, &core.LoanTag{
+		loanTags, err := c.core.LoanTagManager().Find(context, &core.LoanTag{
 			LoanTransactionID: loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -60,7 +60,7 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No loan tags found for the specified loan transaction ID in the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModels(loanTags))
+		return ctx.JSON(http.StatusOK, c.core.LoanTagManager().ToModels(loanTags))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -77,7 +77,7 @@ func (c *Controller) loanTagController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := c.core.LoanTagManager.NormalPagination(context, ctx, &core.LoanTag{
+		loanTags, err := c.core.LoanTagManager().NormalPagination(context, ctx, &core.LoanTag{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -98,7 +98,7 @@ func (c *Controller) loanTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan tag ID"})
 		}
-		loanTag, err := c.core.LoanTagManager.GetByIDRaw(context, *loanTagID)
+		loanTag, err := c.core.LoanTagManager().GetByIDRaw(context, *loanTagID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan tag not found"})
 		}
@@ -113,7 +113,7 @@ func (c *Controller) loanTagController() {
 		ResponseType: core.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.LoanTagManager.Validate(ctx)
+		req, err := c.core.LoanTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -155,7 +155,7 @@ func (c *Controller) loanTagController() {
 			OrganizationID:    userOrg.OrganizationID,
 		}
 
-		if err := c.core.LoanTagManager.Create(context, loanTag); err != nil {
+		if err := c.core.LoanTagManager().Create(context, loanTag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Loan tag creation failed (/loan-tag), db error: " + err.Error(),
@@ -168,7 +168,7 @@ func (c *Controller) loanTagController() {
 			Description: "Created loan tag (/loan-tag): " + loanTag.Name,
 			Module:      "LoanTag",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.LoanTagManager.ToModel(loanTag))
+		return ctx.JSON(http.StatusCreated, c.core.LoanTagManager().ToModel(loanTag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -189,7 +189,7 @@ func (c *Controller) loanTagController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan tag ID"})
 		}
 
-		req, err := c.core.LoanTagManager.Validate(ctx)
+		req, err := c.core.LoanTagManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -207,7 +207,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		loanTag, err := c.core.LoanTagManager.GetByID(context, *loanTagID)
+		loanTag, err := c.core.LoanTagManager().GetByID(context, *loanTagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -224,7 +224,7 @@ func (c *Controller) loanTagController() {
 		loanTag.Icon = req.Icon
 		loanTag.UpdatedAt = time.Now().UTC()
 		loanTag.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTagManager.UpdateByID(context, loanTag.ID, loanTag); err != nil {
+		if err := c.core.LoanTagManager().UpdateByID(context, loanTag.ID, loanTag); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan tag update failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
@@ -237,7 +237,7 @@ func (c *Controller) loanTagController() {
 			Description: "Updated loan tag (/loan-tag/:loan_tag_id): " + loanTag.Name,
 			Module:      "LoanTag",
 		})
-		return ctx.JSON(http.StatusOK, c.core.LoanTagManager.ToModel(loanTag))
+		return ctx.JSON(http.StatusOK, c.core.LoanTagManager().ToModel(loanTag))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -255,7 +255,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan tag ID"})
 		}
-		loanTag, err := c.core.LoanTagManager.GetByID(context, *loanTagID)
+		loanTag, err := c.core.LoanTagManager().GetByID(context, *loanTagID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -264,7 +264,7 @@ func (c *Controller) loanTagController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan tag not found"})
 		}
-		if err := c.core.LoanTagManager.Delete(context, *loanTagID); err != nil {
+		if err := c.core.LoanTagManager().Delete(context, *loanTagID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Loan tag delete failed (/loan-tag/:loan_tag_id), db error: " + err.Error(),
@@ -311,7 +311,7 @@ func (c *Controller) loanTagController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.LoanTagManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.LoanTagManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-tag/bulk-delete) | error: " + err.Error(),

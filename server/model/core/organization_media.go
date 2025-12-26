@@ -51,9 +51,8 @@ type (
 	}
 )
 
-func (m *Core) organizationMedia() {
-	m.Migration = append(m.Migration, &OrganizationMedia{})
-	m.OrganizationMediaManager = registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
+func (m *Core) OrganizationMediaManager() *registry.Registry[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest] {
+	return registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -72,10 +71,10 @@ func (m *Core) organizationMedia() {
 				Description: data.Description,
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(&data.Organization),
+				Organization:   m.OrganizationManager().ToModel(&data.Organization),
 
 				MediaID: data.MediaID,
-				Media:   m.MediaManager.ToModel(&data.Media),
+				Media:   m.MediaManager().ToModel(&data.Media),
 			}
 		},
 		Created: func(data *OrganizationMedia) registry.Topics {
@@ -103,7 +102,7 @@ func (m *Core) organizationMedia() {
 }
 
 func (m *Core) OrganizationMediaFindByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
-	return m.OrganizationMediaManager.Find(context, &OrganizationMedia{
+	return m.OrganizationMediaManager().Find(context, &OrganizationMedia{
 		OrganizationID: organizationID,
 	})
 }
@@ -116,7 +115,7 @@ func (m *Core) OrganizationMediaCreateForOrganization(context context.Context, o
 		MediaID:        mediaID,
 	}
 
-	if err := m.OrganizationMediaManager.Create(context, organizationMedia); err != nil {
+	if err := m.OrganizationMediaManager().Create(context, organizationMedia); err != nil {
 		return nil, err
 	}
 

@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberContactReference() {
-	m.Migration = append(m.Migration, &MemberContactReference{})
-	m.MemberContactReferenceManager = registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
+func (m *Core) MemberContactReferenceManager() *registry.Registry[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -79,16 +78,16 @@ func (m *Core) memberContactReference() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Description:     data.Description,
 				ContactNumber:   data.ContactNumber,
@@ -123,7 +122,7 @@ func (m *Core) memberContactReference() {
 }
 
 func (m *Core) MemberContactReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberContactReference, error) {
-	return m.MemberContactReferenceManager.Find(context, &MemberContactReference{
+	return m.MemberContactReferenceManager().Find(context, &MemberContactReference{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

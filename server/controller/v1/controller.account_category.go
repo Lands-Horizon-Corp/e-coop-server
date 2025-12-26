@@ -28,7 +28,7 @@ func (c *Controller) accountCategoryController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		result, err := c.core.AccountCategoryManager.NormalPagination(context, ctx, &core.AccountCategory{
+		result, err := c.core.AccountCategoryManager().NormalPagination(context, ctx, &core.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -52,14 +52,14 @@ func (c *Controller) accountCategoryController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		categories, err := c.core.AccountCategoryManager.Find(context, &core.AccountCategory{
+		categories, err := c.core.AccountCategoryManager().Find(context, &core.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account categories (raw): " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModels(categories))
+		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager().ToModels(categories))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -73,11 +73,11 @@ func (c *Controller) accountCategoryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		category, err := c.core.AccountCategoryManager.GetByID(context, *id)
+		category, err := c.core.AccountCategoryManager().GetByID(context, *id)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(category))
+		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager().ToModel(category))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -88,7 +88,7 @@ func (c *Controller) accountCategoryController() {
 		RequestType:  core.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountCategoryManager.Validate(ctx)
+		req, err := c.core.AccountCategoryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -126,7 +126,7 @@ func (c *Controller) accountCategoryController() {
 			Description:    req.Description,
 		}
 
-		if err := c.core.AccountCategoryManager.Create(context, accountCategory); err != nil {
+		if err := c.core.AccountCategoryManager().Create(context, accountCategory); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Failed create account category (/account-category) | db error: " + err.Error(),
@@ -140,7 +140,7 @@ func (c *Controller) accountCategoryController() {
 			Description: "Created account category (/account-category): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusCreated, c.core.AccountCategoryManager().ToModel(accountCategory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -151,7 +151,7 @@ func (c *Controller) accountCategoryController() {
 		RequestType:  core.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountCategoryManager.Validate(ctx)
+		req, err := c.core.AccountCategoryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -186,7 +186,7 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := c.core.AccountCategoryManager.GetByID(context, *accountCategoryID)
+		accountCategory, err := c.core.AccountCategoryManager().GetByID(context, *accountCategoryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -201,7 +201,7 @@ func (c *Controller) accountCategoryController() {
 		accountCategory.Description = req.Description
 		accountCategory.BranchID = *userOrg.BranchID
 		accountCategory.OrganizationID = userOrg.OrganizationID
-		if err := c.core.AccountCategoryManager.UpdateByID(context, accountCategory.ID, accountCategory); err != nil {
+		if err := c.core.AccountCategoryManager().UpdateByID(context, accountCategory.ID, accountCategory); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed update account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -214,7 +214,7 @@ func (c *Controller) accountCategoryController() {
 			Description: "Updated account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager().ToModel(accountCategory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -249,7 +249,7 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := c.core.AccountCategoryManager.GetByID(context, *accountCategoryID)
+		accountCategory, err := c.core.AccountCategoryManager().GetByID(context, *accountCategoryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -258,7 +258,7 @@ func (c *Controller) accountCategoryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account category not found: " + err.Error()})
 		}
-		if err := c.core.AccountCategoryManager.Delete(context, accountCategory.ID); err != nil {
+		if err := c.core.AccountCategoryManager().Delete(context, accountCategory.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Failed delete account category (/account-category/:account_category_id) | db error: " + err.Error(),
@@ -271,7 +271,7 @@ func (c *Controller) accountCategoryController() {
 			Description: "Deleted account category (/account-category/:account_category_id): " + accountCategory.Name,
 			Module:      "AccountCategory",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager.ToModel(accountCategory))
+		return ctx.JSON(http.StatusOK, c.core.AccountCategoryManager().ToModel(accountCategory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -295,7 +295,7 @@ func (c *Controller) accountCategoryController() {
 			ids[i] = id
 		}
 
-		if err := c.core.AccountCategoryManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.AccountCategoryManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete account categories (/account-category/bulk-delete) | error: " + err.Error(),

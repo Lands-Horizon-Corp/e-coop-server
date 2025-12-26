@@ -30,7 +30,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		req, err := c.core.MemberAddressManager.Validate(ctx)
+		req, err := c.core.MemberAddressManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -75,7 +75,7 @@ func (c *Controller) memberAddressController() {
 			Longitude:       req.Longitude,
 			Latitude:        req.Latitude,
 		}
-		if err := c.core.MemberAddressManager.Create(context, value); err != nil {
+		if err := c.core.MemberAddressManager().Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member address failed (/member-address/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -88,7 +88,7 @@ func (c *Controller) memberAddressController() {
 			Description: "Created member address (/member-address/member-profile/:member_profile_id): " + value.Label,
 			Module:      "MemberAddress",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MemberAddressManager.ToModel(value))
+		return ctx.JSON(http.StatusCreated, c.core.MemberAddressManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -108,7 +108,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
-		req, err := c.core.MemberAddressManager.Validate(ctx)
+		req, err := c.core.MemberAddressManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -134,7 +134,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := c.core.MemberAddressManager.GetByID(context, *memberAddressID)
+		value, err := c.core.MemberAddressManager().GetByID(context, *memberAddressID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -159,7 +159,7 @@ func (c *Controller) memberAddressController() {
 		value.Address = req.Address
 		value.Longitude = req.Longitude
 		value.Latitude = req.Latitude
-		if err := c.core.MemberAddressManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.core.MemberAddressManager().UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member address failed (/member-address/:member_address_id), db error: " + err.Error(),
@@ -172,7 +172,7 @@ func (c *Controller) memberAddressController() {
 			Description: "Updated member address (/member-address/:member_address_id): " + value.Label,
 			Module:      "MemberAddress",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberAddressManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberAddressManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -190,7 +190,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member address ID"})
 		}
-		value, err := c.core.MemberAddressManager.GetByID(context, *memberAddressID)
+		value, err := c.core.MemberAddressManager().GetByID(context, *memberAddressID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -199,7 +199,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
-		if err := c.core.MemberAddressManager.Delete(context, *memberAddressID); err != nil {
+		if err := c.core.MemberAddressManager().Delete(context, *memberAddressID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member address failed (/member-address/:member_address_id), db error: " + err.Error(),

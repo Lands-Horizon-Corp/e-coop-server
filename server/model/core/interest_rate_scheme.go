@@ -54,9 +54,8 @@ type (
 	}
 )
 
-func (m *Core) interestRateScheme() {
-	m.Migration = append(m.Migration, &InterestRateScheme{})
-	m.InterestRateSchemeManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRateSchemeManager() *registry.Registry[InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateScheme, InterestRateSchemeResponse, InterestRateSchemeRequest,
 	]{
 		Preloads: []string{
@@ -74,14 +73,14 @@ func (m *Core) interestRateScheme() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -114,7 +113,7 @@ func (m *Core) interestRateScheme() {
 }
 
 func (m *Core) InterestRateSchemeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateScheme, error) {
-	return m.InterestRateSchemeManager.Find(context, &InterestRateScheme{
+	return m.InterestRateSchemeManager().Find(context, &InterestRateScheme{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

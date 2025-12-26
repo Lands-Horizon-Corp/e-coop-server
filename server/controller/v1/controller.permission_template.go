@@ -28,7 +28,7 @@ func (c *Controller) permissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModels(permissionTemplates))
+		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModels(permissionTemplates))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -42,7 +42,7 @@ func (c *Controller) permissionTemplateController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.core.PermissionTemplateManager.NormalPagination(context, ctx, &core.PermissionTemplate{
+		permissionTemplates, err := c.core.PermissionTemplateManager().NormalPagination(context, ctx, &core.PermissionTemplate{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -64,12 +64,12 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		permissionTemplate, err := c.core.PermissionTemplateManager.GetByID(context, *permissionTemplateID)
+		permissionTemplate, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(permissionTemplate))
+		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(permissionTemplate))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -81,7 +81,7 @@ func (c *Controller) permissionTemplateController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.PermissionTemplateManager.Validate(ctx)
+		req, err := c.core.PermissionTemplateManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -113,7 +113,7 @@ func (c *Controller) permissionTemplateController() {
 			Permissions:    req.Permissions,
 		}
 
-		if err := c.core.PermissionTemplateManager.Create(context, newTemplate); err != nil {
+		if err := c.core.PermissionTemplateManager().Create(context, newTemplate); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create permission template failed: create error: " + err.Error(),
@@ -128,7 +128,7 @@ func (c *Controller) permissionTemplateController() {
 			Module:      "PermissionTemplate",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(newTemplate))
+		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(newTemplate))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -150,7 +150,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		req, err := c.core.PermissionTemplateManager.Validate(ctx)
+		req, err := c.core.PermissionTemplateManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -160,7 +160,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		template, err := c.core.PermissionTemplateManager.GetByID(context, *permissionTemplateID)
+		template, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) permissionTemplateController() {
 		template.Description = req.Description
 		template.Permissions = req.Permissions
 
-		if err := c.core.PermissionTemplateManager.UpdateByID(context, template.ID, template); err != nil {
+		if err := c.core.PermissionTemplateManager().UpdateByID(context, template.ID, template); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: update error: " + err.Error(),
@@ -203,7 +203,7 @@ func (c *Controller) permissionTemplateController() {
 			Module:      "PermissionTemplate",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager.ToModel(template))
+		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(template))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -223,7 +223,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		template, err := c.core.PermissionTemplateManager.GetByID(context, *permissionTemplateID)
+		template, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -233,7 +233,7 @@ func (c *Controller) permissionTemplateController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		if err := c.core.PermissionTemplateManager.Delete(context, *permissionTemplateID); err != nil {
+		if err := c.core.PermissionTemplateManager().Delete(context, *permissionTemplateID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete permission template failed: delete error: " + err.Error(),

@@ -91,9 +91,8 @@ type (
 	}
 )
 
-func (m *Core) generateSavingsInterestEntry() {
-	m.Migration = append(m.Migration, &GeneratedSavingsInterestEntry{})
-	m.GeneratedSavingsInterestEntryManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) GeneratedSavingsInterestEntryManager() *registry.Registry[GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest,
 	]{
 		Preloads: []string{
@@ -111,21 +110,21 @@ func (m *Core) generateSavingsInterestEntry() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				GeneratedSavingsInterestID: data.GeneratedSavingsInterestID,
-				GeneratedSavingsInterest:   m.GeneratedSavingsInterestManager.ToModel(data.GeneratedSavingsInterest),
+				GeneratedSavingsInterest:   m.GeneratedSavingsInterestManager().ToModel(data.GeneratedSavingsInterest),
 				AccountID:                  data.AccountID,
-				Account:                    m.AccountManager.ToModel(data.Account),
+				Account:                    m.AccountManager().ToModel(data.Account),
 				MemberProfileID:            data.MemberProfileID,
-				MemberProfile:              m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:              m.MemberProfileManager().ToModel(data.MemberProfile),
 				EndingBalance:              data.EndingBalance,
 				InterestAmount:             data.InterestAmount,
 				InterestTax:                data.InterestTax,
@@ -175,7 +174,7 @@ func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
@@ -184,7 +183,7 @@ func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 		{Field: "generated_savings_interest_id", Op: query.ModeEqual, Value: generatedSavingsInterestID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GenerateSavingsInterestEntryByAccount(
@@ -195,7 +194,7 @@ func (m *Core) GenerateSavingsInterestEntryByAccount(
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
@@ -207,7 +206,7 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
@@ -220,15 +219,15 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 		{Field: "ending_balance", Op: query.ModeLTE, Value: maxEndingBalance},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager.ArrFind(context, filters, nil)
+	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
 func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEntryID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
-	generatedSavingsInterestEntry, err := m.GeneratedSavingsInterestEntryManager.GetByID(context, generatedSavingsInterestEntryID)
+	generatedSavingsInterestEntry, err := m.GeneratedSavingsInterestEntryManager().GetByID(context, generatedSavingsInterestEntryID)
 	if err != nil {
 		return nil, err
 	}
-	generatedSavingsInterest, err := m.GeneratedSavingsInterestManager.GetByID(context, generatedSavingsInterestEntry.GeneratedSavingsInterestID)
+	generatedSavingsInterest, err := m.GeneratedSavingsInterestManager().GetByID(context, generatedSavingsInterestEntry.GeneratedSavingsInterestID)
 	if err != nil {
 		return nil, err
 	}
@@ -260,13 +259,13 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 	var allDailyBalances []GeneratedSavingsInterestEntryDailyBalance
 	var totalBalanceSum float64
 	var totalDays int
-	var lowestBalance float64 = -1 // Use -1 to indicate not set
+	lowestBalance := -1.0
 	var highestBalance float64
-	var beginningBalance float64 = -1 // Use -1 to indicate not set
+	beginningBalance := -1.0
 	var endingBalance float64
 
 	currentDate := generatedSavingsInterest.NewComputationDate
-	var previousBalance float64 = -1 // Use -1 to indicate first entry
+	previousBalance := -1.0
 	for i, balance := range dailyBalances {
 		dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
 		var changeType string
@@ -313,11 +312,11 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 		beginningBalance = 0
 	}
 
-	account, err := m.AccountManager.GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
+	account, err := m.AccountManager().GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
 	if err != nil {
 		return nil, err
 	}
-	memberProfile, err := m.MemberProfileManager.GetByID(context, generatedSavingsInterestEntry.MemberProfileID)
+	memberProfile, err := m.MemberProfileManager().GetByID(context, generatedSavingsInterestEntry.MemberProfileID)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +328,7 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 		LowestBalance:       lowestBalance,
 		HighestBalance:      highestBalance,
 		DailyBalance:        allDailyBalances,
-		Account:             m.AccountManager.ToModel(account),
-		MemberProfile:       m.MemberProfileManager.ToModel(memberProfile),
+		Account:             m.AccountManager().ToModel(account),
+		MemberProfile:       m.MemberProfileManager().ToModel(memberProfile),
 	}, nil
 }

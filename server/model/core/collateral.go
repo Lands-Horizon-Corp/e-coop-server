@@ -58,9 +58,8 @@ type (
 	}
 )
 
-func (m *Core) collateral() {
-	m.Migration = append(m.Migration, &Collateral{})
-	m.CollateralManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CollateralManager() *registry.Registry[Collateral, CollateralResponse, CollateralRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		Collateral, CollateralResponse, CollateralRequest,
 	]{
 		Preloads: []string{
@@ -78,14 +77,14 @@ func (m *Core) collateral() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Icon:           data.Icon,
 				Name:           data.Name,
 				Description:    data.Description,
@@ -223,7 +222,7 @@ func (m *Core) collateralSeed(context context.Context, tx *gorm.DB, userID uuid.
 		},
 	}
 	for _, data := range collaterals {
-		if err := m.CollateralManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.CollateralManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed collateral %s", data.Name)
 		}
 	}
@@ -231,7 +230,7 @@ func (m *Core) collateralSeed(context context.Context, tx *gorm.DB, userID uuid.
 }
 
 func (m *Core) CollateralCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Collateral, error) {
-	return m.CollateralManager.Find(context, &Collateral{
+	return m.CollateralManager().Find(context, &Collateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

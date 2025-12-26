@@ -29,7 +29,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 
-	loanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, data.LoanTransactionID)
+	loanTransaction, err := e.core.LoanTransactionManager().GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
@@ -41,7 +41,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 
 	if loanTransaction.AccountID == nil {
 	}
-	account, err := e.core.AccountManager.GetByID(ctx, *loanTransaction.AccountID)
+	account, err := e.core.AccountManager().GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
@@ -51,7 +51,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, endTx(eris.Wrap(err, "failed to get loan account"))
 	}
 
-	loanTransactionEntries, err := e.core.LoanTransactionEntryManager.Find(ctx, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := e.core.LoanTransactionEntryManager().Find(ctx, &core.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    userOrg.OrganizationID,
 		BranchID:          *userOrg.BranchID,
@@ -65,7 +65,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction entries"))
 	}
 
-	automaticLoanDeductions, err := e.core.AutomaticLoanDeductionManager.Find(ctx, &core.AutomaticLoanDeduction{
+	automaticLoanDeductions, err := e.core.AutomaticLoanDeductionManager().Find(ctx, &core.AutomaticLoanDeduction{
 		OrganizationID:     userOrg.OrganizationID,
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
@@ -92,7 +92,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	}
 
 	if len(static) < 2 {
-		cashOnCashEquivalenceAccount, err := e.core.AccountManager.GetByID(ctx, data.CashOnCashEquivalenceAccountID)
+		cashOnCashEquivalenceAccount, err := e.core.AccountManager().GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 		if err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
@@ -165,7 +165,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			entry.Credit = entry.Amount
 		} else {
 			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+				chargesRateScheme, err := e.core.ChargesRateSchemeManager().GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
 				if err != nil {
 					return nil, endTx(err)
 				}
@@ -208,7 +208,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				Amount:                   0,
 			}
 			if ald.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(ctx, *ald.ChargesRateSchemeID)
+				chargesRateScheme, err := e.core.ChargesRateSchemeManager().GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
 					return nil, endTx(err)
 				}
@@ -258,7 +258,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		if entry.ID == uuid.Nil {
 			continue
 		}
-		if err := e.core.LoanTransactionEntryManager.DeleteWithTx(ctx, tx, entry.ID); err != nil {
+		if err := e.core.LoanTransactionEntryManager().DeleteWithTx(ctx, tx, entry.ID); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to delete existing loan transaction entries during loan balancing: " + err.Error(),
@@ -314,7 +314,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
 			totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
 		}
-		if err := e.core.LoanTransactionEntryManager.CreateWithTx(ctx, tx, value); err != nil {
+		if err := e.core.LoanTransactionEntryManager().CreateWithTx(ctx, tx, value); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
 				Activity:    "data-error",
 				Description: "Failed to create loan transaction entry during loan balancing: " + err.Error(),
@@ -351,7 +351,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
 
-	if err := e.core.LoanTransactionManager.UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
+	if err := e.core.LoanTransactionManager().UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
 			Description: "Failed to update loan transaction during loan balancing: " + err.Error(),
@@ -368,7 +368,7 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 	}
 
-	newLoanTransaction, err := e.core.LoanTransactionManager.GetByID(ctx, loanTransaction.ID)
+	newLoanTransaction, err := e.core.LoanTransactionManager().GetByID(ctx, loanTransaction.ID)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",

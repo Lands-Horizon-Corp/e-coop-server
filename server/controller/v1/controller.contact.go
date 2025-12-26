@@ -20,11 +20,11 @@ func (c *Controller) contactController() {
 		ResponseType: core.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		contacts, err := c.core.ContactUsManager.List(context)
+		contacts, err := c.core.ContactUsManager().List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve contact records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.ContactUsManager.ToModels(contacts))
+		return ctx.JSON(http.StatusOK, c.core.ContactUsManager().ToModels(contacts))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -38,7 +38,7 @@ func (c *Controller) contactController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact ID"})
 		}
-		contact, err := c.core.ContactUsManager.GetByIDRaw(context, *contactID)
+		contact, err := c.core.ContactUsManager().GetByIDRaw(context, *contactID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
@@ -53,7 +53,7 @@ func (c *Controller) contactController() {
 		Note:         "Creates a new contact record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.ContactUsManager.Validate(ctx)
+		req, err := c.core.ContactUsManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -73,7 +73,7 @@ func (c *Controller) contactController() {
 			UpdatedAt:     time.Now().UTC(),
 		}
 
-		if err := c.core.ContactUsManager.Create(context, contact); err != nil {
+		if err := c.core.ContactUsManager().Create(context, contact); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Contact creation failed (/contact), db error: " + err.Error(),
@@ -88,7 +88,7 @@ func (c *Controller) contactController() {
 			Module:      "Contact",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.ContactUsManager.ToModel(contact))
+		return ctx.JSON(http.StatusCreated, c.core.ContactUsManager().ToModel(contact))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -106,7 +106,7 @@ func (c *Controller) contactController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid contact ID"})
 		}
-		contact, err := c.core.ContactUsManager.GetByID(context, *contactID)
+		contact, err := c.core.ContactUsManager().GetByID(context, *contactID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -115,7 +115,7 @@ func (c *Controller) contactController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Contact record not found"})
 		}
-		if err := c.core.ContactUsManager.Delete(context, *contactID); err != nil {
+		if err := c.core.ContactUsManager().Delete(context, *contactID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Contact delete failed (/contact/:contact_id), db error: " + err.Error(),
@@ -161,7 +161,7 @@ func (c *Controller) contactController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.ContactUsManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.ContactUsManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Contact bulk delete failed (/contact/bulk-delete) | error: " + err.Error(),

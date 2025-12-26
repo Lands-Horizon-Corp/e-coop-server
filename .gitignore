@@ -35,3 +35,7 @@ main
 
 vendor/
 app
+
+*.pprof
+
+ecoop

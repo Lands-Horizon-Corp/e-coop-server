@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	GeneralLedgerTag struct {
+	GeneralAccountingLedgerTag struct {
 		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 		CreatedAt   time.Time      `gorm:"not null;default:now()"`
 		CreatedByID uuid.UUID      `gorm:"type:uuid"`
@@ -38,7 +38,7 @@ type (
 		Icon        string      `gorm:"type:varchar(20)"`
 	}
 
-	GeneralLedgerTagResponse struct {
+	GeneralAccountingLedgerTagResponse struct {
 		ID              uuid.UUID              `json:"id"`
 		CreatedAt       string                 `json:"created_at"`
 		CreatedByID     uuid.UUID              `json:"created_by_id"`
@@ -59,7 +59,7 @@ type (
 		Icon            string                 `json:"icon"`
 	}
 
-	GeneralLedgerTagRequest struct {
+	GeneralAccountingLedgerTagRequest struct {
 		GeneralLedgerID uuid.UUID   `json:"general_ledger_id" validate:"required"`
 		Name            string      `json:"name" validate:"required,min=1,max=50"`
 		Description     string      `json:"description,omitempty"`
@@ -69,10 +69,9 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerTag() {
-	m.Migration = append(m.Migration, &GeneralLedgerTag{})
-	m.GeneralLedgerTagManager = registry.NewRegistry(registry.RegistryParams[
-		GeneralLedgerTag, GeneralLedgerTagResponse, GeneralLedgerTagRequest,
+func (m *Core) GeneralAccountingLedgerTagManager() *registry.Registry[GeneralAccountingLedgerTag, GeneralAccountingLedgerTagResponse, GeneralAccountingLedgerTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		GeneralAccountingLedgerTag, GeneralAccountingLedgerTagResponse, GeneralAccountingLedgerTagRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "GeneralLedger",
@@ -81,24 +80,24 @@ func (m *Core) generalLedgerTag() {
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *GeneralLedgerTag) *GeneralLedgerTagResponse {
+		Resource: func(data *GeneralAccountingLedgerTag) *GeneralAccountingLedgerTagResponse {
 			if data == nil {
 				return nil
 			}
-			return &GeneralLedgerTagResponse{
+			return &GeneralAccountingLedgerTagResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				GeneralLedgerID: data.GeneralLedgerID,
-				GeneralLedger:   m.GeneralLedgerManager.ToModel(data.GeneralLedger),
+				GeneralLedger:   m.GeneralLedgerManager().ToModel(data.GeneralLedger),
 				Name:            data.Name,
 				Description:     data.Description,
 				Category:        data.Category,
@@ -106,7 +105,7 @@ func (m *Core) generalLedgerTag() {
 				Icon:            data.Icon,
 			}
 		},
-		Created: func(data *GeneralLedgerTag) registry.Topics {
+		Created: func(data *GeneralAccountingLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.create",
 				fmt.Sprintf("general_ledger_tag.create.%s", data.ID),
@@ -114,7 +113,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerTag) registry.Topics {
+		Updated: func(data *GeneralAccountingLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.update",
 				fmt.Sprintf("general_ledger_tag.update.%s", data.ID),
@@ -122,7 +121,7 @@ func (m *Core) generalLedgerTag() {
 				fmt.Sprintf("general_ledger_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerTag) registry.Topics {
+		Deleted: func(data *GeneralAccountingLedgerTag) registry.Topics {
 			return []string{
 				"general_ledger_tag.delete",
 				fmt.Sprintf("general_ledger_tag.delete.%s", data.ID),
@@ -133,8 +132,8 @@ func (m *Core) generalLedgerTag() {
 	})
 }
 
-func (m *Core) GeneralLedgerTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerTag, error) {
-	return m.GeneralLedgerTagManager.Find(context, &GeneralLedgerTag{
+func (m *Core) GeneralAccountingLedgerTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountingLedgerTag, error) {
+	return m.GeneralAccountingLedgerTagManager().Find(context, &GeneralAccountingLedgerTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

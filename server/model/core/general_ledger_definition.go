@@ -98,9 +98,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerDefinition() {
-	m.Migration = append(m.Migration, &GeneralLedgerDefinition{})
-	m.GeneralLedgerDefinitionManager = registry.NewRegistry(registry.RegistryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
+func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"Accounts",
@@ -141,29 +140,29 @@ func (m *Core) generalLedgerDefinition() {
 				return data.Accounts[i].Index < data.Accounts[j].Index
 			})
 
-			entries := m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries)
+			entries := m.GeneralLedgerDefinitionManager().ToModels(data.GeneralLedgerDefinitionEntries)
 			if len(entries) == 0 || entries == nil {
 				entries = []*GeneralLedgerDefinitionResponse{}
 			}
 			return &GeneralLedgerDefinitionResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				DeletedByID:    data.DeletedByID,
-				DeletedBy:      m.UserManager.ToModel(data.DeletedBy),
+				DeletedBy:      m.UserManager().ToModel(data.DeletedBy),
 
 				GeneralLedgerDefinitionEntryID:  data.GeneralLedgerDefinitionEntryID,
 				GeneralLedgerDefinitionEntries:  entries,
 				GeneralLedgerAccountsGroupingID: data.GeneralLedgerAccountsGroupingID,
-				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager.ToModel(data.GeneralLedgerAccountsGrouping),
+				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager().ToModel(data.GeneralLedgerAccountsGrouping),
 
-				Accounts:                        m.AccountManager.ToModels(data.Accounts),
+				Accounts:                        m.AccountManager().ToModels(data.Accounts),
 				Name:                            data.Name,
 				Description:                     data.Description,
 				Index:                           data.Index,
@@ -206,7 +205,7 @@ func (m *Core) generalLedgerDefinition() {
 }
 
 func (m *Core) GeneralLedgerDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerDefinition, error) {
-	return m.GeneralLedgerDefinitionManager.Find(context, &GeneralLedgerDefinition{
+	return m.GeneralLedgerDefinitionManager().Find(context, &GeneralLedgerDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -43,7 +43,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		memberProfile, err := c.core.MemberProfileManager.GetByID(context, *memberProfileID)
+		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
@@ -52,7 +52,7 @@ func (c *Controller) memberProfileArchiveController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-		memberProfileArchiveList, err := c.core.MemberProfileArchiveManager.FindRaw(context, &core.MemberProfileArchive{
+		memberProfileArchiveList, err := c.core.MemberProfileArchiveManager().FindRaw(context, &core.MemberProfileArchive{
 			BranchID:        userOrg.BranchID,
 			OrganizationID:  &userOrg.OrganizationID,
 			MemberProfileID: &memberProfile.ID,
@@ -84,7 +84,7 @@ func (c *Controller) memberProfileArchiveController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.MemberProfileArchiveManager.Validate(ctx)
+		req, err := c.core.MemberProfileArchiveManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -126,7 +126,7 @@ func (c *Controller) memberProfileArchiveController() {
 			OrganizationID: &userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberProfileArchiveManager.Create(context, memberProfileArchive); err != nil {
+		if err := c.core.MemberProfileArchiveManager().Create(context, memberProfileArchive); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile archive creation failed (/member-profile-archive), db error: " + err.Error(),
@@ -141,7 +141,7 @@ func (c *Controller) memberProfileArchiveController() {
 			Module:      "MemberProfileArchive",
 		})
 
-		result, err := c.core.MemberProfileArchiveManager.GetByID(context, memberProfileArchive.ID)
+		result, err := c.core.MemberProfileArchiveManager().GetByID(context, memberProfileArchive.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created member profile archive: " + err.Error()})
 		}
@@ -168,7 +168,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		req, err := c.core.MemberProfileArchiveManager.Validate(ctx)
+		req, err := c.core.MemberProfileArchiveManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager.GetByID(context, *memberProfileArchiveID)
+		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) memberProfileArchiveController() {
 		memberProfileArchive.UpdatedAt = time.Now().UTC()
 		memberProfileArchive.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileArchiveManager.UpdateByID(context, memberProfileArchive.ID, memberProfileArchive); err != nil {
+		if err := c.core.MemberProfileArchiveManager().UpdateByID(context, memberProfileArchive.ID, memberProfileArchive); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), db error: " + err.Error(),
@@ -219,7 +219,7 @@ func (c *Controller) memberProfileArchiveController() {
 			Module:      "MemberProfileArchive",
 		})
 
-		result, err := c.core.MemberProfileArchiveManager.GetByID(context, *memberProfileArchiveID)
+		result, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated member profile archive: " + err.Error()})
 		}
@@ -254,7 +254,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager.GetByID(context, *memberProfileArchiveID)
+		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -272,7 +272,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
 
-		if err := c.core.MemberProfileArchiveManager.Delete(context, memberProfileArchive.ID); err != nil {
+		if err := c.core.MemberProfileArchiveManager().Delete(context, memberProfileArchive.ID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile archive delete failed (/member-profile-archive/:member_profile_archive_id), db error: " + err.Error(),
@@ -302,7 +302,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager.GetByIDRaw(context, *memberProfileArchiveID)
+		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByIDRaw(context, *memberProfileArchiveID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
@@ -335,7 +335,7 @@ func (c *Controller) memberProfileArchiveController() {
 
 		var createdMedia []*core.MemberProfileArchive
 		for _, mediaID := range req.IDs {
-			media, err := c.core.MediaManager.GetByID(context, mediaID)
+			media, err := c.core.MediaManager().GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
@@ -353,13 +353,13 @@ func (c *Controller) memberProfileArchiveController() {
 				Category:        req.Category,
 			}
 
-			if err := c.core.MemberProfileArchiveManager.Create(context, memberProfileArchive); err != nil {
+			if err := c.core.MemberProfileArchiveManager().Create(context, memberProfileArchive); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile archive: " + err.Error()})
 			}
 
 			createdMedia = append(createdMedia, memberProfileArchive)
 		}
-		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager.ToModels(createdMedia))
+		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager().ToModels(createdMedia))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -382,7 +382,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		memberProfileArchives, err := c.core.MemberProfileArchiveManager.Find(context, &core.MemberProfileArchive{
+		memberProfileArchives, err := c.core.MemberProfileArchiveManager().Find(context, &core.MemberProfileArchive{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  &userOrg.OrganizationID,
 			BranchID:        userOrg.BranchID,

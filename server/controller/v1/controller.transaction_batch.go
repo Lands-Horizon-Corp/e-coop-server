@@ -27,14 +27,14 @@ func (c *Controller) transactionBatchController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.Find(context, &core.TransactionBatch{
+		transactionBatch, err := c.core.TransactionBatchManager().Find(context, &core.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -48,7 +48,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.NormalPagination(context, ctx, &core.TransactionBatch{
+		transactionBatch, err := c.core.TransactionBatchManager().NormalPagination(context, ctx, &core.TransactionBatch{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -109,7 +109,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil || transactionBatch == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -153,7 +153,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: update error: " + err.Error(),
@@ -166,7 +166,7 @@ func (c *Controller) transactionBatchController() {
 			Description: "Updated transaction batch signatures for batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -196,7 +196,7 @@ func (c *Controller) transactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -253,7 +253,7 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -282,7 +282,7 @@ func (c *Controller) transactionBatchController() {
 		}
 		transactionBatch.DepositInBank = req.DepositInBank
 
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: update error: " + err.Error(),
@@ -307,7 +307,7 @@ func (c *Controller) transactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -318,7 +318,7 @@ func (c *Controller) transactionBatchController() {
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.core.BatchFundingManager.Validate(ctx)
+		batchFundingReq, err := c.core.BatchFundingManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -400,7 +400,7 @@ func (c *Controller) transactionBatchController() {
 			RequestView:                   false,
 		}
 
-		if err := c.core.TransactionBatchManager.CreateWithTx(context, tx, transBatch); err != nil {
+		if err := c.core.TransactionBatchManager().CreateWithTx(context, tx, transBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create error: " + err.Error(),
@@ -425,7 +425,7 @@ func (c *Controller) transactionBatchController() {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
-		if err := c.core.BatchFundingManager.CreateWithTx(context, tx, batchFunding); err != nil {
+		if err := c.core.BatchFundingManager().CreateWithTx(context, tx, batchFunding); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create batch funding error: " + err.Error(),
@@ -523,7 +523,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: update error: " + err.Error(),
@@ -544,7 +544,7 @@ func (c *Controller) transactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -565,7 +565,7 @@ func (c *Controller) transactionBatchController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
@@ -576,7 +576,7 @@ func (c *Controller) transactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -630,7 +630,7 @@ func (c *Controller) transactionBatchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -643,7 +643,7 @@ func (c *Controller) transactionBatchController() {
 		transactionBatch.CanView = false
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: update error: " + err.Error(),
@@ -663,7 +663,7 @@ func (c *Controller) transactionBatchController() {
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -684,7 +684,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -705,7 +705,7 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModels(batches))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(batches))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -742,7 +742,7 @@ func (c *Controller) transactionBatchController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager.GetByID(context, *transactionBatchID)
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -763,7 +763,7 @@ func (c *Controller) transactionBatchController() {
 
 		transactionBatch.CanView = true
 
-		if err := c.core.TransactionBatchManager.UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: update error: " + err.Error(),
@@ -778,7 +778,7 @@ func (c *Controller) transactionBatchController() {
 			Module:      "TransactionBatch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager.ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -800,12 +800,12 @@ func (c *Controller) transactionBatchController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		paginated, err := c.core.TransactionBatchManager.NormalPagination(context, ctx, &core.TransactionBatch{
+		paginated, err := c.core.TransactionBatchManager().NormalPagination(context, ctx, &core.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrganization.UserID,

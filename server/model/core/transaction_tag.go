@@ -71,9 +71,8 @@ type (
 	}
 )
 
-func (m *Core) transactionTag() {
-	m.Migration = append(m.Migration, &TransactionTag{})
-	m.TransactionTagManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) TransactionTagManager() *registry.Registry[TransactionTag, TransactionTagResponse, TransactionTagRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		TransactionTag, TransactionTagResponse, TransactionTagRequest,
 	]{
 		Preloads: []string{
@@ -91,16 +90,16 @@ func (m *Core) transactionTag() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				TransactionID:  data.TransactionID,
-				Transaction:    m.TransactionManager.ToModel(data.Transaction),
+				Transaction:    m.TransactionManager().ToModel(data.Transaction),
 				Name:           data.Name,
 				Description:    data.Description,
 				Category:       data.Category,
@@ -137,7 +136,7 @@ func (m *Core) transactionTag() {
 }
 
 func (m *Core) TransactionTagCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionTag, error) {
-	return m.TransactionTagManager.Find(context, &TransactionTag{
+	return m.TransactionTagManager().Find(context, &TransactionTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

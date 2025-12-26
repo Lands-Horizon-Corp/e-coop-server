@@ -30,7 +30,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		req, err := c.core.MemberEducationalAttainmentManager.Validate(ctx)
+		req, err := c.core.MemberEducationalAttainmentManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -64,7 +64,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			OrganizationID:        userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberEducationalAttainmentManager.Create(context, value); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager().Create(context, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create educational attainment failed (/member-educational-attainment/member-profile/:member_profile_id), db error: " + err.Error(),
@@ -79,7 +79,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			Module:      "MemberEducationalAttainment",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -99,7 +99,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_educational_attainment_id: " + err.Error()})
 		}
-		req, err := c.core.MemberEducationalAttainmentManager.Validate(ctx)
+		req, err := c.core.MemberEducationalAttainmentManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -118,7 +118,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value, err := c.core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
+		value, err := c.core.MemberEducationalAttainmentManager().GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -139,7 +139,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		value.EducationalAttainment = req.EducationalAttainment
 		value.Description = req.Description
 
-		if err := c.core.MemberEducationalAttainmentManager.UpdateByID(context, value.ID, value); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager().UpdateByID(context, value.ID, value); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -152,7 +152,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			Description: "Updated educational attainment (/member-educational-attainment/:member_educational_attainment_id): " + value.SchoolName,
 			Module:      "MemberEducationalAttainment",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager.ToModel(value))
+		return ctx.JSON(http.StatusOK, c.core.MemberEducationalAttainmentManager().ToModel(value))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -170,7 +170,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_educational_attainment_id: " + err.Error()})
 		}
-		value, err := c.core.MemberEducationalAttainmentManager.GetByID(context, *memberEducationalAttainmentID)
+		value, err := c.core.MemberEducationalAttainmentManager().GetByID(context, *memberEducationalAttainmentID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -179,7 +179,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Educational attainment record not found: " + err.Error()})
 		}
-		if err := c.core.MemberEducationalAttainmentManager.Delete(context, *memberEducationalAttainmentID); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager().Delete(context, *memberEducationalAttainmentID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete educational attainment failed (/member-educational-attainment/:member_educational_attainment_id), db error: " + err.Error(),
@@ -226,7 +226,7 @@ func (c *Controller) memberEducationalAttainmentController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberEducationalAttainmentManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberEducationalAttainmentManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete educational attainment failed (/member-educational-attainment/bulk-delete) | error: " + err.Error(),

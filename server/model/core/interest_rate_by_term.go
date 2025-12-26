@@ -60,9 +60,8 @@ type (
 	}
 )
 
-func (m *Core) interestRateByTerm() {
-	m.Migration = append(m.Migration, &InterestRateByTerm{})
-	m.InterestRateByTermManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) InterestRateByTermManager() *registry.Registry[InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateByTerm, InterestRateByTermResponse, InterestRateByTermRequest,
 	]{
 		Preloads: []string{
@@ -80,18 +79,18 @@ func (m *Core) interestRateByTerm() {
 				ID:                                 data.ID,
 				CreatedAt:                          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                        data.CreatedByID,
-				CreatedBy:                          m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:                          m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                        data.UpdatedByID,
-				UpdatedBy:                          m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:                          m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:                     data.OrganizationID,
-				Organization:                       m.OrganizationManager.ToModel(data.Organization),
+				Organization:                       m.OrganizationManager().ToModel(data.Organization),
 				BranchID:                           data.BranchID,
-				Branch:                             m.BranchManager.ToModel(data.Branch),
+				Branch:                             m.BranchManager().ToModel(data.Branch),
 				Name:                               data.Name,
 				Descrition:                         data.Descrition,
 				MemberClassificationInterestRateID: data.MemberClassificationInterestRateID,
-				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager.ToModel(data.MemberClassificationInterestRate),
+				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager().ToModel(data.MemberClassificationInterestRate),
 			}
 		},
 		Created: func(data *InterestRateByTerm) registry.Topics {
@@ -122,7 +121,7 @@ func (m *Core) interestRateByTerm() {
 }
 
 func (m *Core) InterestRateByTermCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByTerm, error) {
-	return m.InterestRateByTermManager.Find(context, &InterestRateByTerm{
+	return m.InterestRateByTermManager().Find(context, &InterestRateByTerm{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

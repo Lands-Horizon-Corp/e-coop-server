@@ -61,9 +61,8 @@ type (
 	}
 )
 
-func (m *Core) loanTermsAndConditionSuggestedPayment() {
-	m.Migration = append(m.Migration, &LoanTermsAndConditionSuggestedPayment{})
-	m.LoanTermsAndConditionSuggestedPaymentManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanTermsAndConditionSuggestedPaymentManager() *registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{
@@ -81,16 +80,16 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Name:              data.Name,
 				Description:       data.Description,
 			}
@@ -124,7 +123,7 @@ func (m *Core) loanTermsAndConditionSuggestedPayment() {
 }
 
 func (m *Core) LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
-	return m.LoanTermsAndConditionSuggestedPaymentManager.Find(context, &LoanTermsAndConditionSuggestedPayment{
+	return m.LoanTermsAndConditionSuggestedPaymentManager().Find(context, &LoanTermsAndConditionSuggestedPayment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

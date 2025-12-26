@@ -265,16 +265,15 @@ func (m *Core) permissionTemplateSeed(
 		permission.BranchID = branchID
 		permission.UpdatedByID = userID
 		permission.CreatedByID = userID
-		if err := m.PermissionTemplateManager.CreateWithTx(context, tx, permission); err != nil {
+		if err := m.PermissionTemplateManager().CreateWithTx(context, tx, permission); err != nil {
 			return eris.Wrapf(err, "failed to seed permission template %s", permission.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) permissionTemplate() {
-	m.Migration = append(m.Migration, &PermissionTemplate{})
-	m.PermissionTemplateManager = registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
+func (m *Core) PermissionTemplateManager() *registry.Registry[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest] {
+	return registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -301,14 +300,14 @@ func (m *Core) permissionTemplate() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				Name:        data.Name,
 				Description: data.Description,
@@ -344,7 +343,7 @@ func (m *Core) permissionTemplate() {
 }
 
 func (m *Core) GetPermissionTemplateBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
-	return m.PermissionTemplateManager.Find(context, &PermissionTemplate{
+	return m.PermissionTemplateManager().Find(context, &PermissionTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

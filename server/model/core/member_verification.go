@@ -63,9 +63,8 @@ type (
 	}
 )
 
-func (m *Core) memberVerification() {
-	m.Migration = append(m.Migration, &MemberVerification{})
-	m.MemberVerificationManager = registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
+func (m *Core) MemberVerificationManager() *registry.Registry[MemberVerification, MemberVerificationResponse, MemberVerificationRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberVerification, MemberVerificationResponse, MemberVerificationRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "VerifiedByUser"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -79,18 +78,18 @@ func (m *Core) memberVerification() {
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:        m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:        m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:   data.OrganizationID,
-				Organization:     m.OrganizationManager.ToModel(data.Organization),
+				Organization:     m.OrganizationManager().ToModel(data.Organization),
 				BranchID:         *data.BranchID,
-				Branch:           m.BranchManager.ToModel(data.Branch),
+				Branch:           m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:  *data.MemberProfileID,
-				MemberProfile:    m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:    m.MemberProfileManager().ToModel(data.MemberProfile),
 				VerifiedByUserID: *data.VerifiedByUserID,
-				VerifiedByUser:   m.UserManager.ToModel(data.VerifiedByUser),
+				VerifiedByUser:   m.UserManager().ToModel(data.VerifiedByUser),
 				Status:           data.Status,
 			}
 		},
@@ -123,7 +122,7 @@ func (m *Core) memberVerification() {
 }
 
 func (m *Core) MemberVerificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberVerification, error) {
-	return m.MemberVerificationManager.Find(context, &MemberVerification{
+	return m.MemberVerificationManager().Find(context, &MemberVerification{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 	})

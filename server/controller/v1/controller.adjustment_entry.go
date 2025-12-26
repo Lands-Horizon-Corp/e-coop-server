@@ -33,7 +33,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager.ToModels(adjustmentEntries))
+		return ctx.JSON(http.StatusOK, c.core.AdjustmentEntryManager().ToModels(adjustmentEntries))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -50,7 +50,7 @@ func (c *Controller) adjustmentEntryController() {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := c.core.AdjustmentEntryManager.NormalPagination(context, ctx, &core.AdjustmentEntry{
+		adjustmentEntries, err := c.core.AdjustmentEntryManager().NormalPagination(context, ctx, &core.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -71,7 +71,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
-		adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByIDRaw(context, *adjustmentEntryID)
+		adjustmentEntry, err := c.core.AdjustmentEntryManager().GetByIDRaw(context, *adjustmentEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
@@ -86,7 +86,7 @@ func (c *Controller) adjustmentEntryController() {
 		ResponseType: core.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AdjustmentEntryManager.Validate(ctx)
+		req, err := c.core.AdjustmentEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -178,7 +178,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 		}
 
-		if err := c.core.AdjustmentEntryManager.Create(context, adjustmentEntry); err != nil {
+		if err := c.core.AdjustmentEntryManager().Create(context, adjustmentEntry); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), db error: " + err.Error(),
@@ -200,7 +200,7 @@ func (c *Controller) adjustmentEntryController() {
 			Description: "Created adjustment entry (/adjustment-entry): " + adjustmentEntry.ReferenceNumber,
 			Module:      "AdjustmentEntry",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.AdjustmentEntryManager.ToModel(adjustmentEntry))
+		return ctx.JSON(http.StatusCreated, c.core.AdjustmentEntryManager().ToModel(adjustmentEntry))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -218,7 +218,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
-		adjustmentEntry, err := c.core.AdjustmentEntryManager.GetByID(context, *adjustmentEntryID)
+		adjustmentEntry, err := c.core.AdjustmentEntryManager().GetByID(context, *adjustmentEntryID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -227,7 +227,7 @@ func (c *Controller) adjustmentEntryController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Adjustment entry not found"})
 		}
-		if err := c.core.AdjustmentEntryManager.Delete(context, *adjustmentEntryID); err != nil {
+		if err := c.core.AdjustmentEntryManager().Delete(context, *adjustmentEntryID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Adjustment entry delete failed (/adjustment-entry/:adjustment_entry_id), db error: " + err.Error(),
@@ -272,7 +272,7 @@ func (c *Controller) adjustmentEntryController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.AdjustmentEntryManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.AdjustmentEntryManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete adjustment entries (/adjustment-entry/bulk-delete) | error: " + err.Error(),
@@ -339,7 +339,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		paginated, err := c.core.AdjustmentEntryManager.RawPagination(
+		paginated, err := c.core.AdjustmentEntryManager().RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -383,7 +383,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		entries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
+		entries, err := c.core.AdjustmentEntryManager().Find(context, &core.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -420,14 +420,14 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
 		}
-		paginated, err := c.core.AdjustmentEntryManager.RawPagination(
+		paginated, err := c.core.AdjustmentEntryManager().RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -469,14 +469,14 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user organization ID"})
 		}
-		userOrganization, err := c.core.UserOrganizationManager.GetByID(context, *userOrganizationID)
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization not found"})
 		}
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
 		}
-		entries, err := c.core.AdjustmentEntryManager.Find(context, &core.AdjustmentEntry{
+		entries, err := c.core.AdjustmentEntryManager().Find(context, &core.AdjustmentEntry{
 			OrganizationID: userOrganization.OrganizationID,
 			BranchID:       *userOrganization.BranchID,
 			EmployeeUserID: &userOrganization.UserID,

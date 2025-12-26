@@ -71,9 +71,8 @@ type (
 	}
 )
 
-func (m *Core) loanComakerMember() {
-	m.Migration = append(m.Migration, &LoanComakerMember{})
-	m.LoanComakerMemberManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) LoanComakerMemberManager() *registry.Registry[LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		LoanComakerMember, LoanComakerMemberResponse, LoanComakerMemberRequest,
 	]{
 		Preloads: []string{
@@ -92,18 +91,18 @@ func (m *Core) loanComakerMember() {
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager.ToModel(data.Organization),
+				Organization:      m.OrganizationManager().ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager.ToModel(data.Branch),
+				Branch:            m.BranchManager().ToModel(data.Branch),
 				MemberProfileID:   data.MemberProfileID,
-				MemberProfile:     m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:     m.MemberProfileManager().ToModel(data.MemberProfile),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager.ToModel(data.LoanTransaction),
+				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
 				Description:       data.Description,
 				Amount:            data.Amount,
 				MonthsCount:       data.MonthsCount,
@@ -139,7 +138,7 @@ func (m *Core) loanComakerMember() {
 }
 
 func (m *Core) LoanComakerMemberCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanComakerMember, error) {
-	return m.LoanComakerMemberManager.Find(context, &LoanComakerMember{
+	return m.LoanComakerMemberManager().Find(context, &LoanComakerMember{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

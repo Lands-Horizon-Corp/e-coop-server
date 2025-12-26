@@ -262,9 +262,8 @@ type (
 	}
 )
 
-func (m *Core) cashCheckVoucher() {
-	m.Migration = append(m.Migration, &CashCheckVoucher{})
-	m.CashCheckVoucherManager = registry.NewRegistry(registry.RegistryParams[
+func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
 		Preloads: []string{
@@ -308,27 +307,27 @@ func (m *Core) cashCheckVoucher() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager.ToModel(data.Currency),
+				Currency:       m.CurrencyManager().ToModel(data.Currency),
 
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager.ToModel(data.EmployeeUser),
+				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager.ToModel(data.TransactionBatch),
+				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
 				PrintedByID:        data.PrintedByID,
-				PrintedBy:          m.UserManager.ToModel(data.PrintedBy),
+				PrintedBy:          m.UserManager().ToModel(data.PrintedBy),
 				ApprovedByID:       data.ApprovedByID,
-				ApprovedBy:         m.UserManager.ToModel(data.ApprovedBy),
+				ApprovedBy:         m.UserManager().ToModel(data.ApprovedBy),
 				ReleasedByID:       data.ReleasedByID,
-				ReleasedBy:         m.UserManager.ToModel(data.ReleasedBy),
+				ReleasedBy:         m.UserManager().ToModel(data.ReleasedBy),
 
 				PayTo: data.PayTo,
 
@@ -344,52 +343,52 @@ func (m *Core) cashCheckVoucher() {
 				ReleasedDate:      releasedDate,
 
 				ApprovedBySignatureMediaID: data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:   m.MediaManager.ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:   m.MediaManager().ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:             data.ApprovedByName,
 				ApprovedByPosition:         data.ApprovedByPosition,
 
 				PreparedBySignatureMediaID: data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:   m.MediaManager.ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:   m.MediaManager().ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:             data.PreparedByName,
 				PreparedByPosition:         data.PreparedByPosition,
 
 				CertifiedBySignatureMediaID: data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:   m.MediaManager.ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:   m.MediaManager().ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:             data.CertifiedByName,
 				CertifiedByPosition:         data.CertifiedByPosition,
 
 				VerifiedBySignatureMediaID: data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:   m.MediaManager.ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:   m.MediaManager().ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:             data.VerifiedByName,
 				VerifiedByPosition:         data.VerifiedByPosition,
 
 				CheckBySignatureMediaID: data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:   m.MediaManager.ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:   m.MediaManager().ToModel(data.CheckBySignatureMedia),
 				CheckByName:             data.CheckByName,
 				CheckByPosition:         data.CheckByPosition,
 
 				AcknowledgeBySignatureMediaID: data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:   m.MediaManager.ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:   m.MediaManager().ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:             data.AcknowledgeByName,
 				AcknowledgeByPosition:         data.AcknowledgeByPosition,
 
 				NotedBySignatureMediaID: data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:   m.MediaManager.ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:   m.MediaManager().ToModel(data.NotedBySignatureMedia),
 				NotedByName:             data.NotedByName,
 				NotedByPosition:         data.NotedByPosition,
 
 				PostedBySignatureMediaID: data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:   m.MediaManager.ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:   m.MediaManager().ToModel(data.PostedBySignatureMedia),
 				PostedByName:             data.PostedByName,
 				PostedByPosition:         data.PostedByPosition,
 
 				PaidBySignatureMediaID: data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:   m.MediaManager.ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:   m.MediaManager().ToModel(data.PaidBySignatureMedia),
 				PaidByName:             data.PaidByName,
 				PaidByPosition:         data.PaidByPosition,
 
-				CashCheckVoucherTags:    m.CashCheckVoucherTagManager.ToModels(data.CashCheckVoucherTags),
-				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager.ToModels(data.CashCheckVoucherEntries),
+				CashCheckVoucherTags:    m.CashCheckVoucherTagManager().ToModels(data.CashCheckVoucherTags),
+				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager().ToModels(data.CashCheckVoucherEntries),
 
 				Name: data.Name,
 			}
@@ -422,7 +421,7 @@ func (m *Core) cashCheckVoucher() {
 }
 
 func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
-	return m.CashCheckVoucherManager.Find(context, &CashCheckVoucher{
+	return m.CashCheckVoucherManager().Find(context, &CashCheckVoucher{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -437,7 +436,7 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -455,7 +454,7 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -473,7 +472,7 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -491,7 +490,7 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -515,7 +514,7 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager.ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {

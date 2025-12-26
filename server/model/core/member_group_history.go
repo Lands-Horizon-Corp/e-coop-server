@@ -59,9 +59,8 @@ type (
 	}
 )
 
-func (m *Core) memberGroupHistory() {
-	m.Migration = append(m.Migration, &MemberGroupHistory{})
-	m.MemberGroupHistoryManager = registry.NewRegistry(registry.RegistryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
+func (m *Core) MemberGroupHistoryManager() *registry.Registry[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGroup"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -75,18 +74,18 @@ func (m *Core) memberGroupHistory() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				MemberGroupID:   data.MemberGroupID,
-				MemberGroup:     m.MemberGroupManager.ToModel(data.MemberGroup),
+				MemberGroup:     m.MemberGroupManager().ToModel(data.MemberGroup),
 			}
 		},
 
@@ -121,14 +120,14 @@ func (m *Core) memberGroupHistory() {
 }
 
 func (m *Core) MemberGroupHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
-	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+	return m.MemberGroupHistoryManager().Find(context, &MemberGroupHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MemberGroupHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
-	return m.MemberGroupHistoryManager.Find(context, &MemberGroupHistory{
+	return m.MemberGroupHistoryManager().Find(context, &MemberGroupHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

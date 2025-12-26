@@ -47,7 +47,7 @@ type (
 )
 
 func (m *Core) categorySeed(ctx context.Context) error {
-	category, err := m.CategoryManager.List(ctx)
+	category, err := m.CategoryManager().List(ctx)
 
 	if err != nil {
 		return err
@@ -260,16 +260,15 @@ func (m *Core) categorySeed(ctx context.Context) error {
 	}
 
 	for _, category := range categories {
-		if err := m.CategoryManager.Create(ctx, &category); err != nil {
+		if err := m.CategoryManager().Create(ctx, &category); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *Core) category() {
-	m.Migration = append(m.Migration, &Category{})
-	m.CategoryManager = registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
+func (m *Core) CategoryManager() *registry.Registry[Category, CategoryResponse, CategoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -289,7 +288,7 @@ func (m *Core) category() {
 				Color:       data.Color,
 				Icon:        data.Icon,
 
-				OrganizationCategories: m.OrganizationCategoryManager.ToModels(data.OrganizationCategories),
+				OrganizationCategories: m.OrganizationCategoryManager().ToModels(data.OrganizationCategories),
 			}
 		},
 		Created: func(data *Category) registry.Topics {

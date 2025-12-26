@@ -55,9 +55,8 @@ type (
 	}
 )
 
-func (m *Core) memberCenter() {
-	m.Migration = append(m.Migration, &MemberCenter{})
-	m.MemberCenterManager = registry.NewRegistry(registry.RegistryParams[MemberCenter, MemberCenterResponse, MemberCenterRequest]{
+func (m *Core) MemberCenterManager() *registry.Registry[MemberCenter, MemberCenterResponse, MemberCenterRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MemberCenter, MemberCenterResponse, MemberCenterRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -71,14 +70,14 @@ func (m *Core) memberCenter() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -148,7 +147,7 @@ func (m *Core) memberCenterSeed(context context.Context, tx *gorm.DB, userID uui
 		},
 	}
 	for _, data := range memberCenter {
-		if err := m.MemberCenterManager.CreateWithTx(context, tx, data); err != nil {
+		if err := m.MemberCenterManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member center %s", data.Name)
 		}
 	}
@@ -156,7 +155,7 @@ func (m *Core) memberCenterSeed(context context.Context, tx *gorm.DB, userID uui
 }
 
 func (m *Core) MemberCenterCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
-	return m.MemberCenterManager.Find(context, &MemberCenter{
+	return m.MemberCenterManager().Find(context, &MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

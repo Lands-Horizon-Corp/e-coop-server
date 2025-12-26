@@ -45,7 +45,7 @@ func (e *Event) MemberAccountingLedgerSummary(
 		return nil, eris.Wrap(err, "failed to retrieve member accounting ledger entries")
 	}
 
-	paidUpShareCapital, err := e.core.MemberAccountingLedgerManager.Find(context, &core.MemberAccountingLedger{
+	paidUpShareCapital, err := e.core.MemberAccountingLedgerManager().Find(context, &core.MemberAccountingLedger{
 		MemberProfileID: *memberProfileID,
 		OrganizationID:  userOrg.OrganizationID,
 		BranchID:        *userOrg.BranchID,

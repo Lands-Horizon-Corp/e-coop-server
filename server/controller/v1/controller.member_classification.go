@@ -28,7 +28,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classification history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationHistoryManager.ToModels(memberClassificationHistory))
+		return ctx.JSON(http.StatusOK, c.core.MemberClassificationHistoryManager().ToModels(memberClassificationHistory))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -46,7 +46,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager.NormalPagination(context, ctx, &core.MemberClassificationHistory{
+		memberClassificationHistory, err := c.core.MemberClassificationHistoryManager().NormalPagination(context, ctx, &core.MemberClassificationHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -72,7 +72,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member classifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModels(memberClassification))
+		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager().ToModels(memberClassification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -86,7 +86,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberClassificationManager.NormalPagination(context, ctx, &core.MemberClassification{
+		value, err := c.core.MemberClassificationManager().NormalPagination(context, ctx, &core.MemberClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -104,7 +104,7 @@ func (c *Controller) memberClassificationController() {
 		Note:         "Creates a new member classification record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberClassificationManager.Validate(ctx)
+		req, err := c.core.MemberClassificationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -135,7 +135,7 @@ func (c *Controller) memberClassificationController() {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberClassificationManager.Create(context, memberClassification); err != nil {
+		if err := c.core.MemberClassificationManager().Create(context, memberClassification); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member classification failed (/member-classification), db error: " + err.Error(),
@@ -150,7 +150,7 @@ func (c *Controller) memberClassificationController() {
 			Module:      "MemberClassification",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModel(memberClassification))
+		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager().ToModel(memberClassification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -179,7 +179,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.MemberClassificationManager.Validate(ctx)
+		req, err := c.core.MemberClassificationManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -188,7 +188,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberClassification, err := c.core.MemberClassificationManager.GetByID(context, *memberClassificationID)
+		memberClassification, err := c.core.MemberClassificationManager().GetByID(context, *memberClassificationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -204,7 +204,7 @@ func (c *Controller) memberClassificationController() {
 		memberClassification.Name = req.Name
 		memberClassification.Description = req.Description
 		memberClassification.Icon = req.Icon
-		if err := c.core.MemberClassificationManager.UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
+		if err := c.core.MemberClassificationManager().UpdateByID(context, memberClassification.ID, memberClassification); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
@@ -217,7 +217,7 @@ func (c *Controller) memberClassificationController() {
 			Description: "Updated member classification (/member-classification/:member_classification_id): " + memberClassification.Name,
 			Module:      "MemberClassification",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager.ToModel(memberClassification))
+		return ctx.JSON(http.StatusOK, c.core.MemberClassificationManager().ToModel(memberClassification))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -235,7 +235,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_classification_id: " + err.Error()})
 		}
-		value, err := c.core.MemberClassificationManager.GetByID(context, *memberClassificationID)
+		value, err := c.core.MemberClassificationManager().GetByID(context, *memberClassificationID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -244,7 +244,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member classification not found: " + err.Error()})
 		}
-		if err := c.core.MemberClassificationManager.Delete(context, *memberClassificationID); err != nil {
+		if err := c.core.MemberClassificationManager().Delete(context, *memberClassificationID); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member classification failed (/member-classification/:member_classification_id), db error: " + err.Error(),
@@ -290,7 +290,7 @@ func (c *Controller) memberClassificationController() {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberClassificationManager.BulkDelete(context, ids); err != nil {
+		if err := c.core.MemberClassificationManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member classifications failed (/member-classification/bulk-delete) | error: " + err.Error(),

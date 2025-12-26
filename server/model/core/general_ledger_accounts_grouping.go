@@ -72,9 +72,8 @@ type (
 	}
 )
 
-func (m *Core) generalLedgerAccountsGrouping() {
-	m.Migration = append(m.Migration, &GeneralLedgerAccountsGrouping{})
-	m.GeneralLedgerAccountsGroupingManager = registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
+func (m *Core) GeneralLedgerAccountsGroupingManager() *registry.Registry[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
@@ -93,14 +92,14 @@ func (m *Core) generalLedgerAccountsGrouping() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				Debit:          data.Debit,
 				Credit:         data.Credit,
 				Name:           data.Name,
@@ -108,7 +107,7 @@ func (m *Core) generalLedgerAccountsGrouping() {
 				FromCode:       data.FromCode,
 				ToCode:         data.ToCode,
 
-				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager.ToModels(data.GeneralLedgerDefinitionEntries),
+				GeneralLedgerDefinitionEntries: m.GeneralLedgerDefinitionManager().ToModels(data.GeneralLedgerDefinitionEntries),
 			}
 		},
 		Created: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
@@ -200,7 +199,7 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 	}
 
 	for i, groupingData := range generalLedgerAccountsGrouping {
-		if err := m.GeneralLedgerAccountsGroupingManager.CreateWithTx(context, tx, groupingData); err != nil {
+		if err := m.GeneralLedgerAccountsGroupingManager().CreateWithTx(context, tx, groupingData); err != nil {
 			return eris.Wrapf(err, "failed to seed general ledger accounts grouping %s", groupingData.Name)
 		}
 
@@ -226,7 +225,7 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				BeginningBalanceOfTheYearDebit:  0,
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
-			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, currentAssetsParent); err != nil {
+			if err := m.GeneralLedgerDefinitionManager().CreateWithTx(context, tx, currentAssetsParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", currentAssetsParent.Name)
 			}
 
@@ -361,10 +360,10 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
 
-			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, liabilitiesParent); err != nil {
+			if err := m.GeneralLedgerDefinitionManager().CreateWithTx(context, tx, liabilitiesParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", liabilitiesParent.Name)
 			}
-			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, equityParent); err != nil {
+			if err := m.GeneralLedgerDefinitionManager().CreateWithTx(context, tx, equityParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", equityParent.Name)
 			}
 
@@ -519,7 +518,7 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 				BeginningBalanceOfTheYearDebit:  0,
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
-			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, operatingExpensesParent); err != nil {
+			if err := m.GeneralLedgerDefinitionManager().CreateWithTx(context, tx, operatingExpensesParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", operatingExpensesParent.Name)
 			}
 			definitions = []*GeneralLedgerDefinition{
@@ -599,7 +598,7 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 		}
 
 		for _, definitionData := range definitions {
-			if err := m.GeneralLedgerDefinitionManager.CreateWithTx(context, tx, definitionData); err != nil {
+			if err := m.GeneralLedgerDefinitionManager().CreateWithTx(context, tx, definitionData); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", definitionData.Name)
 			}
 		}
@@ -608,7 +607,7 @@ func (m *Core) generalLedgerAccountsGroupingSeed(context context.Context, tx *go
 }
 
 func (m *Core) GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
-	return m.GeneralLedgerAccountsGroupingManager.Find(context, &GeneralLedgerAccountsGrouping{
+	return m.GeneralLedgerAccountsGroupingManager().Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

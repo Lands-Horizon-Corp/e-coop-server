@@ -146,5 +146,6 @@ func (c *Controller) Start() error {
 	c.generatedSavingsInterestEntryController()
 	c.mutualFundsController()
 	c.mutualFundEntryController()
+	c.kycController()
 	return nil
 }

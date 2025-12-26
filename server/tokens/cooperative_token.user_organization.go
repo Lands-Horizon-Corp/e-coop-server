@@ -11,22 +11,8 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
-
-type UserOrganizationClaim struct {
-	UserOrganizationID string                    `json:"user_organization_id"`
-	UserID             string                    `json:"user_id"`
-	BranchID           string                    `json:"branch_id"`
-	OrganizationID     string                    `json:"organization_id"`
-	UserType           core.UserOrganizationType `json:"user_type"`
-	jwt.RegisteredClaims
-}
-
-func (c UserOrganizationClaim) GetRegisteredClaims() *jwt.RegisteredClaims {
-	return &c.RegisteredClaims
-}
 
 type UserOrganizationCSRF struct {
 	UserOrganizationID string                    `json:"user_organization_id"`
@@ -115,7 +101,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		userOrganization, err := h.core.UserOrganizationManager.FindOne(ctx, &core.UserOrganization{
+		userOrganization, err := h.core.UserOrganizationManager().FindOne(ctx, &core.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 
@@ -135,7 +121,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.core.UserOrganizationManager.GetByID(
+	userOrganization, err := h.core.UserOrganizationManager().GetByID(
 		ctx, handlers.ParseUUID(&claim.UserOrganizationID),
 	)
 	if err != nil || userOrganization == nil {
@@ -189,4 +175,24 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}
 	return nil
+}
+
+func (h *UserOrganizationToken) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
+	orgID := ctx.Request().Header.Get("X-Organization-ID")
+	if orgID == "" {
+		ctx.JSON(http.StatusBadRequest, map[string]string{
+			"error": "organization ID not provided",
+		})
+		return nil, false
+	}
+
+	org, err := h.core.OrganizationManager().GetByID(ctx.Request().Context(), orgID)
+	if err != nil || org == nil {
+		ctx.JSON(http.StatusNotFound, map[string]string{
+			"error": "organization not found",
+		})
+		return nil, false
+	}
+
+	return org, true
 }

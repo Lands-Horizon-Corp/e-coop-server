@@ -69,9 +69,8 @@ type (
 	}
 )
 
-func (m *Core) mutualFundEntry() {
-	m.Migration = append(m.Migration, &MutualFundEntry{})
-	m.MutualFundEntryManager = registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
+func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -90,21 +89,21 @@ func (m *Core) mutualFundEntry() {
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager.ToModel(data.Organization),
+				Organization:    m.OrganizationManager().ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager.ToModel(data.Branch),
+				Branch:          m.BranchManager().ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager.ToModel(data.MemberProfile),
+				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
 				AccountID:       data.AccountID,
-				Account:         m.AccountManager.ToModel(data.Account),
+				Account:         m.AccountManager().ToModel(data.Account),
 				Amount:          data.Amount,
 				MutualFundID:    data.MutualFundID,
-				MutualFund:      m.MutualFundManager.ToModel(data.MutualFund),
+				MutualFund:      m.MutualFundManager().ToModel(data.MutualFund),
 			}
 		},
 		Created: func(data *MutualFundEntry) registry.Topics {
@@ -141,14 +140,14 @@ func (m *Core) mutualFundEntry() {
 }
 
 func (m *Core) MutualFundEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
+	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
 func (m *Core) MutualFundEntryByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
+	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
 		MemberProfileID: memberProfileID,
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
@@ -156,7 +155,7 @@ func (m *Core) MutualFundEntryByMember(context context.Context, memberProfileID 
 }
 
 func (m *Core) MutualFundEntryByAccount(context context.Context, accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager.Find(context, &MutualFundEntry{
+	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
 		AccountID:      accountID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

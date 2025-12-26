@@ -31,8 +31,8 @@ type (
 		FinancialStatementDefinitionEntriesID *uuid.UUID                      `gorm:"type:uuid;column:financial_statement_definition_entries_id;index" json:"parent_definition_id,omitempty"`
 		FinancialStatementDefinitionEntries   []*FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionEntriesID" json:"financial_statement_definition_entries,omitempty"`
 
-		FinancialStatementGroupingID *uuid.UUID                  `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
-		FinancialStatementGrouping   *FinancialStatementGrouping `gorm:"foreignKey:FinancialStatementGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
+		FinancialStatementAccountsGroupingID *uuid.UUID                          `gorm:"type:uuid;index" json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementAccountsGrouping   *FinancialStatementAccountsGrouping `gorm:"foreignKey:FinancialStatementAccountsGroupingID;constraint:OnDelete:SET NULL;" json:"grouping,omitempty"`
 
 		Accounts []*Account `gorm:"foreignKey:FinancialStatementDefinitionID" json:"accounts"`
 
@@ -60,15 +60,15 @@ type (
 		FinancialStatementDefinitionEntriesID *uuid.UUID                              `json:"financial_statement_definition_entries_id,omitempty"`
 		FinancialStatementDefinitionEntries   []*FinancialStatementDefinitionResponse `json:"financial_statement_definition_entries,omitempty"`
 
-		FinancialStatementGroupingID *uuid.UUID                          `json:"financial_statement_grouping_id,omitempty"`
-		FinancialStatementGrouping   *FinancialStatementGroupingResponse `json:"grouping,omitempty"`
-		Accounts                     []*AccountResponse                  `json:"accounts,omitempty"`
-		Name                         string                              `json:"name"`
-		Description                  string                              `json:"description"`
-		Index                        int                                 `json:"index"`
-		NameInTotal                  string                              `json:"name_in_total"`
-		IsPosting                    bool                                `json:"is_posting"`
-		FinancialStatementType       string                              `json:"financial_statement_type"`
+		FinancialStatementAccountsGroupingID *uuid.UUID                                  `json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementAccountsGrouping   *FinancialStatementAccountsGroupingResponse `json:"grouping,omitempty"`
+		Accounts                             []*AccountResponse                          `json:"accounts,omitempty"`
+		Name                                 string                                      `json:"name"`
+		Description                          string                                      `json:"description"`
+		Index                                int                                         `json:"index"`
+		NameInTotal                          string                                      `json:"name_in_total"`
+		IsPosting                            bool                                        `json:"is_posting"`
+		FinancialStatementType               string                                      `json:"financial_statement_type"`
 	}
 
 	FinancialStatementDefinitionRequest struct {
@@ -79,13 +79,12 @@ type (
 		IsPosting                             bool       `json:"is_posting,omitempty"`
 		FinancialStatementType                string     `json:"financial_statement_type,omitempty"`
 		FinancialStatementDefinitionEntriesID *uuid.UUID `json:"financial_statement_definition_entries_id,omitempty"`
-		FinancialStatementGroupingID          *uuid.UUID `json:"financial_statement_grouping_id,omitempty"`
+		FinancialStatementAccountsGroupingID  *uuid.UUID `json:"financial_statement_grouping_id,omitempty"`
 	}
 )
 
-func (m *Core) financialStatementDefinition() {
-	m.Migration = append(m.Migration, &FinancialStatementDefinition{})
-	m.FinancialStatementDefinitionManager = registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
+func (m *Core) FinancialStatementDefinitionManager() *registry.Registry[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest] {
+	return registry.NewRegistry(registry.RegistryParams[FinancialStatementDefinition, FinancialStatementDefinitionResponse, FinancialStatementDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -120,21 +119,21 @@ func (m *Core) financialStatementDefinition() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 
 				FinancialStatementDefinitionEntriesID: data.FinancialStatementDefinitionEntriesID,
-				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager.ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries:   m.FinancialStatementDefinitionManager().ToModels(data.FinancialStatementDefinitionEntries),
 
-				FinancialStatementGroupingID: data.FinancialStatementGroupingID,
-				FinancialStatementGrouping:   m.FinancialStatementGroupingManager.ToModel(data.FinancialStatementGrouping),
-				Accounts:                     m.AccountManager.ToModels(data.Accounts),
+				FinancialStatementAccountsGroupingID: data.FinancialStatementAccountsGroupingID,
+				FinancialStatementAccountsGrouping:   m.FinancialStatementAccountsGroupingManager().ToModel(data.FinancialStatementAccountsGrouping),
+				Accounts:                             m.AccountManager().ToModels(data.Accounts),
 
 				Name:                   data.Name,
 				Description:            data.Description,
@@ -172,7 +171,7 @@ func (m *Core) financialStatementDefinition() {
 }
 
 func (m *Core) FinancialStatementDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementDefinition, error) {
-	return m.FinancialStatementDefinitionManager.Find(context, &FinancialStatementDefinition{
+	return m.FinancialStatementDefinitionManager().Find(context, &FinancialStatementDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

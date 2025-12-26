@@ -62,12 +62,12 @@ func (e *Event) ComputationSheetCalculator(
 
 	lcscr LoanComputationSheetCalculatorRequest,
 ) (*ComputationSheetAmortizationResponse, error) {
-	computationSheet, err := e.core.ComputationSheetManager.GetByID(context, *lcscr.ComputationSheetID)
+	computationSheet, err := e.core.ComputationSheetManager().GetByID(context, *lcscr.ComputationSheetID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get computation sheet")
 	}
 
-	automaticLoanDeductionEntries, err := e.core.AutomaticLoanDeductionManager.Find(context, &core.AutomaticLoanDeduction{
+	automaticLoanDeductionEntries, err := e.core.AutomaticLoanDeductionManager().Find(context, &core.AutomaticLoanDeduction{
 		ComputationSheetID: &computationSheet.ID,
 		BranchID:           computationSheet.BranchID,
 		OrganizationID:     computationSheet.OrganizationID,
@@ -75,11 +75,11 @@ func (e *Event) ComputationSheetCalculator(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find automatic loan deduction")
 	}
-	account, err := e.core.AccountManager.GetByID(context, *lcscr.AccountID)
+	account, err := e.core.AccountManager().GetByID(context, *lcscr.AccountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get account")
 	}
-	cashOnHand, err := e.core.AccountManager.GetByID(context, *lcscr.CashOnHandAccountID)
+	cashOnHand, err := e.core.AccountManager().GetByID(context, *lcscr.CashOnHandAccountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get cash on hand account")
 	}
@@ -114,7 +114,7 @@ func (e *Event) ComputationSheetCalculator(
 		if ald.AccountID == nil {
 			continue
 		}
-		ald.Account, err = e.core.AccountManager.GetByID(context, *ald.AccountID)
+		ald.Account, err = e.core.AccountManager().GetByID(context, *ald.AccountID)
 		if err != nil {
 			continue
 		}
@@ -128,7 +128,7 @@ func (e *Event) ComputationSheetCalculator(
 			AutomaticLoanDeduction: ald,
 		}
 		if ald.ChargesRateSchemeID != nil { // Use ald instead of entry.AutomaticLoanDeduction
-			chargesRateScheme, err := e.core.ChargesRateSchemeManager.GetByID(context, *ald.ChargesRateSchemeID)
+			chargesRateScheme, err := e.core.ChargesRateSchemeManager().GetByID(context, *ald.ChargesRateSchemeID)
 			if err != nil {
 				return nil, eris.Wrap(err, fmt.Sprintf("failed to get charges rate scheme for automatic loan deduction ID %s", ald.ID))
 			}
@@ -178,7 +178,7 @@ func (e *Event) ComputationSheetCalculator(
 		return nil, eris.New("debit and credit are not equal")
 	}
 
-	holidays, err := e.core.HolidayManager.Find(context, &core.Holiday{
+	holidays, err := e.core.HolidayManager().Find(context, &core.Holiday{
 		OrganizationID: computationSheet.OrganizationID,
 		BranchID:       computationSheet.BranchID,
 		CurrencyID:     *account.CurrencyID,
@@ -495,8 +495,8 @@ func (e *Event) ComputationSheetCalculator(
 	}
 
 	return &ComputationSheetAmortizationResponse{
-		Entries:     e.core.LoanTransactionEntryManager.ToModels(loanTransactionEntries),
-		Currency:    *e.core.CurrencyManager.ToModel(currency),
+		Entries:     e.core.LoanTransactionEntryManager().ToModels(loanTransactionEntries),
+		Currency:    *e.core.CurrencyManager().ToModel(currency),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
 		Total:       total,

@@ -23,7 +23,7 @@ func (c *Controller) userController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		user, err := c.core.UserManager.GetByIDRaw(context, *userID)
+		user, err := c.core.UserManager().GetByIDRaw(context, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user: " + err.Error()})
 		}
@@ -55,10 +55,10 @@ func (c *Controller) userController() {
 		user.LastName = req.LastName
 		user.FullName = req.FullName
 		user.Suffix = req.Suffix
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user profile: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(user))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(user))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -104,7 +104,7 @@ func (c *Controller) userController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
 		user.Password = hashedPwd
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: update user error: " + err.Error(),
@@ -112,7 +112,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.core.UserManager().GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -134,7 +134,7 @@ func (c *Controller) userController() {
 			Description: "Password changed from profile for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(updatedUser))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -170,7 +170,7 @@ func (c *Controller) userController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Media ID is the same as the current one"})
 		}
 		user.MediaID = req.MediaID
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change profile picture failed: update user error: " + err.Error(),
@@ -178,7 +178,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.core.UserManager().GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -193,7 +193,7 @@ func (c *Controller) userController() {
 			Description: "Profile picture changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(updatedUser))
 	})
 
 	req.RegisterWebRoute(handlers.Route{
@@ -235,7 +235,7 @@ func (c *Controller) userController() {
 			user.ContactNumber = req.ContactNumber
 			user.IsContactVerified = false
 		}
-		if err := c.core.UserManager.UpdateByID(context, user.ID, user); err != nil {
+		if err := c.core.UserManager().UpdateByID(context, user.ID, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change general profile failed: update user error: " + err.Error(),
@@ -243,7 +243,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user: " + err.Error()})
 		}
-		updatedUser, err := c.core.UserManager.GetByID(context, user.ID)
+		updatedUser, err := c.core.UserManager().GetByID(context, user.ID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -258,7 +258,7 @@ func (c *Controller) userController() {
 			Description: "General profile changed for user: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, c.core.UserManager.ToModel(updatedUser))
+		return ctx.JSON(http.StatusOK, c.core.UserManager().ToModel(updatedUser))
 	})
 
 }

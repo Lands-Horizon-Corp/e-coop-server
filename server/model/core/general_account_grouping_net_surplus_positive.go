@@ -66,9 +66,8 @@ type (
 	}
 )
 
-func (m *Core) generalAccountGroupingNetSurplusPositive() {
-	m.Migration = append(m.Migration, &GeneralAccountGroupingNetSurplusPositive{})
-	m.GeneralAccountGroupingNetSurplusPositiveManager = registry.NewRegistry(registry.RegistryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
+func (m *Core) GeneralAccountGroupingNetSurplusPositiveManager() *registry.Registry[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest] {
+	return registry.NewRegistry(registry.RegistryParams[GeneralAccountGroupingNetSurplusPositive, GeneralAccountGroupingNetSurplusPositiveResponse, GeneralAccountGroupingNetSurplusPositiveRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Account",
 		},
@@ -84,16 +83,16 @@ func (m *Core) generalAccountGroupingNetSurplusPositive() {
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager.ToModel(data.CreatedBy),
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager.ToModel(data.UpdatedBy),
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager.ToModel(data.Organization),
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager.ToModel(data.Branch),
+				Branch:         m.BranchManager().ToModel(data.Branch),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager.ToModel(data.Account),
+				Account:        m.AccountManager().ToModel(data.Account),
 				Name:           data.Name,
 				Description:    data.Description,
 				Percentage1:    data.Percentage1,
@@ -128,7 +127,7 @@ func (m *Core) generalAccountGroupingNetSurplusPositive() {
 }
 
 func (m *Core) GeneralAccountGroupingNetSurplusPositiveCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralAccountGroupingNetSurplusPositive, error) {
-	return m.GeneralAccountGroupingNetSurplusPositiveManager.Find(context, &GeneralAccountGroupingNetSurplusPositive{
+	return m.GeneralAccountGroupingNetSurplusPositiveManager().Find(context, &GeneralAccountGroupingNetSurplusPositive{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
