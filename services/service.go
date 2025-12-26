@@ -129,22 +129,32 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
 
+	// Initialize logger first
 	logger, err := zap.NewProduction()
-
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)
 		service.Logger = zap.NewNop()
 	} else {
 		service.Logger = logger
 	}
+
+	service.Logger.Info("Starting HorizonService initialization...")
+
+	// Environment
 	env := ".env"
 	if cfg.EnvironmentConfig != nil {
 		env = cfg.EnvironmentConfig.Path
+		service.Logger.Info("Using custom environment path", zap.String("envPath", env))
+	} else {
+		service.Logger.Info("Using default environment path", zap.String("envPath", env))
 	}
 	service.Environment = horizon.NewEnvironmentService(env)
 	isStaging := service.Environment.GetString("APP_ENV", "development") == "staging"
+	service.Logger.Info("Environment loaded", zap.String("APP_ENV", service.Environment.GetString("APP_ENV", "development")))
 
+	// Broker
 	if cfg.BrokerConfig != nil {
+		service.Logger.Info("Initializing Broker from config")
 		service.Broker = horizon.NewHorizonMessageBroker(
 			cfg.BrokerConfig.Host,
 			cfg.BrokerConfig.Port,
@@ -153,6 +163,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.BrokerConfig.Password,
 		)
 	} else {
+		service.Logger.Info("Initializing Broker from environment variables")
 		service.Broker = horizon.NewHorizonMessageBroker(
 			service.Environment.GetString("NATS_HOST", "127.0.0.1"),
 			service.Environment.GetInt("NATS_CLIENT_PORT", 4222),
@@ -161,7 +172,10 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetString("NATS_PASSWORD", ""),
 		)
 	}
+
+	// Cache
 	if cfg.CacheConfig != nil {
+		service.Logger.Info("Initializing Cache from config")
 		service.Cache = horizon.NewHorizonCache(
 			cfg.CacheConfig.Host,
 			cfg.CacheConfig.Password,
@@ -169,6 +183,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.CacheConfig.Port,
 		)
 	} else {
+		service.Logger.Info("Initializing Cache from environment variables")
 		service.Cache = horizon.NewHorizonCache(
 			service.Environment.GetString("REDIS_HOST", "127.0.0.1"),
 			service.Environment.GetString("REDIS_PASSWORD", "password"),
@@ -176,19 +191,18 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			service.Environment.GetInt("REDIS_PORT", 6379),
 		)
 	}
+
+	// Request Service
 	if cfg.RequestServiceConfig != nil {
-		service.Request = horizon.NewHorizonAPIService(
-			service.Cache,
-			cfg.RequestServiceConfig.AppPort,
-			isStaging,
-		)
+		service.Logger.Info("Initializing Request Service from config")
+		service.Request = horizon.NewHorizonAPIService(service.Cache, cfg.RequestServiceConfig.AppPort, isStaging)
 	} else {
-		service.Request = horizon.NewHorizonAPIService(
-			service.Cache,
-			service.Environment.GetInt("APP_PORT", 8000),
-			isStaging,
-		)
+		service.Logger.Info("Initializing Request Service from environment")
+		service.Request = horizon.NewHorizonAPIService(service.Cache, service.Environment.GetInt("APP_PORT", 8000), isStaging)
 	}
+
+	// Security
+	service.Logger.Info("Initializing Security Service")
 	if cfg.SecurityConfig != nil {
 		service.Security = horizon.NewSecurityService(
 			cfg.SecurityConfig.Memory,
@@ -209,12 +223,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
-	if cfg.EnvironmentConfig != nil {
-		service.Environment = horizon.NewEnvironmentService(
-			cfg.EnvironmentConfig.Path,
-		)
-	}
-
+	// Storage
+	service.Logger.Info("Initializing Storage Service")
 	if cfg.StorageConfig != nil {
 		service.Storage = horizon.NewStorageImplService(
 			cfg.StorageConfig.AccessKey,
@@ -239,6 +249,8 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
+	// Database
+	service.Logger.Info("Initializing Database Service")
 	if cfg.SQLConfig != nil {
 		service.Database = horizon.NewGormDatabase(
 			cfg.SQLConfig.DSN,
@@ -255,55 +267,31 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		)
 	}
 
+	// OTP, SMS, SMTP
+	service.Logger.Info("Initializing OTP, SMS, SMTP Services")
 	if cfg.OTPServiceConfig != nil {
-		service.OTP = horizon.NewHorizonOTP(
-			cfg.OTPServiceConfig.Secret,
-			service.Cache,
-			service.Security,
-		)
+		service.OTP = horizon.NewHorizonOTP(cfg.OTPServiceConfig.Secret, service.Cache, service.Security)
 	} else {
-		service.OTP = horizon.NewHorizonOTP(
-			service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"),
-			service.Cache,
-			service.Security,
-		)
+		service.OTP = horizon.NewHorizonOTP(service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"), service.Cache, service.Security)
 	}
+
 	if cfg.SMSServiceConfig != nil {
-		service.SMS = horizon.NewSMS(
-			cfg.SMSServiceConfig.AccountSID,
-			cfg.SMSServiceConfig.AuthToken,
-			cfg.SMSServiceConfig.Sender,
-			cfg.SMSServiceConfig.MaxChars,
-		)
+		service.SMS = horizon.NewSMS(cfg.SMSServiceConfig.AccountSID, cfg.SMSServiceConfig.AuthToken, cfg.SMSServiceConfig.Sender, cfg.SMSServiceConfig.MaxChars)
 	} else {
-		service.SMS = horizon.NewSMS(
-			service.Environment.GetString("TWILIO_ACCOUNT_SID", ""),
-			service.Environment.GetString("TWILIO_AUTH_TOKEN", ""),
-			service.Environment.GetString("TWILIO_SENDER", ""),
-			service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160),
-		)
+		service.SMS = horizon.NewSMS(service.Environment.GetString("TWILIO_ACCOUNT_SID", ""), service.Environment.GetString("TWILIO_AUTH_TOKEN", ""), service.Environment.GetString("TWILIO_SENDER", ""), service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160))
 	}
+
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewSMTP(
-			cfg.SMTPServiceConfig.Host,
-			cfg.SMTPServiceConfig.Port,
-			cfg.SMTPServiceConfig.Username,
-			cfg.SMTPServiceConfig.Password,
-			cfg.SMTPServiceConfig.From,
-		)
+		service.SMTP = horizon.NewSMTP(cfg.SMTPServiceConfig.Host, cfg.SMTPServiceConfig.Port, cfg.SMTPServiceConfig.Username, cfg.SMTPServiceConfig.Password, cfg.SMTPServiceConfig.From)
 	} else {
-		service.SMTP = horizon.NewSMTP(
-			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
-			service.Environment.GetInt("SMTP_PORT", 1025),
-			service.Environment.GetString("SMTP_USERNAME", ""),
-			service.Environment.GetString("SMTP_PASSWORD", ""),
-			service.Environment.GetString("SMTP_FROM", "dev@local.test"),
-		)
+		service.SMTP = horizon.NewSMTP(service.Environment.GetString("SMTP_HOST", "127.0.0.1"), service.Environment.GetInt("SMTP_PORT", 1025), service.Environment.GetString("SMTP_USERNAME", ""), service.Environment.GetString("SMTP_PASSWORD", ""), service.Environment.GetString("SMTP_FROM", "dev@local.test"))
 	}
 
 	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
 	service.Decimal = *horizon.NewDecimalHelper()
+
+	service.Logger.Info("HorizonService initialized successfully")
 	return service
 }
 
