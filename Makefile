@@ -48,3 +48,7 @@ teleport:
 
 webdev:
 	code & googit pulle-chrome
+
+build:
+	go build -gcflags='all=-N -l' -o app ./...
+
