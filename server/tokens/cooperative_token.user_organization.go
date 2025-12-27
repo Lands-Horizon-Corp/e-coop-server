@@ -148,29 +148,22 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 	if userOrganization.UserID.String() == "" || userOrganization.BranchID.String() == "" || userOrganization.OrganizationID.String() == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization must have UserID, BranchID, and OrganizationID")
 	}
-
-	longitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Longitude"))
-	latitude := handlers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude"))
-	location := ctx.Request().Header.Get("Location")
-
-	claim := UserOrganizationCSRF{
+	if err := h.csrf.SetCSRF(context, ctx, UserOrganizationCSRF{
 		UserOrganizationID: userOrganization.ID.String(),
 		UserID:             userOrganization.UserID.String(),
 		BranchID:           userOrganization.BranchID.String(),
 		OrganizationID:     userOrganization.OrganizationID.String(),
 		UserType:           userOrganization.UserType,
 		Language:           ctx.Request().Header.Get("Accept-Language"),
-		Location:           location,
+		Location:           ctx.Request().Header.Get("Location"),
 		UserAgent:          ctx.Request().Header.Get("X-User-Agent"),
 		IPAddress:          handlers.GetClientIP(ctx),
 		DeviceType:         ctx.Request().Header.Get("X-Device-Type"),
-		Longitude:          longitude,
-		Latitude:           latitude,
+		Longitude:          handlers.ParseCoordinate(ctx.Request().Header.Get("X-Longitude")),
+		Latitude:           handlers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude")),
 		Referer:            ctx.Request().Referer(),
 		AcceptLanguage:     ctx.Request().Header.Get("Accept-Language"),
-	}
-
-	if err := h.csrf.SetCSRF(context, ctx, claim, 144*time.Hour); err != nil {
+	}, 144*time.Hour); err != nil {
 		h.ClearCurrentToken(context, ctx)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}

@@ -53,6 +53,12 @@ type (
 		Media          *MediaResponse        `json:"media,omitempty"`
 		Name           string                `json:"name"`
 		Description    string                `json:"description"`
+		AA             string                `json:"AA"`
+		BB             string                `json:"CC"`
+		CC             string                `json:"FF"`
+		XX             string                `json:"DD"`
+		YY             string                `json:"SS"`
+		ZZ             string                `json:"ZZ"`
 	}
 
 	BankRequest struct {

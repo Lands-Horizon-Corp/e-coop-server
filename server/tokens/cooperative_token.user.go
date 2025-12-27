@@ -14,37 +14,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type CloudflareHeaders struct {
-	Country      string
-	ConnectingIP string
-	CFRay        string
-}
-
-func GetCloudflareHeaders(c echo.Context) CloudflareHeaders {
-	return CloudflareHeaders{
-		Country:      c.Request().Header.Get("CF-IPCountry"),
-		ConnectingIP: c.Request().Header.Get("CF-Connecting-IP"),
-		CFRay:        c.Request().Header.Get("CF-Ray"),
-	}
-}
-
-type UserClaim struct {
-	UserID         string  `json:"user_id"`
-	Email          string  `json:"email"`
-	ContactNumber  string  `json:"contact_number"`
-	Password       string  `json:"password"`
-	Username       string  `json:"username"`
-	Language       string  `json:"language"`
-	Location       string  `json:"location"`
-	UserAgent      string  `json:"user_agent"`
-	IPAddress      string  `json:"ip_address"`
-	DeviceType     string  `json:"device_type"`
-	Longitude      float64 `json:"longitude"`
-	Latitude       float64 `json:"latitude"`
-	Referer        string  `json:"referer"`
-	AcceptLanguage string  `json:"accept_language"`
-}
-
 type UserCSRF struct {
 	UserID         string  `json:"user_id"`
 	Email          string  `json:"email"`
@@ -110,14 +79,12 @@ type UserToken struct {
 
 func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
-
 	csrfService := horizon.NewAuthServiceImpl[UserCSRF](
 		provider.Service.Cache,
 		"user-csrf",
 		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
 		true,
 	)
-
 	return &UserToken{
 		csrf:                  csrfService,
 		core:                  core,
@@ -173,28 +140,22 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *cor
 	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.UserName == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and Username")
 	}
-
-	longitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Longitude"))
-	latitude := handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Latitude"))
-	location := echoCtx.Request().Header.Get("Location")
-
-	claim := UserCSRF{
+	if err := h.csrf.SetCSRF(ctx, echoCtx, UserCSRF{
 		UserID:         user.ID.String(),
 		Email:          user.Email,
 		ContactNumber:  user.ContactNumber,
 		Password:       user.Password,
 		Username:       user.UserName,
 		Language:       echoCtx.Request().Header.Get("Accept-Language"),
-		Location:       location,
+		Location:       echoCtx.Request().Header.Get("Location"),
 		UserAgent:      echoCtx.Request().Header.Get("X-User-Agent"),
 		IPAddress:      echoCtx.RealIP(),
 		DeviceType:     echoCtx.Request().Header.Get("X-Device-Type"),
-		Longitude:      longitude,
-		Latitude:       latitude,
+		Longitude:      handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Longitude")),
+		Latitude:       handlers.ParseCoordinate(echoCtx.Request().Header.Get("X-Latitude")),
 		Referer:        echoCtx.Request().Referer(),
 		AcceptLanguage: echoCtx.Request().Header.Get("Accept-Language"),
-	}
-	if err := h.csrf.SetCSRF(ctx, echoCtx, claim, 144*time.Hour); err != nil {
+	}, 144*time.Hour); err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to set authentication token")
 	}
