@@ -14,7 +14,10 @@ RUN go mod download
 
 COPY . .
 
+# Limit Go build to single core to reduce RAM usage
 ENV CGO_ENABLED=1
+ENV GOMAXPROCS=1
+
 RUN go build -ldflags="-s -w" -o app .
 
 # ---------- Runtime ----------
