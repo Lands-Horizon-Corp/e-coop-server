@@ -65,8 +65,9 @@ actiongraph-why:
 	echo "Rendering compile dependency WHY-graph for all packages"; \
 	actiongraph graph --why ./... -f compile.json > compile-why.dot; \
 	dot -Tsvg -Grankdir=LR < compile-why.dot > compile-why.svg; \
-	echo "Output: compile-why.svg"; \compile-why.svg
+	echo "Output: compile-why.svg"; \
 	'
+
 
 ########################################
 # Profiling / Diagnostics
