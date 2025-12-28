@@ -114,3 +114,8 @@ teleport:
 
 webdev:
 	code .
+
+
+deploy:
+	echo "Deploying to Fly.io...fly"
+	fly deploy; fly logs
