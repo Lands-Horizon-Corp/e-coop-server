@@ -60,13 +60,12 @@ actiongraph: clense
 	echo "Output: compile.json"; \
 	'
 
-	'
 actiongraph-why:
 	@bash -c '\
-	echo "Rendering compile dependency WHY-graph for $(PKG)"; \
-	actiongraph graph --why $(PKG) -f compile.json > compile-why.dot; \
+	echo "Rendering compile dependency WHY-graph for all packages"; \
+	actiongraph graph --why ./... -f compile.json > compile-why.dot; \
 	dot -Tsvg -Grankdir=LR < compile-why.dot > compile-why.svg; \
-	echo "Output: compile-why.svg"; \
+	echo "Output: compile-why.svg"; \compile-why.svg
 	'
 
 ########################################

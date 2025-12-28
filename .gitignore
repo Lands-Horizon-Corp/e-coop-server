@@ -40,3 +40,6 @@ app
 *.pprof
 
 ecoop
+compile.json
+compile-why.dot
+compile-why.svg
