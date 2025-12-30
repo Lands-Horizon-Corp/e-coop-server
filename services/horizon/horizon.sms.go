@@ -54,7 +54,7 @@ func (h *SMS) Run(_ context.Context) error {
 		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
 	})
 	h.twilio = twilio.NewRestClientWithParams(twilio.ClientParams{
-		UserName: h.accountSID,
+		Username: h.accountSID,
 		Password: h.authToken,
 	})
 	return nil

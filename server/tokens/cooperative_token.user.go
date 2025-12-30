@@ -19,7 +19,7 @@ type UserCSRF struct {
 	Email          string  `json:"email"`
 	ContactNumber  string  `json:"contact_number"`
 	Password       string  `json:"password"`
-	UserName       string  `json:"username"`
+	Username       string  `json:"username"`
 	Language       string  `json:"language"`
 	Location       string  `json:"location"`
 	UserAgent      string  `json:"user_agent"`
@@ -137,15 +137,15 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *cor
 	if user == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")
 	}
-	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.UserName == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and UserName")
+	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.Username == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and Username")
 	}
 	if err := h.csrf.SetCSRF(ctx, echoCtx, UserCSRF{
 		UserID:         user.ID.String(),
 		Email:          user.Email,
 		ContactNumber:  user.ContactNumber,
 		Password:       user.Password,
-		UserName:       user.UserName,
+		Username:       user.Username,
 		Language:       echoCtx.Request().Header.Get("Accept-Language"),
 		Location:       echoCtx.Request().Header.Get("Location"),
 		UserAgent:      echoCtx.Request().Header.Get("X-User-Agent"),

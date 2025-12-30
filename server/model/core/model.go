@@ -38,7 +38,7 @@ type (
 		UserID        string `json:"user_id"`
 		Email         string `json:"email"`
 		ContactNumber string `json:"contact_number"`
-		UserName      string `json:"user_name"`
+		Username      string `json:"user_name"`
 		Name          string `json:"name"`
 		Lastname      string `json:"last_name"`
 		Firstname     string `json:"first_name"`

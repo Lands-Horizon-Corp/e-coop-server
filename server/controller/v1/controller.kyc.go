@@ -38,12 +38,12 @@ func (c *Controller) kycController() {
 		if err := validator.Struct(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		if !regexp.MustCompile(`^[a-z0-9_]+$`).MatchString(req.UserName) {
+		if !regexp.MustCompile(`^[a-z0-9_]+$`).MatchString(req.Username) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "UserName must be lowercase letters, numbers, or underscores only",
+				"error": "Username must be lowercase letters, numbers, or underscores only",
 			})
 		}
-		_, err := c.core.GetUserByUserName(context, req.UserName)
+		_, err := c.core.GetUserByUsername(context, req.Username)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{
@@ -52,7 +52,7 @@ func (c *Controller) kycController() {
 			}
 		} else {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "UserName already taken",
+				"error": "Username already taken",
 			})
 		}
 		switch strings.ToLower(req.Gender) {
@@ -490,7 +490,7 @@ func (c *Controller) kycController() {
 		}
 		userProfile := &core.User{
 			Email:             req.Email,
-			UserName:          req.UserName,
+			Username:          req.Username,
 			ContactNumber:     req.Phone,
 			Password:          hashedPwd,
 			FullName:          req.FullName,

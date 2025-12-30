@@ -10,7 +10,7 @@ import (
 type (
 	// POST /api/v1/kyc/personal-details
 	KYCPersonalDetailsRequest struct {
-		UserName   string `json:"username" validate:"required,min=3,max=30,alphanum"`
+		Username   string `json:"username" validate:"required,min=3,max=30,alphanum"`
 		FirstName  string `json:"first_name" validate:"required,alpha"`
 		MiddleName string `json:"middle_name" validate:"omitempty,alpha"`
 		LastName   string `json:"last_name" validate:"required,alpha"`
@@ -93,7 +93,7 @@ type (
 
 	// POST /api/v1/kyc/register
 	KYCRegisterRequest struct {
-		UserName           string     `json:"username" validate:"required,min=3,max=30,alphanum"`
+		Username           string     `json:"username" validate:"required,min=3,max=30,alphanum"`
 		FirstName          string     `json:"first_name" validate:"required,alpha"`
 		MiddleName         string     `json:"middle_name" validate:"omitempty,alpha"`
 		LastName           string     `json:"last_name" validate:"required,alpha"`

@@ -176,7 +176,7 @@ func (c *Controller) authenticationController() {
 			Email:             req.Email,
 			Password:          hashedPwd,
 			Birthdate:         req.Birthdate,
-			UserName:          req.UserName,
+			Username:          req.Username,
 			FullName:          req.FullName,
 			FirstName:         req.FirstName,
 			MiddleName:        req.MiddleName,
