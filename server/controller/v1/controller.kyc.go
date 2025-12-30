@@ -257,13 +257,6 @@ func (c *Controller) kycController() {
 				})
 			}
 		}
-
-		// 🔍 verification logic here
-		// - media existence check
-		// - country-specific rules
-		// - expiry validation
-		// - third-party verification
-
 		return ctx.JSON(http.StatusOK, map[string]string{
 			"message": "Government document information received for verification",
 		})
@@ -380,6 +373,101 @@ func (c *Controller) kycController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
+		Route:       "/api/v1/kyc/resend-email-verification",
+		Method:      "POST",
+		Note:        "Resend email verification OTP",
+		RequestType: core.KYCResendEmailVerificationRequest{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		var payload core.KYCResendEmailVerificationRequest
+		if err := ctx.Bind(&payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
+				"error": "Invalid request format",
+			})
+		}
+		if err := validator.Struct(&payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
+				"error": "Validation failed: " + err.Error(),
+			})
+		}
+		key := fmt.Sprintf("%s-%s", payload.Password, payload.Email)
+
+		otp, err := c.provider.Service.OTP.Generate(context, key)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{
+				"error": "Failed to generate OTP: " + err.Error(),
+			})
+		}
+
+		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+			To:      payload.Email,
+			Subject: "Email Verification: Lands Horizon",
+			Body:    "templates/email-otp.html",
+			Vars: map[string]string{
+				"otp": otp,
+			},
+		}); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{
+				"error": "Failed to send verification email: " + err.Error(),
+			})
+		}
+
+		return ctx.JSON(http.StatusOK, echo.Map{
+			"message": "Email verification OTP resent successfully",
+		})
+	})
+
+	req.RegisterWebRoute(handlers.Route{
+	Route:       "/api/v1/kyc/resend-contact-number-verification",
+	Method:      "POST",
+	Note:        "Resend contact number verification OTP",
+	RequestType: core.KYCResendContactNumberVerificationRequest{},
+}, func(ctx echo.Context) error {
+	context := ctx.Request().Context()
+
+	var payload core.KYCResendContactNumberVerificationRequest
+	if err := ctx.Bind(&payload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, echo.Map{
+			"error": "Invalid request format",
+		})
+	}
+	if err := validator.Struct(&payload); err != nil {
+		return ctx.JSON(http.StatusBadRequest, echo.Map{
+			"error": "Validation failed: " + err.Error(),
+		})
+	}
+
+	key := fmt.Sprintf("%s-%s", payload.Password, payload.ContactNumber)
+
+	otp, err := c.provider.Service.OTP.Generate(context, key)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{
+			"error": "Failed to generate OTP: " + err.Error(),
+		})
+	}
+
+	if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+		To: payload.ContactNumber,
+		Body: "Lands Horizon: Hello {{.name}}, do not share this code. Your OTP is {{.otp}}",
+		Vars: map[string]string{
+			"otp":  otp,
+			"name": payload.FullName,
+		},
+	}); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, echo.Map{
+			"error": "Failed to send OTP SMS: " + err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, echo.Map{
+		"message": "Contact number verification OTP resent successfully",
+	})
+})
+
+
+
+	req.RegisterWebRoute(handlers.Route{
 		Route:       "/api/v1/kyc/register",
 		Method:      "POST",
 		Note:        "Complete KYC registration (all-in-one endpoint)",
@@ -391,6 +479,10 @@ func (c *Controller) kycController() {
 		}
 		if err := validator.Struct(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+
+		memberProfile := core.MemberProfile{
+			
 		}
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
