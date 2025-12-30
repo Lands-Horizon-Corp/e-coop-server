@@ -64,7 +64,7 @@ func (h *Cache) Flush(ctx context.Context) error {
 func (h *Cache) Run(ctx context.Context) error {
 	h.client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
-		Username: h.username,
+		UserName: h.username,
 		Password: h.password,
 		DB:       0,
 	})

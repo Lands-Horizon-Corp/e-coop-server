@@ -44,7 +44,7 @@ type StorageServiceConfig struct {
 type CacheServiceConfig struct {
 	Host     string `env:"REDIS_HOST"`
 	Password string `env:"REDIS_PASSWORD"`
-	Username string `env:"REDIS_USERNAME"`
+	UserName string `env:"REDIS_USERNAME"`
 	Port     int    `env:"REDIS_PORT"`
 }
 
@@ -52,7 +52,7 @@ type BrokerServiceConfig struct {
 	Host     string `env:"NATS_HOST"`
 	Port     int    `env:"NATS_CLIENT_PORT"`
 	ClientID string `env:"NATS_CLIENT"`
-	Username string `env:"NATS_USERNAME"`
+	UserName string `env:"NATS_USERNAME"`
 	Password string `env:"NATS_PASSWORD"`
 }
 
@@ -79,7 +79,7 @@ type SMSServiceConfig struct {
 type SMTPServiceConfig struct {
 	Host     string `env:"SMTP_HOST"`
 	Port     int    `env:"SMTP_PORT"`
-	Username string `env:"SMTP_USERNAME"`
+	UserName string `env:"SMTP_USERNAME"`
 	Password string `env:"SMTP_PASSWORD"`
 	From     string `env:"SMTP_FROM"`
 }
@@ -159,7 +159,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 			cfg.BrokerConfig.Host,
 			cfg.BrokerConfig.Port,
 			cfg.BrokerConfig.ClientID,
-			cfg.BrokerConfig.Username,
+			cfg.BrokerConfig.UserName,
 			cfg.BrokerConfig.Password,
 		)
 	} else {
@@ -179,7 +179,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 		service.Cache = horizon.NewHorizonCache(
 			cfg.CacheConfig.Host,
 			cfg.CacheConfig.Password,
-			cfg.CacheConfig.Username,
+			cfg.CacheConfig.UserName,
 			cfg.CacheConfig.Port,
 		)
 	} else {
@@ -282,7 +282,7 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewSMTP(cfg.SMTPServiceConfig.Host, cfg.SMTPServiceConfig.Port, cfg.SMTPServiceConfig.Username, cfg.SMTPServiceConfig.Password, cfg.SMTPServiceConfig.From)
+		service.SMTP = horizon.NewSMTP(cfg.SMTPServiceConfig.Host, cfg.SMTPServiceConfig.Port, cfg.SMTPServiceConfig.UserName, cfg.SMTPServiceConfig.Password, cfg.SMTPServiceConfig.From)
 	} else {
 		service.SMTP = horizon.NewSMTP(service.Environment.GetString("SMTP_HOST", "127.0.0.1"), service.Environment.GetInt("SMTP_PORT", 1025), service.Environment.GetString("SMTP_USERNAME", ""), service.Environment.GetString("SMTP_PASSWORD", ""), service.Environment.GetString("SMTP_FROM", "dev@local.test"))
 	}

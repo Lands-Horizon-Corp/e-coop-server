@@ -146,7 +146,7 @@ type (
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
-	UserSettingsChangeUsernameRequest struct {
+	UserSettingsChangeUserNameRequest struct {
 		UserName string `json:"user_name" validate:"required,min=3,max=100"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
@@ -201,7 +201,7 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 				UserID:        data.ID.String(),
 				Email:         data.Email,
 				ContactNumber: data.ContactNumber,
-				Username:      data.UserName,
+				UserName:      data.UserName,
 				Lastname:      handlers.StringFormat(data.LastName),
 				Firstname:     handlers.StringFormat(data.FirstName),
 				Middlename:    handlers.StringFormat(data.MiddleName),

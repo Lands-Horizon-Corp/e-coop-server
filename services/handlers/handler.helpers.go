@@ -587,3 +587,11 @@ func ToSnakeCase(str string) string {
 	}
 	return string(result)
 }
+
+func GeneratePassbookNumber() string {
+	u := uuid.New()
+	compact := strings.ReplaceAll(u.String(), "-", "")
+	short := strings.ToUpper(compact[:12])
+	year := time.Now().Year()
+	return fmt.Sprintf("PB-%d-%s", year, short)
+}

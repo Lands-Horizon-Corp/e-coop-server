@@ -15,10 +15,10 @@ func TestHorizonCache(t *testing.T) {
 
 	redisHost := env.GetString("REDIS_HOST", "")
 	redisPassword := env.GetString("REDIS_PASSWORD", "")
-	redisUsername := env.GetString("REDIS_USERNAME", "")
+	redisUserName := env.GetString("REDIS_USERNAME", "")
 	redisPort := env.GetInt("REDIS_PORT", 0)
 
-	cache := NewHorizonCache(redisHost, redisPassword, redisUsername, redisPort)
+	cache := NewHorizonCache(redisHost, redisPassword, redisUserName, redisPort)
 
 	err := cache.Run(ctx)
 	assert.NoError(t, err, "Start should not return an error")
