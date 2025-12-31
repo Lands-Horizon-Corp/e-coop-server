@@ -14,6 +14,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -579,6 +580,35 @@ func (c *Controller) kycController() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create government benefit record: " + err.Error()})
 			}
 		}
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
+		developerKey = developerKey + uuid.NewString() + "-horizon"
+		newUserOrg := &core.UserOrganization{
+			CreatedAt:                time.Now().UTC(),
+			UpdatedAt:                time.Now().UTC(),
+			OrganizationID:           org.ID,
+			BranchID:                 req.BranchID,
+			UserID:                   userProfile.ID,
+			UserType:                 core.UserOrganizationTypeMember,
+			Description:              "",
+			ApplicationDescription:   "anything",
+			ApplicationStatus:        "accepted",
+			DeveloperSecretKey:       developerKey,
+			PermissionName:           string(core.UserOrganizationTypeMember),
+			PermissionDescription:    "",
+			Permissions:              []string{},
+			UserSettingDescription:   "user settings",
+			UserSettingStartOR:       0,
+			UserSettingEndOR:         1000,
+			UserSettingUsedOR:        0,
+			UserSettingStartVoucher:  0,
+			UserSettingEndVoucher:    0,
+			UserSettingUsedVoucher:   0,
+			UserSettingNumberPadding: 7,
+		}
+		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, newUserOrg); err != nil {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + endTx(err).Error()})
+		}
+
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
 }
