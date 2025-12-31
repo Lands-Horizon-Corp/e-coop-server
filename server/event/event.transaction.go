@@ -36,17 +36,12 @@ type TransactionEvent struct {
 	Reverse             bool   `json:"reverse"`
 }
 
-// NOTE: This snippet only shows the modified function body with debug prints.
-// Make sure to add "fmt" to the file's import list where this function lives.
-
 func (e *Event) TransactionPayment(
-
 	context context.Context,
 	ctx echo.Context,
 	tx *gorm.DB,
 	endTx func(error) error,
 	data TransactionEvent,
-
 ) (*core.GeneralLedger, error) {
 	startTime := time.Now()
 	defer func() {
