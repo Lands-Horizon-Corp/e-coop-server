@@ -96,7 +96,7 @@ func (c *Controller) memberProfileController() {
 		}
 		userProfile := &core.User{
 			Email:             req.Email,
-			UserName:          req.UserName,
+			Username:          req.Username,
 			ContactNumber:     req.ContactNumber,
 			Password:          hashedPwd,
 			FullName:          req.FullName,
@@ -203,7 +203,7 @@ func (c *Controller) memberProfileController() {
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
-			Description: "Created user account for member profile: " + userProfile.UserName,
+			Description: "Created user account for member profile: " + userProfile.Username,
 			Module:      "MemberProfile",
 		})
 
@@ -604,7 +604,7 @@ func (c *Controller) memberProfileController() {
 			}
 			userProfile = &core.User{
 				Email:             req.AccountInfo.Email,
-				UserName:          req.AccountInfo.UserName,
+				Username:          req.AccountInfo.Username,
 				ContactNumber:     req.ContactNumber,
 				Password:          hashedPwd,
 				FullName:          req.FullName,

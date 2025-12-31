@@ -62,7 +62,7 @@ func (c *Controller) authenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if err := c.userToken.CSRF.LogoutOtherDevices(context, ctx); err != nil {
+		if err := c.userToken.LogoutOtherDevices(context, ctx); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to logout other devices: " + err.Error()})
 		}
 		c.userOrganizationToken.ClearCurrentToken(context, ctx)
@@ -80,7 +80,7 @@ func (c *Controller) authenticationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		loggedIn, err := c.userToken.CSRF.GetLoggedInUsers(context, ctx)
+		loggedIn, err := c.userToken.LoggedInUsers(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get logged in users: " + err.Error()})
 		}
@@ -176,7 +176,7 @@ func (c *Controller) authenticationController() {
 			Email:             req.Email,
 			Password:          hashedPwd,
 			Birthdate:         req.Birthdate,
-			UserName:          req.UserName,
+			Username:          req.Username,
 			FullName:          req.FullName,
 			FirstName:         req.FirstName,
 			MiddleName:        req.MiddleName,

@@ -26,7 +26,7 @@ type (
 		SignatureMedia    *Media         `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:SET NULL;" json:"signature,omitempty"`
 		Password          string         `gorm:"type:varchar(255);not null" json:"-"`
 		Birthdate         *time.Time     `gorm:"type:date" json:"birthdate"`
-		UserName          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
+		Username          string         `gorm:"type:varchar(100);not null;unique" json:"user_name"`
 		FirstName         *string        `gorm:"type:varchar(100)" json:"first_name,omitempty"`
 		MiddleName        *string        `gorm:"type:varchar(100)" json:"middle_name,omitempty"`
 		LastName          *string        `gorm:"type:varchar(100)" json:"last_name,omitempty"`
@@ -51,7 +51,7 @@ type (
 		SignatureMediaID  *uuid.UUID        `json:"signature_media_id"`
 		SignatureMedia    *MediaResponse    `json:"signature_media"`
 		Birthdate         string            `json:"birthdate,omitempty"`
-		UserName          string            `json:"user_name"`
+		Username          string            `json:"user_name"`
 		Description       *string           `json:"description"`
 		FirstName         *string           `json:"first_name,omitempty"`
 		MiddleName        *string           `json:"middle_name,omitempty"`
@@ -93,7 +93,7 @@ type (
 		Email         string     `json:"email" validate:"required,email"`
 		Password      string     `json:"password" validate:"required,min=8"`
 		Birthdate     *time.Time `json:"birthdate,omitempty"`
-		UserName      string     `json:"user_name" validate:"required,min=3,max=100"`
+		Username      string     `json:"user_name" validate:"required,min=3,max=100"`
 		FullName      string     `json:"full_name,omitempty"`
 		FirstName     *string    `json:"first_name,omitempty"`
 		MiddleName    *string    `json:"middle_name,omitempty"`
@@ -147,7 +147,7 @@ type (
 	}
 
 	UserSettingsChangeUsernameRequest struct {
-		UserName string `json:"user_name" validate:"required,min=3,max=100"`
+		Username string `json:"user_name" validate:"required,min=3,max=100"`
 		Password string `json:"password" validate:"required,min=8"`
 	}
 
@@ -174,7 +174,7 @@ type (
 		ContactNumber string  `json:"contact_number" validate:"required,min=7,max=20"`
 		Description   *string `json:"description,omitempty"`
 		Email         string  `json:"email" validate:"required,email"`
-		UserName      string  `json:"user_name" validate:"required,min=3,max=100"`
+		Username      string  `json:"user_name" validate:"required,min=3,max=100"`
 	}
 )
 
@@ -201,7 +201,7 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 				UserID:        data.ID.String(),
 				Email:         data.Email,
 				ContactNumber: data.ContactNumber,
-				Username:      data.UserName,
+				Username:      data.Username,
 				Lastname:      handlers.StringFormat(data.LastName),
 				Firstname:     handlers.StringFormat(data.FirstName),
 				Middlename:    handlers.StringFormat(data.MiddleName),
@@ -212,7 +212,7 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 			return &UserResponse{
 				ID:                data.ID,
 				Birthdate:         data.Birthdate.Format("2006-01-02"),
-				UserName:          data.UserName,
+				Username:          data.Username,
 				Description:       data.Description,
 				FirstName:         data.FirstName,
 				MiddleName:        data.MiddleName,
@@ -268,8 +268,8 @@ func (m *Core) GetUserByEmail(context context.Context, email string) (*User, err
 	return m.UserManager().FindOne(context, &User{Email: email})
 }
 
-func (m *Core) GetUserByUserName(context context.Context, userName string) (*User, error) {
-	return m.UserManager().FindOne(context, &User{UserName: userName})
+func (m *Core) GetUserByUsername(context context.Context, userName string) (*User, error) {
+	return m.UserManager().FindOne(context, &User{Username: userName})
 }
 
 func (m *Core) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
@@ -284,7 +284,7 @@ func (m *Core) GetUserByIdentifier(context context.Context, identifier string) (
 			return u, nil
 		}
 	}
-	if u, err := m.GetUserByUserName(context, identifier); err == nil {
+	if u, err := m.GetUserByUsername(context, identifier); err == nil {
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")

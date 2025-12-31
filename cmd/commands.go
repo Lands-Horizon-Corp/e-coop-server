@@ -93,7 +93,6 @@ var commandGroups = map[string]struct {
 				Use:   "performance-seed",
 				Short: "Run database performance tests (creates test tables and data)",
 				RunFunc: func(_ *cobra.Command, args []string) {
-					// parse multiplier from args if provided
 					if len(args) == 0 {
 						seedDatabasePerformance(1)
 						return

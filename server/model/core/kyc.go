@@ -77,16 +77,39 @@ type (
 		File *multipart.FileHeader `form:"file" validate:"required"`
 	}
 
+	// POST /api/v1/kyc/resend-email-verification
+	KYCResendEmailVerificationRequest struct {
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,min=8,max=50"`
+		FullName string `json:"full_name" validate:"required,alpha_space"`
+	}
+
+	// POST /api/v1/kyc/resend-contact-number-verification
+	KYCResendContactNumberVerificationRequest struct {
+		ContactNumber string `json:"contact_number" validate:"required,e164"`
+		Password      string `json:"password" validate:"required,min=8,max=50"`
+		FullName      string `json:"full_name" validate:"required,alpha_space"`
+	}
+
 	// POST /api/v1/kyc/register
 	KYCRegisterRequest struct {
-		Username             string                               `json:"username" validate:"required,min=3,max=30,alphanum"`
-		FirstName            string                               `json:"first_name" validate:"required,alpha"`
-		MiddleName           string                               `json:"middle_name" validate:"omitempty,alpha"`
-		LastName             string                               `json:"last_name" validate:"required,alpha"`
-		Gender               string                               `json:"gender" validate:"required,oneof=male female other"`
-		Email                string                               `json:"email" validate:"required,email"`
-		Phone                string                               `json:"phone" validate:"required,e164"`
-		Password             string                               `json:"password" validate:"required,min=8,max=50"`
+		Username           string     `json:"username" validate:"required,min=3,max=30,alphanum"`
+		FirstName          string     `json:"first_name" validate:"required,alpha"`
+		MiddleName         string     `json:"middle_name" validate:"omitempty,alpha"`
+		LastName           string     `json:"last_name" validate:"required,alpha"`
+		FullName           string     `json:"full_name" validate:"required,alpha_space"`
+		ContactNumber      string     `json:"contact_number" validate:"required,e164"`
+		Suffix             string     `json:"suffix" validate:"omitempty,alpha"`
+		MemberGenderID     uuid.UUID  `json:"member_gender_id" validate:"required,uuid"`
+		CivilStatus        string     `json:"civil_status" validate:"required,oneof=single married widowed divorced separated"`
+		MemberOccupationID *uuid.UUID `json:"member_occupation_id" validate:"omitempty,uuid"`
+		Email              string     `json:"email" validate:"required,email"`
+		Phone              string     `json:"phone" validate:"required,e164"`
+		BirthDate          *time.Time `json:"birth_date" validate:"omitempty"`
+		BranchID           *uuid.UUID `json:"branch_id" validate:"omitempty"`
+		Password           string     `json:"password" validate:"required,min=8,max=50"`
+		OldPassbook        string     `json:"old_passbook" validate:"omitempty"`
+
 		PasswordConfirmation string                               `json:"password_confirmation" validate:"required,eqfield=Password"`
 		Addresses            []KYCVerifyAddressesRequest          `json:"addresses" validate:"required,dive,required"`
 		GovernmentBenefits   []KYCVerifyGovernmentBenefitsRequest `json:"government_benefits" validate:"required,dive,required"`

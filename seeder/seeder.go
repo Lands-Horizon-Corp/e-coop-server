@@ -578,7 +578,7 @@ func (s *Seeder) SeedUsers(ctx context.Context, multiplier int32) error {
 			Email:             email,
 			Password:          hashedPassword,
 			Birthdate:         &birthdate,
-			UserName:          s.faker.Internet().User(),
+			Username:          s.faker.Internet().User(),
 			FullName:          fullName,
 			FirstName:         ptr(firstName),
 			MiddleName:        ptr(middleName),

@@ -25,6 +25,7 @@ go.work.sum
 .env
 
 ./main
+e-coop-server
 
 main
 
@@ -39,3 +40,7 @@ app
 *.pprof
 
 ecoop
+compile.json
+compile-why.dot
+compile-why.svg
+ecoop-server

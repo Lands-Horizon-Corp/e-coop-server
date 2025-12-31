@@ -1,32 +1,41 @@
 # ---------- Builder ----------
-FROM golang:1.25.5-bookworm AS builder
+FROM golang:1.25.5-alpine AS builder
 
-# Install native deps for CGO
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libwebp-dev \
- && rm -rf /var/lib/apt/lists/*
+# Install git (needed for some modules) and bash
+RUN apk add --no-cache git bash
 
 WORKDIR /app
 
+# Copy only go.mod/go.sum first to leverage caching
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy the rest of the source code
 COPY . .
 
-ENV CGO_ENABLED=1
-RUN go build -ldflags="-s -w" -o app .
+# Disable CGO if possible (reduces memory and simplifies build)
+ENV CGO_ENABLED=0
+ENV GOMAXPROCS=1
+
+# Build binary with reduced size and path trimming
+RUN go build -trimpath -ldflags="-s -w" -o app .
 
 # ---------- Runtime ----------
 FROM alpine:latest
 
 WORKDIR /app
-RUN apk add --no-cache ffmpeg
 
+# Install ffmpeg if required at runtime
+RUN apk add --no-cache ffmpeg bash
+
+# Copy built binary and seeder
 COPY --from=builder /app/app .
 COPY --from=builder /app/seeder ./seeder
+
+# Copy entrypoint script
 COPY entry.sh /entry.sh
 RUN chmod +x /entry.sh
 
 EXPOSE 8000 8001 4222 8222 8080
+
 CMD ["/entry.sh"]

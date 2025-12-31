@@ -245,7 +245,7 @@ type (
 	}
 
 	AccountInfo struct {
-		UserName string `json:"user_name" validate:"required,min=1,max=255"`
+		Username string `json:"user_name" validate:"required,min=1,max=255"`
 		Email    string `json:"email" validate:"required,email,max=255"`
 		Password string `json:"password" validate:"required,min=6,max=128"`
 	}
@@ -275,7 +275,7 @@ type (
 
 	MemberProfileUserAccountRequest struct {
 		Password      string     `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
-		UserName      string     `json:"user_name" validate:"required,min=1,max=50"`
+		Username      string     `json:"user_name" validate:"required,min=1,max=50"`
 		FirstName     string     `json:"first_name" validate:"required,min=1,max=50"`
 		LastName      string     `json:"last_name" validate:"required,min=1,max=50"`
 		MiddleName    string     `json:"middle_name,omitempty" validate:"max=50"`

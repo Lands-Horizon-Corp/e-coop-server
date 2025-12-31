@@ -225,7 +225,7 @@ func (c *Controller) userController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		user.UserName = req.UserName
+		user.Username = req.Username
 		user.Description = req.Description
 		if user.Email != req.Email {
 			user.Email = req.Email
