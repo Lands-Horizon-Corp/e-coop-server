@@ -115,4 +115,10 @@ type (
 		GovernmentBenefits   []KYCVerifyGovernmentBenefitsRequest `json:"government_benefits" validate:"required,dive,required"`
 		SelfieMediaID        *uuid.UUID                           `json:"selfie_media_id" validate:"required"`
 	}
+
+	// POST /api/v1/kyc/login
+	KYCLoginRequest struct {
+		Key      string `json:"key" validate:"required"` // email, username, or phone
+		Password string `json:"password" validate:"required"`
+	}
 )

@@ -608,7 +608,67 @@ func (c *Controller) kycController() {
 		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, newUserOrg); err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + endTx(err).Error()})
 		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
+		}
 
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
+	})
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/kyc/login",
+		Method:       "POST",
+		RequestType:  core.KYCLoginRequest{},
+		ResponseType: core.CurrentUserResponse{},
+		Note:         "Authenticates a KYC user using email, username, or phone and returns user details.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req core.KYCLoginRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		org, ok := c.userOrganizationToken.GetOrganization(ctx)
+		if !ok {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+		user, err := c.core.GetUserByIdentifier(context, req.Key)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
+		}
+		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		if err != nil || !valid {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
+		}
+		if !user.IsEmailVerified || !user.IsContactVerified {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User has not completed KYC verification"})
+		}
+		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
+		}
+		userOrg, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+			UserID:         user.ID,
+			OrganizationID: org.ID,
+			UserType:       core.UserOrganizationTypeMember,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, userOrg.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+		if userOrganization.ApplicationStatus == "accepted" {
+			if err := c.userOrganizationToken.SetUserOrganization(context, ctx, userOrganization); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
+		}
+		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+			UserID: user.ID,
+			User:   c.core.UserManager().ToModel(user),
+		})
 	})
 }
