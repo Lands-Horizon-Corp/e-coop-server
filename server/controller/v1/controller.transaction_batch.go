@@ -387,7 +387,7 @@ func (c *Controller) transactionBatchController() {
 			TimeDepositWithdrawal:         0,
 			SavingsWithdrawal:             0,
 			TotalCashHandled:              0,
-			TotalSupposedRemitance:        0,
+			TotalSupposedRemmitance:        0,
 			TotalCashOnHand:               0,
 			TotalCheckRemittance:          0,
 			TotalOnlineRemittance:         0,

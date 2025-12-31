@@ -32,8 +32,7 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 		savings_withdrawal decimal
 		// end LESS
 
-		total_cash_handled decimal // beg_bal + deposit + collection (REAL CASH ONLY)
-		total_supposed_remitance decimal // total_cash_handled + deposit - withdrawals
+
 		total_cash_on_hand decimal
 		total_check_remittance decimal // input sa check remitance module
 		total_online_remittance decimal // input sa online
@@ -42,6 +41,35 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 
 		total_actual_supposed_comparison decimal // abs(total supposed remittance) + abs(total actual remittance)
 	*/
+
+	// total_cash_handled decimal = beg_bal + deposit + collection (REAL CASH ONLY)
+	transactionBatch.TotalCashHandled = m.provider.Service.Decimal.Add(
+		m.provider.Service.Decimal.Add(
+			transactionBatch.BeginningBalance,
+			transactionBatch.DepositInBank,
+		),
+		transactionBatch.TotalCashCollection,
+	)
+	totalWithdraw, err := m.TBWithdraw(context, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total withdrawals"))
+	}
+	totalDeposit, err := m.TBDeposit(context, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total deposits"))
+	}
+
+	// total_supposed_remmitance decimal total_cash_handled + deposit - withdrawals
+	transactionBatch.TotalSupposedRemmitance = m.provider.Service.Decimal.Add(
+		m.provider.Service.Decimal.Subtract(
+			m.provider.Service.Decimal.Add(
+				transactionBatch.TotalCashHandled,
+				totalDeposit.Debit,
+			),
+			totalWithdraw.Credit,
+		),
+		transactionBatch.TotalCashCollection,
+	)
 
 	// TotalCashCollection
 	// TotalDepositEntry
@@ -54,7 +82,7 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	// TimeDepositWithdrawal
 	// SavingsWithdrawal
 	// TotalCashHandled
-	// TotalSupposedRemitance = total_cash_handled + deposit - withdrawals
+	// TotalSupposedRemmitance = total_cash_handled + deposit - withdrawals
 	// TotalCashOnHand
 	// TotalCheckRemittance
 	// TotalOnlineRemittance
