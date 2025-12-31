@@ -10,13 +10,39 @@ import (
 )
 
 func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID *uuid.UUID) error {
+
 	if transactionBatchID == nil {
 		return eris.New("transactionBatchID is nil")
 	}
-	transactionBatch, err := m.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+	tx, endTx := m.provider.Service.Database.StartTransaction(context)
+	transactionBatch, err := m.core.TransactionBatchManager().GetByIDLock(context, tx, *transactionBatchID)
 	if err != nil {
-		return eris.Wrap(err, "failed to get transaction batch by ID")
+		return endTx(eris.Wrap(err, "failed to get transaction batch by ID"))
 	}
+	/*
+		beginning_balance decimal
+		deposit_in_bank decimal // too lazy to cash count, just know the total
+		cash_count_total decimal // cash count total
+		grand_total decimal // cash_count + deposit in bank
+
+		// LESS
+		petty_cash decimal // disbursement, commercial check, transfer to rf
+		loan_releases decimal
+		time_deposit_withdrawal decimal // WTF unknown
+		savings_withdrawal decimal
+		// end LESS
+
+		total_cash_handled decimal // beg_bal + deposit + collection (REAL CASH ONLY)
+		total_supposed_remitance decimal // total_cash_handled + deposit - withdrawals
+		total_cash_on_hand decimal
+		total_check_remittance decimal // input sa check remitance module
+		total_online_remittance decimal // input sa online
+		total_deposit_in_bank decimal
+		total_actual_remittance decimal // total_check_remitance + total_online_remittance + total_cash_on_hand + total_deposit_in_bank
+
+		total_actual_supposed_comparison decimal // abs(total supposed remittance) + abs(total actual remittance)
+	*/
+
 	// TotalCashCollection
 	// TotalDepositEntry
 	// BeginningBalance
@@ -28,7 +54,7 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	// TimeDepositWithdrawal
 	// SavingsWithdrawal
 	// TotalCashHandled
-	// TotalSupposedRemitance
+	// TotalSupposedRemitance = total_cash_handled + deposit - withdrawals
 	// TotalCashOnHand
 	// TotalCheckRemittance
 	// TotalOnlineRemittance
@@ -36,7 +62,10 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	// TotalActualRemittance
 	// TotalActualSupposedComparison
 	if err := m.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-		return eris.Wrap(err, "failed to update transaction batch")
+		return endTx(eris.Wrap(err, "failed to update transaction batch"))
+	}
+	if err := endTx(nil); err != nil {
+		return eris.Wrap(err, "failed to end transaction")
 	}
 	return nil
 }
