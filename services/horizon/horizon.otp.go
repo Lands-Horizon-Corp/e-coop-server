@@ -3,6 +3,7 @@ package horizon
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -20,13 +21,15 @@ type OTP struct {
 	secret   []byte
 	cache    CacheService
 	security SecurityService
+	secured  bool
 }
 
-func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService) OTPService {
+func NewHorizonOTP(secret []byte, cache CacheService, security SecurityService, secured bool) OTPService {
 	return &OTP{
 		secret:   secret,
 		cache:    cache,
 		security: security,
+		secured:  secured,
 	}
 }
 
@@ -44,6 +47,15 @@ func (h *OTP) Generate(ctx context.Context, key string) (string, error) {
 	}
 	code := fmt.Sprint(random)
 
+	// 🔐 NOT SECURED → LOG OTP (LOCAL / DEV / LAN MODE)
+	if !h.secured {
+		log.Printf(
+			"[OTP MOCK MODE] key=%s | code=%s",
+			key,
+			code,
+		)
+	}
+
 	hash, err := h.security.HashPassword(ctx, code)
 	if err != nil {
 		return "", eris.Wrap(err, "failed to hash OTP")
@@ -53,11 +65,8 @@ func (h *OTP) Generate(ctx context.Context, key string) (string, error) {
 	}
 
 	if err := h.cache.Set(ctx, countKey, "0", 5*time.Minute); err != nil {
-		if err := h.cache.Set(ctx, countKey, "0", 5*time.Minute); err != nil {
-			if delErr := h.cache.Delete(ctx, otpKey); delErr != nil {
-				return "", eris.Wrapf(err, "failed to initialize attempt count; also failed to cleanup OTP: %v", delErr)
-			}
-			return "", eris.Wrap(err, "failed to initialize attempt count")
+		if delErr := h.cache.Delete(ctx, otpKey); delErr != nil {
+			return "", eris.Wrapf(err, "failed to initialize attempt count; also failed to cleanup OTP: %v", delErr)
 		}
 		return "", eris.Wrap(err, "failed to initialize attempt count")
 	}

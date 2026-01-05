@@ -270,9 +270,17 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	// OTP, SMS, SMTP
 	service.Logger.Info("Initializing OTP, SMS, SMTP Services")
 	if cfg.OTPServiceConfig != nil {
-		service.OTP = horizon.NewHorizonOTP(cfg.OTPServiceConfig.Secret, service.Cache, service.Security)
+		service.OTP = horizon.NewHorizonOTP(
+			cfg.OTPServiceConfig.Secret,
+			service.Cache,
+			service.Security,
+			isStaging)
 	} else {
-		service.OTP = horizon.NewHorizonOTP(service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"), service.Cache, service.Security)
+		service.OTP = horizon.NewHorizonOTP(
+			service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"),
+			service.Cache,
+			service.Security,
+			isStaging)
 	}
 
 	if cfg.SMSServiceConfig != nil {
