@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -426,7 +427,34 @@ func NewHorizonAPIService(
 	}))
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: origins,
+		AllowOriginFunc: func(origin string) (bool, error) {
+			if origin == "" {
+				return false, nil
+			}
+			u, err := url.Parse(origin)
+			if err != nil {
+				return false, nil
+			}
+			host := u.Hostname()
+			if !secured {
+				if host == "localhost" {
+					return true, nil
+				}
+				if net.ParseIP(host) != nil {
+					return true, nil
+				}
+				if strings.HasSuffix(host, ".local") {
+					return true, nil
+				}
+				return false, nil
+			}
+			for _, d := range origins {
+				if host == d || strings.HasSuffix(host, "."+d) {
+					return true, nil
+				}
+			}
+			return false, nil
+		},
 
 		AllowMethods: []string{
 			http.MethodGet,
