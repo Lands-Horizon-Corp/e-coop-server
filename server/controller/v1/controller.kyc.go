@@ -56,11 +56,7 @@ func (c *Controller) kycController() {
 				"error": "Username already taken",
 			})
 		}
-		switch strings.ToLower(req.Gender) {
-		case "male", "female", "others":
-		default:
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Gender must be 'male', 'female', or 'others'"})
-		}
+
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Personal details received successfully"})
 	})
 
