@@ -10,7 +10,6 @@ import (
 )
 
 func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID *uuid.UUID) error {
-
 	if transactionBatchID == nil {
 		return eris.New("transactionBatchID is nil")
 	}
@@ -20,7 +19,6 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 		return endTx(eris.Wrap(err, "failed to get transaction batch by ID"))
 	}
 	/*
-		beginning_balance decimal
 		deposit_in_bank decimal // too lazy to cash count, just know the total
 		cash_count_total decimal // cash count total
 		grand_total decimal // cash_count + deposit in bank
@@ -32,17 +30,13 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 		savings_withdrawal decimal
 		// end LESS
 
-
-		total_cash_on_hand decimal
-		total_check_remittance decimal // input sa check remitance module
 		total_online_remittance decimal // input sa online
 		total_deposit_in_bank decimal
 		total_actual_remittance decimal // total_check_remitance + total_online_remittance + total_cash_on_hand + total_deposit_in_bank
-
 		total_actual_supposed_comparison decimal // abs(total supposed remittance) + abs(total actual remittance)
 	*/
 
-	// total_cash_handled decimal = beg_bal + deposit + collection (REAL CASH ONLY)
+	// total_cash_handled  = beg_bal + deposit + collection (REAL CASH ONLY)
 	transactionBatch.TotalCashHandled = m.provider.Service.Decimal.Add(
 		m.provider.Service.Decimal.Add(
 			transactionBatch.BeginningBalance,
@@ -70,6 +64,25 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 		),
 		transactionBatch.TotalCashCollection,
 	)
+	tbCashCount, err := m.TBCashCount(context, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total cash count"))
+	}
+
+	// total_cash_on_hand decimal
+	transactionBatch.TotalCashOnHand = tbCashCount
+	// total_check_remittance decimal // input sa check remitance module
+	tbCheckRemittance, err := m.TBCheckRemittance(context, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total check remittance"))
+	}
+	transactionBatch.TotalCheckRemittance = tbCheckRemittance
+
+	tbOnlineRemittance, err := m.TBOnlineRemittance(context, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total online remittance"))
+	}
+	transactionBatch.TotalOnlineRemittance = tbOnlineRemittance
 
 	// TotalCashCollection
 	// TotalDepositEntry
@@ -81,11 +94,7 @@ func (m *Event) TransactionBatchBalancing(context context.Context, transactionBa
 	// LoanReleases
 	// TimeDepositWithdrawal
 	// SavingsWithdrawal
-	// TotalCashHandled
 	// TotalSupposedRemmitance = total_cash_handled + deposit - withdrawals
-	// TotalCashOnHand
-	// TotalCheckRemittance
-	// TotalOnlineRemittance
 	// TotalDepositInBank
 	// TotalActualRemittance
 	// TotalActualSupposedComparison

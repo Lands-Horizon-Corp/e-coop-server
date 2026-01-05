@@ -387,7 +387,7 @@ func (c *Controller) transactionBatchController() {
 			TimeDepositWithdrawal:         0,
 			SavingsWithdrawal:             0,
 			TotalCashHandled:              0,
-			TotalSupposedRemmitance:        0,
+			TotalSupposedRemmitance:       0,
 			TotalCashOnHand:               0,
 			TotalCheckRemittance:          0,
 			TotalOnlineRemittance:         0,
@@ -826,4 +826,114 @@ func (c *Controller) transactionBatchController() {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
+		Method:       "PUT",
+		ResponseType: core.TransactionBatchResponse{},
+		RequestType:  core.BatchFundingRequest{},
+		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		transactionBatchId, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: invalid transaction_batch_id: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
+		}
+		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: user org error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: user not authorized: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+		type DepositInBankRequest struct {
+			DepositInBank float64 `json:"deposit_in_bank" validate:"min=0"`
+		}
+		var req DepositInBankRequest
+
+		if err := ctx.Bind(&req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: invalid request body: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: validation error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchId)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: transaction batch not found: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
+		}
+		if transactionBatch.OrganizationID != userOrg.OrganizationID || transactionBatch.BranchID != *userOrg.BranchID {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: batch not in org/branch",
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Transaction batch not found in your organization/branch"})
+		}
+		if transactionBatch.IsClosed {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: batch is closed",
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update deposit for a closed transaction batch"})
+		}
+
+		transactionBatch.DepositInBank = req.DepositInBank
+		transactionBatch.UpdatedAt = time.Now().UTC()
+		transactionBatch.UpdatedByID = userOrg.UserID
+
+		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Update deposit in bank failed: update error: " + err.Error(),
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+		}
+
+		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
+		}
+		transactionBatch, err = c.core.TransactionBatchManager().GetByID(context, transactionBatch.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch after balancing: " + err.Error()})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "create-success",
+			Description: "Created disbursement transaction (/disbursement-transaction): " + transactionBatch.ID.String(),
+			Module:      "DisbursementTransaction",
+		})
+		return ctx.JSON(http.StatusCreated, c.core.TransactionBatchManager().ToModel(transactionBatch))
+	})
 }
