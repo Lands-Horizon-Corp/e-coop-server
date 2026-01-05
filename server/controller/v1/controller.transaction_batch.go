@@ -857,7 +857,7 @@ func (c *Controller) transactionBatchController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Update deposit in bank failed: user not authorized: " + err.Error(),
+				Description: "Update deposit in bank failed: user not authorized",
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
