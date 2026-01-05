@@ -194,14 +194,20 @@ func NewHorizonAPIService(
 	}
 
 	if !secured {
-		origins = []string{"*"}
+		origins = append(origins,
+			"http://localhost:8000",
+			"http://localhost:8001",
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://localhost:3002",
+			"http://localhost:3003",
+			"http://localhost:3003",
+		)
 	}
 
-	allowedHosts := make([]string, 0, len(origins))
 	for _, origin := range origins {
 		hostname := strings.TrimPrefix(origin, "https://")
 		hostname = strings.TrimPrefix(hostname, "http://")
-		allowedHosts = append(allowedHosts, hostname)
 	}
 
 	e.Use(middleware.Recover())
@@ -211,32 +217,16 @@ func NewHorizonAPIService(
 		e.Pre(middleware.HTTPSRedirect())
 	}
 
-	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			host := handlers.GetHost(c)
-			if strings.Contains(host, ":") {
-				host, _, _ = strings.Cut(host, ":")
-			}
-			if slices.Contains(allowedHosts, "*") {
-				return next(c)
-			}
-			if slices.Contains(allowedHosts, host) {
-				return next(c)
-			}
-			return c.String(http.StatusForbidden, "Host not allowed")
-		}
-	})
-
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			allowedMethods := map[string]bool{
-				http.MethodGet:     true,
-				http.MethodPost:    true,
-				http.MethodPut:     true,
-				http.MethodPatch:   true,
-				http.MethodDelete:  true,
-				http.MethodHead:    true,
-				http.MethodOptions: true,
+				http.MethodGet:     true, // Read operations
+				http.MethodPost:    true, // Create operations
+				http.MethodPut:     true, // Update/replace operations
+				http.MethodPatch:   true, // Partial update operations
+				http.MethodDelete:  true, // Delete operations
+				http.MethodHead:    true, // Header-only requests
+				http.MethodOptions: true, // CORS preflight requests
 			}
 
 			if !allowedMethods[c.Request().Method] {
