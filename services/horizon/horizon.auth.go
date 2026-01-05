@@ -125,19 +125,23 @@ func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim 
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal claim")
 	}
-
 	mainKey := h.mainKey(userID, token)
 	if err := h.cache.Set(ctx, mainKey, data, expiry); err != nil {
 		return eris.Wrap(err, "failed to set CSRF token")
 	}
-
 	tokenUserKey := h.tokenToUserKey(token)
 	if err := h.cache.Set(ctx, tokenUserKey, []byte(userID), expiry); err != nil {
 		_ = h.cache.Delete(ctx, mainKey)
 		return eris.Wrap(err, "failed to set token-user mapping")
 	}
-
 	c.Response().Header().Set(h.csrfHeader, token)
+
+	secure := h.ssl
+	sameSite := http.SameSiteNoneMode
+	if c.Request().URL.Hostname() == "localhost" || strings.HasPrefix(c.Request().Host, "192.168.") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
+	}
 
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
@@ -145,8 +149,8 @@ func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim 
 		Path:     "/",
 		Expires:  time.Now().Add(expiry),
 		HttpOnly: true,
-		Secure:   h.ssl,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   secure,
+		SameSite: sameSite,
 	})
 
 	return nil
@@ -166,17 +170,24 @@ func (h *AuthServiceImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	}
 	_ = h.cache.Delete(ctx, tokenUserKey)
 
+	// Determine cookie flags based on environment
+	secure := h.ssl
+	sameSite := http.SameSiteNoneMode
+	if c.Request().URL.Hostname() == "localhost" || strings.HasPrefix(c.Request().Host, "192.168.") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
+	}
+
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   h.ssl,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   secure,
+		SameSite: sameSite,
 	})
 }
-
 func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -231,7 +242,7 @@ func (h *AuthServiceImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Contex
 		}
 		token := parts[3]
 		if token == currentToken {
-			continue // Skip current session
+			continue
 		}
 
 		val, err := h.cache.Get(ctx, key)

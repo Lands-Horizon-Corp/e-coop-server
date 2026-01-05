@@ -81,14 +81,14 @@ type (
 	KYCResendEmailVerificationRequest struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required,min=8,max=50"`
-		FullName string `json:"full_name" validate:"required,alpha_space"`
+		FullName string `json:"full_name" validate:"required"`
 	}
 
 	// POST /api/v1/kyc/resend-contact-number-verification
 	KYCResendContactNumberVerificationRequest struct {
 		ContactNumber string `json:"contact_number" validate:"required,e164"`
 		Password      string `json:"password" validate:"required,min=8,max=50"`
-		FullName      string `json:"full_name" validate:"required,alpha_space"`
+		FullName      string `json:"full_name" validate:"required"`
 	}
 
 	// POST /api/v1/kyc/register
@@ -97,7 +97,7 @@ type (
 		FirstName          string     `json:"first_name" validate:"required,alpha"`
 		MiddleName         string     `json:"middle_name" validate:"omitempty,alpha"`
 		LastName           string     `json:"last_name" validate:"required,alpha"`
-		FullName           string     `json:"full_name" validate:"required,alpha_space"`
+		FullName           string     `json:"full_name" validate:"required"`
 		ContactNumber      string     `json:"contact_number" validate:"required,e164"`
 		Suffix             string     `json:"suffix" validate:"omitempty,alpha"`
 		MemberGenderID     uuid.UUID  `json:"member_gender_id" validate:"required,uuid"`
