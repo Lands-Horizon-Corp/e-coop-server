@@ -104,7 +104,6 @@ type (
 		CivilStatus        string     `json:"civil_status" validate:"required,oneof=single married widowed divorced separated"`
 		MemberOccupationID *uuid.UUID `json:"member_occupation_id" validate:"omitempty,uuid"`
 		Email              string     `json:"email" validate:"required,email"`
-		Phone              string     `json:"phone" validate:"required,e164"`
 		BirthDate          *time.Time `json:"birth_date" validate:"omitempty"`
 		BranchID           *uuid.UUID `json:"branch_id" validate:"omitempty"`
 		Password           string     `json:"password" validate:"required,min=8,max=50"`

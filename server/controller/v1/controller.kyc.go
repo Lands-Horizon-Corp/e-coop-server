@@ -492,7 +492,7 @@ func (c *Controller) kycController() {
 		userProfile := &core.User{
 			Email:             req.Email,
 			Username:          req.Username,
-			ContactNumber:     req.Phone,
+			ContactNumber:     req.ContactNumber,
 			Password:          hashedPwd,
 			FullName:          req.FullName,
 			FirstName:         &req.FirstName,
