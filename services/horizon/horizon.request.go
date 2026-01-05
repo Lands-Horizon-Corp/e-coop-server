@@ -467,7 +467,6 @@ func NewHorizonAPIService(
 		},
 
 		AllowHeaders: []string{
-
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
@@ -482,8 +481,8 @@ func NewHorizonAPIService(
 			"Location",
 			"X-Device-Type",
 			"X-User-Agent",
+			"X-Organization-ID",
 		},
-
 		ExposeHeaders: []string{
 			echo.HeaderContentLength,
 			echo.HeaderContentType,

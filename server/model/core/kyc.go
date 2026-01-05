@@ -10,11 +10,11 @@ import (
 type (
 	// POST /api/v1/kyc/personal-details
 	KYCPersonalDetailsRequest struct {
-		Username   string `json:"username" validate:"required,min=3,max=30,alphanum"`
-		FirstName  string `json:"first_name" validate:"required,alpha"`
-		MiddleName string `json:"middle_name" validate:"omitempty,alpha"`
-		LastName   string `json:"last_name" validate:"required,alpha"`
-		Gender     string `json:"gender" validate:"required,oneof=male female other"`
+		Username       string    `json:"username" validate:"required,min=3,max=30,alphanum"`
+		FirstName      string    `json:"first_name" validate:"required,alpha"`
+		MiddleName     string    `json:"middle_name" validate:"omitempty,alpha"`
+		LastName       string    `json:"last_name" validate:"required,alpha"`
+		MemberGenderID uuid.UUID `json:"gender" validate:"required"`
 	}
 
 	// POST /api/v1/kyc/security-details
