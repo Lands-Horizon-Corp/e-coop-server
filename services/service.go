@@ -276,15 +276,36 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	}
 
 	if cfg.SMSServiceConfig != nil {
-		service.SMS = horizon.NewSMS(cfg.SMSServiceConfig.AccountSID, cfg.SMSServiceConfig.AuthToken, cfg.SMSServiceConfig.Sender, cfg.SMSServiceConfig.MaxChars)
+		service.SMS = horizon.NewSMS(
+			cfg.SMSServiceConfig.AccountSID,
+			cfg.SMSServiceConfig.AuthToken,
+			cfg.SMSServiceConfig.Sender,
+			cfg.SMSServiceConfig.MaxChars,
+			isStaging)
 	} else {
-		service.SMS = horizon.NewSMS(service.Environment.GetString("TWILIO_ACCOUNT_SID", ""), service.Environment.GetString("TWILIO_AUTH_TOKEN", ""), service.Environment.GetString("TWILIO_SENDER", ""), service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160))
+		service.SMS = horizon.NewSMS(
+			service.Environment.GetString("TWILIO_ACCOUNT_SID", ""),
+			service.Environment.GetString("TWILIO_AUTH_TOKEN", ""),
+			service.Environment.GetString("TWILIO_SENDER", "+17753803931"),
+			service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160),
+			isStaging)
 	}
 
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewSMTP(cfg.SMTPServiceConfig.Host, cfg.SMTPServiceConfig.Port, cfg.SMTPServiceConfig.Username, cfg.SMTPServiceConfig.Password, cfg.SMTPServiceConfig.From)
+		service.SMTP = horizon.NewSMTP(
+			cfg.SMTPServiceConfig.Host,
+			cfg.SMTPServiceConfig.Port,
+			cfg.SMTPServiceConfig.Username,
+			cfg.SMTPServiceConfig.Password,
+			cfg.SMTPServiceConfig.From, isStaging)
 	} else {
-		service.SMTP = horizon.NewSMTP(service.Environment.GetString("SMTP_HOST", "127.0.0.1"), service.Environment.GetInt("SMTP_PORT", 1025), service.Environment.GetString("SMTP_USERNAME", ""), service.Environment.GetString("SMTP_PASSWORD", ""), service.Environment.GetString("SMTP_FROM", "dev@local.test"))
+		service.SMTP = horizon.NewSMTP(
+			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
+			service.Environment.GetInt("SMTP_PORT", 1025),
+			service.Environment.GetString("SMTP_USERNAME", ""),
+			service.Environment.GetString("SMTP_PASSWORD", ""),
+			service.Environment.GetString("SMTP_FROM", "dev@local.test"),
+			isStaging)
 	}
 
 	service.Cron = horizon.NewSchedule()

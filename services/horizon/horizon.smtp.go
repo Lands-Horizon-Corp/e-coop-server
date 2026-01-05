@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"log"
 	"net/smtp"
 	"os"
 	"strings"
@@ -43,17 +44,19 @@ type SMTP struct {
 	password string
 	from     string
 
+	secured     bool
 	limiterOnce sync.Once
 	limiter     *rate.Limiter
 }
 
-func NewSMTP(host string, port int, username, password string, from string) SMTPService {
+func NewSMTP(host string, port int, username, password string, from string, secured bool) SMTPService {
 	return &SMTP{
 		host:     host,
 		port:     port,
 		username: username,
 		password: password,
 		from:     from,
+		secured:  secured,
 	}
 }
 
@@ -113,18 +116,40 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	}
 	req.Body = finalBody.Body
 
+	// 🔐 NOT SECURED → LOG ONLY (LOCAL / LAN / DEV MODE)
+	if !h.secured {
+		log.Printf(
+			"[SMTP MOCK MODE]\nTo: %s\nSubject: %s\nBody:\n%s\n",
+			req.To,
+			req.Subject,
+			req.Body,
+		)
+		return nil
+	}
+
 	safeFrom := sanitizeHeader(h.from)
 	safeTo := sanitizeHeader(req.To)
 	safeSubject := sanitizeHeader(req.Subject)
 
 	auth := smtp.PlainAuth("", h.username, h.password, h.host)
 	addr := fmt.Sprintf("%s:%d", h.host, h.port)
-	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", safeFrom, safeTo, safeSubject, req.Body)
+	msg := fmt.Sprintf(
+		"From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s",
+		safeFrom,
+		safeTo,
+		safeSubject,
+		req.Body,
+	)
 
-	if err := smtp.SendMail(addr, auth, safeFrom, []string{safeTo}, []byte(
-		handlers.Sanitize(msg),
-	)); err != nil {
+	if err := smtp.SendMail(
+		addr,
+		auth,
+		safeFrom,
+		[]string{safeTo},
+		[]byte(handlers.Sanitize(msg)),
+	); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
+
 	return nil
 }
