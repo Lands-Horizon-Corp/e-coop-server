@@ -118,7 +118,7 @@ type (
 
 	// POST /api/v1/kyc/login
 	KYCLoginRequest struct {
-		Key      string `json:"key" validate:"required"` // email, username, or phone
+		Key      string `json:"key" validate:"required"`
 		Password string `json:"password" validate:"required"`
 	}
 )

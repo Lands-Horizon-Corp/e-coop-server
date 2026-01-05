@@ -667,8 +667,9 @@ func (c *Controller) kycController() {
 			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
 		}
 		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
-			UserID: user.ID,
-			User:   c.core.UserManager().ToModel(user),
+			UserID:           user.ID,
+			User:             c.core.UserManager().ToModel(user),
+			UserOrganization: c.core.UserOrganizationManager().ToModel(userOrganization),
 		})
 	})
 }
