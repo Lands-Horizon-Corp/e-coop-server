@@ -228,7 +228,7 @@ func (m *Core) OrganizationManager() *registry.Registry[Organization, Organizati
 				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
 				SubscriptionPlanID:                  data.SubscriptionPlanID,
-				SubscriptionPlanIsYearly:            false, // TODO
+				SubscriptionPlanIsYearly:            false,
 				SubscriptionPlan:                    m.SubscriptionPlanManager().ToModel(data.SubscriptionPlan),
 				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
 				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),

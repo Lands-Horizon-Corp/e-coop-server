@@ -14,7 +14,7 @@ type (
 		FirstName      string    `json:"first_name" validate:"required,alpha"`
 		MiddleName     string    `json:"middle_name" validate:"omitempty,alpha"`
 		LastName       string    `json:"last_name" validate:"required,alpha"`
-		MemberGenderID uuid.UUID `json:"gender" validate:"required"`
+		MemberGenderID uuid.UUID `json:"member_gender_id" validate:"required"`
 	}
 
 	// POST /api/v1/kyc/security-details
@@ -99,12 +99,12 @@ type (
 		LastName           string     `json:"last_name" validate:"required,alpha"`
 		FullName           string     `json:"full_name" validate:"required"`
 		ContactNumber      string     `json:"contact_number" validate:"required,e164"`
-		Suffix             string     `json:"suffix" validate:"omitempty,alpha"`
+		Suffix             string     `json:"suffix" validate:"omitempty"`
 		MemberGenderID     uuid.UUID  `json:"member_gender_id" validate:"required,uuid"`
 		CivilStatus        string     `json:"civil_status" validate:"required,oneof=single married widowed divorced separated"`
 		MemberOccupationID *uuid.UUID `json:"member_occupation_id" validate:"omitempty,uuid"`
 		Email              string     `json:"email" validate:"required,email"`
-		BirthDate          *time.Time `json:"birth_date" validate:"omitempty"`
+		BirthDate          *time.Time `json:"birthdate" validate:"omitempty"`
 		BranchID           *uuid.UUID `json:"branch_id" validate:"omitempty"`
 		Password           string     `json:"password" validate:"required,min=8,max=50"`
 		OldPassbook        string     `json:"old_passbook" validate:"omitempty"`
