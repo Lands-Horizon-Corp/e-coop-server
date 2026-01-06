@@ -39,6 +39,24 @@ func (c *Controller) branchController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/branch/kyc",
+		Method:       "GET",
+		Note:         "Returns all branches belonging to the specified organization in members portal.",
+		ResponseType: core.BranchResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		org, ok := c.userOrganizationToken.GetOrganization(ctx)
+		if !ok {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
+		}
+		branches, err := c.core.GetBranchesByOrganization(context, org.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModels(branches))
+	})
+
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",

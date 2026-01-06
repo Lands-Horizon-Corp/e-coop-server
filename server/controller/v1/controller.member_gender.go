@@ -76,7 +76,7 @@ func (c *Controller) memberGenderController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
-		Route:        "/api/v1/member-gender/:branch_id",
+		Route:        "/api/v1/member-gender/branch/:branch_id",
 		Method:       "GET",
 		ResponseType: core.MemberGenderResponse{},
 		Note:         "Returns all member genders for the current user's branch.",

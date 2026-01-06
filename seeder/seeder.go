@@ -22,6 +22,18 @@ type Seeder struct {
 	imagePaths  []string
 	progressBar *progressbar.ProgressBar
 }
+type City struct {
+	Lat float64
+	Lng float64
+}
+
+var cities = []City{
+	{14.5995, 120.9842}, // Manila
+	{10.3157, 123.8854}, // Cebu
+	{7.1907, 125.4553},  // Davao
+	{13.4125, 122.5621}, // Baguio
+	{11.2400, 125.0055}, // Butuan
+}
 
 func NewSeeder(provider *server.Provider, core *core.Core) (*Seeder, error) {
 	overallBar := progressbar.NewOptions(100, // Temporary, will be updated in Run()
@@ -239,6 +251,9 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 				if err != nil {
 					return eris.Wrap(err, "failed to find currency for account seeding")
 				}
+				c := cities[s.faker.IntBetween(0, len(cities)-1)]
+				Latitude := c.Lat + (float64(s.faker.IntBetween(-50, 50)) / 1000.0)
+				Longitude := c.Lng + (float64(s.faker.IntBetween(-50, 50)) / 1000.0)
 				branch := &core.Branch{
 					CreatedAt:               time.Now().UTC(),
 					CreatedByID:             user.ID,
@@ -257,8 +272,8 @@ func (s *Seeder) SeedOrganization(ctx context.Context, multiplier int32) error {
 					CurrencyID:              &currency.ID,
 					ContactNumber:           ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
 					MediaID:                 &branchMedia.ID,
-					Latitude:                ptr(4.0 + float64(s.faker.IntBetween(0, 1700))/100.0),
-					Longitude:               ptr(116.0 + float64(s.faker.IntBetween(0, 1100))/100.0),
+					Latitude:                &Latitude,
+					Longitude:               &Longitude,
 					TaxIdentificationNumber: ptr(fmt.Sprintf("%09d", s.faker.IntBetween(100000000, 999999999))),
 				}
 				if err := s.core.BranchManager().Create(ctx, branch); err != nil {
@@ -723,4 +738,11 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		}
 	}
 	return nil
+}
+func floatRange(f *faker.Faker, min, max float64) float64 {
+	return f.Float64(
+		int(min*100),
+		int(max*100),
+		2,
+	) / 100.0
 }
