@@ -256,8 +256,7 @@ func startServer() {
 			event.NewEvent,
 			report.NewReports,
 			seeder.NewSeeder,
-			tokens.NewUserToken,
-			tokens.NewUserOrganizationToken,
+			tokens.NewToken,
 			usecase.NewUsecaseService,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {

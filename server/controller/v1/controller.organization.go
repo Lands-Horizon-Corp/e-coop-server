@@ -64,7 +64,7 @@ func (c *Controller) organizationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -352,7 +352,7 @@ func (c *Controller) organizationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

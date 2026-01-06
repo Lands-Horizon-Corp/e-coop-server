@@ -36,12 +36,12 @@ func (c *Controller) authenticationController() {
 		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
-			c.userOrganizationToken.ClearCurrentToken(context, ctx)
+			c.token.ClearCurrentToken(context, ctx)
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
-		userOrganization, _ := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrganization, _ := c.token.CurrentUserOrganization(context, ctx)
 		var userOrg *core.UserOrganizationResponse
 		if userOrganization != nil {
 			userOrg = c.core.UserOrganizationManager().ToModel(userOrganization)
@@ -58,14 +58,14 @@ func (c *Controller) authenticationController() {
 		Note:   "Logs out all users including itself for the session.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		_, err := c.userToken.CurrentUser(context, ctx)
+		_, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if err := c.userToken.LogoutOtherDevices(context, ctx); err != nil {
+		if err := c.token.LogoutOtherDevices(context, ctx); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to logout other devices: " + err.Error()})
 		}
-		c.userOrganizationToken.ClearCurrentToken(context, ctx)
+		c.token.ClearCurrentToken(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -76,11 +76,11 @@ func (c *Controller) authenticationController() {
 		ResponseType: tokens.UserCSRFResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		_, err := c.userToken.CurrentUser(context, ctx)
+		_, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		loggedIn, err := c.userToken.LoggedInUsers(context, ctx)
+		loggedIn, err := c.token.LoggedInUsers(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get logged in users: " + err.Error()})
 		}
@@ -115,7 +115,7 @@ func (c *Controller) authenticationController() {
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
-		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+		if err := c.token.SetUser(context, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
@@ -142,7 +142,7 @@ func (c *Controller) authenticationController() {
 			Description: "User logged out successfully",
 			Module:      "User",
 		})
-		c.userToken.ClearCurrentCSRF(context, ctx)
+		c.token.ClearCurrentCSRF(context, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -197,7 +197,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not register user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, user); err != nil {
+		if err := c.token.SetUser(context, ctx, user); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: failed to set user token: " + err.Error(),
@@ -402,7 +402,7 @@ func (c *Controller) authenticationController() {
 		Note:   "Sends OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -466,7 +466,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -514,7 +514,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+		if err := c.token.SetUser(context, ctx, updatedUser); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: set user token error: " + err.Error(),
@@ -536,7 +536,7 @@ func (c *Controller) authenticationController() {
 		Note:   "Sends OTP for email verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -590,7 +590,7 @@ func (c *Controller) authenticationController() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
@@ -614,7 +614,7 @@ func (c *Controller) authenticationController() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -663,7 +663,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -711,7 +711,7 @@ func (c *Controller) authenticationController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+		if err := c.token.SetUser(context, ctx, updatedUser); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: set user token error: " + err.Error(),

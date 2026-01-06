@@ -20,7 +20,7 @@ func (e *Event) MemberAccountingLedgerSummary(
 	ctx echo.Context,
 	memberProfileID *uuid.UUID,
 ) (*MemberAccountingLedgerSummary, error) {
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	userOrg, err := e.token.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		return nil, eris.Wrap(err, "user authentication failed or organization not found")
 	}

@@ -9,28 +9,25 @@ import (
 )
 
 type Event struct {
-	core                  *core.Core
-	userOrganizationToken *tokens.UserOrganizationToken
-	userToken             *tokens.UserToken
-	provider              *server.Provider
-	usecase               *usecase.UsecaseService
-	report                *report.Reports
+	core     *core.Core
+	token    *tokens.Token
+	provider *server.Provider
+	usecase  *usecase.UsecaseService
+	report   *report.Reports
 }
 
 func NewEvent(
 	core *core.Core,
-	userOrganizationToken *tokens.UserOrganizationToken,
-	userToken *tokens.UserToken,
+	token *tokens.Token,
 	provider *server.Provider,
 	usecase *usecase.UsecaseService,
 	report *report.Reports,
 ) (*Event, error) {
 	return &Event{
-		userOrganizationToken: userOrganizationToken,
-		userToken:             userToken,
-		core:                  core,
-		provider:              provider,
-		usecase:               usecase,
-		report:                report,
+		token:    token,
+		core:     core,
+		provider: provider,
+		usecase:  usecase,
+		report:   report,
 	}, nil
 }

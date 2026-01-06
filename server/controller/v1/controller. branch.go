@@ -22,7 +22,7 @@ func (c *Controller) branchController() {
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg == nil {
 			branches, err := c.core.BranchManager().List(context)
 			if err != nil {
@@ -45,7 +45,7 @@ func (c *Controller) branchController() {
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		org, ok := c.userOrganizationToken.GetOrganization(ctx)
+		org, ok := c.token.GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}
@@ -104,7 +104,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
 
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create error",
@@ -360,7 +360,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -470,7 +470,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.token.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete error",
@@ -593,7 +593,7 @@ func (c *Controller) branchController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",
@@ -769,7 +769,7 @@ func (c *Controller) branchController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil || userOrg.BranchID == nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update error",

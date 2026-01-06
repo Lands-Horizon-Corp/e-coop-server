@@ -21,7 +21,7 @@ func (c *Controller) adjustmentTagController() {
 		ResponseType: core.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -42,7 +42,7 @@ func (c *Controller) adjustmentTagController() {
 		ResponseType: core.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -94,7 +94,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment tag data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -160,7 +160,7 @@ func (c *Controller) adjustmentTagController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment entry ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -206,7 +206,7 @@ func (c *Controller) adjustmentTagController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid adjustment tag data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

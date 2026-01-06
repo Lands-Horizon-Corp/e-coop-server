@@ -20,7 +20,7 @@ func (c *Controller) memberClassificationController() {
 		Note:         "Returns all member classification history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -42,7 +42,7 @@ func (c *Controller) memberClassificationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -64,7 +64,7 @@ func (c *Controller) memberClassificationController() {
 		Note:         "Returns all member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -82,7 +82,7 @@ func (c *Controller) memberClassificationController() {
 		Note:         "Returns paginated member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -113,7 +113,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -170,7 +170,7 @@ func (c *Controller) memberClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_classification_id: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

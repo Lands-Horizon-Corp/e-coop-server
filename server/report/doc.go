@@ -12,11 +12,10 @@ import (
 )
 
 type Reports struct {
-	provider              *server.Provider
-	core                  *core.Core
-	userOrganizationToken *tokens.UserOrganizationToken
-	userToken             *tokens.UserToken
-	usecase               *usecase.UsecaseService
+	provider *server.Provider
+	core     *core.Core
+	token    *tokens.Token
+	usecase  *usecase.UsecaseService
 }
 
 type ReportData struct {
@@ -29,18 +28,15 @@ func NewReports(
 	provider *server.Provider,
 	core *core.Core,
 
-	userOrganizationToken *tokens.UserOrganizationToken,
-	userToken *tokens.UserToken,
+	token *tokens.Token,
 	usecase *usecase.UsecaseService,
 
 ) (*Reports, error) {
 	return &Reports{
 		provider: provider,
 		core:     core,
-
-		userOrganizationToken: userOrganizationToken,
-		userToken:             userToken,
-		usecase:               usecase,
+		token:    token,
+		usecase:  usecase,
 	}, nil
 }
 

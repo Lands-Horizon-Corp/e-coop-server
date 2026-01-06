@@ -22,7 +22,7 @@ func (c *Controller) memberProfileController() {
 		Note:         "Returns all pending member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -74,7 +74,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -226,7 +226,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -286,7 +286,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "reject-error",
@@ -336,7 +336,7 @@ func (c *Controller) memberProfileController() {
 		Note:         "Returns all member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -354,7 +354,7 @@ func (c *Controller) memberProfileController() {
 		Note:         "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -577,7 +577,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -779,7 +779,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -908,7 +908,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1062,7 +1062,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1110,7 +1110,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
 
-		currentUserOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		currentUserOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "connect-error",
@@ -1200,7 +1200,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found", memberProfileID)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusNoContent, map[string]string{"error": "Current user organization not found"})
 		}
@@ -1312,7 +1312,7 @@ func (c *Controller) memberProfileController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1353,7 +1353,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_type_id: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -1387,7 +1387,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -1436,7 +1436,7 @@ func (c *Controller) memberProfileController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}

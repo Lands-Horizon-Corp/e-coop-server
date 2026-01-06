@@ -68,7 +68,7 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("reference number is required"))
 	}
 
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, echoCtx)
+	userOrg, err := e.token.CurrentUserOrganization(context, echoCtx)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "authentication-failed",

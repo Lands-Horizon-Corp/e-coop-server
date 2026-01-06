@@ -20,7 +20,7 @@ func (c *Controller) accountClassificationController() {
 		ResponseType: core.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
@@ -44,7 +44,7 @@ func (c *Controller) accountClassificationController() {
 		ResponseType: core.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
@@ -96,7 +96,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account classification validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -158,7 +158,7 @@ func (c *Controller) accountClassificationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account classification validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -221,7 +221,7 @@ func (c *Controller) accountClassificationController() {
 		Note:   "Delete an account classification by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",

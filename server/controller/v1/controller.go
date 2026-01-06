@@ -9,12 +9,11 @@ import (
 )
 
 type Controller struct {
-	provider              *server.Provider
-	core                  *core.Core
-	event                 *event.Event
-	userOrganizationToken *tokens.UserOrganizationToken
-	userToken             *tokens.UserToken
-	usecase               *usecase.UsecaseService
+	provider *server.Provider
+	core     *core.Core
+	event    *event.Event
+	token    *tokens.Token
+	usecase  *usecase.UsecaseService
 }
 
 func NewController(
@@ -22,8 +21,7 @@ func NewController(
 	core *core.Core,
 	event *event.Event,
 
-	userOrganizationToken *tokens.UserOrganizationToken,
-	userToken *tokens.UserToken,
+	token *tokens.Token,
 	usecase *usecase.UsecaseService,
 
 ) (*Controller, error) {
@@ -32,9 +30,8 @@ func NewController(
 		core:     core,
 		event:    event,
 
-		userOrganizationToken: userOrganizationToken,
-		userToken:             userToken,
-		usecase:               usecase,
+		token:   token,
+		usecase: usecase,
 	}, nil
 }
 

@@ -77,7 +77,7 @@ func (e *Event) TransactionPayment(
 		return nil, endTx(eris.New("IP is temporarily blocked due to repeated errors"))
 	}
 
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	userOrg, err := e.token.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "auth-error",

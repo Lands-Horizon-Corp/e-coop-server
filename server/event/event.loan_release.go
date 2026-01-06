@@ -15,7 +15,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	userOrg, err := e.token.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "authentication-failed",

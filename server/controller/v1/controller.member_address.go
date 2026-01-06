@@ -39,7 +39,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -117,7 +117,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

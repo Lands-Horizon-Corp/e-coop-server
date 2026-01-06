@@ -21,7 +21,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -42,7 +42,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -103,7 +103,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest entry data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -242,7 +242,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest entry data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

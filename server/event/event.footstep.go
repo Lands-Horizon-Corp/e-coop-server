@@ -23,13 +23,13 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		user, err := e.userToken.CurrentUser(context, ctx)
+		user, err := e.token.CurrentUser(context, ctx)
 		if err != nil || user == nil {
 			return
 		}
 
 		userID := user.ID
-		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrganization, _ := e.token.CurrentUserOrganization(context, ctx)
 
 		var userType core.UserOrganizationType
 		var organizationID, branchID *uuid.UUID
@@ -39,7 +39,7 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 			branchID = userOrganization.BranchID
 		}
 
-		claim, _ := e.userToken.CurrentUserCSRF(context, ctx)
+		claim, _ := e.token.CurrentUserCSRF(context, ctx)
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 
