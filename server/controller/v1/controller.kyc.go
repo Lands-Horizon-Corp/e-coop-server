@@ -591,7 +591,7 @@ func (c *Controller) kycController() {
 				UpdatedByID:     &userProfile.ID,
 			}
 
-			if err := c.core.MemberAddressManager().Create(context, value); err != nil {
+			if err := c.core.MemberAddressManager().CreateWithTx(context, tx, value); err != nil {
 				fmt.Println("ERROR STEP 13:", err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
@@ -615,7 +615,7 @@ func (c *Controller) kycController() {
 				UpdatedByID:     &userProfile.ID,
 			}
 
-			if err := c.core.MemberGovernmentBenefitManager().Create(context, value); err != nil {
+			if err := c.core.MemberGovernmentBenefitManager().CreateWithTx(context, tx, value); err != nil {
 				fmt.Println("ERROR STEP 13:", err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
