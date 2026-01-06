@@ -76,6 +76,28 @@ func (c *Controller) memberGenderController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/member-gender/:branch_id",
+		Method:       "GET",
+		ResponseType: core.MemberGenderResponse{},
+		Note:         "Returns all member genders for the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		org, ok := c.userOrganizationToken.GetOrganization(ctx)
+		if !ok {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
+		}
+		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
+		}
+		memberGender, err := c.core.MemberGenderCurrentBranch(context, org.ID, *branchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.MemberGenderManager().ToModels(memberGender))
+	})
+
+	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
 		ResponseType: core.MemberGenderResponse{},
