@@ -5,7 +5,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
 type Controller struct {
@@ -13,7 +12,6 @@ type Controller struct {
 	core     *core.Core
 	event    *event.Event
 	token    *tokens.Token
-	usecase  *usecase.UsecaseService
 }
 
 func NewController(
@@ -22,7 +20,6 @@ func NewController(
 	event *event.Event,
 
 	token *tokens.Token,
-	usecase *usecase.UsecaseService,
 
 ) (*Controller, error) {
 	return &Controller{
@@ -30,8 +27,7 @@ func NewController(
 		core:     core,
 		event:    event,
 
-		token:   token,
-		usecase: usecase,
+		token: token,
 	}, nil
 }
 

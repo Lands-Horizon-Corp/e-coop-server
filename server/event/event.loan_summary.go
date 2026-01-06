@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID uuid.UUID) (*float64, error) {
@@ -14,6 +15,7 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to get member profile by id: %s", memberProfileID)
 	}
+
 	loanTransactions, err := e.core.LoanTransactionManager().Find(context, &core.LoanTransaction{
 		MemberProfileID: &memberProfile.ID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -23,7 +25,8 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		return nil, eris.Wrapf(err, "failed to find loan transactions for member profile id: %s", memberProfileID)
 	}
 
-	total := 0.0
+	totalDec := decimal.Zero
+
 	for _, loanTransaction := range loanTransactions {
 		generalLedgers, err := e.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
 			AccountID:      loanTransaction.AccountID,
@@ -32,7 +35,8 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to get latest general ledger for loan account id: %s", *loanTransaction.AccountID)
 		}
-		balance, err := e.usecase.Balance(usecase.Balance{
+
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			GeneralLedgers: generalLedgers,
 		})
 		if err != nil {
@@ -47,14 +51,24 @@ func (e *Event) LoanTotalMemberProfile(context context.Context, memberProfileID 
 		if err != nil {
 			return nil, eris.Wrapf(err, "failed to find loan accounts for loan transaction id: %s", loanTransaction.ID)
 		}
+
 		for _, loanAccount := range loanAccounts {
-			balance := e.provider.Service.Decimal.ClampMin(
-				e.provider.Service.Decimal.Add(loanAccount.Amount, loanAccount.TotalPayment), 0)
-			total = e.provider.Service.Decimal.Add(total, balance)
+			amountDec := decimal.NewFromFloat(loanAccount.Amount)
+			totalPaymentDec := decimal.NewFromFloat(loanAccount.TotalPayment)
+
+			balanceDec := amountDec.Add(totalPaymentDec)
+			if balanceDec.LessThan(decimal.Zero) {
+				balanceDec = decimal.Zero
+			}
+
+			totalDec = totalDec.Add(balanceDec)
 		}
 
-		total = e.provider.Service.Decimal.Add(total, balance.Balance)
+		// Add computed balance from CalculateBalance
+		balanceDec := decimal.NewFromFloat(balance.Balance)
+		totalDec = totalDec.Add(balanceDec)
 	}
 
-	return &total, nil
+	totalFloat := totalDec.InexactFloat64()
+	return &totalFloat, nil
 }

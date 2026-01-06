@@ -219,7 +219,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		balance, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
@@ -381,7 +381,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
 
-		balance, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 

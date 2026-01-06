@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -146,21 +148,29 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		IsAddOn:           true,
 	}
 
-	totalNonAddOns, totalAddOns := 0.0, 0.0
+	totalNonAddOnsDec := decimal.Zero
+	totalAddOnsDec := decimal.Zero
+
 	for _, entry := range deduction {
+		creditDec := decimal.NewFromFloat(entry.Credit)
+
 		if !entry.IsAddOn {
-			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
+			totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
 		} else {
-			totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
+			totalAddOnsDec = totalAddOnsDec.Add(creditDec)
 		}
+
 		result = append(result, entry)
 	}
+	totalNonAddOns := totalNonAddOnsDec.InexactFloat64()
+	totalAddOns := totalAddOnsDec.InexactFloat64()
 
 	for _, entry := range postComputed {
 		if entry.IsAutomaticLoanDeductionDeleted {
 			result = append(result, entry)
 			continue
 		}
+
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
 		} else {
@@ -169,18 +179,22 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				if err != nil {
 					return nil, endTx(err)
 				}
-				entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
+				entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 			}
+
 			if entry.Credit <= 0 {
-				entry.Credit = e.usecase.LoanComputation(*entry.AutomaticLoanDeduction, *loanTransaction)
+				entry.Credit = usecase.LoanComputation(*entry.AutomaticLoanDeduction, *loanTransaction)
 			}
 		}
+		creditDec := decimal.NewFromFloat(entry.Credit)
+
 		if !entry.IsAddOn {
-			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
+			totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
 		} else {
-			totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
+			totalAddOnsDec = totalAddOnsDec.Add(creditDec)
 		}
-		if entry.Credit > 0 {
+
+		if creditDec.GreaterThan(decimal.Zero) {
 			result = append(result, entry)
 		}
 	}
@@ -207,21 +221,31 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				LoanTransactionID:        loanTransaction.ID,
 				Amount:                   0,
 			}
+
+			// Compute credit using rate scheme if available
 			if ald.ChargesRateSchemeID != nil {
 				chargesRateScheme, err := e.core.ChargesRateSchemeManager().GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
 					return nil, endTx(err)
 				}
-				entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
+				entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 			}
+
+			// Fallback computation
 			if entry.Credit <= 0 {
-				entry.Credit = e.usecase.LoanComputation(*ald, *loanTransaction)
+				entry.Credit = usecase.LoanComputation(*ald, *loanTransaction)
 			}
+
+			// Update totals using shopspring/decimal
+			creditDec := decimal.NewFromFloat(entry.Credit)
 			if !entry.IsAddOn {
-				totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
+				totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
 			} else {
-				totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
+				totalAddOnsDec = totalAddOnsDec.Add(creditDec)
 			}
+			totalNonAddOns = totalNonAddOnsDec.InexactFloat64()
+			totalAddOns = totalAddOnsDec.InexactFloat64()
+
 			if entry.Credit > 0 {
 				result = append(result, entry)
 			}
@@ -244,15 +268,17 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 				Type:              core.LoanTransactionPrevious,
 				LoanTransactionID: loanTransaction.ID,
 			})
-			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, previous.Balance)
+			totalNonAddOnsDec := decimal.NewFromFloat(totalNonAddOns)
+			totalNonAddOnsDec = totalNonAddOnsDec.Add(decimal.NewFromFloat(previous.Balance))
+			totalNonAddOns = totalNonAddOnsDec.InexactFloat64()
 		}
 	}
 
 	if loanTransaction.IsAddOn {
-		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalNonAddOns)
+		result[0].Credit = decimal.NewFromFloat(loanTransaction.Applied1).Sub(decimal.NewFromFloat(totalNonAddOns)).InexactFloat64()
 	} else {
-		totalDeductions := e.provider.Service.Decimal.Add(totalNonAddOns, totalAddOns)
-		result[0].Credit = e.provider.Service.Decimal.Subtract(loanTransaction.Applied1, totalDeductions)
+		totalDeductionsDec := decimal.NewFromFloat(totalNonAddOns).Add(decimal.NewFromFloat(totalAddOns))
+		result[0].Credit = decimal.NewFromFloat(loanTransaction.Applied1).Sub(totalDeductionsDec).InexactFloat64()
 	}
 	for _, entry := range loanTransactionEntries {
 		if entry.ID == uuid.Nil {
@@ -288,7 +314,9 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		result = append(result, addOnEntry)
 	}
 
-	totalDebit, totalCredit := 0.0, 0.0
+	totalDebitDec := decimal.Zero
+	totalCreditDec := decimal.Zero
+
 	for index, entry := range result {
 		value := &core.LoanTransactionEntry{
 			CreatedAt:                       time.Now().UTC(),
@@ -311,8 +339,8 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
 		if !entry.IsAutomaticLoanDeductionDeleted {
-			totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-			totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+			totalDebitDec = totalDebitDec.Add(decimal.NewFromFloat(entry.Debit))
+			totalCreditDec = totalCreditDec.Add(decimal.NewFromFloat(entry.Credit))
 		}
 		if err := e.core.LoanTransactionEntryManager().CreateWithTx(ctx, tx, value); err != nil {
 			e.Footstep(echoCtx, FootstepEvent{
@@ -324,14 +352,13 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		}
 	}
 
-	var amountGranted float64 = 0
+	amountGrantedDec := totalCreditDec
 	if loanTransaction.IsAddOn {
-		amountGranted = e.provider.Service.Decimal.Add(totalCredit, totalAddOns)
-	} else {
-		amountGranted = totalCredit
+		amountGrantedDec = amountGrantedDec.Add(decimal.NewFromFloat(totalAddOns))
 	}
+	amountGranted := amountGrantedDec.InexactFloat64()
 
-	amort, err := e.usecase.LoanModeOfPayment(amountGranted, loanTransaction)
+	amort, err := usecase.LoanModeOfPayment(amountGranted, loanTransaction)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "data-error",
@@ -340,14 +367,13 @@ func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gor
 		})
 		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization: "+err.Error()))
 	}
-
 	loanTransaction.Amortization = amort
 	loanTransaction.AmountGranted = amountGranted
 	loanTransaction.TotalAddOn = totalAddOns
-	loanTransaction.TotalPrincipal = totalCredit
-	loanTransaction.Balance = totalCredit
-	loanTransaction.TotalCredit = totalCredit
-	loanTransaction.TotalDebit = totalDebit
+	loanTransaction.TotalPrincipal = totalCreditDec.InexactFloat64()
+	loanTransaction.Balance = totalCreditDec.InexactFloat64()
+	loanTransaction.TotalCredit = totalCreditDec.InexactFloat64()
+	loanTransaction.TotalDebit = totalDebitDec.InexactFloat64()
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
 

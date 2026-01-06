@@ -7,7 +7,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 )
 
@@ -15,7 +14,6 @@ type Reports struct {
 	provider *server.Provider
 	core     *core.Core
 	token    *tokens.Token
-	usecase  *usecase.UsecaseService
 }
 
 type ReportData struct {
@@ -29,14 +27,12 @@ func NewReports(
 	core *core.Core,
 
 	token *tokens.Token,
-	usecase *usecase.UsecaseService,
 
 ) (*Reports, error) {
 	return &Reports{
 		provider: provider,
 		core:     core,
 		token:    token,
-		usecase:  usecase,
 	}, nil
 }
 

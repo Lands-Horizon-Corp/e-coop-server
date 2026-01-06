@@ -1,5 +1,7 @@
 package usecase
 
+import "github.com/shopspring/decimal"
+
 type SavingsBalanceComputation struct {
 	DailyBalance   []float64   `json:"daily_balance"`
 	SavingsType    SavingsType `json:"savings_type"`
@@ -13,7 +15,7 @@ type SavingsBalanceResult struct {
 	InterestTax    float64 `json:"interest_tax"`
 }
 
-func (t *UsecaseService) GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
+func GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResult {
 	result := SavingsBalanceResult{
 		Balance:        0.0,
 		InterestAmount: data.InterestAmount,
@@ -24,48 +26,57 @@ func (t *UsecaseService) GetSavingsEndingBalance(data SavingsBalanceComputation)
 		return result
 	}
 
-	var balanceForCalculation float64
+	// Convert daily balances to decimal
+	dailyBalances := make([]decimal.Decimal, len(data.DailyBalance))
+	for i, b := range data.DailyBalance {
+		dailyBalances[i] = decimal.NewFromFloat(b)
+	}
+
+	var balanceForCalculation decimal.Decimal
 
 	switch data.SavingsType {
 	case SavingsTypeLowest:
-		lowestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
-				lowestBalance = dailyBalance
+		balanceForCalculation = dailyBalances[0]
+		for _, b := range dailyBalances {
+			if b.LessThan(balanceForCalculation) {
+				balanceForCalculation = b
 			}
 		}
-		balanceForCalculation = lowestBalance
 
 	case SavingsTypeHighest:
-		highestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsGreaterThan(dailyBalance, highestBalance) {
-				highestBalance = dailyBalance
+		balanceForCalculation = dailyBalances[0]
+		for _, b := range dailyBalances {
+			if b.GreaterThan(balanceForCalculation) {
+				balanceForCalculation = b
 			}
 		}
-		balanceForCalculation = highestBalance
 
 	case SavingsTypeAverage:
-		balanceForCalculation = t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) / float64(len(data.DailyBalance))
+		sum := decimal.Zero
+		for _, b := range dailyBalances {
+			sum = sum.Add(b)
+		}
+		balanceForCalculation = sum.Div(decimal.NewFromInt(int64(len(dailyBalances))))
 
 	case SavingsTypeStart:
-		balanceForCalculation = data.DailyBalance[0]
+		balanceForCalculation = dailyBalances[0]
 
 	case SavingsTypeEnd:
-		balanceForCalculation = data.DailyBalance[len(data.DailyBalance)-1]
+		balanceForCalculation = dailyBalances[len(dailyBalances)-1]
 
 	default:
-		lowestBalance := data.DailyBalance[0]
-		for _, dailyBalance := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(dailyBalance, lowestBalance) {
-				lowestBalance = dailyBalance
+		// Default to lowest balance
+		balanceForCalculation = dailyBalances[0]
+		for _, b := range dailyBalances {
+			if b.LessThan(balanceForCalculation) {
+				balanceForCalculation = b
 			}
 		}
-		balanceForCalculation = lowestBalance
 	}
 
-	finalBalance := t.provider.Service.Decimal.Add(balanceForCalculation, data.InterestAmount)
+	// Add interest amount
+	finalBalance := balanceForCalculation.Add(decimal.NewFromFloat(data.InterestAmount))
+	result.Balance = finalBalance.InexactFloat64()
 
-	result.Balance = finalBalance
 	return result
 }

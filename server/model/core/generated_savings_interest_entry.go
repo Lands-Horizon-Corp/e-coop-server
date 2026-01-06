@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -222,7 +223,10 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
 }
 
-func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEntryID uuid.UUID) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
+func (m *Core) DailyBalances(
+	context context.Context,
+	generatedSavingsInterestEntryID uuid.UUID,
+) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
 	generatedSavingsInterestEntry, err := m.GeneratedSavingsInterestEntryManager().GetByID(context, generatedSavingsInterestEntryID)
 	if err != nil {
 		return nil, err
@@ -257,23 +261,26 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 	}
 
 	var allDailyBalances []GeneratedSavingsInterestEntryDailyBalance
-	var totalBalanceSum float64
-	var totalDays int
-	lowestBalance := -1.0
-	var highestBalance float64
-	beginningBalance := -1.0
-	var endingBalance float64
+	totalBalanceSum := decimal.NewFromFloat(0)
+	totalDays := 0
+	lowestBalance := decimal.NewFromFloat(-1)
+	highestBalance := decimal.NewFromFloat(0)
+	beginningBalance := decimal.NewFromFloat(-1)
+	endingBalance := decimal.NewFromFloat(0)
 
 	currentDate := generatedSavingsInterest.NewComputationDate
-	previousBalance := -1.0
+	previousBalance := decimal.NewFromFloat(-1)
+
 	for i, balance := range dailyBalances {
 		dateStr := currentDate.AddDate(0, 0, i).Format("2006-01-02")
+		balanceDecimal := decimal.NewFromFloat(balance)
 		var changeType string
-		if previousBalance == -1 {
+
+		if previousBalance.Equal(decimal.NewFromFloat(-1)) {
 			changeType = "no_change"
-		} else if m.provider.Service.Decimal.IsGreaterThan(balance, previousBalance) {
+		} else if balanceDecimal.GreaterThan(previousBalance) {
 			changeType = "increase"
-		} else if m.provider.Service.Decimal.IsLessThan(balance, previousBalance) {
+		} else if balanceDecimal.LessThan(previousBalance) {
 			changeType = "decrease"
 		} else {
 			changeType = "no_change"
@@ -285,31 +292,32 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 			Type:    changeType,
 		})
 
-		totalBalanceSum = m.provider.Service.Decimal.Add(totalBalanceSum, balance)
+		totalBalanceSum = totalBalanceSum.Add(balanceDecimal)
 		totalDays++
 
-		if beginningBalance == -1 {
-			beginningBalance = balance
+		if beginningBalance.Equal(decimal.NewFromFloat(-1)) {
+			beginningBalance = balanceDecimal
 		}
-		endingBalance = balance
+		endingBalance = balanceDecimal
 
-		if lowestBalance == -1 || m.provider.Service.Decimal.IsLessThan(balance, lowestBalance) {
-			lowestBalance = balance
+		if lowestBalance.Equal(decimal.NewFromFloat(-1)) || balanceDecimal.LessThan(lowestBalance) {
+			lowestBalance = balanceDecimal
 		}
-		if m.provider.Service.Decimal.IsGreaterThan(balance, highestBalance) {
-			highestBalance = balance
+		if balanceDecimal.GreaterThan(highestBalance) {
+			highestBalance = balanceDecimal
 		}
 
-		previousBalance = balance
+		previousBalance = balanceDecimal
 	}
 
 	averageDailyBalance := float64(0)
 	if totalDays > 0 {
-		averageDailyBalance = m.provider.Service.Decimal.Divide(totalBalanceSum, float64(totalDays))
+		daysDecimal := decimal.NewFromInt(int64(totalDays))
+		averageDailyBalance, _ = totalBalanceSum.Div(daysDecimal).Float64()
 	}
 
-	if beginningBalance == -1 {
-		beginningBalance = 0
+	if beginningBalance.Equal(decimal.NewFromFloat(-1)) {
+		beginningBalance = decimal.NewFromFloat(0)
 	}
 
 	account, err := m.AccountManager().GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
@@ -322,11 +330,11 @@ func (m *Core) DailyBalances(context context.Context, generatedSavingsInterestEn
 	}
 
 	return &GeneratedSavingsInterestEntryDailyBalanceResponse{
-		BeginningBalance:    beginningBalance,
-		EndingBalance:       endingBalance,
+		BeginningBalance:    beginningBalance.InexactFloat64(),
+		EndingBalance:       endingBalance.InexactFloat64(),
 		AverageDailyBalance: averageDailyBalance,
-		LowestBalance:       lowestBalance,
-		HighestBalance:      highestBalance,
+		LowestBalance:       lowestBalance.InexactFloat64(),
+		HighestBalance:      highestBalance.InexactFloat64(),
 		DailyBalance:        allDailyBalances,
 		Account:             m.AccountManager().ToModel(account),
 		MemberProfile:       m.MemberProfileManager().ToModel(memberProfile),

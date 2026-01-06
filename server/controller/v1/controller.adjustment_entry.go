@@ -307,7 +307,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
-		balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			AdjustmentEntries: entries,
 		})
 		if err != nil {
@@ -390,7 +390,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			AdjustmentEntries: entries,
 			CurrencyID:        currencyID,
 		})
@@ -484,7 +484,7 @@ func (c *Controller) adjustmentEntryController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch adjustment entries for pagination: " + err.Error()})
 		}
-		balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			AdjustmentEntries: entries,
 			CurrencyID:        currencyID,
 		})

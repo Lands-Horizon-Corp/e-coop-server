@@ -105,7 +105,6 @@ type HorizonService struct {
 	SMTP      horizon.SMTPService
 	Request   horizon.APIService
 	QR        horizon.QRService
-	Decimal   horizon.DecimalOperations
 	Validator *validator.Validate
 
 	Logger *zap.Logger
@@ -318,7 +317,6 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 
 	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
-	service.Decimal = *horizon.NewDecimalHelper()
 
 	service.Logger.Info("HorizonService initialized successfully")
 	return service

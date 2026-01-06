@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -356,24 +358,14 @@ func (e *Event) TransactionPayment(
 		memberJointAccountID = transaction.MemberJointAccountID
 	}
 
-	if e.usecase == nil {
-		e.Footstep(ctx, FootstepEvent{
-			Activity:    "service-error",
-			Description: "Service is nil (/transaction/payment/:transaction_id)",
-			Module:      "Transaction",
-		})
-		block("Service is nil")
-		return nil, endTx(eris.New("service is nil"))
-	}
-
 	var credit, debit float64
 	switch data.Source {
 
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
-			credit, debit, err = e.usecase.Withdraw(context, account, data.Amount)
+			credit, debit, err = usecase.Withdraw(context, account, data.Amount)
 		} else {
-			credit, debit, err = e.usecase.Deposit(context, account, data.Amount)
+			credit, debit, err = usecase.Deposit(context, account, data.Amount)
 		}
 
 		if err != nil {
@@ -381,12 +373,12 @@ func (e *Event) TransactionPayment(
 		}
 	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
-			credit, debit, err = e.usecase.Deposit(context, account, data.Amount)
+			credit, debit, err = usecase.Deposit(context, account, data.Amount)
 			if err != nil {
 				err = eris.Wrap(err, "Account")
 			}
 		} else {
-			credit, debit, err = e.usecase.Withdraw(context, account, data.Amount)
+			credit, debit, err = usecase.Withdraw(context, account, data.Amount)
 			if err != nil {
 				err = eris.Wrap(err, "Account")
 			}
@@ -425,17 +417,21 @@ func (e *Event) TransactionPayment(
 		}
 
 		if loanAccount != nil {
-			if credit > 0 {
+			creditDec := decimal.NewFromFloat(credit)
+			debitDec := decimal.NewFromFloat(debit)
+
+			if creditDec.GreaterThan(decimal.Zero) {
 				loanAccount.TotalPaymentCount += 1
-				loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
-					loanAccount.TotalPayment, credit)
+				totalPaymentDec := decimal.NewFromFloat(loanAccount.TotalPayment).Add(creditDec)
+				loanAccount.TotalPayment = totalPaymentDec.InexactFloat64()
 			}
 
-			if debit > 0 {
+			if debitDec.GreaterThan(decimal.Zero) {
 				loanAccount.TotalDeductionCount += 1
-				loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
-					loanAccount.TotalDeduction, debit)
+				totalDeductionDec := decimal.NewFromFloat(loanAccount.TotalDeduction).Add(debitDec)
+				loanAccount.TotalDeduction = totalDeductionDec.InexactFloat64()
 			}
+
 			loanAccount.UpdatedByID = userOrg.UserID
 			loanAccount.UpdatedAt = now
 
@@ -497,45 +493,50 @@ func (e *Event) TransactionPayment(
 		})
 		return nil, endTx(eris.Wrap(err, "failed to create general ledger entry"))
 	}
+
 	switch data.Source {
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
+			amountDec := decimal.NewFromFloat(data.Amount).Abs()
+			transactionDec := decimal.NewFromFloat(transaction.Amount)
 			if data.Amount < 0 {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Add(amountDec)
 			} else {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Sub(amountDec)
 			}
+			transaction.Amount = transactionDec.InexactFloat64()
 		} else {
+			amountDec := decimal.NewFromFloat(data.Amount).Abs()
+			transactionDec := decimal.NewFromFloat(transaction.Amount)
 			if data.Amount < 0 {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Sub(amountDec)
 			} else {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Add(amountDec)
 			}
+			transaction.Amount = transactionDec.InexactFloat64()
 		}
+
 	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
+			amountDec := decimal.NewFromFloat(data.Amount).Abs()
+			transactionDec := decimal.NewFromFloat(transaction.Amount)
 			if data.Amount < 0 {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Sub(amountDec)
 			} else {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Add(amountDec)
 			}
+			transaction.Amount = transactionDec.InexactFloat64()
 		} else {
+			amountDec := decimal.NewFromFloat(data.Amount).Abs()
+			transactionDec := decimal.NewFromFloat(transaction.Amount)
 			if data.Amount < 0 {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Add(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Add(amountDec)
 			} else {
-				absoluteAmount := e.provider.Service.Decimal.Abs(data.Amount)
-				transaction.Amount = e.provider.Service.Decimal.Subtract(transaction.Amount, absoluteAmount)
+				transactionDec = transactionDec.Sub(amountDec)
 			}
+			transaction.Amount = transactionDec.InexactFloat64()
 		}
 	}
-
 	transaction.UpdatedAt = now
 	transaction.UpdatedByID = userOrg.UserID
 	if err := e.core.TransactionManager().UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {

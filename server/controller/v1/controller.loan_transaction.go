@@ -361,7 +361,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction entries: " + err.Error()})
 		}
 
-		balance, err := c.usecase.Balance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			LoanTransactionEntries: entries,
 		})
 		if err != nil {
@@ -1816,7 +1816,7 @@ func (c *Controller) loanTransactionController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		suggestedTerms, err := c.usecase.SuggestedNumberOfTerms(context, req.Amount, req.Principal, req.ModeOfPayment, req.FixedDays)
+		suggestedTerms, err := usecase.SuggestedNumberOfTerms(context, req.Amount, req.Principal, req.ModeOfPayment, req.FixedDays)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate suggested terms: " + err.Error()})
 		}

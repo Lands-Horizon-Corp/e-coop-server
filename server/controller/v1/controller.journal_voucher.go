@@ -116,7 +116,7 @@ func (c *Controller) journalVoucherController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		balance, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -251,7 +251,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Journal voucher not found"})
 		}
 
-		balance, err := c.usecase.StrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 func (e *Event) GenerateSavingsInterestEntries(
@@ -82,24 +83,24 @@ func (e *Event) GenerateSavingsInterestEntries(
 		var savingsComputed *usecase.SavingsInterestComputationResult
 
 		lastBalance := dailyBalances[len(dailyBalances)-1]
+		lastBalanceDec := decimal.NewFromFloat(lastBalance)
+		minimumBalanceDec := decimal.NewFromFloat(memberBrowseRef.BrowseReference.MinimumBalance)
+		chargesDec := decimal.NewFromFloat(memberBrowseRef.BrowseReference.Charges)
 
-		if e.provider.Service.Decimal.IsEqual(lastBalance, 0) {
-
+		if lastBalanceDec.Equal(decimal.Zero) {
 			continue
 		}
 
-		if e.provider.Service.Decimal.IsLessThan(lastBalance, memberBrowseRef.BrowseReference.MinimumBalance) {
+		if lastBalanceDec.LessThan(minimumBalanceDec) {
 
-			if memberBrowseRef.BrowseReference.Charges == 0 {
+			if chargesDec.Equal(decimal.Zero) {
 				continue
 			}
 
 			savingsComputed = &usecase.SavingsInterestComputationResult{
-				Interest:    e.provider.Service.Decimal.Negate(memberBrowseRef.BrowseReference.Charges),
-				InterestTax: 0,
-				EndingBalance: e.provider.Service.Decimal.Subtract(
-					lastBalance,
-					memberBrowseRef.BrowseReference.Charges),
+				Interest:      chargesDec.Neg().InexactFloat64(),
+				InterestTax:   decimal.Zero.InexactFloat64(),
+				EndingBalance: lastBalanceDec.Sub(chargesDec).InexactFloat64(),
 			}
 		} else {
 
@@ -155,9 +156,9 @@ func (e *Event) GenerateSavingsInterestEntries(
 				}
 			case core.InterestTypeAmount:
 				for _, rateByAmount := range memberBrowseRef.BrowseReference.InterestRatesByAmount {
-
-					if e.provider.Service.Decimal.IsGreaterThanOrEqual(lastBalance, rateByAmount.FromAmount) &&
-						(e.provider.Service.Decimal.IsLessThanOrEqual(lastBalance, rateByAmount.ToAmount)) {
+					fromAmountDec := decimal.NewFromFloat(rateByAmount.FromAmount)
+					toAmountDec := decimal.NewFromFloat(rateByAmount.ToAmount)
+					if lastBalanceDec.Cmp(fromAmountDec) >= 0 && lastBalanceDec.Cmp(toAmountDec) <= 0 {
 						interestRate = rateByAmount.InterestRate
 						break
 					}
@@ -166,34 +167,34 @@ func (e *Event) GenerateSavingsInterestEntries(
 
 			switch generatedSavingsInterest.SavingsComputationType {
 			case core.SavingsComputationTypeDailyLowestBalance:
-				computation := usecase.SavingsInterestComputation{
+				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeLowest,
 					AnnualDivisor:   annualDivisor,
 				}
-				result := e.usecase.SavingsInterestComputation(computation)
+				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
 			case core.SavingsComputationTypeAverageDailyBalance:
-				computation := usecase.SavingsInterestComputation{
+				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeAverage,
 					AnnualDivisor:   annualDivisor,
 				}
-				result := e.usecase.SavingsInterestComputation(computation)
+				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
 			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
-				computation := usecase.SavingsInterestComputation{
+				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
 					InterestTaxRate: generatedSavingsInterest.InterestTaxRate,
 					SavingsType:     usecase.SavingsTypeEnd,
 					AnnualDivisor:   annualDivisor,
 				}
-				result := e.usecase.SavingsInterestComputation(computation)
+				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
 			case core.SavingsComputationTypeADBEndBalance:
 			case core.SavingsComputationTypeMonthlyEndLowestBalance:

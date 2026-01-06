@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 func (c *Controller) mutualFundsController() {
@@ -740,14 +741,15 @@ func (c *Controller) mutualFundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund entries: " + err.Error()})
 		}
-		totalAmount := 0.0
+		totalAmount := decimal.Zero
 
 		for _, entry := range entries {
-			totalAmount = c.provider.Service.Decimal.Add(totalAmount, entry.Amount)
+			totalAmount = totalAmount.Add(decimal.NewFromFloat(entry.Amount))
 		}
+		totalAmountFloat := totalAmount.InexactFloat64()
 		return ctx.JSON(http.StatusOK, core.MutualFundView{
 			MutualFundEntries: c.core.MutualFundEntryManager().ToModels(entries),
-			TotalAmount:       totalAmount,
+			TotalAmount:       totalAmountFloat,
 		})
 	})
 

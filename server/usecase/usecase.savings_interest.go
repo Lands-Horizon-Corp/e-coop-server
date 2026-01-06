@@ -1,5 +1,7 @@
 package usecase
 
+import "github.com/shopspring/decimal"
+
 type SavingsType string
 
 const (
@@ -10,7 +12,7 @@ const (
 	SavingsTypeStart   SavingsType = "start"
 )
 
-type SavingsInterestComputation struct {
+type SavingsInterest struct {
 	DailyBalance    []float64
 	InterestRate    float64
 	InterestTaxRate float64
@@ -24,8 +26,8 @@ type SavingsInterestComputationResult struct {
 	EndingBalance float64
 }
 
-func (t *UsecaseService) SavingsInterestComputation(
-	data SavingsInterestComputation,
+func SavingsInterestComputation(
+	data SavingsInterest,
 ) SavingsInterestComputationResult {
 
 	result := SavingsInterestComputationResult{
@@ -39,96 +41,89 @@ func (t *UsecaseService) SavingsInterestComputation(
 		return result
 	}
 
-	interestRate := data.InterestRate
-	interestTaxRate := data.InterestTaxRate
+	interestRate := decimal.NewFromFloat(data.InterestRate)
+	interestTaxRate := decimal.NewFromFloat(data.InterestTaxRate)
 
-	if interestRate > 1 {
-		interestRate = t.provider.Service.Decimal.Divide(interestRate, 100)
+	// Convert rates from percentage if > 1
+	if interestRate.GreaterThan(decimal.NewFromInt(1)) {
+		interestRate = interestRate.Div(decimal.NewFromInt(100))
+	}
+	if interestTaxRate.GreaterThan(decimal.NewFromInt(1)) {
+		interestTaxRate = interestTaxRate.Div(decimal.NewFromInt(100))
 	}
 
-	if interestTaxRate > 1 {
-		interestTaxRate = t.provider.Service.Decimal.Divide(interestTaxRate, 100)
-	}
-
-	// Extra safety
-	if interestRate <= 0 || interestTaxRate < 0 || interestTaxRate >= 1 {
+	// Safety check
+	if interestRate.LessThanOrEqual(decimal.Zero) || interestTaxRate.LessThan(decimal.Zero) || interestTaxRate.GreaterThanOrEqual(decimal.NewFromInt(1)) {
 		return result
 	}
 
-	var balanceForCalculation float64
-	actualEndingBalance := data.DailyBalance[len(data.DailyBalance)-1]
+	var balanceForCalculation decimal.Decimal
+	actualEndingBalance := decimal.NewFromFloat(data.DailyBalance[daysInPeriod-1])
 
+	// Compute balance based on savings type
 	switch data.SavingsType {
 	case SavingsTypeLowest:
-		lowest := data.DailyBalance[0]
+		lowest := decimal.NewFromFloat(data.DailyBalance[0])
 		for _, v := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(v, lowest) {
-				lowest = v
+			if decimal.NewFromFloat(v).LessThan(lowest) {
+				lowest = decimal.NewFromFloat(v)
 			}
 		}
 		balanceForCalculation = lowest
 
 	case SavingsTypeHighest:
-		highest := data.DailyBalance[0]
+		highest := decimal.NewFromFloat(data.DailyBalance[0])
 		for _, v := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsGreaterThan(v, highest) {
-				highest = v
+			if decimal.NewFromFloat(v).GreaterThan(highest) {
+				highest = decimal.NewFromFloat(v)
 			}
 		}
 		balanceForCalculation = highest
 
 	case SavingsTypeAverage:
-		balanceForCalculation =
-			t.provider.Service.Decimal.AddMultiple(data.DailyBalance...) /
-				float64(daysInPeriod)
+		sum := decimal.Zero
+		for _, v := range data.DailyBalance {
+			sum = sum.Add(decimal.NewFromFloat(v))
+		}
+		balanceForCalculation = sum.Div(decimal.NewFromInt(int64(daysInPeriod)))
 
 	case SavingsTypeStart:
-		balanceForCalculation = data.DailyBalance[0]
+		balanceForCalculation = decimal.NewFromFloat(data.DailyBalance[0])
 
 	case SavingsTypeEnd:
-		balanceForCalculation = data.DailyBalance[daysInPeriod-1]
+		balanceForCalculation = actualEndingBalance
 
 	default:
-		lowest := data.DailyBalance[0]
+		lowest := decimal.NewFromFloat(data.DailyBalance[0])
 		for _, v := range data.DailyBalance {
-			if t.provider.Service.Decimal.IsLessThan(v, lowest) {
-				lowest = v
+			if decimal.NewFromFloat(v).LessThan(lowest) {
+				lowest = decimal.NewFromFloat(v)
 			}
 		}
 		balanceForCalculation = lowest
 	}
 
-	if balanceForCalculation <= 0 {
+	if balanceForCalculation.LessThanOrEqual(decimal.Zero) {
 		return result
 	}
 
-	daysPeriodRatio :=
-		t.provider.Service.Decimal.Divide(
-			float64(daysInPeriod),
-			float64(data.AnnualDivisor),
-		)
+	// Compute days period ratio
+	daysPeriodRatio := decimal.NewFromInt(int64(daysInPeriod)).Div(decimal.NewFromInt(int64(data.AnnualDivisor)))
 
-	grossInterest :=
-		t.provider.Service.Decimal.MultiplyMultiple(
-			balanceForCalculation,
-			interestRate,
-			daysPeriodRatio,
-		)
+	// Compute gross interest
+	grossInterest := balanceForCalculation.Mul(interestRate).Mul(daysPeriodRatio)
 
-	if grossInterest <= 0 {
+	if grossInterest.LessThanOrEqual(decimal.Zero) {
 		return result
 	}
 
-	totalTax :=
-		t.provider.Service.Decimal.Multiply(grossInterest, interestTaxRate)
+	// Compute tax and net interest
+	totalTax := grossInterest.Mul(interestTaxRate)
+	totalInterest := grossInterest.Sub(totalTax)
 
-	totalInterest :=
-		t.provider.Service.Decimal.Subtract(grossInterest, totalTax)
-
-	result.Interest = totalInterest
-	result.InterestTax = totalTax
-	result.EndingBalance =
-		t.provider.Service.Decimal.Add(actualEndingBalance, totalInterest)
+	result.Interest = totalInterest.InexactFloat64()
+	result.InterestTax = totalTax.InexactFloat64()
+	result.EndingBalance = actualEndingBalance.Add(totalInterest).InexactFloat64()
 
 	return result
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -334,21 +335,21 @@ func (m *Core) CreateGeneralLedgerEntry(
 		{Field: "created_at", Order: "DESC"},
 	})
 
-	previousBalance := m.provider.Service.Decimal.NewFromFloat(0)
+	previousBalance := decimal.NewFromFloat(0)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	} else {
 		if ledger != nil {
-			previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
+			previousBalance = decimal.NewFromFloat(ledger.Balance)
 		}
 	}
 
-	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
-	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
+	debitDecimal := decimal.NewFromFloat(data.Debit)
+	creditDecimal := decimal.NewFromFloat(data.Credit)
 
-	balanceChange := m.provider.Service.Decimal.NewFromFloat(0)
+	var balanceChange decimal.Decimal
 	if data.Account == nil {
 		balanceChange = debitDecimal.Sub(creditDecimal)
 	} else {
@@ -363,8 +364,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 	}
 
 	newBalance := previousBalance.Add(balanceChange)
-	nbf, _ := newBalance.Float64()
-	data.Balance = nbf
+	data.Balance, _ = newBalance.Float64()
 
 	if err := m.GeneralLedgerManager().CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
@@ -390,6 +390,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
 		}
 	}
+
 	return nil
 }
 

@@ -177,7 +177,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 			savingsType = usecase.SavingsTypeLowest
 		}
 
-		result := c.usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
+		result := usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
 			DailyBalance:   dailyBalances,
 			SavingsType:    savingsType,
 			InterestAmount: req.InterestAmount,
@@ -315,7 +315,7 @@ func (c *Controller) generatedSavingsInterestEntryController() {
 		default:
 			savingsType = usecase.SavingsTypeLowest
 		}
-		result := c.usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
+		result := usecase.GetSavingsEndingBalance(usecase.SavingsBalanceComputation{
 			DailyBalance:   dailyBalances,
 			SavingsType:    savingsType,
 			InterestAmount: req.InterestAmount,
