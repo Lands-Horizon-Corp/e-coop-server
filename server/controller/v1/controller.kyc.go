@@ -540,6 +540,8 @@ func (c *Controller) kycController() {
 			OrganizationID:       org.ID,
 			BranchID:             *req.BranchID,
 			CreatedAt:            time.Now().UTC(),
+			CreatedByID:          &userProfile.ID,
+			UpdatedByID:          &userProfile.ID,
 			UpdatedAt:            time.Now().UTC(),
 			UserID:               &userProfile.ID,
 			OldReferenceID:       req.OldPassbook,
@@ -585,9 +587,35 @@ func (c *Controller) kycController() {
 				OrganizationID:  org.ID,
 				Longitude:       addrReq.Longitude,
 				Latitude:        addrReq.Latitude,
+				CreatedByID:     &userProfile.ID,
+				UpdatedByID:     &userProfile.ID,
 			}
 
 			if err := c.core.MemberAddressManager().Create(context, value); err != nil {
+				fmt.Println("ERROR STEP 13:", err)
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
+			}
+		}
+
+		for i, benefitReq := range req.GovernmentBenefits {
+			fmt.Println("STEP 13.", i)
+
+			value := &core.MemberGovernmentBenefit{
+				MemberProfileID: memberProfile.ID,
+				Name:            benefitReq.Name,
+				Description:     benefitReq.Description,
+				Value:           benefitReq.Value,
+				ExpiryDate:      benefitReq.ExpiryDate,
+				CountryCode:     benefitReq.CountryCode,
+				CreatedAt:       time.Now().UTC(),
+				UpdatedAt:       time.Now().UTC(),
+				BranchID:        *req.BranchID,
+				OrganizationID:  org.ID,
+				CreatedByID:     &userProfile.ID,
+				UpdatedByID:     &userProfile.ID,
+			}
+
+			if err := c.core.MemberGovernmentBenefitManager().Create(context, value); err != nil {
 				fmt.Println("ERROR STEP 13:", err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}

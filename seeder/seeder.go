@@ -712,8 +712,8 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 				memberAddress := &core.MemberAddress{
 					CreatedAt:       time.Now().UTC(),
 					UpdatedAt:       time.Now().UTC(),
-					CreatedByID:     org.CreatedByID,
-					UpdatedByID:     org.CreatedByID,
+					CreatedByID:     &org.CreatedByID,
+					UpdatedByID:     &org.CreatedByID,
 					OrganizationID:  org.ID,
 					BranchID:        branch.ID,
 					MemberProfileID: &memberProfile.ID,
@@ -738,11 +738,4 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 		}
 	}
 	return nil
-}
-func floatRange(f *faker.Faker, min, max float64) float64 {
-	return f.Float64(
-		int(min*100),
-		int(max*100),
-		2,
-	) / 100.0
 }

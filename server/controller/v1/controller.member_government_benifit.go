@@ -59,9 +59,9 @@ func (c *Controller) memberGovernmentBenefitController() {
 			Value:           req.Value,
 			ExpiryDate:      req.ExpiryDate,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     userOrg.UserID,
+			CreatedByID:     &userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     userOrg.UserID,
+			UpdatedByID:     &userOrg.UserID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 		}
@@ -131,7 +131,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 		}
 
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = userOrg.UserID
+		value.UpdatedByID = &userOrg.UserID
 		value.OrganizationID = userOrg.OrganizationID
 		value.BranchID = *userOrg.BranchID
 		value.FrontMediaID = req.FrontMediaID
