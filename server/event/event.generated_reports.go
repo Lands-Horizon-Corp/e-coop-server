@@ -6,10 +6,29 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )
+
+type ReportData struct {
+	generated core.GeneratedReport
+	extractor *handlers.RouteHandlerExtractor[[]byte]
+	report    handlers.PDFOptions[any]
+}
+
+type handlerEntry struct {
+	name string
+	fn   func(context.Context, ReportData) ([]byte, error)
+}
+
+func reportHandlers(r *Event) []handlerEntry {
+	return []handlerEntry{
+		{name: "bankReport", fn: r.bankReport},
+		{name: "loanTransactionReport", fn: r.loanTransactionReport},
+	}
+}
 
 func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *core.GeneratedReport) (*core.GeneratedReport, error) {
 	if err := e.core.GeneratedReportManager().Create(ctx, generatedReport); err != nil {
@@ -29,7 +48,7 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 			}
 			return
 		}
-		data, err := e.report.Generate(ctx, *generatedReport)
+		data, err := e.GenerateReport(ctx, *generatedReport)
 
 		generatedReport, getErr := e.core.GeneratedReportManager().GetByID(ctx, id)
 		if getErr != nil {
@@ -137,4 +156,32 @@ func (e *Event) GeneratedReportDownload(ctx context.Context, generatedReport *co
 		}
 	}()
 	return generatedReport, nil
+}
+
+func (r *Event) GenerateReport(ctx context.Context, generatedReport core.GeneratedReport) (results []byte, err error) {
+	extractor := handlers.NewRouteHandlerExtractor[[]byte](generatedReport.URL)
+	report := handlers.PDFOptions[any]{
+		Name:      generatedReport.Name,
+		Template:  generatedReport.Template,
+		Height:    generatedReport.Height,
+		Width:     generatedReport.Width,
+		Unit:      generatedReport.Unit,
+		Landscape: generatedReport.Landscape,
+	}
+	data := ReportData{
+		generated: generatedReport,
+		extractor: extractor,
+		report:    report,
+	}
+
+	for _, h := range reportHandlers(r) {
+		res, err := h.fn(ctx, data)
+		if err != nil {
+			return nil, fmt.Errorf("handler %s error: %w", h.name, err)
+		}
+		if len(res) != 0 {
+			return res, nil
+		}
+	}
+	return nil, nil
 }

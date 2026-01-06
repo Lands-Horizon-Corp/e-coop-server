@@ -8,7 +8,6 @@ import (
 	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
 	"github.com/fatih/color"
 	"go.uber.org/fx"
 )
@@ -248,7 +247,6 @@ func startServer() {
 			core.NewCore,
 			v1.NewController,
 			event.NewEvent,
-			report.NewReports,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {
 			lc.Append(fx.Hook{
@@ -306,8 +304,7 @@ func refreshDatabase() {
 		fx.StartTimeout(3*time.Hour),
 		fx.Provide(
 			server.NewProvider,
-			core.NewCore,
-			report.NewReports),
+			core.NewCore),
 		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {

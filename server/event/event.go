@@ -5,14 +5,12 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 )
 
 type Event struct {
 	core     *core.Core
 	provider *server.Provider
-	report   *report.Reports
 
 	userOrgCSRF horizon.AuthService[UserOrganizationCSRF]
 	userCSRF    horizon.AuthService[UserCSRF]
@@ -21,7 +19,6 @@ type Event struct {
 func NewEvent(
 	core *core.Core,
 	provider *server.Provider,
-	report *report.Reports,
 ) (*Event, error) {
 
 	appName := provider.Service.Environment.GetString("APP_NAME", "")
@@ -43,7 +40,6 @@ func NewEvent(
 	return &Event{
 		core:        core,
 		provider:    provider,
-		report:      report,
 		userCSRF:    userCSRF,
 		userOrgCSRF: userOrgCSRF,
 	}, nil
