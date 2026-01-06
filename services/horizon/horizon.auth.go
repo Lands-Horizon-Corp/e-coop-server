@@ -125,33 +125,46 @@ func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim 
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal claim")
 	}
+
 	mainKey := h.mainKey(userID, token)
 	if err := h.cache.Set(ctx, mainKey, data, expiry); err != nil {
 		return eris.Wrap(err, "failed to set CSRF token")
 	}
+
 	tokenUserKey := h.tokenToUserKey(token)
 	if err := h.cache.Set(ctx, tokenUserKey, []byte(userID), expiry); err != nil {
 		_ = h.cache.Delete(ctx, mainKey)
 		return eris.Wrap(err, "failed to set token-user mapping")
 	}
+
 	c.Response().Header().Set(h.csrfHeader, token)
 
+	// Determine if we are in secured (production) or local
 	secure := h.ssl
 	sameSite := http.SameSiteNoneMode
-	if c.Request().URL.Hostname() == "localhost" || strings.HasPrefix(c.Request().Host, "192.168.") {
+	host := c.Request().Host
+	hostname := c.Request().URL.Hostname()
+	if !h.ssl || hostname == "localhost" || strings.HasPrefix(host, "192.168.") ||
+		strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "172.") {
 		secure = false
-		sameSite = http.SameSiteLaxMode
+		sameSite = http.SameSiteDefaultMode
 	}
 
-	c.SetCookie(&http.Cookie{
-		Name:     h.csrfHeader,
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(expiry),
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: sameSite,
-	})
+	if secure {
+		c.SetCookie(&http.Cookie{
+			Name:     h.csrfHeader,
+			Value:    token,
+			Path:     "/",
+			Expires:  time.Now().Add(expiry),
+			HttpOnly: true,
+			Secure:   secure,
+			SameSite: sameSite,
+		})
+	} else {
+		return c.JSON(http.StatusOK, map[string]string{
+			"csrf_token": token,
+		})
+	}
 
 	return nil
 }

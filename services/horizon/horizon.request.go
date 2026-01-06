@@ -113,21 +113,29 @@ func getExtendedSecurityHeaders() ExtendedSecurityHeaders {
 	}
 }
 
-func applyExtendedSecurityHeaders(c echo.Context, headers ExtendedSecurityHeaders) {
+func applyExtendedSecurityHeaders(c echo.Context, headers ExtendedSecurityHeaders, secured bool) {
 	c.Response().Header().Set("Permissions-Policy", headers.PermissionsPolicy)
 	c.Response().Header().Set("Expect-CT", headers.ExpectCT)
 	c.Response().Header().Set("X-Permitted-Cross-Domain-Policies", headers.XPermittedCrossDomainPolicies)
-	c.Response().Header().Set("Cross-Origin-Embedder-Policy", headers.CrossOriginEmbedderPolicy)
-	c.Response().Header().Set("Cross-Origin-Opener-Policy", headers.CrossOriginOpenerPolicy)
-	c.Response().Header().Set("Cross-Origin-Resource-Policy", headers.CrossOriginResourcePolicy)
+
+	if secured {
+		c.Response().Header().Set("Cross-Origin-Embedder-Policy", headers.CrossOriginEmbedderPolicy)
+		c.Response().Header().Set("Cross-Origin-Opener-Policy", headers.CrossOriginOpenerPolicy)
+		c.Response().Header().Set("Cross-Origin-Resource-Policy", headers.CrossOriginResourcePolicy)
+	} else {
+		c.Response().Header().Del("Cross-Origin-Embedder-Policy")
+		c.Response().Header().Del("Cross-Origin-Opener-Policy")
+		c.Response().Header().Del("Cross-Origin-Resource-Policy")
+	}
+
 	c.Response().Header().Set("Server", "")
 	c.Response().Header().Set("X-Powered-By", "")
 }
-
 func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			err := next(c)
+
 			if secured {
 				securityConfig := getProductionSecurityConfig()
 				extendedHeaders := getExtendedSecurityHeaders()
@@ -147,13 +155,16 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 					}
 					c.Response().Header().Set("Strict-Transport-Security", hstsValue)
 				}
-				applyExtendedSecurityHeaders(c, extendedHeaders)
+				applyExtendedSecurityHeaders(c, extendedHeaders, true)
 			} else {
 				securityConfig := getDevelopmentSecurityConfig()
 				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
 				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
 				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
 				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
+
+				// Remove COEP/COOP/CORP for local/dev
+				applyExtendedSecurityHeaders(c, ExtendedSecurityHeaders{}, false)
 			}
 
 			return err
@@ -448,6 +459,7 @@ func NewHorizonAPIService(
 				}
 				return false, nil
 			}
+
 			for _, d := range origins {
 				if host == d || strings.HasSuffix(host, "."+d) {
 					return true, nil
