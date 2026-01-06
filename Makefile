@@ -119,3 +119,14 @@ webdev:
 deploy:
 	echo "Deploying to Fly.io...fly"
 	fly deploy; fly logs
+
+build-all-trace: clense
+	@bash -c '\
+	mkdir -p tmp; \
+	echo "=== FULL BUILD WITH DEBUG TRACE ==="; \
+	start=$$(date +%s); \
+	go build -debug-trace=tmp/trace.json ./...; \
+	end=$$(date +%s); \
+	echo "Full build + trace finished in $$((end - start)) seconds"; \
+	echo "Trace file saved to tmp/trace.json"; \
+	'
