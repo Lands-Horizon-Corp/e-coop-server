@@ -29,6 +29,18 @@ func (c *Core) Seed(ctx context.Context, multiplier int32) error {
 	if multiplier <= 0 {
 		return nil
 	}
+	if err := c.loadImagePaths(); err != nil {
+		return eris.Wrap(err, "failed to load image paths")
+	}
+	if err := c.categorySeed(ctx); err != nil {
+		return err
+	}
+	if err := c.currencySeed(ctx); err != nil {
+		return err
+	}
+	if err := c.subscriptionPlanSeed(ctx); err != nil {
+		return err
+	}
 	if err := c.SeedUsers(ctx, multiplier); err != nil {
 		return err
 	}
