@@ -675,9 +675,9 @@ func (s *Seeder) SeedMemberProfiles(ctx context.Context, multiplier int32) error
 
 				memberProfile := &core.MemberProfile{
 					CreatedAt:             time.Now().UTC(),
-					CreatedByID:           org.CreatedByID,
+					CreatedByID:           &org.CreatedByID,
 					UpdatedAt:             time.Now().UTC(),
-					UpdatedByID:           org.CreatedByID,
+					UpdatedByID:           &org.CreatedByID,
 					OrganizationID:        org.ID,
 					BranchID:              branch.ID,
 					UserID:                &users[i%len(users)].ID, // Rotate through available users

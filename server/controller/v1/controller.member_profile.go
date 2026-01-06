@@ -137,7 +137,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.UserID = &userProfile.ID
 		memberProfile.UpdatedAt = time.Now().UTC()
-		memberProfile.UpdatedByID = userOrg.UserID
+		memberProfile.UpdatedByID = &userOrg.UserID
 
 		if err := c.core.MemberProfileManager().UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -642,8 +642,8 @@ func (c *Controller) memberProfileController() {
 			BranchID:             *userOrg.BranchID,
 			CreatedAt:            time.Now().UTC(),
 			UpdatedAt:            time.Now().UTC(),
-			CreatedByID:          userOrg.UserID,
-			UpdatedByID:          userOrg.UserID,
+			CreatedByID:          &userOrg.UserID,
+			UpdatedByID:          &userOrg.UserID,
 			UserID:               userProfileID,
 			OldReferenceID:       req.OldReferenceID,
 			Passbook:             req.Passbook,
@@ -789,7 +789,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = userOrg.UserID
+		profile.UpdatedByID = &userOrg.UserID
 		profile.FirstName = req.FirstName
 		profile.MiddleName = req.MiddleName
 		profile.LastName = req.LastName
@@ -918,7 +918,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = userOrg.UserID
+		profile.UpdatedByID = &userOrg.UserID
 		profile.Passbook = req.Passbook
 		profile.OldReferenceID = req.OldReferenceID
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
@@ -1077,7 +1077,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile.UserID = nil
 		memberProfile.User = nil
 		memberProfile.UpdatedAt = time.Now().UTC()
-		memberProfile.UpdatedByID = userOrg.UserID
+		memberProfile.UpdatedByID = &userOrg.UserID
 		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -1140,7 +1140,7 @@ func (c *Controller) memberProfileController() {
 
 		memberProfile.UserID = userID
 		memberProfile.UpdatedAt = time.Now().UTC()
-		memberProfile.UpdatedByID = currentUserOrg.UserID
+		memberProfile.UpdatedByID = &currentUserOrg.UserID
 
 		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1322,7 +1322,7 @@ func (c *Controller) memberProfileController() {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		profile.UpdatedAt = time.Now().UTC()
-		profile.UpdatedByID = userOrg.UserID
+		profile.UpdatedByID = &userOrg.UserID
 		profile.Latitude = &req.Latitude
 		profile.Longitude = &req.Longitude
 
@@ -1413,7 +1413,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.MemberTypeID = memberTypeID
 		memberProfile.UpdatedAt = time.Now().UTC()
-		memberProfile.UpdatedByID = userOrg.UserID
+		memberProfile.UpdatedByID = &userOrg.UserID
 
 		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
@@ -1442,7 +1442,7 @@ func (c *Controller) memberProfileController() {
 		}
 		memberProfile.MemberTypeID = nil
 		memberProfile.UpdatedAt = time.Now().UTC()
-		memberProfile.UpdatedByID = userOrg.UserID
+		memberProfile.UpdatedByID = &userOrg.UserID
 
 		if err := c.core.MemberProfileManager().UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})

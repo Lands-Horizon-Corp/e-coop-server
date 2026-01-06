@@ -538,7 +538,7 @@ func (c *Controller) kycController() {
 		fmt.Println("STEP 11: creating member profile")
 		memberProfile := &core.MemberProfile{
 			OrganizationID:       org.ID,
-			BranchID:             *req.BranchID, // ⚠️ COMMON NIL POINTER
+			BranchID:             *req.BranchID,
 			CreatedAt:            time.Now().UTC(),
 			UpdatedAt:            time.Now().UTC(),
 			UserID:               &userProfile.ID,
@@ -581,7 +581,7 @@ func (c *Controller) kycController() {
 				Address:         addrReq.Address,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
-				BranchID:        *req.BranchID, // ⚠️ COMMON NIL POINTER
+				BranchID:        *req.BranchID,
 				OrganizationID:  org.ID,
 				Longitude:       addrReq.Longitude,
 				Latitude:        addrReq.Latitude,
