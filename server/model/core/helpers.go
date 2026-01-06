@@ -1,4 +1,4 @@
-package seeder
+package core
 
 import (
 	"context"
@@ -9,12 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/rotisserie/eris"
 )
 
-func (s *Seeder) loadImagePaths() error {
+func (s *Core) loadImagePaths() error {
 	imagesDir := "seeder/images"
 	supportedExtensions := map[string]bool{
 		".jpg":  true,
@@ -49,7 +48,7 @@ func (s *Seeder) loadImagePaths() error {
 	return nil
 }
 
-func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.Media, error) {
+func (s *Core) createImageMedia(ctx context.Context, imageType string) (*Media, error) {
 	if len(s.imagePaths) == 0 {
 		return nil, eris.New("no image files available for seeding")
 	}
@@ -66,7 +65,7 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
 	} // Create media record
-	media := &core.Media{
+	media := &Media{
 		FileName:   storage.FileName,
 		FileType:   storage.FileType,
 		FileSize:   storage.FileSize,
@@ -78,13 +77,9 @@ func (s *Seeder) createImageMedia(ctx context.Context, imageType string) (*core.
 		UpdatedAt:  time.Now().UTC(),
 	}
 
-	if err := s.core.MediaManager().Create(ctx, media); err != nil {
+	if err := s.MediaManager().Create(ctx, media); err != nil {
 		return nil, eris.Wrap(err, "failed to create media record")
 	}
 
 	return media, nil
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }
