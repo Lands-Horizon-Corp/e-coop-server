@@ -20,7 +20,7 @@ func (c *Controller) collateralController() {
 		ResponseType: core.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -41,7 +41,7 @@ func (c *Controller) collateralController() {
 		Note:         "Returns a paginated list of collateral records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -93,7 +93,7 @@ func (c *Controller) collateralController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -167,7 +167,7 @@ func (c *Controller) collateralController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid collateral data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

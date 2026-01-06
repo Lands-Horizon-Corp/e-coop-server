@@ -24,7 +24,7 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_id: " + err.Error()})
 			}
-			userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+			userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
@@ -71,7 +71,7 @@ func (c *Controller) accountHistory() {
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_history_id: " + err.Error()})
 			}
-			userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+			userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}

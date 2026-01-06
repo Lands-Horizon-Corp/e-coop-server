@@ -10,7 +10,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/fatih/color"
 	"go.uber.org/fx"
 )
@@ -255,7 +254,6 @@ func startServer() {
 			event.NewEvent,
 			report.NewReports,
 			seeder.NewSeeder,
-			tokens.NewToken,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {
 			lc.Append(fx.Hook{

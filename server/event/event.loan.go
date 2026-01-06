@@ -21,7 +21,7 @@ type LoanBalanceEvent struct {
 
 func (e *Event) LoanBalancing(ctx context.Context, echoCtx echo.Context, tx *gorm.DB, endTx func(error) error, data LoanBalanceEvent) (*core.LoanTransaction, error) {
 
-	userOrg, err := e.token.CurrentUserOrganization(ctx, echoCtx)
+	userOrg, err := e.CurrentUserOrganization(ctx, echoCtx)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "auth-error",

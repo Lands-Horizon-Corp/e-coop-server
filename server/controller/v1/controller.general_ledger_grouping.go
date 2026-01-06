@@ -21,7 +21,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		Note:         "Returns all general ledger account groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -62,7 +62,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid grouping data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -120,7 +120,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		Note:         "Returns all general ledger definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -154,7 +154,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -231,7 +231,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -310,7 +310,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -415,7 +415,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value"})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -498,7 +498,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -611,7 +611,7 @@ func (c *Controller) generalLedgerGroupingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger definition ID"})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",

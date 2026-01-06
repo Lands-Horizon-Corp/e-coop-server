@@ -39,7 +39,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -110,7 +110,7 @@ func (c *Controller) memberGovernmentBenefitController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

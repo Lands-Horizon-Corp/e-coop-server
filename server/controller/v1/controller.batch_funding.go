@@ -30,7 +30,7 @@ func (c *Controller) batchFundingController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid batch funding data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -118,7 +118,7 @@ func (c *Controller) batchFundingController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The transaction batch ID provided is invalid."})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
@@ -155,7 +155,7 @@ func (c *Controller) batchFundingController() {
 		Note:         "Returns all batch funding records for the current user's organization and branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}

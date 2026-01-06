@@ -20,7 +20,7 @@ func (c *Controller) checkRemittanceController() {
 		ResponseType: core.CheckRemittanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -71,7 +71,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance data: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -185,7 +185,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance data: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -303,7 +303,7 @@ func (c *Controller) checkRemittanceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance ID"})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",

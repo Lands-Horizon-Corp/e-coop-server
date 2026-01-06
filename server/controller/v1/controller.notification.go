@@ -22,7 +22,7 @@ func (c *Controller) notificationController() {
 		Note:         "Returns all notifications for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
@@ -52,7 +52,7 @@ func (c *Controller) notificationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -125,7 +125,7 @@ func (c *Controller) notificationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

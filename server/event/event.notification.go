@@ -62,7 +62,7 @@ func (e *Event) Notification(ctx echo.Context, data NotificationEvent) {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		user, err := e.token.CurrentUser(context, ctx)
+		user, err := e.CurrentUser(context, ctx)
 		if err != nil {
 			return
 		}
@@ -77,7 +77,7 @@ func (e *Event) OrganizationAdminsNotification(ctx echo.Context, data Notificati
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrg, err := e.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := e.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}
@@ -100,7 +100,7 @@ func (e *Event) OrganizationNotification(ctx echo.Context, data NotificationEven
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrg, err := e.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := e.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return
 		}

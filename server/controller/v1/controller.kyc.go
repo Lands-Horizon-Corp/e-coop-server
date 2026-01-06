@@ -488,7 +488,7 @@ func (c *Controller) kycController() {
 		}
 
 		fmt.Println("STEP 5: getting organization")
-		org, ok := c.token.GetOrganization(ctx)
+		org, ok := c.event.GetOrganization(ctx)
 		if !ok {
 			fmt.Println("ERROR STEP 5: organization not found")
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
@@ -646,7 +646,7 @@ func (c *Controller) kycController() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		org, ok := c.token.GetOrganization(ctx)
+		org, ok := c.event.GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
@@ -661,7 +661,7 @@ func (c *Controller) kycController() {
 		if !user.IsEmailVerified || !user.IsContactVerified {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User has not completed KYC verification"})
 		}
-		if err := c.token.SetUser(context, ctx, user); err != nil {
+		if err := c.event.SetUser(context, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		userOrg, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
@@ -677,7 +677,7 @@ func (c *Controller) kycController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.ApplicationStatus == "accepted" {
-			if err := c.token.SetUserOrganization(context, ctx, userOrganization); err != nil {
+			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))

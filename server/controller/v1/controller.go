@@ -4,14 +4,12 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 )
 
 type Controller struct {
 	provider *server.Provider
 	core     *core.Core
 	event    *event.Event
-	token    *tokens.Token
 }
 
 func NewController(
@@ -19,15 +17,11 @@ func NewController(
 	core *core.Core,
 	event *event.Event,
 
-	token *tokens.Token,
-
 ) (*Controller, error) {
 	return &Controller{
 		provider: provider,
 		core:     core,
 		event:    event,
-
-		token: token,
 	}, nil
 }
 

@@ -66,7 +66,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		currentUserOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		currentUserOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -115,7 +115,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -217,7 +217,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -239,7 +239,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -261,7 +261,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns paginated member user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -283,7 +283,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns paginated member user organizations without a member profile for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -342,7 +342,7 @@ func (c *Controller) userOrganinzationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		isPending := false
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -360,7 +360,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns paginated join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -382,7 +382,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns all join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -457,7 +457,7 @@ func (c *Controller) userOrganinzationController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -469,7 +469,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: You do not own this user organization"})
 		}
 		if userOrganization.ApplicationStatus == "accepted" {
-			if err := c.token.SetUserOrganization(context, ctx, userOrganization); err != nil {
+			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
@@ -484,7 +484,7 @@ func (c *Controller) userOrganinzationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		c.token.ClearCurrentToken(context, ctx)
+		c.event.ClearCurrentToken(context, ctx)
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
@@ -502,7 +502,7 @@ func (c *Controller) userOrganinzationController() {
 		ResponseType: core.DeveloperSecretKeyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -547,7 +547,7 @@ func (c *Controller) userOrganinzationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -733,7 +733,7 @@ func (c *Controller) userOrganinzationController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -840,7 +840,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Leaves the current organization and branch (must have current organization token set).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -883,7 +883,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Checks if the user can join as a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -907,7 +907,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:   "Checks if the user can join as an employee.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -959,7 +959,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -1038,7 +1038,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -1190,7 +1190,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns all employees of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -1208,7 +1208,7 @@ func (c *Controller) userOrganinzationController() {
 		Note:         "Returns all members of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -1319,7 +1319,7 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -1368,7 +1368,7 @@ func (c *Controller) userOrganinzationController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",

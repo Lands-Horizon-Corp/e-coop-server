@@ -1,4 +1,4 @@
-package tokens
+package event
 
 import (
 	"context"
@@ -67,13 +67,13 @@ func (m UserCSRF) GetID() string {
 	return m.UserID
 }
 
-func (h *Token) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
+func (h *Event) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
 	h.userCSRF.ClearCSRF(ctx, echoCtx)
 	h.ClearCurrentToken(ctx, echoCtx)
 
 }
 
-func (h *Token) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
+func (h *Event) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
 	claim, err := h.userCSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
@@ -95,19 +95,19 @@ func (h *Token) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.Us
 	return user, nil
 }
 
-func (h *Token) CurrentUserCSRF(context context.Context, ctx echo.Context) (UserCSRF, error) {
+func (h *Event) CurrentUserCSRF(context context.Context, ctx echo.Context) (UserCSRF, error) {
 	return h.userCSRF.GetCSRF(context, ctx)
 }
 
-func (h *Token) LogoutOtherDevices(context context.Context, ctx echo.Context) error {
+func (h *Event) LogoutOtherDevices(context context.Context, ctx echo.Context) error {
 	return h.userCSRF.LogoutOtherDevices(context, ctx)
 }
 
-func (h *Token) LoggedInUsers(context context.Context, ctx echo.Context) ([]UserCSRF, error) {
+func (h *Event) LoggedInUsers(context context.Context, ctx echo.Context) ([]UserCSRF, error) {
 	return h.userCSRF.GetLoggedInUsers(context, ctx)
 }
 
-func (h *Token) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
+func (h *Event) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
 	h.ClearCurrentCSRF(ctx, echoCtx)
 	if user == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")

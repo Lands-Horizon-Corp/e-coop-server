@@ -1,4 +1,4 @@
-package tokens
+package event
 
 import (
 	"context"
@@ -66,11 +66,11 @@ func (m UserOrganizationCSRF) GetID() string {
 	return m.UserOrganizationID
 }
 
-func (h *Token) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
+func (h *Event) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
 	h.userOrgCSRF.ClearCSRF(ctx, echoCtx)
 }
 
-func (h *Token) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
+func (h *Event) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
@@ -113,7 +113,7 @@ func (h *Token) CurrentUserOrganization(ctx context.Context, echoCtx echo.Contex
 	return userOrganization, nil
 }
 
-func (h *Token) SetUserOrganization(context context.Context, ctx echo.Context, userOrganization *core.UserOrganization) error {
+func (h *Event) SetUserOrganization(context context.Context, ctx echo.Context, userOrganization *core.UserOrganization) error {
 	h.ClearCurrentToken(context, ctx)
 	if userOrganization == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")
@@ -143,7 +143,7 @@ func (h *Token) SetUserOrganization(context context.Context, ctx echo.Context, u
 	return nil
 }
 
-func (h *Token) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
+func (h *Event) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
 	orgID := ctx.Request().Header.Get("X-Organization-ID")
 	if orgID == "" {
 		ctx.JSON(http.StatusBadRequest, map[string]string{

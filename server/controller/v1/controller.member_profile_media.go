@@ -22,7 +22,7 @@ func (c *Controller) memberProfileMediaController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
@@ -93,7 +93,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media data: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -176,7 +176,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media data: " + err.Error()})
 		}
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -241,7 +241,7 @@ func (c *Controller) memberProfileMediaController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile media ID"})
 		}
 
-		_, err = c.token.CurrentUserOrganization(context, ctx)
+		_, err = c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -319,7 +319,7 @@ func (c *Controller) memberProfileMediaController() {
 		ResponseType: core.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}

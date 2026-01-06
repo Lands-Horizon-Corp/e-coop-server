@@ -29,7 +29,7 @@ func (c *Controller) footstepController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid footstep data: " + err.Error()})
 		}
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -94,7 +94,7 @@ func (c *Controller) footstepController() {
 		Note:         "Returns all footsteps for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.token.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
@@ -114,7 +114,7 @@ func (c *Controller) footstepController() {
 		Note:         "Returns all footsteps for the specified employee (user) on the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
@@ -149,7 +149,7 @@ func (c *Controller) footstepController() {
 		Note:   "Returns all footsteps for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
@@ -217,7 +217,7 @@ func (c *Controller) footstepController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.token.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization/branch not found"})
 		}
