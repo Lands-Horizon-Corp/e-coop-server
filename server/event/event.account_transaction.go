@@ -44,21 +44,8 @@ func (e *Event) AccountTransactionProcess(
 	userOrg core.UserOrganization,
 	data core.AccountTransactionProcessGLRequest,
 ) error {
-	startDate := time.Date(
-		data.StartDate.Year(),
-		data.StartDate.Month(),
-		data.StartDate.Day(),
-		0, 0, 0, 0,
-		data.StartDate.Location(),
-	)
-
-	endDate := time.Date(
-		data.EndDate.Year(),
-		data.EndDate.Month(),
-		data.EndDate.Day(),
-		0, 0, 0, 0,
-		data.EndDate.Location(),
-	)
+	startDate := time.Date(data.StartDate.Year(), data.StartDate.Month(), data.StartDate.Day(), 0, 0, 0, 0, data.StartDate.Location())
+	endDate := time.Date(data.EndDate.Year(), data.EndDate.Month(), data.EndDate.Day(), 0, 0, 0, 0, data.EndDate.Location()).AddDate(0, 0, 1)
 	if endDate.Before(startDate) {
 		return eris.New("end date cannot be before start date")
 	}
