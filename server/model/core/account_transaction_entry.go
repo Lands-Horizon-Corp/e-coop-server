@@ -1,9 +1,11 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -36,6 +38,9 @@ type (
 
 		Debit  float64 `gorm:"type:numeric(18,2);default:0" json:"debit"`
 		Credit float64 `gorm:"type:numeric(18,2);default:0" json:"credit"`
+
+		Date     time.Time `gorm:"type:date;not null;index:idx_date_account_tx_entry" json:"date"`
+		JVNumber string    `gorm:"type:varchar(255);not null" json:"jv_number"`
 	}
 
 	AccountTransactionEntryResponse struct {
@@ -47,6 +52,10 @@ type (
 		Account        *AccountResponse `json:"account,omitempty"`
 		Debit          float64          `json:"debit"`
 		Credit         float64          `json:"credit"`
+		Date           string           `json:"date"`
+		JVNumber       string           `json:"jv_number"`
+
+		Balance float64 `json:"balance"`
 	}
 )
 
@@ -86,6 +95,8 @@ func (m *Core) AccountTransactionEntryManager() *registry.Registry[
 				Account:        m.AccountManager().ToModel(data.Account),
 				Debit:          data.Debit,
 				Credit:         data.Credit,
+				Date:           data.Date.Format("2006-01-02"),
+				JVNumber:       data.JVNumber,
 			}
 		},
 		Created: func(data *AccountTransactionEntry) registry.Topics {
@@ -116,4 +127,28 @@ func (m *Core) AccountTransactionEntryManager() *registry.Registry[
 			}
 		},
 	})
+}
+
+func (c *Core) AccountingEntryByAccountMonthYear(
+	ctx context.Context,
+	accountID uuid.UUID,
+	month int,
+	year int,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*AccountTransactionEntry, error) {
+	normalizedMonth := ((month-1)%12+12)%12 + 1
+	startDate := time.Date(year, time.Month(normalizedMonth), 1, 0, 0, 0, 0, time.UTC)
+	endDate := startDate.AddDate(0, 1, 0).Add(-time.Nanosecond)
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		{Field: "date", Op: query.ModeGTE, Value: startDate},
+		{Field: "date", Op: query.ModeLTE, Value: endDate},
+	}
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "date", Order: query.SortOrderAsc},
+	}
+	return c.AccountTransactionEntryManager().ArrFind(ctx, filters, sorts, "")
 }

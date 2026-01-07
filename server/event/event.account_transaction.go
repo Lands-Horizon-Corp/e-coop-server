@@ -78,6 +78,7 @@ func (e *Event) AccountTransactionProcess(
 		}
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
+		jv := BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		accountTransactionCollection := &core.AccountTransaction{
 			CreatedAt:      now,
 			CreatedByID:    userOrg.ID,
@@ -90,7 +91,7 @@ func (e *Event) AccountTransactionProcess(
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
-			Source:         core.AccountTransactionSourceDailyCollectionBook, // <-- here
+			Source:         core.AccountTransactionSourceDailyCollectionBook,
 		}
 		if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, accountTransactionCollection); err != nil {
 			return endTx(err)
@@ -107,6 +108,8 @@ func (e *Event) AccountTransactionProcess(
 				AccountID:            summary.AccountID,
 				Debit:                summary.Debit,
 				Credit:               summary.Credit,
+				JVNumber:             jv,
+				Date:                 currentDate,
 			}
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(err)
@@ -125,6 +128,7 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(err)
 		}
+		jv = BuildJVNumberSimple(currentDate, CashCheckDisbursementBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		disbursementTransaction := &core.AccountTransaction{
 			CreatedAt:      now,
@@ -133,8 +137,8 @@ func (e *Event) AccountTransactionProcess(
 			UpdatedByID:    userOrg.ID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			JVNumber:       BuildJVNumberSimple(currentDate, CashCheckDisbursementBook),
-			Description:    "TOTAL CASH/CHECK DISBURSEMENT",
+			JVNumber:       jv,
+			Description:    "TOTAL DAILY LOAN RELEASES AND OTHERE DISBURSEMENTS",
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
@@ -155,6 +159,8 @@ func (e *Event) AccountTransactionProcess(
 				AccountID:            summary.AccountID,
 				Debit:                summary.Debit,
 				Credit:               summary.Credit,
+				JVNumber:             jv,
+				Date:                 currentDate,
 			}
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(err)
@@ -173,6 +179,7 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(err)
 		}
+		jv = BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		journalTransaction := &core.AccountTransaction{
 			CreatedAt:      now,
@@ -181,8 +188,8 @@ func (e *Event) AccountTransactionProcess(
 			UpdatedByID:    userOrg.ID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			JVNumber:       BuildJVNumberSimple(currentDate, GeneralJournalBook),
-			Description:    "TOTAL GENERAL JOURNAL",
+			JVNumber:       jv,
+			Description:    "TOTAL DAILY COLLECTION",
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
@@ -203,6 +210,8 @@ func (e *Event) AccountTransactionProcess(
 				AccountID:            summary.AccountID,
 				Debit:                summary.Debit,
 				Credit:               summary.Credit,
+				JVNumber:             jv,
+				Date:                 currentDate,
 			}
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(err)
@@ -216,15 +225,47 @@ func (e *Event) AccountTransactionProcess(
 			return endTx(err)
 		}
 	}
-
 	return nil
 }
 
 func (e *Event) AccountTransactionLedgers(
-	context context.Context,
+	ctx context.Context,
 	userOrg core.UserOrganization,
 	year int,
 	accountId *uuid.UUID,
 ) ([]*core.AccountTransactionLedgerResponse, error) {
-	return nil, nil
+
+	var ledgers []*core.AccountTransactionLedgerResponse
+
+	for month := 1; month <= 12; month++ {
+		accountTransactions, err := e.core.AccountingEntryByAccountMonthYear(
+			ctx,
+			*accountId,
+			month,
+			year,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		totalDebit := decimal.Zero
+		totalCredit := decimal.Zero
+
+		for _, entry := range accountTransactions {
+			totalDebit = totalDebit.Add(decimal.NewFromFloat(entry.Debit))
+			totalCredit = totalCredit.Add(decimal.NewFromFloat(entry.Credit))
+		}
+
+		ledger := &core.AccountTransactionLedgerResponse{
+			Month:                   month,
+			Debit:                   totalDebit.InexactFloat64(),
+			Credit:                  totalCredit.InexactFloat64(),
+			AccountTransactionEntry: e.core.AccountTransactionEntryManager().ToModels(accountTransactions),
+		}
+
+		ledgers = append(ledgers, ledger)
+	}
+	return ledgers, nil
 }
