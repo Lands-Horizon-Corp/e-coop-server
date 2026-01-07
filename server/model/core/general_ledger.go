@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
@@ -830,28 +831,35 @@ func (m *Core) DailyBookingCollection(
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
+
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
-		{Field: "created_at", Op: query.ModeLTE, Value: endOfDay},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
 	}
 
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
-		{Field: "created_at", Order: query.SortOrderAsc},
 	}
+
 	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("DailyBookingCollection - fetched %d records\n", len(allData))
+
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
+		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourcePayment || item.Source == GeneralLedgerSourceDeposit {
+			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
 
+	fmt.Printf("DailyBookingCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }
 
@@ -861,34 +869,43 @@ func (m *Core) DailyDisbursementCollection(
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
+
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
+
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
 		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
 	}
+
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
-		{Field: "created_at", Order: query.SortOrderAsc},
 	}
 
 	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("DailyDisbursementCollection - fetched %d records\n", len(allData))
+
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
+		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourceWithdraw ||
 			item.Source == GeneralLedgerSourceCheckVoucher ||
 			item.Source == GeneralLedgerSourceLoan {
+			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
 
+	fmt.Printf("DailyDisbursementCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }
+
 func (m *Core) DailyJournalCollection(
 	ctx context.Context,
 	date time.Time,
@@ -898,27 +915,35 @@ func (m *Core) DailyJournalCollection(
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
+
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
 		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
 	}
+
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
-		{Field: "created_at", Order: query.SortOrderAsc},
 	}
+
 	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("DailyJournalCollection - fetched %d records\n", len(allData))
+
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
+		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourceJournalVoucher ||
 			item.Source == GeneralLedgerSourceAdjustment {
+			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
 
+	fmt.Printf("DailyJournalCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }
