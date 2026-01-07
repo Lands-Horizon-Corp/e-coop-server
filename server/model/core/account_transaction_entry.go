@@ -150,5 +150,5 @@ func (c *Core) AccountingEntryByAccountMonthYear(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "date", Order: query.SortOrderAsc},
 	}
-	return c.AccountTransactionEntryManager().ArrFind(ctx, filters, sorts, "")
+	return c.AccountTransactionEntryManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 }
