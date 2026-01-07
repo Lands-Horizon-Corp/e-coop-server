@@ -129,10 +129,11 @@ func (e *Event) AccountTransactionProcess(
 
 		accountTransactionCollection.Debit = totalDebit.InexactFloat64()
 		accountTransactionCollection.Credit = totalCredit.InexactFloat64()
-		if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, accountTransactionCollection.ID, accountTransactionCollection); err != nil {
-			return endTx(eris.Wrap(err, "failed to update daily booking transaction totals"))
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, accountTransactionCollection.ID, accountTransactionCollection); err != nil {
+				return endTx(eris.Wrap(err, "failed to update daily booking transaction totals"))
+			}
 		}
-
 		// ----- DAILY DISBURSEMENT -----
 		disbursement, err := e.core.DailyDisbursementCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
@@ -188,10 +189,11 @@ func (e *Event) AccountTransactionProcess(
 
 		disbursementTransaction.Debit = totalDebit.InexactFloat64()
 		disbursementTransaction.Credit = totalCredit.InexactFloat64()
-		if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, disbursementTransaction.ID, disbursementTransaction); err != nil {
-			return endTx(eris.Wrap(err, "failed to update daily disbursement transaction totals"))
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, disbursementTransaction.ID, disbursementTransaction); err != nil {
+				return endTx(eris.Wrap(err, "failed to update daily disbursement transaction totals"))
+			}
 		}
-
 		// ----- DAILY JOURNAL -----
 		journal, err := e.core.DailyJournalCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
@@ -210,7 +212,7 @@ func (e *Event) AccountTransactionProcess(
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			JVNumber:       jv,
-			Description:    "TOTAL DAILY COLLECTION", // Note: Ensure this description is correct for Journals
+			Description:    "TOTAL DAILY COLLECTION",
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
@@ -247,8 +249,10 @@ func (e *Event) AccountTransactionProcess(
 
 		journalTransaction.Debit = totalDebit.InexactFloat64()
 		journalTransaction.Credit = totalCredit.InexactFloat64()
-		if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, journalTransaction.ID, journalTransaction); err != nil {
-			return endTx(eris.Wrap(err, "failed to update daily journal transaction totals"))
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, journalTransaction.ID, journalTransaction); err != nil {
+				return endTx(eris.Wrap(err, "failed to update daily journal transaction totals"))
+			}
 		}
 	}
 
