@@ -113,15 +113,25 @@ func (m *Core) AccountTransactionManager() *registry.Registry[
 			if data == nil {
 				return nil
 			}
-
 			return &AccountTransactionResponse{
-				ID:          data.ID,
-				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
-				JVNumber:    data.JVNumber,
-				Date:        data.Date.Format("2006-01-02"),
-				Description: data.Description,
-				Entries:     m.AccountTransactionEntryManager().ToModels(data.Entries),
-				Source:      data.Source,
+				ID:             data.ID,
+				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
+				CreatedByID:    data.CreatedByID,
+				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
+				UpdatedByID:    data.UpdatedByID,
+				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				OrganizationID: data.OrganizationID,
+				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				BranchID:       data.BranchID,
+				Branch:         m.BranchManager().ToModel(data.Branch),
+				JVNumber:       data.JVNumber,
+				Date:           data.Date.Format("2006-01-02"),
+				Description:    data.Description,
+				Debit:          data.Debit,
+				Credit:         data.Credit,
+				Source:         data.Source,
+				Entries:        m.AccountTransactionEntryManager().ToModels(data.Entries),
 			}
 		},
 		Created: func(data *AccountTransaction) registry.Topics {
