@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
@@ -16,6 +17,41 @@ func (c *Controller) accountTransactionController() {
 	// GET api/v1/account-transaction/account/:account_id/year/:year
 
 	req := c.provider.Service.Request
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/account-transaction/year/:year/month/:month",
+		Method:       "GET",
+		Note:         "Returns account transactions for the specified year and month.",
+		ResponseType: []core.AccountTransactionResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		yearParam := ctx.Param("year")
+		monthParam := ctx.Param("month")
+		year, err := strconv.Atoi(yearParam)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year"})
+		}
+		month, err := strconv.Atoi(monthParam)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month"})
+		}
+		month = month % 12
+		if month == 0 {
+			month = 12
+		}
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+		}
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+		}
+		accountTransactions, err := c.core.AccountTransactionByMonthYear(context, year, month, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account transactions: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, c.core.AccountTransactionManager().ToModels(accountTransactions))
+	})
 
 	// LIST (current branch)
 	req.RegisterWebRoute(handlers.Route{
