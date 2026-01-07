@@ -12,6 +12,20 @@ func (e *Event) AccountTransactionProcess(
 	userOrg core.UserOrganization,
 	data core.AccountTransactionProcessGLRequest,
 ) error {
+	// data.StartDate data.EndDate
+	// All ledgers group them by account
+
+	// find all ledgers
+	// Collection
+
+	/*
+		1. Collection (Payment & Deposit)
+		2. Disbursement (Withdrawal, Loan Releases, Cash & Check Voucher)
+		3..Journal (Journal Voucher & Adjustment)
+	*/
+	// e.core.DailyBookingCollection()
+	// e.core.DailyDisbursementCollection()
+	// e.core.DailyJournalCollection()
 	return nil
 }
 
