@@ -68,9 +68,9 @@ func (e *Event) AccountTransactionProcess(
 		jv := BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		accountTransactionCollection := &core.AccountTransaction{
 			CreatedAt:      now,
-			CreatedByID:    userOrg.ID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
-			UpdatedByID:    userOrg.ID,
+			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			JVNumber:       BuildJVNumberSimple(currentDate, GeneralJournalBook),
@@ -86,9 +86,9 @@ func (e *Event) AccountTransactionProcess(
 		for _, summary := range usecase.SumGeneralLedgerByAccount(booking) {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
-				CreatedByID:          userOrg.ID,
+				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
-				UpdatedByID:          userOrg.ID,
+				UpdatedByID:          userOrg.UserID,
 				OrganizationID:       userOrg.OrganizationID,
 				BranchID:             *userOrg.BranchID,
 				AccountTransactionID: accountTransactionCollection.ID,
@@ -119,9 +119,9 @@ func (e *Event) AccountTransactionProcess(
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		disbursementTransaction := &core.AccountTransaction{
 			CreatedAt:      now,
-			CreatedByID:    userOrg.ID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
-			UpdatedByID:    userOrg.ID,
+			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			JVNumber:       jv,
@@ -137,9 +137,9 @@ func (e *Event) AccountTransactionProcess(
 		for _, summary := range usecase.SumGeneralLedgerByAccount(disbursement) {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
-				CreatedByID:          userOrg.ID,
+				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
-				UpdatedByID:          userOrg.ID,
+				UpdatedByID:          userOrg.UserID,
 				OrganizationID:       userOrg.OrganizationID,
 				BranchID:             *userOrg.BranchID,
 				AccountTransactionID: disbursementTransaction.ID,
@@ -170,9 +170,9 @@ func (e *Event) AccountTransactionProcess(
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		journalTransaction := &core.AccountTransaction{
 			CreatedAt:      now,
-			CreatedByID:    userOrg.ID,
+			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
-			UpdatedByID:    userOrg.ID,
+			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			JVNumber:       jv,
@@ -188,9 +188,9 @@ func (e *Event) AccountTransactionProcess(
 		for _, summary := range usecase.SumGeneralLedgerByAccount(journal) {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
-				CreatedByID:          userOrg.ID,
+				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
-				UpdatedByID:          userOrg.ID,
+				UpdatedByID:          userOrg.UserID,
 				OrganizationID:       userOrg.OrganizationID,
 				BranchID:             *userOrg.BranchID,
 				AccountTransactionID: journalTransaction.ID,
