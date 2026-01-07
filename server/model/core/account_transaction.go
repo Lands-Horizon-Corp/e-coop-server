@@ -78,6 +78,13 @@ type (
 		StartDate time.Time `json:"start_date" validate:"required"`
 		EndDate   time.Time `json:"end_date" validate:"required,gtfield=StartDate"`
 	}
+
+	AccountTransactionLedgerResponse struct {
+		AccountTransactionEntry []*AccountTransactionEntryResponse `json:"account_transaction_entry"`
+		Month                   int                                `json:"month"`
+		Debit                   float64                            `json:"debit"`
+		Credit                  float64                            `json:"credit"`
+	}
 )
 
 func (m *Core) AccountTransactionManager() *registry.Registry[
