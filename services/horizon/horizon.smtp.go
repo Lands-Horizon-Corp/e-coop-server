@@ -96,7 +96,6 @@ func (h *SMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) 
 	req.Body = buf.String()
 	return &req, nil
 }
-
 func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	if !handlers.IsValidEmail(req.To) {
 		return eris.New("Recipient email format is invalid")
@@ -115,26 +114,29 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 		return eris.Wrap(err, "failed to inject variables into body")
 	}
 	req.Body = finalBody.Body
-
-	// 🔐 NOT SECURED → LOG ONLY (LOCAL / LAN / DEV MODE)
 	if !h.secured {
 		log.Printf(
-			"[SMTP MOCK MODE]\nTo: %s\nSubject: %s\nBody:\n%s\n",
+			"[SMTP MOCK MODE] Sending email\nTo: %s\nSubject: %s\nBody:\n%s\n",
 			req.To,
 			req.Subject,
 			req.Body,
 		)
-		return nil
 	}
 
 	safeFrom := sanitizeHeader(h.from)
 	safeTo := sanitizeHeader(req.To)
 	safeSubject := sanitizeHeader(req.Subject)
-
-	auth := smtp.PlainAuth("", h.username, h.password, h.host)
 	addr := fmt.Sprintf("%s:%d", h.host, h.port)
+
+	var auth smtp.Auth
+	if h.secured && h.username != "" && h.password != "" {
+		auth = smtp.PlainAuth("", h.username, h.password, h.host)
+	} else {
+		auth = nil
+	}
+
 	msg := fmt.Sprintf(
-		"From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s",
+		"From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n%s",
 		safeFrom,
 		safeTo,
 		safeSubject,
@@ -146,7 +148,7 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 		auth,
 		safeFrom,
 		[]string{safeTo},
-		[]byte(handlers.Sanitize(msg)),
+		[]byte(msg),
 	); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
