@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"gorm.io/gorm"
@@ -100,12 +101,27 @@ func (r *Registry[TData, TResponse, TRequest]) StructuredGetMinLockInt(context c
 func (r *Registry[TData, TResponse, TRequest]) ArrGetMax(context context.Context, field string, filters []query.ArrFilterSQL) (any, error) {
 	return r.pagination.ArrGetMax(r.Client(context), field, filters)
 }
-func (r *Registry[TData, TResponse, TRequest]) ArrGetMaxInt(context context.Context, field string, filters []query.ArrFilterSQL) (int, error) {
-	result, err := r.pagination.ArrGetMax(r.Client(context), field, filters)
+func (r *Registry[TData, TResponse, TRequest]) ArrGetMaxInt(
+	ctx context.Context,
+	field string,
+	filters []query.ArrFilterSQL,
+) (int, error) {
+
+	result, err := r.pagination.ArrGetMax(r.Client(ctx), field, filters)
 	if err != nil {
 		return 0, err
 	}
-	return result.(int), nil
+
+	switch v := result.(type) {
+	case int:
+		return v, nil
+	case int64:
+		return int(v), nil
+	case nil:
+		return 0, nil
+	default:
+		return 0, fmt.Errorf("unexpected type for max(%s): %T", field, result)
+	}
 }
 
 func (r *Registry[TData, TResponse, TRequest]) ArrGetMin(context context.Context, field string, filters []query.ArrFilterSQL,
