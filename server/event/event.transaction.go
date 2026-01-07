@@ -313,17 +313,16 @@ func (e *Event) TransactionPayment(
 		fmt.Printf("DEBUG: Cash Ledger Failed: %v\n", err)
 		return nil, endTx(err)
 	}
+	fmt.Println("DEBUG: Attempting DB COMMIT (endTx)")
+	if err := endTx(nil); err != nil {
+		fmt.Printf("DEBUG: COMMIT FAILED: %v\n", err)
+		return nil, err
+	}
 
 	fmt.Println("DEBUG: Finalizing Batch Balancing")
 	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 		fmt.Printf("DEBUG: Balancing Error: %v\n", err)
 		return nil, endTx(err)
-	}
-
-	fmt.Println("DEBUG: Attempting DB COMMIT (endTx)")
-	if err := endTx(nil); err != nil {
-		fmt.Printf("DEBUG: COMMIT FAILED: %v\n", err)
-		return nil, err
 	}
 
 	fmt.Println("DEBUG: [SUCCESS] TransactionPayment finished")
