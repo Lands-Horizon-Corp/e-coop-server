@@ -215,6 +215,7 @@ func (e *Event) TransactionPayment(
 		CurrencyID:         account.CurrencyID,
 		Account:            account,
 		MemberProfileID:    memberProfileID,
+		EmployeeUserID:     &userOrg.UserID,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 		return nil, endTx(err)
@@ -248,6 +249,8 @@ func (e *Event) TransactionPayment(
 		CurrencyID:         account.CurrencyID,
 		Account:            cashOnHandAccount,
 		MemberProfileID:    memberProfileID,
+		EmployeeUserID:     &userOrg.UserID,
+		ReferenceNumber:    transaction.ReferenceNumber,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
 		return nil, endTx(err)
