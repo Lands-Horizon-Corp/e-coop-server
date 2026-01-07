@@ -314,25 +314,32 @@ func GeneralLedgerAddBalanceByAccount(
 type GeneralLedgerAccountBalanceSummary struct {
 	AccountID uuid.UUID
 	Account   *core.Account
-	Debit     decimal.Decimal
-	Credit    decimal.Decimal
+	Debit     float64
+	Credit    float64
 }
 
 func SumGeneralLedgerByAccount(
 	ledgers []*core.GeneralLedger,
 ) []GeneralLedgerAccountBalanceSummary {
-	resultMap := make(map[uuid.UUID]*GeneralLedgerAccountBalanceSummary)
+	resultMap := make(map[uuid.UUID]*struct {
+		Account *core.Account
+		Debit   decimal.Decimal
+		Credit  decimal.Decimal
+	})
 	for _, gl := range ledgers {
 		if gl == nil || gl.AccountID == nil {
 			continue
 		}
 		summary, exists := resultMap[*gl.AccountID]
 		if !exists {
-			summary = &GeneralLedgerAccountBalanceSummary{
-				AccountID: *gl.AccountID,
-				Account:   gl.Account,
-				Debit:     decimal.Zero,
-				Credit:    decimal.Zero,
+			summary = &struct {
+				Account *core.Account
+				Debit   decimal.Decimal
+				Credit  decimal.Decimal
+			}{
+				Account: gl.Account,
+				Debit:   decimal.Zero,
+				Credit:  decimal.Zero,
 			}
 			resultMap[*gl.AccountID] = summary
 		}
@@ -340,8 +347,13 @@ func SumGeneralLedgerByAccount(
 		summary.Credit = summary.Credit.Add(decimal.NewFromFloat(gl.Credit))
 	}
 	out := make([]GeneralLedgerAccountBalanceSummary, 0, len(resultMap))
-	for _, v := range resultMap {
-		out = append(out, *v)
+	for id, v := range resultMap {
+		out = append(out, GeneralLedgerAccountBalanceSummary{
+			AccountID: id,
+			Account:   v.Account,
+			Debit:     v.Debit.InexactFloat64(),
+			Credit:    v.Credit.InexactFloat64(),
+		})
 	}
 	return out
 }
