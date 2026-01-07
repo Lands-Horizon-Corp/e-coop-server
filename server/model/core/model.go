@@ -208,6 +208,8 @@ func (m *Core) Start() error {
 		UserOrganization{},
 		UserRating{},
 		VoucherPayTo{},
+		AccountTransaction{},
+		AccountTransactionEntry{},
 	}...)
 	return nil
 }
