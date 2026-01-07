@@ -206,7 +206,7 @@ func (m *Core) AccountTransactionDestroyer(
 				return err
 			}
 		}
-		if err := m.AccountTransactionEntryManager().DeleteWithTx(ctx, tx, item.ID); err != nil {
+		if err := m.AccountTransactionManager().DeleteWithTx(ctx, tx, item.ID); err != nil {
 			return err
 		}
 	}
