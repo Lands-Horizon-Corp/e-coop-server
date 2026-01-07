@@ -322,7 +322,7 @@ func (e *Event) TransactionPayment(
 	fmt.Println("DEBUG: Finalizing Batch Balancing")
 	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 		fmt.Printf("DEBUG: Balancing Error: %v\n", err)
-		return nil, endTx(err)
+		return nil, err
 	}
 
 	fmt.Println("DEBUG: [SUCCESS] TransactionPayment finished")

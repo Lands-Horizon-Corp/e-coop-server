@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
@@ -11,86 +12,115 @@ import (
 )
 
 func (m *Event) TransactionBatchBalancing(ctx context.Context, transactionBatchID *uuid.UUID) error {
+	fmt.Println("Entering TransactionBatchBalancing")
 	if transactionBatchID == nil {
+		fmt.Println("Error: transactionBatchID is nil")
 		return eris.New("transactionBatchID is nil")
 	}
+	fmt.Println("transactionBatchID:", *transactionBatchID)
 
 	tx, endTx := m.provider.Service.Database.StartTransaction(ctx)
+	fmt.Println("Transaction started")
+
 	transactionBatch, err := m.core.TransactionBatchManager().GetByIDLock(ctx, tx, *transactionBatchID)
 	if err != nil {
+		fmt.Println("Error: failed to get transaction batch by ID", err)
 		return endTx(eris.Wrap(err, "failed to get transaction batch by ID"))
 	}
+	fmt.Println("Successfully locked transaction batch:", transactionBatch.ID)
 
 	payments, err := m.TBPayment(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total payments", err)
 		return endTx(eris.Wrap(err, "failed to calculate total payments"))
 	}
 	transactionBatch.TotalCashCollection = payments.Balance
+	fmt.Println("TotalCashCollection (payments.Balance):", transactionBatch.TotalCashCollection)
 
 	totalDeposit, err := m.TBDeposit(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total deposits", err)
 		return endTx(eris.Wrap(err, "failed to calculate total deposits"))
 	}
 	transactionBatch.TotalDepositEntry = totalDeposit.Balance
+	fmt.Println("TotalDepositEntry (totalDeposit.Balance):", transactionBatch.TotalDepositEntry)
 
 	batchFunding, err := m.TBBatchFunding(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total batch funding", err)
 		return endTx(eris.Wrap(err, "failed to calculate total batch funding"))
 	}
 	transactionBatch.BeginningBalance = batchFunding
+	fmt.Println("BeginningBalance (batchFunding):", transactionBatch.BeginningBalance)
 
 	// total_cash_handled  = beg_bal + deposit + collection (REAL CASH ONLY)
 	totalCashHandled := decimal.NewFromFloat(transactionBatch.BeginningBalance).
 		Add(decimal.NewFromFloat(transactionBatch.DepositInBank)).
 		Add(decimal.NewFromFloat(transactionBatch.TotalCashCollection))
 	transactionBatch.TotalCashHandled = totalCashHandled.InexactFloat64()
+	fmt.Println("TotalCashHandled calculated:", transactionBatch.TotalCashHandled)
 
 	totalWithdraw, err := m.TBWithdraw(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total withdrawals", err)
 		return endTx(eris.Wrap(err, "failed to calculate total withdrawals"))
 	}
+	fmt.Println("TotalWithdraw balance retrieved:", totalWithdraw.Balance)
 
 	less := decimal.Zero
 	savingsWithdrawal := decimal.NewFromFloat(totalWithdraw.Balance).Mul(decimal.NewFromInt(-1))
 	transactionBatch.SavingsWithdrawal = savingsWithdrawal.InexactFloat64()
 	less = less.Add(savingsWithdrawal)
+	fmt.Println("SavingsWithdrawal (less):", transactionBatch.SavingsWithdrawal)
 
 	disbursementTransaction, err := m.TBDisbursementTransaction(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total disbursement transactions", err)
 		return endTx(eris.Wrap(err, "failed to calculate total disbursement transactions"))
 	}
 	transactionBatch.PettyCash = disbursementTransaction
 	less = less.Add(decimal.NewFromFloat(transactionBatch.PettyCash))
+	fmt.Println("PettyCash (disbursementTransaction):", transactionBatch.PettyCash)
+	fmt.Println("Total 'less' amount:", less.String())
 
 	totalSupposed := decimal.NewFromFloat(transactionBatch.TotalCashHandled).Sub(less)
 	transactionBatch.TotalSupposedRemmitance = totalSupposed.InexactFloat64()
+	fmt.Println("TotalSupposedRemmitance:", transactionBatch.TotalSupposedRemmitance)
 
 	tbCashCount, err := m.TBCashCount(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total cash count", err)
 		return endTx(eris.Wrap(err, "failed to calculate total cash count"))
 	}
 	transactionBatch.TotalCashOnHand = tbCashCount
 	transactionBatch.CashCountTotal = tbCashCount
+	fmt.Println("TotalCashOnHand / CashCountTotal:", tbCashCount)
 
 	tbCheckRemittance, err := m.TBCheckRemittance(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total check remittance", err)
 		return endTx(eris.Wrap(err, "failed to calculate total check remittance"))
 	}
 	transactionBatch.TotalCheckRemittance = tbCheckRemittance
+	fmt.Println("TotalCheckRemittance:", tbCheckRemittance)
 
 	tbOnlineRemittance, err := m.TBOnlineRemittance(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
+		fmt.Println("Error: failed to calculate total online remittance", err)
 		return endTx(eris.Wrap(err, "failed to calculate total online remittance"))
 	}
 	transactionBatch.TotalOnlineRemittance = tbOnlineRemittance
+	fmt.Println("TotalOnlineRemittance:", tbOnlineRemittance)
 
 	transactionBatch.TotalDepositInBank = transactionBatch.DepositInBank
+	fmt.Println("TotalDepositInBank:", transactionBatch.TotalDepositInBank)
 
 	// GrandTotal = tbCashCount + DepositInBank + batchFunding
 	grandTotal := decimal.NewFromFloat(tbCashCount).
 		Add(decimal.NewFromFloat(transactionBatch.DepositInBank)).
 		Add(decimal.NewFromFloat(batchFunding))
 	transactionBatch.GrandTotal = grandTotal.InexactFloat64()
+	fmt.Println("GrandTotal calculated:", transactionBatch.GrandTotal)
 
 	// TotalActualRemittance = check + online + cash + deposit
 	totalActualRemittance := decimal.NewFromFloat(transactionBatch.TotalCheckRemittance).
@@ -98,22 +128,27 @@ func (m *Event) TransactionBatchBalancing(ctx context.Context, transactionBatchI
 		Add(decimal.NewFromFloat(transactionBatch.TotalCashOnHand)).
 		Add(decimal.NewFromFloat(transactionBatch.TotalDepositInBank))
 	transactionBatch.TotalActualRemittance = totalActualRemittance.InexactFloat64()
+	fmt.Println("TotalActualRemittance calculated:", transactionBatch.TotalActualRemittance)
 
 	// TotalActualSupposedComparison = totalActualRemittance - totalSupposed
 	totalActualSupposedComparison := totalActualRemittance.Sub(totalSupposed)
 	transactionBatch.TotalActualSupposedComparison = totalActualSupposedComparison.InexactFloat64()
+	fmt.Println("TotalActualSupposedComparison:", transactionBatch.TotalActualSupposedComparison)
 
 	if err := m.core.TransactionBatchManager().UpdateByID(ctx, transactionBatch.ID, transactionBatch); err != nil {
+		fmt.Println("Error: failed to update transaction batch in DB", err)
 		return endTx(eris.Wrap(err, "failed to update transaction batch"))
 	}
+	fmt.Println("Transaction batch updated successfully in DB")
 
 	if err := endTx(nil); err != nil {
+		fmt.Println("Error: failed to end (commit) transaction", err)
 		return eris.Wrap(err, "failed to end transaction")
 	}
 
+	fmt.Println("Function completed successfully")
 	return nil
 }
-
 func (m *Event) TBBatchFunding(
 	context context.Context,
 	transactionBatchID, orgID, branchID uuid.UUID,
