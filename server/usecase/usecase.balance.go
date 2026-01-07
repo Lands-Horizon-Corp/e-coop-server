@@ -310,3 +310,38 @@ func GeneralLedgerAddBalanceByAccount(
 
 	return ledgers
 }
+
+type GeneralLedgerAccountBalanceSummary struct {
+	AccountID uuid.UUID
+	Account   *core.Account
+	Debit     decimal.Decimal
+	Credit    decimal.Decimal
+}
+
+func SumGeneralLedgerByAccount(
+	ledgers []*core.GeneralLedger,
+) []GeneralLedgerAccountBalanceSummary {
+	resultMap := make(map[uuid.UUID]*GeneralLedgerAccountBalanceSummary)
+	for _, gl := range ledgers {
+		if gl == nil || gl.AccountID == nil {
+			continue
+		}
+		summary, exists := resultMap[*gl.AccountID]
+		if !exists {
+			summary = &GeneralLedgerAccountBalanceSummary{
+				AccountID: *gl.AccountID,
+				Account:   gl.Account,
+				Debit:     decimal.Zero,
+				Credit:    decimal.Zero,
+			}
+			resultMap[*gl.AccountID] = summary
+		}
+		summary.Debit = summary.Debit.Add(decimal.NewFromFloat(gl.Debit))
+		summary.Credit = summary.Credit.Add(decimal.NewFromFloat(gl.Credit))
+	}
+	out := make([]GeneralLedgerAccountBalanceSummary, 0, len(resultMap))
+	for _, v := range resultMap {
+		out = append(out, *v)
+	}
+	return out
+}
