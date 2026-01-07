@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -73,63 +72,41 @@ func (h *Event) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
 
 func (h *Event) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
 	authHeader := echoCtx.Request().Header.Get("Authorization")
-	fmt.Printf("DEBUG: Authorization header: %s\n", authHeader)
-
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		fmt.Printf("DEBUG: Bearer token extracted: %s\n", bearerToken)
-
 		userOrganization, err := h.core.UserOrganizationManager().FindOne(ctx, &core.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 		if err != nil {
-			fmt.Printf("DEBUG: FindOne error with bearer token: %v\n", err)
 			return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid bearer token")
 		}
-
-		fmt.Printf("DEBUG: Found userOrganization by bearer token: %+v\n", userOrganization)
 		return userOrganization, nil
 	}
 
 	claim, err := h.userOrgCSRF.GetCSRF(ctx, echoCtx)
-	fmt.Printf("DEBUG: CSRF claim: %+v, err: %v\n", claim, err)
 	if err != nil {
-		fmt.Println("DEBUG: CSRF GetCSRF failed")
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
 
 	if claim.UserOrganizationID == "" || claim.UserID == "" || claim.BranchID == "" || claim.OrganizationID == "" {
-		fmt.Printf("DEBUG: Missing essential claim info: %+v\n", claim)
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
 	parsedUUID := handlers.ParseUUID(&claim.UserOrganizationID)
-	fmt.Printf("DEBUG: Parsed UserOrganizationID: %v\n", parsedUUID)
-
 	userOrganization, err := h.core.UserOrganizationManager().GetByID(ctx, parsedUUID)
-	fmt.Printf("DEBUG: GetByID result: %+v, error: %v\n", userOrganization, err)
 	if err != nil || userOrganization == nil {
-		fmt.Println("DEBUG: userOrganization is nil or GetByID failed")
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
 	}
-
-	fmt.Printf("DEBUG: Comparing claim with userOrganization: claim.UserID=%s, userOrganization.UserID=%s\n", claim.UserID, userOrganization.UserID.String())
-	fmt.Printf("DEBUG: claim.BranchID=%s, userOrganization.BranchID=%s\n", claim.BranchID, userOrganization.BranchID.String())
-	fmt.Printf("DEBUG: claim.OrganizationID=%s, userOrganization.OrganizationID=%s\n", claim.OrganizationID, userOrganization.OrganizationID.String())
-	fmt.Printf("DEBUG: claim.UserType=%s, userOrganization.UserType=%s\n", claim.UserType, userOrganization.UserType)
-
 	if userOrganization.UserID.String() != claim.UserID ||
 		userOrganization.BranchID.String() != claim.BranchID ||
 		userOrganization.OrganizationID.String() != claim.OrganizationID ||
 		userOrganization.UserType != claim.UserType {
-		fmt.Println("DEBUG: User organization information mismatch")
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization information mismatch")
 	}
 
-	fmt.Printf("DEBUG: Successfully found and verified userOrganization: %+v\n", userOrganization)
 	return userOrganization, nil
 }
 

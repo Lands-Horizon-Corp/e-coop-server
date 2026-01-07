@@ -45,21 +45,11 @@ func (e *Event) TransactionPayment(
 	endTx func(error) error,
 	data TransactionEvent,
 ) (*core.GeneralLedger, error) {
-	fmt.Println("DEBUG: [START] TransactionPayment")
-
-	// Catch pointer errors (nil dereferences) so the server doesn't just hang or crash silently
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("DEBUG: [PANIC RECOVERED] Critical Pointer Error: %v\n", r)
-		}
-	}()
 
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
-		fmt.Printf("DEBUG: [END] TransactionPayment took %.2fs\n", duration.Seconds())
 		if duration > 5*time.Second {
-			fmt.Println("DEBUG: [PERFORMANCE] Warning: This operation is taking too long!")
 			e.Footstep(ctx, FootstepEvent{
 				Activity:    "performance-warning",
 				Description: fmt.Sprintf("Payment operation took %.2fs - potential performance issue (/transaction/payment/:transaction_id)", duration.Seconds()),
@@ -67,72 +57,50 @@ func (e *Event) TransactionPayment(
 			})
 		}
 	}()
-
-	fmt.Println("DEBUG: Checking IP Blocker")
 	block, blocked, err := e.HandleIPBlocker(context, ctx)
 	if err != nil {
-		fmt.Printf("DEBUG: IP Blocker Error: %v\n", err)
 		return nil, endTx(eris.Wrap(err, "internal error during IP block check"))
 	}
 	if block == nil {
-		fmt.Println("DEBUG: ERROR - IP block function is nil")
 		return nil, endTx(eris.New("IP blocker function is nil"))
 	}
 	if blocked {
-		fmt.Println("DEBUG: ERROR - IP is currently blocked")
 		return nil, endTx(eris.New("IP is temporarily blocked due to repeated errors"))
 	}
-
-	fmt.Println("DEBUG: Retrieving User Organization")
 	userOrg, err := e.CurrentUserOrganization(context, ctx)
 	if err != nil {
-		fmt.Printf("DEBUG: Auth Error: %v\n", err)
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 	if userOrg == nil {
-		fmt.Println("DEBUG: ERROR - userOrg is nil")
 		return nil, endTx(eris.New("user organization is nil"))
 	}
 	if userOrg.BranchID == nil {
-		fmt.Println("DEBUG: ERROR - userOrg.BranchID is nil")
 		return nil, endTx(eris.New("user organization branch ID is nil"))
 	}
-
-	fmt.Printf("DEBUG: Data Input - Amount: %v, AccountID: %v\n", data.Amount, data.AccountID)
 	if data.Amount == 0 {
-		fmt.Println("DEBUG: ERROR - Amount is zero")
 		return nil, endTx(eris.New("payment amount cannot be zero"))
 	}
 	if data.AccountID == nil || data.PaymentTypeID == nil {
-		fmt.Println("DEBUG: ERROR - Missing AccountID or PaymentTypeID")
 		return nil, endTx(eris.New("missing required fields: AccountID and PaymentTypeID are required"))
 	}
-
-	fmt.Println("DEBUG: Accessing Branch Settings for Cash Account")
 	if userOrg.Branch == nil || userOrg.Branch.BranchSetting == nil {
-		fmt.Println("DEBUG: ERROR - Branch or BranchSetting pointer is NIL")
 		return nil, endTx(eris.New("branch settings missing"))
 	}
 	cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 	if cashOnHandAccountID == nil {
-		fmt.Println("DEBUG: ERROR - CashOnHandAccountID is nil in settings")
 		return nil, endTx(eris.New("cash on hand account ID is nil"))
 	}
 	if cashOnHandAccountID == data.AccountID {
-		fmt.Println("DEBUG: ERROR - Destination account is same as Cash On Hand")
 		return nil, endTx(eris.New("cash on hand account ID does not match"))
 	}
 
 	var transaction *core.Transaction
 	now := time.Now().UTC()
 	if data.TransactionID != nil {
-		fmt.Printf("DEBUG: Attempting to find Transaction: %s\n", data.TransactionID)
 		transaction, err = e.core.TransactionManager().GetByID(context, *data.TransactionID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Println("DEBUG: Transaction not found, will create new one")
 			transaction = nil
 		} else if err != nil {
-			fmt.Printf("DEBUG: Error retrieving transaction: %v\n", err)
 			return nil, endTx(eris.Wrap(err, "failed to retrieve transaction"))
 		}
 	}
@@ -142,47 +110,32 @@ func (e *Event) TransactionPayment(
 		memberProfileID = transaction.MemberProfileID
 	}
 	if data.MemberProfileID != nil {
-		fmt.Printf("DEBUG: Validating Member Profile: %s\n", data.MemberProfileID)
 		memberProfile, err := e.core.MemberProfileManager().GetByID(context, *data.MemberProfileID)
 		if err != nil || memberProfile == nil {
-			fmt.Printf("DEBUG: Member Profile Error: %v\n", err)
 			return nil, endTx(eris.New("failed to retrieve member profile"))
 		}
 		memberProfileID = &memberProfile.ID
 	}
 
-	fmt.Println("DEBUG: Retrieving Current Transaction Batch")
 	transactionBatch, err := e.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil || transactionBatch == nil {
-		fmt.Printf("DEBUG: Batch Error: %v\n", err)
 		return nil, endTx(eris.New("transaction batch error"))
 	}
 
-	fmt.Printf("DEBUG: [DB LOCK] Attempting to lock AccountID: %s\n", data.AccountID)
 	account, err := e.core.AccountLockForUpdate(context, tx, *data.AccountID)
 	if err != nil {
-		fmt.Printf("DEBUG: [DB LOCK ERROR] Failed to lock account: %v\n", err)
 		return nil, endTx(err)
 	}
-	fmt.Println("DEBUG: [DB LOCK SUCCESS] Account locked")
-
-	fmt.Printf("DEBUG: [DB LOCK] Attempting to lock CashOnHandID: %s\n", cashOnHandAccountID)
 	cashOnHandAccount, err := e.core.AccountLockForUpdate(context, tx, *cashOnHandAccountID)
 	if err != nil {
-		fmt.Printf("DEBUG: [DB LOCK ERROR] Failed to lock cash account: %v\n", err)
 		return nil, endTx(err)
 	}
-	fmt.Println("DEBUG: [DB LOCK SUCCESS] Cash account locked")
-
-	fmt.Println("DEBUG: Fetching Payment Type")
 	paymentType, err := e.core.PaymentTypeManager().GetByID(context, *data.PaymentTypeID)
 	if err != nil || paymentType == nil {
-		fmt.Println("DEBUG: ERROR - Payment Type not found")
 		return nil, endTx(eris.New("payment type is nil"))
 	}
 
 	if transaction == nil {
-		fmt.Println("DEBUG: Initializing New Transaction Record")
 		transaction = &core.Transaction{
 			CreatedAt:            now,
 			CreatedByID:          userOrg.UserID,
@@ -201,12 +154,10 @@ func (e *Event) TransactionPayment(
 			CurrencyID:           *account.CurrencyID,
 		}
 		if err := e.core.TransactionManager().CreateWithTx(context, tx, transaction); err != nil {
-			fmt.Printf("DEBUG: ERROR - Transaction Creation Failed: %v\n", err)
 			return nil, endTx(err)
 		}
 	}
 
-	fmt.Printf("DEBUG: Calculating Ledger Entry (Source: %v)\n", data.Source)
 	var credit, debit float64
 	switch data.Source {
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
@@ -222,20 +173,16 @@ func (e *Event) TransactionPayment(
 			credit, debit, err = usecase.Withdraw(context, account, data.Amount)
 		}
 	default:
-		fmt.Println("DEBUG: ERROR - Unsupported Source Type")
 		err = eris.New("unsupported source type")
 	}
 
 	if err != nil {
-		fmt.Printf("DEBUG: Usecase Money Error: %v\n", err)
 		return nil, endTx(err)
 	}
 
 	if data.LoanTransactionID != nil {
-		fmt.Println("DEBUG: Processing Loan Account Logic")
 		loanAccount, err := e.core.GetLoanAccountByLoanTransaction(context, tx, *data.LoanTransactionID, account.ID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err == nil && loanAccount != nil {
-			fmt.Println("DEBUG: Updating Loan Account Totals")
 			creditDec := decimal.NewFromFloat(credit)
 			debitDec := decimal.NewFromFloat(debit)
 			if creditDec.GreaterThan(decimal.Zero) {
@@ -249,8 +196,6 @@ func (e *Event) TransactionPayment(
 			e.core.LoanAccountManager().UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount)
 		}
 	}
-
-	fmt.Println("DEBUG: Creating Main General Ledger Entry")
 	newGeneralLedger := &core.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,
@@ -272,14 +217,10 @@ func (e *Event) TransactionPayment(
 		MemberProfileID:    memberProfileID,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
-		fmt.Printf("DEBUG: Ledger Creation Failed: %v\n", err)
 		return nil, endTx(err)
 	}
-
-	fmt.Println("DEBUG: Updating Transaction Totals with Decimal Logic")
 	amountDec := decimal.NewFromFloat(data.Amount).Abs()
 	transactionDec := decimal.NewFromFloat(transaction.Amount)
-	// Simplified logic for debug version to ensure it passes
 	if !data.Reverse {
 		transaction.Amount = transactionDec.Add(amountDec).InexactFloat64()
 	} else {
@@ -287,11 +228,8 @@ func (e *Event) TransactionPayment(
 	}
 
 	if err := e.core.TransactionManager().UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
-		fmt.Printf("DEBUG: Transaction Update Failed: %v\n", err)
 		return nil, endTx(err)
 	}
-
-	fmt.Println("DEBUG: Creating Cash On Hand Ledger Entry")
 	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,
@@ -312,21 +250,13 @@ func (e *Event) TransactionPayment(
 		MemberProfileID:    memberProfileID,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
-		fmt.Printf("DEBUG: Cash Ledger Failed: %v\n", err)
 		return nil, endTx(err)
 	}
-	fmt.Println("DEBUG: Attempting DB COMMIT (endTx)")
 	if err := endTx(nil); err != nil {
-		fmt.Printf("DEBUG: COMMIT FAILED: %v\n", err)
 		return nil, err
 	}
-
-	fmt.Println("DEBUG: Finalizing Batch Balancing")
 	if err := e.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
-		fmt.Printf("DEBUG: Balancing Error: %v\n", err)
 		return nil, err
 	}
-
-	fmt.Println("DEBUG: [SUCCESS] TransactionPayment finished")
 	return newGeneralLedger, nil
 }

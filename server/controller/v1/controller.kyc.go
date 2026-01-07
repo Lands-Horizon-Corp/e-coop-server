@@ -464,47 +464,26 @@ func (c *Controller) kycController() {
 		Note:        "Complete KYC registration (all-in-one endpoint)",
 		RequestType: core.KYCRegisterRequest{},
 	}, func(ctx echo.Context) error {
-
-		fmt.Println("STEP 1: handler entered")
-
 		context := ctx.Request().Context()
-
 		var req core.KYCRegisterRequest
-		fmt.Println("STEP 2: binding request")
 		if err := ctx.Bind(&req); err != nil {
-			fmt.Println("ERROR STEP 2:", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
-
-		fmt.Println("STEP 3: validating request")
 		if err := validator.Struct(&req); err != nil {
-			fmt.Println("ERROR STEP 3:", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		fmt.Println("STEP 4: checking password confirmation")
 		if req.Password != req.PasswordConfirmation {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password and confirmation do not match"})
 		}
-
-		fmt.Println("STEP 5: getting organization")
 		org, ok := c.event.GetOrganization(ctx)
 		if !ok {
-			fmt.Println("ERROR STEP 5: organization not found")
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-
-		fmt.Println("STEP 6: starting transaction")
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-
-		fmt.Println("STEP 7: hashing password")
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
 		if err != nil {
-			fmt.Println("ERROR STEP 7:", err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 		}
-
-		fmt.Println("STEP 8: creating user profile")
 		userProfile := &core.User{
 			Email:             req.Email,
 			Username:          req.Username,
@@ -522,20 +501,13 @@ func (c *Controller) kycController() {
 			Birthdate:         req.BirthDate,
 			MediaID:           req.SelfieMediaID,
 		}
-
-		fmt.Println("STEP 9: inserting user profile")
 		if err := c.core.UserManager().CreateWithTx(context, tx, userProfile); err != nil {
-			fmt.Println("ERROR STEP 9:", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + endTx(err).Error()})
 		}
-
-		fmt.Println("STEP 10: preparing passbook")
 		passbook := req.OldPassbook
 		if passbook == "" {
 			passbook = handlers.GeneratePassbookNumber()
 		}
-
-		fmt.Println("STEP 11: creating member profile")
 		memberProfile := &core.MemberProfile{
 			OrganizationID:       org.ID,
 			BranchID:             *req.BranchID,
@@ -560,17 +532,10 @@ func (c *Controller) kycController() {
 			IsMicroFinanceMember: false,
 			MediaID:              req.SelfieMediaID,
 		}
-
-		fmt.Println("STEP 12: inserting member profile")
 		if err := c.core.MemberProfileManager().CreateWithTx(context, tx, memberProfile); err != nil {
-			fmt.Println("ERROR STEP 12:", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + endTx(err).Error()})
 		}
-
-		fmt.Println("STEP 13: creating addresses")
-		for i, addrReq := range req.Addresses {
-			fmt.Println("STEP 13.", i)
-
+		for _, addrReq := range req.Addresses {
 			value := &core.MemberAddress{
 				MemberProfileID: &memberProfile.ID,
 				Label:           addrReq.Label,
@@ -592,14 +557,11 @@ func (c *Controller) kycController() {
 			}
 
 			if err := c.core.MemberAddressManager().CreateWithTx(context, tx, value); err != nil {
-				fmt.Println("ERROR STEP 13:", err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
 		}
 
-		for i, benefitReq := range req.GovernmentBenefits {
-			fmt.Println("STEP 13.", i)
-
+		for _, benefitReq := range req.GovernmentBenefits {
 			value := &core.MemberGovernmentBenefit{
 				MemberProfileID: memberProfile.ID,
 				Name:            benefitReq.Name,
@@ -616,18 +578,12 @@ func (c *Controller) kycController() {
 			}
 
 			if err := c.core.MemberGovernmentBenefitManager().CreateWithTx(context, tx, value); err != nil {
-				fmt.Println("ERROR STEP 13:", err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
 		}
-
-		fmt.Println("STEP 14: committing transaction")
 		if err := endTx(nil); err != nil {
-			fmt.Println("ERROR STEP 14:", err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
 		}
-
-		fmt.Println("STEP 15: success")
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
 

@@ -80,10 +80,6 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		summary := usecase.SumGeneralLedgerByAccount(booking)
-		fmt.Printf("DAILY BOOKING - Date: %v, len(summary): %d\n", currentDate, len(summary))
-		for i, s := range summary {
-			fmt.Printf("  Summary[%d]: AccountID=%v, Debit=%f, Credit=%f\n", i, s.AccountID, s.Debit, s.Credit)
-		}
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
 		jv := BuildJVNumberSimple(currentDate, GeneralJournalBook)
@@ -104,12 +100,9 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		if len(summary) > 0 {
-			fmt.Println("Creating daily booking transaction header")
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, accountTransactionCollection); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily booking transaction header"))
 			}
-		} else {
-			fmt.Println("Skipping create for daily booking - summary empty")
 		}
 
 		for _, s := range summary {
@@ -137,7 +130,6 @@ func (e *Event) AccountTransactionProcess(
 		accountTransactionCollection.Debit = totalDebit.InexactFloat64()
 		accountTransactionCollection.Credit = totalCredit.InexactFloat64()
 		if len(summary) > 0 {
-			fmt.Printf("Updating daily booking totals: Debit=%f, Credit=%f\n", accountTransactionCollection.Debit, accountTransactionCollection.Credit)
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, accountTransactionCollection.ID, accountTransactionCollection); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily booking transaction totals"))
 			}
@@ -149,10 +141,7 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		summary = usecase.SumGeneralLedgerByAccount(disbursement)
-		fmt.Printf("DAILY DISBURSEMENT - Date: %v, len(summary): %d\n", currentDate, len(summary))
-		for i, s := range summary {
-			fmt.Printf("  Summary[%d]: AccountID=%v, Debit=%f, Credit=%f\n", i, s.AccountID, s.Debit, s.Credit)
-		}
+
 		jv = BuildJVNumberSimple(currentDate, CashCheckDisbursementBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 
@@ -172,14 +161,11 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		if len(summary) > 0 {
-			fmt.Println("Creating daily disbursement transaction header")
+
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, disbursementTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily disbursement transaction header"))
 			}
-		} else {
-			fmt.Println("Skipping create for daily disbursement - summary empty")
 		}
-
 		for _, s := range summary {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
@@ -205,7 +191,6 @@ func (e *Event) AccountTransactionProcess(
 		disbursementTransaction.Debit = totalDebit.InexactFloat64()
 		disbursementTransaction.Credit = totalCredit.InexactFloat64()
 		if len(summary) > 0 {
-			fmt.Printf("Updating daily disbursement totals: Debit=%f, Credit=%f\n", disbursementTransaction.Debit, disbursementTransaction.Credit)
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, disbursementTransaction.ID, disbursementTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily disbursement transaction totals"))
 			}
@@ -217,10 +202,7 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		summary = usecase.SumGeneralLedgerByAccount(journal)
-		fmt.Printf("DAILY JOURNAL - Date: %v, len(summary): %d\n", currentDate, len(summary))
-		for i, s := range summary {
-			fmt.Printf("  Summary[%d]: AccountID=%v, Debit=%f, Credit=%f\n", i, s.AccountID, s.Debit, s.Credit)
-		}
+
 		jv = BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 
@@ -240,14 +222,10 @@ func (e *Event) AccountTransactionProcess(
 		}
 
 		if len(summary) > 0 {
-			fmt.Println("Creating daily journal transaction header")
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, journalTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily journal transaction header"))
 			}
-		} else {
-			fmt.Println("Skipping create for daily journal - summary empty")
 		}
-
 		for _, s := range summary {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
@@ -273,7 +251,6 @@ func (e *Event) AccountTransactionProcess(
 		journalTransaction.Debit = totalDebit.InexactFloat64()
 		journalTransaction.Credit = totalCredit.InexactFloat64()
 		if len(summary) > 0 {
-			fmt.Printf("Updating daily journal totals: Debit=%f, Credit=%f\n", journalTransaction.Debit, journalTransaction.Credit)
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, journalTransaction.ID, journalTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily journal transaction totals"))
 			}
