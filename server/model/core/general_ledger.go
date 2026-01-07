@@ -827,6 +827,7 @@ func (m *Core) DailyBookingCollection(
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
+
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
 	filters := []registry.FilterSQL{
@@ -834,20 +835,24 @@ func (m *Core) DailyBookingCollection(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
 		{Field: "created_at", Op: query.ModeLTE, Value: endOfDay},
-		{
-			Field: "source",
-			Op:    query.ModeInside,
-			Value: []GeneralLedgerSource{
-				GeneralLedgerSourcePayment,
-				GeneralLedgerSourceDeposit,
-			},
-		},
 	}
+
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourcePayment || item.Source == GeneralLedgerSourceDeposit {
+			result = append(result, item)
+		}
+	}
+
+	return result, nil
 }
 
 func (m *Core) DailyDisbursementCollection(
@@ -856,36 +861,34 @@ func (m *Core) DailyDisbursementCollection(
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
-	startOfDay := time.Date(
-		date.Year(), date.Month(), date.Day(),
-		0, 0, 0, 0,
-		date.Location(),
-	)
-	endOfDay := time.Date(
-		date.Year(), date.Month(), date.Day(),
-		23, 59, 59, 999999999,
-		date.Location(),
-	)
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
-		{Field: "created_at", Op: query.ModeLTE, Value: endOfDay},
-		{Field: "source", Op: query.ModeInside,
-			Value: []GeneralLedgerSource{
-				GeneralLedgerSourceWithdraw,
-				GeneralLedgerSourceCheckVoucher,
-				GeneralLedgerSourceLoan,
-			},
-		},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
 	}
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
-}
 
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourceWithdraw ||
+			item.Source == GeneralLedgerSourceCheckVoucher ||
+			item.Source == GeneralLedgerSourceLoan {
+			result = append(result, item)
+		}
+	}
+
+	return result, nil
+}
 func (m *Core) DailyJournalCollection(
 	ctx context.Context,
 	date time.Time,
@@ -893,37 +896,29 @@ func (m *Core) DailyJournalCollection(
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 
-	startOfDay := time.Date(
-		date.Year(), date.Month(), date.Day(),
-		0, 0, 0, 0,
-		date.Location(),
-	)
-
-	endOfDay := time.Date(
-		date.Year(), date.Month(), date.Day(),
-		23, 59, 59, 999999999,
-		date.Location(),
-	)
-
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, date.Location())
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
-		{Field: "created_at", Op: query.ModeGTE, Value: startOfDay},
-		{Field: "created_at", Op: query.ModeLTE, Value: endOfDay},
-		{
-			Field: "source",
-			Op:    query.ModeInside,
-			Value: []GeneralLedgerSource{
-				GeneralLedgerSourceJournalVoucher,
-				GeneralLedgerSourceAdjustment,
-			},
-		},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
 	}
-
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "entry_date", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourceJournalVoucher ||
+			item.Source == GeneralLedgerSourceAdjustment {
+			result = append(result, item)
+		}
+	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	return result, nil
 }
