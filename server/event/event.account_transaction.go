@@ -49,7 +49,7 @@ func (e *Event) AccountTransactionProcess(
 		data.StartDate.Month(),
 		data.StartDate.Day(),
 		0, 0, 0, 0,
-		data.StartDate.Location(),
+		time.UTC,
 	)
 
 	endDate := time.Date(
@@ -57,7 +57,7 @@ func (e *Event) AccountTransactionProcess(
 		data.EndDate.Month(),
 		data.EndDate.Day(),
 		23, 59, 59, int(time.Second-time.Nanosecond),
-		data.EndDate.Location(),
+		time.UTC,
 	)
 
 	if endDate.Before(startDate) {
