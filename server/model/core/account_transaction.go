@@ -78,7 +78,7 @@ type (
 
 	AccountTransactionProcessGLRequest struct {
 		StartDate time.Time `json:"start_date" validate:"required"`
-		EndDate   time.Time `json:"end_date" validate:"required,gtfield=StartDate"`
+		EndDate   time.Time `json:"end_date" validate:"required,gtefield=StartDate"`
 	}
 
 	AccountTransactionLedgerResponse struct {
