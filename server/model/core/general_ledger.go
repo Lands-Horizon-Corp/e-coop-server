@@ -404,9 +404,12 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 	}
-	return m.GeneralLedgerManager().ArrGetMaxInt(ctx, "print_number", filters)
+	res, err := m.GeneralLedgerManager().ArrGetMaxInt(ctx, "print_number", filters)
+	if err != nil {
+		return 0, err
+	}
+	return int(res), nil
 }
-
 func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},

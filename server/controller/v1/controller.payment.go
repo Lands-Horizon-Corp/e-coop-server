@@ -169,7 +169,10 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
-		fmt.Printf("DEBUG: generalLedger: %+v\n", generalLedger)
+		fmt.Printf("DEBUG: generalLedger.MemberProfileID: %v\n", generalLedger.MemberProfileID)
+		fmt.Printf("DEBUG: generalLedger.AccountID: %v\n", generalLedger.AccountID)
+		fmt.Printf("DEBUG: userOrg.BranchID: %v\n", userOrg.BranchID)
+		fmt.Printf("DEBUG: userOrg.OrganizationID: %v\n", userOrg.OrganizationID)
 
 		// Get max print number
 		maxNumber, err := c.core.GeneralLedgerPrintMaxNumber(
