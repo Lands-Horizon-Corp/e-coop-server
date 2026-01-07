@@ -1,9 +1,11 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -147,4 +149,29 @@ func (m *Core) AccountTransactionManager() *registry.Registry[
 			}
 		},
 	})
+}
+
+func (m *Core) AccountTransactionByMonthYear(
+	ctx context.Context,
+	year int,
+	month int,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*AccountTransaction, error) {
+	normalizedMonth := ((month - 1) % 12) + 1
+	if normalizedMonth <= 0 {
+		normalizedMonth += 12
+	}
+	start := time.Date(year, time.Month(normalizedMonth), 1, 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 1, 0).Add(-time.Nanosecond)
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "created_at", Op: query.ModeGTE, Value: start},
+		{Field: "created_at", Op: query.ModeLTE, Value: end},
+	}
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: query.SortOrderAsc},
+	}
+	return m.AccountTransactionManager().ArrFind(ctx, filters, sorts, "Entries", "Entries.Account")
 }
