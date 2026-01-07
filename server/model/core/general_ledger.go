@@ -847,7 +847,7 @@ func (m *Core) DailyBookingCollection(
 		{Field: "entry_date", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account")
+	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 }
 
 func (m *Core) DailyDisbursementCollection(
@@ -883,7 +883,7 @@ func (m *Core) DailyDisbursementCollection(
 		{Field: "entry_date", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account")
+	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 }
 
 func (m *Core) DailyJournalCollection(
@@ -925,5 +925,5 @@ func (m *Core) DailyJournalCollection(
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account")
+	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 }

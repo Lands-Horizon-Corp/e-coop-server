@@ -348,6 +348,9 @@ func SumGeneralLedgerByAccount(
 	}
 	out := make([]GeneralLedgerAccountBalanceSummary, 0, len(resultMap))
 	for id, v := range resultMap {
+		if v.Debit.IsZero() && v.Credit.IsZero() {
+			continue
+		}
 		out = append(out, GeneralLedgerAccountBalanceSummary{
 			AccountID: id,
 			Account:   v.Account,
