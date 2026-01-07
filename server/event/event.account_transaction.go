@@ -284,12 +284,18 @@ func (e *Event) AccountTransactionLedgers(
 		if err != nil {
 			return nil, err
 		}
+		if len(accountTransactions) == 0 {
+			continue
+		}
 		var transactionsWithBalance []*core.AccountTransactionEntryResponse
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
 		for _, entry := range accountTransactions {
 			debit := decimal.NewFromFloat(entry.Debit)
 			credit := decimal.NewFromFloat(entry.Credit)
+			if debit.IsZero() && credit.IsZero() {
+				continue
+			}
 			runningBalance = runningBalance.Add(debit).Sub(credit)
 			totalDebit = totalDebit.Add(debit)
 			totalCredit = totalCredit.Add(credit)
@@ -309,6 +315,9 @@ func (e *Event) AccountTransactionLedgers(
 
 			transactionsWithBalance = append(transactionsWithBalance, resp)
 		}
+		if len(transactionsWithBalance) == 0 || totalDebit.IsZero() && totalCredit.IsZero() {
+			continue
+		}
 		ledger := &core.AccountTransactionLedgerResponse{
 			Month:                   month,
 			Debit:                   totalDebit.InexactFloat64(),
@@ -318,5 +327,6 @@ func (e *Event) AccountTransactionLedgers(
 
 		ledgers = append(ledgers, ledger)
 	}
+
 	return ledgers, nil
 }

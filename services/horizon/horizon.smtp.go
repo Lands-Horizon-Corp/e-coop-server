@@ -62,7 +62,7 @@ func NewSMTP(host string, port int, username, password string, from string, secu
 
 func (h *SMTP) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
-		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
+		h.limiter = rate.NewLimiter(rate.Limit(1000), 100)
 	})
 	return nil
 }
