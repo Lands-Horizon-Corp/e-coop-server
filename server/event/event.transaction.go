@@ -299,8 +299,8 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID: &transactionBatch.ID,
 		TransactionID:      &transaction.ID,
 		AccountID:          cashOnHandAccountID,
-		Credit:             debit,  // Mirror entry
-		Debit:              credit, // Mirror entry
+		Credit:             debit,
+		Debit:              credit,
 		Account:            cashOnHandAccount,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
