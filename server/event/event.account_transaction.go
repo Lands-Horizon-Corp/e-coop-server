@@ -234,9 +234,8 @@ func (e *Event) AccountTransactionLedgers(
 	year int,
 	accountId *uuid.UUID,
 ) ([]*core.AccountTransactionLedgerResponse, error) {
-
 	var ledgers []*core.AccountTransactionLedgerResponse
-
+	runningBalance := decimal.Zero
 	for month := 1; month <= 12; month++ {
 		accountTransactions, err := e.core.AccountingEntryByAccountMonthYear(
 			ctx,
@@ -249,20 +248,36 @@ func (e *Event) AccountTransactionLedgers(
 		if err != nil {
 			return nil, err
 		}
-
+		var transactionsWithBalance []*core.AccountTransactionEntryResponse
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
-
 		for _, entry := range accountTransactions {
-			totalDebit = totalDebit.Add(decimal.NewFromFloat(entry.Debit))
-			totalCredit = totalCredit.Add(decimal.NewFromFloat(entry.Credit))
-		}
+			debit := decimal.NewFromFloat(entry.Debit)
+			credit := decimal.NewFromFloat(entry.Credit)
+			runningBalance = runningBalance.Add(debit).Sub(credit)
+			totalDebit = totalDebit.Add(debit)
+			totalCredit = totalCredit.Add(credit)
+			resp := &core.AccountTransactionEntryResponse{
+				ID:             entry.ID,
+				CreatedAt:      entry.CreatedAt.Format(time.RFC3339),
+				OrganizationID: entry.OrganizationID,
+				BranchID:       entry.BranchID,
+				AccountID:      entry.AccountID,
+				Account:        e.core.AccountManager().ToModel(entry.Account),
+				Debit:          entry.Debit,
+				Credit:         entry.Credit,
+				Date:           entry.Date.Format("2006-01-02"),
+				JVNumber:       entry.JVNumber,
+				Balance:        runningBalance.InexactFloat64(),
+			}
 
+			transactionsWithBalance = append(transactionsWithBalance, resp)
+		}
 		ledger := &core.AccountTransactionLedgerResponse{
 			Month:                   month,
 			Debit:                   totalDebit.InexactFloat64(),
 			Credit:                  totalCredit.InexactFloat64(),
-			AccountTransactionEntry: e.core.AccountTransactionEntryManager().ToModels(accountTransactions),
+			AccountTransactionEntry: transactionsWithBalance,
 		}
 
 		ledgers = append(ledgers, ledger)
