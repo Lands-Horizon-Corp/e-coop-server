@@ -294,13 +294,19 @@ func (e *Event) TransactionPayment(
 	cashOnHandGeneralLedger := &core.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,
+		UpdatedAt:          now,
+		UpdatedByID:        userOrg.UserID,
 		BranchID:           *userOrg.BranchID,
 		OrganizationID:     userOrg.OrganizationID,
+		EntryDate:          now,
 		TransactionBatchID: &transactionBatch.ID,
 		TransactionID:      &transaction.ID,
 		AccountID:          cashOnHandAccountID,
+		PaymentTypeID:      &paymentType.ID,
 		Credit:             debit,
 		Debit:              credit,
+		Source:             data.Source,
+		CurrencyID:         account.CurrencyID,
 		Account:            cashOnHandAccount,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
@@ -315,10 +321,9 @@ func (e *Event) TransactionPayment(
 	}
 
 	fmt.Println("DEBUG: Attempting DB COMMIT (endTx)")
-	commitErr := endTx(nil)
-	if commitErr != nil {
-		fmt.Printf("DEBUG: COMMIT FAILED: %v\n", commitErr)
-		return nil, commitErr
+	if err := endTx(nil); err != nil {
+		fmt.Printf("DEBUG: COMMIT FAILED: %v\n", err)
+		return nil, err
 	}
 
 	fmt.Println("DEBUG: [SUCCESS] TransactionPayment finished")
