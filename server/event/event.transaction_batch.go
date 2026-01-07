@@ -135,7 +135,7 @@ func (m *Event) TransactionBatchBalancing(ctx context.Context, transactionBatchI
 	transactionBatch.TotalActualSupposedComparison = totalActualSupposedComparison.InexactFloat64()
 	fmt.Println("TotalActualSupposedComparison:", transactionBatch.TotalActualSupposedComparison)
 
-	if err := m.core.TransactionBatchManager().UpdateByID(ctx, transactionBatch.ID, transactionBatch); err != nil {
+	if err := m.core.TransactionBatchManager().UpdateByIDWithTx(ctx, tx, transactionBatch.ID, transactionBatch); err != nil {
 		fmt.Println("Error: failed to update transaction batch in DB", err)
 		return endTx(eris.Wrap(err, "failed to update transaction batch"))
 	}
