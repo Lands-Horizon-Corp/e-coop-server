@@ -44,8 +44,21 @@ func (e *Event) AccountTransactionProcess(
 	userOrg core.UserOrganization,
 	data core.AccountTransactionProcessGLRequest,
 ) error {
-	startDate := time.Date(data.StartDate.Year(), data.StartDate.Month(), data.StartDate.Day(), 0, 0, 0, 0, data.StartDate.Location())
-	endDate := time.Date(data.EndDate.Year(), data.EndDate.Month(), data.EndDate.Day(), 0, 0, 0, 0, data.EndDate.Location()).AddDate(0, 0, 1)
+	startDate := time.Date(
+		data.StartDate.Year(),
+		data.StartDate.Month(),
+		data.StartDate.Day(),
+		0, 0, 0, 0,
+		data.StartDate.Location(),
+	)
+
+	endDate := time.Date(
+		data.EndDate.Year(),
+		data.EndDate.Month(),
+		data.EndDate.Day(),
+		23, 59, 59, int(time.Second-time.Nanosecond),
+		data.EndDate.Location(),
+	)
 	if endDate.Before(startDate) {
 		return eris.New("end date cannot be before start date")
 	}
@@ -63,6 +76,7 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(err)
 		}
+		summary := usecase.SumGeneralLedgerByAccount(booking)
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
 		jv := BuildJVNumberSimple(currentDate, GeneralJournalBook)
@@ -80,10 +94,13 @@ func (e *Event) AccountTransactionProcess(
 			Credit:         0,
 			Source:         core.AccountTransactionSourceDailyCollectionBook,
 		}
-		if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, accountTransactionCollection); err != nil {
-			return endTx(err)
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, accountTransactionCollection); err != nil {
+				return endTx(err)
+			}
 		}
-		for _, summary := range usecase.SumGeneralLedgerByAccount(booking) {
+
+		for _, summary := range summary {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
@@ -105,7 +122,7 @@ func (e *Event) AccountTransactionProcess(
 			totalCredit = totalCredit.Add(decimal.NewFromFloat(summary.Credit))
 		}
 		accountTransactionCollection.Debit = totalDebit.InexactFloat64()
-		accountTransactionCollection.Credit = totalCredit.InexactFloat64() // Fixed
+		accountTransactionCollection.Credit = totalCredit.InexactFloat64()
 		if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, accountTransactionCollection.ID, accountTransactionCollection); err != nil {
 			return endTx(err)
 		}
@@ -115,6 +132,7 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(err)
 		}
+		summary = usecase.SumGeneralLedgerByAccount(disbursement)
 		jv = BuildJVNumberSimple(currentDate, CashCheckDisbursementBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		disbursementTransaction := &core.AccountTransaction{
@@ -131,10 +149,12 @@ func (e *Event) AccountTransactionProcess(
 			Credit:         0,
 			Source:         core.AccountTransactionSourceCashCheckDisbursementBook,
 		}
-		if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, disbursementTransaction); err != nil {
-			return endTx(err)
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, disbursementTransaction); err != nil {
+				return endTx(err)
+			}
 		}
-		for _, summary := range usecase.SumGeneralLedgerByAccount(disbursement) {
+		for _, summary := range summary {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
@@ -166,6 +186,7 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(err)
 		}
+		summary = usecase.SumGeneralLedgerByAccount(journal)
 		jv = BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 		journalTransaction := &core.AccountTransaction{
@@ -182,10 +203,13 @@ func (e *Event) AccountTransactionProcess(
 			Credit:         0,
 			Source:         core.AccountTransactionSourceGeneralJournal,
 		}
-		if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, journalTransaction); err != nil {
-			return endTx(err)
+
+		if len(summary) > 0 {
+			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, journalTransaction); err != nil {
+				return endTx(err)
+			}
 		}
-		for _, summary := range usecase.SumGeneralLedgerByAccount(journal) {
+		for _, summary := range summary {
 			entry := &core.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
