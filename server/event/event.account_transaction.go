@@ -212,6 +212,9 @@ func (e *Event) AccountTransactionProcess(
 			return endTx(err)
 		}
 	}
+	if err := endTx(nil); err != nil {
+		return err
+	}
 	return nil
 }
 
