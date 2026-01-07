@@ -35,29 +35,38 @@ func (e *Event) AccountTransactionProcess(
 		0, 0, 0, 0,
 		data.EndDate.Location(),
 	)
-
 	if endDate.Before(startDate) {
 		return eris.New("end date cannot be before start date")
 	}
 
+	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 	for currentDate := startDate; !currentDate.After(endDate); currentDate = currentDate.AddDate(0, 0, 1) {
+		if err := e.core.AccountTransactionDestroyer(context, tx, currentDate, userOrg.OrganizationID, *userOrg.BranchID); err != nil {
+			return endTx(err)
+		}
 		booking, err := e.core.DailyBookingCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return err
 		}
-		usecase.SumGeneralLedgerByAccount(booking)
+		for _, summary := range usecase.SumGeneralLedgerByAccount(booking) {
+			//
+		}
 
 		disbursement, err := e.core.DailyDisbursementCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return err
 		}
-		usecase.SumGeneralLedgerByAccount(disbursement)
+		for _, summary := range usecase.SumGeneralLedgerByAccount(disbursement) {
+			//
+		}
 
 		journal, err := e.core.DailyJournalCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return err
 		}
-		usecase.SumGeneralLedgerByAccount(journal)
+		for _, summary := range usecase.SumGeneralLedgerByAccount(journal) {
+			//
+		}
 	}
 
 	return nil

@@ -175,3 +175,40 @@ func (m *Core) AccountTransactionByMonthYear(
 	}
 	return m.AccountTransactionManager().ArrFind(ctx, filters, sorts, "Entries", "Entries.Account")
 }
+
+func (m *Core) AccountTransactionDestroyer(
+	ctx context.Context,
+	tx *gorm.DB,
+	day time.Time,
+	organizationID, branchID uuid.UUID,
+) error {
+	startOfDay := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+	endOfDay := time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 999999999, day.Location())
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "date", Op: query.ModeLTE, Value: endOfDay},
+	}
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "created_at", Order: query.SortOrderAsc},
+	}
+	transactions, err := m.AccountTransactionManager().ArrFind(ctx, filters, sorts, "Entries")
+	if err != nil {
+		return err
+	}
+	for _, item := range transactions {
+		if item == nil {
+			continue
+		}
+		for _, entry := range item.Entries {
+			if err := m.AccountTransactionEntryManager().DeleteWithTx(ctx, tx, entry.ID); err != nil {
+				return err
+			}
+		}
+		if err := m.AccountTransactionEntryManager().DeleteWithTx(ctx, tx, item.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
