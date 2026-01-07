@@ -18,7 +18,7 @@ func (c *Controller) accountTransactionController() {
 		Route:        "/api/v1/account-transaction/account/:account_id/year/:year",
 		Method:       "GET",
 		Note:         "Returns account transaction ledgers for a specific account and year.",
-		ResponseType: []*core.AccountTransactionLedgerResponse{},
+		ResponseType: core.AccountTransactionLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
@@ -93,7 +93,7 @@ func (c *Controller) accountTransactionController() {
 		Route:        "/api/v1/account-transaction/year/:year/month/:month",
 		Method:       "GET",
 		Note:         "Returns account transactions for the specified year and month.",
-		ResponseType: []core.AccountTransactionResponse{},
+		ResponseType: core.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		yearParam := ctx.Param("year")
