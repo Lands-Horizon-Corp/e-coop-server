@@ -150,7 +150,6 @@ func (c *Controller) paymentController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
 		fmt.Printf("DEBUG: generalLedgerID: %v\n", generalLedgerID)
-
 		// Get current user organization
 		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {

@@ -269,6 +269,7 @@ func (e *Event) TransactionPayment(
 		Debit:              debit,
 		CurrencyID:         account.CurrencyID,
 		Account:            account,
+		MemberProfileID:    memberProfileID,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 		fmt.Printf("DEBUG: Ledger Creation Failed: %v\n", err)
@@ -308,6 +309,7 @@ func (e *Event) TransactionPayment(
 		Source:             data.Source,
 		CurrencyID:         account.CurrencyID,
 		Account:            cashOnHandAccount,
+		MemberProfileID:    memberProfileID,
 	}
 	if err := e.core.CreateGeneralLedgerEntry(context, tx, cashOnHandGeneralLedger); err != nil {
 		fmt.Printf("DEBUG: Cash Ledger Failed: %v\n", err)
