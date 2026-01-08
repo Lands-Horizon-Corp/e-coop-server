@@ -275,7 +275,7 @@ func (c *Controller) bankController() {
 			ids[i] = id
 		}
 
-		if err := c.core.AccountCategoryManager().BulkDelete(context, ids); err != nil {
+		if err := c.core.BankManager().BulkDelete(context, ids); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete banks (/bank/bulk-delete) | error: " + err.Error(),
