@@ -68,21 +68,17 @@ func (e *Event) AccountTransactionProcess(
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
 	for currentDate := startDate; !currentDate.After(endDate); currentDate = currentDate.AddDate(0, 0, 1) {
-		fmt.Printf("[INFO] Processing date: %s\n", currentDate.Format("2006-01-02"))
 
 		// Destroy previous entries
 		if err := e.core.AccountTransactionDestroyer(context, tx, currentDate, userOrg.OrganizationID, *userOrg.BranchID); err != nil {
 			return endTx(eris.Wrap(err, "failed to destroy previous account transactions"))
 		}
-		fmt.Println("[INFO] Previous transactions destroyed")
 
 		// ----- DAILY BOOKING -----
 		booking, err := e.core.DailyBookingCollection(context, currentDate, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return endTx(eris.Wrap(err, "failed to fetch daily booking collection"))
 		}
-		fmt.Printf("[INFO] Fetched %d daily bookings\n", len(booking))
-
 		summary := usecase.SumGeneralLedgerByAccount(booking)
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
@@ -107,7 +103,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, accountTransactionCollection); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily booking transaction header"))
 			}
-			fmt.Printf("[INFO] Created daily booking header ID=%s\n", accountTransactionCollection.ID)
 		}
 
 		for _, s := range summary {
@@ -128,7 +123,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily booking transaction entry"))
 			}
-			fmt.Printf("[INFO] Created daily booking entry AccountID=%s Debit=%.2f Credit=%.2f\n", s.AccountID, s.Debit, s.Credit)
 			totalDebit = totalDebit.Add(decimal.NewFromFloat(s.Debit))
 			totalCredit = totalCredit.Add(decimal.NewFromFloat(s.Credit))
 		}
@@ -139,7 +133,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, accountTransactionCollection.ID, accountTransactionCollection); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily booking transaction totals"))
 			}
-			fmt.Printf("[INFO] Updated daily booking totals: Debit=%.2f Credit=%.2f\n", accountTransactionCollection.Debit, accountTransactionCollection.Credit)
 		}
 
 		// ----- DAILY DISBURSEMENT -----
@@ -147,7 +140,6 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(eris.Wrap(err, "failed to fetch daily disbursement collection"))
 		}
-		fmt.Printf("[INFO] Fetched %d daily disbursements\n", len(disbursement))
 
 		summary = usecase.SumGeneralLedgerByAccount(disbursement)
 		jv = BuildJVNumberSimple(currentDate, CashCheckDisbursementBook)
@@ -172,7 +164,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, disbursementTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily disbursement transaction header"))
 			}
-			fmt.Printf("[INFO] Created daily disbursement header ID=%s\n", disbursementTransaction.ID)
 		}
 		for _, s := range summary {
 			entry := &core.AccountTransactionEntry{
@@ -192,7 +183,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily disbursement transaction entry"))
 			}
-			fmt.Printf("[INFO] Created daily disbursement entry AccountID=%s Debit=%.2f Credit=%.2f\n", s.AccountID, s.Debit, s.Credit)
 			totalDebit = totalDebit.Add(decimal.NewFromFloat(s.Debit))
 			totalCredit = totalCredit.Add(decimal.NewFromFloat(s.Credit))
 		}
@@ -203,7 +193,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, disbursementTransaction.ID, disbursementTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily disbursement transaction totals"))
 			}
-			fmt.Printf("[INFO] Updated daily disbursement totals: Debit=%.2f Credit=%.2f\n", disbursementTransaction.Debit, disbursementTransaction.Credit)
 		}
 
 		// ----- DAILY JOURNAL -----
@@ -211,8 +200,6 @@ func (e *Event) AccountTransactionProcess(
 		if err != nil {
 			return endTx(eris.Wrap(err, "failed to fetch daily journal collection"))
 		}
-		fmt.Printf("[INFO] Fetched %d daily journal entries\n", len(journal))
-
 		summary = usecase.SumGeneralLedgerByAccount(journal)
 		jv = BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
@@ -236,7 +223,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().CreateWithTx(context, tx, journalTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily journal transaction header"))
 			}
-			fmt.Printf("[INFO] Created daily journal header ID=%s\n", journalTransaction.ID)
 		}
 		for _, s := range summary {
 			entry := &core.AccountTransactionEntry{
@@ -256,7 +242,6 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionEntryManager().CreateWithTx(context, tx, entry); err != nil {
 				return endTx(eris.Wrap(err, "failed to create daily journal transaction entry"))
 			}
-			fmt.Printf("[INFO] Created daily journal entry AccountID=%s Debit=%.2f Credit=%.2f\n", s.AccountID, s.Debit, s.Credit)
 			totalDebit = totalDebit.Add(decimal.NewFromFloat(s.Debit))
 			totalCredit = totalCredit.Add(decimal.NewFromFloat(s.Credit))
 		}
@@ -267,14 +252,12 @@ func (e *Event) AccountTransactionProcess(
 			if err := e.core.AccountTransactionManager().UpdateByIDWithTx(context, tx, journalTransaction.ID, journalTransaction); err != nil {
 				return endTx(eris.Wrap(err, "failed to update daily journal transaction totals"))
 			}
-			fmt.Printf("[INFO] Updated daily journal totals: Debit=%.2f Credit=%.2f\n", journalTransaction.Debit, journalTransaction.Credit)
 		}
 	}
 
 	if err := endTx(nil); err != nil {
 		return eris.Wrap(err, "failed to commit account transaction process")
 	}
-	fmt.Println("[INFO] Account transaction process completed successfully")
 	return nil
 }
 

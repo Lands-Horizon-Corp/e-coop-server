@@ -219,7 +219,7 @@ func (c *Controller) cashCheckVoucherController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
 		})
 
@@ -801,7 +801,7 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash check voucher entries: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, *cashCheckVoucher.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",

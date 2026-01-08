@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
@@ -847,19 +846,12 @@ func (m *Core) DailyBookingCollection(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("DailyBookingCollection - fetched %d records\n", len(allData))
-
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
-		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourcePayment || item.Source == GeneralLedgerSourceDeposit {
-			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
-
-	fmt.Printf("DailyBookingCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }
 
@@ -888,21 +880,15 @@ func (m *Core) DailyDisbursementCollection(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("DailyDisbursementCollection - fetched %d records\n", len(allData))
-
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
-		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourceWithdraw ||
 			item.Source == GeneralLedgerSourceCheckVoucher ||
 			item.Source == GeneralLedgerSourceLoan {
-			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
 
-	fmt.Printf("DailyDisbursementCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }
 
@@ -931,19 +917,12 @@ func (m *Core) DailyJournalCollection(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("DailyJournalCollection - fetched %d records\n", len(allData))
-
 	result := make([]*GeneralLedger, 0)
 	for _, item := range allData {
-		fmt.Printf("Checking item ID: %s, Source: %s\n", item.ID, item.Source)
 		if item.Source == GeneralLedgerSourceJournalVoucher ||
 			item.Source == GeneralLedgerSourceAdjustment {
-			fmt.Printf(" -> Added to result\n")
 			result = append(result, item)
 		}
 	}
-
-	fmt.Printf("DailyJournalCollection - returning %d filtered records\n", len(result))
 	return result, nil
 }

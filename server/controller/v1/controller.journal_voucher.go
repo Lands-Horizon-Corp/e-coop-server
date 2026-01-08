@@ -116,7 +116,7 @@ func (c *Controller) journalVoucherController() {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		balance, err := usecase.CalculateStrictBalance(usecase.Balance{
+		balance, err := usecase.CalculateBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
 		})
 		if err != nil {
@@ -876,7 +876,7 @@ func (c *Controller) journalVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been released"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, *journalVoucher.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",
