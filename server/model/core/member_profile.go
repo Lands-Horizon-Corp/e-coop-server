@@ -161,6 +161,7 @@ type (
 		MemberContactReferences      []*MemberContactReferenceResponse      `json:"member_contact_references,omitempty"`
 		MemberCloseRemarks           []*MemberCloseRemarkResponse           `json:"member_close_remarks,omitempty"`
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
+		BirthPlace                   string                                 `json:"birth_place"`
 	}
 
 	MemberProfileRequest struct {
@@ -442,6 +443,7 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 				RecruitedMembers:               m.MemberProfileManager().ToModels(data.RecruitedMembers),
 				MemberDepartmentID:             data.MemberDepartmentID,
 				MemberDepartment:               m.MemberDepartmentManager().ToModel(data.MemberDepartment),
+				BirthPlace:                     data.BirthPlace,
 			}
 		},
 
