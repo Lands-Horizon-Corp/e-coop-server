@@ -71,7 +71,7 @@ func (f *Pagination[T]) structuredQuery(
 			if strings.Contains(field, ".") {
 				parts := strings.Split(field, ".")
 				if len(parts) >= 2 {
-					parts[0] = toPascalCase(parts[0])
+					parts[0] = toSnakeCase(parts[0])
 					field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
 					for i := 2; i < len(parts); i++ {
 						field = fmt.Sprintf(`%s."%s"`, field, parts[i])
@@ -151,7 +151,7 @@ func (f *Pagination[T]) buildConditionWithTableName(filter FieldFilter, mainTabl
 	if isNestedField {
 		parts := strings.Split(field, ".")
 		if len(parts) >= 2 {
-			parts[0] = toPascalCase(parts[0])
+			parts[0] = toSnakeCase(parts[0])
 			field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
 			for i := 2; i < len(parts); i++ {
 				field = fmt.Sprintf(`%s."%s"`, field, parts[i])
