@@ -923,7 +923,6 @@ func (c *Controller) memberProfileController() {
 		profile.OldReferenceID = req.OldReferenceID
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
-		profile.MemberDepartmentID = req.MemberDepartmentID
 
 		if req.MemberDepartmentID != nil && !handlers.UUIDPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
 			data := &core.MemberDepartmentHistory{

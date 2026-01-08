@@ -1397,4 +1397,97 @@ func (c *Controller) userOrganinzationController() {
 
 		return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrg))
 	})
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/user-organization/employee",
+		Method:       "POST",
+		Note:         "Creates a new employee user and user organization record.",
+		RequestType:  core.EmployeeCreateRequest{},
+		ResponseType: core.UserOrganizationResponse{},
+	}, func(ctx echo.Context) error {
+
+		context := ctx.Request().Context()
+
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
+			return ctx.JSON(http.StatusForbidden, map[string]string{
+				"error": "Only owners or admins can create employees",
+			})
+		}
+
+		// 📥 Bind payload
+		var payload core.EmployeeCreateRequest
+		if err := ctx.Bind(&payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Invalid request payload: " + err.Error(),
+			})
+		}
+
+		// ✅ Validate
+		validate := validator.New()
+		if err := validate.Struct(payload); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Validation failed: " + err.Error(),
+			})
+		}
+
+		// 🔐 Hash password
+		hashedPwd, err := c.provider.Service.Security.HashPassword(context, payload.Password)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to hash password",
+			})
+		}
+
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+
+		now := time.Now().UTC()
+
+		user := &core.User{
+			Email:             payload.Email,
+			Password:          hashedPwd,
+			Username:          payload.Username,
+			FirstName:         &payload.FirstName,
+			MiddleName:        &payload.MiddleName,
+			LastName:          &payload.LastName,
+			Suffix:            &payload.Suffix,
+			FullName:          payload.FullName,
+			Birthdate:         payload.BirthDate,
+			ContactNumber:     payload.ContactNumber,
+			IsEmailVerified:   false,
+			IsContactVerified: false,
+			CreatedAt:         now,
+			UpdatedAt:         now,
+		}
+
+		if err := c.core.UserManager().CreateWithTx(context, tx, user); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": endTx(err).Error()})
+		}
+
+		// 🚧 TODO: create UserOrganization (employee role)
+		// Example (pseudo):
+		// employeeOrg := core.NewEmployeeUserOrganization(user.ID, userOrg.OrganizationID)
+		// c.core.UserOrganizationManager().CreateWithTx(...)
+
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+			})
+		}
+
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "create",
+			Description: "Employee user created",
+			Module:      "UserOrganization",
+		})
+
+		return ctx.JSON(http.StatusCreated, map[string]string{
+			"message": "Employee user created successfully",
+		})
+	})
+
 }
