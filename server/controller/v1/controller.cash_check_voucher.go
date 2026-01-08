@@ -786,12 +786,22 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "batch-retrieval-failed",
+				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ReleasedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
+		cashCheckVoucher.TransactionBatchID = &transactionBatch.ID
 
 		cashCheckVoucherEntries, err := c.core.CashCheckVoucherEntryManager().Find(context, &core.CashCheckVoucherEntry{
 			CashCheckVoucherID: cashCheckVoucher.ID,
@@ -802,16 +812,10 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash check voucher entries: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-retrieval-failed",
-				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-				Module:      "CashCheckVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
+		if transactionBatch == nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch. TB is Nil"})
 
+		}
 		for _, entry := range cashCheckVoucherEntries {
 			transactionRequest := event.RecordTransactionRequest{
 				Debit:  entry.Debit,
