@@ -1469,11 +1469,11 @@ func (c *Controller) userOrganinzationController() {
 			UserType:              core.UserOrganizationTypeEmployee,
 			ApplicationStatus:     "accepted",
 			DeveloperSecretKey:    fmt.Sprintf("%s-%s-employee-horizon", developerKey, uuid.NewString()),
-			PermissionName:        "Employee",
-			PermissionDescription: "Branch employee with standard operational permissions",
-			Permissions:           []string{"read", "create", "update"},
 			Status:                core.UserOrganizationStatusOffline,
 			LastOnlineAt:          now,
+			PermissionName:        payload.PermissionName,
+			PermissionDescription: payload.PermissionDescription,
+			Permissions:           payload.Permissions,
 		}
 		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, employeeOrg); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{

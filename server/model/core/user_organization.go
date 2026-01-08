@@ -98,19 +98,27 @@ type (
 	}
 
 	EmployeeCreateRequest struct {
-		FirstName              string     `json:"first_name" validate:"required,min=1,max=255"`
-		MiddleName             string     `json:"middle_name,omitempty" validate:"max=255"`
-		LastName               string     `json:"last_name" validate:"required,min=1,max=255"`
-		FullName               string     `json:"full_name,omitempty" validate:"max=255"`
-		Suffix                 string     `json:"suffix,omitempty" validate:"max=50"`
-		BirthDate              *time.Time `json:"birthdate" validate:"required"`
-		BirthPlace             string     `json:"birth_place,omitempty" validate:"max=255"`
-		ContactNumber          string     `json:"contact_number,omitempty" validate:"max=255"`
-		Username               string     `json:"user_name" validate:"required,min=1,max=255"`
-		Email                  string     `json:"email" validate:"required,email,max=255"`
-		Password               string     `json:"password" validate:"required,min=6,max=128"`
-		MediaID                *uuid.UUID `json:"media_id"`
-		ApplicationDescription string     `json:"application_description"`
+		FirstName  string `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName string `json:"middle_name,omitempty" validate:"max=255"`
+		LastName   string `json:"last_name" validate:"required,min=1,max=255"`
+		FullName   string `json:"full_name,omitempty" validate:"max=255"`
+		Suffix     string `json:"suffix,omitempty" validate:"max=50"`
+
+		BirthDate     *time.Time `json:"birthdate" validate:"required"`
+		BirthPlace    string     `json:"birth_place,omitempty" validate:"max=255"`
+		ContactNumber string     `json:"contact_number,omitempty" validate:"max=255"`
+
+		Username string `json:"user_name" validate:"required,min=1,max=255"`
+		Email    string `json:"email" validate:"required,email,max=255"`
+		Password string `json:"password" validate:"required,min=6,max=128"`
+
+		MediaID *uuid.UUID `json:"media_id,omitempty"`
+
+		ApplicationDescription string `json:"application_description,omitempty"`
+
+		PermissionName        string   `json:"permission_name" validate:"required"`
+		PermissionDescription string   `json:"permission_description" validate:"required"`
+		Permissions           []string `json:"permissions" validate:"omitempty,dive,min=1"`
 	}
 )
 
