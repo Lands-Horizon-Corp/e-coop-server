@@ -82,13 +82,15 @@ func (f *Pagination[T]) structuredQuery(
 			}
 			db = db.Order(fmt.Sprintf("%s %s", field, order))
 		}
-	} else {
-		if mainTableName != "" {
-			db = db.Order(fmt.Sprintf(`"%s"."created_at" DESC`, mainTableName))
-		} else {
-			db = db.Order("created_at DESC")
-		}
 	}
+
+	// else {
+	// 	if mainTableName != "" {
+	// 		db = db.Order(fmt.Sprintf(`"%s"."created_at" DESC`, mainTableName))
+	// 	} else {
+	// 		db = db.Order("created_at DESC")
+	// 	}
+	// }
 	return db
 }
 
