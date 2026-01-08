@@ -55,8 +55,8 @@ type (
 		RecruitedByMemberProfileID     *uuid.UUID            `gorm:"type:uuid" json:"recruited_by_member_profile_id,omitempty"`
 		RecruitedByMemberProfile       *MemberProfile        `gorm:"foreignKey:RecruitedByMemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"recruited_by_member_profile,omitempty"`
 		IsClosed                       bool                  `gorm:"not null;default:false" json:"is_closed"`
-		IsMutualFundMember             bool                  `gorm:"not null;default:false" json:"is_mutual_fund_member"`
-		IsMicroFinanceMember           bool                  `gorm:"not null;default:false" json:"is_micro_finance_member"`
+		IsMutualFundMember             bool                  `gorm:"not null;default:true" json:"is_mutual_fund_member"`
+		IsMicroFinanceMember           bool                  `gorm:"not null;default:true" json:"is_micro_finance_member"`
 		FirstName                      string                `gorm:"type:varchar(255);not null" json:"first_name"`
 		MiddleName                     string                `gorm:"type:varchar(255)" json:"middle_name,omitempty"`
 		LastName                       string                `gorm:"type:varchar(255);not null" json:"last_name"`
