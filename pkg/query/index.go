@@ -32,7 +32,7 @@ func NewPagination[T any](config PaginationConfig) *Pagination[T] {
 		config.ColumnDefaultID = "id"
 	}
 	if config.ColumnDefaultSort == "" {
-		config.ColumnDefaultSort = "created_at DESC"
+		config.ColumnDefaultSort = "updated_at DESC"
 	}
 	return &Pagination[T]{
 		verbose:           config.Verbose,

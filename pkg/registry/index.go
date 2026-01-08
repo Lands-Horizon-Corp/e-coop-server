@@ -74,7 +74,7 @@ func NewRegistry[TData any, TResponse any, TRequest any](
 		params.ColumnDefaultID = "id"
 	}
 	if params.ColumnDefaultSort == "" {
-		params.ColumnDefaultSort = "created_at DESC"
+		params.ColumnDefaultSort = "updated_at DESC"
 	}
 
 	return &Registry[TData, TResponse, TRequest]{
