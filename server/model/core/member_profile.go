@@ -14,6 +14,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type MemberStatus string
+
+const (
+	MemberStatusPending   MemberStatus = "pending"
+	MemberStatusForReview MemberStatus = "for review"
+	MemberStatusVerified  MemberStatus = "verified"
+	MemberStatusNotAllowd MemberStatus = "not allowed"
+)
+
 type (
 	MemberProfile struct {
 		ID                             uuid.UUID             `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
@@ -63,7 +72,7 @@ type (
 		FullName                       string                `gorm:"type:varchar(255);not null;index:idx_full_name" json:"full_name"`
 		Suffix                         string                `gorm:"type:varchar(50)" json:"suffix,omitempty"`
 		BirthDate                      *time.Time            `gorm:"type:date;not null" json:"birthdate"`
-		Status                         string                `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
+		Status                         MemberStatus          `gorm:"type:varchar(50);not null;default:'pending'" json:"status"`
 		Description                    string                `gorm:"type:text" json:"description,omitempty"`
 		Notes                          string                `gorm:"type:text" json:"notes,omitempty"`
 		ContactNumber                  string                `gorm:"type:varchar(255)" json:"contact_number,omitempty"`
@@ -135,7 +144,7 @@ type (
 		FullName                       string                        `json:"full_name"`
 		Suffix                         string                        `json:"suffix"`
 		BirthDate                      string                        `json:"birthdate"`
-		Status                         string                        `json:"status"`
+		Status                         MemberStatus                  `json:"status"`
 		Description                    string                        `json:"description"`
 		Notes                          string                        `json:"notes"`
 		ContactNumber                  string                        `json:"contact_number"`
@@ -165,39 +174,39 @@ type (
 	}
 
 	MemberProfileRequest struct {
-		OrganizationID                 uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID                       uuid.UUID  `json:"branch_id" validate:"required"`
-		MediaID                        *uuid.UUID `json:"media_id,omitempty"`
-		SignatureMediaID               *uuid.UUID `json:"signature_media_id,omitempty"`
-		UserID                         uuid.UUID  `json:"user_id" validate:"required"`
-		MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
-		MemberGroupID                  *uuid.UUID `json:"member_group_id,omitempty"`
-		MemberGenderID                 *uuid.UUID `json:"member_gender_id,omitempty"`
-		MemberDepartmentID             *uuid.UUID `json:"member_department_id,omitempty"`
-		MemberCenterID                 *uuid.UUID `json:"member_center_id,omitempty"`
-		MemberOccupationID             *uuid.UUID `json:"member_occupation_id,omitempty"`
-		MemberClassificationID         *uuid.UUID `json:"member_classification_id,omitempty"`
-		MemberVerifiedByEmployeeUserID *uuid.UUID `json:"member_verified_by_employee_user_id,omitempty"`
-		RecruitedByMemberProfileID     *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
-		IsClosed                       bool       `json:"is_closed"`
-		IsMutualFundMember             bool       `json:"is_mutual_fund_member"`
-		IsMicroFinanceMember           bool       `json:"is_micro_finance_member"`
-		FirstName                      string     `json:"first_name" validate:"required,min=1,max=255"`
-		MiddleName                     string     `json:"middle_name,omitempty"`
-		LastName                       string     `json:"last_name" validate:"required,min=1,max=255"`
-		FullName                       string     `json:"full_name" validate:"required,min=1,max=255"`
-		Suffix                         string     `json:"suffix,omitempty"`
-		BirthDate                      time.Time  `json:"birthdate" validate:"required"`
-		Status                         string     `json:"status,omitempty"`
-		Description                    string     `json:"description,omitempty"`
-		Notes                          string     `json:"notes,omitempty"`
-		ContactNumber                  string     `json:"contact_number,omitempty"`
-		OldReferenceID                 string     `json:"old_reference_id,omitempty"`
-		Passbook                       string     `json:"passbook,omitempty"`
-		BusinessAddress                string     `json:"business_address,omitempty"`
-		BusinessContactNumber          string     `json:"business_contact_number,omitempty"`
-		CivilStatus                    string     `json:"civil_status,omitempty"`
-		BirthPlace                     string     `json:"birth_place,omitempty"`
+		OrganizationID                 uuid.UUID    `json:"organization_id" validate:"required"`
+		BranchID                       uuid.UUID    `json:"branch_id" validate:"required"`
+		MediaID                        *uuid.UUID   `json:"media_id,omitempty"`
+		SignatureMediaID               *uuid.UUID   `json:"signature_media_id,omitempty"`
+		UserID                         uuid.UUID    `json:"user_id" validate:"required"`
+		MemberTypeID                   *uuid.UUID   `json:"member_type_id,omitempty"`
+		MemberGroupID                  *uuid.UUID   `json:"member_group_id,omitempty"`
+		MemberGenderID                 *uuid.UUID   `json:"member_gender_id,omitempty"`
+		MemberDepartmentID             *uuid.UUID   `json:"member_department_id,omitempty"`
+		MemberCenterID                 *uuid.UUID   `json:"member_center_id,omitempty"`
+		MemberOccupationID             *uuid.UUID   `json:"member_occupation_id,omitempty"`
+		MemberClassificationID         *uuid.UUID   `json:"member_classification_id,omitempty"`
+		MemberVerifiedByEmployeeUserID *uuid.UUID   `json:"member_verified_by_employee_user_id,omitempty"`
+		RecruitedByMemberProfileID     *uuid.UUID   `json:"recruited_by_member_profile_id,omitempty"`
+		IsClosed                       bool         `json:"is_closed"`
+		IsMutualFundMember             bool         `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember           bool         `json:"is_micro_finance_member"`
+		FirstName                      string       `json:"first_name" validate:"required,min=1,max=255"`
+		MiddleName                     string       `json:"middle_name,omitempty"`
+		LastName                       string       `json:"last_name" validate:"required,min=1,max=255"`
+		FullName                       string       `json:"full_name" validate:"required,min=1,max=255"`
+		Suffix                         string       `json:"suffix,omitempty"`
+		BirthDate                      time.Time    `json:"birthdate" validate:"required"`
+		Status                         MemberStatus `json:"status,omitempty"`
+		Description                    string       `json:"description,omitempty"`
+		Notes                          string       `json:"notes,omitempty"`
+		ContactNumber                  string       `json:"contact_number,omitempty"`
+		OldReferenceID                 string       `json:"old_reference_id,omitempty"`
+		Passbook                       string       `json:"passbook,omitempty"`
+		BusinessAddress                string       `json:"business_address,omitempty"`
+		BusinessContactNumber          string       `json:"business_contact_number,omitempty"`
+		CivilStatus                    string       `json:"civil_status,omitempty"`
+		BirthPlace                     string       `json:"birth_place,omitempty"`
 	}
 
 	MemberProfileCoordinatesRequest struct {
@@ -228,17 +237,17 @@ type (
 	}
 
 	MemberProfileMembershipInfoRequest struct {
-		Passbook                   string     `json:"passbook,omitempty" validate:"max=255"`
-		OldReferenceID             string     `json:"old_reference_id,omitempty" validate:"max=50"`
-		Status                     string     `json:"status,omitempty" validate:"max=50"`
-		MemberTypeID               *uuid.UUID `json:"member_type_id,omitempty"`
-		MemberGroupID              *uuid.UUID `json:"member_group_id,omitempty"`
-		MemberClassificationID     *uuid.UUID `json:"member_classification_id,omitempty"`
-		MemberCenterID             *uuid.UUID `json:"member_center_id,omitempty"`
-		RecruitedByMemberProfileID *uuid.UUID `json:"recruited_by_member_profile_id,omitempty"`
-		MemberDepartmentID         *uuid.UUID `json:"member_department_id,omitempty"`
-		IsMutualFundMember         bool       `json:"is_mutual_fund_member"`
-		IsMicroFinanceMember       bool       `json:"is_micro_finance_member"`
+		Passbook                   string       `json:"passbook,omitempty" validate:"max=255"`
+		OldReferenceID             string       `json:"old_reference_id,omitempty" validate:"max=50"`
+		Status                     MemberStatus `json:"status,omitempty" validate:"max=50"`
+		MemberTypeID               *uuid.UUID   `json:"member_type_id,omitempty"`
+		MemberGroupID              *uuid.UUID   `json:"member_group_id,omitempty"`
+		MemberClassificationID     *uuid.UUID   `json:"member_classification_id,omitempty"`
+		MemberCenterID             *uuid.UUID   `json:"member_center_id,omitempty"`
+		RecruitedByMemberProfileID *uuid.UUID   `json:"recruited_by_member_profile_id,omitempty"`
+		MemberDepartmentID         *uuid.UUID   `json:"member_department_id,omitempty"`
+		IsMutualFundMember         bool         `json:"is_mutual_fund_member"`
+		IsMicroFinanceMember       bool         `json:"is_micro_finance_member"`
 	}
 
 	MemberProfileAccountRequest struct {
@@ -266,7 +275,7 @@ type (
 		ContactNumber        string       `json:"contact_number,omitempty" validate:"max=255"`
 		CivilStatus          string       `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // adjust allowed values as needed
 		MemberOccupationID   *uuid.UUID   `json:"member_occupation_id,omitempty"`
-		Status               string       `json:"status" validate:"required,max=50"`
+		Status               MemberStatus `json:"status" validate:"required,max=50"`
 		IsMutualFundMember   bool         `json:"is_mutual_fund_member"`
 		IsMicroFinanceMember bool         `json:"is_micro_finance_member"`
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`

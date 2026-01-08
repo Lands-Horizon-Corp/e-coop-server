@@ -524,7 +524,7 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 					LastName:              lastName,
 					FullName:              fullName,
 					BirthDate:             &birthDate,
-					Status:                []string{"active", "pending", "inactive"}[i%3],
+					Status:                MemberStatusPending,
 					Description:           s.faker.Lorem().Paragraph(2),
 					Notes:                 s.faker.Lorem().Paragraph(1),
 					ContactNumber:         fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999)),
