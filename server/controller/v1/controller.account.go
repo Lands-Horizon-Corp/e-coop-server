@@ -53,8 +53,7 @@ func (c *Controller) accountController() {
 					WHEN 'Revenue' THEN 4
 					WHEN 'Expenses' THEN 5
 					ELSE 6
-				END,
-				accounts.index ASC
+				END
 			`)
 			},
 		)
