@@ -71,7 +71,7 @@ func (f *Pagination[T]) structuredQuery(
 			if strings.Contains(field, ".") {
 				parts := strings.Split(field, ".")
 				if len(parts) >= 2 {
-					parts[0] = toSnakeCase(parts[0])
+					parts[0] = pluralizer.Plural(toSnakeCase(parts[0]))
 					field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
 					for i := 2; i < len(parts); i++ {
 						field = fmt.Sprintf(`%s."%s"`, field, parts[i])
@@ -600,7 +600,7 @@ func (f *Pagination[T]) applyJoinsForFilters(db *gorm.DB, filters []ArrFilterSQL
 				if !f.fieldExists(db, parts[0]) {
 					continue
 				}
-				relationName := toSnakeCase(parts[0])
+				relationName := pluralizer.Plural(toSnakeCase(parts[0]))
 				if !joinMap[relationName] {
 					db = db.Joins(relationName)
 					joinMap[relationName] = true
