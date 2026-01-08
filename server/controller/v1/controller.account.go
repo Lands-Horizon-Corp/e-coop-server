@@ -1074,7 +1074,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 		indexParam := ctx.Param("index")
-		var newIndex int
+		var newIndex float64
 		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{

@@ -174,7 +174,7 @@ type (
 
 		MinAmount float64     `gorm:"type:decimal;default:0" json:"min_amount"`
 		MaxAmount float64     `gorm:"type:decimal;default:50000" json:"max_amount"`
-		Index     int         `gorm:"default:0" json:"index"`
+		Index     float64     `gorm:"default:0" json:"index"`
 		Type      AccountType `gorm:"type:varchar(50);not null" json:"type"`
 
 		IsInternal         bool `gorm:"default:false" json:"is_internal"`
@@ -255,7 +255,7 @@ type (
 		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
-		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
+		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
 		InterestAmortization        float64                     `gorm:"type:decimal;default:0" json:"interest_amortization,omitempty"`
 		InterestMaturity            float64                     `gorm:"type:decimal;default:0" json:"interest_maturity,omitempty"`
 
@@ -295,7 +295,7 @@ type AccountResponse struct {
 	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount"`
 	MaxAmount   float64     `json:"max_amount"`
-	Index       int         `json:"index"`
+	Index       float64     `json:"index"`
 	Type        AccountType `json:"type"`
 
 	IsInternal         bool `json:"is_internal"`
@@ -394,7 +394,7 @@ type AccountRequest struct {
 	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount,omitempty"`
 	MaxAmount   float64     `json:"max_amount,omitempty"`
-	Index       int         `json:"index,omitempty"`
+	Index       float64     `json:"index,omitempty"`
 	Type        AccountType `json:"type" validate:"required"`
 
 	IsInternal         bool `json:"is_internal,omitempty"`
