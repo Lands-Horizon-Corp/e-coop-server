@@ -1414,39 +1414,22 @@ func (c *Controller) userOrganinzationController() {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
-			return ctx.JSON(http.StatusForbidden, map[string]string{
-				"error": "Only owners or admins can create employees",
-			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners or admins can create employees"})
 		}
-
-		// 📥 Bind payload
 		var payload core.EmployeeCreateRequest
 		if err := ctx.Bind(&payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "Invalid request payload: " + err.Error(),
-			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload: " + err.Error()})
 		}
-
-		// ✅ Validate
 		validate := validator.New()
 		if err := validate.Struct(payload); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{
-				"error": "Validation failed: " + err.Error(),
-			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		// 🔐 Hash password
 		hashedPwd, err := c.provider.Service.Security.HashPassword(context, payload.Password)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{
-				"error": "Failed to hash password",
-			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password"})
 		}
-
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-
 		now := time.Now().UTC()
-
 		user := &core.User{
 			Email:             payload.Email,
 			Password:          hashedPwd,
@@ -1468,26 +1451,47 @@ func (c *Controller) userOrganinzationController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": endTx(err).Error()})
 		}
 
-		// 🚧 TODO: create UserOrganization (employee role)
-		// Example (pseudo):
-		// employeeOrg := core.NewEmployeeUserOrganization(user.ID, userOrg.OrganizationID)
-		// c.core.UserOrganizationManager().CreateWithTx(...)
-
+		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(
+			context,
+			fmt.Sprintf("%s-%s-%s", user.ID, userOrg.OrganizationID, userOrg.BranchID),
+		)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key"})
+		}
+		employeeOrg := &core.UserOrganization{
+			CreatedAt:             now,
+			CreatedByID:           userOrg.UserID,
+			UpdatedAt:             now,
+			UpdatedByID:           userOrg.UserID,
+			BranchID:              userOrg.BranchID,
+			OrganizationID:        userOrg.OrganizationID,
+			UserID:                user.ID,
+			UserType:              core.UserOrganizationTypeEmployee,
+			ApplicationStatus:     "accepted",
+			DeveloperSecretKey:    fmt.Sprintf("%s-%s-employee-horizon", developerKey, uuid.NewString()),
+			PermissionName:        "Employee",
+			PermissionDescription: "Branch employee with standard operational permissions",
+			Permissions:           []string{"read", "create", "update"},
+			Status:                core.UserOrganizationStatusOffline,
+			LastOnlineAt:          now,
+		}
+		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, employeeOrg); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": endTx(err).Error(),
+			})
+		}
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": err.Error(),
 			})
 		}
-
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create",
 			Description: "Employee user created",
 			Module:      "UserOrganization",
 		})
 
-		return ctx.JSON(http.StatusCreated, map[string]string{
-			"message": "Employee user created successfully",
-		})
+		return ctx.JSON(http.StatusCreated, map[string]string{"message": "Employee user created successfully"})
 	})
 
 }
