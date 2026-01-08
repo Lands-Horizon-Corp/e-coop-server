@@ -55,12 +55,23 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 	fmt.Printf("Bulk deleting %d IDs\n", len(ids))
 
 	for _, id := range ids {
-		fmt.Printf("Deleting ID: %v\n", id)
+		var entity TData
+		// Find the entity first
 		if err := r.Client(ctx).
 			Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).
-			Delete(new(TData)).Error; err != nil {
-			return fmt.Errorf("failed to delete entity with ID %v: %w", id, err)
+			First(&entity).Error; err != nil {
+			fmt.Printf("ID %v not found, skipping: %v\n", id, err)
+			continue
 		}
+
+		// Delete (soft delete if model has DeletedAt)
+		if err := r.Client(ctx).Delete(&entity).Error; err != nil {
+			fmt.Printf("Failed to delete ID %v: %v\n", id, err)
+			continue
+		}
+
+		// Call OnDelete hook
+		r.OnDelete(ctx, &entity)
 	}
 
 	fmt.Println("Bulk delete completed")
