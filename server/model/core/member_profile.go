@@ -373,6 +373,7 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 				MemberProfileID: data.ID.String(),
 				BranchID:        data.BranchID.String(),
 				OrganizationID:  data.OrganizationID.String(),
+				FullName:        data.FullName,
 			}, "member-qr")
 			if err != nil {
 				return nil

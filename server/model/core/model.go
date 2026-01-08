@@ -19,6 +19,7 @@ type (
 		FirstName       string `json:"first_name"`
 		LastName        string `json:"last_name"`
 		MiddleName      string `json:"middle_name"`
+		FullName        string `json:"full_name"`
 		ContactNumber   string `json:"contact_number"`
 		MemberProfileID string `json:"member_profile_id"`
 		BranchID        string `json:"branch_id"`
