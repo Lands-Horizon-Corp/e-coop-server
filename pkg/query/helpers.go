@@ -17,8 +17,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-
-	"github.com/gertd/go-pluralize"
 )
 
 var dateTimeLayouts = []string{
@@ -63,15 +61,13 @@ var timeLayouts = []string{
 	"15:04:05-07:00",
 }
 
-var pluralizer = pluralize.NewClient()
-
 func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []SortField) *gorm.DB {
 	joinedTables := make(map[string]bool)
 	for _, filter := range filters {
 		if strings.Contains(filter.Field, ".") {
 			parts := strings.Split(filter.Field, ".")
 			if len(parts) >= 2 {
-				tableName := pluralizer.Plural(toSnakeCase(parts[0]))
+				tableName := toPascalCase(parts[0])
 				if !joinedTables[tableName] {
 					db = db.Joins(tableName)
 					joinedTables[tableName] = true
@@ -83,7 +79,7 @@ func autoJoinRelatedTables(db *gorm.DB, filters []FieldFilter, sortFields []Sort
 		if strings.Contains(sortField.Field, ".") {
 			parts := strings.Split(sortField.Field, ".")
 			if len(parts) >= 2 {
-				tableName := pluralizer.Plural(toSnakeCase(parts[0]))
+				tableName := toPascalCase(parts[0])
 				if !joinedTables[tableName] {
 					db = db.Joins(tableName)
 					joinedTables[tableName] = true
@@ -367,6 +363,19 @@ func csvCreation[T any](data []*T, getter func(*T) map[string]any) ([]byte, erro
 		return nil, fmt.Errorf("failed to flush CSV: %w", err)
 	}
 	return buf.Bytes(), nil
+}
+
+func toPascalCase(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
+		}
+	}
+	return strings.Join(parts, "")
 }
 
 func toSnakeCase(str string) string {
