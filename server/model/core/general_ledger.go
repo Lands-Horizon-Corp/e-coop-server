@@ -235,6 +235,7 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			"Bank",
 			"ProofOfPaymentMedia",
 			"Currency",
+			"CreatedBy.Media",
 		},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
