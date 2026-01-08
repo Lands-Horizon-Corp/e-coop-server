@@ -31,10 +31,34 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		accounts, err := c.core.AccountManager().RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.Account{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", *userOrg.BranchID).
+					Where(`EXISTS (
+				SELECT 1 FROM accounts ace
+				WHERE ace.organization_id = accounts.organization_id
+				AND ace.branch_id = accounts.branch_id
+				AND ace.currency_id = accounts.currency_id
+				AND ace.cash_and_cash_equivalence = TRUE
+			)`).
+					Order(`
+				CASE accounts.general_ledger_type
+					WHEN 'Asset' THEN 1
+					WHEN 'Liability' THEN 2
+					WHEN 'Equity' THEN 3
+					WHEN 'Income' THEN 4
+					WHEN 'Expense' THEN 5
+					ELSE 6
+				END
+			`).
+					Order("accounts.name ASC") // optional secondary ordering
+			},
+		)
+
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
