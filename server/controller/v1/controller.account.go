@@ -1163,7 +1163,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		newIndex := 1 - account.Index
+		newIndex := account.Index - 1
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
