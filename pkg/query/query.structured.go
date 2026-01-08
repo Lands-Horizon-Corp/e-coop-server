@@ -30,7 +30,7 @@ func (f *Pagination[T]) StructuredPagination(
 	query := f.structuredQuery(db, filterRoot)
 
 	var totalCount int64
-	if err := query.Count(&totalCount).Error; err != nil {
+	if err := query.Session(&gorm.Session{}).Count(&totalCount).Error; err != nil {
 		return nil, fmt.Errorf("failed to count records: %w", err)
 	}
 
