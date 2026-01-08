@@ -1441,6 +1441,7 @@ func (c *Controller) userOrganinzationController() {
 			FullName:          payload.FullName,
 			Birthdate:         payload.BirthDate,
 			ContactNumber:     payload.ContactNumber,
+			MediaID:           payload.MediaID,
 			IsEmailVerified:   false,
 			IsContactVerified: false,
 			CreatedAt:         now,

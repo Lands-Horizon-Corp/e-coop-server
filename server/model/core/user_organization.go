@@ -105,7 +105,6 @@ type (
 		Suffix     string `json:"suffix,omitempty" validate:"max=50"`
 
 		BirthDate     *time.Time `json:"birthdate" validate:"required"`
-		BirthPlace    string     `json:"birth_place,omitempty" validate:"max=255"`
 		ContactNumber string     `json:"contact_number,omitempty" validate:"max=255"`
 
 		Username string `json:"user_name" validate:"required,min=1,max=255"`
