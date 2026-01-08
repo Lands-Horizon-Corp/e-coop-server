@@ -26,19 +26,21 @@ type (
 		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
 		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
 
-		Name               string  `gorm:"type:varchar(255);not null" json:"name"`
-		Address            *string `gorm:"type:varchar(500)" json:"address,omitempty"`
-		Email              *string `gorm:"type:varchar(255)" json:"email,omitempty"`
-		ContactNumber      *string `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
-		Description        *string `gorm:"type:text" json:"description,omitempty"`
-		Color              *string `gorm:"type:varchar(50)" json:"color,omitempty"`
-		Theme              *string `gorm:"type:text" json:"theme,omitempty"`
+		Name          string  `gorm:"type:varchar(255);not null" json:"name"`
+		Address       *string `gorm:"type:varchar(500)" json:"address,omitempty"`
+		Email         *string `gorm:"type:varchar(255)" json:"email,omitempty"`
+		ContactNumber *string `gorm:"type:varchar(20)" json:"contact_number,omitempty"`
+		Description   *string `gorm:"type:text" json:"description,omitempty"`
+		Color         *string `gorm:"type:varchar(50)" json:"color,omitempty"`
+		Theme         *string `gorm:"type:text" json:"theme,omitempty"`
+
 		TermsAndConditions *string `gorm:"type:text" json:"terms_and_conditions,omitempty"`
 		PrivacyPolicy      *string `gorm:"type:text" json:"privacy_policy,omitempty"`
 		CookiePolicy       *string `gorm:"type:text" json:"cookie_policy,omitempty"`
 		RefundPolicy       *string `gorm:"type:text" json:"refund_policy,omitempty"`
 		UserAgreement      *string `gorm:"type:text" json:"user_agreement,omitempty"`
-		IsPrivate          bool    `gorm:"default:false" json:"is_private"`
+
+		IsPrivate bool `gorm:"default:false" json:"is_private"`
 
 		InstagramLink       *string `gorm:"type:varchar(255)" json:"instagram_link,omitempty"`
 		FacebookLink        *string `gorm:"type:varchar(255)" json:"facebook_link,omitempty"`
@@ -228,7 +230,7 @@ func (m *Core) OrganizationManager() *registry.Registry[Organization, Organizati
 				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
 				SubscriptionPlanID:                  data.SubscriptionPlanID,
-				SubscriptionPlanIsYearly:            false, // TODO
+				SubscriptionPlanIsYearly:            false,
 				SubscriptionPlan:                    m.SubscriptionPlanManager().ToModel(data.SubscriptionPlan),
 				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
 				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 type Balance struct {
@@ -46,268 +47,316 @@ type BalanceResponse struct {
 	IsBalanced bool
 }
 
-func (t *UsecaseService) Balance(data Balance) (BalanceResponse, error) {
-	credit := 0.0
-	debit := 0.0
-	balance := 0.0
-	added := 0.0
-	deductions := 0.0
-	countDeductions := 0
-	countAdded := 0
+func CalculateBalance(data Balance) (BalanceResponse, error) {
+	credit := decimal.Zero
+	debit := decimal.Zero
+	balance := decimal.Zero
+	addOnAmount := decimal.Zero
+
 	countDebit := 0
 	countCredit := 0
-	addOnAmount := 0.0
+
 	var lastPayment *time.Time
 	var lastCredit *time.Time
 	var lastDebit *time.Time
-	if data.GeneralLedgers != nil {
-		for _, entry := range data.GeneralLedgers {
-			if entry == nil {
-				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
-				}, eris.New("nil general ledger")
-			}
-			if entry.Account == nil {
-				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
-				}, eris.New("general ledger missing account")
-			}
-			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
-				continue
-			}
-			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
-				continue
-			}
 
-			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
-			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
-
-			if entry.Credit > 0 {
-				countCredit++
-				if lastPayment == nil || entry.EntryDate.After(*lastPayment) {
-					lastPayment = &entry.EntryDate
-				}
-				if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
-					lastCredit = &entry.EntryDate
-				}
-			}
-			if entry.Debit > 0 {
-				countDebit++
-				if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
-					lastDebit = &entry.EntryDate
-				}
-			}
-
-			switch entry.Account.GeneralLedgerType {
-			case core.GLTypeAssets, core.GLTypeExpenses:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
-			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-			default:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
-			}
+	apply := func(
+		accType core.GeneralLedgerType,
+		dr decimal.Decimal,
+		cr decimal.Decimal,
+	) {
+		switch accType {
+		case core.GLTypeAssets, core.GLTypeExpenses:
+			balance = balance.Add(dr.Sub(cr))
+		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
+			balance = balance.Add(cr.Sub(dr))
+		default:
+			balance = balance.Add(dr.Sub(cr))
 		}
 	}
 
-	if data.AdjustmentEntries != nil {
-		for _, entry := range data.AdjustmentEntries {
-			if entry == nil {
-				return BalanceResponse{
-					Credit:     credit,
-					Debit:      debit,
-					Balance:    balance,
-					IsBalanced: true,
-				}, eris.New("nil adjustment entry")
-			}
-			if data.AccountID != nil && !handlers.UUIDPtrEqual(&entry.AccountID, data.AccountID) {
-				continue
-			}
-			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
-				continue
-			}
+	/* ---------------- GENERAL LEDGERS ---------------- */
 
-			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
-			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+	for _, entry := range data.GeneralLedgers {
+		if entry == nil {
+			return BalanceResponse{}, eris.New("nil general ledger")
+		}
+		if entry.Account == nil {
+			return BalanceResponse{}, eris.New("general ledger missing account")
+		}
+		if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
+			continue
+		}
+		if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
+			continue
+		}
 
-			if entry.Credit > 0 {
-				countCredit++
-				if entry.EntryDate != nil {
-					if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
-						lastCredit = entry.EntryDate
-					}
-				}
-			}
-			if entry.Debit > 0 {
-				countDebit++
-				if entry.EntryDate != nil {
-					if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
-						lastDebit = entry.EntryDate
-					}
-				}
-			}
+		dr := decimal.NewFromFloat(entry.Debit)
+		cr := decimal.NewFromFloat(entry.Credit)
 
-			switch entry.Account.GeneralLedgerType {
-			case core.GLTypeAssets, core.GLTypeExpenses:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
-			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-			default:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+		debit = debit.Add(dr)
+		credit = credit.Add(cr)
+
+		if cr.GreaterThan(decimal.Zero) {
+			countCredit++
+			if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
+				lastCredit = &entry.EntryDate
+			}
+			if lastPayment == nil || entry.EntryDate.After(*lastPayment) {
+				lastPayment = &entry.EntryDate
 			}
 		}
+		if dr.GreaterThan(decimal.Zero) {
+			countDebit++
+			if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
+				lastDebit = &entry.EntryDate
+			}
+		}
+
+		apply(entry.Account.GeneralLedgerType, dr, cr)
 	}
 
-	if data.LoanTransactionEntries != nil {
-		for _, entry := range data.LoanTransactionEntries {
-			if entry == nil {
-				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
-				}, eris.New("nil loan transaction entry")
-			}
-			if entry.IsAddOn && data.IsAddOn {
-				addOnAmount = t.provider.Service.Decimal.Add(addOnAmount, entry.Debit+entry.Credit)
-			}
-			if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
-				continue
-			}
-			if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
-				continue
-			}
+	/* ---------------- ADJUSTMENTS ---------------- */
 
-			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
-			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
+	for _, entry := range data.AdjustmentEntries {
+		if entry == nil {
+			return BalanceResponse{}, eris.New("nil adjustment entry")
+		}
+		if data.AccountID != nil && !handlers.UUIDPtrEqual(&entry.AccountID, data.AccountID) {
+			continue
+		}
+		if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
+			continue
+		}
 
-			if entry.Credit > 0 {
-				countCredit++
-			}
-			if entry.Debit > 0 {
-				countDebit++
-			}
+		dr := decimal.NewFromFloat(entry.Debit)
+		cr := decimal.NewFromFloat(entry.Credit)
 
-			switch entry.Account.GeneralLedgerType {
-			case core.GLTypeAssets, core.GLTypeExpenses:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
-			case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Credit-entry.Debit)
-			default:
-				balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+		debit = debit.Add(dr)
+		credit = credit.Add(cr)
+
+		if cr.GreaterThan(decimal.Zero) && entry.EntryDate != nil {
+			countCredit++
+			if lastCredit == nil || entry.EntryDate.After(*lastCredit) {
+				lastCredit = entry.EntryDate
 			}
 		}
+		if dr.GreaterThan(decimal.Zero) && entry.EntryDate != nil {
+			countDebit++
+			if lastDebit == nil || entry.EntryDate.After(*lastDebit) {
+				lastDebit = entry.EntryDate
+			}
+		}
+
+		apply(entry.Account.GeneralLedgerType, dr, cr)
 	}
 
-	if data.CashCheckVoucherEntriesRequest != nil {
-		for _, entry := range data.CashCheckVoucherEntriesRequest {
-			if entry == nil {
-				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
-				}, eris.New("nil cash check voucher")
-			}
-			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
-			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
-			if entry.Credit > 0 {
-				countCredit++
-			}
-			if entry.Debit > 0 {
-				countDebit++
-			}
-			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+	/* ---------------- LOAN TRANSACTIONS ---------------- */
+
+	for _, entry := range data.LoanTransactionEntries {
+		if entry == nil {
+			return BalanceResponse{}, eris.New("nil loan transaction entry")
 		}
+
+		dr := decimal.NewFromFloat(entry.Debit)
+		cr := decimal.NewFromFloat(entry.Credit)
+
+		if entry.IsAddOn && data.IsAddOn {
+			addOnAmount = addOnAmount.Add(dr).Add(cr)
+		}
+
+		if data.AccountID != nil && !handlers.UUIDPtrEqual(entry.AccountID, data.AccountID) {
+			continue
+		}
+		if data.CurrencyID != nil && !handlers.UUIDPtrEqual(entry.Account.CurrencyID, data.CurrencyID) {
+			continue
+		}
+
+		debit = debit.Add(dr)
+		credit = credit.Add(cr)
+
+		if cr.GreaterThan(decimal.Zero) {
+			countCredit++
+		}
+		if dr.GreaterThan(decimal.Zero) {
+			countDebit++
+		}
+
+		apply(entry.Account.GeneralLedgerType, dr, cr)
 	}
 
-	if data.JournalVoucherEntriesRequest != nil {
-		for _, entry := range data.JournalVoucherEntriesRequest {
-			if entry == nil {
-				return BalanceResponse{
-					Credit:  credit,
-					Debit:   debit,
-					Balance: balance,
-				}, eris.New("nil journal voucher")
-			}
-			credit = t.provider.Service.Decimal.Add(credit, entry.Credit)
-			debit = t.provider.Service.Decimal.Add(debit, entry.Debit)
-			if entry.Credit > 0 {
-				countCredit++
-			}
-			if entry.Debit > 0 {
-				countDebit++
-			}
-			balance = t.provider.Service.Decimal.Add(balance, entry.Debit-entry.Credit)
+	/* ---------------- VOUCHERS ---------------- */
+
+	for _, entry := range data.CashCheckVoucherEntriesRequest {
+		if entry == nil {
+			return BalanceResponse{}, eris.New("nil cash check voucher")
 		}
+
+		dr := decimal.NewFromFloat(entry.Debit)
+		cr := decimal.NewFromFloat(entry.Credit)
+
+		debit = debit.Add(dr)
+		credit = credit.Add(cr)
+
+		if cr.GreaterThan(decimal.Zero) {
+			countCredit++
+		}
+		if dr.GreaterThan(decimal.Zero) {
+			countDebit++
+		}
+
+		balance = balance.Add(dr.Sub(cr))
+	}
+
+	for _, entry := range data.JournalVoucherEntriesRequest {
+		if entry == nil {
+			return BalanceResponse{}, eris.New("nil journal voucher")
+		}
+
+		dr := decimal.NewFromFloat(entry.Debit)
+		cr := decimal.NewFromFloat(entry.Credit)
+
+		debit = debit.Add(dr)
+		credit = credit.Add(cr)
+
+		if cr.GreaterThan(decimal.Zero) {
+			countCredit++
+		}
+		if dr.GreaterThan(decimal.Zero) {
+			countDebit++
+		}
+
+		balance = balance.Add(dr.Sub(cr))
 	}
 
 	return BalanceResponse{
-		IsBalanced:      t.provider.Service.Decimal.IsEqual(credit, debit),
-		Credit:          credit,
-		Debit:           debit,
-		Balance:         balance,
-		Deductions:      deductions,
-		Added:           added,
-		CountDeductions: countDeductions,
-		CountAdded:      countAdded,
-		CountDebit:      countDebit,
-		CountCredit:     countCredit,
-		LastPayment:     lastPayment,
-		LastCredit:      lastCredit,
-		LastDebit:       lastDebit,
-		AddOnAmount:     addOnAmount,
+		Credit:      credit.InexactFloat64(),
+		Debit:       debit.InexactFloat64(),
+		Balance:     balance.InexactFloat64(),
+		CountDebit:  countDebit,
+		CountCredit: countCredit,
+		LastPayment: lastPayment,
+		LastCredit:  lastCredit,
+		LastDebit:   lastDebit,
+		AddOnAmount: addOnAmount.InexactFloat64(),
+		IsBalanced:  credit.Equal(debit),
 	}, nil
 }
 
-func (t *UsecaseService) StrictBalance(data Balance) (BalanceResponse, error) {
-	response, err := t.Balance(data)
+func CalculateStrictBalance(data Balance) (BalanceResponse, error) {
+	response, err := CalculateBalance(data)
 	if err != nil {
 		return BalanceResponse{}, eris.Wrap(err, "failed to calculate balance")
 	}
-	isBalanced := t.provider.Service.Decimal.IsEqual(response.Balance, 0)
-	if !isBalanced {
-		return BalanceResponse{}, eris.Errorf("entries are not balanced: balance is %.2f", response.Balance)
+
+	balance := decimal.NewFromFloat(response.Balance)
+	debit := decimal.NewFromFloat(response.Debit)
+
+	if !balance.Equal(decimal.Zero) {
+		return BalanceResponse{}, eris.Errorf(
+			"entries are not balanced: balance is %.2f",
+			response.Balance,
+		)
 	}
-	if t.provider.Service.Decimal.IsLessThan(response.Debit, 0) {
+
+	if debit.LessThanOrEqual(decimal.Zero) {
 		return BalanceResponse{}, eris.New("entries cannot be empty")
 	}
+
 	return response, nil
 }
 
-func (t *UsecaseService) GeneralLedgerAddBalanceByAccount(GeneralLedgers []*core.GeneralLedger) []*core.GeneralLedger {
-	if len(GeneralLedgers) == 0 {
-		return GeneralLedgers
+func GeneralLedgerAddBalanceByAccount(
+	ledgers []*core.GeneralLedger,
+) []*core.GeneralLedger {
+	if len(ledgers) == 0 {
+		return ledgers
 	}
 
-	sort.Slice(GeneralLedgers, func(i, j int) bool {
-		return GeneralLedgers[i].EntryDate.Before(GeneralLedgers[j].EntryDate)
+	// Ensure chronological order
+	sort.Slice(ledgers, func(i, j int) bool {
+		return ledgers[i].EntryDate.Before(ledgers[j].EntryDate)
 	})
 
-	accountBalances := make(map[uuid.UUID]float64)
+	accountBalances := make(map[uuid.UUID]decimal.Decimal)
 
-	for _, ledger := range GeneralLedgers {
+	for _, ledger := range ledgers {
 		if ledger == nil || ledger.Account == nil || ledger.AccountID == nil {
 			continue
 		}
 
 		accountID := *ledger.AccountID
-		currentBalance := accountBalances[accountID]
+		current := accountBalances[accountID]
+
+		debit := decimal.NewFromFloat(ledger.Debit)
+		credit := decimal.NewFromFloat(ledger.Credit)
 
 		switch ledger.Account.GeneralLedgerType {
 		case core.GLTypeAssets, core.GLTypeExpenses:
-			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
+			current = current.Add(debit.Sub(credit))
+
 		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
-			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Credit-ledger.Debit)
+			current = current.Add(credit.Sub(debit))
+
 		default:
-			currentBalance = t.provider.Service.Decimal.Add(currentBalance, ledger.Debit-ledger.Credit)
+			current = current.Add(debit.Sub(credit))
 		}
 
-		accountBalances[accountID] = currentBalance
+		accountBalances[accountID] = current
 
-		ledger.Balance = currentBalance
+		// Persist running balance back to ledger
+		ledger.Balance = current.InexactFloat64()
 	}
 
-	return GeneralLedgers
+	return ledgers
+}
+
+type GeneralLedgerAccountBalanceSummary struct {
+	AccountID uuid.UUID
+	Account   *core.Account
+	Debit     float64
+	Credit    float64
+}
+
+func SumGeneralLedgerByAccount(
+	ledgers []*core.GeneralLedger,
+) []GeneralLedgerAccountBalanceSummary {
+	resultMap := make(map[uuid.UUID]*struct {
+		Account *core.Account
+		Debit   decimal.Decimal
+		Credit  decimal.Decimal
+	})
+	for _, gl := range ledgers {
+		if gl == nil || gl.AccountID == nil {
+			continue
+		}
+		summary, exists := resultMap[*gl.AccountID]
+		if !exists {
+			summary = &struct {
+				Account *core.Account
+				Debit   decimal.Decimal
+				Credit  decimal.Decimal
+			}{
+				Account: gl.Account,
+				Debit:   decimal.Zero,
+				Credit:  decimal.Zero,
+			}
+			resultMap[*gl.AccountID] = summary
+		}
+		summary.Debit = summary.Debit.Add(decimal.NewFromFloat(gl.Debit))
+		summary.Credit = summary.Credit.Add(decimal.NewFromFloat(gl.Credit))
+	}
+	out := make([]GeneralLedgerAccountBalanceSummary, 0, len(resultMap))
+	for id, v := range resultMap {
+		if v.Debit.IsZero() && v.Credit.IsZero() {
+			continue
+		}
+		out = append(out, GeneralLedgerAccountBalanceSummary{
+			AccountID: id,
+			Account:   v.Account,
+			Debit:     v.Debit.InexactFloat64(),
+			Credit:    v.Credit.InexactFloat64(),
+		})
+	}
+	return out
 }

@@ -145,10 +145,12 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
+
+		// Get general ledger
 		generalLedger, err := c.core.GeneralLedgerManager().GetByID(context, *generalLedgerID)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -157,7 +159,13 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
-		maxNumber, err := c.core.GeneralLedgerPrintMaxNumber(context, *generalLedger.MemberProfileID, *generalLedger.AccountID, *userOrg.BranchID, userOrg.OrganizationID)
+		maxNumber, err := c.core.GeneralLedgerPrintMaxNumber(
+			context,
+			*generalLedger.MemberProfileID,
+			*generalLedger.AccountID,
+			*userOrg.BranchID,
+			userOrg.OrganizationID,
+		)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
@@ -165,7 +173,6 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
 		}
-
 		generalLedger.PrintNumber = maxNumber + 1
 		if err := c.core.GeneralLedgerManager().UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -175,7 +182,9 @@ func (c *Controller) paymentController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+
+		response := c.core.GeneralLedgerManager().ToModel(generalLedger)
+		return ctx.JSON(http.StatusOK, response)
 	})
 
 	req.RegisterWebRoute(handlers.Route{

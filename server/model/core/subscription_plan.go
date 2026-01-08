@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -111,18 +112,13 @@ func (m *Core) SubscriptionPlanManager() *registry.Registry[SubscriptionPlan, Su
 				return nil
 			}
 
-			decimal := m.provider.Service.Decimal
-
-			monthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(sp.Cost, 2)
-
-			yearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
-				decimal.Multiply(sp.Cost, 12), 2)
-
-			discountedMonthlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
-				decimal.SubtractPercentage(sp.Cost, sp.Discount), 2)
-
-			discountedYearlyPrice := m.provider.Service.Decimal.RoundToDecimalPlaces(
-				decimal.SubtractPercentage(yearlyPrice, sp.YearlyDiscount), 2)
+			costDecimal := decimal.NewFromFloat(sp.Cost)
+			discountDecimal := decimal.NewFromFloat(sp.Discount)
+			yearlyDiscountDecimal := decimal.NewFromFloat(sp.YearlyDiscount)
+			monthlyPrice := costDecimal.Round(2)
+			yearlyPrice := costDecimal.Mul(decimal.NewFromInt(12)).Round(2)
+			discountedMonthlyPrice := costDecimal.Sub(costDecimal.Mul(discountDecimal).Div(decimal.NewFromInt(100))).Round(2)
+			discountedYearlyPrice := yearlyPrice.Sub(yearlyPrice.Mul(yearlyDiscountDecimal).Div(decimal.NewFromInt(100))).Round(2)
 
 			return &SubscriptionPlanResponse{
 				ID:                  sp.ID,
@@ -144,10 +140,10 @@ func (m *Core) SubscriptionPlanManager() *registry.Registry[SubscriptionPlan, Su
 
 				MaxAPICallsPerMonth: sp.MaxAPICallsPerMonth,
 
-				MonthlyPrice:           monthlyPrice,
-				YearlyPrice:            yearlyPrice,
-				DiscountedMonthlyPrice: discountedMonthlyPrice,
-				DiscountedYearlyPrice:  discountedYearlyPrice,
+				MonthlyPrice:           monthlyPrice.InexactFloat64(),
+				YearlyPrice:            yearlyPrice.InexactFloat64(),
+				DiscountedMonthlyPrice: discountedMonthlyPrice.InexactFloat64(),
+				DiscountedYearlyPrice:  discountedYearlyPrice.InexactFloat64(),
 				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
 				CurrencyID:             sp.CurrencyID,

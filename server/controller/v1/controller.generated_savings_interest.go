@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/shopspring/decimal"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +22,7 @@ func (c *Controller) generateSavingsInterest() {
 		ResponseType: core.GeneratedSavingsInterestResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -67,7 +68,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -79,17 +80,18 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest entries: " + err.Error()})
 		}
-		totalTax, totalInterest := 0.0, 0.0
+		totalTax := decimal.Zero
+		totalInterest := decimal.Zero
 
 		for _, entry := range entries {
-			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
-
+			totalTax = totalTax.Add(decimal.NewFromFloat(entry.InterestTax))
+			totalInterest = totalInterest.Add(decimal.NewFromFloat(entry.InterestAmount))
 		}
+
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
 			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
-			TotalTax:      totalTax,      // You might want to calculate this value
-			TotalInterest: totalInterest, // You might want to calculate this value
+			TotalTax:      totalTax.InexactFloat64(),
+			TotalInterest: totalInterest.InexactFloat64(),
 		})
 	})
 	req.RegisterWebRoute(handlers.Route{
@@ -105,7 +107,7 @@ func (c *Controller) generateSavingsInterest() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -133,17 +135,18 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate savings interest entries: " + err.Error()})
 		}
-		totalTax, totalInterest := 0.0, 0.0
+		totalTax := decimal.Zero
+		totalInterest := decimal.Zero
 
 		for _, entry := range entries {
-			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
-
+			totalTax = totalTax.Add(decimal.NewFromFloat(entry.InterestTax))
+			totalInterest = totalInterest.Add(decimal.NewFromFloat(entry.InterestAmount))
 		}
+
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
 			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
-			TotalTax:      totalTax,
-			TotalInterest: totalInterest,
+			TotalTax:      totalTax.InexactFloat64(),
+			TotalInterest: totalInterest.InexactFloat64(),
 		})
 	})
 
@@ -160,7 +163,7 @@ func (c *Controller) generateSavingsInterest() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -175,7 +178,8 @@ func (c *Controller) generateSavingsInterest() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		totalTax, totalInterest := 0.0, 0.0
+		totalTax := decimal.Zero
+		totalInterest := decimal.Zero
 		generatedSavingsInterest := &core.GeneratedSavingsInterest{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
@@ -191,8 +195,8 @@ func (c *Controller) generateSavingsInterest() {
 			IncludeClosedAccount:            request.IncludeClosedAccount,
 			IncludeExistingComputedInterest: request.IncludeExistingComputedInterest,
 			InterestTaxRate:                 request.InterestTaxRate,
-			TotalInterest:                   totalInterest,
-			TotalTax:                        totalTax,
+			TotalInterest:                   totalInterest.InexactFloat64(),
+			TotalTax:                        totalTax.InexactFloat64(),
 		}
 		if err := c.core.GeneratedSavingsInterestManager().CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
@@ -213,8 +217,8 @@ func (c *Controller) generateSavingsInterest() {
 		}
 
 		for _, entry := range entries {
-			totalTax = c.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-			totalInterest = c.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
+			totalTax = totalTax.Add(decimal.NewFromFloat(entry.InterestTax))
+			totalInterest = totalInterest.Add(decimal.NewFromFloat(entry.InterestAmount))
 
 			entry.GeneratedSavingsInterestID = generatedSavingsInterest.ID
 			entry.OrganizationID = userOrg.OrganizationID
@@ -227,8 +231,8 @@ func (c *Controller) generateSavingsInterest() {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
 			}
 		}
-		generatedSavingsInterest.TotalTax = totalTax
-		generatedSavingsInterest.TotalInterest = totalInterest
+		generatedSavingsInterest.TotalTax = totalTax.InexactFloat64()
+		generatedSavingsInterest.TotalInterest = totalInterest.InexactFloat64()
 		if err := c.core.GeneratedSavingsInterestManager().UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest: " + err.Error()})
 		}
@@ -249,7 +253,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -284,7 +288,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -330,7 +334,7 @@ func (c *Controller) generateSavingsInterest() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}

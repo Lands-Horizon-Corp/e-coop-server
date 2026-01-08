@@ -27,7 +27,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid browse reference ID"})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -271,7 +271,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid browse reference ID"})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -296,7 +296,7 @@ func (c *Controller) browseReferenceController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -323,7 +323,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -453,7 +453,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid browse reference ID"})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -496,7 +496,7 @@ func (c *Controller) browseReferenceController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member type ID"})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -529,7 +529,7 @@ func (c *Controller) browseReferenceController() {
 				"error": "Invalid member type ID",
 			})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{
 				"error": "User authentication failed or organization not found",

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 type MemberAccountingLedgerSummary struct {
@@ -20,7 +21,7 @@ func (e *Event) MemberAccountingLedgerSummary(
 	ctx echo.Context,
 	memberProfileID *uuid.UUID,
 ) (*MemberAccountingLedgerSummary, error) {
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+	userOrg, err := e.CurrentUserOrganization(context, ctx)
 	if err != nil {
 		return nil, eris.Wrap(err, "user authentication failed or organization not found")
 	}
@@ -35,7 +36,8 @@ func (e *Event) MemberAccountingLedgerSummary(
 		return nil, eris.New("paid-up shared capital account not set for branch")
 	}
 
-	entries, err := e.core.MemberAccountingLedgerMemberProfileEntries(context,
+	entries, err := e.core.MemberAccountingLedgerMemberProfileEntries(
+		context,
 		*memberProfileID,
 		userOrg.OrganizationID,
 		*userOrg.BranchID,
@@ -55,13 +57,17 @@ func (e *Event) MemberAccountingLedgerSummary(
 		return nil, eris.Wrap(err, "failed to retrieve paid-up share capital entries")
 	}
 
-	var TotalShareCapitalPlusFixedSavings float64
+	// Use shopspring decimal for precise accumulation
+	totalShareCapitalDec := decimal.Zero
 	for _, entry := range paidUpShareCapital {
-		TotalShareCapitalPlusFixedSavings = e.provider.Service.Decimal.Add(TotalShareCapitalPlusFixedSavings, entry.Balance)
+		balDec := decimal.NewFromFloat(entry.Balance)
+		totalShareCapitalDec = totalShareCapitalDec.Add(balDec)
 	}
-	var totalDeposits float64
+
+	totalDepositsDec := decimal.Zero
 	for _, entry := range entries {
-		totalDeposits = e.provider.Service.Decimal.Add(totalDeposits, entry.Balance)
+		balDec := decimal.NewFromFloat(entry.Balance)
+		totalDepositsDec = totalDepositsDec.Add(balDec)
 	}
 
 	totalLoans, err := e.LoanTotalMemberProfile(context, *memberProfileID)
@@ -70,8 +76,8 @@ func (e *Event) MemberAccountingLedgerSummary(
 	}
 
 	return &MemberAccountingLedgerSummary{
-		TotalDeposits:                     totalDeposits,
-		TotalShareCapitalPlusFixedSavings: TotalShareCapitalPlusFixedSavings,
+		TotalDeposits:                     totalDepositsDec.InexactFloat64(),
+		TotalShareCapitalPlusFixedSavings: totalShareCapitalDec.InexactFloat64(),
 		TotalLoans:                        *totalLoans,
 	}, nil
 }

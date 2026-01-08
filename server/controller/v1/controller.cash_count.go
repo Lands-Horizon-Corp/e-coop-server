@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 )
 
 func (c *Controller) cashCountController() {
@@ -21,7 +22,7 @@ func (c *Controller) cashCountController() {
 		ResponseType: core.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -45,7 +46,7 @@ func (c *Controller) cashCountController() {
 		ResponseType: core.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -74,7 +75,7 @@ func (c *Controller) cashCountController() {
 		ResponseType: core.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -119,7 +120,7 @@ func (c *Controller) cashCountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -170,7 +171,9 @@ func (c *Controller) cashCountController() {
 		}
 		cashCountReq.TransactionBatchID = transactionBatch.ID
 		cashCountReq.EmployeeUserID = userOrg.UserID
-		cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
+		cashCountReq.Amount = decimal.NewFromFloat(cashCountReq.BillAmount).
+			Mul(decimal.NewFromFloat(float64(cashCountReq.Quantity))).
+			InexactFloat64()
 
 		newCashCount := &core.CashCount{
 			CreatedAt:          time.Now().UTC(),
@@ -216,7 +219,7 @@ func (c *Controller) cashCountController() {
 		Note:         "Updates cash count bills in the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -298,7 +301,9 @@ func (c *Controller) cashCountController() {
 			}
 			cashCountReq.TransactionBatchID = transactionBatch.ID
 			cashCountReq.EmployeeUserID = userOrg.UserID
-			cashCountReq.Amount = c.provider.Service.Decimal.Multiply(cashCountReq.BillAmount, float64(cashCountReq.Quantity))
+			cashCountReq.Amount = decimal.NewFromFloat(cashCountReq.BillAmount).
+				Mul(decimal.NewFromInt(int64(cashCountReq.Quantity))).
+				InexactFloat64()
 			if cashCountReq.ID != nil {
 				updatedCashCount, err := c.core.CashCountManager().GetByID(context, *cashCountReq.ID)
 				if err != nil {
@@ -372,17 +377,21 @@ func (c *Controller) cashCountController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated cash counts: " + err.Error()})
 		}
 
-		var totalCashCount float64
+		totalCashCount := decimal.Zero
 		for _, cashCount := range allCashCounts {
-			totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
+			totalCashCount = totalCashCount.Add(decimal.NewFromFloat(cashCount.Amount))
 		}
+		finalTotal := totalCashCount.InexactFloat64()
 
 		depositInBank := transactionBatch.DepositInBank
 		if batchRequest.DepositInBank != nil {
 			depositInBank = *batchRequest.DepositInBank
 		}
 
-		grandTotal := c.provider.Service.Decimal.Add(totalCashCount, depositInBank)
+		grandTotal := decimal.NewFromFloat(finalTotal).
+			Add(decimal.NewFromFloat(depositInBank)).
+			InexactFloat64()
+
 		var responseRequests []core.CashCountRequest
 		for _, cashCount := range updatedCashCounts {
 			responseRequests = append(responseRequests, core.CashCountRequest{
@@ -400,7 +409,7 @@ func (c *Controller) cashCountController() {
 		response := CashCountBatchRequest{
 			CashCounts:     responseRequests,
 			DepositInBank:  &depositInBank,
-			CashCountTotal: &totalCashCount,
+			CashCountTotal: &finalTotal,
 			GrandTotal:     &grandTotal,
 		}
 
@@ -431,7 +440,7 @@ func (c *Controller) cashCountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash count ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -503,7 +512,7 @@ func (c *Controller) cashCountController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash count ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}

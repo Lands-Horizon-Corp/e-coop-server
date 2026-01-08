@@ -23,7 +23,7 @@ func (c *Controller) memberProfileArchiveController() {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
@@ -94,7 +94,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive data: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -178,7 +178,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive data: " + err.Error()})
 		}
 
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -244,7 +244,7 @@ func (c *Controller) memberProfileArchiveController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		_, err = c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		_, err = c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -318,7 +318,7 @@ func (c *Controller) memberProfileArchiveController() {
 		ResponseType: core.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -374,7 +374,7 @@ func (c *Controller) memberProfileArchiveController() {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}

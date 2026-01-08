@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"log"
 	"net/smtp"
 	"os"
 	"strings"
@@ -43,23 +44,25 @@ type SMTP struct {
 	password string
 	from     string
 
+	secured     bool
 	limiterOnce sync.Once
 	limiter     *rate.Limiter
 }
 
-func NewSMTP(host string, port int, username, password string, from string) SMTPService {
+func NewSMTP(host string, port int, username, password string, from string, secured bool) SMTPService {
 	return &SMTP{
 		host:     host,
 		port:     port,
 		username: username,
 		password: password,
 		from:     from,
+		secured:  secured,
 	}
 }
 
 func (h *SMTP) Run(_ context.Context) error {
 	h.limiterOnce.Do(func() {
-		h.limiter = rate.NewLimiter(rate.Limit(1000), 100) // 10 rps, burst 5
+		h.limiter = rate.NewLimiter(rate.Limit(1000), 100)
 	})
 	return nil
 }
@@ -93,7 +96,6 @@ func (h *SMTP) Format(_ context.Context, req SMTPRequest) (*SMTPRequest, error) 
 	req.Body = buf.String()
 	return &req, nil
 }
-
 func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 	if !handlers.IsValidEmail(req.To) {
 		return eris.New("Recipient email format is invalid")
@@ -112,19 +114,44 @@ func (h *SMTP) Send(ctx context.Context, req SMTPRequest) error {
 		return eris.Wrap(err, "failed to inject variables into body")
 	}
 	req.Body = finalBody.Body
+	if !h.secured {
+		log.Printf(
+			"[SMTP MOCK MODE] Sending email\nTo: %s\nSubject: %s\nBody:\n%s\n",
+			req.To,
+			req.Subject,
+			req.Body,
+		)
+	}
 
 	safeFrom := sanitizeHeader(h.from)
 	safeTo := sanitizeHeader(req.To)
 	safeSubject := sanitizeHeader(req.Subject)
-
-	auth := smtp.PlainAuth("", h.username, h.password, h.host)
 	addr := fmt.Sprintf("%s:%d", h.host, h.port)
-	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", safeFrom, safeTo, safeSubject, req.Body)
 
-	if err := smtp.SendMail(addr, auth, safeFrom, []string{safeTo}, []byte(
-		handlers.Sanitize(msg),
-	)); err != nil {
+	var auth smtp.Auth
+	if h.secured && h.username != "" && h.password != "" {
+		auth = smtp.PlainAuth("", h.username, h.password, h.host)
+	} else {
+		auth = nil
+	}
+
+	msg := fmt.Sprintf(
+		"From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n%s",
+		safeFrom,
+		safeTo,
+		safeSubject,
+		req.Body,
+	)
+
+	if err := smtp.SendMail(
+		addr,
+		auth,
+		safeFrom,
+		[]string{safeTo},
+		[]byte(msg),
+	); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
+
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/google/uuid"
+	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -46,14 +47,18 @@ type (
 	}
 
 	Core struct {
-		provider  *server.Provider
-		Migration []any
+		provider   *server.Provider
+		Migration  []any
+		faker      faker.Faker
+		imagePaths []string
 	}
 )
 
 func NewCore(provider *server.Provider) (*Core, error) {
 	return &Core{
-		provider: provider,
+		provider:   provider,
+		faker:      faker.New(),
+		imagePaths: []string{},
 	}, nil
 }
 
@@ -203,6 +208,8 @@ func (m *Core) Start() error {
 		UserOrganization{},
 		UserRating{},
 		VoucherPayTo{},
+		AccountTransaction{},
+		AccountTransactionEntry{},
 	}...)
 	return nil
 }

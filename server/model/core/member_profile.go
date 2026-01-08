@@ -18,10 +18,10 @@ type (
 	MemberProfile struct {
 		ID                             uuid.UUID             `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 		CreatedAt                      time.Time             `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID                    uuid.UUID             `gorm:"type:uuid" json:"created_by,omitempty"`
+		CreatedByID                    *uuid.UUID            `gorm:"type:uuid" json:"created_by,omitempty"`
 		CreatedBy                      *User                 `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by_user,omitempty"`
 		UpdatedAt                      time.Time             `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID                    uuid.UUID             `gorm:"type:uuid" json:"updated_by,omitempty"`
+		UpdatedByID                    *uuid.UUID            `gorm:"type:uuid" json:"updated_by,omitempty"`
 		UpdatedBy                      *User                 `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by_user,omitempty"`
 		DeletedAt                      gorm.DeletedAt        `gorm:"index" json:"deleted_at"`
 		DeletedByID                    *uuid.UUID            `gorm:"type:uuid" json:"deleted_by,omitempty"`
@@ -379,10 +379,10 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 			return &MemberProfileResponse{
 				ID:                             data.ID,
 				CreatedAt:                      data.CreatedAt.Format(time.RFC3339),
-				CreatedByID:                    data.CreatedByID,
+				CreatedByID:                    *data.CreatedByID,
 				CreatedBy:                      m.UserManager().ToModel(data.CreatedBy),
 				UpdatedAt:                      data.UpdatedAt.Format(time.RFC3339),
-				UpdatedByID:                    data.UpdatedByID,
+				UpdatedByID:                    *data.UpdatedByID,
 				UpdatedBy:                      m.UserManager().ToModel(data.UpdatedBy),
 				OrganizationID:                 data.OrganizationID,
 				Organization:                   m.OrganizationManager().ToModel(data.Organization),
@@ -702,9 +702,9 @@ func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uu
 
 	memberProfile := &MemberProfile{
 		CreatedAt:             now,
-		CreatedByID:           userID,
+		CreatedByID:           &userID,
 		UpdatedAt:             now,
-		UpdatedByID:           userID,
+		UpdatedByID:           &userID,
 		OrganizationID:        organizationID,
 		BranchID:              branchID,
 		MediaID:               branch.MediaID,

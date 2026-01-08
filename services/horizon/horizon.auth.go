@@ -139,15 +139,32 @@ func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim 
 
 	c.Response().Header().Set(h.csrfHeader, token)
 
-	c.SetCookie(&http.Cookie{
-		Name:     h.csrfHeader,
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(expiry),
-		HttpOnly: true,
-		Secure:   h.ssl,
-		SameSite: http.SameSiteNoneMode,
-	})
+	// Determine if we are in secured (production) or local
+	secure := h.ssl
+	sameSite := http.SameSiteNoneMode
+	host := c.Request().Host
+	hostname := c.Request().URL.Hostname()
+	if !h.ssl || hostname == "localhost" || strings.HasPrefix(host, "192.168.") ||
+		strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "172.") {
+		secure = false
+		sameSite = http.SameSiteDefaultMode
+	}
+
+	if secure {
+		c.SetCookie(&http.Cookie{
+			Name:     h.csrfHeader,
+			Value:    token,
+			Path:     "/",
+			Expires:  time.Now().Add(expiry),
+			HttpOnly: true,
+			Secure:   secure,
+			SameSite: sameSite,
+		})
+	} else {
+		return c.JSON(http.StatusOK, map[string]string{
+			"csrf_token": token,
+		})
+	}
 
 	return nil
 }
@@ -166,17 +183,24 @@ func (h *AuthServiceImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	}
 	_ = h.cache.Delete(ctx, tokenUserKey)
 
+	// Determine cookie flags based on environment
+	secure := h.ssl
+	sameSite := http.SameSiteNoneMode
+	if c.Request().URL.Hostname() == "localhost" || strings.HasPrefix(c.Request().Host, "192.168.") {
+		secure = false
+		sameSite = http.SameSiteLaxMode
+	}
+
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   h.ssl,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   secure,
+		SameSite: sameSite,
 	})
 }
-
 func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -231,7 +255,7 @@ func (h *AuthServiceImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Contex
 		}
 		token := parts[3]
 		if token == currentToken {
-			continue // Skip current session
+			continue
 		}
 
 		val, err := h.cache.Get(ctx, key)

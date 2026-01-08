@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 type AccountValue struct {
@@ -58,10 +60,12 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction entries for transaction ID: %s", loanTransactionID.String())
 	}
 
-	totalDebit, totalCredit := 0.0, 0.0
+	totalDebitDec := decimal.Zero
+	totalCreditDec := decimal.Zero
+
 	for _, entry := range loanTransactionEntries {
-		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+		totalDebitDec = totalDebitDec.Add(decimal.NewFromFloat(entry.Debit))
+		totalCreditDec = totalCreditDec.Add(decimal.NewFromFloat(entry.Credit))
 	}
 
 	currency := loanTransaction.Account.Currency
@@ -84,7 +88,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		return nil, eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule")
 	}
 
-	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
+	numberOfPayments, err := usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms)
@@ -120,14 +124,20 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 	if loanTransaction.PrintedDate != nil {
 		paymentDate = loanTransaction.PrintedDate.UTC()
 	}
+	totalDebit := totalDebitDec.InexactFloat64()
+	totalCredit := totalCreditDec.InexactFloat64()
 	principal := totalCredit
 	balance := totalCredit
 	total := 0.0
 
+	principalDec := decimal.NewFromFloat(principal)
+	balanceDec := decimal.NewFromFloat(balance)
+	totalDec := decimal.NewFromFloat(total)
+
 	for i := range numberOfPayments + 1 {
 		actualDate := paymentDate
 		daysSkipped := 0
-		rowTotal := 0.0
+		rowTotalDec := decimal.Zero
 
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
@@ -135,7 +145,6 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 		}
 
 		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
-
 		periodAccounts := make([]*AccountValue, len(accountsSchedule))
 
 		if i > 0 {
@@ -156,17 +165,20 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 
 				switch accountHistory.Type {
 				case core.AccountTypeLoan:
-					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
-						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+					valueDec := principalDec.Div(decimal.NewFromFloat(float64(numberOfPayments)))
+					if valueDec.GreaterThan(balanceDec) {
+						valueDec = balanceDec
+					}
+					periodAccounts[j].Value = valueDec.InexactFloat64()
 
-					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+					accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(valueDec).InexactFloat64()
 					periodAccounts[j].Total = accountsSchedule[j].Total
 
-					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
+					balanceDec = balanceDec.Sub(valueDec)
 
 				case core.AccountTypeFines:
 					if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
-						periodAccounts[j].Value = e.usecase.ComputeFines(
+						value := usecase.ComputeFines(
 							principal,
 							accountHistory.FinesAmort,
 							accountHistory.FinesMaturity,
@@ -175,39 +187,29 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 							accountHistory.NoGracePeriodDaily,
 							*accountHistory,
 						)
+						valueDec := decimal.NewFromFloat(value)
 
-						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(valueDec).InexactFloat64()
+						periodAccounts[j].Value = valueDec.InexactFloat64()
 						periodAccounts[j].Total = accountsSchedule[j].Total
 					}
 
 				default:
 					switch accountHistory.ComputationType {
-					case core.Straight:
+					case core.Straight, core.Diminishing, core.DiminishingStraight:
 						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+							interest := usecase.ComputeInterest(balanceDec.InexactFloat64(), accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+							interestDec := decimal.NewFromFloat(interest)
 
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					case core.Diminishing:
-						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					case core.DiminishingStraight:
-						if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(interestDec).InexactFloat64()
+							periodAccounts[j].Value = interestDec.InexactFloat64()
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
 					}
 				}
 
-				total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
-				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
+				totalDec = totalDec.Add(decimal.NewFromFloat(periodAccounts[j].Value))
+				rowTotalDec = rowTotalDec.Add(decimal.NewFromFloat(periodAccounts[j].Value))
 			}
 		} else {
 			for j := range accountsSchedule {
@@ -238,7 +240,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ActualDate:    actualDate,
 				ScheduledDate: scheduledDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
@@ -249,7 +251,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
@@ -261,7 +263,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			thisDay := paymentDate.Day()
@@ -285,7 +287,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			loc := paymentDate.Location()
@@ -304,7 +306,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
@@ -315,7 +317,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
@@ -326,7 +328,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 
@@ -336,7 +338,7 @@ func (e Event) LoanAmortizationSchedule(context context.Context, loanTransaction
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)

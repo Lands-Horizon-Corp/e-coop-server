@@ -1,4 +1,4 @@
-package report
+package event
 
 import (
 	"context"
@@ -8,7 +8,18 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func (r *Reports) loanTransactionReport(ctx context.Context, data ReportData) (result []byte, err error) {
+func (r *Event) bankReport(ctx context.Context, data ReportData) (result []byte, err error) {
+	result, err = data.generated.PDF("/api/v1/bank/search", func(params ...string) ([]byte, error) {
+		return r.core.BankManager().StringTabular(ctx, data.generated.FilterSearch, &core.Bank{
+			OrganizationID: data.generated.OrganizationID,
+			BranchID:       data.generated.BranchID,
+		})
+	})
+
+	return result, err
+}
+
+func (r *Event) loanTransactionReport(ctx context.Context, data ReportData) (result []byte, err error) {
 	result, err = data.generated.PDF("/api/v1/loan-transaction/:loan_transaction_id", func(params ...string) ([]byte, error) {
 		if len(params) == 0 || params[0] == "" {
 			return nil, eris.New("missing loan transaction id in route params")

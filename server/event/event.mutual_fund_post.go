@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 func (e *Event) GenerateMutualFundEntriesPost(
@@ -16,10 +17,12 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	request core.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
+
 	mutualFund, err := e.core.MutualFundManager().GetByID(context, *mutualFundID, "Account", "Account.Currency")
 	if err != nil {
 		return endTx(err)
 	}
+
 	mutualFundEntries, err := e.core.MutualFundEntryManager().Find(context, &core.MutualFundEntry{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
@@ -28,21 +31,28 @@ func (e *Event) GenerateMutualFundEntriesPost(
 	if err != nil {
 		return endTx(err)
 	}
+
 	now := time.Now().UTC()
 	userOrgTime := userOrg.UserOrgTime()
 	if request.EntryDate != nil {
 		userOrgTime = *request.EntryDate
 	}
-	totalAmount := 0.0
+
+	totalAmountDec := decimal.Zero
+
 	for _, entry := range mutualFundEntries {
-		var credit, debit float64
-		if e.provider.Service.Decimal.IsGreaterThan(entry.Amount, 0) {
-			credit = 0
-			debit = e.provider.Service.Decimal.Abs(entry.Amount)
+		amountDec := decimal.NewFromFloat(entry.Amount)
+		var creditDec, debitDec decimal.Decimal
+
+		if amountDec.GreaterThan(decimal.Zero) {
+			creditDec = decimal.Zero
+			debitDec = amountDec.Abs()
 		} else {
-			credit = e.provider.Service.Decimal.Abs(entry.Amount)
-			debit = 0
+			creditDec = amountDec.Abs()
+			debitDec = decimal.Zero
 		}
+
+		// Create member ledger entry
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 			CreatedAt:       now,
 			CreatedByID:     userOrg.UserID,
@@ -58,8 +68,8 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			EmployeeUserID:    &userOrg.UserID,
 			Description:       entry.Account.Description + " - Generated in mutual fund post",
 			TypeOfPaymentType: core.PaymentTypeSystem,
-			Credit:            credit,
-			Debit:             debit,
+			Credit:            creditDec.InexactFloat64(),
+			Debit:             debitDec.InexactFloat64(),
 
 			CurrencyID: entry.Account.CurrencyID,
 			AccountID:  &entry.AccountID,
@@ -67,6 +77,8 @@ func (e *Event) GenerateMutualFundEntriesPost(
 		}); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry - (member ledger)"))
 		}
+
+		// Create post account entry if applicable
 		if mutualFund.PostAccountID != nil {
 			if err := e.core.CreateGeneralLedgerEntry(context, tx, &core.GeneralLedger{
 				CreatedAt:       now,
@@ -83,8 +95,8 @@ func (e *Event) GenerateMutualFundEntriesPost(
 				EmployeeUserID:    &userOrg.UserID,
 				Description:       mutualFund.PostAccount.Description + " - Generated in mutual fund post",
 				TypeOfPaymentType: core.PaymentTypeSystem,
-				Credit:            debit,
-				Debit:             credit,
+				Credit:            debitDec.InexactFloat64(),
+				Debit:             creditDec.InexactFloat64(),
 
 				AccountID:  mutualFund.PostAccountID,
 				CurrencyID: mutualFund.PostAccount.CurrencyID,
@@ -94,17 +106,22 @@ func (e *Event) GenerateMutualFundEntriesPost(
 			}
 		}
 
-		totalAmount = e.provider.Service.Decimal.Add(totalAmount, entry.Amount)
+		// Accumulate total amount
+		totalAmountDec = totalAmountDec.Add(amountDec)
 	}
+
 	mutualFund.PostedDate = &now
 	mutualFund.PostedByUserID = &userOrg.UserID
-	mutualFund.TotalAmount = totalAmount
+	mutualFund.TotalAmount = totalAmountDec.InexactFloat64()
 	mutualFund.PostAccountID = request.PostAccountID
+
 	if err := e.core.MutualFundManager().UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
+
 	if err := endTx(nil); err != nil {
 		return endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
+
 	return nil
 }

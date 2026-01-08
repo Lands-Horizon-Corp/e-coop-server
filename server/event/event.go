@@ -1,36 +1,46 @@
 package event
 
 import (
+	"fmt"
+
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
+	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 )
 
 type Event struct {
-	core                  *core.Core
-	userOrganizationToken *tokens.UserOrganizationToken
-	userToken             *tokens.UserToken
-	provider              *server.Provider
-	usecase               *usecase.UsecaseService
-	report                *report.Reports
+	core     *core.Core
+	provider *server.Provider
+
+	userOrgCSRF horizon.AuthService[UserOrganizationCSRF]
+	userCSRF    horizon.AuthService[UserCSRF]
 }
 
 func NewEvent(
 	core *core.Core,
-	userOrganizationToken *tokens.UserOrganizationToken,
-	userToken *tokens.UserToken,
 	provider *server.Provider,
-	usecase *usecase.UsecaseService,
-	report *report.Reports,
 ) (*Event, error) {
+
+	appName := provider.Service.Environment.GetString("APP_NAME", "")
+
+	userOrgCSRF := horizon.NewAuthServiceImpl[UserOrganizationCSRF](
+		provider.Service.Cache,
+		"user-organization-csrf",
+		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER-ORGANIZATION", appName),
+		true,
+	)
+
+	userCSRF := horizon.NewAuthServiceImpl[UserCSRF](
+		provider.Service.Cache,
+		"user-csrf",
+		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
+		true,
+	)
+
 	return &Event{
-		userOrganizationToken: userOrganizationToken,
-		userToken:             userToken,
-		core:                  core,
-		provider:              provider,
-		usecase:               usecase,
-		report:                report,
+		core:        core,
+		provider:    provider,
+		userCSRF:    userCSRF,
+		userOrgCSRF: userOrgCSRF,
 	}, nil
 }

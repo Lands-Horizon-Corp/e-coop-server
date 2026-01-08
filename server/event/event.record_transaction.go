@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 type RecordTransactionRequest struct {
@@ -68,7 +69,7 @@ func (e Event) RecordTransaction(
 		return endTx(eris.New("reference number is required"))
 	}
 
-	userOrg, err := e.userOrganizationToken.CurrentUserOrganization(context, echoCtx)
+	userOrg, err := e.CurrentUserOrganization(context, echoCtx)
 	if err != nil {
 		e.Footstep(echoCtx, FootstepEvent{
 			Activity:    "authentication-failed",
@@ -242,15 +243,18 @@ func (e Event) RecordTransaction(
 
 		if transaction.Credit > 0 {
 			loanAccount.TotalPaymentCount += 1
-			loanAccount.TotalPayment = e.provider.Service.Decimal.Add(
-				loanAccount.TotalPayment, transaction.Credit)
+			totalPaymentDec := decimal.NewFromFloat(loanAccount.TotalPayment)
+			creditDec := decimal.NewFromFloat(transaction.Credit)
+			loanAccount.TotalPayment = totalPaymentDec.Add(creditDec).InexactFloat64()
 		}
 
 		if transaction.Debit > 0 {
 			loanAccount.TotalDeductionCount += 1
-			loanAccount.TotalDeduction = e.provider.Service.Decimal.Add(
-				loanAccount.TotalDeduction, transaction.Debit)
+			totalDeductionDec := decimal.NewFromFloat(loanAccount.TotalDeduction)
+			debitDec := decimal.NewFromFloat(transaction.Debit)
+			loanAccount.TotalDeduction = totalDeductionDec.Add(debitDec).InexactFloat64()
 		}
+
 		loanAccount.UpdatedByID = userOrg.UserID
 		loanAccount.UpdatedAt = now
 

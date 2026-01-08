@@ -37,7 +37,7 @@ func (c *Controller) currencyController() {
 		Note:         "Returns all available currencies on unbalance accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -57,7 +57,7 @@ func (c *Controller) currencyController() {
 		Note:         "Returns all available currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -360,7 +360,7 @@ func (c *Controller) currencyController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
 		}
 
-		result, err := c.usecase.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
+		result, err := usecase.ExchangeRateComputeAmount(*fromCurrency, *toCurrency, amount)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute exchange rate: " + err.Error()})
 		}

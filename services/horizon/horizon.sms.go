@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"html/template"
+	"log"
 	"os"
 	"sync"
 
@@ -38,14 +39,16 @@ type SMS struct {
 	authToken     string // Twilio Auth Token
 	sender        string // Sender phone number registered with Twilio
 	maxCharacters int32  // Maximum allowed length for SMS body
+	secured       bool   // Whether to use secured connection
 }
 
-func NewSMS(accountSID, authToken, sender string, maxCharacters int32) SMSService {
+func NewSMS(accountSID, authToken, sender string, maxCharacters int32, secured bool) SMSService {
 	return &SMS{
 		accountSID:    accountSID,
 		authToken:     authToken,
 		sender:        sender,
 		maxCharacters: maxCharacters,
+		secured:       secured,
 	}
 }
 
@@ -106,6 +109,16 @@ func (h *SMS) Send(ctx context.Context, req SMSRequest) error {
 
 	if len(req.Body) > int(h.maxCharacters) {
 		return eris.Errorf("SMS body exceeds %d characters (actual: %d)", h.maxCharacters, len(req.Body))
+	}
+
+	// 🔐 NOT SECURED → LOG ONLY (LOCAL / LAN MODE)
+	if !h.secured {
+		log.Printf(
+			"[SMS MOCK MODE] To=%s | Message=%s",
+			req.To,
+			req.Body,
+		)
+		return nil
 	}
 
 	if !h.limiter.Allow() {

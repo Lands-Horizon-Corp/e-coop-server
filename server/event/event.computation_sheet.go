@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 type ComputationSheetAccountValue struct {
@@ -109,7 +111,9 @@ func (e *Event) ComputationSheetCalculator(
 		Type:    core.LoanTransactionAddOn,
 		IsAddOn: true,
 	}
-	totalNonAddOns, totalAddOns := 0.0, 0.0
+	totalNonAddOns := decimal.Zero
+	totalAddOns := decimal.Zero
+
 	for _, ald := range automaticLoanDeductionEntries {
 		if ald.AccountID == nil {
 			continue
@@ -138,7 +142,7 @@ func (e *Event) ComputationSheetCalculator(
 				memberProfile.MemberTypeID = lcscr.MemberTypeID
 			}
 
-			entry.Credit = e.usecase.LoanChargesRateComputation(*chargesRateScheme, core.LoanTransaction{
+			entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, core.LoanTransaction{
 				Applied1:      lcscr.Applied1,
 				Terms:         lcscr.Terms,
 				MemberProfile: memberProfile,
@@ -146,35 +150,41 @@ func (e *Event) ComputationSheetCalculator(
 
 		}
 		if entry.Credit <= 0 {
-			entry.Credit = e.usecase.LoanComputation(*ald, core.LoanTransaction{
+			entry.Credit = usecase.LoanComputation(*ald, core.LoanTransaction{
 				Terms:    lcscr.Terms,
 				Applied1: lcscr.Applied1,
 			})
 		}
+		creditDec := decimal.NewFromFloat(entry.Credit)
+
 		if !entry.IsAddOn {
-			totalNonAddOns = e.provider.Service.Decimal.Add(totalNonAddOns, entry.Credit)
+			totalNonAddOns = totalNonAddOns.Add(creditDec)
 		} else {
-			totalAddOns = e.provider.Service.Decimal.Add(totalAddOns, entry.Credit)
+			totalAddOns = totalAddOns.Add(creditDec)
 		}
 		if entry.Credit > 0 {
 			loanTransactionEntries = append(loanTransactionEntries, entry)
 		}
 	}
+	applied1Dec := decimal.NewFromFloat(lcscr.Applied1)
 	if lcscr.IsAddOn {
-		loanTransactionEntries[0].Credit = e.provider.Service.Decimal.Subtract(lcscr.Applied1, totalNonAddOns)
+		loanTransactionEntries[0].Credit = applied1Dec.Sub(totalNonAddOns).InexactFloat64()
 	} else {
-		loanTransactionEntries[0].Credit = e.provider.Service.Decimal.Subtract(lcscr.Applied1, e.provider.Service.Decimal.Add(totalNonAddOns, totalAddOns))
+		loanTransactionEntries[0].Credit = applied1Dec.Sub(totalNonAddOns.Add(totalAddOns)).InexactFloat64()
 	}
+
 	if lcscr.IsAddOn {
-		addOnEntry.Debit = totalAddOns
+		addOnEntry.Debit = totalAddOns.InexactFloat64()
 		loanTransactionEntries = append(loanTransactionEntries, addOnEntry)
 	}
-	totalDebit, totalCredit := 0.0, 0.0
+
+	totalDebit := decimal.Zero
+	totalCredit := decimal.Zero
 	for _, entry := range loanTransactionEntries {
-		totalDebit = e.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-		totalCredit = e.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+		totalDebit = totalDebit.Add(decimal.NewFromFloat(entry.Debit))
+		totalCredit = totalCredit.Add(decimal.NewFromFloat(entry.Credit))
 	}
-	if !e.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
+	if !totalDebit.Equal(totalCredit) {
 		return nil, eris.New("debit and credit are not equal")
 	}
 
@@ -187,7 +197,7 @@ func (e *Event) ComputationSheetCalculator(
 		return nil, err
 	}
 
-	numberOfPayments, err := e.usecase.LoanNumberOfPayments(lcscr.ModeOfPayment, lcscr.Terms)
+	numberOfPayments, err := usecase.LoanNumberOfPayments(lcscr.ModeOfPayment, lcscr.Terms)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to calculate number of payments")
 	}
@@ -292,15 +302,16 @@ func (e *Event) ComputationSheetCalculator(
 		Total: 0,
 	})
 
+	paymentDate := time.Now().UTC()
 	principal := totalCredit
 	balance := totalCredit
-	paymentDate := time.Now().UTC()
-	total := 0.0
+	total := decimal.Zero
 
-	for i := range numberOfPayments + 1 {
+	for i := 0; i <= numberOfPayments; i++ {
 		actualDate := paymentDate
+
 		daysSkipped := 0
-		rowTotal := 0.0
+		rowTotal := decimal.Zero
 		daysSkipped, err := e.skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
 			return nil, err
@@ -315,24 +326,27 @@ func (e *Event) ComputationSheetCalculator(
 
 				periodAccounts[j] = &ComputationSheetAccountValue{
 					Account: accountsSchedule[j].Account,
-					Value:   0,                         // Will be calculated below
-					Total:   accountsSchedule[j].Total, // Carry over cumulative total
+					Value:   0,
+					Total:   accountsSchedule[j].Total,
 				}
 
 				switch accountsSchedule[j].Account.Type {
 				case core.AccountTypeLoan:
-					periodAccounts[j].Value = e.provider.Service.Decimal.Clamp(
-						e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
-
-					accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+					amt := principal.Div(decimal.NewFromInt(int64(numberOfPayments)))
+					if amt.GreaterThan(balance) {
+						amt = balance
+					} else if amt.LessThan(decimal.Zero) {
+						amt = decimal.Zero
+					}
+					periodAccounts[j].Value = amt.InexactFloat64()
+					accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(amt).InexactFloat64()
 					periodAccounts[j].Total = accountsSchedule[j].Total
-
-					balance = e.provider.Service.Decimal.Subtract(balance, periodAccounts[j].Value)
+					balance = balance.Sub(amt)
 
 				case core.AccountTypeFines:
 					if daysSkipped > 0 && !accountsSchedule[j].Account.NoGracePeriodDaily {
-						periodAccounts[j].Value = e.usecase.ComputeFines(
-							principal,
+						amt := usecase.ComputeFines(
+							principal.InexactFloat64(),
 							accountsSchedule[j].Account.FinesAmort,
 							accountsSchedule[j].Account.FinesMaturity,
 							daysSkipped,
@@ -340,8 +354,8 @@ func (e *Event) ComputationSheetCalculator(
 							accountsSchedule[j].Account.NoGracePeriodDaily,
 							e.convertAccountRequestToAccount(accountsSchedule[j].Account),
 						)
-
-						accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+						periodAccounts[j].Value = amt
+						accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(decimal.NewFromFloat(amt)).InexactFloat64()
 						periodAccounts[j].Total = accountsSchedule[j].Total
 					}
 
@@ -349,30 +363,23 @@ func (e *Event) ComputationSheetCalculator(
 					switch accountsSchedule[j].Account.ComputationType {
 					case core.Straight:
 						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(principal, accountsSchedule[j].Account.InterestStandard, lcscr.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							amt := usecase.ComputeInterest(principal.InexactFloat64(), accountsSchedule[j].Account.InterestStandard, lcscr.ModeOfPayment)
+							periodAccounts[j].Value = amt
+							accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(decimal.NewFromFloat(amt)).InexactFloat64()
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
-					case core.Diminishing:
+					case core.Diminishing, core.DiminishingStraight:
 						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, lcscr.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
-							periodAccounts[j].Total = accountsSchedule[j].Total
-						}
-					case core.DiminishingStraight:
-						if accountsSchedule[j].Account.Type == core.AccountTypeInterest || accountsSchedule[j].Account.Type == core.AccountTypeSVFLedger {
-							periodAccounts[j].Value = e.usecase.ComputeInterest(balance, accountsSchedule[j].Account.InterestStandard, lcscr.ModeOfPayment)
-
-							accountsSchedule[j].Total = e.provider.Service.Decimal.Add(accountsSchedule[j].Total, periodAccounts[j].Value)
+							amt := usecase.ComputeInterest(balance.InexactFloat64(), accountsSchedule[j].Account.InterestStandard, lcscr.ModeOfPayment)
+							periodAccounts[j].Value = amt
+							accountsSchedule[j].Total = decimal.NewFromFloat(accountsSchedule[j].Total).Add(decimal.NewFromFloat(amt)).InexactFloat64()
 							periodAccounts[j].Total = accountsSchedule[j].Total
 						}
 					}
 				}
 
-				total = e.provider.Service.Decimal.Add(total, periodAccounts[j].Value)
-				rowTotal = e.provider.Service.Decimal.Add(rowTotal, periodAccounts[j].Value)
+				total = total.Add(decimal.NewFromFloat(periodAccounts[j].Value))
+				rowTotal = rowTotal.Add(decimal.NewFromFloat(periodAccounts[j].Value))
 			}
 		} else {
 			for j := range accountsSchedule {
@@ -385,40 +392,37 @@ func (e *Event) ComputationSheetCalculator(
 		}
 
 		sort.Slice(periodAccounts, func(i, j int) bool {
-			return getAccountTypePriority(
-				periodAccounts[i].Account.Type) <
-				getAccountTypePriority(periodAccounts[j].Account.Type)
+			return getAccountTypePriority(periodAccounts[i].Account.Type) < getAccountTypePriority(periodAccounts[j].Account.Type)
 		})
-
 		switch lcscr.ModeOfPayment {
 		case core.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ActualDate:    actualDate,
 				ScheduledDate: scheduledDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts, // Each period has its own independent slice!
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		case core.LoanModeOfPaymentWeekly:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			weekDay := e.core.LoanWeeklyIota(weeklyExactDay)
 			paymentDate = e.nextWeekday(paymentDate, time.Weekday(weekDay))
 		case core.LoanModeOfPaymentSemiMonthly:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			thisDay := paymentDate.Day()
@@ -436,11 +440,11 @@ func (e *Event) ComputationSheetCalculator(
 			}
 		case core.LoanModeOfPaymentMonthly:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			loc := paymentDate.Location()
@@ -453,40 +457,40 @@ func (e *Event) ComputationSheetCalculator(
 			}
 		case core.LoanModeOfPaymentQuarterly:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 3, 0)
 		case core.LoanModeOfPaymentSemiAnnual:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 6, 0)
 		case core.LoanModeOfPaymentLumpsum:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 		case core.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &ComputationSheetScheduleResponse{
-				Balance:       balance,
+				Balance:       balance.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
-				Total:         rowTotal,
+				Total:         rowTotal.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
 			paymentDate = paymentDate.AddDate(0, 0, 1)
@@ -497,9 +501,9 @@ func (e *Event) ComputationSheetCalculator(
 	return &ComputationSheetAmortizationResponse{
 		Entries:     e.core.LoanTransactionEntryManager().ToModels(loanTransactionEntries),
 		Currency:    *e.core.CurrencyManager().ToModel(currency),
-		TotalDebit:  totalDebit,
-		TotalCredit: totalCredit,
-		Total:       total,
+		TotalDebit:  totalDebit.InexactFloat64(),
+		TotalCredit: totalCredit.InexactFloat64(),
+		Total:       total.InexactFloat64(),
 		Schedule:    amortization,
 	}, nil
 }
@@ -585,14 +589,14 @@ func (e *Event) convertAccountRequestToAccount(req *core.AccountRequest) core.Ac
 func getAccountTypePriority(accountType core.AccountType) int {
 	switch accountType {
 	case core.AccountTypeLoan:
-		return 1 // First
+		return 1
 	case core.AccountTypeInterest:
-		return 2 // Second
+		return 2
 	case core.AccountTypeSVFLedger:
-		return 3 // Third
+		return 3
 	case core.AccountTypeFines:
-		return 4 // Fourth (Last)
+		return 4
 	default:
-		return 5 // Everything else goes last
+		return 5
 	}
 }

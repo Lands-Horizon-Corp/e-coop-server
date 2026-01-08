@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
 func (e *Event) GenerateSavingsInterestEntriesPost(
@@ -16,11 +17,13 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 	request core.GenerateSavingsInterestPostRequest,
 ) error {
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
+
 	generateSavingsInterest, err := e.core.GeneratedSavingsInterestManager().GetByID(context, *generateSavingsInterestID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to get generated savings interest"))
 	}
-	generatedSavinggEntry, err := e.core.GeneratedSavingsInterestEntryManager().Find(context, &core.GeneratedSavingsInterestEntry{
+
+	generatedSavingEntry, err := e.core.GeneratedSavingsInterestEntryManager().Find(context, &core.GeneratedSavingsInterestEntry{
 		OrganizationID:             userOrg.OrganizationID,
 		BranchID:                   *userOrg.BranchID,
 		GeneratedSavingsInterestID: *generateSavingsInterestID,
@@ -28,22 +31,28 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to find generated savings interest entries"))
 	}
+
 	now := time.Now().UTC()
 	userOrgTime := userOrg.UserOrgTime()
-	totalTax, totalInterest := 0.0, 0.0
-
 	if request.EntryDate != nil {
 		userOrgTime = *request.EntryDate
 	}
-	for _, entry := range generatedSavinggEntry {
 
-		var credit, debit float64
-		if e.provider.Service.Decimal.IsGreaterThan(entry.InterestAmount, 0) {
-			credit = e.provider.Service.Decimal.Subtract(entry.InterestAmount, entry.InterestTax)
-			debit = 0
+	totalTax := decimal.Zero
+	totalInterest := decimal.Zero
+
+	for _, entry := range generatedSavingEntry {
+		var credit, debit decimal.Decimal
+
+		interestAmount := decimal.NewFromFloat(entry.InterestAmount)
+		interestTax := decimal.NewFromFloat(entry.InterestTax)
+
+		if interestAmount.GreaterThan(decimal.Zero) {
+			credit = interestAmount.Sub(interestTax)
+			debit = decimal.Zero
 		} else {
-			credit = 0
-			debit = e.provider.Service.Decimal.Abs(entry.InterestAmount)
+			credit = decimal.Zero
+			debit = interestAmount.Abs()
 		}
 
 		newGeneralLedger := &core.GeneralLedger{
@@ -62,39 +71,45 @@ func (e *Event) GenerateSavingsInterestEntriesPost(
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                entry.Account.Description + " - Generated in Savings Interest",
 			TypeOfPaymentType:          core.PaymentTypeSystem,
-			Credit:                     credit,
-			Debit:                      debit,
+			Credit:                     credit.InexactFloat64(),
+			Debit:                      debit.InexactFloat64(),
 			CurrencyID:                 entry.Account.CurrencyID,
-
-			Account: entry.Account,
+			Account:                    entry.Account,
 		}
+
 		if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 			return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 		}
+
 		if generateSavingsInterest.PostAccountID != nil {
-			newGeneralLedger.Credit = debit
-			newGeneralLedger.Debit = credit
+			newGeneralLedger.Credit = debit.InexactFloat64()
+			newGeneralLedger.Debit = credit.InexactFloat64()
 			newGeneralLedger.AccountID = generateSavingsInterest.PostAccountID
 			newGeneralLedger.Account = generateSavingsInterest.PostAccount
+
 			if err := e.core.CreateGeneralLedgerEntry(context, tx, newGeneralLedger); err != nil {
 				return endTx(eris.Wrap(err, "failed to create general ledger entry"))
 			}
 		}
-		totalTax = e.provider.Service.Decimal.Add(totalTax, entry.InterestTax)
-		totalInterest = e.provider.Service.Decimal.Add(totalInterest, entry.InterestAmount)
 
+		totalTax = totalTax.Add(interestTax)
+		totalInterest = totalInterest.Add(interestAmount)
 	}
 
-	generateSavingsInterest.PostedDate = &now
+	nowPtr := now
+	generateSavingsInterest.PostedDate = &nowPtr
 	generateSavingsInterest.PostedByUserID = &userOrg.UserID
 	generateSavingsInterest.PostAccountID = request.PostAccountID
-	generateSavingsInterest.TotalInterest = totalInterest
-	generateSavingsInterest.TotalTax = totalTax
+	generateSavingsInterest.TotalInterest = totalInterest.InexactFloat64()
+	generateSavingsInterest.TotalTax = totalTax.InexactFloat64()
+
 	if err := e.core.GeneratedSavingsInterestManager().UpdateByIDWithTx(context, tx, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 		return endTx(eris.Wrap(err, "failed to update generated savings interest"))
 	}
+
 	if err := endTx(nil); err != nil {
 		return endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
+
 	return nil
 }

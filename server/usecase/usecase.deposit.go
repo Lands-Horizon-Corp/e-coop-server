@@ -5,37 +5,46 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
-func (t *UsecaseService) Deposit(
+func Deposit(
 	ctx context.Context,
 	account *core.Account,
 	amount float64,
-) (credit, debit float64, err error) {
+) (credit float64, debit float64, err error) {
 
 	if account == nil {
 		return 0, 0, eris.New("account is required")
 	}
 
-	if amount == 0 {
+	amt := decimal.NewFromFloat(amount)
+
+	if amt.Equal(decimal.Zero) {
 		return 0, 0, eris.New("amount must be greater than zero")
 	}
-	if amount < 0 {
-		positiveAmount := t.provider.Service.Decimal.Abs(amount)
-		return t.Withdraw(ctx, account, positiveAmount)
+
+	// Negative deposit → withdraw
+	if amt.LessThan(decimal.Zero) {
+		return Withdraw(ctx, account, amt.Abs().InexactFloat64())
 	}
+
 	switch account.Type {
-	case core.AccountTypeDeposit, core.AccountTypeTimeDeposit, core.AccountTypeSVFLedger:
-		return amount, 0, nil
 
-	case core.AccountTypeLoan, core.AccountTypeFines, core.AccountTypeInterest, core.AccountTypeAPLedger:
-		return amount, 0, nil
+	case core.AccountTypeDeposit,
+		core.AccountTypeTimeDeposit,
+		core.AccountTypeSVFLedger,
+		core.AccountTypeLoan,
+		core.AccountTypeFines,
+		core.AccountTypeInterest,
+		core.AccountTypeAPLedger,
+		core.AccountTypeARLedger,
+		core.AccountTypeARAging,
+		core.AccountTypeWOff,
+		core.AccountTypeOther:
 
-	case core.AccountTypeARLedger, core.AccountTypeARAging:
-		return amount, 0, nil
+		return amt.InexactFloat64(), 0, nil
 
-	case core.AccountTypeWOff, core.AccountTypeOther:
-		return amount, 0, nil
 	default:
 		return 0, 0, nil
 	}

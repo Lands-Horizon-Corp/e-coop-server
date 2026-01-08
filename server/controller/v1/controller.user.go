@@ -45,7 +45,7 @@ func (c *Controller) userController() {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -86,7 +86,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
@@ -121,7 +121,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.userToken.SetUser(context, ctx, updatedUser); err != nil {
+		if err := c.event.SetUser(context, ctx, updatedUser); err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: set user token error: " + err.Error(),
@@ -162,7 +162,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -221,7 +221,7 @@ func (c *Controller) userController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.userToken.CurrentUser(context, ctx)
+		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}

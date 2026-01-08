@@ -696,7 +696,7 @@ func (c *Controller) commonController() {
 					HasExpiryDate: false,
 					FieldName:     "TIN",
 					HasNumber:     true,
-					Regex:         `^\d{3}-\d{3}-\d{3}(-\d{3,5})?$`, // 9 or 12-14 digits with optional branch code
+					Regex:         `^\d{3}-\d{3}-\d{3}(-\d{3,5})?$`,
 				},
 				{
 					Name:          "Voter's ID / Commission on Elections (COMELEC)",

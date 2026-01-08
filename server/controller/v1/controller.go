@@ -4,17 +4,12 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 )
 
 type Controller struct {
-	provider              *server.Provider
-	core                  *core.Core
-	event                 *event.Event
-	userOrganizationToken *tokens.UserOrganizationToken
-	userToken             *tokens.UserToken
-	usecase               *usecase.UsecaseService
+	provider *server.Provider
+	core     *core.Core
+	event    *event.Event
 }
 
 func NewController(
@@ -22,19 +17,11 @@ func NewController(
 	core *core.Core,
 	event *event.Event,
 
-	userOrganizationToken *tokens.UserOrganizationToken,
-	userToken *tokens.UserToken,
-	usecase *usecase.UsecaseService,
-
 ) (*Controller, error) {
 	return &Controller{
 		provider: provider,
 		core:     core,
 		event:    event,
-
-		userOrganizationToken: userOrganizationToken,
-		userToken:             userToken,
-		usecase:               usecase,
 	}, nil
 }
 
@@ -147,5 +134,6 @@ func (c *Controller) Start() error {
 	c.mutualFundsController()
 	c.mutualFundEntryController()
 	c.kycController()
+	c.accountTransactionController()
 	return nil
 }

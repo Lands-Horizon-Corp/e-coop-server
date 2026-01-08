@@ -40,19 +40,19 @@ type (
 		EmployeeUserID *uuid.UUID `gorm:"type:uuid" json:"employee_user_id,omitempty"`
 		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID" json:"employee_user,omitempty"`
 
-		BatchName              string  `gorm:"type:varchar(50)"`
-		TotalCashCollection    float64 `gorm:"type:decimal"`
-		TotalDepositEntry      float64 `gorm:"type:decimal"`
-		BeginningBalance       float64 `gorm:"type:decimal"`
-		DepositInBank          float64 `gorm:"type:decimal"`
-		CashCountTotal         float64 `gorm:"type:decimal"`
-		GrandTotal             float64 `gorm:"type:decimal"`
-		PettyCash              float64 `gorm:"type:decimal"`
-		LoanReleases           float64 `gorm:"type:decimal"`
-		TimeDepositWithdrawal  float64 `gorm:"type:decimal"`
-		SavingsWithdrawal      float64 `gorm:"type:decimal"`
-		TotalCashHandled       float64 `gorm:"type:decimal"`
-		TotalSupposedRemitance float64 `gorm:"type:decimal"`
+		BatchName               string  `gorm:"type:varchar(50)"`
+		TotalCashCollection     float64 `gorm:"type:decimal"`
+		TotalDepositEntry       float64 `gorm:"type:decimal"`
+		BeginningBalance        float64 `gorm:"type:decimal"`
+		DepositInBank           float64 `gorm:"type:decimal"`
+		CashCountTotal          float64 `gorm:"type:decimal"`
+		GrandTotal              float64 `gorm:"type:decimal"`
+		PettyCash               float64 `gorm:"type:decimal"`
+		LoanReleases            float64 `gorm:"type:decimal"`
+		TimeDepositWithdrawal   float64 `gorm:"type:decimal"`
+		SavingsWithdrawal       float64 `gorm:"type:decimal"`
+		TotalCashHandled        float64 `gorm:"type:decimal"`
+		TotalSupposedRemmitance float64 `gorm:"type:decimal"`
 
 		TotalCashOnHand               float64 `gorm:"type:decimal"`
 		TotalCheckRemittance          float64 `gorm:"type:decimal"`
@@ -150,7 +150,7 @@ type (
 		TimeDepositWithdrawal         float64 `json:"time_deposit_withdrawal"`
 		SavingsWithdrawal             float64 `json:"savings_withdrawal"`
 		TotalCashHandled              float64 `json:"total_cash_handled"`
-		TotalSupposedRemitance        float64 `json:"total_supposed_remitance"`
+		TotalSupposedRemmitance       float64 `json:"total_supposed_remitance"`
 		TotalCashOnHand               float64 `json:"total_cash_on_hand"`
 		TotalCheckRemittance          float64 `json:"total_check_remittance"`
 		TotalOnlineRemittance         float64 `json:"total_online_remittance"`
@@ -235,7 +235,7 @@ type (
 		TimeDepositWithdrawal         float64    `json:"time_deposit_withdrawal,omitempty"`
 		SavingsWithdrawal             float64    `json:"savings_withdrawal,omitempty"`
 		TotalCashHandled              float64    `json:"total_cash_handled,omitempty"`
-		TotalSupposedRemitance        float64    `json:"total_supposed_remitance,omitempty"`
+		TotalSupposedRemmitance       float64    `json:"total_supposed_remitance,omitempty"`
 		TotalCashOnHand               float64    `json:"total_cash_on_hand,omitempty"`
 		TotalCheckRemittance          float64    `json:"total_check_remittance,omitempty"`
 		TotalOnlineRemittance         float64    `json:"total_online_remittance,omitempty"`
@@ -392,7 +392,7 @@ func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, Tr
 				TimeDepositWithdrawal:         data.TimeDepositWithdrawal,
 				SavingsWithdrawal:             data.SavingsWithdrawal,
 				TotalCashHandled:              data.TotalCashHandled,
-				TotalSupposedRemitance:        data.TotalSupposedRemitance,
+				TotalSupposedRemmitance:       data.TotalSupposedRemmitance,
 				TotalCashOnHand:               data.TotalCashOnHand,
 				TotalCheckRemittance:          data.TotalCheckRemittance,
 				TotalOnlineRemittance:         data.TotalOnlineRemittance,

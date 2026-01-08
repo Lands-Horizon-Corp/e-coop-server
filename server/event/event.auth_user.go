@@ -1,16 +1,13 @@
-package tokens
+package event
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 )
 
@@ -70,36 +67,14 @@ func (m UserCSRF) GetID() string {
 	return m.UserID
 }
 
-type UserToken struct {
-	core                  *core.Core
-	userOrganizationToken *UserOrganizationToken
-
-	csrf horizon.AuthService[UserCSRF]
-}
-
-func NewUserToken(provider *server.Provider, core *core.Core, userOrganizationToken *UserOrganizationToken) (*UserToken, error) {
-	appName := provider.Service.Environment.GetString("APP_NAME", "")
-	csrfService := horizon.NewAuthServiceImpl[UserCSRF](
-		provider.Service.Cache,
-		"user-csrf",
-		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER", appName),
-		true,
-	)
-	return &UserToken{
-		csrf:                  csrfService,
-		core:                  core,
-		userOrganizationToken: userOrganizationToken,
-	}, nil
-}
-
-func (h *UserToken) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
-	h.csrf.ClearCSRF(ctx, echoCtx)
-	h.userOrganizationToken.ClearCurrentToken(ctx, echoCtx)
+func (h *Event) ClearCurrentCSRF(ctx context.Context, echoCtx echo.Context) {
+	h.userCSRF.ClearCSRF(ctx, echoCtx)
+	h.ClearCurrentToken(ctx, echoCtx)
 
 }
 
-func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
-	claim, err := h.csrf.GetCSRF(ctx, echoCtx)
+func (h *Event) CurrentUser(ctx context.Context, echoCtx echo.Context) (*core.User, error) {
+	claim, err := h.userCSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		h.ClearCurrentCSRF(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: "+err.Error())
@@ -120,19 +95,19 @@ func (h *UserToken) CurrentUser(ctx context.Context, echoCtx echo.Context) (*cor
 	return user, nil
 }
 
-func (h *UserToken) CurrentUserCSRF(context context.Context, ctx echo.Context) (UserCSRF, error) {
-	return h.csrf.GetCSRF(context, ctx)
+func (h *Event) CurrentUserCSRF(context context.Context, ctx echo.Context) (UserCSRF, error) {
+	return h.userCSRF.GetCSRF(context, ctx)
 }
 
-func (h *UserToken) LogoutOtherDevices(context context.Context, ctx echo.Context) error {
-	return h.csrf.LogoutOtherDevices(context, ctx)
+func (h *Event) LogoutOtherDevices(context context.Context, ctx echo.Context) error {
+	return h.userCSRF.LogoutOtherDevices(context, ctx)
 }
 
-func (h *UserToken) LoggedInUsers(context context.Context, ctx echo.Context) ([]UserCSRF, error) {
-	return h.csrf.GetLoggedInUsers(context, ctx)
+func (h *Event) LoggedInUsers(context context.Context, ctx echo.Context) ([]UserCSRF, error) {
+	return h.userCSRF.GetLoggedInUsers(context, ctx)
 }
 
-func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
+func (h *Event) SetUser(ctx context.Context, echoCtx echo.Context, user *core.User) error {
 	h.ClearCurrentCSRF(ctx, echoCtx)
 	if user == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")
@@ -140,7 +115,7 @@ func (h *UserToken) SetUser(ctx context.Context, echoCtx echo.Context, user *cor
 	if user.Email == "" || user.ContactNumber == "" || user.Password == "" || user.Username == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "User must have ID, Email, ContactNumber, Password, and Username")
 	}
-	if err := h.csrf.SetCSRF(ctx, echoCtx, UserCSRF{
+	if err := h.userCSRF.SetCSRF(ctx, echoCtx, UserCSRF{
 		UserID:         user.ID.String(),
 		Email:          user.Email,
 		ContactNumber:  user.ContactNumber,

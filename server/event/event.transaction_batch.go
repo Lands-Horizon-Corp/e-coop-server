@@ -7,23 +7,112 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 )
 
-func (m *Event) TransactionBatchBalancing(context context.Context, transactionBatchID *uuid.UUID) error {
+func (m *Event) TransactionBatchBalancing(ctx context.Context, transactionBatchID *uuid.UUID) error {
 	if transactionBatchID == nil {
 		return eris.New("transactionBatchID is nil")
 	}
-	transactionBatch, err := m.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+	tx, endTx := m.provider.Service.Database.StartTransaction(ctx)
+	transactionBatch, err := m.core.TransactionBatchManager().GetByIDLock(ctx, tx, *transactionBatchID)
 	if err != nil {
-		return eris.Wrap(err, "failed to get transaction batch by ID")
+		return endTx(eris.Wrap(err, "failed to get transaction batch by ID"))
 	}
-	if err := m.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-		return eris.Wrap(err, "failed to update transaction batch")
+
+	payments, err := m.TBPayment(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total payments"))
+	}
+	transactionBatch.TotalCashCollection = payments.Balance
+	totalDeposit, err := m.TBDeposit(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total deposits"))
+	}
+	transactionBatch.TotalDepositEntry = totalDeposit.Balance
+	batchFunding, err := m.TBBatchFunding(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total batch funding"))
+	}
+	transactionBatch.BeginningBalance = batchFunding
+
+	// total_cash_handled  = beg_bal + deposit + collection (REAL CASH ONLY)
+	totalCashHandled := decimal.NewFromFloat(transactionBatch.BeginningBalance).
+		Add(decimal.NewFromFloat(transactionBatch.DepositInBank)).
+		Add(decimal.NewFromFloat(transactionBatch.TotalCashCollection))
+	transactionBatch.TotalCashHandled = totalCashHandled.InexactFloat64()
+
+	totalWithdraw, err := m.TBWithdraw(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total withdrawals"))
+	}
+
+	less := decimal.Zero
+	savingsWithdrawal := decimal.NewFromFloat(totalWithdraw.Balance).Mul(decimal.NewFromInt(-1))
+	transactionBatch.SavingsWithdrawal = savingsWithdrawal.InexactFloat64()
+	less = less.Add(savingsWithdrawal)
+
+	disbursementTransaction, err := m.TBDisbursementTransaction(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total disbursement transactions"))
+	}
+	transactionBatch.PettyCash = disbursementTransaction
+	less = less.Add(decimal.NewFromFloat(transactionBatch.PettyCash))
+
+	totalSupposed := decimal.NewFromFloat(transactionBatch.TotalCashHandled).Sub(less)
+	transactionBatch.TotalSupposedRemmitance = totalSupposed.InexactFloat64()
+
+	tbCashCount, err := m.TBCashCount(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total cash count"))
+	}
+	transactionBatch.TotalCashOnHand = tbCashCount
+	transactionBatch.CashCountTotal = tbCashCount
+
+	tbCheckRemittance, err := m.TBCheckRemittance(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total check remittance"))
+	}
+	transactionBatch.TotalCheckRemittance = tbCheckRemittance
+
+	tbOnlineRemittance, err := m.TBOnlineRemittance(ctx, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate total online remittance"))
+	}
+	transactionBatch.TotalOnlineRemittance = tbOnlineRemittance
+
+	transactionBatch.TotalDepositInBank = transactionBatch.DepositInBank
+
+	// GrandTotal = tbCashCount + DepositInBank + batchFunding
+	grandTotal := decimal.NewFromFloat(tbCashCount).
+		Add(decimal.NewFromFloat(transactionBatch.DepositInBank)).
+		Add(decimal.NewFromFloat(batchFunding))
+	transactionBatch.GrandTotal = grandTotal.InexactFloat64()
+
+	// TotalActualRemittance = check + online + cash + deposit
+	totalActualRemittance := decimal.NewFromFloat(transactionBatch.TotalCheckRemittance).
+		Add(decimal.NewFromFloat(transactionBatch.TotalOnlineRemittance)).
+		Add(decimal.NewFromFloat(transactionBatch.TotalCashOnHand)).
+		Add(decimal.NewFromFloat(transactionBatch.TotalDepositInBank))
+	transactionBatch.TotalActualRemittance = totalActualRemittance.InexactFloat64()
+
+	// TotalActualSupposedComparison = totalActualRemittance - totalSupposed
+	totalActualSupposedComparison := totalActualRemittance.Sub(totalSupposed)
+	transactionBatch.TotalActualSupposedComparison = totalActualSupposedComparison.InexactFloat64()
+
+	if err := m.core.TransactionBatchManager().UpdateByIDWithTx(ctx, tx, transactionBatch.ID, transactionBatch); err != nil {
+		return endTx(eris.Wrap(err, "failed to update transaction batch"))
+	}
+
+	if err := endTx(nil); err != nil {
+		return eris.Wrap(err, "failed to end transaction")
 	}
 	return nil
 }
-
-func (m *Event) TBBatchFunding(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+func (m *Event) TBBatchFunding(
+	context context.Context,
+	transactionBatchID, orgID, branchID uuid.UUID,
+) (float64, error) {
 	batchFunding, err := m.core.BatchFundingManager().Find(context, &core.BatchFunding{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
@@ -32,14 +121,20 @@ func (m *Event) TBBatchFunding(context context.Context, transactionBatchID, orgI
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to find batch fundings")
 	}
-	var totalBatchFunding float64
+
+	totalBatchDec := decimal.Zero
 	for _, funding := range batchFunding {
-		totalBatchFunding = m.provider.Service.Decimal.Add(totalBatchFunding, funding.Amount)
+		amountDec := decimal.NewFromFloat(funding.Amount)
+		totalBatchDec = totalBatchDec.Add(amountDec)
 	}
-	return totalBatchFunding, nil
+
+	return totalBatchDec.InexactFloat64(), nil
 }
 
-func (m *Event) TBCashCount(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+func (m *Event) TBCashCount(
+	context context.Context,
+	transactionBatchID, orgID, branchID uuid.UUID,
+) (float64, error) {
 	cashCounts, err := m.core.CashCountManager().Find(context, &core.CashCount{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
@@ -48,14 +143,21 @@ func (m *Event) TBCashCount(context context.Context, transactionBatchID, orgID, 
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to find cash counts")
 	}
-	var totalCashCount float64
+
+	totalCashDec := decimal.Zero
 	for _, cashCount := range cashCounts {
-		totalCashCount = m.provider.Service.Decimal.Add(totalCashCount, m.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
+		amountDec := decimal.NewFromFloat(cashCount.Amount)
+		quantityDec := decimal.NewFromFloat(float64(cashCount.Quantity))
+		totalCashDec = totalCashDec.Add(amountDec.Mul(quantityDec))
 	}
-	return totalCashCount, nil
+
+	return totalCashDec.InexactFloat64(), nil
 }
 
-func (m *Event) TBCheckRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+func (m *Event) TBCheckRemittance(
+	context context.Context,
+	transactionBatchID, orgID, branchID uuid.UUID,
+) (float64, error) {
 	checkRemittances, err := m.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -64,14 +166,20 @@ func (m *Event) TBCheckRemittance(context context.Context, transactionBatchID, o
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to find check remittances")
 	}
-	var totalCheckRemittance float64
+
+	totalCheckDec := decimal.Zero
 	for _, remittance := range checkRemittances {
-		totalCheckRemittance = m.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
+		amountDec := decimal.NewFromFloat(remittance.Amount)
+		totalCheckDec = totalCheckDec.Add(amountDec)
 	}
-	return totalCheckRemittance, nil
+
+	return totalCheckDec.InexactFloat64(), nil
 }
 
-func (m *Event) TBOnlineRemittance(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+func (m *Event) TBOnlineRemittance(
+	context context.Context,
+	transactionBatchID, orgID, branchID uuid.UUID,
+) (float64, error) {
 	onlineRemittances, err := m.core.OnlineRemittanceManager().Find(context, &core.OnlineRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
@@ -80,14 +188,19 @@ func (m *Event) TBOnlineRemittance(context context.Context, transactionBatchID, 
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to find online remittances")
 	}
-	var totalOnlineRemittance float64
-	for _, remittance := range onlineRemittances {
-		totalOnlineRemittance = m.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
-	}
-	return totalOnlineRemittance, nil
-}
 
-func (m *Event) TBDisbursementTransaction(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (float64, error) {
+	totalOnlineDec := decimal.Zero
+	for _, remittance := range onlineRemittances {
+		amountDec := decimal.NewFromFloat(remittance.Amount)
+		totalOnlineDec = totalOnlineDec.Add(amountDec)
+	}
+
+	return totalOnlineDec.InexactFloat64(), nil
+}
+func (m *Event) TBDisbursementTransaction(
+	context context.Context,
+	transactionBatchID, orgID, branchID uuid.UUID,
+) (float64, error) {
 	disbursementTransactions, err := m.core.DisbursementTransactionManager().Find(context, &core.DisbursementTransaction{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
@@ -96,11 +209,14 @@ func (m *Event) TBDisbursementTransaction(context context.Context, transactionBa
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to find disbursement transactions")
 	}
-	var totalDisbursementTransaction float64
+
+	totalDisbursementDec := decimal.Zero
 	for _, transaction := range disbursementTransactions {
-		totalDisbursementTransaction = m.provider.Service.Decimal.Add(totalDisbursementTransaction, transaction.Amount)
+		amountDec := decimal.NewFromFloat(transaction.Amount)
+		totalDisbursementDec = totalDisbursementDec.Add(amountDec)
 	}
-	return totalDisbursementTransaction, nil
+
+	return totalDisbursementDec.InexactFloat64(), nil
 }
 
 func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
@@ -113,7 +229,7 @@ func (m *Event) TBWithdraw(context context.Context, transactionBatchID, orgID, b
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find withdrawals")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: withdrawals,
 	})
 }
@@ -128,7 +244,7 @@ func (m *Event) TBDeposit(context context.Context, transactionBatchID, orgID, br
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find deposits")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: deposits,
 	})
 }
@@ -143,7 +259,7 @@ func (m *Event) TBJournal(context context.Context, transactionBatchID, orgID, br
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journals")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: journals,
 	})
 }
@@ -158,7 +274,7 @@ func (m *Event) TBPayment(context context.Context, transactionBatchID, orgID, br
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find payments")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: payments,
 	})
 }
@@ -173,7 +289,7 @@ func (m *Event) TBAdjustment(context context.Context, transactionBatchID, orgID,
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find adjustments")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: adjustments,
 	})
 }
@@ -188,7 +304,7 @@ func (m *Event) TBJournalVoucher(context context.Context, transactionBatchID, or
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journal vouchers")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: journalVouchers,
 	})
 }
@@ -203,7 +319,7 @@ func (m *Event) TBCheckVoucher(context context.Context, transactionBatchID, orgI
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find check vouchers")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: checkVouchers,
 	})
 }
@@ -218,139 +334,7 @@ func (m *Event) TBLoan(context context.Context, transactionBatchID, orgID, branc
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find loan vouchers")
 	}
-	return m.usecase.Balance(usecase.Balance{
+	return usecase.CalculateBalance(usecase.Balance{
 		GeneralLedgers: loanVouchers,
 	})
 }
-
-/*
---------------------------- Batch Funding
-cashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
-	TransactionBatchID: transactionBatch.ID,
-	OrganizationID:     userOrg.OrganizationID,
-	BranchID:           *userOrg.BranchID,
-})
-if err != nil {
-	c.event.Footstep(ctx, event.FootstepEvent{
-		Activity:    "create-error",
-		Description: "Batch funding creation failed (/batch-funding), cash count lookup error: " + err.Error(),
-		Module:      "BatchFunding",
-	})
-	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to retrieve cash counts: " + err.Error()})
-}
-
-var totalCashCount float64
-for _, cashCount := range cashCounts {
-	totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, c.provider.Service.Decimal.Multiply(cashCount.Amount, float64(cashCount.Quantity)))
-}
-transactionBatch.BeginningBalance = c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, batchFundingReq.Amount)
-transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(batchFundingReq.Amount, transactionBatch.DepositInBank), totalCashCount)
-transactionBatch.CashCountTotal = totalCashCount
-transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, transactionBatch.DepositInBank)
-
-if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-	c.event.Footstep(ctx, event.FootstepEvent{
-		Activity:    "create-error",
-		Description: "Batch funding creation failed (/batch-funding), transaction batch update error: " + err.Error(),
-		Module:      "BatchFunding",
-	})
-	return ctx.JSON(http.StatusConflict, map[string]string{"error": "Could not update transaction batch balances: " + err.Error()})
-}
-
---------------------------- Cash Count
-
-
---------------------------- Check Remittance
-
-allCheckRemittances, err := c.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-})
-if err != nil {
-	c.event.Footstep(ctx, event.FootstepEvent{
-		Activity:    "delete-error",
-		Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), recalc error: " + err.Error(),
-		Module:      "CheckRemittance",
-	})
-	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to recalculate check remittances: " + err.Error()})
-}
-
-var totalCheckRemittance float64
-for _, remittance := range allCheckRemittances {
-	totalCheckRemittance = c.provider.Service.Decimal.Add(totalCheckRemittance, remittance.Amount)
-}
-transactionBatch.TotalCheckRemittance = totalCheckRemittance
-transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-transactionBatch.UpdatedAt = time.Now().UTC()
-transactionBatch.UpdatedByID = userOrg.UserID
-
-
---------------------------- Online Remittance
-
-
-allOnlineRemittances, err := c.core.OnlineRemittanceManager().Find(context, &core.OnlineRemittance{
-			TransactionBatchID: &transactionBatch.ID,
-			OrganizationID:     userOrg.OrganizationID,
-			BranchID:           *userOrg.BranchID,
-		})
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Delete online remittance failed: find all error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve online remittances: " + err.Error()})
-		}
-
-		var totalOnlineRemittance float64
-		for _, remittance := range allOnlineRemittances {
-			totalOnlineRemittance = c.provider.Service.Decimal.Add(totalOnlineRemittance, remittance.Amount)
-		}
-
-		transactionBatch.TotalOnlineRemittance = totalOnlineRemittance
-		transactionBatch.TotalActualRemittance = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.TotalCheckRemittance, transactionBatch.TotalOnlineRemittance), transactionBatch.TotalDepositInBank)
-		transactionBatch.UpdatedAt = time.Now().UTC()
-		transactionBatch.UpdatedByID = userOrg.UserID
-
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "delete-error",
-				Description: "Delete online remittance failed: update batch error: " + err.Error(),
-				Module:      "OnlineRemittance",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
-		}
-
-
---------------------------- Disbursement Transaction
-
-
---------------------- Deposit in Bank
-cashCounts, err := c.core.CashCountManager().Find(context, &core.CashCount{
-	TransactionBatchID: transactionBatch.ID,
-	OrganizationID:     userOrg.OrganizationID,
-	BranchID:           *userOrg.BranchID,
-})
-if err != nil {
-	c.event.Footstep(ctx, event.FootstepEvent{
-		Activity:    "update-error",
-		Description: "Update deposit in bank failed: get cash counts error: " + err.Error(),
-		Module:      "TransactionBatch",
-	})
-	return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash counts: " + err.Error()})
-}
-
-var totalCashCount float64
-for _, cashCount := range cashCounts {
-	totalCashCount = c.provider.Service.Decimal.Add(totalCashCount, cashCount.Amount)
-}
-
-transactionBatch.DepositInBank = req.DepositInBank
-transactionBatch.GrandTotal = c.provider.Service.Decimal.Add(totalCashCount, req.DepositInBank)
-transactionBatch.TotalCashHandled = c.provider.Service.Decimal.Add(c.provider.Service.Decimal.Add(transactionBatch.BeginningBalance, req.DepositInBank), totalCashCount)
-transactionBatch.TotalDepositInBank = req.DepositInBank
-transactionBatch.UpdatedAt = time.Now().UTC()
-transactionBatch.UpdatedByID = userOrg.UserID
-
-*/

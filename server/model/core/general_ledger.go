@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -334,21 +335,21 @@ func (m *Core) CreateGeneralLedgerEntry(
 		{Field: "created_at", Order: "DESC"},
 	})
 
-	previousBalance := m.provider.Service.Decimal.NewFromFloat(0)
+	previousBalance := decimal.NewFromFloat(0)
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	} else {
 		if ledger != nil {
-			previousBalance = m.provider.Service.Decimal.NewFromFloat(ledger.Balance)
+			previousBalance = decimal.NewFromFloat(ledger.Balance)
 		}
 	}
 
-	debitDecimal := m.provider.Service.Decimal.NewFromFloat(data.Debit)
-	creditDecimal := m.provider.Service.Decimal.NewFromFloat(data.Credit)
+	debitDecimal := decimal.NewFromFloat(data.Debit)
+	creditDecimal := decimal.NewFromFloat(data.Credit)
 
-	balanceChange := m.provider.Service.Decimal.NewFromFloat(0)
+	var balanceChange decimal.Decimal
 	if data.Account == nil {
 		balanceChange = debitDecimal.Sub(creditDecimal)
 	} else {
@@ -363,8 +364,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 	}
 
 	newBalance := previousBalance.Add(balanceChange)
-	nbf, _ := newBalance.Float64()
-	data.Balance = nbf
+	data.Balance, _ = newBalance.Float64()
 
 	if err := m.GeneralLedgerManager().CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
@@ -390,6 +390,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 			return eris.Wrap(err, "failed to update or create member accounting ledger")
 		}
 	}
+
 	return nil
 }
 
@@ -403,9 +404,12 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 	}
-	return m.GeneralLedgerManager().ArrGetMaxInt(ctx, "print_number", filters)
+	res, err := m.GeneralLedgerManager().ArrGetMaxInt(ctx, "print_number", filters)
+	if err != nil {
+		return 0, err
+	}
+	return int(res), nil
 }
-
 func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -815,4 +819,110 @@ func (m *Core) GetDailyEndingBalances(
 		dailyBalances = append(dailyBalances, currentBalance)
 	}
 	return dailyBalances, nil
+}
+
+func (m *Core) DailyBookingCollection(
+	ctx context.Context,
+	date time.Time,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
+
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
+	}
+
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "entry_date", Order: query.SortOrderAsc},
+	}
+
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourcePayment || item.Source == GeneralLedgerSourceDeposit {
+			result = append(result, item)
+		}
+	}
+	return result, nil
+}
+
+func (m *Core) DailyDisbursementCollection(
+	ctx context.Context,
+	date time.Time,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
+
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
+	}
+
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "entry_date", Order: query.SortOrderAsc},
+	}
+
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourceWithdraw ||
+			item.Source == GeneralLedgerSourceCheckVoucher ||
+			item.Source == GeneralLedgerSourceLoan {
+			result = append(result, item)
+		}
+	}
+
+	return result, nil
+}
+
+func (m *Core) DailyJournalCollection(
+	ctx context.Context,
+	date time.Time,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*GeneralLedger, error) {
+
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
+
+	filters := []registry.FilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "entry_date", Op: query.ModeGTE, Value: startOfDay},
+		{Field: "entry_date", Op: query.ModeLTE, Value: endOfDay},
+	}
+
+	sorts := []query.ArrFilterSortSQL{
+		{Field: "entry_date", Order: query.SortOrderAsc},
+	}
+
+	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*GeneralLedger, 0)
+	for _, item := range allData {
+		if item.Source == GeneralLedgerSourceJournalVoucher ||
+			item.Source == GeneralLedgerSourceAdjustment {
+			result = append(result, item)
+		}
+	}
+	return result, nil
 }

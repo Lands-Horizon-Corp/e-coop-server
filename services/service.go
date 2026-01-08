@@ -105,7 +105,6 @@ type HorizonService struct {
 	SMTP      horizon.SMTPService
 	Request   horizon.APIService
 	QR        horizon.QRService
-	Decimal   horizon.DecimalOperations
 	Validator *validator.Validate
 
 	Logger *zap.Logger
@@ -270,26 +269,54 @@ func NewHorizonService(cfg HorizonServiceConfig) *HorizonService {
 	// OTP, SMS, SMTP
 	service.Logger.Info("Initializing OTP, SMS, SMTP Services")
 	if cfg.OTPServiceConfig != nil {
-		service.OTP = horizon.NewHorizonOTP(cfg.OTPServiceConfig.Secret, service.Cache, service.Security)
+		service.OTP = horizon.NewHorizonOTP(
+			cfg.OTPServiceConfig.Secret,
+			service.Cache,
+			service.Security,
+			isStaging)
 	} else {
-		service.OTP = horizon.NewHorizonOTP(service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"), service.Cache, service.Security)
+		service.OTP = horizon.NewHorizonOTP(
+			service.Environment.GetByteSlice("OTP_SECRET", "6D90qhBCfeDhVPewzED22XCqhtUJKR"),
+			service.Cache,
+			service.Security,
+			isStaging)
 	}
 
 	if cfg.SMSServiceConfig != nil {
-		service.SMS = horizon.NewSMS(cfg.SMSServiceConfig.AccountSID, cfg.SMSServiceConfig.AuthToken, cfg.SMSServiceConfig.Sender, cfg.SMSServiceConfig.MaxChars)
+		service.SMS = horizon.NewSMS(
+			cfg.SMSServiceConfig.AccountSID,
+			cfg.SMSServiceConfig.AuthToken,
+			cfg.SMSServiceConfig.Sender,
+			cfg.SMSServiceConfig.MaxChars,
+			isStaging)
 	} else {
-		service.SMS = horizon.NewSMS(service.Environment.GetString("TWILIO_ACCOUNT_SID", ""), service.Environment.GetString("TWILIO_AUTH_TOKEN", ""), service.Environment.GetString("TWILIO_SENDER", ""), service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160))
+		service.SMS = horizon.NewSMS(
+			service.Environment.GetString("TWILIO_ACCOUNT_SID", ""),
+			service.Environment.GetString("TWILIO_AUTH_TOKEN", ""),
+			service.Environment.GetString("TWILIO_SENDER", "+17753803931"),
+			service.Environment.GetInt32("TWILIO_MAX_CHARACTERS", 160),
+			isStaging)
 	}
 
 	if cfg.SMTPServiceConfig != nil {
-		service.SMTP = horizon.NewSMTP(cfg.SMTPServiceConfig.Host, cfg.SMTPServiceConfig.Port, cfg.SMTPServiceConfig.Username, cfg.SMTPServiceConfig.Password, cfg.SMTPServiceConfig.From)
+		service.SMTP = horizon.NewSMTP(
+			cfg.SMTPServiceConfig.Host,
+			cfg.SMTPServiceConfig.Port,
+			cfg.SMTPServiceConfig.Username,
+			cfg.SMTPServiceConfig.Password,
+			cfg.SMTPServiceConfig.From, isStaging)
 	} else {
-		service.SMTP = horizon.NewSMTP(service.Environment.GetString("SMTP_HOST", "127.0.0.1"), service.Environment.GetInt("SMTP_PORT", 1025), service.Environment.GetString("SMTP_USERNAME", ""), service.Environment.GetString("SMTP_PASSWORD", ""), service.Environment.GetString("SMTP_FROM", "dev@local.test"))
+		service.SMTP = horizon.NewSMTP(
+			service.Environment.GetString("SMTP_HOST", "127.0.0.1"),
+			service.Environment.GetInt("SMTP_PORT", 1025),
+			service.Environment.GetString("SMTP_USERNAME", ""),
+			service.Environment.GetString("SMTP_PASSWORD", ""),
+			service.Environment.GetString("SMTP_FROM", "dev@local.test"),
+			isStaging)
 	}
 
 	service.Cron = horizon.NewSchedule()
 	service.QR = horizon.NewHorizonQRService(service.Security)
-	service.Decimal = *horizon.NewDecimalHelper()
 
 	service.Logger.Info("HorizonService initialized successfully")
 	return service

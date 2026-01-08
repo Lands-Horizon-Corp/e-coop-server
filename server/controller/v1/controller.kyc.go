@@ -14,7 +14,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -56,11 +55,7 @@ func (c *Controller) kycController() {
 				"error": "Username already taken",
 			})
 		}
-		switch strings.ToLower(req.Gender) {
-		case "male", "female", "others":
-		default:
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Gender must be 'male', 'female', or 'others'"})
-		}
+
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Personal details received successfully"})
 	})
 
@@ -480,7 +475,7 @@ func (c *Controller) kycController() {
 		if req.Password != req.PasswordConfirmation {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password and confirmation do not match"})
 		}
-		org, ok := c.userOrganizationToken.GetOrganization(ctx)
+		org, ok := c.event.GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
@@ -492,7 +487,7 @@ func (c *Controller) kycController() {
 		userProfile := &core.User{
 			Email:             req.Email,
 			Username:          req.Username,
-			ContactNumber:     req.Phone,
+			ContactNumber:     req.ContactNumber,
 			Password:          hashedPwd,
 			FullName:          req.FullName,
 			FirstName:         &req.FirstName,
@@ -517,6 +512,8 @@ func (c *Controller) kycController() {
 			OrganizationID:       org.ID,
 			BranchID:             *req.BranchID,
 			CreatedAt:            time.Now().UTC(),
+			CreatedByID:          &userProfile.ID,
+			UpdatedByID:          &userProfile.ID,
 			UpdatedAt:            time.Now().UTC(),
 			UserID:               &userProfile.ID,
 			OldReferenceID:       req.OldPassbook,
@@ -555,60 +552,96 @@ func (c *Controller) kycController() {
 				OrganizationID:  org.ID,
 				Longitude:       addrReq.Longitude,
 				Latitude:        addrReq.Latitude,
+				CreatedByID:     &userProfile.ID,
+				UpdatedByID:     &userProfile.ID,
 			}
-			if err := c.core.MemberAddressManager().Create(context, value); err != nil {
+
+			if err := c.core.MemberAddressManager().CreateWithTx(context, tx, value); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
 		}
-		for _, govReq := range req.GovernmentBenefits {
 
+		for _, benefitReq := range req.GovernmentBenefits {
 			value := &core.MemberGovernmentBenefit{
 				MemberProfileID: memberProfile.ID,
-				FrontMediaID:    govReq.FrontMediaID,
-				BackMediaID:     govReq.BackMediaID,
-				CountryCode:     govReq.CountryCode,
-				Description:     govReq.Description,
-				Name:            govReq.Name,
-				Value:           govReq.Value,
-				ExpiryDate:      govReq.ExpiryDate,
+				Name:            benefitReq.Name,
+				Description:     benefitReq.Description,
+				Value:           benefitReq.Value,
+				ExpiryDate:      benefitReq.ExpiryDate,
+				CountryCode:     benefitReq.CountryCode,
 				CreatedAt:       time.Now().UTC(),
 				UpdatedAt:       time.Now().UTC(),
 				BranchID:        *req.BranchID,
 				OrganizationID:  org.ID,
+				CreatedByID:     &userProfile.ID,
+				UpdatedByID:     &userProfile.ID,
 			}
-			if err := c.core.MemberGovernmentBenefitManager().Create(context, value); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create government benefit record: " + err.Error()})
-			}
-		}
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
-		developerKey = developerKey + uuid.NewString() + "-horizon"
-		newUserOrg := &core.UserOrganization{
-			CreatedAt:                time.Now().UTC(),
-			UpdatedAt:                time.Now().UTC(),
-			OrganizationID:           org.ID,
-			BranchID:                 req.BranchID,
-			UserID:                   userProfile.ID,
-			UserType:                 core.UserOrganizationTypeMember,
-			Description:              "",
-			ApplicationDescription:   "anything",
-			ApplicationStatus:        "accepted",
-			DeveloperSecretKey:       developerKey,
-			PermissionName:           string(core.UserOrganizationTypeMember),
-			PermissionDescription:    "",
-			Permissions:              []string{},
-			UserSettingDescription:   "user settings",
-			UserSettingStartOR:       0,
-			UserSettingEndOR:         1000,
-			UserSettingUsedOR:        0,
-			UserSettingStartVoucher:  0,
-			UserSettingEndVoucher:    0,
-			UserSettingUsedVoucher:   0,
-			UserSettingNumberPadding: 7,
-		}
-		if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, newUserOrg); err != nil {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + endTx(err).Error()})
-		}
 
+			if err := c.core.MemberGovernmentBenefitManager().CreateWithTx(context, tx, value); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
+			}
+		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})
+		}
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
+	})
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/kyc/login",
+		Method:       "POST",
+		RequestType:  core.KYCLoginRequest{},
+		ResponseType: core.CurrentUserResponse{},
+		Note:         "Authenticates a KYC user using email, username, or phone and returns user details.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var req core.KYCLoginRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
+		}
+		if err := c.provider.Service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		org, ok := c.event.GetOrganization(ctx)
+		if !ok {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+		user, err := c.core.GetUserByIdentifier(context, req.Key)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
+		}
+		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		if err != nil || !valid {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
+		}
+		if !user.IsEmailVerified || !user.IsContactVerified {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User has not completed KYC verification"})
+		}
+		if err := c.event.SetUser(context, ctx, user); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
+		}
+		userOrg, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+			UserID:         user.ID,
+			OrganizationID: org.ID,
+			UserType:       core.UserOrganizationTypeMember,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, userOrg.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+		}
+		if userOrganization.ApplicationStatus == "accepted" {
+			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
+			}
+			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
+		}
+		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+			UserID:           user.ID,
+			User:             c.core.UserManager().ToModel(user),
+			UserOrganization: c.core.UserOrganizationManager().ToModel(userOrganization),
+		})
 	})
 }

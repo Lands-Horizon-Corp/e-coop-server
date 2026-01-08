@@ -39,7 +39,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -67,9 +67,9 @@ func (c *Controller) memberAddressController() {
 			Landmark:        req.Landmark,
 			Address:         req.Address,
 			CreatedAt:       time.Now().UTC(),
-			CreatedByID:     userOrg.UserID,
+			CreatedByID:     &userOrg.UserID,
 			UpdatedAt:       time.Now().UTC(),
-			UpdatedByID:     userOrg.UserID,
+			UpdatedByID:     &userOrg.UserID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 			Longitude:       req.Longitude,
@@ -117,7 +117,7 @@ func (c *Controller) memberAddressController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid address data: " + err.Error()})
 		}
-		userOrg, err := c.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "update-error",
@@ -144,7 +144,7 @@ func (c *Controller) memberAddressController() {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member address record not found"})
 		}
 		value.UpdatedAt = time.Now().UTC()
-		value.UpdatedByID = userOrg.UserID
+		value.UpdatedByID = &userOrg.UserID
 		value.OrganizationID = userOrg.OrganizationID
 		value.BranchID = *userOrg.BranchID
 

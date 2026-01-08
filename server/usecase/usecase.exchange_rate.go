@@ -91,7 +91,7 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 	return result, nil
 }
 
-func (s *UsecaseService) ExchangeRateComputeAmount(
+func ExchangeRateComputeAmount(
 	fromCurrency core.Currency,
 	toCurrency core.Currency,
 	amount float64) (*ExchangeResult, error) {

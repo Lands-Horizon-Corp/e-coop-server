@@ -1,16 +1,13 @@
-package tokens
+package event
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 )
 
@@ -69,49 +66,24 @@ func (m UserOrganizationCSRF) GetID() string {
 	return m.UserOrganizationID
 }
 
-type UserOrganizationToken struct {
-	core     *core.Core
-	provider *server.Provider
-
-	csrf horizon.AuthService[UserOrganizationCSRF]
+func (h *Event) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
+	h.userOrgCSRF.ClearCSRF(ctx, echoCtx)
 }
 
-func NewUserOrganizationToken(provider *server.Provider, core *core.Core) (*UserOrganizationToken, error) {
-	appName := provider.Service.Environment.GetString("APP_NAME", "")
-
-	csrfService := horizon.NewAuthServiceImpl[UserOrganizationCSRF](
-		provider.Service.Cache,
-		"user-organization-csrf",
-		fmt.Sprintf("%s-%s", "X-SECURE-CSRF-USER-ORGANIZATION", appName),
-		true,
-	)
-
-	return &UserOrganizationToken{
-		csrf:     csrfService,
-		core:     core,
-		provider: provider,
-	}, nil
-}
-
-func (h *UserOrganizationToken) ClearCurrentToken(ctx context.Context, echoCtx echo.Context) {
-	h.csrf.ClearCSRF(ctx, echoCtx)
-}
-
-func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
+func (h *Event) CurrentUserOrganization(ctx context.Context, echoCtx echo.Context) (*core.UserOrganization, error) {
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
 		userOrganization, err := h.core.UserOrganizationManager().FindOne(ctx, &core.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
-
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusUnauthorized, "invalid bearer token")
 		}
 		return userOrganization, nil
 	}
 
-	claim, err := h.csrf.GetCSRF(ctx, echoCtx)
+	claim, err := h.userOrgCSRF.GetCSRF(ctx, echoCtx)
 	if err != nil {
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 	}
@@ -121,14 +93,12 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: missing essential user organization information")
 	}
 
-	userOrganization, err := h.core.UserOrganizationManager().GetByID(
-		ctx, handlers.ParseUUID(&claim.UserOrganizationID),
-	)
+	parsedUUID := handlers.ParseUUID(&claim.UserOrganizationID)
+	userOrganization, err := h.core.UserOrganizationManager().GetByID(ctx, parsedUUID)
 	if err != nil || userOrganization == nil {
 		h.ClearCurrentToken(ctx, echoCtx)
 		return nil, echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized: user organization not found")
 	}
-
 	if userOrganization.UserID.String() != claim.UserID ||
 		userOrganization.BranchID.String() != claim.BranchID ||
 		userOrganization.OrganizationID.String() != claim.OrganizationID ||
@@ -140,7 +110,7 @@ func (h *UserOrganizationToken) CurrentUserOrganization(ctx context.Context, ech
 	return userOrganization, nil
 }
 
-func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx echo.Context, userOrganization *core.UserOrganization) error {
+func (h *Event) SetUserOrganization(context context.Context, ctx echo.Context, userOrganization *core.UserOrganization) error {
 	h.ClearCurrentToken(context, ctx)
 	if userOrganization == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")
@@ -148,7 +118,7 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 	if userOrganization.UserID.String() == "" || userOrganization.BranchID.String() == "" || userOrganization.OrganizationID.String() == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization must have UserID, BranchID, and OrganizationID")
 	}
-	if err := h.csrf.SetCSRF(context, ctx, UserOrganizationCSRF{
+	if err := h.userOrgCSRF.SetCSRF(context, ctx, UserOrganizationCSRF{
 		UserOrganizationID: userOrganization.ID.String(),
 		UserID:             userOrganization.UserID.String(),
 		BranchID:           userOrganization.BranchID.String(),
@@ -170,7 +140,7 @@ func (h *UserOrganizationToken) SetUserOrganization(context context.Context, ctx
 	return nil
 }
 
-func (h *UserOrganizationToken) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
+func (h *Event) GetOrganization(ctx echo.Context) (*core.Organization, bool) {
 	orgID := ctx.Request().Header.Get("X-Organization-ID")
 	if orgID == "" {
 		ctx.JSON(http.StatusBadRequest, map[string]string{

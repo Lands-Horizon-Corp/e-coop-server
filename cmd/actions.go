@@ -4,14 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server"
 	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/report"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/fatih/color"
 	"go.uber.org/fx"
 )
@@ -126,13 +122,12 @@ func seedDatabase() {
 		fx.Provide(
 			server.NewProvider,
 			core.NewCore,
-			seeder.NewSeeder,
 		),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
 			mod *core.Core,
-			seed *seeder.Seeder,
+
 		) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -151,7 +146,7 @@ func seedDatabase() {
 					if err := mod.Start(); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx, 5); err != nil {
+					if err := mod.Seed(ctx, 5); err != nil {
 						return err
 					}
 					return nil
@@ -170,13 +165,11 @@ func seedDatabasePerformance(multiplier int32) {
 		fx.Provide(
 			server.NewProvider,
 			core.NewCore,
-			seeder.NewSeeder,
 		),
 		fx.Invoke(func(
 			lc fx.Lifecycle,
 			prov *server.Provider,
 			mod *core.Core,
-			seed *seeder.Seeder,
 		) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
@@ -195,7 +188,7 @@ func seedDatabasePerformance(multiplier int32) {
 					if err := mod.Start(); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx, multiplier); err != nil {
+					if err := mod.Seed(ctx, multiplier); err != nil {
 						return err
 					}
 					return nil
@@ -254,11 +247,6 @@ func startServer() {
 			core.NewCore,
 			v1.NewController,
 			event.NewEvent,
-			report.NewReports,
-			seeder.NewSeeder,
-			tokens.NewUserToken,
-			tokens.NewUserOrganizationToken,
-			usecase.NewUsecaseService,
 		),
 		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {
 			lc.Append(fx.Hook{
@@ -316,10 +304,8 @@ func refreshDatabase() {
 		fx.StartTimeout(3*time.Hour),
 		fx.Provide(
 			server.NewProvider,
-			core.NewCore,
-			seeder.NewSeeder,
-			report.NewReports),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core, seed *seeder.Seeder) {
+			core.NewCore),
+		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					if err := prov.Service.RunDatabase(ctx); err != nil {
@@ -343,7 +329,7 @@ func refreshDatabase() {
 					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
 						return err
 					}
-					if err := seed.Run(ctx, 5); err != nil {
+					if err := mod.Seed(ctx, 5); err != nil {
 						return err
 					}
 					return nil

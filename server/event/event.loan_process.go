@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -69,7 +71,7 @@ func (e *Event) LoanProcessing(
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve holidays for loan processing schedule"))
 	}
 
-	numberOfPayments, err := e.usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
+	numberOfPayments, err := usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return nil, endTx(eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
 			loanTransaction.ModeOfPayment, loanTransaction.Terms))
@@ -102,8 +104,18 @@ func (e *Event) LoanProcessing(
 
 		if i > 0 {
 			scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
-			currentBalance := e.provider.Service.Decimal.Clamp(
-				e.provider.Service.Decimal.Divide(principal, float64(numberOfPayments)), 0, balance)
+
+			principalDec := decimal.NewFromFloat(principal)
+			balanceDec := decimal.NewFromFloat(balance)
+			numPaymentsDec := decimal.NewFromFloat(float64(numberOfPayments))
+
+			currentBalanceDec := principalDec.Div(numPaymentsDec)
+			if currentBalanceDec.LessThan(decimal.Zero) {
+				currentBalanceDec = decimal.Zero
+			}
+			if currentBalanceDec.GreaterThan(balanceDec) {
+				currentBalanceDec = balanceDec
+			}
 
 			if i >= loanTransaction.Count && scheduledDate.Before(currentDate) {
 				for _, account := range loanAccounts {
@@ -122,7 +134,7 @@ func (e *Event) LoanProcessing(
 					case core.AccountTypeFines:
 						if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
 							account := e.core.AccountHistoryToModel(accountHistory)
-							amountToAdd = e.usecase.ComputeFines(
+							amountToAdd = usecase.ComputeFines(
 								principal,
 								accountHistory.FinesAmort,
 								accountHistory.FinesMaturity,
@@ -137,25 +149,27 @@ func (e *Event) LoanProcessing(
 						switch accountHistory.ComputationType {
 						case core.Straight:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								amountToAdd = e.usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+								amountToAdd = usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						case core.Diminishing:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								amountToAdd = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+								amountToAdd = usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						case core.DiminishingStraight:
 							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
-								amountToAdd = e.usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
+								amountToAdd = usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						}
 					}
 
 					if amountToAdd > 0 {
-						account.TotalAddCount += 1
-						account.TotalAdd = e.provider.Service.Decimal.Add(account.TotalAdd, amountToAdd)
-						account.Amount = e.provider.Service.Decimal.Add(account.Amount, amountToAdd)
-						account.UpdatedByID = userOrg.UserID
-						account.UpdatedAt = currentDate
+						currentBalanceDec := principalDec.Div(numPaymentsDec)
+						if currentBalanceDec.LessThan(decimal.Zero) {
+							currentBalanceDec = decimal.Zero
+						}
+						if currentBalanceDec.GreaterThan(balanceDec) {
+							currentBalanceDec = balanceDec
+						}
 
 						if err := e.core.LoanAccountManager().UpdateByIDWithTx(context, tx, account.ID, account); err != nil {
 							return nil, endTx(eris.Wrapf(err, "failed to update loan account ID: %s", account.ID.String()))
@@ -168,7 +182,8 @@ func (e *Event) LoanProcessing(
 				}
 
 			}
-			balance = e.provider.Service.Decimal.Subtract(balance, currentBalance)
+			balanceDec = balanceDec.Sub(currentBalanceDec)
+			balance = balanceDec.InexactFloat64()
 		}
 
 		switch loanTransaction.ModeOfPayment {

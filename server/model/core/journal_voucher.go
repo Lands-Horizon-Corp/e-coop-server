@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -254,18 +255,19 @@ func (m *Core) JournalVoucherCurrentBranch(context context.Context, organization
 }
 
 func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
-	totalDebit := 0.0
-	totalCredit := 0.0
-
+	totalDebit := decimal.NewFromInt(0)
+	totalCredit := decimal.NewFromInt(0)
 	for _, entry := range entries {
-		totalDebit = m.provider.Service.Decimal.Add(totalDebit, entry.Debit)
-		totalCredit = m.provider.Service.Decimal.Add(totalCredit, entry.Credit)
+		totalDebit = totalDebit.Add(decimal.NewFromFloat(entry.Debit))
+		totalCredit = totalCredit.Add(decimal.NewFromFloat(entry.Credit))
 	}
-
-	if !m.provider.Service.Decimal.IsEqual(totalDebit, totalCredit) {
-		return eris.Errorf("journal voucher is not balanced: debit %.2f != credit %.2f", totalDebit, totalCredit)
+	if !totalDebit.Equal(totalCredit) {
+		return eris.Errorf(
+			"journal voucher is not balanced: debit %.2f != credit %.2f",
+			totalDebit.InexactFloat64(),
+			totalCredit.InexactFloat64(),
+		)
 	}
-
 	return nil
 }
 

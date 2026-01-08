@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/tokens"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -23,13 +22,13 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		user, err := e.userToken.CurrentUser(context, ctx)
+		user, err := e.CurrentUser(context, ctx)
 		if err != nil || user == nil {
 			return
 		}
 
 		userID := user.ID
-		userOrganization, _ := e.userOrganizationToken.CurrentUserOrganization(context, ctx)
+		userOrganization, _ := e.CurrentUserOrganization(context, ctx)
 
 		var userType core.UserOrganizationType
 		var organizationID, branchID *uuid.UUID
@@ -39,11 +38,11 @@ func (e *Event) Footstep(ctx echo.Context, data FootstepEvent) {
 			branchID = userOrganization.BranchID
 		}
 
-		claim, _ := e.userToken.CurrentUserCSRF(context, ctx)
+		claim, _ := e.CurrentUserCSRF(context, ctx)
 		var latitude, longitude *float64
 		var ipAddress, userAgent, referer, location, acceptLanguage string
 
-		if claim != (tokens.UserCSRF{}) {
+		if claim != (UserCSRF{}) {
 			latitude = &claim.Latitude
 			longitude = &claim.Longitude
 			ipAddress = claim.IPAddress
