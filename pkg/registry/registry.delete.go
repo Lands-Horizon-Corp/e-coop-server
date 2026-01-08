@@ -43,16 +43,19 @@ func (r *Registry[TData, TResponse, TRequest]) DeleteWithTx(
 	r.OnDelete(context, &entity)
 	return nil
 }
-
 func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 	ctx context.Context,
 	ids []any,
 ) error {
 	if len(ids) == 0 {
+		fmt.Println("No IDs to delete")
 		return nil
 	}
 
+	fmt.Printf("Bulk deleting %d IDs\n", len(ids))
+
 	for _, id := range ids {
+		fmt.Printf("Deleting ID: %v\n", id)
 		if err := r.Client(ctx).
 			Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).
 			Delete(new(TData)).Error; err != nil {
@@ -60,6 +63,7 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 		}
 	}
 
+	fmt.Println("Bulk delete completed")
 	return nil
 }
 
