@@ -96,6 +96,7 @@ func (e *Event) TransactionPayment(
 
 	var transaction *core.Transaction
 	now := time.Now().UTC()
+	timeMachine := userOrg.UserOrgTime()
 	if data.TransactionID != nil {
 		transaction, err = e.core.TransactionManager().GetByID(context, *data.TransactionID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -206,7 +207,7 @@ func (e *Event) TransactionPayment(
 		TransactionBatchID: &transactionBatch.ID,
 		ReferenceNumber:    transaction.ReferenceNumber,
 		TransactionID:      &transaction.ID,
-		EntryDate:          now,
+		EntryDate:          timeMachine,
 		AccountID:          data.AccountID,
 		PaymentTypeID:      &paymentType.ID,
 		Source:             data.Source,
@@ -238,7 +239,7 @@ func (e *Event) TransactionPayment(
 		UpdatedByID:        userOrg.UserID,
 		BranchID:           *userOrg.BranchID,
 		OrganizationID:     userOrg.OrganizationID,
-		EntryDate:          now,
+		EntryDate:          timeMachine,
 		TransactionBatchID: &transactionBatch.ID,
 		TransactionID:      &transaction.ID,
 		AccountID:          cashOnHandAccountID,

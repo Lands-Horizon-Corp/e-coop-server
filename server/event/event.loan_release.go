@@ -26,8 +26,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 	}
 
 	now := time.Now().UTC()
-	currentTime := userOrg.UserOrgTime()
-
+	timeMachine := userOrg.UserOrgTime()
 	if userOrg.BranchID == nil {
 		e.Footstep(ctx, FootstepEvent{
 			Activity:    "validation-failed",
@@ -177,7 +176,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 			OrganizationID:             userOrg.OrganizationID,
 			TransactionBatchID:         &transactionBatch.ID,
 			ReferenceNumber:            loanTransaction.Voucher,
-			EntryDate:                  currentTime,
+			EntryDate:                  timeMachine,
 			AccountID:                  &account.ID,
 			MemberProfileID:            &memberProfile.ID,
 			PaymentTypeID:              account.DefaultPaymentTypeID,
@@ -208,7 +207,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 		context,
 		loanTransaction.OrganizationID,
 		loanTransaction.BranchID,
-		&currentTime,
+		&timeMachine,
 		loanTransaction.AccountID,
 		&loanAccountCurrency.ID,
 	)
@@ -257,7 +256,7 @@ func (e *Event) LoanRelease(context context.Context, ctx echo.Context, loanTrans
 
 	}
 
-	loanTransaction.ReleasedDate = &currentTime
+	loanTransaction.ReleasedDate = &timeMachine
 	loanTransaction.ReleasedByID = &userOrg.UserID
 	loanTransaction.UpdatedAt = now
 	loanTransaction.Count++
