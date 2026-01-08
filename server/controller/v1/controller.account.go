@@ -1115,7 +1115,7 @@ func (c *Controller) accountController() {
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %d", account.Name, newIndex),
+			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %f", account.Name, newIndex),
 			Module:      "Account",
 		})
 		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
@@ -1185,7 +1185,7 @@ func (c *Controller) accountController() {
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: fmt.Sprintf("Updated account index top (/account/:account_id/index/top): %s to %d", account.Name, newIndex),
+			Description: fmt.Sprintf("Updated account index top (/account/:account_id/index/top): %s to %f", account.Name, newIndex),
 			Module:      "Account",
 		})
 
