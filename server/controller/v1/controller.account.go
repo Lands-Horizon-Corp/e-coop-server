@@ -54,8 +54,7 @@ func (c *Controller) accountController() {
 					WHEN 'Expense' THEN 5
 					ELSE 6
 				END
-			`).
-					Order("accounts.name ASC") // optional secondary ordering
+			`)
 			},
 		)
 
