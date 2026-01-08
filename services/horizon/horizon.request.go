@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -113,29 +112,21 @@ func getExtendedSecurityHeaders() ExtendedSecurityHeaders {
 	}
 }
 
-func applyExtendedSecurityHeaders(c echo.Context, headers ExtendedSecurityHeaders, secured bool) {
+func applyExtendedSecurityHeaders(c echo.Context, headers ExtendedSecurityHeaders) {
 	c.Response().Header().Set("Permissions-Policy", headers.PermissionsPolicy)
 	c.Response().Header().Set("Expect-CT", headers.ExpectCT)
 	c.Response().Header().Set("X-Permitted-Cross-Domain-Policies", headers.XPermittedCrossDomainPolicies)
-
-	if secured {
-		c.Response().Header().Set("Cross-Origin-Embedder-Policy", headers.CrossOriginEmbedderPolicy)
-		c.Response().Header().Set("Cross-Origin-Opener-Policy", headers.CrossOriginOpenerPolicy)
-		c.Response().Header().Set("Cross-Origin-Resource-Policy", headers.CrossOriginResourcePolicy)
-	} else {
-		c.Response().Header().Del("Cross-Origin-Embedder-Policy")
-		c.Response().Header().Del("Cross-Origin-Opener-Policy")
-		c.Response().Header().Del("Cross-Origin-Resource-Policy")
-	}
-
+	c.Response().Header().Set("Cross-Origin-Embedder-Policy", headers.CrossOriginEmbedderPolicy)
+	c.Response().Header().Set("Cross-Origin-Opener-Policy", headers.CrossOriginOpenerPolicy)
+	c.Response().Header().Set("Cross-Origin-Resource-Policy", headers.CrossOriginResourcePolicy)
 	c.Response().Header().Set("Server", "")
 	c.Response().Header().Set("X-Powered-By", "")
 }
+
 func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			err := next(c)
-
 			if secured {
 				securityConfig := getProductionSecurityConfig()
 				extendedHeaders := getExtendedSecurityHeaders()
@@ -155,16 +146,13 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 					}
 					c.Response().Header().Set("Strict-Transport-Security", hstsValue)
 				}
-				applyExtendedSecurityHeaders(c, extendedHeaders, true)
+				applyExtendedSecurityHeaders(c, extendedHeaders)
 			} else {
 				securityConfig := getDevelopmentSecurityConfig()
 				c.Response().Header().Set("X-Content-Type-Options", securityConfig.ContentTypeNosniff)
 				c.Response().Header().Set("X-Frame-Options", securityConfig.XFrameOptions)
 				c.Response().Header().Set("Referrer-Policy", securityConfig.ReferrerPolicy)
 				c.Response().Header().Set("Content-Security-Policy", securityConfig.ContentSecurityPolicy)
-
-				// Remove COEP/COOP/CORP for local/dev
-				applyExtendedSecurityHeaders(c, ExtendedSecurityHeaders{}, false)
 			}
 
 			return err
@@ -213,13 +201,14 @@ func NewHorizonAPIService(
 			"http://localhost:3001",
 			"http://localhost:3002",
 			"http://localhost:3003",
-			"http://localhost:3003",
 		)
 	}
 
+	allowedHosts := make([]string, 0, len(origins))
 	for _, origin := range origins {
 		hostname := strings.TrimPrefix(origin, "https://")
 		hostname = strings.TrimPrefix(hostname, "http://")
+		allowedHosts = append(allowedHosts, hostname)
 	}
 
 	e.Use(middleware.Recover())
@@ -228,6 +217,18 @@ func NewHorizonAPIService(
 	if secured {
 		e.Pre(middleware.HTTPSRedirect())
 	}
+
+	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			host := handlers.GetHost(c)
+
+			if slices.Contains(allowedHosts, host) {
+				return next(c)
+			}
+
+			return c.String(http.StatusForbidden, "Host not allowed")
+		}
+	})
 
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -438,35 +439,7 @@ func NewHorizonAPIService(
 	}))
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOriginFunc: func(origin string) (bool, error) {
-			if origin == "" {
-				return false, nil
-			}
-			u, err := url.Parse(origin)
-			if err != nil {
-				return false, nil
-			}
-			host := u.Hostname()
-			if !secured {
-				if host == "localhost" {
-					return true, nil
-				}
-				if net.ParseIP(host) != nil {
-					return true, nil
-				}
-				if strings.HasSuffix(host, ".local") {
-					return true, nil
-				}
-				return false, nil
-			}
-
-			for _, d := range origins {
-				if host == d || strings.HasSuffix(host, "."+d) {
-					return true, nil
-				}
-			}
-			return false, nil
-		},
+		AllowOrigins: origins,
 
 		AllowMethods: []string{
 			http.MethodGet,
@@ -479,6 +452,7 @@ func NewHorizonAPIService(
 		},
 
 		AllowHeaders: []string{
+
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
@@ -493,8 +467,8 @@ func NewHorizonAPIService(
 			"Location",
 			"X-Device-Type",
 			"X-User-Agent",
-			"X-Organization-ID",
 		},
+
 		ExposeHeaders: []string{
 			echo.HeaderContentLength,
 			echo.HeaderContentType,

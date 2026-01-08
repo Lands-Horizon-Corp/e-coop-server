@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type GeneralLedgerType string // adjust as needed
+type GeneralLedgerType string
 
 const (
 	GLTypeAssets      GeneralLedgerType = "Assets"

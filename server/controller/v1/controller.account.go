@@ -12,7 +12,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 func (c *Controller) accountController() {
@@ -36,9 +35,7 @@ func (c *Controller) accountController() {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.
-					Clauses(clause.OrderBy{}).
-					Model(&core.Account{}).
+				return db.Model(&core.Account{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", *userOrg.BranchID).
 					Where(`EXISTS (
@@ -50,11 +47,11 @@ func (c *Controller) accountController() {
 			)`).
 					Order(`
 				CASE accounts.general_ledger_type
-					WHEN 'Asset' THEN 1
-					WHEN 'Liability' THEN 2
+					WHEN 'Assets' THEN 1
+					WHEN 'Liabilities' THEN 2
 					WHEN 'Equity' THEN 3
-					WHEN 'Income' THEN 4
-					WHEN 'Expense' THEN 5
+					WHEN 'Revenue' THEN 4
+					WHEN 'Expenses' THEN 5
 					ELSE 6
 				END
 			`)
