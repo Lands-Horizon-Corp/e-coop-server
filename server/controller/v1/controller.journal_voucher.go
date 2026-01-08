@@ -354,13 +354,18 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		newJournalVoucher, err := c.core.JournalVoucherManager().GetByIDRaw(context, journalVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + err.Error()})
+
+		}
 
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager().ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, newJournalVoucher)
 	})
 
 	req.RegisterWebRoute(handlers.Route{
