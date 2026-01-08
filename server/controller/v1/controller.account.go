@@ -12,6 +12,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (c *Controller) accountController() {
@@ -35,7 +36,9 @@ func (c *Controller) accountController() {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.Model(&core.Account{}).
+				return db.
+					Clauses(clause.OrderBy{}).
+					Model(&core.Account{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", *userOrg.BranchID).
 					Where(`EXISTS (
