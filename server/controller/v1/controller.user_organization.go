@@ -302,7 +302,7 @@ func (c *Controller) userOrganinzationController() {
 				AND mp.branch_id = user_organizations.branch_id
 			)`)
 			},
-			"Branch", "Organization",
+			"User", "User.Media", "Branch", "Organization",
 		)
 
 		if err != nil {
