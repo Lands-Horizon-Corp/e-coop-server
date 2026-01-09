@@ -629,6 +629,7 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 
 func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
+	fmt.Println("-----------------------------------------2")
 
 	branch, err := m.BranchManager().GetByID(context, branchID)
 	if err != nil {
@@ -661,7 +662,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
 	}
-
+	fmt.Println("-----------------------------------------1")
 	accounts := []*Account{
 		{
 			CreatedAt:         now,
