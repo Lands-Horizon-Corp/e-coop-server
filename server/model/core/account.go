@@ -819,7 +819,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
+			return eris.Wrapf(err, "history: failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
 		}
 	}
 
@@ -949,7 +949,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded loan account %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
 		var interestComputationType ComputationType
@@ -1004,7 +1004,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded interest account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
 		var svfComputationType ComputationType
@@ -1059,7 +1059,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded service fee account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
 		finesAccount := &Account{
@@ -1121,7 +1121,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded fines account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
 
@@ -1251,7 +1251,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone fines account %s", finesAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
 
@@ -1429,7 +1429,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone interest account %s", interestAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone interest account %s", interestAccount.Name)
 		}
 	}
 
@@ -1439,7 +1439,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone SVF account %s", svfAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
 	}
 
@@ -1472,7 +1472,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
 	var cashOnHandPaymentType *PaymentType
@@ -1682,7 +1682,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnHand.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
 	cashInBank := &Account{
@@ -1721,7 +1721,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInBank.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInBank.Name)
 	}
 
 	cashOnline := &Account{
@@ -1760,7 +1760,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnline.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnline.Name)
 	}
 
 	pettyCash := &Account{
@@ -1799,7 +1799,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", pettyCash.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", pettyCash.Name)
 	}
 
 	cashInTransit := &Account{
@@ -1838,7 +1838,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInTransit.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
 	foreignCurrencyCash := &Account{
@@ -1877,7 +1877,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", foreignCurrencyCash.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
 	moneyMarketFund := &Account{
@@ -1916,7 +1916,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", moneyMarketFund.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
 	treasuryBills := &Account{
@@ -1954,7 +1954,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
 	}
 	if err := m.CreateAccountHistory(context, nil, treasuryBills); err != nil {
-		return nil
+		return eris.Wrapf(err, "history: failed to seed account %s", treasuryBills.Name)
 	}
 
 	feeAccounts := []*Account{
@@ -3510,7 +3510,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
 		}
 		if err := m.CreateAccountHistory(context, nil, coopAccount); err != nil {
-			return nil
+			return eris.Wrapf(err, "history: failed to seed cooperative account %s", coopAccount.Name)
 		}
 
 	}
@@ -3521,7 +3521,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
 		if err := m.CreateAccountHistory(context, nil, feeAccount); err != nil {
-			return nil
+			return eris.Wrapf(err, "history: failed to seed fee account %s", feeAccount.Name)
 		}
 	}
 
@@ -3531,7 +3531,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
 		if err := m.CreateAccountHistory(context, nil, operationalAccount); err != nil {
-			return nil
+			return eris.Wrapf(err, "history: failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
 	compassionFund := &Account{
@@ -3557,7 +3557,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrap(err, "failed to create compassion fund account")
 	}
 	if err := m.CreateAccountHistory(context, nil, compassionFund); err != nil {
-		return nil
+		return eris.Wrap(err, "history: failed to create compassion fund account")
 	}
 
 	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
