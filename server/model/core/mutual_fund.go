@@ -153,7 +153,7 @@ func (m *Core) MutualFundManager() *registry.Registry[MutualFund, MutualFundResp
 			"AdditionalMembers",
 			"AdditionalMembers.MemberType",
 			"MutualFundTables",
-			"Account"},
+			"Account", "Account.Currency"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
