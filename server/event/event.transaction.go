@@ -256,13 +256,17 @@ func (e *Event) TransactionPayment(
 	}
 
 	fmt.Println("DEBUG: Calculating and updating Transaction amount")
-	amountDec := decimal.NewFromFloat(data.Amount).Abs()
+	inputAmount := decimal.NewFromFloat(data.Amount)
 	transactionDec := decimal.NewFromFloat(transaction.Amount)
-	if !data.Reverse {
-		transaction.Amount = transactionDec.Add(amountDec).InexactFloat64()
+	if inputAmount.GreaterThan(decimal.Zero) {
+		transactionDec = transactionDec.Add(inputAmount)
 	} else {
-		transaction.Amount = transactionDec.Sub(amountDec).InexactFloat64()
+		transactionDec = transactionDec.Add(inputAmount)
 	}
+	if data.Reverse {
+		transactionDec = transactionDec.Mul(decimal.NewFromInt(-1))
+	}
+	transaction.Amount = transactionDec.InexactFloat64()
 
 	if err := e.core.TransactionManager().UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
 		return nil, endTx(err)
