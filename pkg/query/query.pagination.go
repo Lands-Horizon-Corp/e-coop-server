@@ -87,13 +87,19 @@ func (f *Pagination[T]) PaginationNormal(
 
 	preloads ...string,
 ) (*PaginationResult[T], error) {
+	fmt.Println("33")
+
 	filterRoot, pageIndex, pageSize, err := parseQuery(ctx)
 	if err != nil {
 		return &PaginationResult[T]{}, fmt.Errorf("failed to parse query: %w", err)
 	}
+	fmt.Println("12")
+
 	if filter != nil {
 		db = db.Where(filter)
 	}
+	fmt.Println("11")
+
 	return f.StructuredPagination(db, filterRoot, pageIndex, pageSize, preloads...)
 }
 
