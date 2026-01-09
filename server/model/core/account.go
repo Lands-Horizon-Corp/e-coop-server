@@ -631,7 +631,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	now := time.Now().UTC()
 	fmt.Println("-----------------------------------------2")
 
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := m.BranchManager().GetByID(context, branchID, "Branc")
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
@@ -3527,12 +3527,12 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrap(err, "failed to create compassion fund account")
 	}
 
-	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
-	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
-	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	if err := m.BranchSettingManager().UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
-		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
-	}
+	// branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
+	// branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
+	// branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
+	// if err := m.BranchSettingManager().UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
+	// 	return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
+	// }
 
 	unbalanced := &UnbalancedAccount{
 		CreatedAt:            now,
@@ -3654,11 +3654,9 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
-
 	if tx == nil {
 		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
 	}
-
 	return m.AccountHistoryManager().CreateWithTx(ctx, tx, history)
 }
 
