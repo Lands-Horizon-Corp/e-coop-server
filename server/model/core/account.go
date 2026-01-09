@@ -629,169 +629,12 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 
 func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	fmt.Println("-----------------------------------------2")
 
 	branch, err := m.BranchManager().GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-	cashOnHandPaymentType := &PaymentType{
-		CreatedAt:      now,
-		UpdatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		Name:           "Cash On Hand",
-		Description:    "Cash available at the branch for immediate use.",
-		Type:           PaymentTypeCash,
-		NumberOfDays:   0,
-	}
-	if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
-		return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
-	}
-	userOrganization, err := m.UserOrganizationManager().FindOneWithLock(context, &UserOrganization{
-		UserID:         userID,
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to find user organization for setting default payment type")
-	}
-	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
-	if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-		return eris.Wrap(err, "failed to update user organization with default payment type")
-	}
-	paymentTypes := []*PaymentType{
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Forward Cash On Hand",
-			Description:    "Physical cash received and forwarded for transactions.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Petty Cash",
-			Description:    "Small amount of cash for minor expenses.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeCash,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "E-Wallet",
-			Description:    "Digital wallet for online payments.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "E-Bank",
-			Description:    "Online banking transfer.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "GCash",
-			Description:    "GCash mobile wallet payment.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeOnline,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Cheque",
-			Description:    "Payment via cheque/check.",
-			NumberOfDays:   3,
-			Type:           PaymentTypeCheck,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Bank Transfer",
-			Description:    "Direct bank-to-bank transfer.",
-			NumberOfDays:   1,
-			Type:           PaymentTypeCheck,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Manager's Check",
-			Description:    "Bank-issued check for secure payments.",
-			NumberOfDays:   2,
-			Type:           PaymentTypeCheck,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Manual Adjustment",
-			Description:    "Manual adjustments for corrections and reconciliation.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeAdjustment,
-		},
-		{
-			CreatedAt:      now,
-			UpdatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-			Name:           "Adjustment Entry",
-			Description:    "Manual adjustments for corrections and reconciliation.",
-			NumberOfDays:   0,
-			Type:           PaymentTypeAdjustment,
-		},
-	}
 
-	for _, data := range paymentTypes {
-		if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
-		}
-	}
-
-	fmt.Println("-----------------------------------------1")
 	accounts := []*Account{
 		{
 			CreatedAt:         now,
@@ -971,7 +814,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		data.ShowInGeneralLedgerSourceAdjustment = true
 		data.ShowInGeneralLedgerSourceJournalVoucher = true
 		data.ShowInGeneralLedgerSourceCheckVoucher = true
-		if err := m.CreateAccountHistory(context, tx, data); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 
@@ -1101,7 +944,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	for _, loanAccount := range loanAccounts {
 		loanAccount.CurrencyID = branch.CurrencyID
-		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
@@ -1156,7 +999,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Percent",
 		}
 
-		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
@@ -1211,7 +1054,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Receipt",
 		}
 
-		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
@@ -1273,7 +1116,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Warning",
 		}
 
-		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 
@@ -1403,7 +1246,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	for _, finesAccount := range standaloneFinesAccounts {
-		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
 		}
 
@@ -1581,7 +1424,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	for _, interestAccount := range standaloneInterestAccounts {
-		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
 		}
 
@@ -1591,7 +1434,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	for _, svfAccount := range standaloneSVFAccounts {
-		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
 		}
 
@@ -1624,8 +1467,182 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		ShowInGeneralLedgerSourceJournal:  true,
 		ShowInGeneralLedgerSourcePayment:  true,
 	}
-	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
+	}
+
+	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
+		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
+	}
+
+	var cashOnHandPaymentType *PaymentType
+
+	cashOnHandPaymentType, _ = m.PaymentTypeManager().FindOne(context, &PaymentType{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Cash On Hand",
+	})
+
+	if cashOnHandPaymentType == nil {
+		cashOnHandPaymentType = &PaymentType{
+			CreatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedAt:      now,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cash On Hand",
+			Description:    "Cash available at the branch for immediate use.",
+			Type:           PaymentTypeCash,
+			NumberOfDays:   0,
+		}
+
+		if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+		}
+
+		userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+			UserID:         userID,
+			OrganizationID: organizationID,
+			BranchID:       &branchID,
+		})
+		if err != nil {
+			return eris.Wrap(err, "failed to find user organization for setting default payment type")
+		}
+		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+		if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+			return eris.Wrap(err, "failed to update user organization with default payment type")
+		}
+
+		paymentTypes := []*PaymentType{
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Forward Cash On Hand",
+				Description:    "Physical cash received and forwarded for transactions.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeCash,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Petty Cash",
+				Description:    "Small amount of cash for minor expenses.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeCash,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "E-Wallet",
+				Description:    "Digital wallet for online payments.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "E-Bank",
+				Description:    "Online banking transfer.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "GCash",
+				Description:    "GCash mobile wallet payment.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeOnline,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Cheque",
+				Description:    "Payment via cheque/check.",
+				NumberOfDays:   3,
+				Type:           PaymentTypeCheck,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Bank Transfer",
+				Description:    "Direct bank-to-bank transfer.",
+				NumberOfDays:   1,
+				Type:           PaymentTypeCheck,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Manager's Check",
+				Description:    "Bank-issued check for secure payments.",
+				NumberOfDays:   2,
+				Type:           PaymentTypeCheck,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Manual Adjustment",
+				Description:    "Manual adjustments for corrections and reconciliation.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeAdjustment,
+			},
+			{
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				CreatedByID:    userID,
+				UpdatedByID:    userID,
+				OrganizationID: organizationID,
+				BranchID:       branchID,
+				Name:           "Adjustment Entry",
+				Description:    "Manual adjustments for corrections and reconciliation.",
+				NumberOfDays:   0,
+				Type:           PaymentTypeAdjustment,
+			},
+		}
+
+		for _, data := range paymentTypes {
+			if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
+				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
+			}
+
+		}
 	}
 
 	cashOnHand := &Account{
@@ -1660,7 +1677,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount: OIOACashOnHand,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
 
@@ -1699,7 +1716,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOACashInBank,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
 	}
 
@@ -1738,7 +1755,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
 	}
 
@@ -1777,7 +1794,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
 	}
 
@@ -1816,7 +1833,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
 	}
 
@@ -1855,7 +1872,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOANone,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
 	}
 
@@ -1894,7 +1911,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOANone,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
 	}
 
@@ -1933,8 +1950,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOANone,
 	}
 
-	if err := m.CreateAccountHistory(context, tx, treasuryBills); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, treasuryBills); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
+	}
+	if err := m.CreateAccountHistory(context, nil, treasuryBills); err != nil {
+		return nil
 	}
 
 	feeAccounts := []*Account{
@@ -3486,22 +3506,32 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	for _, coopAccount := range cooperativeAccounts {
 		coopAccount.CurrencyID = branch.CurrencyID
-		if err := m.CreateAccountHistory(context, tx, coopAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
 		}
+		if err := m.CreateAccountHistory(context, nil, coopAccount); err != nil {
+			return nil
+		}
+
 	}
 
 	for _, feeAccount := range feeAccounts {
 		feeAccount.CurrencyID = branch.CurrencyID
-		if err := m.CreateAccountHistory(context, tx, feeAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
+		}
+		if err := m.CreateAccountHistory(context, nil, feeAccount); err != nil {
+			return nil
 		}
 	}
 
 	for _, operationalAccount := range operationalAccounts {
 		operationalAccount.CurrencyID = branch.CurrencyID
-		if err := m.CreateAccountHistory(context, tx, operationalAccount); err != nil {
+		if err := m.AccountManager().CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
+		}
+		if err := m.CreateAccountHistory(context, nil, operationalAccount); err != nil {
+			return nil
 		}
 	}
 	compassionFund := &Account{
@@ -3523,16 +3553,19 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:        branch.CurrencyID,
 		Icon:              "Heart",
 	}
-	if err := m.CreateAccountHistory(context, tx, compassionFund); err != nil {
+	if err := m.AccountManager().CreateWithTx(context, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "failed to create compassion fund account")
 	}
+	if err := m.CreateAccountHistory(context, nil, compassionFund); err != nil {
+		return nil
+	}
 
-	// branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
-	// branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
-	// branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	// if err := m.BranchSettingManager().UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
-	// 	return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
-	// }
+	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
+	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
+	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
+	if err := m.BranchSettingManager().UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
+		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
+	}
 
 	unbalanced := &UnbalancedAccount{
 		CreatedAt:            now,
@@ -3546,6 +3579,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 	if err := m.UnbalancedAccountManager().CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
+	}
+	userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
 	}
 
 	var regularSavings *Account
@@ -3566,9 +3607,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 }
 
 func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
-	if err := m.AccountManager().CreateWithTx(ctx, tx, account); err != nil {
-		return nil
-	}
 	now := time.Now().UTC()
 	history := &AccountHistory{
 		AccountID:      account.ID,
@@ -3654,9 +3692,11 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		CohCibFinesGracePeriodEntryLumpsumAmortization:     account.CohCibFinesGracePeriodEntryLumpsumAmortization,
 		CohCibFinesGracePeriodEntryLumpsumMaturity:         account.CohCibFinesGracePeriodEntryLumpsumMaturity,
 	}
+
 	if tx == nil {
 		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
 	}
+
 	return m.AccountHistoryManager().CreateWithTx(ctx, tx, history)
 }
 
