@@ -631,7 +631,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	now := time.Now().UTC()
 	fmt.Println("-----------------------------------------2")
 
-	branch, err := m.BranchManager().GetByID(context, branchID, "Branc")
+	branch, err := m.BranchManager().GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
