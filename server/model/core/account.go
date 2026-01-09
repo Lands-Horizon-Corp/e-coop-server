@@ -3557,11 +3557,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err := m.UnbalancedAccountManager().CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
-	userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
-		UserID:         userID,
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-	})
 	if err != nil {
 		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
 	}
