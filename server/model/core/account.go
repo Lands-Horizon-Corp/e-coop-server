@@ -1476,20 +1476,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	var cashOnHandPaymentType *PaymentType
-
-	fmt.Println("DEBUG: Looking for existing Cash On Hand PaymentType")
-	cashOnHandPaymentType, err = m.PaymentTypeManager().FindOne(context, &PaymentType{
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		Name:           "Cash On Hand",
-	})
-
-	if err != nil {
-		fmt.Printf("ERROR: Failed to find PaymentType: %v\n", err)
-	} else if cashOnHandPaymentType != nil {
-		fmt.Printf("DEBUG: Found existing PaymentType: ID=%v, Name=%v\n",
-			cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
-	}
 	if cashOnHandPaymentType == nil {
 		fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
 		cashOnHandPaymentType = &PaymentType{
