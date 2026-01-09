@@ -76,7 +76,7 @@ func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, Mutu
 			"UpdatedBy",
 			"Organization",
 			"Branch",
-			"MemberProfile", "Account", "MutualFund"},
+			"MemberProfile", "Account", "Account.Currency", "MutualFund"},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return m.provider.Service.Broker.Dispatch(topics, payload)
