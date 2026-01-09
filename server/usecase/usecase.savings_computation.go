@@ -21,13 +21,23 @@ func GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResul
 		InterestAmount: data.InterestAmount,
 		InterestTax:    data.InterestTax,
 	}
+
 	if len(data.DailyBalance) == 0 {
 		return result
 	}
+
 	endingBalance := decimal.NewFromFloat(
 		data.DailyBalance[len(data.DailyBalance)-1],
 	)
-	netInterest := decimal.NewFromFloat(data.InterestAmount)
-	result.Balance = endingBalance.Add(netInterest).InexactFloat64()
+
+	interest := decimal.NewFromFloat(data.InterestAmount)
+	tax := decimal.NewFromFloat(data.InterestTax)
+
+	netInterest := interest.Sub(tax)
+
+	result.Balance = endingBalance.
+		Add(netInterest).
+		InexactFloat64()
+
 	return result
 }
