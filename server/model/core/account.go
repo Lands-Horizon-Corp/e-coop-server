@@ -1471,10 +1471,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
-	}
-
 	var cashOnHandPaymentType *PaymentType
 	if cashOnHandPaymentType == nil {
 		fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
