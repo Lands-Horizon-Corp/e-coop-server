@@ -128,13 +128,17 @@ func (c *Controller) mutualFundEntryController() {
 	})
 
 	req.RegisterWebRoute(handlers.Route{
-		Route:        "/api/v1/mutual-fund-entry",
+		Route:        "/api/v1/mutual-fund-entry/mutual-fund/:mutual_fund_id",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund entry for the current user's organization and branch.",
 		RequestType:  core.MutualFundEntryRequest{},
 		ResponseType: core.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		mutualFundID, err := handlers.EngineUUIDParam(ctx, "mutual_fund_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid mutual fund ID"})
+		}
 		req, err := c.core.MutualFundEntryManager().Validate(ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -172,6 +176,7 @@ func (c *Controller) mutualFundEntryController() {
 			UpdatedByID:     userOrg.UserID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
+			MutualFundID:    *mutualFundID,
 		}
 
 		if err := c.core.MutualFundEntryManager().Create(context, entry); err != nil {
