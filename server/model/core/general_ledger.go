@@ -244,23 +244,44 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 		},
 		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {
 			if data == nil {
+				fmt.Println("[DEBUG] data is nil, returning nil")
 				return nil
 			}
+
 			fmt.Println("[DEBUG] GetAccountHistoryLatestByTimeHistoryID - START")
 
-			fmt.Printf("[DEBUG] data pointer        : %p\n", &data)
+			fmt.Printf("[DEBUG] data pointer        : %p\n", data)
 			fmt.Printf("[DEBUG] data.AccountID      : %v\n", data.AccountID)
 			fmt.Printf("[DEBUG] data.OrganizationID : %v\n", data.OrganizationID)
 			fmt.Printf("[DEBUG] data.BranchID       : %v\n", data.BranchID)
 			fmt.Printf("[DEBUG] data.CreatedAt ptr  : %p\n", &data.CreatedAt)
 			fmt.Printf("[DEBUG] data.CreatedAt val  : %v\n", data.CreatedAt)
 
+			// Defensive check to prevent nil dereference
+			if data.AccountID == nil {
+				fmt.Println("[ERROR] data.AccountID is nil, cannot call GetAccountHistoryLatestByTimeHistoryID")
+				return nil
+			}
+
 			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
-				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+				context.Background(),
+				*data.AccountID,
+				data.OrganizationID,
+				data.BranchID,
+				&data.CreatedAt,
 			)
 			if err != nil {
+				fmt.Printf("[ERROR] GetAccountHistoryLatestByTimeHistoryID returned error: %v\n", err)
 				accountHistoryID = nil
 			}
+
+			// DEBUG: last nil check
+			if accountHistoryID == nil {
+				fmt.Println("[DEBUG] accountHistoryID is nil ❌")
+			} else {
+				fmt.Printf("[DEBUG] accountHistoryID: %v ✅\n", accountHistoryID)
+			}
+
 			return &GeneralLedgerResponse{
 				ID:                         data.ID,
 				EntryDate:                  data.EntryDate.Format(time.RFC3339),
