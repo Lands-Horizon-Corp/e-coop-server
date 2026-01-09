@@ -1472,170 +1472,169 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	var cashOnHandPaymentType *PaymentType
-	if cashOnHandPaymentType == nil {
-		fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
-		cashOnHandPaymentType = &PaymentType{
+
+	fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
+	cashOnHandPaymentType = &PaymentType{
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Cash On Hand",
+		Description:    "Cash available at the branch for immediate use.",
+		Type:           PaymentTypeCash,
+		NumberOfDays:   0,
+	}
+	fmt.Printf("DEBUG: Preparing to create PaymentType: %+v\n", cashOnHandPaymentType)
+
+	if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+		fmt.Printf("ERROR: Failed to create PaymentType: %v\n", err)
+		return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+	} else {
+		fmt.Printf("DEBUG: Successfully created PaymentType: ID=%v, Name=%v\n",
+			cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
+	}
+
+	userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for setting default payment type")
+	}
+	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+	if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default payment type")
+	}
+
+	paymentTypes := []*PaymentType{
+		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			Name:           "Cash On Hand",
-			Description:    "Cash available at the branch for immediate use.",
-			Type:           PaymentTypeCash,
+			Name:           "Forward Cash On Hand",
+			Description:    "Physical cash received and forwarded for transactions.",
 			NumberOfDays:   0,
-		}
-		fmt.Printf("DEBUG: Preparing to create PaymentType: %+v\n", cashOnHandPaymentType)
-
-		if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
-			fmt.Printf("ERROR: Failed to create PaymentType: %v\n", err)
-			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
-		} else {
-			fmt.Printf("DEBUG: Successfully created PaymentType: ID=%v, Name=%v\n",
-				cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
-		}
-
-		userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
-			UserID:         userID,
+			Type:           PaymentTypeCash,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
 			OrganizationID: organizationID,
-			BranchID:       &branchID,
-		})
-		if err != nil {
-			return eris.Wrap(err, "failed to find user organization for setting default payment type")
-		}
-		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
-		if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-			return eris.Wrap(err, "failed to update user organization with default payment type")
-		}
+			BranchID:       branchID,
+			Name:           "Petty Cash",
+			Description:    "Small amount of cash for minor expenses.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeCash,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Wallet",
+			Description:    "Digital wallet for online payments.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "E-Bank",
+			Description:    "Online banking transfer.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "GCash",
+			Description:    "GCash mobile wallet payment.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeOnline,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Cheque",
+			Description:    "Payment via cheque/check.",
+			NumberOfDays:   3,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Bank Transfer",
+			Description:    "Direct bank-to-bank transfer.",
+			NumberOfDays:   1,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manager's Check",
+			Description:    "Bank-issued check for secure payments.",
+			NumberOfDays:   2,
+			Type:           PaymentTypeCheck,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Manual Adjustment",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
+		},
+		{
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			CreatedByID:    userID,
+			UpdatedByID:    userID,
+			OrganizationID: organizationID,
+			BranchID:       branchID,
+			Name:           "Adjustment Entry",
+			Description:    "Manual adjustments for corrections and reconciliation.",
+			NumberOfDays:   0,
+			Type:           PaymentTypeAdjustment,
+		},
+	}
 
-		paymentTypes := []*PaymentType{
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Forward Cash On Hand",
-				Description:    "Physical cash received and forwarded for transactions.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Petty Cash",
-				Description:    "Small amount of cash for minor expenses.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "E-Wallet",
-				Description:    "Digital wallet for online payments.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "E-Bank",
-				Description:    "Online banking transfer.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "GCash",
-				Description:    "GCash mobile wallet payment.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Cheque",
-				Description:    "Payment via cheque/check.",
-				NumberOfDays:   3,
-				Type:           PaymentTypeCheck,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Bank Transfer",
-				Description:    "Direct bank-to-bank transfer.",
-				NumberOfDays:   1,
-				Type:           PaymentTypeCheck,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Manager's Check",
-				Description:    "Bank-issued check for secure payments.",
-				NumberOfDays:   2,
-				Type:           PaymentTypeCheck,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Manual Adjustment",
-				Description:    "Manual adjustments for corrections and reconciliation.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
-			},
-			{
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				CreatedByID:    userID,
-				UpdatedByID:    userID,
-				OrganizationID: organizationID,
-				BranchID:       branchID,
-				Name:           "Adjustment Entry",
-				Description:    "Manual adjustments for corrections and reconciliation.",
-				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
-			},
-		}
-
-		for _, data := range paymentTypes {
-			if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
-				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
-			}
+	for _, data := range paymentTypes {
+		if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
+			return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
 		}
 	}
 
