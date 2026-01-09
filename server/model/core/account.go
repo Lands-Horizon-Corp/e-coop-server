@@ -1486,8 +1486,8 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if cashOnHandPaymentType == nil {
 		cashOnHandPaymentType = &PaymentType{
 			CreatedAt:      now,
-			CreatedByID:    userID,
 			UpdatedAt:      now,
+			CreatedByID:    userID,
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
@@ -1500,9 +1500,9 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		fmt.Printf("userID: %v, organizationID: %v, branchID: %v\n", userID, organizationID, branchID)
 
 		if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
-			fmt.Printf("DEBUG: Failed to create PaymentType: %+v\n", cashOnHandPaymentType)
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
 		}
+
 		userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
 			UserID:         userID,
 			OrganizationID: organizationID,
