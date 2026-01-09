@@ -3590,6 +3590,9 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 }
 
 func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
+	if err := m.AccountManager().CreateWithTx(ctx, tx, account); err != nil {
+		return nil
+	}
 	now := time.Now().UTC()
 	history := &AccountHistory{
 		AccountID:      account.ID,

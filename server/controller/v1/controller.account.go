@@ -506,6 +506,8 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account validation failed: " + err.Error()})
 		}
+
+		// Get user organization
 		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -515,6 +517,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
+
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -523,7 +526,6 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-
 		account := &core.Account{
 			CreatedAt:                             time.Now().UTC(),
 			CreatedByID:                           userOrg.UserID,
@@ -610,22 +612,15 @@ func (c *Controller) accountController() {
 			InterestAmortization:        req.InterestAmortization,
 			IsTaxable:                   req.IsTaxable,
 		}
-
-		if err := c.core.AccountManager().Create(context, account); err != nil {
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		if err := c.core.CreateAccountHistory(context, tx, account); err != nil {
+			endTx(err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
-		}
-
-		if err := c.core.CreateAccountHistory(context, nil, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-warning",
-				Description: "Account created but history creation failed (/account): " + err.Error(),
-				Module:      "Account",
-			})
 		}
 
 		if len(req.AccountTags) > 0 {
@@ -646,8 +641,8 @@ func (c *Controller) accountController() {
 					UpdatedByID:    userOrg.UserID,
 				})
 			}
-			db := c.provider.Service.Database.Client()
-			if err := db.Create(&tags).Error; err != nil {
+			if err := tx.Create(&tags).Error; err != nil {
+				endTx(err) // rollback
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Account tag creation failed (/account), db error: " + err.Error(),
@@ -655,6 +650,15 @@ func (c *Controller) accountController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tags: " + err.Error()})
 			}
+		}
+
+		if err := endTx(nil); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Account creation failed (/account), commit error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
