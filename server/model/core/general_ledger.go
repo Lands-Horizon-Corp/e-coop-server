@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
@@ -245,6 +246,15 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			if data == nil {
 				return nil
 			}
+			fmt.Println("[DEBUG] GetAccountHistoryLatestByTimeHistoryID - START")
+
+			fmt.Printf("[DEBUG] data pointer        : %p\n", &data)
+			fmt.Printf("[DEBUG] data.AccountID      : %v\n", data.AccountID)
+			fmt.Printf("[DEBUG] data.OrganizationID : %v\n", data.OrganizationID)
+			fmt.Printf("[DEBUG] data.BranchID       : %v\n", data.BranchID)
+			fmt.Printf("[DEBUG] data.CreatedAt ptr  : %p\n", &data.CreatedAt)
+			fmt.Printf("[DEBUG] data.CreatedAt val  : %v\n", data.CreatedAt)
+
 			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
 				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
 			)
