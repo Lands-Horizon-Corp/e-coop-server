@@ -3471,7 +3471,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager().CreateWithTx(context, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, nil, coopAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed cooperative account %s", coopAccount.Name)
 		}
 
@@ -3482,7 +3482,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager().CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, nil, feeAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed fee account %s", feeAccount.Name)
 		}
 	}
@@ -3492,7 +3492,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager().CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, nil, operationalAccount); err != nil {
+		if err := m.CreateAccountHistory(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
@@ -3518,7 +3518,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err := m.AccountManager().CreateWithTx(context, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "failed to create compassion fund account")
 	}
-	if err := m.CreateAccountHistory(context, nil, compassionFund); err != nil {
+	if err := m.CreateAccountHistory(context, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "history: failed to create compassion fund account")
 	}
 
