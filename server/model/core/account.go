@@ -1477,13 +1477,21 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	var cashOnHandPaymentType *PaymentType
 
-	cashOnHandPaymentType, _ = m.PaymentTypeManager().FindOne(context, &PaymentType{
+	fmt.Println("DEBUG: Looking for existing Cash On Hand PaymentType")
+	cashOnHandPaymentType, err = m.PaymentTypeManager().FindOne(context, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 		Name:           "Cash On Hand",
 	})
 
+	if err != nil {
+		fmt.Printf("ERROR: Failed to find PaymentType: %v\n", err)
+	} else if cashOnHandPaymentType != nil {
+		fmt.Printf("DEBUG: Found existing PaymentType: ID=%v, Name=%v\n",
+			cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
+	}
 	if cashOnHandPaymentType == nil {
+		fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
 		cashOnHandPaymentType = &PaymentType{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -1496,11 +1504,14 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Type:           PaymentTypeCash,
 			NumberOfDays:   0,
 		}
-		fmt.Println("DEBUG: Creating Cash On Hand PaymentType")
-		fmt.Printf("userID: %v, organizationID: %v, branchID: %v\n", userID, organizationID, branchID)
+		fmt.Printf("DEBUG: Preparing to create PaymentType: %+v\n", cashOnHandPaymentType)
 
 		if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+			fmt.Printf("ERROR: Failed to create PaymentType: %v\n", err)
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+		} else {
+			fmt.Printf("DEBUG: Successfully created PaymentType: ID=%v, Name=%v\n",
+				cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
 		}
 
 		userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
