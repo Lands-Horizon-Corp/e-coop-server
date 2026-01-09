@@ -134,6 +134,7 @@ type (
 	MutualFundView struct {
 		TotalAmount       float64                    `json:"total_amount"`
 		MutualFundEntries []*MutualFundEntryResponse `json:"mutual_fund_entries"`
+		MutualFund        *MutualFundResponse        `json:"mutual_fund"`
 	}
 	MutualFundViewPostRequest struct {
 		CheckVoucherNumber *string    `json:"check_voucher_number"`
