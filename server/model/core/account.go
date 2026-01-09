@@ -634,6 +634,21 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
+	cashOnHandPaymentType := &PaymentType{
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		CreatedByID:    userID,
+		UpdatedByID:    userID,
+		OrganizationID: organizationID,
+		BranchID:       branchID,
+		Name:           "Cash On Hand",
+		Description:    "Cash available at the branch for immediate use.",
+		Type:           PaymentTypeCash,
+		NumberOfDays:   0,
+	}
+	if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+		return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
+	}
 
 	accounts := []*Account{
 		{
@@ -1469,31 +1484,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
-	}
-
-	var cashOnHandPaymentType *PaymentType
-
-	fmt.Println("DEBUG: Cash On Hand PaymentType does not exist, creating new one")
-	cashOnHandPaymentType = &PaymentType{
-		CreatedAt:      now,
-		UpdatedAt:      now,
-		CreatedByID:    userID,
-		UpdatedByID:    userID,
-		OrganizationID: organizationID,
-		BranchID:       branchID,
-		Name:           "Cash On Hand",
-		Description:    "Cash available at the branch for immediate use.",
-		Type:           PaymentTypeCash,
-		NumberOfDays:   0,
-	}
-	fmt.Printf("DEBUG: Preparing to create PaymentType: %+v\n", cashOnHandPaymentType)
-
-	if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
-		fmt.Printf("ERROR: Failed to create PaymentType: %v\n", err)
-		return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
-	} else {
-		fmt.Printf("DEBUG: Successfully created PaymentType: ID=%v, Name=%v\n",
-			cashOnHandPaymentType.ID, cashOnHandPaymentType.Name)
 	}
 
 	userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
