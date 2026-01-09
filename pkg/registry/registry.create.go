@@ -26,21 +26,14 @@ func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
 	data *TData,
 ) error {
 	if tx == nil {
-		fmt.Println("ERROR: tx is nil")
 		return eris.New("tx is nil")
 	}
-
 	if tx.Error != nil {
-		fmt.Printf("ERROR: transaction already failed before creating entity: %v\n", tx.Error)
 		return fmt.Errorf("transaction already failed: %w", tx.Error)
 	}
-
-	fmt.Printf("DEBUG: Creating entity: %+v\n", data)
 	if err := tx.WithContext(ctx).Create(data).Error; err != nil {
-		fmt.Printf("ERROR: failed to create entity: %v\n", err)
 		return fmt.Errorf("failed to create entity with transaction: %w", err)
 	}
-	fmt.Printf("DEBUG: Successfully created entity: %+v\n", data)
 	return nil
 }
 

@@ -48,7 +48,6 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 	ids []any,
 ) error {
 	if len(ids) == 0 {
-		fmt.Println("No IDs to delete")
 		return nil
 	}
 	for _, id := range ids {
@@ -59,7 +58,6 @@ func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
 			continue
 		}
 		if err := r.Client(ctx).Delete(&entity).Error; err != nil {
-			fmt.Printf("Failed to delete ID %v: %v\n", id, err)
 			continue
 		}
 		r.OnDelete(ctx, &entity)

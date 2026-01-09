@@ -15,32 +15,21 @@ func (f *Pagination[T]) StructuredPagination(
 	pageSize int,
 	preloads ...string,
 ) (*PaginationResult[T], error) {
-	fmt.Println("1")
 	result := PaginationResult[T]{PageIndex: pageIndex, PageSize: pageSize}
 	if result.PageIndex < 0 {
 		result.PageIndex = 0
 	}
-	fmt.Println("2")
-
 	if result.PageSize <= 0 {
 		result.PageSize = 30
 	}
-	fmt.Println("3")
-
 	if f.verbose {
 		db = db.Debug()
 	}
-	fmt.Println("4")
-
 	query := f.structuredQuery(db, filterRoot)
-	fmt.Println("5")
-
 	var totalCount int64
 	if err := query.Session(&gorm.Session{}).Count(&totalCount).Error; err != nil {
 		return nil, fmt.Errorf("failed to count records: %w", err)
 	}
-	fmt.Println("6")
-
 	result.TotalSize = int(totalCount)
 	result.TotalPage = (result.TotalSize + result.PageSize - 1) / result.PageSize
 	offset := result.PageIndex * result.PageSize
@@ -48,18 +37,11 @@ func (f *Pagination[T]) StructuredPagination(
 	for _, preload := range preloads {
 		query = query.Preload(preload)
 	}
-	fmt.Println("7")
-
 	var data []*T
-
 	if err := query.Find(&data).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch records: %w", err)
 	}
-	fmt.Println("8")
-
 	result.Data = data
-	fmt.Println("9")
-
 	return &result, nil
 }
 
