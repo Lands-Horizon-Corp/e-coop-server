@@ -1919,44 +1919,6 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
-	treasuryBills := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
-		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
-		Name:                                    "Treasury Bills",
-		Icon:                                    "Document File Fill",
-		Description:                             "Short-term government securities with maturity of less than one year.",
-		Type:                                    AccountTypeOther,
-		MinAmount:                               0.00,
-		MaxAmount:                               15000000.00,
-		InterestStandard:                        2.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Diminishing,
-		Index:                                   18,
-		CashOnHand:                              false,
-		ShowInGeneralLedgerSourceWithdraw:       true,
-		ShowInGeneralLedgerSourceDeposit:        true,
-		ShowInGeneralLedgerSourceJournal:        true,
-		ShowInGeneralLedgerSourcePayment:        true,
-		ShowInGeneralLedgerSourceAdjustment:     true,
-		ShowInGeneralLedgerSourceJournalVoucher: true,
-		ShowInGeneralLedgerSourceCheckVoucher:   true,
-		CashAndCashEquivalence:                  true,
-		CurrencyID:                              branch.CurrencyID,
-		OtherInformationOfAnAccount:             OIOANone,
-	}
-
-	if err := m.AccountManager().CreateWithTx(context, tx, treasuryBills); err != nil {
-		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
-	}
-	if err := m.CreateAccountHistory(context, nil, treasuryBills); err != nil {
-		return eris.Wrapf(err, "history: failed to seed account %s", treasuryBills.Name)
-	}
-
 	feeAccounts := []*Account{
 		{
 			CreatedAt:                               now,
