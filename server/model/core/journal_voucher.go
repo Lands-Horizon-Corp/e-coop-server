@@ -38,7 +38,7 @@ type (
 		Date              time.Time  `gorm:"not null;default:now()"`
 		Description       string     `gorm:"type:text"`
 		Reference         string     `gorm:"type:varchar(255)"`
-		Status            string     `gorm:"type:varchar(50);default:'draft'"` // draft, posted, cancelled
+		Status            string     `gorm:"type:varchar(50);default:'draft'"`
 		PostedAt          *time.Time `gorm:"type:timestamp"`
 		PostedByID        *uuid.UUID `gorm:"type:uuid"`
 		PostedBy          *User      `gorm:"foreignKey:PostedByID;constraint:OnDelete:SET NULL;" json:"posted_by,omitempty"`

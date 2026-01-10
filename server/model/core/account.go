@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type GeneralLedgerType string // adjust as needed
+type GeneralLedgerType string
 
 const (
 	GLTypeAssets      GeneralLedgerType = "Assets"
@@ -174,7 +174,7 @@ type (
 
 		MinAmount float64     `gorm:"type:decimal;default:0" json:"min_amount"`
 		MaxAmount float64     `gorm:"type:decimal;default:50000" json:"max_amount"`
-		Index     int         `gorm:"default:0" json:"index"`
+		Index     float64     `gorm:"default:0" json:"index"`
 		Type      AccountType `gorm:"type:varchar(50);not null" json:"type"`
 
 		IsInternal         bool `gorm:"default:false" json:"is_internal"`
@@ -255,7 +255,7 @@ type (
 		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
 
 		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
-		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"` // AccountResponse
+		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
 		InterestAmortization        float64                     `gorm:"type:decimal;default:0" json:"interest_amortization,omitempty"`
 		InterestMaturity            float64                     `gorm:"type:decimal;default:0" json:"interest_maturity,omitempty"`
 
@@ -295,7 +295,7 @@ type AccountResponse struct {
 	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount"`
 	MaxAmount   float64     `json:"max_amount"`
-	Index       int         `json:"index"`
+	Index       float64     `json:"index"`
 	Type        AccountType `json:"type"`
 
 	IsInternal         bool `json:"is_internal"`
@@ -394,7 +394,7 @@ type AccountRequest struct {
 	Description string      `json:"description"`
 	MinAmount   float64     `json:"min_amount,omitempty"`
 	MaxAmount   float64     `json:"max_amount,omitempty"`
-	Index       int         `json:"index,omitempty"`
+	Index       float64     `json:"index,omitempty"`
 	Type        AccountType `json:"type" validate:"required"`
 
 	IsInternal         bool `json:"is_internal,omitempty"`
@@ -819,7 +819,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, data); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
+			return eris.Wrapf(err, "history: failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
 		}
 	}
 
@@ -949,7 +949,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded loan account %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
 		var interestComputationType ComputationType
@@ -1004,7 +1004,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded interest account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
 		var svfComputationType ComputationType
@@ -1059,7 +1059,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded service fee account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
 		finesAccount := &Account{
@@ -1121,7 +1121,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded fines account for %s", loanAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
 
@@ -1251,7 +1251,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone fines account %s", finesAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
 
@@ -1429,7 +1429,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone interest account %s", interestAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone interest account %s", interestAccount.Name)
 		}
 	}
 
@@ -1439,7 +1439,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
-			return eris.Wrapf(err, "failed to create history for seeded standalone SVF account %s", svfAccount.Name)
+			return eris.Wrapf(err, "history: failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
 	}
 
@@ -1472,7 +1472,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", paidUpShareCapital.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
 	var cashOnHandPaymentType *PaymentType
@@ -1641,6 +1641,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
 				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
 			}
+
 		}
 	}
 
@@ -1681,7 +1682,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnHand.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
 	cashInBank := &Account{
@@ -1720,7 +1721,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInBank.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInBank.Name)
 	}
 
 	cashOnline := &Account{
@@ -1759,7 +1760,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashOnline.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnline.Name)
 	}
 
 	pettyCash := &Account{
@@ -1798,7 +1799,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", pettyCash.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", pettyCash.Name)
 	}
 
 	cashInTransit := &Account{
@@ -1837,7 +1838,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", cashInTransit.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
 	foreignCurrencyCash := &Account{
@@ -1876,7 +1877,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", foreignCurrencyCash.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
 	moneyMarketFund := &Account{
@@ -1915,42 +1916,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
-		return eris.Wrapf(err, "failed to create history for seeded account %s", moneyMarketFund.Name)
-	}
-
-	treasuryBills := &Account{
-		CreatedAt:                               now,
-		CreatedByID:                             userID,
-		UpdatedAt:                               now,
-		UpdatedByID:                             userID,
-		OrganizationID:                          organizationID,
-		BranchID:                                branchID,
-		DefaultPaymentTypeID:                    &cashOnHandPaymentType.ID,
-		Name:                                    "Treasury Bills",
-		Icon:                                    "Document File Fill",
-		Description:                             "Short-term government securities with maturity of less than one year.",
-		Type:                                    AccountTypeOther,
-		MinAmount:                               0.00,
-		MaxAmount:                               15000000.00,
-		InterestStandard:                        2.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Diminishing,
-		Index:                                   18,
-		CashOnHand:                              false,
-		ShowInGeneralLedgerSourceWithdraw:       true,
-		ShowInGeneralLedgerSourceDeposit:        true,
-		ShowInGeneralLedgerSourceJournal:        true,
-		ShowInGeneralLedgerSourcePayment:        true,
-		ShowInGeneralLedgerSourceAdjustment:     true,
-		ShowInGeneralLedgerSourceJournalVoucher: true,
-		ShowInGeneralLedgerSourceCheckVoucher:   true,
-		CashAndCashEquivalence:                  true,
-		CurrencyID:                              branch.CurrencyID,
-		OtherInformationOfAnAccount:             OIOANone,
-	}
-
-	if err := m.AccountManager().CreateWithTx(context, tx, treasuryBills); err != nil {
-		return eris.Wrapf(err, "failed to seed account %s", treasuryBills.Name)
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
 	feeAccounts := []*Account{
@@ -3505,6 +3471,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager().CreateWithTx(context, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
 		}
+		if err := m.CreateAccountHistory(context, tx, coopAccount); err != nil {
+			return eris.Wrapf(err, "history: failed to seed cooperative account %s", coopAccount.Name)
+		}
+
 	}
 
 	for _, feeAccount := range feeAccounts {
@@ -3512,12 +3482,18 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		if err := m.AccountManager().CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
+		if err := m.CreateAccountHistory(context, tx, feeAccount); err != nil {
+			return eris.Wrapf(err, "history: failed to seed fee account %s", feeAccount.Name)
+		}
 	}
 
 	for _, operationalAccount := range operationalAccounts {
 		operationalAccount.CurrencyID = branch.CurrencyID
 		if err := m.AccountManager().CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
+		}
+		if err := m.CreateAccountHistory(context, tx, operationalAccount); err != nil {
+			return eris.Wrapf(err, "history: failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
 	compassionFund := &Account{
@@ -3541,6 +3517,9 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 	if err := m.AccountManager().CreateWithTx(context, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "failed to create compassion fund account")
+	}
+	if err := m.CreateAccountHistory(context, tx, compassionFund); err != nil {
+		return eris.Wrap(err, "history: failed to create compassion fund account")
 	}
 
 	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID

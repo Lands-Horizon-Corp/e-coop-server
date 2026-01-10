@@ -29,6 +29,9 @@ func (e *Event) GenerateMutualFundEntries(
 	}
 
 	for _, profile := range memberProfile {
+		if !profile.IsMutualFundMember {
+			continue
+		}
 		if handlers.UUIDPtrEqual(&profile.ID, &mutualFund.MemberProfileID) {
 			continue
 		}

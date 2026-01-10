@@ -96,7 +96,6 @@ resurrect:
 	start=$$(date +%s); \
 	echo "=== RESURRECT ==="; \
 	echo "Step 1: Clearing all caches"; \
-	go clean -cache -modcache -testcache -fuzzcache; \
 	echo "Step 2: Pulling latest code"; \
 	git pull; \
 	echo "Step 3: Refreshing DB"; \

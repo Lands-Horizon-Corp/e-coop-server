@@ -28,6 +28,7 @@ type LoanAmortizationType string
 type LoanAdjustmentType string
 
 const (
+	LoanModeOfPaymentDay         LoanModeOfPayment = "day"
 	LoanModeOfPaymentDaily       LoanModeOfPayment = "daily"
 	LoanModeOfPaymentWeekly      LoanModeOfPayment = "weekly"
 	LoanModeOfPaymentSemiMonthly LoanModeOfPayment = "semi-monthly"

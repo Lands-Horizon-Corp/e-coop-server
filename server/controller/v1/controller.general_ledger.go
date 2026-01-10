@@ -681,47 +681,70 @@ func (c *Controller) generalLedgerController() {
 		context := ctx.Request().Context()
 		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "User authentication failed or organization not found",
+			})
 		}
-		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, userOrg.ID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
+		if userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "User branch is not assigned",
+			})
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := c.core.GeneralLedgerManager().NormalPagination(context, ctx, &core.GeneralLedger{
-				EmployeeUserID: &userOrganization.UserID,
-				OrganizationID: userOrg.OrganizationID,
-				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceWithdraw,
-			})
+			entries, err := c.core.GeneralLedgerManager().NormalPagination(
+				context,
+				ctx,
+				&core.GeneralLedger{
+					EmployeeUserID: &userOrg.UserID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+					Source:         core.GeneralLedgerSourceWithdraw,
+				},
+			)
 			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Failed to retrieve ledger entries: " + err.Error(),
+				})
 			}
+
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := c.core.MemberProfileManager().FindOne(context, &core.MemberProfile{
-				UserID:         &userOrganization.UserID,
-				BranchID:       *userOrg.BranchID,
-				OrganizationID: userOrganization.OrganizationID,
-			})
+			member, err := c.core.MemberProfileManager().FindOne(
+				context,
+				&core.MemberProfile{
+					UserID:         &userOrg.UserID,
+					BranchID:       *userOrg.BranchID,
+					OrganizationID: userOrg.OrganizationID,
+				},
+			)
 			if err != nil {
-				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
+				return ctx.JSON(http.StatusNotFound, map[string]string{
+					"error": "Member profile not found",
+				})
 			}
-			entries, err := c.core.GeneralLedgerManager().NormalPagination(context, ctx, &core.GeneralLedger{
-				MemberProfileID: &member.ID,
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceWithdraw,
-			})
+			entries, err := c.core.GeneralLedgerManager().NormalPagination(
+				context,
+				ctx,
+				&core.GeneralLedger{
+					MemberProfileID: &member.ID,
+					OrganizationID:  userOrg.OrganizationID,
+					BranchID:        *userOrg.BranchID,
+					Source:          core.GeneralLedgerSourceWithdraw,
+				},
+			)
 			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Failed to retrieve ledger entries: " + err.Error(),
+				})
 			}
 			return ctx.JSON(http.StatusOK, entries)
-		default:
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view employee general ledger entries"})
 
+		default:
+			return ctx.JSON(http.StatusForbidden, map[string]string{
+				"error": "User is not authorized to view employee general ledger entries",
+			})
 		}
 	})
 

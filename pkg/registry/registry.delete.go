@@ -43,18 +43,24 @@ func (r *Registry[TData, TResponse, TRequest]) DeleteWithTx(
 	r.OnDelete(context, &entity)
 	return nil
 }
-
 func (r *Registry[TData, TResponse, TRequest]) BulkDelete(
-	context context.Context,
+	ctx context.Context,
 	ids []any,
 ) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	if err := r.Client(context).
-		Where(fmt.Sprintf("%s IN ?", r.columnDefaultID), ids).
-		Delete(new(TData)).Error; err != nil {
-		return fmt.Errorf("failed to bulk delete entities: %w", err)
+	for _, id := range ids {
+		var entity TData
+		if err := r.Client(ctx).
+			Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).
+			First(&entity).Error; err != nil {
+			continue
+		}
+		if err := r.Client(ctx).Delete(&entity).Error; err != nil {
+			continue
+		}
+		r.OnDelete(ctx, &entity)
 	}
 	return nil
 }

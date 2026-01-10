@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -785,12 +786,22 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
+		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "batch-retrieval-failed",
+				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
+				Module:      "CashCheckVoucher",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+		}
 		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ReleasedDate = &timeNow
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
+		cashCheckVoucher.TransactionBatchID = &transactionBatch.ID
 
 		cashCheckVoucherEntries, err := c.core.CashCheckVoucherEntryManager().Find(context, &core.CashCheckVoucherEntry{
 			CashCheckVoucherID: cashCheckVoucher.ID,
@@ -801,16 +812,10 @@ func (c *Controller) cashCheckVoucherController() {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash check voucher entries: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
-		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "batch-retrieval-failed",
-				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-				Module:      "CashCheckVoucher",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
+		if transactionBatch == nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch. TB is Nil"})
 
+		}
 		for _, entry := range cashCheckVoucherEntries {
 			transactionRequest := event.RecordTransactionRequest{
 				Debit:  entry.Debit,
@@ -849,19 +854,20 @@ func (c *Controller) cashCheckVoucherController() {
 		if err := c.event.TransactionBatchBalancing(context, cashCheckVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
-
-		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "release-success",
-			Description: "Successfully released cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
-			Module:      "CashCheckVoucher",
+		newCashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, cashCheckVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash/check voucher: " + err.Error()})
+		}
+		sort.Slice(newCashCheckVoucher.CashCheckVoucherEntries, func(i, j int) bool {
+			return newCashCheckVoucher.CashCheckVoucherEntries[i].CreatedAt.After(newCashCheckVoucher.CashCheckVoucherEntries[j].CreatedAt)
 		})
 		c.event.Footstep(ctx, event.FootstepEvent{
-			Activity:    "release-success",
-			Description: "Successfully released cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
+			Activity:    "update-success",
+			Description: "Updated cash/check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(newCashCheckVoucher))
 	})
 
 	req.RegisterWebRoute(handlers.Route{

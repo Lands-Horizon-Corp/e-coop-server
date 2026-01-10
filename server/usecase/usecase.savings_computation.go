@@ -26,57 +26,18 @@ func GetSavingsEndingBalance(data SavingsBalanceComputation) SavingsBalanceResul
 		return result
 	}
 
-	// Convert daily balances to decimal
-	dailyBalances := make([]decimal.Decimal, len(data.DailyBalance))
-	for i, b := range data.DailyBalance {
-		dailyBalances[i] = decimal.NewFromFloat(b)
-	}
+	endingBalance := decimal.NewFromFloat(
+		data.DailyBalance[len(data.DailyBalance)-1],
+	)
 
-	var balanceForCalculation decimal.Decimal
+	interest := decimal.NewFromFloat(data.InterestAmount)
+	tax := decimal.NewFromFloat(data.InterestTax)
 
-	switch data.SavingsType {
-	case SavingsTypeLowest:
-		balanceForCalculation = dailyBalances[0]
-		for _, b := range dailyBalances {
-			if b.LessThan(balanceForCalculation) {
-				balanceForCalculation = b
-			}
-		}
+	netInterest := interest.Sub(tax)
 
-	case SavingsTypeHighest:
-		balanceForCalculation = dailyBalances[0]
-		for _, b := range dailyBalances {
-			if b.GreaterThan(balanceForCalculation) {
-				balanceForCalculation = b
-			}
-		}
-
-	case SavingsTypeAverage:
-		sum := decimal.Zero
-		for _, b := range dailyBalances {
-			sum = sum.Add(b)
-		}
-		balanceForCalculation = sum.Div(decimal.NewFromInt(int64(len(dailyBalances))))
-
-	case SavingsTypeStart:
-		balanceForCalculation = dailyBalances[0]
-
-	case SavingsTypeEnd:
-		balanceForCalculation = dailyBalances[len(dailyBalances)-1]
-
-	default:
-		// Default to lowest balance
-		balanceForCalculation = dailyBalances[0]
-		for _, b := range dailyBalances {
-			if b.LessThan(balanceForCalculation) {
-				balanceForCalculation = b
-			}
-		}
-	}
-
-	// Add interest amount
-	finalBalance := balanceForCalculation.Add(decimal.NewFromFloat(data.InterestAmount))
-	result.Balance = finalBalance.InexactFloat64()
+	result.Balance = endingBalance.
+		Add(netInterest).
+		InexactFloat64()
 
 	return result
 }

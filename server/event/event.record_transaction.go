@@ -39,7 +39,7 @@ func (e Event) RecordTransaction(
 	transaction RecordTransactionRequest,
 	source core.GeneralLedgerSource,
 ) error {
-	now := time.Now().UTC()
+
 	tx, endTx := e.provider.Service.Database.StartTransaction(context)
 
 	if transaction.Credit == 0 && transaction.Debit == 0 {
@@ -87,6 +87,8 @@ func (e Event) RecordTransaction(
 		})
 		return endTx(eris.New("user organization is nil"))
 	}
+	now := time.Now().UTC()
+	timeMachine := userOrg.UserOrgTime()
 
 	if userOrg.BranchID == nil {
 		e.Footstep(echoCtx, FootstepEvent{
@@ -171,11 +173,6 @@ func (e Event) RecordTransaction(
 		paymentTypeValue = paymentType.Type
 	}
 
-	userOrgTime := userOrg.UserOrgTime()
-	if transaction.EntryDate != nil {
-		userOrgTime = *transaction.EntryDate
-	}
-
 	newGeneralLedger := &core.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
@@ -185,7 +182,7 @@ func (e Event) RecordTransaction(
 		OrganizationID:             userOrg.OrganizationID,
 		TransactionBatchID:         &transaction.TransactionBatchID,
 		ReferenceNumber:            transaction.ReferenceNumber,
-		EntryDate:                  userOrgTime,
+		EntryDate:                  timeMachine,
 		SignatureMediaID:           transaction.SignatureMediaID,
 		ProofOfPaymentMediaID:      transaction.ProofOfPaymentMediaID,
 		BankID:                     transaction.BankID,

@@ -28,6 +28,9 @@ func (r *Registry[TData, TResponse, TRequest]) CreateWithTx(
 	if tx == nil {
 		return eris.New("tx is nil")
 	}
+	if tx.Error != nil {
+		return fmt.Errorf("transaction already failed: %w", tx.Error)
+	}
 	if err := tx.WithContext(ctx).Create(data).Error; err != nil {
 		return fmt.Errorf("failed to create entity with transaction: %w", err)
 	}

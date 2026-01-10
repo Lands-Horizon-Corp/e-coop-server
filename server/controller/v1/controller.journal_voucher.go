@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
@@ -354,13 +355,20 @@ func (c *Controller) journalVoucherController() {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		newJournalVoucher, err := c.core.JournalVoucherManager().GetByID(context, journalVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + err.Error()})
 
+		}
+		sort.Slice(newJournalVoucher.JournalVoucherEntries, func(i, j int) bool {
+			return newJournalVoucher.JournalVoucherEntries[i].CreatedAt.After(newJournalVoucher.JournalVoucherEntries[j].CreatedAt)
+		})
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated journal voucher (/journal-voucher/:journal_voucher_id): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
-		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager().ToModel(journalVoucher))
+		return ctx.JSON(http.StatusOK, c.core.JournalVoucherManager().ToModel(newJournalVoucher))
 	})
 
 	req.RegisterWebRoute(handlers.Route{

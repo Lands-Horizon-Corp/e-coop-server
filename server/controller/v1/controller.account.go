@@ -31,10 +31,33 @@ func (c *Controller) accountController() {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-		})
+		accounts, err := c.core.AccountManager().RawPagination(
+			context,
+			ctx,
+			func(db *gorm.DB) *gorm.DB {
+				return db.Model(&core.Account{}).
+					Where("organization_id = ?", userOrg.OrganizationID).
+					Where("branch_id = ?", *userOrg.BranchID).
+					Where(`EXISTS (
+				SELECT 1 FROM accounts ace
+				WHERE ace.organization_id = accounts.organization_id
+				AND ace.branch_id = accounts.branch_id
+				AND ace.currency_id = accounts.currency_id
+				AND ace.cash_and_cash_equivalence = TRUE
+			)`).
+					Order(`
+				CASE accounts.general_ledger_type
+					WHEN 'Assets' THEN 1
+					WHEN 'Liabilities' THEN 2
+					WHEN 'Equity' THEN 3
+					WHEN 'Revenue' THEN 4
+					WHEN 'Expenses' THEN 5
+					ELSE 6
+				END
+			`)
+			},
+		)
+
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Account retrieval failed: " + err.Error()})
 		}
@@ -483,6 +506,8 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account validation failed: " + err.Error()})
 		}
+
+		// Get user organization
 		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -492,6 +517,7 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
+
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
@@ -500,7 +526,6 @@ func (c *Controller) accountController() {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-
 		account := &core.Account{
 			CreatedAt:                             time.Now().UTC(),
 			CreatedByID:                           userOrg.UserID,
@@ -587,22 +612,15 @@ func (c *Controller) accountController() {
 			InterestAmortization:        req.InterestAmortization,
 			IsTaxable:                   req.IsTaxable,
 		}
-
-		if err := c.core.AccountManager().Create(context, account); err != nil {
+		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		if err := c.core.CreateAccountHistory(context, tx, account); err != nil {
+			endTx(err)
 			c.event.Footstep(ctx, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
-		}
-
-		if err := c.core.CreateAccountHistory(context, nil, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
-				Activity:    "create-warning",
-				Description: "Account created but history creation failed (/account): " + err.Error(),
-				Module:      "Account",
-			})
 		}
 
 		if len(req.AccountTags) > 0 {
@@ -623,8 +641,8 @@ func (c *Controller) accountController() {
 					UpdatedByID:    userOrg.UserID,
 				})
 			}
-			db := c.provider.Service.Database.Client()
-			if err := db.Create(&tags).Error; err != nil {
+			if err := tx.Create(&tags).Error; err != nil {
+				endTx(err) // rollback
 				c.event.Footstep(ctx, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Account tag creation failed (/account), db error: " + err.Error(),
@@ -632,6 +650,15 @@ func (c *Controller) accountController() {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tags: " + err.Error()})
 			}
+		}
+
+		if err := endTx(nil); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Account creation failed (/account), commit error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "create-success",
@@ -1051,7 +1078,7 @@ func (c *Controller) accountController() {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 		indexParam := ctx.Param("index")
-		var newIndex int
+		var newIndex float64
 		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
 		if err != nil {
 			c.event.Footstep(ctx, event.FootstepEvent{
@@ -1092,7 +1119,146 @@ func (c *Controller) accountController() {
 		}
 		c.event.Footstep(ctx, event.FootstepEvent{
 			Activity:    "update-success",
-			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %d", account.Name, newIndex),
+			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %f", account.Name, newIndex),
+			Module:      "Account",
+		})
+		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+	})
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/index/top",
+		Method:       "PUT",
+		Note:         "Negate the account index minus 1.",
+		ResponseType: core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index top update failed (/account/:account_id/index/top), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized index top update attempt for account (/account/:account_id/index/top)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index top update failed (/account/:account_id/index/top), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+		}
+		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index top update failed (/account/:account_id/index/top), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		newIndex := account.Index - 1
+		account.Index = newIndex
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before index top update failed (/account/:account_id/index/top): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index top update failed (/account/:account_id/index/top), db error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
+		}
+
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Updated account index top (/account/:account_id/index/top): %s to %f", account.Name, newIndex),
+			Module:      "Account",
+		})
+
+		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+	})
+
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/account/:account_id/index/bottom",
+		Method:       "PUT",
+		Note:         "Move the account index to the bottom (max index + 1).",
+		ResponseType: core.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index bottom update failed (/account/:account_id/index/bottom), user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Unauthorized index bottom update attempt for account (/account/:account_id/index/bottom)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index bottom update failed (/account/:account_id/index/bottom), invalid UUID: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
+		}
+		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		if err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index bottom update failed (/account/:account_id/index/bottom), not found: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+		}
+		account.Index = account.Index + 1
+		account.UpdatedAt = time.Now().UTC()
+		account.UpdatedByID = userOrg.UserID
+		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-warning",
+				Description: "Account history creation before index bottom update failed (/account/:account_id/index/bottom): " + err.Error(),
+				Module:      "Account",
+			})
+		}
+		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+			c.event.Footstep(ctx, event.FootstepEvent{
+				Activity:    "update-error",
+				Description: "Account index bottom update failed (/account/:account_id/index/bottom), db error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
+		}
+		c.event.Footstep(ctx, event.FootstepEvent{
+			Activity:    "update-success",
+			Description: fmt.Sprintf("Moved account to bottom index (/account/:account_id/index/bottom): %s to %f", account.Name, account.Index),
 			Module:      "Account",
 		})
 		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
@@ -1442,6 +1608,7 @@ func (c *Controller) accountController() {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
+
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",

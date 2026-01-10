@@ -32,7 +32,7 @@ func (c *Controller) memberProfileController() {
 		memberProfile, err := c.core.MemberProfileManager().Find(context, &core.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Status:         "pending",
+			Status:         core.MemberStatusPending,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
@@ -923,7 +923,6 @@ func (c *Controller) memberProfileController() {
 		profile.OldReferenceID = req.OldReferenceID
 		profile.RecruitedByMemberProfileID = req.RecruitedByMemberProfileID
 		profile.Status = req.Status
-		profile.MemberDepartmentID = req.MemberDepartmentID
 
 		if req.MemberDepartmentID != nil && !handlers.UUIDPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
 			data := &core.MemberDepartmentHistory{

@@ -226,13 +226,16 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			"EmployeeUser",
 			"EmployeeUser.Media",
 			"MemberProfile",
+			"MemberProfile.Media",
 			"MemberJointAccount",
+			"MemberJointAccount.PictureMedia",
 			"PaymentType",
 			"AdjustmentEntry",
 			"SignatureMedia",
 			"Bank",
 			"ProofOfPaymentMedia",
 			"Currency",
+			"CreatedBy.Media",
 		},
 		Database: m.provider.Service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -242,8 +245,15 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			if data == nil {
 				return nil
 			}
+			if data.AccountID == nil {
+				return nil
+			}
 			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
-				context.Background(), *data.AccountID, data.OrganizationID, data.BranchID, &data.CreatedAt,
+				context.Background(),
+				*data.AccountID,
+				data.OrganizationID,
+				data.BranchID,
+				&data.CreatedAt,
 			)
 			if err != nil {
 				accountHistoryID = nil

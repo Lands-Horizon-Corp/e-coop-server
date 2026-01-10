@@ -3,14 +3,10 @@ package horizon
 import (
 	"bufio"
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -67,48 +63,26 @@ func NewSecurityService(
 	}
 }
 
-func (h *Security) Decrypt(_ context.Context, ciphertext string) (string, error) {
-	data, err := base64.StdEncoding.DecodeString(ciphertext)
+func (h *Security) Decrypt(_ context.Context, s string) (string, error) {
+	data, err := base64.RawStdEncoding.DecodeString(s)
 	if err != nil {
 		return "", err
 	}
-	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
-	if err != nil {
-		return "", err
+	key := []byte(h.secret)
+	out := make([]byte, len(data))
+	for i := range data {
+		out[i] = data[i] ^ key[i%len(key)]
 	}
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	nonceSize := aesGCM.NonceSize()
-	if len(data) < nonceSize {
-		return "", errors.New("ciphertext too short")
-	}
-	nonce, encryptedData := data[:nonceSize], data[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, nonce, []byte(encryptedData), nil)
-	if err != nil {
-		return "", err
-	}
-	return string(plaintext), nil
+	return string(out), nil
 }
 
-func (h *Security) Encrypt(_ context.Context, plaintext string) (string, error) {
-	block, err := aes.NewCipher([]byte(handlers.Create32ByteKey(h.secret)))
-	if err != nil {
-		return "", err
+func (h *Security) Encrypt(_ context.Context, s string) (string, error) {
+	key := []byte(h.secret)
+	out := make([]byte, len(s))
+	for i := range s {
+		out[i] = s[i] ^ key[i%len(key)]
 	}
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-	nonce := make([]byte, aesGCM.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
-	}
-
-	ciphertext := aesGCM.Seal(nonce, nonce, []byte(plaintext), nil)
-	return string(ciphertext), nil
+	return base64.RawStdEncoding.EncodeToString(out), nil
 }
 
 func (h *Security) GenerateUUID(_ context.Context) (string, error) {

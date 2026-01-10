@@ -564,7 +564,24 @@ func (c *Controller) branchController() {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+	req.RegisterWebRoute(handlers.Route{
+		Route:        "/api/v1/branch/:branch_id",
+		Method:       "GET",
+		Note:         "Returns a single branch by its ID.",
+		ResponseType: core.BranchResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID"})
+		}
+		branch, err := c.core.BranchManager().GetByIDRaw(context, *branchID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
+		}
 
+		return ctx.JSON(http.StatusOK, branch)
+	})
 	req.RegisterWebRoute(handlers.Route{
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",

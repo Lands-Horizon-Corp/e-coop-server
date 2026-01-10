@@ -187,6 +187,7 @@ func (c *Controller) generateSavingsInterest() {
 			UpdatedByID:                     userOrg.UserID,
 			OrganizationID:                  userOrg.OrganizationID,
 			BranchID:                        *userOrg.BranchID,
+			DocumentNo:                      request.DocumentNo,
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,

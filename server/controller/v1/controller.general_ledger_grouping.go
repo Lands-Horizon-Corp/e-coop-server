@@ -563,7 +563,7 @@ func (c *Controller) generalLedgerGroupingController() {
 		}
 		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*core.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
 		for idx, acc := range updatedAccounts {
-			acc.Index = idx
+			acc.Index = float64(idx)
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
 			if err := c.core.AccountManager().UpdateByID(context, acc.ID, acc); err != nil {

@@ -5,8 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gertd/go-pluralize"
 	"gorm.io/gorm"
 )
+
+var pluralizer = pluralize.NewClient()
 
 func (f *Pagination[T]) arrQuery(
 	db *gorm.DB,
@@ -71,7 +74,7 @@ func (f *Pagination[T]) structuredQuery(
 			if strings.Contains(field, ".") {
 				parts := strings.Split(field, ".")
 				if len(parts) >= 2 {
-					parts[0] = toPascalCase(parts[0])
+					parts[0] = pluralizer.Plural(toSnakeCase(parts[0]))
 					field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
 					for i := 2; i < len(parts); i++ {
 						field = fmt.Sprintf(`%s."%s"`, field, parts[i])
@@ -151,7 +154,7 @@ func (f *Pagination[T]) buildConditionWithTableName(filter FieldFilter, mainTabl
 	if isNestedField {
 		parts := strings.Split(field, ".")
 		if len(parts) >= 2 {
-			parts[0] = toPascalCase(parts[0])
+			parts[0] = pluralizer.Plural(toSnakeCase(parts[0]))
 			field = fmt.Sprintf(`"%s"."%s"`, parts[0], parts[1])
 			for i := 2; i < len(parts); i++ {
 				field = fmt.Sprintf(`%s."%s"`, field, parts[i])
@@ -534,7 +537,7 @@ func (f *Pagination[T]) applySort(db *gorm.DB, sortFields []ArrFilterSortSQL) *g
 				if !f.fieldExists(db, parts[0]) {
 					continue
 				}
-				field = fmt.Sprintf(`"%s"."%s"`, toSnakeCase(parts[0]), parts[1])
+				field = fmt.Sprintf(`"%s"."%s"`, pluralizer.Plural(toSnakeCase(parts[0])), parts[1])
 				for i := 2; i < len(parts); i++ {
 					field = fmt.Sprintf(`%s."%s"`, field, parts[i])
 				}
@@ -562,7 +565,7 @@ func (f *Pagination[T]) fieldExists(db *gorm.DB, field string) bool {
 		for i, part := range parts {
 			fObj := currentSchema.LookUpField(part)
 			if fObj == nil {
-				fObj = currentSchema.LookUpField(toSnakeCase(part))
+				fObj = currentSchema.LookUpField(pluralizer.Plural(toSnakeCase(part)))
 			}
 			if fObj == nil {
 				return false
@@ -580,7 +583,7 @@ func (f *Pagination[T]) fieldExists(db *gorm.DB, field string) bool {
 	if stmt.Schema.LookUpField(field) != nil {
 		return true
 	}
-	if stmt.Schema.LookUpField(toSnakeCase(field)) != nil {
+	if stmt.Schema.LookUpField(pluralizer.Plural(toSnakeCase(field))) != nil {
 		return true
 	}
 	if stmt.Schema.LookUpField(strings.ToLower(field)) != nil {
@@ -600,7 +603,7 @@ func (f *Pagination[T]) applyJoinsForFilters(db *gorm.DB, filters []ArrFilterSQL
 				if !f.fieldExists(db, parts[0]) {
 					continue
 				}
-				relationName := toSnakeCase(parts[0])
+				relationName := pluralizer.Plural(toSnakeCase(parts[0]))
 				if !joinMap[relationName] {
 					db = db.Joins(relationName)
 					joinMap[relationName] = true

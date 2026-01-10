@@ -44,7 +44,7 @@ type (
 		Type        AccountType `gorm:"type:varchar(50)" json:"type"`
 		MinAmount   float64     `gorm:"type:decimal" json:"min_amount"`
 		MaxAmount   float64     `gorm:"type:decimal" json:"max_amount"`
-		Index       int         `gorm:"default:0" json:"index"`
+		Index       float64     `gorm:"default:0" json:"index"`
 
 		IsInternal         bool `gorm:"default:false" json:"is_internal"`
 		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
@@ -146,7 +146,7 @@ type (
 		Type        AccountType `json:"type"`
 		MinAmount   float64     `json:"min_amount"`
 		MaxAmount   float64     `json:"max_amount"`
-		Index       int         `json:"index"`
+		Index       float64     `json:"index"`
 
 		IsInternal         bool `json:"is_internal"`
 		CashOnHand         bool `json:"cash_on_hand"`

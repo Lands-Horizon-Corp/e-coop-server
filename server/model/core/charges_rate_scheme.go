@@ -185,7 +185,7 @@ type (
 		AccountIDs                uuid.UUIDs            `json:"account_ids,omitempty"`
 
 		MemberTypeID  *uuid.UUID         `json:"member_type_id,omitempty"`
-		ModeOfPayment *LoanModeOfPayment `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
+		ModeOfPayment *LoanModeOfPayment `json:"mode_of_payment,omitempty" validate:"omitempty,oneof=all day daily weekly monthly semi-monthly quarterly semi-annual lumpsum"`
 
 		ModeOfPaymentHeader1  int `json:"mode_of_payment_header_1,omitempty"`
 		ModeOfPaymentHeader2  int `json:"mode_of_payment_header_2,omitempty"`

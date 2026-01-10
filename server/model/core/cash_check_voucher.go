@@ -268,7 +268,7 @@ func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, Ca
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
-			"EmployeeUser", "TransactionBatch",
+			"EmployeeUser", "TransactionBatch", "EmployeeUser.Media",
 			"PrintedBy", "ApprovedBy", "ReleasedBy",
 			"PrintedBy.Media", "ApprovedBy.Media", "ReleasedBy.Media",
 			"CashCheckVoucherTags", "CashCheckVoucherEntries",

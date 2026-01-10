@@ -68,7 +68,7 @@ type (
 		CheckVoucherORUnique       bool    `gorm:"not null;default:true" json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool    `gorm:"not null;default:false" json:"check_voucher_use_date_or"`
 		AnnualDivisor              int     `gorm:"not null;default:360" json:"annual_divisor"`
-		TaxInterest                float64 `gorm:"not null;default:0" json:"tax_interest"`
+		TaxInterest                float64 `gorm:"not null;default:0" json:" "`
 
 		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
@@ -186,6 +186,7 @@ type (
 		AnnualDivisor                int              `json:"annual_divisor"`
 
 		UnbalancedAccounts []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
+		TaxInterest        float64                      `json:"tax_interest"`
 	}
 )
 
@@ -272,6 +273,7 @@ func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSe
 
 				UnbalancedAccounts: m.UnbalancedAccountManager().ToModels(data.UnbalancedAccounts),
 				AnnualDivisor:      data.AnnualDivisor,
+				TaxInterest:        data.TaxInterest,
 			}
 		},
 		Created: func(data *BranchSetting) registry.Topics {

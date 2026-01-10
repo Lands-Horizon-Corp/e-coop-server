@@ -732,11 +732,15 @@ func (c *Controller) mutualFundsController() {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
+		mutualFund, err := c.core.MutualFundManager().GetByID(context, *mutualFundID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund not found"})
+		}
 
 		entries, err := c.core.MutualFundEntryManager().Find(context, &core.MutualFundEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			MutualFundID:   *mutualFundID,
+			MutualFundID:   mutualFund.ID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund entries: " + err.Error()})
@@ -750,6 +754,7 @@ func (c *Controller) mutualFundsController() {
 		return ctx.JSON(http.StatusOK, core.MutualFundView{
 			MutualFundEntries: c.core.MutualFundEntryManager().ToModels(entries),
 			TotalAmount:       totalAmountFloat,
+			MutualFund:        c.core.MutualFundManager().ToModel(mutualFund),
 		})
 	})
 
