@@ -293,7 +293,6 @@ func IsSuspicious(path string) bool {
 	return false
 }
 
-// ExtractInterfaceName returns the type name of any value passed in.
 func ExtractInterfaceName(i any) string {
 	if i == nil {
 		return "<nil>"
@@ -303,4 +302,22 @@ func ExtractInterfaceName(i any) string {
 		t = t.Elem()
 	}
 	return t.Name()
+}
+
+func DetectPrefix(segments []string, prefixes [][]string) int {
+	for _, pre := range prefixes {
+		if len(segments) >= len(pre) {
+			match := true
+			for i := range pre {
+				if segments[i] != pre[i] {
+					match = false
+					break
+				}
+			}
+			if match {
+				return len(pre)
+			}
+		}
+	}
+	return 0
 }

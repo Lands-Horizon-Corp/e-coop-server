@@ -38,6 +38,16 @@ type ExtendedSecurityHeaders struct {
 	CrossOriginResourcePolicy     string
 }
 
+type GroupedRoute struct {
+	Key    string  `json:"key"`    // Base path segment (e.g. "users")
+	Routes []Route `json:"routes"` // Routes under this group
+}
+type API struct {
+	GroupedRoutes []GroupedRoute  `json:"grouped_routes"` // Routes grouped by base path
+	Requests      []APIInterfaces `json:"requests"`       // Unique request interfaces
+	Responses     []APIInterfaces `json:"responses"`      // Unique response interfaces
+}
+
 func getProductionSecurityConfig() SecurityHeaderConfig {
 	return SecurityHeaderConfig{
 		ContentTypeNosniff:    "nosniff",
@@ -164,7 +174,7 @@ type APIServiceImpl struct {
 	serverPort int
 	cache      CacheImpl
 
-	RoutesList     []Route
+	routesList     []Route
 	interfacesList []APIInterfaces
 }
 type APIInterfaces struct {
@@ -554,12 +564,33 @@ func NewHorizonAPIService(
 		service:        e,
 		serverPort:     serverPort,
 		cache:          cache,
-		RoutesList:     []Route{},
+		routesList:     []Route{},
 		interfacesList: []APIInterfaces{},
 	}
 }
 
-func (h *APIServiceImpl) AddRoute(route Route) error {
+func (h *APIServiceImpl) Run() error {
+	grouped := h.GroupedRoutes()
+	h.service.GET("web/api/routes", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, grouped)
+	}).Name = "horizon-routes-json"
+	h.service.Any("/*", func(c echo.Context) error {
+		return c.String(http.StatusNotFound, "404 - Route not found")
+	})
+	go func() {
+		h.service.Logger.Fatal(h.service.Start(fmt.Sprintf(":%d", h.serverPort)))
+	}()
+	return nil
+}
+
+func (h *APIServiceImpl) Stop(ctx context.Context) error {
+	if err := h.service.Shutdown(ctx); err != nil {
+		return eris.New("failed to gracefully shutdown server")
+	}
+	return nil
+}
+
+func (h *APIServiceImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) error {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
 	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
@@ -567,7 +598,7 @@ func (h *APIServiceImpl) AddRoute(route Route) error {
 	default:
 		return eris.Errorf("unsupported HTTP method: %s for route: %s", method, route.Route)
 	}
-	for _, existing := range h.RoutesList {
+	for _, existing := range h.routesList {
 		if strings.EqualFold(existing.Route, route.Route) &&
 			strings.EqualFold(existing.Method, method) {
 			return eris.Errorf("route already registered: %s %s", method, route.Route)
@@ -591,13 +622,87 @@ func (h *APIServiceImpl) AddRoute(route Route) error {
 		Key:   helpers.ExtractInterfaceName(route.RequestType),
 		Value: string(tsRequest),
 	})
-
-	h.RoutesList = append(h.RoutesList, Route{
+	h.routesList = append(h.routesList, Route{
 		Route:    route.Route,
 		Request:  string(tsRequest),
 		Response: string(tsResponse),
 		Method:   method,
 		Note:     route.Note,
 	})
+
+	switch method {
+	case http.MethodGet:
+		h.service.GET(route.Route, callback, m...)
+	case http.MethodPost:
+		h.service.POST(route.Route, callback, m...)
+	case http.MethodPut:
+		h.service.PUT(route.Route, callback, m...)
+	case http.MethodPatch:
+		h.service.PATCH(route.Route, callback, m...)
+	case http.MethodDelete:
+		h.service.DELETE(route.Route, callback, m...)
+	}
 	return nil
+}
+
+func (h *APIServiceImpl) GroupedRoutes() API {
+	ignoredPrefixes := []string{"api", "v1", "v2", "web", "mobile"}
+	groupMap := make(map[string][]Route)
+	requestMap := make(map[string]APIInterfaces)
+	responseMap := make(map[string]APIInterfaces)
+	isIgnored := func(part string) bool {
+		return slices.Contains(ignoredPrefixes, part)
+	}
+	for _, r := range h.routesList {
+		if r.Private {
+			continue
+		}
+		parts := strings.Split(strings.Trim(r.Route, "/"), "/")
+		base := "/"
+		for _, part := range parts {
+			if part != "" && !isIgnored(part) {
+				base = part
+				break
+			}
+		}
+		groupMap[base] = append(groupMap[base], r)
+		if r.Request != "" {
+			key := helpers.ExtractInterfaceName(r.RequestType)
+			if _, exists := requestMap[key]; !exists {
+				requestMap[key] = APIInterfaces{
+					Key:   key,
+					Value: r.Request,
+				}
+			}
+		}
+		if r.Response != "" {
+			key := helpers.ExtractInterfaceName(r.ResponseType)
+			if _, exists := responseMap[key]; !exists {
+				responseMap[key] = APIInterfaces{
+					Key:   key,
+					Value: r.Response,
+				}
+			}
+		}
+	}
+	groupedRoutes := make([]GroupedRoute, 0, len(groupMap))
+	for k, routes := range groupMap {
+		groupedRoutes = append(groupedRoutes, GroupedRoute{
+			Key:    k,
+			Routes: routes,
+		})
+	}
+	requests := make([]APIInterfaces, 0, len(requestMap))
+	for _, v := range requestMap {
+		requests = append(requests, v)
+	}
+	responses := make([]APIInterfaces, 0, len(responseMap))
+	for _, v := range responseMap {
+		responses = append(responses, v)
+	}
+	return API{
+		GroupedRoutes: groupedRoutes,
+		Requests:      requests,
+		Responses:     responses,
+	}
 }
