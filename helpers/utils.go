@@ -2,11 +2,15 @@ package helpers
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"math/big"
+	"net/mail"
+	"os"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 )
 
@@ -162,4 +166,27 @@ func GetExtensionFromContentType(contentType string) string {
 		return ext
 	}
 	return ""
+}
+
+func IsValidFilePath(p string) error {
+	info, err := os.Stat(p)
+	if os.IsNotExist(err) {
+		return errors.New("not exist")
+	}
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return errors.New("is dir not file")
+	}
+	return nil
+}
+
+func IsValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
+
+func Sanitize(input string) string {
+	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
 }
