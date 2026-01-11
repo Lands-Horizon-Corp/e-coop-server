@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -328,4 +330,55 @@ func CleanString(s string) string {
 	space := regexp.MustCompile(`\s+`)
 	s = space.ReplaceAllString(s, " ")
 	return s
+}
+
+func PrintASCIIArt() {
+	art := `
+           ..............                            
+        .,,,,,,,,,,,,,,,,,,,                             
+    ,,,,,,,,,,,,,,,,,,,,,,,,,,                          
+  ,,,,,,,,,,,,,,  .,,,,,,,,,,,,,                        
+,,,,,,,,,,           ,,,,,,,,,,,                     
+,,,,,,,          .,,,,,,,,,,,                          
+@@,,,,,,          ,,,,,,,,,,,,                             
+@@@,,,,.@@      .,,,,,,,,,,,                                
+@,,,,,,,@@    ,,,,,,,,,,,                                   
+  ,,,,@@@       ,,,,,,                                      
+    @@@@@@@                                          
+    @@@@@@@@@@           @@@@@@@@                          
+      @@@@@@@@@@@@@@  @@@@@@@@@@@@                          
+        @@@@@@@@@@@@@@@@@@@@@@@@@@                          
+            @@@@@@@@@@@@@@@@@@@@                             
+                  @@@@@@@@
+	`
+
+	for line := range strings.SplitSeq(art, "\n") {
+		var b strings.Builder
+		for _, r := range line {
+			switch r {
+			case '@':
+				b.WriteString(Blue + string(r) + Reset)
+			case ',', '.':
+				b.WriteString(Green + string(r) + Reset)
+			default:
+				b.WriteRune(r)
+			}
+		}
+		fmt.Println(b.String())
+	}
+}
+
+func Retry(ctx context.Context, maxAttempts int, delay time.Duration, op func() error) error {
+	var err error
+	for range maxAttempts {
+		if err = op(); err == nil {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(delay):
+		}
+	}
+	return eris.Wrapf(err, "after %d attempts", maxAttempts)
 }

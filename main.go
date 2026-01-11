@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"context"
+
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+)
 
 func main() {
-	fmt.Println("hello world")
+	service := horizon.NewHorizonService()
+	if err := service.Run(context.Background()); err != nil {
+		panic(err)
+	}
 }
