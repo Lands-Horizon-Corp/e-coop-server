@@ -21,7 +21,7 @@ type SMSRequest struct {
 	Vars map[string]string
 }
 
-type SMS struct {
+type SMSImpl struct {
 	limiterOnce sync.Once
 	twilio      *twilio.RestClient
 
@@ -32,7 +32,17 @@ type SMS struct {
 	secured       bool   // Whether to use secured connection
 }
 
-func (h *SMS) Format(req SMSRequest) (*SMSRequest, error) {
+func NewSMS(accountSID, authToken, sender string, maxCharacters int32, secured bool) *SMSImpl {
+	return &SMSImpl{
+		accountSID:    accountSID,
+		authToken:     authToken,
+		sender:        sender,
+		maxCharacters: maxCharacters,
+		secured:       secured,
+	}
+}
+
+func (h *SMSImpl) Format(req SMSRequest) (*SMSRequest, error) {
 	var tmplBody string
 	if err := helpers.IsValidFilePath(req.Body); err == nil {
 		content, err := os.ReadFile(req.Body)
@@ -56,7 +66,7 @@ func (h *SMS) Format(req SMSRequest) (*SMSRequest, error) {
 	return &req, nil
 }
 
-func (h *SMS) Send(ctx context.Context, req SMSRequest) error {
+func (h *SMSImpl) Send(ctx context.Context, req SMSRequest) error {
 	if !helpers.IsValidPhoneNumber(req.To) {
 		return eris.Errorf("invalid recipient phone number format: %s", req.To)
 	}
