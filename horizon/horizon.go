@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
@@ -41,8 +42,39 @@ func NewHorizonService() *HorizonService {
 	if err != nil {
 		service.Logger.Fatal("failed to load configuration", zap.Error(err))
 	}
-	service.Broker = NewMessageBrokerImpl(service.Config.NatsHost, service.Config.NatsClientPort, service.Config.NatsClient, service.Config.NatsUsername, service.Config.NatsPassword)
-	service.Cache = NewCacheImpl(service.Config.RedisHost, service.Config.RedisPassword, service.Config.RedisHost, service.Config.RedisPort)
-	service.Security = NewSecurityImpl(service.Config.PasswordMemory, service.Config.PasswordIterations, service.Config.PasswordParallel, service.Config.PasswordSaltLength, service.Config.PasswordKeyLength, []byte(service.Config.PasswordSecret), service.Cache)
+	isStaging := helpers.CleanString(service.Config.AppEnv) == "staging"
+
+	service.Broker = NewMessageBrokerImpl(
+		service.Config.NatsHost,
+		service.Config.NatsClientPort,
+		service.Config.NatsClient,
+		service.Config.NatsUsername,
+		service.Config.NatsPassword)
+
+	service.Cache = NewCacheImpl(
+		service.Config.RedisHost,
+		service.Config.RedisPassword,
+		service.Config.RedisHost,
+		service.Config.RedisPort)
+
+	service.Security = NewSecurityImpl(
+		service.Config.PasswordMemory,
+		service.Config.PasswordIterations,
+		service.Config.PasswordParallel,
+		service.Config.PasswordSaltLength,
+		service.Config.PasswordKeyLength,
+		[]byte(service.Config.PasswordSecret),
+		service.Cache)
+
+	service.Storage = NewStorageImpl(
+		service.Config.StorageAccessKey,
+		service.Config.StorageSecretKey,
+		service.Config.StorageURL,
+		service.Config.StorageBucket,
+		service.Config.StorageRegion,
+		service.Config.StorageDriver,
+		service.Config.StorageMaxSize,
+		isStaging)
+
 	return service
 }

@@ -321,3 +321,11 @@ func DetectPrefix(segments []string, prefixes [][]string) int {
 	}
 	return 0
 }
+
+func CleanString(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
+	space := regexp.MustCompile(`\s+`)
+	s = space.ReplaceAllString(s, " ")
+	return s
+}
