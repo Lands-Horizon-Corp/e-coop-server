@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net/mail"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -189,4 +190,8 @@ func IsValidEmail(email string) bool {
 
 func Sanitize(input string) string {
 	return bluemonday.UGCPolicy().Sanitize(strings.TrimSpace(input))
+}
+
+func IsValidPhoneNumber(phone string) bool {
+	return regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`).MatchString(phone)
 }
