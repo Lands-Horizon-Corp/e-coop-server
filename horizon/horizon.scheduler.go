@@ -17,10 +17,10 @@ type ScheduleImpl struct {
 	cron  *cron.Cron
 	jobs  map[string]job
 	mutex sync.Mutex
-	cache CacheImpl
+	cache *CacheImpl
 }
 
-func NewSchedule(cache CacheImpl) *ScheduleImpl {
+func NewSchedule(cache *CacheImpl) *ScheduleImpl {
 	return &ScheduleImpl{
 		cron:  cron.New(),
 		jobs:  make(map[string]job),

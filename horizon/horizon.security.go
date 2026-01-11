@@ -26,7 +26,7 @@ type SecurityImpl struct {
 	saltLength  uint32
 	keyLength   uint32
 	secret      []byte
-	cache       CacheImpl
+	cache       *CacheImpl
 }
 
 func NewSecurityService(
@@ -36,7 +36,7 @@ func NewSecurityService(
 	saltLength uint32,
 	keyLength uint32,
 	secret []byte,
-	cache CacheImpl,
+	cache *CacheImpl,
 
 ) *SecurityImpl {
 	return &SecurityImpl{

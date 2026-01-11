@@ -14,11 +14,11 @@ type QRResult struct {
 }
 
 type QRServiceImpl struct {
-	security SecurityImpl
+	security *SecurityImpl
 }
 
 func NewHorizonQRService(
-	security SecurityImpl,
+	security *SecurityImpl,
 ) *QRServiceImpl {
 	return &QRServiceImpl{
 		security: security,

@@ -18,14 +18,14 @@ type ClaimWithID interface {
 }
 
 type AuthServiceImpl[T ClaimWithID] struct {
-	cache      CacheImpl
+	cache      *CacheImpl
 	name       string
 	csrfHeader string
 	ssl        bool
 }
 
 func NewAuthServiceImpl[T ClaimWithID](
-	cache CacheImpl,
+	cache *CacheImpl,
 	name string,
 	csrfHeader string,
 	ssl bool,

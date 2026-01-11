@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rotisserie/eris"
 )
@@ -194,4 +195,99 @@ func Sanitize(input string) string {
 
 func IsValidPhoneNumber(phone string) bool {
 	return regexp.MustCompile(`^\+?(?:\d{1,4})?\d{7,14}$`).MatchString(phone)
+}
+
+func GetHost(c echo.Context) string {
+	if host := c.Request().Host; host != "" {
+		return strings.TrimSpace(host)
+	}
+	if host := c.Request().Header.Get("X-Forwarded-Host"); host != "" {
+		hosts := strings.Split(host, ",")
+		if len(hosts) > 0 {
+			return strings.TrimSpace(hosts[0])
+		}
+	}
+	if host := c.Request().Header.Get("X-Original-Host"); host != "" {
+		return strings.TrimSpace(host)
+	}
+	if origin := c.Request().Header.Get("Origin"); origin != "" {
+		hostname := strings.TrimPrefix(origin, "https://")
+		hostname = strings.TrimPrefix(hostname, "http://")
+		return strings.TrimSpace(hostname)
+	}
+	if referer := c.Request().Header.Get("Referer"); referer != "" {
+		hostname := strings.TrimPrefix(referer, "https://")
+		hostname = strings.TrimPrefix(hostname, "http://")
+		if idx := strings.Index(hostname, "/"); idx != -1 {
+			hostname = hostname[:idx]
+		}
+		return strings.TrimSpace(hostname)
+	}
+	return ""
+}
+
+func GetUserAgent(c echo.Context) string {
+	userAgent := c.Request().UserAgent()
+	if len(userAgent) > 512 {
+		userAgent = userAgent[:512]
+	}
+	userAgent = strings.ReplaceAll(userAgent, "\x00", "")
+	userAgent = strings.Map(func(r rune) rune {
+		if r < 32 || r == 127 {
+			return -1
+		}
+		return r
+	}, userAgent)
+
+	return strings.TrimSpace(userAgent)
+}
+
+func GetPath(c echo.Context) string {
+	path := c.Request().URL.Path
+	if len(path) > 2048 {
+		path = path[:2048]
+	}
+	path = strings.ReplaceAll(path, "\x00", "")
+	path = strings.Map(func(r rune) rune {
+		if r < 32 || r == 127 {
+			return -1
+		}
+		return r
+	}, path)
+	if path == "" || path[0] != '/' {
+		path = "/" + path
+	}
+	for strings.Contains(path, "//") {
+		path = strings.ReplaceAll(path, "//", "/")
+	}
+	return strings.TrimSpace(path)
+}
+
+func GetClientIP(c echo.Context) string {
+	if ip := c.Request().Header.Get("Fly-Client-IP"); ip != "" {
+		return strings.TrimSpace(ip)
+	}
+	if ip := c.Request().Header.Get("X-Forwarded-For"); ip != "" {
+		ips := strings.Split(ip, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0])
+		}
+	}
+	if ip := c.Request().Header.Get("X-Real-IP"); ip != "" {
+		return strings.TrimSpace(ip)
+	}
+	if ip := c.Request().Header.Get("CF-Connecting-IP"); ip != "" {
+		return strings.TrimSpace(ip)
+	}
+	return c.RealIP()
+}
+
+func IsSuspicious(path string) bool {
+	path = strings.ToLower(path)
+	for _, p := range suspiciousPaths {
+		if strings.Contains(path, strings.ToLower(p)) {
+			return true
+		}
+	}
+	return false
 }

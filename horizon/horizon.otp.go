@@ -13,12 +13,12 @@ import (
 
 type OTPImpl struct {
 	secret   []byte
-	cache    CacheImpl
-	security SecurityImpl
+	cache    *CacheImpl
+	security *SecurityImpl
 	secured  bool
 }
 
-func NewHorizonOTP(secret []byte, cache CacheImpl, security SecurityImpl, secured bool) *OTPImpl {
+func NewHorizonOTP(secret []byte, cache *CacheImpl, security *SecurityImpl, secured bool) *OTPImpl {
 	return &OTPImpl{
 		secret:   secret,
 		cache:    cache,
