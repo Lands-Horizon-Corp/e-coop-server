@@ -3,6 +3,7 @@ module github.com/Lands-Horizon-Corp/e-coop-server
 go 1.25.5
 
 require (
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/labstack/echo/v4 v4.15.0
