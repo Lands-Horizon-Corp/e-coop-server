@@ -81,7 +81,32 @@ func NewHorizonService() *HorizonService {
 		service.Config.DatabaseURL,
 		service.Config.DBMaxIdleConn,
 		service.Config.DBMaxOpenConn,
-		time.Duration(service.Config.DBMaxLifetimeSeconds)*time.Second,
-	)
+		time.Duration(service.Config.DBMaxLifetimeSeconds)*time.Second)
+
+	service.OTP = NewOTPImpl(
+		[]byte(service.Config.OTPSecret),
+		service.Cache,
+		service.Security,
+		isStaging)
+
+	service.SMS = NewSMSImpl(
+		service.Config.TwilioAccountSID,
+		service.Config.TwilioAuthToken,
+		service.Config.TwilioSender,
+		service.Config.TwilioMaxCharacters,
+		isStaging)
+
+	service.SMTP = NewSMTPImpl(
+		service.Config.SMTPHost,
+		service.Config.SMTPPort,
+		service.Config.SMTPUsername,
+		service.Config.SMTPPassword,
+		service.Config.SMTPFrom,
+		isStaging)
+
+	service.API = NewAPIImpl(
+		service.Cache,
+		service.Config.AppPort,
+		isStaging)
 	return service
 }

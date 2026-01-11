@@ -172,7 +172,7 @@ type Route struct {
 type APIImpl struct {
 	service    *echo.Echo
 	serverPort int
-	cache      CacheImpl
+	cache      *CacheImpl
 	secured    bool
 
 	routesList     []Route
@@ -184,7 +184,7 @@ type APIInterfaces struct {
 }
 
 func NewAPIImpl(
-	cache CacheImpl,
+	cache *CacheImpl,
 	serverPort int,
 	secured bool,
 ) *APIImpl {

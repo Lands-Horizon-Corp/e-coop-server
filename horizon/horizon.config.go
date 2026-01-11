@@ -71,10 +71,11 @@ type ConfigImpl struct {
 	SMTPTestReceiver string `env:"SMTP_TEST_RECIEVER"`
 
 	// Twilio
-	TwilioAccountSID string `env:"TWILIO_ACCOUNT_SID"`
-	TwilioAuthToken  string `env:"TWILIO_AUTH_TOKEN"`
-	TwilioSender     string `env:"TWILIO_SENDER"`
-	TwilioTestRecv   string `env:"TWILIO_TEST_RECIEVER"`
+	TwilioAccountSID    string `env:"TWILIO_ACCOUNT_SID"`
+	TwilioAuthToken     string `env:"TWILIO_AUTH_TOKEN"`
+	TwilioSender        string `env:"TWILIO_SENDER"`
+	TwilioTestRecv      string `env:"TWILIO_TEST_RECIEVER"`
+	TwilioMaxCharacters int32  `env:"TWILIO_MAX_CHARACTERS" envDefault:"100"`
 
 	// Linode deploy
 	LinodeHost          string `env:"LINODE_HOST"`
