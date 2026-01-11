@@ -52,4 +52,14 @@ profiler:
 	echo ""; \
 	echo "=== PROFILER, ACTIONGRAPH & TRACE COMPLETE ==="; \
 	echo "Total time: $$((end - start)) seconds"; \
+	\
+	echo ""; \
+	echo "Step 6: View trace in Perfetto UI"; \
+	echo "Open https://ui.perfetto.dev/#!/viewer, then load the trace file:"; \
+	echo "$$OUTPUT_DIR/trace.json"; \
+	# Try auto-open in default browser (Linux / Ubuntu) \
+	if command -v xdg-open >/dev/null 2>&1; then \
+	    echo "Opening Perfetto viewer automatically..."; \
+	    xdg-open "https://ui.perfetto.dev/#!/viewer" >/dev/null 2>&1 & \
+	fi \
 	'
