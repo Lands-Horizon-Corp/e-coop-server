@@ -11,7 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-type Cache struct {
+type CacheImpl struct {
 	host     string
 	password string
 	username string
@@ -20,8 +20,8 @@ type Cache struct {
 	prefix   string
 }
 
-func NewHorizonCache(host, password, username string, port int) *Cache {
-	return &Cache{
+func NewHorizonCache(host, password, username string, port int) *CacheImpl {
+	return &CacheImpl{
 		host:     host,
 		password: password,
 		username: username,
@@ -31,18 +31,18 @@ func NewHorizonCache(host, password, username string, port int) *Cache {
 	}
 }
 
-func (h *Cache) applyPrefix(key string) string {
+func (h *CacheImpl) applyPrefix(key string) string {
 	return h.prefix + key
 }
 
-func (h *Cache) Flush(ctx context.Context) error {
+func (h *CacheImpl) Flush(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
 	return eris.Wrap(h.client.FlushAll(ctx).Err(), "failed to flush Redis")
 }
 
-func (h *Cache) Run(ctx context.Context) error {
+func (h *CacheImpl) Run(ctx context.Context) error {
 	h.client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
 		Username: h.username,
@@ -56,7 +56,7 @@ func (h *Cache) Run(ctx context.Context) error {
 	return nil
 }
 
-func (h *Cache) Stop(ctx context.Context) error {
+func (h *CacheImpl) Stop(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
@@ -74,7 +74,7 @@ func (h *Cache) Stop(ctx context.Context) error {
 	return h.client.Close()
 }
 
-func (h *Cache) Ping(ctx context.Context) error {
+func (h *CacheImpl) Ping(ctx context.Context) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
@@ -84,7 +84,7 @@ func (h *Cache) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (h *Cache) Get(ctx context.Context, key string) ([]byte, error) {
+func (h *CacheImpl) Get(ctx context.Context, key string) ([]byte, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
@@ -98,7 +98,7 @@ func (h *Cache) Get(ctx context.Context, key string) ([]byte, error) {
 	return val, eris.Wrap(err, "failed to get key")
 }
 
-func (h *Cache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
+func (h *CacheImpl) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
@@ -151,7 +151,7 @@ func (h *Cache) Set(ctx context.Context, key string, value any, ttl time.Duratio
 	)
 }
 
-func (h *Cache) Exists(ctx context.Context, key string) (bool, error) {
+func (h *CacheImpl) Exists(ctx context.Context, key string) (bool, error) {
 	if h.client == nil {
 		return false, eris.New("redis client is not initialized")
 	}
@@ -165,7 +165,7 @@ func (h *Cache) Exists(ctx context.Context, key string) (bool, error) {
 	return val > 0, nil
 }
 
-func (h *Cache) Delete(ctx context.Context, key string) error {
+func (h *CacheImpl) Delete(ctx context.Context, key string) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
@@ -173,7 +173,7 @@ func (h *Cache) Delete(ctx context.Context, key string) error {
 	return h.client.Del(ctx, prefixedKey).Err()
 }
 
-func (h *Cache) Keys(ctx context.Context, pattern string) ([]string, error) {
+func (h *CacheImpl) Keys(ctx context.Context, pattern string) ([]string, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
@@ -195,7 +195,7 @@ func (h *Cache) Keys(ctx context.Context, pattern string) ([]string, error) {
 	return keys, nil
 }
 
-func (h *Cache) ZAdd(ctx context.Context, key string, score float64, member any) error {
+func (h *CacheImpl) ZAdd(ctx context.Context, key string, score float64, member any) error {
 	if h.client == nil {
 		return eris.New("redis client is not initialized")
 	}
@@ -213,7 +213,7 @@ func (h *Cache) ZAdd(ctx context.Context, key string, score float64, member any)
 	)
 }
 
-func (h *Cache) ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
+func (h *CacheImpl) ZRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
@@ -228,7 +228,7 @@ func (h *Cache) ZRange(ctx context.Context, key string, start, stop int64) ([]st
 	return result, nil
 }
 
-func (h *Cache) ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error) {
+func (h *CacheImpl) ZRangeWithScores(ctx context.Context, key string, start, stop int64) ([]redis.Z, error) {
 	if h.client == nil {
 		return nil, eris.New("redis client is not initialized")
 	}
@@ -243,7 +243,7 @@ func (h *Cache) ZRangeWithScores(ctx context.Context, key string, start, stop in
 	return result, nil
 }
 
-func (h *Cache) ZCard(ctx context.Context, key string) (int64, error) {
+func (h *CacheImpl) ZCard(ctx context.Context, key string) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
@@ -258,7 +258,7 @@ func (h *Cache) ZCard(ctx context.Context, key string) (int64, error) {
 	return result, nil
 }
 
-func (h *Cache) ZRem(ctx context.Context, key string, members ...any) (int64, error) {
+func (h *CacheImpl) ZRem(ctx context.Context, key string, members ...any) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
@@ -273,7 +273,7 @@ func (h *Cache) ZRem(ctx context.Context, key string, members ...any) (int64, er
 	return result, nil
 }
 
-func (h *Cache) ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error) {
+func (h *CacheImpl) ZRemRangeByScore(ctx context.Context, key string, min, max string) (int64, error) {
 	if h.client == nil {
 		return 0, eris.New("redis client is not initialized")
 	}
