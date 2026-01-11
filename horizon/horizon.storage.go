@@ -375,6 +375,20 @@ func (h *StorageImpl) UploadFromHeader(ctx context.Context, header *multipart.Fi
 	return storage, nil
 }
 
+func (h *StorageImpl) DeleteFile(ctx context.Context, storage *Storage) error {
+	if h.client == nil {
+		return eris.New("not initialized")
+	}
+	if strings.TrimSpace(storage.StorageKey) == "" {
+		return eris.New("empty key")
+	}
+	err := h.client.RemoveObject(ctx, storage.BucketName, storage.StorageKey, minio.RemoveObjectOptions{})
+	if err != nil {
+		return eris.Wrapf(err, "failed to delete key %s from bucket %s", storage.StorageKey, storage.BucketName)
+	}
+	return nil
+}
+
 func (h *StorageImpl) GeneratePresignedURL(ctx context.Context, storage *Storage, expiry time.Duration) (string, error) {
 	_, err := h.client.StatObject(ctx, storage.BucketName, storage.StorageKey, minio.StatObjectOptions{})
 	if err != nil {
