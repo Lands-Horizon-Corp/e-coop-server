@@ -6,7 +6,7 @@ import (
 	"github.com/caarlos0/env/v9"
 )
 
-type Config struct {
+type ConfigImpl struct {
 	// App
 	AppPort        int    `env:"APP_PORT" envDefault:"8000"`
 	AppMetricsPort int    `env:"APP_METRICS_PORT" envDefault:"8001"`
@@ -91,8 +91,8 @@ type Config struct {
 	MailpitUIPort      int    `env:"MAILPIT_UI_PORT" envDefault:"8025"`
 }
 
-func NewConfig() (*Config, error) {
-	cfg := &Config{}
+func NewConfigImpl() (*ConfigImpl, error) {
+	cfg := &ConfigImpl{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}

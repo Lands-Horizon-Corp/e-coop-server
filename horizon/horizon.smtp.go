@@ -33,7 +33,7 @@ type SMTPImpl struct {
 	limiterOnce sync.Once
 }
 
-func NewSMTP(host string, port int, username, password string, from string, secured bool) *SMTPImpl {
+func NewSMTPImpl(host string, port int, username, password string, from string, secured bool) *SMTPImpl {
 	return &SMTPImpl{
 		host:     host,
 		port:     port,

@@ -73,7 +73,7 @@ type StorageImpl struct {
 	ssl              bool
 }
 
-func NewStorageImplService(
+func NewStorageImpl(
 	accessKey,
 	secretKey,
 	endpoint,

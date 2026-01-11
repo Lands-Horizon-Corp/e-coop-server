@@ -17,20 +17,20 @@ type ClaimWithID interface {
 	GetID() string
 }
 
-type AuthServiceImpl[T ClaimWithID] struct {
+type AuthImpl[T ClaimWithID] struct {
 	cache      *CacheImpl
 	name       string
 	csrfHeader string
 	ssl        bool
 }
 
-func NewAuthServiceImpl[T ClaimWithID](
+func NewAuthImpl[T ClaimWithID](
 	cache *CacheImpl,
 	name string,
 	csrfHeader string,
 	ssl bool,
-) *AuthServiceImpl[T] {
-	return &AuthServiceImpl[T]{
+) *AuthImpl[T] {
+	return &AuthImpl[T]{
 		cache:      cache,
 		name:       name,
 		csrfHeader: csrfHeader,
@@ -38,15 +38,15 @@ func NewAuthServiceImpl[T ClaimWithID](
 	}
 }
 
-func (h *AuthServiceImpl[T]) mainKey(userID, token string) string {
+func (h *AuthImpl[T]) mainKey(userID, token string) string {
 	return fmt.Sprintf("%s:csrf:%s:%s", h.name, userID, token)
 }
 
-func (h *AuthServiceImpl[T]) tokenToUserKey(token string) string {
+func (h *AuthImpl[T]) tokenToUserKey(token string) string {
 	return fmt.Sprintf("%s:csrf_token_to_user:%s", h.name, token)
 }
 
-func (h *AuthServiceImpl[T]) getTokenFromContext(c echo.Context) string {
+func (h *AuthImpl[T]) getTokenFromContext(c echo.Context) string {
 	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
 		return token
 	}
@@ -69,7 +69,7 @@ func (h *AuthServiceImpl[T]) getTokenFromContext(c echo.Context) string {
 	return ""
 }
 
-func (h *AuthServiceImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
+func (h *AuthImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	var zeroT T
 	token := h.getTokenFromContext(c)
 	if token == "" {
@@ -94,7 +94,7 @@ func (h *AuthServiceImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, er
 	return claim, nil
 }
 
-func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
+func (h *AuthImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
 	token, err := helpers.GenerateToken()
 	if err != nil {
 		return eris.Wrap(err, "failed to generate CSRF token")
@@ -141,7 +141,7 @@ func (h *AuthServiceImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim 
 	return nil
 }
 
-func (h *AuthServiceImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
+func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	token := h.getTokenFromContext(c)
 	if token == "" {
 		return
@@ -171,7 +171,7 @@ func (h *AuthServiceImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	})
 }
 
-func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
+func (h *AuthImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return false, eris.Wrap(err, "could not retrieve CSRF claim")
@@ -201,7 +201,7 @@ func (h *AuthServiceImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo
 	return false, nil
 }
 
-func (h *AuthServiceImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
+func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get current user claim")
@@ -241,7 +241,7 @@ func (h *AuthServiceImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Contex
 	return uniqueUsers, nil
 }
 
-func (h *AuthServiceImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
+func (h *AuthImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.Wrap(err, "failed to get current user claim")
@@ -264,7 +264,7 @@ func (h *AuthServiceImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context)
 	return nil
 }
 
-func (h *AuthServiceImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
+func (h *AuthImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
 	if token == "" {
 		return zeroT, eris.New("empty CSRF token")
@@ -288,7 +288,7 @@ func (h *AuthServiceImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, e
 	return claim, nil
 }
 
-func (h *AuthServiceImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
+func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
 		return eris.New("missing current session token")
@@ -326,10 +326,10 @@ func (h *AuthServiceImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Cont
 	return nil
 }
 
-func (h *AuthServiceImpl[T]) Key(token string) string {
+func (h *AuthImpl[T]) Key(token string) string {
 	return h.tokenToUserKey(token)
 }
 
-func (h *AuthServiceImpl[T]) Name() string {
+func (h *AuthImpl[T]) Name() string {
 	return h.name
 }

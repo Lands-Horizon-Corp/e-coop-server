@@ -32,7 +32,7 @@ type SMSImpl struct {
 	secured       bool   // Whether to use secured connection
 }
 
-func NewSMS(accountSID, authToken, sender string, maxCharacters int32, secured bool) *SMSImpl {
+func NewSMSImpl(accountSID, authToken, sender string, maxCharacters int32, secured bool) *SMSImpl {
 	return &SMSImpl{
 		accountSID:    accountSID,
 		authToken:     authToken,

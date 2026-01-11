@@ -20,7 +20,7 @@ type CacheImpl struct {
 	prefix   string
 }
 
-func NewHorizonCache(host, password, username string, port int) *CacheImpl {
+func NewCacheImpl(host, password, username string, port int) *CacheImpl {
 	return &CacheImpl{
 		host:     host,
 		password: password,

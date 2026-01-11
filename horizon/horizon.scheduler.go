@@ -20,7 +20,7 @@ type ScheduleImpl struct {
 	cache *CacheImpl
 }
 
-func NewSchedule(cache *CacheImpl) *ScheduleImpl {
+func NewScheduleImpl(cache *CacheImpl) *ScheduleImpl {
 	return &ScheduleImpl{
 		cron:  cron.New(),
 		jobs:  make(map[string]job),

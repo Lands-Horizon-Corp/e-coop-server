@@ -18,7 +18,7 @@ type OTPImpl struct {
 	secured  bool
 }
 
-func NewHorizonOTP(secret []byte, cache *CacheImpl, security *SecurityImpl, secured bool) *OTPImpl {
+func NewOTPImpl(secret []byte, cache *CacheImpl, security *SecurityImpl, secured bool) *OTPImpl {
 	return &OTPImpl{
 		secret:   secret,
 		cache:    cache,

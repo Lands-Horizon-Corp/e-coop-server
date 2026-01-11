@@ -13,19 +13,19 @@ type QRResult struct {
 	Type string `json:"type"`
 }
 
-type QRServiceImpl struct {
+type QRImpl struct {
 	security *SecurityImpl
 }
 
-func NewHorizonQRService(
+func NewQRImpl(
 	security *SecurityImpl,
-) *QRServiceImpl {
-	return &QRServiceImpl{
+) *QRImpl {
+	return &QRImpl{
 		security: security,
 	}
 }
 
-func (h *QRServiceImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
+func (h *QRImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, error) {
 	decrypted, err := h.security.Decrypt(ctx, data.Data)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to decrypt data")
@@ -37,7 +37,7 @@ func (h *QRServiceImpl) DecodeQR(ctx context.Context, data *QRResult) (*any, err
 	return &decoded, nil
 }
 
-func (h *QRServiceImpl) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
+func (h *QRImpl) EncodeQR(ctx context.Context, data any, qrTYpe string) (*QRResult, error) {
 	jsonBytes, err := json.Marshal(data)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to marshal data")

@@ -169,7 +169,7 @@ type Route struct {
 	Private      bool   `json:"private,omitempty"` // Excluded from public docs
 }
 
-type APIServiceImpl struct {
+type APIImpl struct {
 	service    *echo.Echo
 	serverPort int
 	cache      CacheImpl
@@ -182,11 +182,11 @@ type APIInterfaces struct {
 	Value string `json:"value"`
 }
 
-func NewHorizonAPIService(
+func NewAPIImpl(
 	cache CacheImpl,
 	serverPort int,
 	secured bool,
-) *APIServiceImpl {
+) *APIImpl {
 	e := echo.New()
 	logger, _ := zap.NewProduction()
 	defer func() {
@@ -560,7 +560,7 @@ func NewHorizonAPIService(
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
-	return &APIServiceImpl{
+	return &APIImpl{
 		service:        e,
 		serverPort:     serverPort,
 		cache:          cache,
@@ -569,7 +569,7 @@ func NewHorizonAPIService(
 	}
 }
 
-func (h *APIServiceImpl) Run() error {
+func (h *APIImpl) Run() error {
 	grouped := h.GroupedRoutes()
 	h.service.GET("web/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
@@ -583,14 +583,14 @@ func (h *APIServiceImpl) Run() error {
 	return nil
 }
 
-func (h *APIServiceImpl) Stop(ctx context.Context) error {
+func (h *APIImpl) Stop(ctx context.Context) error {
 	if err := h.service.Shutdown(ctx); err != nil {
 		return eris.New("failed to gracefully shutdown server")
 	}
 	return nil
 }
 
-func (h *APIServiceImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) error {
+func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) error {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
 	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
@@ -645,7 +645,7 @@ func (h *APIServiceImpl) RegisterWebRoute(route Route, callback func(c echo.Cont
 	return nil
 }
 
-func (h *APIServiceImpl) GroupedRoutes() API {
+func (h *APIImpl) GroupedRoutes() API {
 	ignoredPrefixes := []string{"api", "v1", "v2", "web", "mobile"}
 	groupMap := make(map[string][]Route)
 	requestMap := make(map[string]APIInterfaces)

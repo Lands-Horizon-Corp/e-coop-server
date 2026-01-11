@@ -17,7 +17,7 @@ type MessageBrokerImpl struct {
 	natsPass string
 }
 
-func NewHorizonMessageBroker(host string, port int, clientID, natsUser, natsPass string) MessageBrokerImpl {
+func NewMessageBrokerImpl(host string, port int, clientID, natsUser, natsPass string) MessageBrokerImpl {
 	return MessageBrokerImpl{
 		host:     host,
 		port:     port,

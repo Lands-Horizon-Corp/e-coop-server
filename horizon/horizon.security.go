@@ -29,7 +29,7 @@ type SecurityImpl struct {
 	cache       *CacheImpl
 }
 
-func NewSecurityService(
+func NewSecurityImpl(
 	memory uint32,
 	iterations uint32,
 	parallelism uint8,
