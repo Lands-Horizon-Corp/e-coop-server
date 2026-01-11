@@ -173,6 +173,7 @@ type APIImpl struct {
 	service    *echo.Echo
 	serverPort int
 	cache      CacheImpl
+	secured    bool
 
 	routesList     []Route
 	interfacesList []APIInterfaces
@@ -187,7 +188,17 @@ func NewAPIImpl(
 	serverPort int,
 	secured bool,
 ) *APIImpl {
-	e := echo.New()
+	return &APIImpl{
+		service:        echo.New(),
+		serverPort:     serverPort,
+		cache:          cache,
+		routesList:     []Route{},
+		interfacesList: []APIInterfaces{},
+		secured:        secured,
+	}
+}
+
+func (h *APIImpl) Run() error {
 	logger, _ := zap.NewProduction()
 	defer func() {
 		if err := logger.Sync(); err != nil {
@@ -214,7 +225,7 @@ func NewAPIImpl(
 		"https://cooperatives-production.fly.dev",
 	}
 
-	if !secured {
+	if !h.secured {
 		origins = append(origins,
 			"http://localhost:8000",
 			"http://localhost:8001",
@@ -231,14 +242,14 @@ func NewAPIImpl(
 		allowedHosts = append(allowedHosts, hostname)
 	}
 
-	e.Use(middleware.Recover())
-	e.Pre(middleware.RemoveTrailingSlash())
+	h.service.Use(middleware.Recover())
+	h.service.Pre(middleware.RemoveTrailingSlash())
 
-	if secured {
-		e.Pre(middleware.HTTPSRedirect())
+	if h.secured {
+		h.service.Pre(middleware.HTTPSRedirect())
 	}
 
-	e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			host := helpers.GetHost(c)
 			if slices.Contains(allowedHosts, host) {
@@ -248,7 +259,7 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			allowedMethods := map[string]bool{
 				http.MethodGet:     true, // Read operations
@@ -268,7 +279,7 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			clientIP := helpers.GetClientIP(c)
 
@@ -281,7 +292,7 @@ func NewAPIImpl(
 			}
 
 			cacheKey := "blocked_ip:" + clientIP
-			hostBytes, err := cache.Get(c.Request().Context(), cacheKey)
+			hostBytes, err := h.cache.Get(c.Request().Context(), cacheKey)
 			if err != nil {
 				logger.Error("Firewall cache error",
 					zap.String("ip", clientIP),
@@ -296,15 +307,15 @@ func NewAPIImpl(
 					defer cancel()
 					timestamp := float64(time.Now().Unix())
 					attemptKey := "blocked_attempts:" + clientIP
-					if err := cache.ZAdd(ctx, attemptKey, timestamp, fmt.Sprintf("%s:%d", c.Request().URL.Path, time.Now().Unix())); err != nil {
+					if err := h.cache.ZAdd(ctx, attemptKey, timestamp, fmt.Sprintf("%s:%d", c.Request().URL.Path, time.Now().Unix())); err != nil {
 						logger.Debug("Failed to track blocked IP attempt", zap.String("ip", clientIP), zap.Error(err))
 					}
 
-					if err := cache.ZAdd(ctx, "blocked_ips_registry", timestamp, clientIP); err != nil {
+					if err := h.cache.ZAdd(ctx, "blocked_ips_registry", timestamp, clientIP); err != nil {
 						logger.Debug("Failed to update blocked IPs registry", zap.String("ip", clientIP), zap.Error(err))
 					}
 					sevenDaysAgo := time.Now().AddDate(0, 0, -7).Unix()
-					if _, err := cache.ZRemRangeByScore(ctx, attemptKey, "0", fmt.Sprintf("%d", sevenDaysAgo)); err != nil {
+					if _, err := h.cache.ZRemRangeByScore(ctx, attemptKey, "0", fmt.Sprintf("%d", sevenDaysAgo)); err != nil {
 						logger.Debug("Failed to cleanup old blocked attempts", zap.String("ip", clientIP), zap.Error(err))
 					}
 				}()
@@ -318,12 +329,12 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := helpers.GetPath(c)
 			clientIP := helpers.GetClientIP(c)
 			suspiciousCacheKey := "suspicious_path:" + path
-			cachedResult, err := cache.Get(c.Request().Context(), suspiciousCacheKey)
+			cachedResult, err := h.cache.Get(c.Request().Context(), suspiciousCacheKey)
 			if err == nil && cachedResult != nil {
 				go func() {
 					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -332,7 +343,7 @@ func NewAPIImpl(
 					timestamp := float64(time.Now().Unix())
 					suspiciousKey := "suspicious_attempts:" + clientIP
 					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
-					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+					if err := h.cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
 						logger.Debug("Failed to track suspicious path attempt",
 							zap.String("ip", clientIP),
 							zap.String("path", path),
@@ -351,7 +362,7 @@ func NewAPIImpl(
 					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 					defer cancel()
 
-					if err := cache.Set(ctx, suspiciousCacheKey, []byte("blocked"), 5*time.Minute); err != nil {
+					if err := h.cache.Set(ctx, suspiciousCacheKey, []byte("blocked"), 5*time.Minute); err != nil {
 						logger.Error("Failed to cache suspicious path",
 							zap.String("path", path),
 							zap.Error(err),
@@ -360,14 +371,14 @@ func NewAPIImpl(
 					timestamp := float64(time.Now().Unix())
 					suspiciousKey := "suspicious_attempts:" + clientIP
 					attemptData := fmt.Sprintf("%s:%d", path, time.Now().Unix())
-					if err := cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
+					if err := h.cache.ZAdd(ctx, suspiciousKey, timestamp, attemptData); err != nil {
 						logger.Debug("Failed to track suspicious path attempt",
 							zap.String("ip", clientIP),
 							zap.String("path", path),
 							zap.Error(err))
 					}
 					thirtyDaysAgo := time.Now().AddDate(0, 0, -30).Unix()
-					if _, err := cache.ZRemRangeByScore(ctx, suspiciousKey, "0", fmt.Sprintf("%d", thirtyDaysAgo)); err != nil {
+					if _, err := h.cache.ZRemRangeByScore(ctx, suspiciousKey, "0", fmt.Sprintf("%d", thirtyDaysAgo)); err != nil {
 						logger.Debug("Failed to cleanup old suspicious attempts",
 							zap.String("ip", clientIP),
 							zap.Error(err))
@@ -387,7 +398,7 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if c.Request().Method == http.MethodPost ||
 				c.Request().Method == http.MethodPut ||
@@ -400,9 +411,9 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(middleware.BodyLimit("4M"))
-	if secured {
-		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(middleware.BodyLimit("4M"))
+	if h.secured {
+		h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				c.Response().Header().Set("Set-Cookie",
 					strings.ReplaceAll(c.Response().Header().Get("Set-Cookie"), "; Path=", "; HttpOnly; Secure; SameSite=None; Path="))
@@ -410,7 +421,7 @@ func NewAPIImpl(
 			}
 		})
 	} else {
-		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 			return func(c echo.Context) error {
 				c.Response().Header().Set("Set-Cookie",
 					strings.ReplaceAll(
@@ -422,7 +433,7 @@ func NewAPIImpl(
 			}
 		})
 	}
-	e.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+	h.service.Use(middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
 			middleware.RateLimiterMemoryStoreConfig{Rate: rate.Limit(10), Burst: 30, ExpiresIn: 3 * time.Minute},
@@ -439,7 +450,7 @@ func NewAPIImpl(
 		},
 	}))
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	h.service.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: origins,
 
 		AllowMethods: []string{
@@ -480,7 +491,7 @@ func NewAPIImpl(
 		MaxAge:           3600,
 	}))
 
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if c.Request().Method == http.MethodOptions {
 				origin := c.Request().Header.Get("Origin")
@@ -507,7 +518,7 @@ func NewAPIImpl(
 		}
 	})
 
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	h.service.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
 		LogError:    true,
@@ -543,7 +554,7 @@ func NewAPIImpl(
 			return nil
 		},
 	}))
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+	h.service.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 6,
 		Skipper: func(c echo.Context) bool {
 			ct := c.Response().Header().Get(echo.HeaderContentType)
@@ -555,21 +566,10 @@ func NewAPIImpl(
 		},
 	}))
 
-	e.Use(SecurityHeadersMiddleware(secured))
-
-	e.GET("/", func(c echo.Context) error {
+	h.service.Use(SecurityHeadersMiddleware(h.secured))
+	h.service.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
-	return &APIImpl{
-		service:        e,
-		serverPort:     serverPort,
-		cache:          cache,
-		routesList:     []Route{},
-		interfacesList: []APIInterfaces{},
-	}
-}
-
-func (h *APIImpl) Run() error {
 	grouped := h.GroupedRoutes()
 	h.service.GET("web/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)
