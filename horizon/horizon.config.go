@@ -26,12 +26,15 @@ type ConfigImpl struct {
 	NatsPassword      string `env:"NATS_PASSWORD"`
 
 	// Postgres
-	PostgresUser     string `env:"POSTGRES_USER" envDefault:"dev"`
-	PostgresPassword string `env:"POSTGRES_PASSWORD" envDefault:"devpass"`
-	PostgresDB       string `env:"POSTGRES_DB" envDefault:"devdb"`
-	PostgresPort     int    `env:"POSTGRES_PORT" envDefault:"5432"`
-	PostgresHost     string `env:"POSTGRES_HOST" envDefault:"127.0.0.1"`
-	DatabaseURL      string `env:"DATABASE_URL"`
+	PostgresUser         string `env:"POSTGRES_USER" envDefault:"dev"`
+	PostgresPassword     string `env:"POSTGRES_PASSWORD" envDefault:"devpass"`
+	PostgresDB           string `env:"POSTGRES_DB" envDefault:"devdb"`
+	PostgresPort         int    `env:"POSTGRES_PORT" envDefault:"5432"`
+	PostgresHost         string `env:"POSTGRES_HOST" envDefault:"127.0.0.1"`
+	DatabaseURL          string `env:"DATABASE_URL"`
+	DBMaxIdleConn        int    `env:"DATABASE_MAX_IDLE_CONN" envDefault:"10"`
+	DBMaxOpenConn        int    `env:"DATABASE_MAX_OPEN_CONN" envDefault:"100"`
+	DBMaxLifetimeSeconds int64  `env:"DATABASE_MAX_LIFETIME" envDefault:"0"`
 
 	// Redis
 	RedisHost     string `env:"REDIS_HOST" envDefault:"127.0.0.1"`

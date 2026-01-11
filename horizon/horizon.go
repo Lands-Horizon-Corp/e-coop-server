@@ -3,6 +3,7 @@ package horizon
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/go-playground/validator/v10"
@@ -76,5 +77,11 @@ func NewHorizonService() *HorizonService {
 		service.Config.StorageMaxSize,
 		isStaging)
 
+	service.Database = NewDatabaseImpl(
+		service.Config.DatabaseURL,
+		service.Config.DBMaxIdleConn,
+		service.Config.DBMaxOpenConn,
+		time.Duration(service.Config.DBMaxLifetimeSeconds)*time.Second,
+	)
 	return service
 }
