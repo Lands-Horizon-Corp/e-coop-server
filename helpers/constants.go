@@ -23,3 +23,8 @@ var suspiciousPaths = []string{
 	"config.json",
 	"secrets.yaml",
 }
+
+const (
+	exportInterfacePrefix = "export interface "
+	interfacePrefix       = "interface "
+)

@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net/mail"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -290,4 +291,16 @@ func IsSuspicious(path string) bool {
 		}
 	}
 	return false
+}
+
+// ExtractInterfaceName returns the type name of any value passed in.
+func ExtractInterfaceName(i any) string {
+	if i == nil {
+		return "<nil>"
+	}
+	t := reflect.TypeOf(i)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
 }

@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,8 +11,10 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/invopop/jsonschema"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
@@ -554,4 +557,47 @@ func NewHorizonAPIService(
 		RoutesList:     []Route{},
 		interfacesList: []APIInterfaces{},
 	}
+}
+
+func (h *APIServiceImpl) AddRoute(route Route) error {
+	method := strings.ToUpper(strings.TrimSpace(route.Method))
+	switch method {
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		break
+	default:
+		return eris.Errorf("unsupported HTTP method: %s for route: %s", method, route.Route)
+	}
+	for _, existing := range h.RoutesList {
+		if strings.EqualFold(existing.Route, route.Route) &&
+			strings.EqualFold(existing.Method, method) {
+			return eris.Errorf("route already registered: %s %s", method, route.Route)
+		}
+	}
+	if route.Private {
+		return nil
+	}
+	tsRequest, err := json.MarshalIndent(new(jsonschema.Reflector).Reflect(route.RequestType), "", "  ")
+	if err != nil {
+		return eris.Wrapf(err, "failed to marshal request schema for route: %s", route.Route)
+	}
+	tsResponse, err := json.MarshalIndent(new(jsonschema.Reflector).Reflect(route.ResponseType), "", "  ")
+	if err != nil {
+		return eris.Wrapf(err, "failed to marshal response schema for route: %s", route.Route)
+	}
+	h.interfacesList = append(h.interfacesList, APIInterfaces{
+		Key:   helpers.ExtractInterfaceName(route.ResponseType),
+		Value: string(tsResponse),
+	}, APIInterfaces{
+		Key:   helpers.ExtractInterfaceName(route.RequestType),
+		Value: string(tsRequest),
+	})
+
+	h.RoutesList = append(h.RoutesList, Route{
+		Route:    route.Route,
+		Request:  string(tsRequest),
+		Response: string(tsResponse),
+		Method:   method,
+		Note:     route.Note,
+	})
+	return nil
 }
