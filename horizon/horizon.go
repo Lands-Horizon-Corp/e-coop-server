@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/go-playground/validator/v10"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
@@ -28,6 +30,7 @@ type HorizonService struct {
 
 	Validator *validator.Validate
 	Logger    *zap.Logger
+	secured   bool
 }
 
 func NewHorizonService() *HorizonService {
@@ -45,8 +48,7 @@ func NewHorizonService() *HorizonService {
 	if err != nil {
 		service.Logger.Fatal("failed to load configuration", zap.Error(err))
 	}
-	isStaging := helpers.CleanString(service.Config.AppEnv) == "staging"
-
+	service.secured = helpers.CleanString(service.Config.AppEnv) == "staging"
 	service.Broker = NewMessageBrokerImpl(
 		service.Config.NatsHost,
 		service.Config.NatsClientPort,
@@ -57,7 +59,7 @@ func NewHorizonService() *HorizonService {
 	service.Cache = NewCacheImpl(
 		service.Config.RedisHost,
 		service.Config.RedisPassword,
-		service.Config.RedisHost,
+		service.Config.RedisUsername,
 		service.Config.RedisPort)
 
 	service.Security = NewSecurityImpl(
@@ -77,8 +79,7 @@ func NewHorizonService() *HorizonService {
 		service.Config.StorageRegion,
 		service.Config.StorageDriver,
 		service.Config.StorageMaxSize,
-		isStaging)
-
+		service.secured)
 	service.Database = NewDatabaseImpl(
 		service.Config.DatabaseURL,
 		service.Config.DBMaxIdleConn,
@@ -89,14 +90,14 @@ func NewHorizonService() *HorizonService {
 		[]byte(service.Config.OTPSecret),
 		service.Cache,
 		service.Security,
-		isStaging)
+		service.secured)
 
 	service.SMS = NewSMSImpl(
 		service.Config.TwilioAccountSID,
 		service.Config.TwilioAuthToken,
 		service.Config.TwilioSender,
 		service.Config.TwilioMaxCharacters,
-		isStaging)
+		service.secured)
 
 	service.SMTP = NewSMTPImpl(
 		service.Config.SMTPHost,
@@ -104,18 +105,19 @@ func NewHorizonService() *HorizonService {
 		service.Config.SMTPUsername,
 		service.Config.SMTPPassword,
 		service.Config.SMTPFrom,
-		isStaging)
+		service.secured)
 
 	service.API = NewAPIImpl(
 		service.Cache,
 		service.Config.AppPort,
-		isStaging)
+		service.secured)
 	return service
 }
 
 func (h *HorizonService) Run(ctx context.Context) error {
 	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	helpers.PrintASCIIArt()
+	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
 	delay := 3 * time.Second
 	retry := 5
@@ -207,7 +209,40 @@ func (h *HorizonService) Run(ctx context.Context) error {
 
 	return nil
 }
-
+func (h *HorizonService) printUIEndpoints() {
+	if h.secured {
+		return
+	}
+	headerStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("212")).
+		Align(lipgloss.Center)
+	cellStyle := lipgloss.NewStyle().
+		Padding(0, 1)
+	urlStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("39"))
+	t := table.New().
+		Headers("Service", "URL").
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == 0 {
+				return headerStyle
+			}
+			if col == 1 {
+				return urlStyle
+			}
+			return cellStyle
+		}).
+		Rows(
+			[]string{"Mailpit", fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort)},
+			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
+			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
+			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
+			[]string{"NATS Monitor", fmt.Sprintf("http://%s:%d", h.Config.NatsHost, h.Config.NatsMonitorPort)},
+		)
+	fmt.Println(t)
+}
 func (h *HorizonService) printStatus(service string, status string) {
 	switch status {
 	case "init":
