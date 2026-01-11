@@ -3,6 +3,7 @@ package horizon
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -24,7 +26,7 @@ type SecurityImpl struct {
 	saltLength  uint32
 	keyLength   uint32
 	secret      []byte
-	mu          sync.RWMutex
+	cache       CacheImpl
 }
 
 func NewSecurityService(
@@ -34,6 +36,8 @@ func NewSecurityService(
 	saltLength uint32,
 	keyLength uint32,
 	secret []byte,
+	cache CacheImpl,
+
 ) *SecurityImpl {
 	return &SecurityImpl{
 		memory:      memory,
@@ -42,32 +46,42 @@ func NewSecurityService(
 		saltLength:  saltLength,
 		keyLength:   keyLength,
 		secret:      secret,
-		mu:          sync.RWMutex{},
+		cache:       cache,
 	}
 }
 
-func (h *SecurityImpl) Decrypt(s string) (string, error) {
-	data, err := base64.RawStdEncoding.DecodeString(s)
+func (h *SecurityImpl) HashPassword(password string) (string, error) {
+	salt := make([]byte, h.saltLength)
+	if _, err := rand.Read(salt); err != nil {
+		return "", err
+	}
+	hash := argon2.IDKey([]byte(password), salt, h.iterations, h.memory, h.parallelism, h.keyLength)
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
+	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, h.memory, h.iterations, h.parallelism, b64Salt, b64Hash)
+	return encodedHash, nil
+}
+
+func (h *SecurityImpl) Encrypt(ctx context.Context, data string, ttl time.Duration) (string, error) {
+	token := uuid.New().String()
+	key := fmt.Sprintf("X-SECURED:%s", token)
+	if err := h.cache.Set(ctx, key, data, ttl); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (h *SecurityImpl) Decrypt(ctx context.Context, token string) (string, error) {
+	key := fmt.Sprintf("X-SECURED:%s", token)
+	data, err := h.cache.Get(ctx, key)
 	if err != nil {
 		return "", err
 	}
-	key := []byte(h.secret)
-	out := make([]byte, len(data))
-	for i := range data {
-		out[i] = data[i] ^ key[i%len(key)]
+	if data == nil {
+		return "", fmt.Errorf("token not found or expired")
 	}
-	return string(out), nil
+	return string(data), nil
 }
-
-func (h *SecurityImpl) Encrypt(s string) (string, error) {
-	key := []byte(h.secret)
-	out := make([]byte, len(s))
-	for i := range s {
-		out[i] = s[i] ^ key[i%len(key)]
-	}
-	return base64.RawStdEncoding.EncodeToString(out), nil
-}
-
 func (h *SecurityImpl) VerifyPassword(hash string, password string) (bool, error) {
 	vals := strings.Split(hash, "$")
 	if len(vals) != 6 {
