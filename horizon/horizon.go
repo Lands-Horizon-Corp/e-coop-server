@@ -29,7 +29,6 @@ type HorizonService struct {
 func NewHorizonService() *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
-
 	logger, err := zap.NewProduction()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)
@@ -37,15 +36,13 @@ func NewHorizonService() *HorizonService {
 	} else {
 		service.Logger = logger
 	}
-
 	service.Logger.Info("Starting HorizonService initialization...")
 	service.Config, err = NewConfigImpl()
 	if err != nil {
 		service.Logger.Fatal("failed to load configuration", zap.Error(err))
 	}
-
-	// // host password username port
-	// service.Cache = NewCacheImpl(service.Config.)
-	// service.API = NewAPIImpl(service)
+	service.Broker = NewMessageBrokerImpl(service.Config.NatsHost, service.Config.NatsClientPort, service.Config.NatsClient, service.Config.NatsUsername, service.Config.NatsPassword)
+	service.Cache = NewCacheImpl(service.Config.RedisHost, service.Config.RedisPassword, service.Config.RedisHost, service.Config.RedisPort)
+	service.Security = NewSecurityImpl(service.Config.PasswordMemory, service.Config.PasswordIterations, service.Config.PasswordParallel, service.Config.PasswordSaltLength, service.Config.PasswordKeyLength, []byte(service.Config.PasswordSecret), service.Cache)
 	return service
 }

@@ -50,11 +50,11 @@ type ConfigImpl struct {
 	StorageMaxSize   int64  `env:"STORAGE_MAX_SIZE" envDefault:"10485760"`
 
 	// Security / Password
-	PasswordMemory     int    `env:"PASSWORD_MEMORY" envDefault:"65536"`
-	PasswordIterations int    `env:"PASSWORD_ITERATIONS" envDefault:"3"`
-	PasswordParallel   int    `env:"PASSWORD_PARALLELISM" envDefault:"2"`
-	PasswordSaltLength int    `env:"PASSWORD_SALT_LENTH" envDefault:"16"`
-	PasswordKeyLength  int    `env:"PASSWORD_KEY_LENGTH" envDefault:"32"`
+	PasswordMemory     uint32 `env:"PASSWORD_MEMORY" envDefault:"65536"`
+	PasswordIterations uint32 `env:"PASSWORD_ITERATIONS" envDefault:"3"`
+	PasswordParallel   uint8  `env:"PASSWORD_PARALLELISM" envDefault:"2"`
+	PasswordSaltLength uint32 `env:"PASSWORD_SALT_LENTH" envDefault:"16"`
+	PasswordKeyLength  uint32 `env:"PASSWORD_KEY_LENGTH" envDefault:"32"`
 	PasswordSecret     string `env:"PASSWORD_SECRET" envDefault:"changeme"`
 	OTPSecret          string `env:"OTP_SECRET" envDefault:"otpsecret"`
 	QRSecret           string `env:"QR_SECRET" envDefault:"qrsecret"`

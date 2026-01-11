@@ -17,8 +17,8 @@ type MessageBrokerImpl struct {
 	natsPass string
 }
 
-func NewMessageBrokerImpl(host string, port int, clientID, natsUser, natsPass string) MessageBrokerImpl {
-	return MessageBrokerImpl{
+func NewMessageBrokerImpl(host string, port int, clientID, natsUser, natsPass string) *MessageBrokerImpl {
+	return &MessageBrokerImpl{
 		host:     host,
 		port:     port,
 		clientID: clientID,
