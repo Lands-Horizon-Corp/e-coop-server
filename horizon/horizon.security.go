@@ -82,6 +82,7 @@ func (h *SecurityImpl) Decrypt(ctx context.Context, token string) (string, error
 	}
 	return string(data), nil
 }
+
 func (h *SecurityImpl) VerifyPassword(hash string, password string) (bool, error) {
 	vals := strings.Split(hash, "$")
 	if len(vals) != 6 {
