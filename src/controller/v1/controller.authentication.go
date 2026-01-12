@@ -78,6 +78,7 @@ func authenticationController(service *horizon.HorizonService) {
 		responses := resp.UserCSRFModels(loggedInPtrs)
 		return ctx.JSON(http.StatusOK, responses)
 	})
+
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
@@ -86,6 +87,7 @@ func authenticationController(service *horizon.HorizonService) {
 		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		var req core.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})

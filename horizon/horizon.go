@@ -3,6 +3,7 @@ package horizon
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -76,7 +77,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Config.PasswordKeyLength,
 		[]byte(service.Config.PasswordSecret),
 		service.Cache)
-
+	service.QR = NewQRImpl(service.Security)
 	service.Storage = NewStorageImpl(
 		service.Config.StorageAccessKey,
 		service.Config.StorageSecretKey,
@@ -122,7 +123,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 }
 
 func (h *HorizonService) Run(ctx context.Context) error {
-	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	helpers.PrintASCIIArt()
 	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
@@ -208,8 +209,7 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		}
 		h.printStatus("Request", "ok")
 	}
-	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
-
+	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
 	return nil
 }
 
@@ -259,7 +259,7 @@ func (h *HorizonService) printUIEndpoints() {
 			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
 			[]string{"NATS Monitor", fmt.Sprintf("http://%s:%d", h.Config.NatsHost, h.Config.NatsMonitorPort)},
 		)
-	fmt.Println(t)
+	log.Println(t)
 }
 
 func (h *HorizonService) Stop(ctx context.Context) error {

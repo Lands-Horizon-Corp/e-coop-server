@@ -3,6 +3,7 @@ package horizon
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/nats-io/nats.go"
 	"github.com/rotisserie/eris"
@@ -32,7 +33,7 @@ func (h *MessageBrokerImpl) Run() error {
 	options := []nats.Option{
 		nats.UserInfo(h.natsUser, h.natsPass),
 		nats.ErrorHandler(func(_ *nats.Conn, sub *nats.Subscription, err error) {
-			fmt.Printf("Error in subscription to %s: %v\n", sub.Subject, err)
+			log.Printf("Error in subscription to %s: %v\n", sub.Subject, err)
 		}),
 	}
 
@@ -98,11 +99,11 @@ func (h *MessageBrokerImpl) Subscribe(topic string, handler func(any) error) err
 	_, err := h.nc.Subscribe(h.formatTopic(topic), func(msg *nats.Msg) {
 		var payload map[string]any
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
-			fmt.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)
+			log.Printf("Failed to unmarshal message from topic %s: %v\n", topic, err)
 			return
 		}
 		if err := handler(payload); err != nil {
-			fmt.Printf("Handler error for topic %s: %v\n", topic, err)
+			log.Printf("Handler error for topic %s: %v\n", topic, err)
 		}
 	})
 	if err != nil {

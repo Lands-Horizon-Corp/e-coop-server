@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"net/mail"
@@ -370,7 +371,7 @@ func PrintASCIIArt() {
 				b.WriteRune(r)
 			}
 		}
-		fmt.Println(b.String())
+		log.Println(b.String())
 	}
 }
 

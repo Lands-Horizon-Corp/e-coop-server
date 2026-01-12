@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -205,7 +207,7 @@ func (h *APIImpl) Init() error {
 			if !strings.Contains(err.Error(), "sync /dev/stderr") &&
 				!strings.Contains(err.Error(), "sync /dev/stdout") &&
 				!strings.Contains(err.Error(), "invalid argument") {
-				fmt.Printf("logger.Sync() error: %v\n", err)
+				log.Printf("logger.Sync() error: %v\n", err)
 			}
 		}
 	}()
@@ -595,11 +597,21 @@ func (h *APIImpl) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, mid ...echo.MiddlewareFunc) error {
+func (h *APIImpl) RegisterWebRoute(
+	route Route,
+	callback func(c echo.Context) error,
+	mid ...echo.MiddlewareFunc,
+) error {
+
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
+	route.Route = "/web/" + strings.TrimPrefix(route.Route, "/")
+
 	switch method {
-	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-		break
+	case http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete:
 	default:
 		return eris.Errorf("unsupported HTTP method: %s for route: %s", method, route.Route)
 	}
@@ -612,29 +624,50 @@ func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) er
 	if route.Private {
 		return nil
 	}
-	tsRequest, err := json.MarshalIndent(new(jsonschema.Reflector).Reflect(route.RequestType), "", "  ")
-	if err != nil {
-		return eris.Wrapf(err, "failed to marshal request schema for route: %s", route.Route)
+	reflector := &jsonschema.Reflector{}
+	var (
+		reqSchema  string
+		respSchema string
+	)
+	if route.RequestType != nil {
+		reqType := reflect.TypeOf(route.RequestType)
+		if reqType.Kind() == reflect.Pointer {
+			reqType = reqType.Elem()
+		}
+		schema := reflector.ReflectFromType(reqType)
+		b, err := json.MarshalIndent(schema, "", "  ")
+		if err != nil {
+			return eris.Wrapf(err, "failed to marshal request schema for route: %s", route.Route)
+		}
+		reqSchema = string(b)
+		h.interfacesList = append(h.interfacesList, APIInterfaces{
+			Key:   helpers.ExtractInterfaceName(route.RequestType),
+			Value: reqSchema,
+		})
 	}
-	tsResponse, err := json.MarshalIndent(new(jsonschema.Reflector).Reflect(route.ResponseType), "", "  ")
-	if err != nil {
-		return eris.Wrapf(err, "failed to marshal response schema for route: %s", route.Route)
+	if route.ResponseType != nil {
+		respType := reflect.TypeOf(route.ResponseType)
+		if respType.Kind() == reflect.Pointer {
+			respType = respType.Elem()
+		}
+		schema := reflector.ReflectFromType(respType)
+		b, err := json.MarshalIndent(schema, "", "  ")
+		if err != nil {
+			return eris.Wrapf(err, "failed to marshal response schema for route: %s", route.Route)
+		}
+		respSchema = string(b)
+		h.interfacesList = append(h.interfacesList, APIInterfaces{
+			Key:   helpers.ExtractInterfaceName(route.ResponseType),
+			Value: respSchema,
+		})
 	}
-	h.interfacesList = append(h.interfacesList, APIInterfaces{
-		Key:   helpers.ExtractInterfaceName(route.ResponseType),
-		Value: string(tsResponse),
-	}, APIInterfaces{
-		Key:   helpers.ExtractInterfaceName(route.RequestType),
-		Value: string(tsRequest),
-	})
 	h.routesList = append(h.routesList, Route{
 		Route:    route.Route,
-		Request:  string(tsRequest),
-		Response: string(tsResponse),
 		Method:   method,
+		Request:  reqSchema,
+		Response: respSchema,
 		Note:     route.Note,
 	})
-
 	switch method {
 	case http.MethodGet:
 		h.service.GET(route.Route, callback, mid...)
