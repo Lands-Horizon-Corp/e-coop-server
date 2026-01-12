@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -423,4 +424,23 @@ func UUIDPtrEqual(a, b *uuid.UUID) bool {
 
 func Ptr[T any](v T) *T {
 	return &v
+}
+
+func ParseUUID(s *string) uuid.UUID {
+	if s == nil || *s == "" {
+		return uuid.Nil
+	}
+	id, err := uuid.Parse(*s)
+	if err != nil {
+		return uuid.Nil
+	}
+	return id
+}
+
+func ParseCoordinate(value string) float64 {
+	if value == "" {
+		return 0.0
+	}
+	coord, _ := strconv.ParseFloat(value, 64)
+	return coord
 }
