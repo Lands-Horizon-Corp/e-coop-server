@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/fatih/color"
 )
@@ -178,4 +179,17 @@ func refreshDatabase() error {
 	)
 }
 
-func startServer() {}
+func startServer() error {
+	forceLifeTime := true
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			ForceLifetimeFunc:  &forceLifeTime,
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Refreshing database...",
+			OnStopMessageText:  "Database refreshed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				return v1.Controllers(service)
+			},
+		},
+	)
+}
