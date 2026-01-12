@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"gorm.io/gorm"
 )
@@ -30,11 +31,11 @@ func (r *Registry[TData, TResponse, TRequest]) GetMinInt(context context.Context
 	return result.(int), nil
 }
 
-func (r *Registry[TData, TResponse, TRequest]) GetMaxLock(context context.Context, tx *gorm.DB, field string, filter *TData) (any, error) {
+func (r *Registry[TData, TResponse, TRequest]) GetMaxLock(context context.Context, service *horizon.HorizonService, tx *gorm.DB, field string, filter *TData) (any, error) {
 	return r.pagination.NormalGetMaxLock(tx, field, *filter)
 }
 
-func (r *Registry[TData, TResponse, TRequest]) GetMaxLockInt(context context.Context, tx *gorm.DB, field string, filter *TData) (int, error) {
+func (r *Registry[TData, TResponse, TRequest]) GetMaxLockInt(context context.Context, service *horizon.HorizonService, tx *gorm.DB, field string, filter *TData) (int, error) {
 	result, err := r.pagination.NormalGetMaxLock(tx, field, *filter)
 	if err != nil {
 		return 0, err
@@ -42,7 +43,7 @@ func (r *Registry[TData, TResponse, TRequest]) GetMaxLockInt(context context.Con
 	return result.(int), nil
 }
 
-func (r *Registry[TData, TResponse, TRequest]) GetMinLock(context context.Context, tx *gorm.DB, field string, filter *TData) (any, error) {
+func (r *Registry[TData, TResponse, TRequest]) GetMinLock(context context.Context, service *horizon.HorizonService, tx *gorm.DB, field string, filter *TData) (any, error) {
 	return r.pagination.NormalGetMinLock(tx, field, *filter)
 }
 

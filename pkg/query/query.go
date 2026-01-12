@@ -5,11 +5,47 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gertd/go-pluralize"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-var pluralizer = pluralize.NewClient()
+type Pagination[T any] struct {
+	verbose           bool
+	columnDefaultSort string
+	columnDefaultID   string
+	logger            *zap.Logger
+}
+
+type PaginationConfig struct {
+	Verbose           bool   `json:"verbose"`
+	ColumnDefaultSort string `json:"column_default_sort"`
+	ColumnDefaultID   string `json:"column_default_id"`
+}
+
+func NewPagination[T any](config PaginationConfig) *Pagination[T] {
+	var logger *zap.Logger
+	if config.Verbose {
+		var err error
+		logger, err = zap.NewDevelopment()
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		logger = zap.NewNop()
+	}
+	if config.ColumnDefaultID == "" {
+		config.ColumnDefaultID = "id"
+	}
+	if config.ColumnDefaultSort == "" {
+		config.ColumnDefaultSort = "updated_at DESC"
+	}
+	return &Pagination[T]{
+		verbose:           config.Verbose,
+		columnDefaultSort: config.ColumnDefaultSort,
+		columnDefaultID:   config.ColumnDefaultID,
+		logger:            logger,
+	}
+}
 
 func (f *Pagination[T]) arrQuery(
 	db *gorm.DB,

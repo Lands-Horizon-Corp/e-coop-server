@@ -4,340 +4,198 @@ import (
 	"context"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server"
-	v1 "github.com/Lands-Horizon-Corp/e-coop-server/server/controller/v1"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/fatih/color"
-	"go.uber.org/fx"
 )
 
-func enforceBlocklist() {
-	color.Blue("Enforcing HaGeZi blocklist...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunCache(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Security.Firewall(ctx, func(ip, host string) {
-						cacheKey := "blocked_ip:" + ip
-						timestamp := float64(time.Now().Unix())
+func enforceBlocklist() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Enforcing HaGeZi blocklist...",
+			OnStopMessageText:  "Blocklist enforcement stopped",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				return service.Security.Firewall(ctx, func(ip, host string) {
+					cacheKey := "blocked_ip:" + ip
+					timestamp := float64(time.Now().Unix())
 
-						if err := prov.Service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
-							color.Red("Failed to add IP %s to registry: %v", ip, err)
-						}
-
-						if err := prov.Service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
-							color.Red("Failed to cache IP %s: %v", ip, err)
-						}
-						color.Yellow("Cached blocked IP %s from host %s", ip, host)
-					}); err != nil {
-						return err
+					if err := service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
+						color.Red("Failed to add IP %s: %v", ip, err)
 					}
-					return nil
-				},
-			})
-		}),
+					if err := service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
+						color.Red("Failed to cache IP %s: %v", ip, err)
+					}
+					color.Yellow("Cached blocked IP %s from host %s", ip, host)
+				})
+			},
+		},
 	)
-	executeLifecycle(app)
-	color.Green("HaGeZi blocklist enforced and cached successfully.")
 }
 
-func clearBlockedIPs() {
-	color.Blue("Clearing blocked IPs from cache...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunCache(ctx); err != nil {
-						return err
+func clearBlockedIPs() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Clearing blocked IPs from cache...",
+			OnStopMessageText:  "Blocked IPs cleared successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				keys, err := service.Cache.Keys(ctx, "blocked_ip:*")
+				if err != nil {
+					color.Red("Failed to get blocked IP keys: %v", err)
+					return err
+				}
+				count := 0
+				for _, key := range keys {
+					if err := service.Cache.Delete(ctx, key); err != nil {
+						color.Red("Failed to delete key %s: %v", key, err)
+					} else {
+						count++
 					}
-
-					keys, err := prov.Service.Cache.Keys(ctx, "blocked_ip:*")
-					if err != nil {
-						color.Red("Failed to get blocked IP keys: %v", err)
-						return err
-					}
-
-					count := 0
-					for _, key := range keys {
-						if err := prov.Service.Cache.Delete(ctx, key); err != nil {
-							color.Red("Failed to delete key %s: %v", key, err)
-						} else {
-							count++
-						}
-					}
-
-					color.Green("Cleared %d blocked IP entries from cache", count)
-					return nil
-				},
-			})
-		}),
+				}
+				color.Green("Cleared %d blocked IP entries from cache", count)
+				return nil
+			},
+		},
 	)
-	executeLifecycle(app)
-	color.Green("Blocked IPs cleared successfully.")
 }
 
-func migrateDatabase() {
-	color.Blue("Migrating database...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunDatabase(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func migrateDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database...",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+
+				if err := service.Database.Client().AutoMigrate(core.Models()...); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-	executeLifecycle(app)
-	color.Green("Database migration completed successfully.")
 }
 
-func seedDatabase() {
-	color.Blue("Seeding database...")
-	app := fx.New(
-		fx.StartTimeout(3*time.Hour), // Longer timeout for seeding
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(
-			lc fx.Lifecycle,
-			prov *server.Provider,
-			mod *core.Core,
-
-		) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunDatabase(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunBroker(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					if err := mod.Seed(ctx, 5); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func seedDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database...",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := core.Seed(ctx, service, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-
-	executeLifecycleWithTimeout(app, 3*time.Hour)
-	color.Green("Database seeding completed successfully.")
 }
 
-func seedDatabasePerformance(multiplier int32) {
-	color.Blue("Seeding database...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(
-			lc fx.Lifecycle,
-			prov *server.Provider,
-			mod *core.Core,
-		) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunDatabase(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunBroker(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					if err := mod.Seed(ctx, multiplier); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func seedDatabasePerformance(multiplier int32) error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database... with performance seed",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := core.Seed(ctx, service, multiplier); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-
-	executeLifecycle(app)
-	color.Green("Database seeding completed successfully.")
 }
 
-func resetDatabase() {
-	color.Blue("Resetting database...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunDatabase(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Storage.RemoveAllFiles(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {
-						return err
-					}
-					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func resetDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Resetting database...",
+			OnStopMessageText:  "Database reset completed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
+					return err
+				}
+				models := core.Models()
+				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+					return err
+				}
+				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-
-	executeLifecycle(app)
-	color.Green("Database reset completed successfully.")
 }
 
-func startServer() {
-	app := fx.New(
-		fx.StartTimeout(2*time.Hour),
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore,
-			v1.NewController,
-			event.NewEvent,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, ctrl *v1.Controller, mod *core.Core, prov *server.Provider) error {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := ctrl.Start(); err != nil {
-						return err
-					}
-					if err := prov.Service.Run(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					return nil
-				},
-				OnStop: func(ctx context.Context) error {
-					return prov.Service.Stop(ctx)
-				},
-			})
-			return nil
-		}),
-	)
+func cleanCache() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Cleaning cache...",
+			OnStopMessageText:  "Cache cleaned successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 
-	app.Run()
+				if err := service.Cache.Flush(ctx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
 }
 
-func cleanCache() {
-	color.Blue("Cleaning cache...")
-	app := fx.New(
-		fx.Provide(
-			server.NewProvider,
-		),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunCache(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Cache.Flush(ctx); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func refreshDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Refreshing database...",
+			OnStopMessageText:  "Database refreshed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				models := core.Models()
+				if err := service.Cache.Flush(ctx); err != nil {
+					return err
+				}
+				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
+					return err
+				}
+				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+					return err
+				}
+				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+					return err
+				}
+				if err := core.Seed(ctx, service, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-
-	executeLifecycle(app)
-	color.Green("Cache cleaned successfully.")
 }
 
-func refreshDatabase() {
-	color.Blue("Refreshing database...")
-	app := fx.New(
-		fx.StartTimeout(3*time.Hour),
-		fx.Provide(
-			server.NewProvider,
-			core.NewCore),
-		fx.Invoke(func(lc fx.Lifecycle, prov *server.Provider, mod *core.Core) {
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if err := prov.Service.RunDatabase(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunStorage(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.Storage.RemoveAllFiles(ctx); err != nil {
-						return err
-					}
-					if err := prov.Service.RunBroker(ctx); err != nil {
-						return err
-					}
-					if err := mod.Start(); err != nil {
-						return err
-					}
-					if err := prov.Service.Database.Client().Migrator().DropTable(mod.Migration...); err != nil {
-						return err
-					}
-					if err := prov.Service.Database.Client().AutoMigrate(mod.Migration...); err != nil {
-						return err
-					}
-					if err := mod.Seed(ctx, 5); err != nil {
-						return err
-					}
-					return nil
-				},
-			})
-		}),
+func startServer() error {
+	forceLifeTime := true
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			ForceLifetimeFunc:  &forceLifeTime,
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Refreshing database...",
+			OnStopMessageText:  "Database refreshed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := v1.Controllers(service); err != nil {
+					return err
+				}
+				if err := service.RunLifeTime(ctx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
 	)
-
-	executeLifecycleWithTimeout(app, 3*time.Hour)
-	color.Green("Database reset completed successfully.")
 }

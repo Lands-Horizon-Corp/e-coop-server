@@ -1,131 +1,66 @@
-.PHONY: \
-	clean clense \
-	wake run run-debug \
-	test refresh \
-	build build-debug \
-	actiongraph-why \
-	profiler resurrect teleport webdev
+.PHONY: \ 
+	profiler
 
 ########################################
-# Go helpers
+# Unified Profiler / Actiongraph
 ########################################
 
-clean:
-	go clean -cache
-
-clense:
-	go clean -cache -modcache -testcache -fuzzcache
-
 ########################################
-# Run / Dev
+# Unified Profiler / Actiongraph
 ########################################
 
-run:
-	go run . server
-
-wake: run
-
-run-debug:
-	go run -gcflags='all=-N -l' . server
-
-test:
-	go test -v ./services/horizon_test
-
-refresh:
-	go run . db refresh
-
 ########################################
-# Build
+# Unified Profiler / Actiongraph
 ########################################
 
-build:
-	go build -o ecoop-server .
 
-build-debug:
-	go build -gcflags='all=-N -l' -o ecoop-server .
-
-########################################
-# Build + Dependency Analysis (Actiongraph)
-########################################
-
-actiongraph: clense
-	@bash -c '\
-	start=$$(date +%s); \
-	echo "=== Actiongraph: FULL PROJECT ==="; \
-	echo "WARNING: slow and memory-heavy"; \
-	echo "Step 1: Building with debug-actiongraph"; \
-	go build -debug-actiongraph=compile.json ./...; \
-	end=$$(date +%s); \
-	echo "Actiongraph finished in $$((end - start)) seconds"; \
-	echo "Output: compile.json"; \
-	'
-
-actiongraph-why:
-	@bash -c '\
-	echo "Rendering compile dependency WHY-graph for all packages"; \
-	actiongraph graph --why ./... -f compile.json > compile-why.dot; \
-	dot -Tsvg -Grankdir=LR < compile-why.dot > compile-why.svg; \
-	echo "Output: compile-why.svg"; \
-	'
-
-
-########################################
-# Profiling / Diagnostics
-########################################
-
-# Full rebuild + run with profiling enabled
 profiler:
 	@bash -c '\
 	start=$$(date +%s); \
-	echo "=== PROFILER MODE ==="; \
+	TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M-%S"); \
+	OUTPUT_DIR="./tmp/$$TIMESTAMP"; \
+	echo "=== PROFILER & ACTIONGRAPH & TRACE MODE ==="; \
 	echo "WARNING: very slow, high memory usage"; \
+	echo "Output directory: $$OUTPUT_DIR"; \
+	mkdir -p $$OUTPUT_DIR; \
+	\
+	echo ""; \
 	echo "Step 1: Clearing ALL caches"; \
 	go clean -cache -modcache -testcache -fuzzcache; \
-	echo "Step 2: Running server with debug flags"; \
-	go run -gcflags='all=-N -l' . server; \
+	\
+	echo ""; \
+	go clean -cache -modcache -testcache -fuzzcache; \
+	echo "Step 3: Building with debug-trace"; \
+	go build -debug-trace=$$OUTPUT_DIR/trace.json ./...; \
+	echo "Trace build finished: $$OUTPUT_DIR/trace.json"; \
+	\
+	echo ""; \
+	echo "Step 2: Building with debug-actiongraph"; \
+	go build -debug-actiongraph=$$OUTPUT_DIR/compile.json ./...; \
+	echo "Actiongraph build finished: $$OUTPUT_DIR/compile.json"; \
+	\
+	echo ""; \
+	echo "Step 4: Rendering compile dependency WHY-graph"; \
+	actiongraph graph --why ./... -f $$OUTPUT_DIR/compile.json > $$OUTPUT_DIR/compile-why.dot; \
+	dot -Tsvg -Grankdir=LR < $$OUTPUT_DIR/compile-why.dot > $$OUTPUT_DIR/compile-why.svg; \
+	echo "WHY-graph SVG generated: $$OUTPUT_DIR/compile-why.svg"; \
+	\
+	echo ""; \
+	echo "Step 5: Running server with profiler/debug flags"; \
+	go run -gcflags="all=-N -l" . server; \
+	\
 	end=$$(date +%s); \
-	echo "Profiler run finished in $$((end - start)) seconds"; \
-	'
-
-########################################
-# Utility / Recovery
-########################################
-
-resurrect:
-	@bash -c '\
-	start=$$(date +%s); \
-	echo "=== RESURRECT ==="; \
-	echo "Step 1: Clearing all caches"; \
-	echo "Step 2: Pulling latest code"; \
-	git pull; \
-	echo "Step 3: Refreshing DB"; \
-	go run . db refresh; \
-	echo "Step 4: Starting server"; \
-	go run . server; \
-	end=$$(date +%s); \
-	echo "Total resurrect time: $$((end - start)) seconds"; \
-	'
-
-teleport:
-	clear
-	git pull
-	go run . server
-
-webdev:
-	code .
-
-
-deploy:
-	echo "Deploying to Fly.io...fly"
-	fly deploy; fly logs
-
-build-all-trace: clense
-	@bash -c '\
-	mkdir -p tmp; \
-	echo "=== FULL BUILD WITH DEBUG TRACE ==="; \
-	start=$$(date +%s); \
-	go build -debug-trace=tmp/trace.json ./...; \
-	end=$$(date +%s); \
-	echo "Full build + trace finished in $$((end - start)) seconds"; \
-	echo "Trace file saved to tmp/trace.json"; \
+	echo ""; \
+	echo "=== PROFILER, ACTIONGRAPH & TRACE COMPLETE ==="; \
+	echo "Total time: $$((end - start)) seconds"; \
+	\
+	echo ""; \
+	echo "Step 6: View trace in Perfetto UI"; \
+	echo "Open https://ui.perfetto.dev/#!/viewer, then load the trace file:"; \
+	echo "$$OUTPUT_DIR/trace.json"; \
+	# Try auto-open in default browser (Linux / Ubuntu) \
+	if command -v xdg-open >/dev/null 2>&1; then \
+	    echo "Opening Perfetto viewer automatically..."; \
+	    xdg-open "https://ui.perfetto.dev/#!/viewer" >/dev/null 2>&1 & \
+	fi \
 	'

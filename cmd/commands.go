@@ -3,7 +3,7 @@ package cmd
 import (
 	"strconv"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +15,7 @@ var command = &cobra.Command{
 This tool provides commands for database management, cache operations, 
 and server operations for your financial cooperative system.`,
 	Run: func(_ *cobra.Command, _ []string) {
-		handlers.PrintASCIIArt()
+		helpers.PrintASCIIArt()
 	},
 }
 
@@ -41,8 +41,8 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "clean",
 				Short: "Clean the application cache",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					cleanCache()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return cleanCache()
 				},
 			},
 		},
@@ -56,15 +56,15 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "enforce",
 				Short: "Update HaGeZi blocklist",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					enforceBlocklist()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return enforceBlocklist()
 				},
 			},
 			{
 				Use:   "clear",
 				Short: "Clear all blocked IPs from cache",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					clearBlockedIPs()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return clearBlockedIPs()
 				},
 			},
 		},
@@ -78,46 +78,46 @@ var commandGroups = map[string]struct {
 			{
 				Use:   "migrate",
 				Short: "Automigrate all tables in the database",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					migrateDatabase()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return migrateDatabase()
 				},
 			},
 			{
 				Use:   "seed",
 				Short: "Seed the database with initial data",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					seedDatabase()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return seedDatabase()
 				},
 			},
 			{
 				Use:   "performance-seed",
 				Short: "Run database performance tests (creates test tables and data)",
-				RunFunc: func(_ *cobra.Command, args []string) {
+				RunFunc: func(_ *cobra.Command, args []string) error {
 					if len(args) == 0 {
-						seedDatabasePerformance(1)
-						return
+						return seedDatabasePerformance(1)
+
 					}
 					multiplier, err := strconv.ParseInt(args[0], 10, 32)
 					if err != nil {
 						color.Red("Invalid multiplier, using default 1")
-						seedDatabasePerformance(1)
-						return
+						return seedDatabasePerformance(1)
+
 					}
-					seedDatabasePerformance(int32(multiplier))
+					return seedDatabasePerformance(int32(multiplier))
 				},
 			},
 			{
 				Use:   "reset",
 				Short: "Reset the database (drops and recreates)",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					resetDatabase()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return resetDatabase()
 				},
 			},
 			{
 				Use:   "refresh",
 				Short: "Reset the database and seed it with initial data",
-				RunFunc: func(_ *cobra.Command, _ []string) {
-					refreshDatabase()
+				RunFunc: func(_ *cobra.Command, _ []string) error {
+					return refreshDatabase()
 				},
 			},
 		},
@@ -129,8 +129,9 @@ var standaloneCommands = []CommandConfig{
 	{
 		Use:   "server",
 		Short: "Start the main server",
-		RunFunc: func(_ *cobra.Command, _ []string) {
+		RunFunc: func(_ *cobra.Command, _ []string) error {
 			startServer()
+			return nil
 		},
 	},
 }
