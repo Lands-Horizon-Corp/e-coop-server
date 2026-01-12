@@ -82,7 +82,7 @@ profiler:
 	echo "Step 1: Clearing ALL caches"; \
 	go clean -cache -modcache -testcache -fuzzcache; \
 	echo "Step 2: Running server with debug flags"; \
-	go run -gcflags='all=-N -l' . server; \
+	go run -gcflags="all=-N -l" . server; \
 	end=$$(date +%s); \
 	echo "Profiler run finished in $$((end - start)) seconds"; \
 	'
