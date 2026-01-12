@@ -11,5 +11,4 @@ func main() {
 	if err := service.Run(context.Background()); err != nil {
 		panic(err)
 	}
-
 }
