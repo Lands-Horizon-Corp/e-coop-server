@@ -40,6 +40,10 @@ func GenerateDigitCode(digits int) (string, error) {
 	return fmt.Sprintf(fmt.Sprintf("%%0%dd", digits), n.Int64()), nil
 }
 
+func HasFileExtension(filename string) bool {
+	return strings.Contains(filename, ".") && !strings.HasSuffix(filename, ".")
+}
+
 func GetExtensionFromContentType(contentType string) string {
 	contentTypeMap := map[string]string{
 		"audio/aac":    ".aac",

@@ -263,7 +263,7 @@ func memberProfileMediaController(service *horizon.HorizonService) {
 		}
 
 		if memberProfileMedia.MediaID != nil {
-			if err := core.MediaDelete(context, *memberProfileMedia.MediaID); err != nil {
+			if err := core.MediaDelete(context, service, *memberProfileMedia.MediaID); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),

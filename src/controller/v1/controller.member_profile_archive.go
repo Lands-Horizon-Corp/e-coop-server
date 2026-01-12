@@ -264,7 +264,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
-		if err := core.MediaDelete(context, *memberProfileArchive.MediaID); err != nil {
+		if err := core.MediaDelete(context, service, *memberProfileArchive.MediaID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),

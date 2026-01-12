@@ -78,7 +78,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		mutualFunds, err := core.MutualFundByMember(context, *memberID, userOrg.OrganizationID, *userOrg.BranchID)
+		mutualFunds, err := core.MutualFundByMember(context, service, *memberID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual funds found for the specified member"})
 		}
@@ -138,7 +138,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		mutualFund, err := core.CreateMutualFundValue(context, req, userOrg)
+		mutualFund, err := core.CreateMutualFundValue(context, service, req, userOrg)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -181,7 +181,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund table: " + endTx(err).Error()})
 			}
 		}
-		mutualFundView, err := GenerateMutualFundEntries(context, userOrg, mutualFund)
+		mutualFundView, err := event.GenerateMutualFundEntries(context, service, userOrg, mutualFund)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + endTx(err).Error()})
 		}
@@ -416,7 +416,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
 		}
-		mutualFundView, err := GenerateMutualFundEntries(context, userOrg, mutualFundUpdated)
+		mutualFundView, err := event.GenerateMutualFundEntries(context, service, userOrg, mutualFundUpdated)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
 		}
@@ -568,7 +568,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				map[string]string{"error": "User is not assigned to a branch"},
 			)
 		}
-		mutualFund, err := core.CreateMutualFundValue(context, reqData, userOrg)
+		mutualFund, err := core.CreateMutualFundValue(context, service, reqData, userOrg)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "view-error",
@@ -580,7 +580,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				map[string]string{"error": err.Error()},
 			)
 		}
-		mutualFundEntries, err := GenerateMutualFundEntries(context, userOrg, mutualFund)
+		mutualFundEntries, err := event.GenerateMutualFundEntries(context, service, userOrg, mutualFund)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "view-error",
@@ -711,8 +711,8 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if mutualFund.PostedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund has already been posted"})
 		}
-		if err := GenerateMutualFundEntriesPost(
-			context, userOrg, mutualFundID, req); err != nil {
+		if err := event.GenerateMutualFundEntriesPost(
+			context, service, userOrg, mutualFundID, req); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post mutual fund entries: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)

@@ -24,7 +24,7 @@ func organizationDailyUsage(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		dailyUsage, err := core.GetOrganizationDailyUsageByOrganization(context, userOrg.OrganizationID)
+		dailyUsage, err := core.GetOrganizationDailyUsageByOrganization(context, service, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization daily usage records: " + err.Error()})
 		}

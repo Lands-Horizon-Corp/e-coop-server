@@ -78,7 +78,7 @@ func mutualFundEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := core.MutualFundEntryByMember(context, *memberID, userOrg.OrganizationID, *userOrg.BranchID)
+		entries, err := core.MutualFundEntryByMember(context, service, *memberID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual fund entries found for the specified member"})
 		}
@@ -103,7 +103,7 @@ func mutualFundEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := core.MutualFundEntryByAccount(context, *accountID, userOrg.OrganizationID, *userOrg.BranchID)
+		entries, err := core.MutualFundEntryByAccount(context, service, *accountID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual fund entries found for the specified account"})
 		}

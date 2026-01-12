@@ -86,7 +86,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		}
 
 		tx, endTx := service.Database.StartTransaction(context)
-		hashedPwd, err := service.Security.HashPassword(context, req.Password)
+		hashedPwd, err := service.Security.HashPassword(req.Password)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -421,7 +421,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID.String(), endTx(err))})
 		}
-		if err := core.MemberProfileDestroy(context, tx, memberProfile.ID); err != nil {
+		if err := core.MemberProfileDestroy(context, service, tx, memberProfile.ID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member profile failed: destroy error: " + err.Error(),
@@ -594,7 +594,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		var userProfileID *uuid.UUID
 
 		if req.AccountInfo != nil {
-			hashedPwd, err := service.Security.HashPassword(context, req.AccountInfo.Password)
+			hashedPwd, err := service.Security.HashPassword(req.AccountInfo.Password)
 			if err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",

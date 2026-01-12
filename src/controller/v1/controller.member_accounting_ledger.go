@@ -28,7 +28,7 @@ func memberAccountingLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		summary, err := MemberAccountingLedgerSummary(context, ctx, memberProfileID)
+		summary, err := event.MemberAccountingLedger(context, service, ctx, memberProfileID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
@@ -150,7 +150,7 @@ func memberAccountingLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.MemberAccountingLedgerMemberProfileEntries(context,
+		entries, err := core.MemberAccountingLedgerMemberProfileEntries(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,

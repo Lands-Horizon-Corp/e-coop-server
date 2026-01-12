@@ -83,7 +83,7 @@ func memberGenderController(service *horizon.HorizonService) {
 		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		org, ok := GetOrganization(ctx)
+		org, ok := event.GetOrganization(service, ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}
@@ -91,7 +91,7 @@ func memberGenderController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch_id: " + err.Error()})
 		}
-		memberGender, err := core.MemberGenderCurrentBranch(context, org.ID, *branchID)
+		memberGender, err := core.MemberGenderCurrentBranch(context, service, org.ID, *branchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
 		}

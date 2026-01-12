@@ -233,7 +233,7 @@ func organizationMediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization media not found"})
 		}
 
-		if err := core.MediaDelete(context, organizationMedia.MediaID); err != nil {
+		if err := core.MediaDelete(context, service, organizationMedia.MediaID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),

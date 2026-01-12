@@ -27,7 +27,7 @@ func notificationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		notification, err := core.GetNotificationByUser(context, user.ID)
+		notification, err := core.GetNotificationByUser(context, service, user.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
 		}
@@ -92,7 +92,7 @@ func notificationController(service *horizon.HorizonService) {
 			}
 
 			var getUserErr error
-			notifications, getUserErr = core.GetNotificationByUser(context, user.ID)
+			notifications, getUserErr = core.GetNotificationByUser(context, service, user.ID)
 			if getUserErr != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",

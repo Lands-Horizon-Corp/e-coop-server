@@ -480,7 +480,7 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
 		tx, endTx := service.Database.StartTransaction(context)
-		hashedPwd, err := service.Security.HashPassword(context, req.Password)
+		hashedPwd, err := service.Security.HashPassword(req.Password)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 		}
