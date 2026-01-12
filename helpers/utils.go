@@ -457,3 +457,11 @@ func EngineUUIDParam(ctx echo.Context, param string) (*uuid.UUID, error) {
 	}
 	return &id, nil
 }
+
+func GeneratePassbookNumber() string {
+	u := uuid.New()
+	compact := strings.ReplaceAll(u.String(), "-", "")
+	short := strings.ToUpper(compact[:12])
+	year := time.Now().Year()
+	return fmt.Sprintf("PB-%d-%s", year, short)
+}

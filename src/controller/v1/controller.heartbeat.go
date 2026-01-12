@@ -181,7 +181,7 @@ func heartbeat(service *horizon.HorizonService) {
 				vacationUsers = append(vacationUsers, org)
 			}
 		}
-		timesheets, err := core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.TimeSheetActiveUsers(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve active timesheets: " + err.Error()})
 		}

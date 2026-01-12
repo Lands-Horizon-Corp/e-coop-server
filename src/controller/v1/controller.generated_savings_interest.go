@@ -124,7 +124,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -205,7 +205,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -354,8 +354,8 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		if generateSavingsInterest.PostedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Generated savings interest has already been posted"})
 		}
-		if err := GenerateSavingsInterestEntriesPost(
-			context, userOrg, generatedSavingsInterestID, req); err != nil {
+		if err := event.GenerateSavingsInterestEntriesPost(
+			context, service, userOrg, generatedSavingsInterestID, req); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post generated savings interest entries: " + err.Error()})
 		}
 		return ctx.NoContent(http.StatusNoContent)

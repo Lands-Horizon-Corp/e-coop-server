@@ -14,6 +14,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -43,7 +44,7 @@ func kycController(service *horizon.HorizonService) {
 				"error": "Username must be lowercase letters, numbers, or underscores only",
 			})
 		}
-		_, err := core.GetUserByUsername(context, req.Username)
+		_, err := core.GetUserByUsername(context, service, req.Username)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{
@@ -74,13 +75,13 @@ func kycController(service *horizon.HorizonService) {
 		if err := validator.Struct(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		_, err := core.GetUserByEmail(ctx.Request().Context(), req.Email)
+		_, err := core.GetUserByEmail(context, service, req.Email)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Database error: " + err.Error(),
 			})
 		}
-		_, err = core.GetUserByContactNumber(ctx.Request().Context(), req.ContactNumber)
+		_, err = core.GetUserByContactNumber(context, service, req.ContactNumber)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Database error: " + err.Error(),
@@ -475,7 +476,7 @@ func kycController(service *horizon.HorizonService) {
 		if req.Password != req.PasswordConfirmation {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password and confirmation do not match"})
 		}
-		org, ok := GetOrganization(ctx)
+		org, ok := event.GetOrganization(service, ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
@@ -602,22 +603,22 @@ func kycController(service *horizon.HorizonService) {
 		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		org, ok := GetOrganization(ctx)
+		org, ok := event.GetOrganization(service, ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		user, err := core.GetUserByIdentifier(context, req.Key)
+		user, err := core.GetUserByIdentifier(context, service, req.Key)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
-		valid, err := service.Security.VerifyPassword(context, user.Password, req.Password)
+		valid, err := service.Security.VerifyPassword(user.Password, req.Password)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
 		if !user.IsEmailVerified || !user.IsContactVerified {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User has not completed KYC verification"})
 		}
-		if err := SetUser(context, ctx, user); err != nil {
+		if err := event.SetUser(context, service, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
@@ -633,7 +634,7 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.ApplicationStatus == "accepted" {
-			if err := SetUserOrganization(context, ctx, userOrganization); err != nil {
+			if err := event.SetUserOrganization(context, service, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))

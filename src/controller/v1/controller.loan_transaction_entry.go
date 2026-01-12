@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -92,7 +92,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: *loanTransactionID,
 		})
 		if err != nil {
@@ -181,7 +181,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {
@@ -242,7 +242,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		_, err =.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		_, err = event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {
@@ -305,7 +305,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		loanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		loanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {

@@ -67,75 +67,75 @@ func generatedReports(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MediaManager(service).ToModel(media))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/generated-report",
-		Method:       "POST",
-		RequestType:  core.GeneratedReportRequest{},
-		ResponseType: core.GeneratedReportResponse{},
-		Note:         "Create a new generated report.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		req, err := core.GeneratedReportManager(service).Validate(ctx)
-		if err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Generated report creation failed (/generated-report), validation error: " + err.Error(),
-				Module:      "GeneratedReport",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report data: " + err.Error()})
-		}
-		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
-		if err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Generated report creation failed (/generated-report), user org error: " + err.Error(),
-				Module:      "GeneratedReport",
-			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
-		}
-		if userOrg.BranchID == nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Generated report creation failed (/generated-report), user not assigned to branch.",
-				Module:      "GeneratedReport",
-			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
-		}
-		generatedReport := &core.GeneratedReport{
-			Name:                req.Name,
-			Description:         req.Description,
-			FilterSearch:        req.FilterSearch,
-			Model:               req.Model,
-			CreatedAt:           time.Now().UTC(),
-			CreatedByID:         userOrg.UserID,
-			UpdatedAt:           time.Now().UTC(),
-			UpdatedByID:         userOrg.UserID,
-			BranchID:            *userOrg.BranchID,
-			OrganizationID:      userOrg.OrganizationID,
-			Status:              core.GeneratedReportStatusPending,
-			GeneratedReportType: req.GeneratedReportType,
-			URL:                 req.URL,
-			UserID:              &userOrg.UserID,
+	// req.RegisterWebRoute(horizon.Route{
+	// 	Route:        "/api/v1/generated-report",
+	// 	Method:       "POST",
+	// 	RequestType:  core.GeneratedReportRequest{},
+	// 	ResponseType: core.GeneratedReportResponse{},
+	// 	Note:         "Create a new generated report.",
+	// }, func(ctx echo.Context) error {
+	// 	context := ctx.Request().Context()
+	// 	req, err := core.GeneratedReportManager(service).Validate(ctx)
+	// 	if err != nil {
+	// 		event.Footstep(ctx, service, event.FootstepEvent{
+	// 			Activity:    "create-error",
+	// 			Description: "Generated report creation failed (/generated-report), validation error: " + err.Error(),
+	// 			Module:      "GeneratedReport",
+	// 		})
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report data: " + err.Error()})
+	// 	}
+	// 	userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+	// 	if err != nil {
+	// 		event.Footstep(ctx, service, event.FootstepEvent{
+	// 			Activity:    "create-error",
+	// 			Description: "Generated report creation failed (/generated-report), user org error: " + err.Error(),
+	// 			Module:      "GeneratedReport",
+	// 		})
+	// 		return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
+	// 	}
+	// 	if userOrg.BranchID == nil {
+	// 		event.Footstep(ctx, service, event.FootstepEvent{
+	// 			Activity:    "create-error",
+	// 			Description: "Generated report creation failed (/generated-report), user not assigned to branch.",
+	// 			Module:      "GeneratedReport",
+	// 		})
+	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
+	// 	}
+	// 	generatedReport := &core.GeneratedReport{
+	// 		Name:                req.Name,
+	// 		Description:         req.Description,
+	// 		FilterSearch:        req.FilterSearch,
+	// 		Model:               req.Model,
+	// 		CreatedAt:           time.Now().UTC(),
+	// 		CreatedByID:         userOrg.UserID,
+	// 		UpdatedAt:           time.Now().UTC(),
+	// 		UpdatedByID:         userOrg.UserID,
+	// 		BranchID:            *userOrg.BranchID,
+	// 		OrganizationID:      userOrg.OrganizationID,
+	// 		Status:              core.GeneratedReportStatusPending,
+	// 		GeneratedReportType: req.GeneratedReportType,
+	// 		URL:                 req.URL,
+	// 		UserID:              &userOrg.UserID,
 
-			Template:  req.Template,
-			PaperSize: req.PaperSize,
-			Width:     req.Width,
-			Height:    req.Height,
-			Unit:      req.Unit,
-			Landscape: req.Landscape,
-		}
-		data, err := GeneratedReportDownload(context, generatedReport)
-		if err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Generated report creation failed (/generated-report), download error: " + err.Error(),
-				Module:      "GeneratedReport",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusCreated, core.GeneratedReportManager(service).ToModel(data))
+	// 		Template:  req.Template,
+	// 		PaperSize: req.PaperSize,
+	// 		Width:     req.Width,
+	// 		Height:    req.Height,
+	// 		Unit:      req.Unit,
+	// 		Landscape: req.Landscape,
+	// 	}
+	// 	data, err := GeneratedReportDownload(context, generatedReport)
+	// 	if err != nil {
+	// 		event.Footstep(ctx, service, event.FootstepEvent{
+	// 			Activity:    "create-error",
+	// 			Description: "Generated report creation failed (/generated-report), download error: " + err.Error(),
+	// 			Module:      "GeneratedReport",
+	// 		})
+	// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated report: " + err.Error()})
+	// 	}
+	// 	return ctx.JSON(http.StatusCreated, core.GeneratedReportManager(service).ToModel(data))
 
-	})
+	// })
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/generated-report/:generated_report_id",
@@ -152,7 +152,7 @@ func generatedReports(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated report not found"})
 		}
 		if generatedReport.MediaID != nil {
-			if err := core.MediaDelete(context, *generatedReport.MediaID); err != nil {
+			if err := core.MediaDelete(context, service, *generatedReport.MediaID); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
@@ -546,7 +546,7 @@ func generatedReports(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		models, err := core.GeneratedReportAvailableModels(context, userOrg.OrganizationID, *userOrg.BranchID)
+		models, err := core.GeneratedReportAvailableModels(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve available generated report models: " + err.Error()})
 		}

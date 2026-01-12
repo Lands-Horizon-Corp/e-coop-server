@@ -933,7 +933,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
+			if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
 
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "journal-voucher-transaction-recording-failed",
@@ -996,7 +996,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := core.JournalVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := core.JournalVoucherDraft(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft journal vouchers: " + err.Error()})
 		}
@@ -1019,7 +1019,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := core.JournalVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := core.JournalVoucherPrinted(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed journal vouchers: " + err.Error()})
 		}
@@ -1042,7 +1042,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := core.JournalVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := core.JournalVoucherApproved(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
@@ -1071,7 +1071,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := core.JournalVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := core.JournalVoucherReleased(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released journal vouchers: " + err.Error()})
 		}
@@ -1095,7 +1095,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		journalVouchers, err := core.JournalVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		journalVouchers, err := core.JournalVoucherReleasedCurrentDay(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch journal vouchers released today: " + err.Error()})
 		}

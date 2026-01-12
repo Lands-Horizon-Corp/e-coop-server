@@ -141,7 +141,7 @@ func generatedSavingsInterestEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot update entry because the parent generated savings interest is already posted"})
 		}
 		dailyBalances, err := core.GetDailyEndingBalances(
-			context,
+			context, service,
 			generatedSavingsInterest.LastComputationDate,
 			generatedSavingsInterest.NewComputationDate,
 			req.AccountID,
@@ -281,7 +281,7 @@ func generatedSavingsInterestEntryController(service *horizon.HorizonService) {
 		}
 
 		dailyBalances, err := core.GetDailyEndingBalances(
-			context,
+			context, service,
 			generatedSavingsInterest.LastComputationDate,
 			generatedSavingsInterest.NewComputationDate,
 			req.AccountID,
@@ -440,7 +440,7 @@ func generatedSavingsInterestEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		dailyBalances, err := core.DailyBalances(context, *generatedSavingsInterestEntryID)
+		dailyBalances, err := core.DailyBalances(context, service, *generatedSavingsInterestEntryID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch daily ending balances: " + err.Error()})
 		}

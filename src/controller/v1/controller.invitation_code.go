@@ -28,7 +28,7 @@ func invitationCode(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		invitationCode, err := core.GetInvitationCodeByBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		invitationCode, err := core.GetInvitationCodeByBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve invitation codes: " + err.Error()})
 		}
@@ -67,7 +67,7 @@ func invitationCode(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
-		invitationCode, err := core.GetInvitationCodeByCode(context, code)
+		invitationCode, err := core.GetInvitationCodeByCode(context, service, code)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
