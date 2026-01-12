@@ -4,24 +4,24 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func checkRemittanceController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
 		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
 		ResponseType: core.CheckRemittanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -29,7 +29,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view check remittances"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(
+		transactionBatch, err := core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
@@ -42,7 +42,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance, err := c.core.CheckRemittanceManager().Find(context, &core.CheckRemittance{
+		checkRemittance, err := core.CheckRemittanceManager(service).Find(context, &core.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -51,10 +51,10 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve check remittances: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModels(checkRemittance))
+		return ctx.JSON(http.StatusOK, core.CheckRemittanceManager(service).ToModels(checkRemittance))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
 		ResponseType: core.CheckRemittanceResponse{},
@@ -62,9 +62,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CheckRemittanceManager().Validate(ctx)
+		req, err := core.CheckRemittanceManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), validation error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -72,9 +72,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance data: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -82,7 +82,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for check remittance (/check-remittance)",
 				Module:      "CheckRemittance",
@@ -90,14 +90,14 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create check remittances"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(
+		transactionBatch, err := core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), transaction batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -105,7 +105,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -137,8 +137,8 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			checkRemittance.DateEntry = &now
 		}
 
-		if err := c.core.CheckRemittanceManager().Create(context, checkRemittance); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CheckRemittanceManager(service).Create(context, checkRemittance); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Check remittance creation failed (/check-remittance), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -149,16 +149,16 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created check remittance (/check-remittance): " + checkRemittance.AccountName,
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.CheckRemittanceManager().ToModel(checkRemittance))
+		return ctx.JSON(http.StatusCreated, core.CheckRemittanceManager(service).ToModel(checkRemittance))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
@@ -166,9 +166,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		RequestType:  core.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceID, err := helpers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), invalid ID.",
 				Module:      "CheckRemittance",
@@ -176,9 +176,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance ID"})
 		}
 
-		req, err := c.core.CheckRemittanceManager().Validate(ctx)
+		req, err := core.CheckRemittanceManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), validation error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -186,9 +186,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance data: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -196,7 +196,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for check remittance (/check-remittance/:check_remittance_id)",
 				Module:      "CheckRemittance",
@@ -204,9 +204,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update check remittances"})
 		}
 
-		existingCheckRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
+		existingCheckRemittance, err := core.CheckRemittanceManager(service).GetByID(context, *checkRemittanceID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), not found.",
 				Module:      "CheckRemittance",
@@ -215,7 +215,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		if existingCheckRemittance.OrganizationID != userOrg.OrganizationID || existingCheckRemittance.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), wrong org/branch.",
 				Module:      "CheckRemittance",
@@ -223,14 +223,14 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(
+		transactionBatch, err := core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -238,7 +238,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -268,8 +268,8 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			updatedCheckRemittance.DateEntry = &now
 		}
 
-		if err := c.core.CheckRemittanceManager().UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CheckRemittanceManager(service).UpdateByID(context, *checkRemittanceID, updatedCheckRemittance); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Check remittance update failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -280,23 +280,23 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-		updatedRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
+		updatedRemittance, err := core.CheckRemittanceManager(service).GetByID(context, *checkRemittanceID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated check remittance: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModel(updatedRemittance))
+		return ctx.JSON(http.StatusOK, core.CheckRemittanceManager(service).ToModel(updatedRemittance))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/check-remittance/:check_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		checkRemittanceID, err := handlers.EngineUUIDParam(ctx, "check_remittance_id")
+		checkRemittanceID, err := helpers.EngineUUIDParam(ctx, "check_remittance_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), invalid ID.",
 				Module:      "CheckRemittance",
@@ -304,9 +304,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid check remittance ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), user org error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -314,7 +314,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for check remittance (/check-remittance/:check_remittance_id)",
 				Module:      "CheckRemittance",
@@ -322,9 +322,9 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete check remittance"})
 		}
 
-		existingCheckRemittance, err := c.core.CheckRemittanceManager().GetByID(context, *checkRemittanceID)
+		existingCheckRemittance, err := core.CheckRemittanceManager(service).GetByID(context, *checkRemittanceID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), not found.",
 				Module:      "CheckRemittance",
@@ -333,7 +333,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		if existingCheckRemittance.OrganizationID != userOrg.OrganizationID || existingCheckRemittance.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), wrong org/branch.",
 				Module:      "CheckRemittance",
@@ -341,14 +341,14 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Check remittance does not belong to your organization/branch"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(
+		transactionBatch, err := core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), batch lookup error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -356,7 +356,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), no open transaction batch.",
 				Module:      "CheckRemittance",
@@ -365,7 +365,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		if existingCheckRemittance.TransactionBatchID == nil || *existingCheckRemittance.TransactionBatchID != transactionBatch.ID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), wrong batch.",
 				Module:      "CheckRemittance",
@@ -373,8 +373,8 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Check remittance does not belong to current transaction batch"})
 		}
 
-		if err := c.core.CheckRemittanceManager().Delete(context, *checkRemittanceID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CheckRemittanceManager(service).Delete(context, *checkRemittanceID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Check remittance delete failed (/check-remittance/:check_remittance_id), db error: " + err.Error(),
 				Module:      "CheckRemittance",
@@ -386,12 +386,12 @@ func checkRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted check remittance (/check-remittance/:check_remittance_id): " + existingCheckRemittance.AccountName,
 			Module:      "CheckRemittance",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CheckRemittanceManager().ToModel(existingCheckRemittance))
+		return ctx.JSON(http.StatusOK, core.CheckRemittanceManager(service).ToModel(existingCheckRemittance))
 	})
 }

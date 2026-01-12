@@ -3,31 +3,32 @@ package v1
 import (
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func memberProfileComaker(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",
 		ResponseType: core.ComakerMemberProfileResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		loanTransactions, err := c.core.LoanTransactionManager().Find(context, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).Find(context, &core.LoanTransaction{
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 			MemberProfileID: memberProfileID,
@@ -37,7 +38,7 @@ func memberProfileComaker(service *horizon.HorizonService) {
 		}
 		comakerResponse := []core.ComakerMemberProfileResponse{}
 		for _, lt := range loanTransactions {
-			comakers, err := c.core.ComakerMemberProfileManager().Find(context, &core.ComakerMemberProfile{
+			comakers, err := core.ComakerMemberProfileManager(service).Find(context, &core.ComakerMemberProfile{
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: lt.ID,
@@ -46,7 +47,7 @@ func memberProfileComaker(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve comaker details: " + err.Error()})
 			}
 			for _, cm := range comakers {
-				comakerResponse = append(comakerResponse, *c.core.ComakerMemberProfileManager().ToModel(cm))
+				comakerResponse = append(comakerResponse, *core.ComakerMemberProfileManager(service).ToModel(cm))
 			}
 		}
 		return ctx.JSON(http.StatusOK, comakerResponse)

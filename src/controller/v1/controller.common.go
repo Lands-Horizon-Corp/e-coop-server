@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,7 +20,7 @@ type GovernmentIDResponse struct {
 func commonController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/government-ids/:country_code",
 		Method:       "GET",
 		ResponseType: GovernmentIDResponse{},

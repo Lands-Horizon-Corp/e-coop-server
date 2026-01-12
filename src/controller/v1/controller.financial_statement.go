@@ -5,41 +5,41 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func financialStatementController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
 		ResponseType: core.FinancialStatementAccountsGroupingResponse{},
 		Note:         "Returns all financial statement groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement groupings"})
 		}
-		fsGroupings, err := c.core.FinancialStatementAccountsGroupingAlignments(
+		fsGroupings, err := core.FinancialStatementAccountsGroupingAlignments(
 			context, userOrg.OrganizationID, *userOrg.BranchID,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve financial statement groupings: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementAccountsGroupingManager().ToModels(fsGroupings))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementAccountsGroupingManager(service).ToModels(fsGroupings))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
 		RequestType:  core.FinancialStatementAccountsGroupingRequest{},
@@ -47,27 +47,27 @@ func financialStatementController(service *horizon.HorizonService) {
 		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		groupingID, err := handlers.EngineUUIDParam(ctx, "financial_statement_grouping_id")
+		groupingID, err := helpers.EngineUUIDParam(ctx, "financial_statement_grouping_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), invalid grouping ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement grouping ID"})
 		}
-		reqBody, err := c.core.FinancialStatementAccountsGroupingManager().Validate(ctx)
+		reqBody, err := core.FinancialStatementAccountsGroupingManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), validation error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid grouping data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -75,16 +75,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for financial statement grouping (/financial-statement-grouping/:financial_statement_grouping_id)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement groupings"})
 		}
-		grouping, err := c.core.FinancialStatementAccountsGroupingManager().GetByID(context, *groupingID)
+		grouping, err := core.FinancialStatementAccountsGroupingManager(service).GetByID(context, *groupingID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), not found.",
 				Module:      "FinancialStatement",
@@ -99,8 +99,8 @@ func financialStatementController(service *horizon.HorizonService) {
 		grouping.UpdatedAt = time.Now().UTC()
 		grouping.UpdatedByID = userOrg.UserID
 
-		if err := c.core.FinancialStatementAccountsGroupingManager().UpdateByID(context, grouping.ID, grouping); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementAccountsGroupingManager(service).UpdateByID(context, grouping.ID, grouping); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement grouping update failed (/financial-statement-grouping/:financial_statement_grouping_id), db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -108,30 +108,30 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update group: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated financial statement grouping (/financial-statement-grouping/:financial_statement_grouping_id): " + grouping.Name,
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementAccountsGroupingManager().ToModel(grouping))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementAccountsGroupingManager(service).ToModel(grouping))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "GET",
 		ResponseType: core.FinancialStatementDefinitionResponse{},
 		Note:         "Returns all financial statement definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement definitions"})
 		}
-		fsDefs, err := c.core.FinancialStatementDefinitionManager().FindRaw(context, &core.FinancialStatementDefinition{
+		fsDefs, err := core.FinancialStatementDefinitionManager(service).FindRaw(context, &core.FinancialStatementDefinition{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -141,7 +141,7 @@ func financialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, fsDefs)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "POST",
 		RequestType:  core.FinancialStatementDefinitionRequest{},
@@ -149,18 +149,18 @@ func financialStatementController(service *horizon.HorizonService) {
 		Note:         "Creates a new financial statement definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.FinancialStatementDefinitionManager().Validate(ctx)
+		req, err := core.FinancialStatementDefinitionManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Financial statement definition creation failed (/financial-statement-definition), validation error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Financial statement definition creation failed (/financial-statement-definition), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -168,7 +168,7 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for financial statement definition (/financial-statement-definition)",
 				Module:      "FinancialStatement",
@@ -191,8 +191,8 @@ func financialStatementController(service *horizon.HorizonService) {
 			CreatedAt:                             time.Now().UTC(),
 			UpdatedAt:                             time.Now().UTC(),
 		}
-		if err := c.core.FinancialStatementDefinitionManager().Create(context, fsDefinition); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementDefinitionManager(service).Create(context, fsDefinition); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Financial statement definition creation failed (/financial-statement-definition), db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -200,16 +200,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create financial statement definition: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created financial statement definition (/financial-statement-definition): " + fsDefinition.Name,
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.FinancialStatementDefinitionManager().ToModel(fsDefinition))
+		return ctx.JSON(http.StatusCreated, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
 		Note:         "Updates an existing financial statement definition by its ID.",
@@ -217,27 +217,27 @@ func financialStatementController(service *horizon.HorizonService) {
 		ResponseType: core.FinancialStatementDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), invalid ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		req, err := c.core.FinancialStatementDefinitionManager().Validate(ctx)
+		req, err := core.FinancialStatementDefinitionManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), validation error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -245,16 +245,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for financial statement definition (/financial-statement-definition/:financial_statement_definition_id)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement definitions"})
 		}
-		fsDefinition, err := c.core.FinancialStatementDefinitionManager().GetByID(context, *fsDefinitionID)
+		fsDefinition, err := core.FinancialStatementDefinitionManager(service).GetByID(context, *fsDefinitionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), not found.",
 				Module:      "FinancialStatement",
@@ -271,8 +271,8 @@ func financialStatementController(service *horizon.HorizonService) {
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
 
-		if err := c.core.FinancialStatementDefinitionManager().UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementDefinitionManager(service).UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Financial statement definition update failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -280,43 +280,43 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update financial statement definition: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated financial statement definition (/financial-statement-definition/:financial_statement_definition_id): " + fsDefinition.Name,
 			Module:      "FinancialStatement",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager().ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		ResponseType: core.FinancialStatementDefinitionResponse{},
 		Note:         "Connects an account to a financial statement definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), invalid FS definition ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), invalid account ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -324,16 +324,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized connect attempt for account to FS definition (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to connect accounts"})
 		}
-		fsDefinition, err := c.core.FinancialStatementDefinitionManager().GetByID(context, *fsDefinitionID)
+		fsDefinition, err := core.FinancialStatementDefinitionManager(service).GetByID(context, *fsDefinitionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), FS definition not found.",
 				Module:      "FinancialStatement",
@@ -341,16 +341,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Financial statement definition not found"})
 		}
 		if fsDefinition.OrganizationID != userOrg.OrganizationID || fsDefinition.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), FS definition wrong org/branch.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Financial statement definition does not belong to your organization/branch"})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account not found.",
 				Module:      "FinancialStatement",
@@ -358,7 +358,7 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
 		if account.OrganizationID != userOrg.OrganizationID || account.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account wrong org/branch.",
 				Module:      "FinancialStatement",
@@ -368,8 +368,8 @@ func financialStatementController(service *horizon.HorizonService) {
 		account.FinancialStatementDefinitionID = fsDefinitionID
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -378,32 +378,32 @@ func financialStatementController(service *horizon.HorizonService) {
 		}
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.FinancialStatementDefinitionManager().UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementDefinitionManager(service).UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), FS definition db error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update financial statement definition: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Connected account to FS definition (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect) for account: " + account.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager().ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: core.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of a financial statement definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), invalid ID.",
 				Module:      "FinancialStatement",
@@ -412,16 +412,16 @@ func financialStatementController(service *horizon.HorizonService) {
 		}
 		index, err := strconv.Atoi(ctx.Param("index"))
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), invalid index.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -429,16 +429,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized FS definition index update attempt (/financial-statement-definition/:financial_statement_definition_id/index/:index)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update financial statement definition index"})
 		}
-		fsDefinition, err := c.core.FinancialStatementDefinitionManager().GetByID(context, *fsDefinitionID)
+		fsDefinition, err := core.FinancialStatementDefinitionManager(service).GetByID(context, *fsDefinitionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), not found.",
 				Module:      "FinancialStatement",
@@ -448,41 +448,41 @@ func financialStatementController(service *horizon.HorizonService) {
 		fsDefinition.Index = index
 		fsDefinition.UpdatedAt = time.Now().UTC()
 		fsDefinition.UpdatedByID = userOrg.UserID
-		if err := c.core.FinancialStatementDefinitionManager().UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementDefinitionManager(service).UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS definition index update failed (/financial-statement-definition/:financial_statement_definition_id/index/:index), db error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update index: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated FS definition index (/financial-statement-definition/:financial_statement_definition_id/index/:index): " + fsDefinition.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager().ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		ResponseType: core.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of an account within a financial statement definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), invalid FS definition ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), invalid account ID.",
 				Module:      "FinancialStatement",
@@ -495,16 +495,16 @@ func financialStatementController(service *horizon.HorizonService) {
 		}
 		var reqBody UpdateAccountIndexRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), invalid payload.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -512,25 +512,25 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized FS grouping/account index update attempt (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update account index"})
 		}
-		fsDefinition, err := c.core.FinancialStatementDefinitionManager().GetByID(context, *fsDefinitionID)
+		fsDefinition, err := core.FinancialStatementDefinitionManager(service).GetByID(context, *fsDefinitionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), FS definition not found.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Financial statement definition not found"})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), account not found.",
 				Module:      "FinancialStatement",
@@ -540,13 +540,13 @@ func financialStatementController(service *horizon.HorizonService) {
 		if account.FinancialStatementDefinitionID == nil || *account.FinancialStatementDefinitionID != *fsDefinitionID {
 			account.FinancialStatementDefinitionID = fsDefinitionID
 		}
-		accounts, err := c.core.AccountManager().Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &core.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), account find error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -570,8 +570,8 @@ func financialStatementController(service *horizon.HorizonService) {
 			acc.Index = float64(idx)
 			acc.UpdatedAt = time.Now().UTC()
 			acc.UpdatedByID = userOrg.UserID
-			if err := c.core.AccountManager().UpdateByID(context, acc.ID, acc); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.AccountManager(service).UpdateByID(context, acc.ID, acc); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update account error: " + err.Error(),
 					Module:      "FinancialStatement",
@@ -583,8 +583,8 @@ func financialStatementController(service *horizon.HorizonService) {
 			fsDefinition.Index = reqBody.FinancialStatementDefinitionIndex
 			fsDefinition.UpdatedAt = time.Now().UTC()
 			fsDefinition.UpdatedByID = userOrg.UserID
-			if err := c.core.FinancialStatementDefinitionManager().UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.FinancialStatementDefinitionManager(service).UpdateByID(context, fsDefinition.ID, fsDefinition); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "FS grouping/account index update failed (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index), update FS definition error: " + err.Error(),
 					Module:      "FinancialStatement",
@@ -592,32 +592,32 @@ func financialStatementController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update financial statement definition index: " + err.Error()})
 			}
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated account index within FS definition (/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index): " + account.Name,
 			Module:      "FinancialStatement",
 		})
-		return ctx.JSON(http.StatusOK, c.core.FinancialStatementDefinitionManager().ToModel(fsDefinition))
+		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		fsDefinitionID, err := handlers.EngineUUIDParam(ctx, "financial_statement_definition_id")
+		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), invalid ID.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid financial statement definition ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), user org error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -625,16 +625,16 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for FS definition (/financial-statement-definition/:financial_statement_definition_id)",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete financial statement definitions"})
 		}
-		fsDefinition, err := c.core.FinancialStatementDefinitionManager().GetByID(context, *fsDefinitionID)
+		fsDefinition, err := core.FinancialStatementDefinitionManager(service).GetByID(context, *fsDefinitionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), not found.",
 				Module:      "FinancialStatement",
@@ -642,20 +642,20 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Financial statement definition not found"})
 		}
 		if len(fsDefinition.FinancialStatementDefinitionEntries) > 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), has sub-entries.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: financial statement definition has sub-entries"})
 		}
-		accounts, err := c.core.AccountManager().Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &core.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), account find error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -663,22 +663,22 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check accounts linked: " + err.Error()})
 		}
 		if len(accounts) > 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), has linked accounts.",
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: accounts are linked to this financial statement definition"})
 		}
-		if err := c.core.FinancialStatementDefinitionManager().Delete(context, fsDefinition.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FinancialStatementDefinitionManager(service).Delete(context, fsDefinition.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "FS definition delete failed (/financial-statement-definition/:financial_statement_definition_id), db error: " + err.Error(),
 				Module:      "FinancialStatement",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete financial statement definition: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted FS definition (/financial-statement-definition/:financial_statement_definition_id): " + fsDefinition.Name,
 			Module:      "FinancialStatement",

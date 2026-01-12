@@ -4,46 +4,46 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func permissionTemplateController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
 		Note:         "Returns all permission templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.core.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := core.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModels(permissionTemplates))
+		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModels(permissionTemplates))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/search",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
 		Note:         "Returns all permission templates (paginated) for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := c.core.PermissionTemplateManager().NormalPagination(context, ctx, &core.PermissionTemplate{
+		permissionTemplates, err := core.PermissionTemplateManager(service).NormalPagination(context, ctx, &core.PermissionTemplate{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -53,27 +53,27 @@ func permissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, permissionTemplates)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "GET",
 		ResponseType: core.PermissionTemplateResponse{},
 		Note:         "Returns a specific permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := helpers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		permissionTemplate, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
+		permissionTemplate, err := core.PermissionTemplateManager(service).GetByID(context, *permissionTemplateID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(permissionTemplate))
+		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(permissionTemplate))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "POST",
 		RequestType:  core.PermissionTemplateRequest{},
@@ -82,9 +82,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.PermissionTemplateManager().Validate(ctx)
+		req, err := core.PermissionTemplateManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create permission template failed: validation error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -92,9 +92,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create permission template failed: user org error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -114,8 +114,8 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			Permissions:    req.Permissions,
 		}
 
-		if err := c.core.PermissionTemplateManager().Create(context, newTemplate); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.PermissionTemplateManager(service).Create(context, newTemplate); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create permission template failed: create error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -123,16 +123,16 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create permission template: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created permission template: " + newTemplate.Name,
 			Module:      "PermissionTemplate",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(newTemplate))
+		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(newTemplate))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "PUT",
 		RequestType:  core.PermissionTemplateRequest{},
@@ -141,9 +141,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := helpers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: invalid permission_template_id: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -151,9 +151,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		req, err := c.core.PermissionTemplateManager().Validate(ctx)
+		req, err := core.PermissionTemplateManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: validation error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -161,9 +161,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		template, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
+		template, err := core.PermissionTemplateManager(service).GetByID(context, *permissionTemplateID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: not found: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -171,9 +171,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: user org error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -189,8 +189,8 @@ func permissionTemplateController(service *horizon.HorizonService) {
 		template.Description = req.Description
 		template.Permissions = req.Permissions
 
-		if err := c.core.PermissionTemplateManager().UpdateByID(context, template.ID, template); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.PermissionTemplateManager(service).UpdateByID(context, template.ID, template); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update permission template failed: update error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -198,25 +198,25 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update permission template: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated permission template: " + template.Name,
 			Module:      "PermissionTemplate",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.PermissionTemplateManager().ToModel(template))
+		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(template))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/permission-template/:permission_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		permissionTemplateID, err := handlers.EngineUUIDParam(ctx, "permission_template_id")
+		permissionTemplateID, err := helpers.EngineUUIDParam(ctx, "permission_template_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete permission template failed: invalid permission_template_id: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -224,9 +224,9 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid permission_template_id: " + err.Error()})
 		}
 
-		template, err := c.core.PermissionTemplateManager().GetByID(context, *permissionTemplateID)
+		template, err := core.PermissionTemplateManager(service).GetByID(context, *permissionTemplateID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete permission template failed: not found: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -234,8 +234,8 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Permission template not found: " + err.Error()})
 		}
 
-		if err := c.core.PermissionTemplateManager().Delete(context, *permissionTemplateID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.PermissionTemplateManager(service).Delete(context, *permissionTemplateID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete permission template failed: delete error: " + err.Error(),
 				Module:      "PermissionTemplate",
@@ -243,7 +243,7 @@ func permissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete permission template: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted permission template: " + template.Name,
 			Module:      "PermissionTemplate",

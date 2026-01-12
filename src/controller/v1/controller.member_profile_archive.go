@@ -6,17 +6,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func memberProfileArchiveController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile archive for a specific member profile.",
@@ -24,9 +24,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile archive member profile search failed (/member-profile-archive/member-profile/:member_profile_id/search), user org error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -34,9 +34,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile archive member profile search failed (/member-profile-archive/member-profile/:member_profile_id/search), invalid member profile ID.",
 				Module:      "MemberProfileArchive",
@@ -44,22 +44,22 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		memberProfile, err := c.core.MemberProfileManager().GetByID(context, *memberProfileID)
+		memberProfile, err := core.MemberProfileManager(service).GetByID(context, *memberProfileID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile archive member profile search failed (/member-profile-archive/member-profile/:member_profile_id/search), member profile not found.",
 				Module:      "MemberProfileArchive",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-		memberProfileArchiveList, err := c.core.MemberProfileArchiveManager().FindRaw(context, &core.MemberProfileArchive{
+		memberProfileArchiveList, err := core.MemberProfileArchiveManager(service).FindRaw(context, &core.MemberProfileArchive{
 			BranchID:        userOrg.BranchID,
 			OrganizationID:  &userOrg.OrganizationID,
 			MemberProfileID: &memberProfile.ID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "member-profile-search-error",
 				Description: "Member profile archive member profile search failed (/member-profile-archive/member-profile/:member_profile_id/search), db error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -67,7 +67,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to search member profile archive: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "member-profile-search-success",
 			Description: "Member profile archive member profile search successful (/member-profile-archive/member-profile/:member_profile_id/search), found " + strconv.Itoa(len(memberProfileArchiveList)) + " media items.",
 			Module:      "MemberProfileArchive",
@@ -76,7 +76,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileArchiveList)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
 		Note:         "Creates a new member profile archive for the current user's organization and branch.",
@@ -85,9 +85,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.MemberProfileArchiveManager().Validate(ctx)
+		req, err := core.MemberProfileArchiveManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile archive creation failed (/member-profile-archive), validation error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -95,9 +95,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive data: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile archive creation failed (/member-profile-archive), user org error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -106,7 +106,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile archive creation failed (/member-profile-archive), user not assigned to branch.",
 				Module:      "MemberProfileArchive",
@@ -127,8 +127,8 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			OrganizationID: &userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberProfileArchiveManager().Create(context, memberProfileArchive); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberProfileArchiveManager(service).Create(context, memberProfileArchive); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Member profile archive creation failed (/member-profile-archive), db error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -136,13 +136,13 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile archive: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Member profile archive created successfully (/member-profile-archive), ID: " + memberProfileArchive.ID.String(),
 			Module:      "MemberProfileArchive",
 		})
 
-		result, err := c.core.MemberProfileArchiveManager().GetByID(context, memberProfileArchive.ID)
+		result, err := core.MemberProfileArchiveManager(service).GetByID(context, memberProfileArchive.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve created member profile archive: " + err.Error()})
 		}
@@ -150,7 +150,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, result)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
 		Note:         "Update a member profile archive by ID.",
@@ -159,9 +159,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		memberProfileArchiveID, err := handlers.EngineUUIDParam(ctx, "member_profile_archive_id")
+		memberProfileArchiveID, err := helpers.EngineUUIDParam(ctx, "member_profile_archive_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), invalid member profile archive ID.",
 				Module:      "MemberProfileArchive",
@@ -169,9 +169,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		req, err := c.core.MemberProfileArchiveManager().Validate(ctx)
+		req, err := core.MemberProfileArchiveManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), validation error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -179,9 +179,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive data: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), user org error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -189,9 +189,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
+		memberProfileArchive, err := core.MemberProfileArchiveManager(service).GetByID(context, *memberProfileArchiveID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), member profile archive not found.",
 				Module:      "MemberProfileArchive",
@@ -205,8 +205,8 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		memberProfileArchive.UpdatedAt = time.Now().UTC()
 		memberProfileArchive.UpdatedByID = userOrg.UserID
 
-		if err := c.core.MemberProfileArchiveManager().UpdateByID(context, memberProfileArchive.ID, memberProfileArchive); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberProfileArchiveManager(service).UpdateByID(context, memberProfileArchive.ID, memberProfileArchive); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Member profile archive update failed (/member-profile-archive/:member_profile_archive_id), db error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -214,13 +214,13 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile archive: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Member profile archive updated successfully (/member-profile-archive/:member_profile_archive_id), ID: " + memberProfileArchiveID.String(),
 			Module:      "MemberProfileArchive",
 		})
 
-		result, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
+		result, err := core.MemberProfileArchiveManager(service).GetByID(context, *memberProfileArchiveID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated member profile archive: " + err.Error()})
 		}
@@ -228,16 +228,16 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method: "DELETE",
 		Note:   "Delete a member profile archive by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		memberProfileArchiveID, err := handlers.EngineUUIDParam(ctx, "member_profile_archive_id")
+		memberProfileArchiveID, err := helpers.EngineUUIDParam(ctx, "member_profile_archive_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile archive delete failed (/member-profile-archive/:member_profile_archive_id), invalid member profile archive ID.",
 				Module:      "MemberProfileArchive",
@@ -245,9 +245,9 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		_, err = c.event.CurrentUserOrganization(context, ctx)
+		_, err = event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile archive delete failed (/member-profile-archive/:member_profile_archive_id), user org error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -255,17 +255,17 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByID(context, *memberProfileArchiveID)
+		memberProfileArchive, err := core.MemberProfileArchiveManager(service).GetByID(context, *memberProfileArchiveID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile archive delete failed (/member-profile-archive/:member_profile_archive_id), not found.",
 				Module:      "MemberProfileArchive",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
-		if err := c.core.MediaDelete(context, *memberProfileArchive.MediaID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaDelete(context, *memberProfileArchive.MediaID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
 				Module:      "Media",
@@ -273,8 +273,8 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
 
-		if err := c.core.MemberProfileArchiveManager().Delete(context, memberProfileArchive.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberProfileArchiveManager(service).Delete(context, memberProfileArchive.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Member profile archive delete failed (/member-profile-archive/:member_profile_archive_id), db error: " + err.Error(),
 				Module:      "MemberProfileArchive",
@@ -282,7 +282,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member profile archive: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Member profile archive deleted successfully (/member-profile-archive/:member_profile_archive_id), ID: " + memberProfileArchiveID.String(),
 			Module:      "MemberProfileArchive",
@@ -290,7 +290,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile archive deleted successfully"})
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile archive by ID.",
@@ -298,12 +298,12 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		memberProfileArchiveID, err := handlers.EngineUUIDParam(ctx, "member_profile_archive_id")
+		memberProfileArchiveID, err := helpers.EngineUUIDParam(ctx, "member_profile_archive_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile archive ID"})
 		}
 
-		memberProfileArchive, err := c.core.MemberProfileArchiveManager().GetByIDRaw(context, *memberProfileArchiveID)
+		memberProfileArchive, err := core.MemberProfileArchiveManager(service).GetByIDRaw(context, *memberProfileArchiveID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile archive not found"})
 		}
@@ -311,7 +311,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileArchive)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
@@ -319,12 +319,12 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 		ResponseType: core.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
@@ -336,7 +336,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 
 		var createdMedia []*core.MemberProfileArchive
 		for _, mediaID := range req.IDs {
-			media, err := c.core.MediaManager().GetByID(context, mediaID)
+			media, err := core.MediaManager(service).GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
@@ -354,16 +354,16 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 				Category:        req.Category,
 			}
 
-			if err := c.core.MemberProfileArchiveManager().Create(context, memberProfileArchive); err != nil {
+			if err := core.MemberProfileArchiveManager(service).Create(context, memberProfileArchive); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member profile archive: " + err.Error()})
 			}
 
 			createdMedia = append(createdMedia, memberProfileArchive)
 		}
-		return ctx.JSON(http.StatusCreated, c.core.MemberProfileArchiveManager().ToModels(createdMedia))
+		return ctx.JSON(http.StatusCreated, core.MemberProfileArchiveManager(service).ToModels(createdMedia))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
 		Method:       "GET",
 		Note:         "Get distinct categories of member profile archive for a specific member profile.",
@@ -371,11 +371,11 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -383,7 +383,7 @@ func memberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		memberProfileArchives, err := c.core.MemberProfileArchiveManager().Find(context, &core.MemberProfileArchive{
+		memberProfileArchives, err := core.MemberProfileArchiveManager(service).Find(context, &core.MemberProfileArchive{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  &userOrg.OrganizationID,
 			BranchID:        userOrg.BranchID,

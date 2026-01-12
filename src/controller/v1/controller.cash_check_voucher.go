@@ -5,11 +5,11 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -17,42 +17,42 @@ import (
 func cashCheckVoucherController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := core.CashCheckVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check vouchers found for the current branch"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(cashCheckVouchers))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check vouchers for the current user's organization and branch.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherManager().NormalPagination(context, ctx, &core.CashCheckVoucher{
+		cashCheckVouchers, err := core.CashCheckVoucherManager(service).NormalPagination(context, ctx, &core.CashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -62,16 +62,16 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, cashCheckVouchers)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft cash check vouchers for the current user's organization and branch.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "draft-error",
 				Description: "Cash check voucher draft failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -81,23 +81,23 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(cashCheckVouchers))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed cash check vouchers for the current user's organization and branch.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Cash check voucher printed fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -107,23 +107,23 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(cashCheckVouchers))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved cash check vouchers for the current user's organization and branch.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Cash check voucher approved fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -133,23 +133,23 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(cashCheckVouchers))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released cash check vouchers for the current user's organization and branch.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Cash check voucher released fetch failed, user org error.",
 				Module:      "CashCheckVoucher",
@@ -159,32 +159,32 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := c.core.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(cashCheckVouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(cashCheckVouchers))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher by its ID.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByIDRaw(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByIDRaw(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
 		return ctx.JSON(http.StatusOK, cashCheckVoucher)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher for the current user's organization and branch.",
@@ -192,18 +192,18 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.core.CashCheckVoucherManager().Validate(ctx)
+		request, err := core.CashCheckVoucherManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), validation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), user org error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -211,7 +211,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), user not assigned to branch.",
 				Module:      "CashCheckVoucher",
@@ -226,7 +226,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		})
 
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), balance calculation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -281,8 +281,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			CurrencyID:     request.CurrencyID,
 		}
 
-		if err := c.core.CashCheckVoucherManager().CreateWithTx(context, tx, cashCheckVoucher); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CashCheckVoucherManager(service).CreateWithTx(context, tx, cashCheckVoucher); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -309,8 +309,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 					MemberProfileID:    entryReq.MemberProfileID,
 				}
 
-				if err := c.core.CashCheckVoucherEntryManager().CreateWithTx(context, tx, entry); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.CashCheckVoucherEntryManager(service).CreateWithTx(context, tx, entry); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Cash check voucher creation failed (/cash-check-voucher), entry save error: " + err.Error(),
 						Module:      "CashCheckVoucher",
@@ -321,18 +321,18 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash check voucher creation failed (/cash-check-voucher), commit error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		newCashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByIDRaw(context, cashCheckVoucher.ID)
+		newCashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByIDRaw(context, cashCheckVoucher.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created cash check voucher (/cash-check-voucher): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -340,7 +340,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, newCashCheckVoucher)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher by its ID.",
@@ -348,14 +348,14 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		request, err := c.core.CashCheckVoucherManager().Validate(ctx)
+		request, err := core.CashCheckVoucherManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), validation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -363,9 +363,9 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher data: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), user org error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -373,9 +373,9 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), voucher not found: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -388,7 +388,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		})
 
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), balance calculation error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -439,7 +439,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 
 		if request.CashCheckVoucherEntriesDeleted != nil {
 			for _, entryID := range request.CashCheckVoucherEntriesDeleted {
-				entry, err := c.core.CashCheckVoucherEntryManager().GetByID(context, entryID)
+				entry, err := core.CashCheckVoucherEntryManager(service).GetByID(context, entryID)
 				if err != nil {
 					continue
 				}
@@ -447,8 +447,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete entry that doesn't belong to this cash check voucher: " + endTx(eris.New("invalid entry")).Error()})
 				}
 				entry.DeletedByID = &userOrg.UserID
-				if err := c.core.CashCheckVoucherEntryManager().DeleteWithTx(context, tx, entry.ID); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.CashCheckVoucherEntryManager(service).DeleteWithTx(context, tx, entry.ID); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), delete entry error: " + err.Error(),
 						Module:      "CashCheckVoucher",
@@ -461,9 +461,9 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
 				if entryReq.ID != nil {
-					entry, err := c.core.CashCheckVoucherEntryManager().GetByID(context, *entryReq.ID)
+					entry, err := core.CashCheckVoucherEntryManager(service).GetByID(context, *entryReq.ID)
 					if err != nil {
-						c.event.Footstep(ctx, event.FootstepEvent{
+						event.Footstep(ctx, service, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), get entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -479,8 +479,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 					entry.UpdatedByID = userOrg.UserID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.LoanTransactionID = entryReq.LoanTransactionID
-					if err := c.core.CashCheckVoucherEntryManager().UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
-						c.event.Footstep(ctx, event.FootstepEvent{
+					if err := core.CashCheckVoucherEntryManager(service).UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
+						event.Footstep(ctx, service, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), update entry error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -505,8 +505,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 						MemberProfileID:    entryReq.MemberProfileID,
 					}
 
-					if err := c.core.CashCheckVoucherEntryManager().CreateWithTx(context, tx, entry); err != nil {
-						c.event.Footstep(ctx, event.FootstepEvent{
+					if err := core.CashCheckVoucherEntryManager(service).CreateWithTx(context, tx, entry); err != nil {
+						event.Footstep(ctx, service, event.FootstepEvent{
 							Activity:    "update-error",
 							Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), entry save error: " + err.Error(),
 							Module:      "CashCheckVoucher",
@@ -517,8 +517,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			}
 		}
 
-		if err := c.core.CashCheckVoucherManager().UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CashCheckVoucherManager(service).UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), save error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -527,18 +527,18 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Cash check voucher update failed (/cash-check-voucher/:cash_check_voucher_id), commit error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		newCashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByIDRaw(context, cashCheckVoucher.ID)
+		newCashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByIDRaw(context, cashCheckVoucher.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated cash check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -546,34 +546,34 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, newCashCheckVoucher)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified cash check voucher by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), voucher not found: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
-		if err := c.core.CashCheckVoucherManager().Delete(context, *cashCheckVoucherID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CashCheckVoucherManager(service).Delete(context, *cashCheckVoucherID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Cash check voucher deletion failed (/cash-check-voucher/:cash_check_voucher_id), delete error: " + err.Error(),
 				Module:      "CashCheckVoucher",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash check voucher: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted cash check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
@@ -581,7 +581,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -590,7 +590,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -598,7 +598,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | no IDs provided",
 				Module:      "CashCheckVoucher",
@@ -609,8 +609,8 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CashCheckVoucherManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CashCheckVoucherManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Cash check voucher bulk deletion failed (/cash-check-voucher/bulk-delete) | error: " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -618,7 +618,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete cash check vouchers: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted cash check vouchers (/cash-check-voucher/bulk-delete)",
 			Module:      "CashCheckVoucher",
@@ -626,7 +626,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a cash check voucher as printed by ID and updates print count.",
@@ -634,12 +634,12 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -649,7 +649,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 
 		var req core.CashCheckVoucherPrintRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "print-error",
 				Description: "Cash check voucher print failed, invalid request body.",
 				Module:      "CashCheckVoucher",
@@ -659,7 +659,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -678,32 +678,32 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "print-success",
 			Description: "Successfully printed cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(cashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a cash check voucher by ID.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -711,7 +711,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to approve cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -731,38 +731,38 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to approve cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Successfully approved cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Successfully approved cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(cashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a cash check voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -770,7 +770,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to release cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -787,9 +787,9 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",
 				Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
 				Module:      "CashCheckVoucher",
@@ -804,7 +804,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 		cashCheckVoucher.TransactionBatchID = &transactionBatch.ID
 
-		cashCheckVoucherEntries, err := c.core.CashCheckVoucherEntryManager().Find(context, &core.CashCheckVoucherEntry{
+		cashCheckVoucherEntries, err := core.CashCheckVoucherEntryManager(service).Find(context, &core.CashCheckVoucherEntry{
 			CashCheckVoucherID: cashCheckVoucher.ID,
 			BranchID:           *userOrg.BranchID,
 			OrganizationID:     userOrg.OrganizationID,
@@ -837,7 +837,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 
 			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
 
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "cash-check-voucher-transaction-recording-failed",
 					Description: "Failed to record cash check voucher entry transaction in general ledger for voucher " + cashCheckVoucher.CashVoucherNumber + ": " + err.Error(),
 					Module:      "CashCheckVoucher",
@@ -848,42 +848,42 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			}
 		}
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
 		if err := c.event.TransactionBatchBalancing(context, cashCheckVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
-		newCashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, cashCheckVoucher.ID)
+		newCashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, cashCheckVoucher.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch cash/check voucher: " + err.Error()})
 		}
 		sort.Slice(newCashCheckVoucher.CashCheckVoucherEntries, func(i, j int) bool {
 			return newCashCheckVoucher.CashCheckVoucherEntries[i].CreatedAt.After(newCashCheckVoucher.CashCheckVoucherEntries[j].CreatedAt)
 		})
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated cash/check voucher (/cash-check-voucher/:cash_check_voucher_id): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(newCashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(newCashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a cash check voucher by ID.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -891,7 +891,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to undo print for cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -911,32 +911,32 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = nil
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print for cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "print-undo-success",
 			Description: "Successfully undid print for cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(cashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a cash check voucher as printed without additional details by ID.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -944,7 +944,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to print cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -954,38 +954,38 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		}
 
 		cashCheckVoucher.PrintCount++
-		cashCheckVoucher.PrintedDate = handlers.Ptr(time.Now().UTC())
+		cashCheckVoucher.PrintedDate = helpers.Ptr(time.Now().UTC())
 		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to print cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "print-only-success",
 			Description: "Successfully printed cash check voucher (print-only): " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(cashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a cash check voucher by ID.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		cashCheckVoucherID, err := handlers.EngineUUIDParam(ctx, "cash_check_voucher_id")
+		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -993,7 +993,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to undo approval for cash check voucher"})
 		}
 
-		cashCheckVoucher, err := c.core.CashCheckVoucherManager().GetByID(context, *cashCheckVoucherID)
+		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Cash check voucher not found"})
 		}
@@ -1019,34 +1019,34 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedBy = nil
 
-		if err := c.core.CashCheckVoucherManager().UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo approval for cash check voucher: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "approve-undo-success",
 			Description: "Successfully undid approval for cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
 			Module:      "CashCheckVoucher",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModel(cashCheckVoucher))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModel(cashCheckVoucher))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher/released/today",
 		Method:       "GET",
 		Note:         "Retrieves all cash check vouchers released today.",
 		ResponseType: core.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		vouchers, err := c.core.CashCheckVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		vouchers, err := core.CashCheckVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve today's released cash check vouchers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CashCheckVoucherManager().ToModels(vouchers))
+		return ctx.JSON(http.StatusOK, core.CashCheckVoucherManager(service).ToModels(vouchers))
 	})
 }

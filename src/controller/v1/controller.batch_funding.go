@@ -4,17 +4,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func batchFundingController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
@@ -22,18 +22,18 @@ func batchFundingController(service *horizon.HorizonService) {
 		ResponseType: core.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.core.BatchFundingManager().Validate(ctx)
+		batchFundingReq, err := core.BatchFundingManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), validation error: " + err.Error(),
 				Module:      "BatchFunding",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid batch funding data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), user org error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -41,21 +41,21 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for batch funding (/batch-funding)",
 				Module:      "BatchFunding",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrent(
+		transactionBatch, err := core.TransactionBatchCurrent(
 			context,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 		)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), transaction batch lookup error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -63,7 +63,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not find an active transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), no open transaction batch.",
 				Module:      "BatchFunding",
@@ -87,8 +87,8 @@ func batchFundingController(service *horizon.HorizonService) {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
-		if err := c.core.BatchFundingManager().Create(context, batchFunding); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BatchFundingManager(service).Create(context, batchFunding); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Batch funding creation failed (/batch-funding), db error: " + err.Error(),
 				Module:      "BatchFunding",
@@ -98,15 +98,15 @@ func batchFundingController(service *horizon.HorizonService) {
 		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created batch funding (/batch-funding): " + batchFunding.Name,
 			Module:      "BatchFunding",
 		})
-		return ctx.JSON(http.StatusOK, c.core.BatchFundingManager().ToModel(batchFunding))
+		return ctx.JSON(http.StatusOK, core.BatchFundingManager(service).ToModel(batchFunding))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
@@ -114,12 +114,12 @@ func batchFundingController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "The transaction batch ID provided is invalid."})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unable to determine user organization. Please login again."})
 		}
@@ -128,7 +128,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to view batch funding records."})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found for this ID."})
 		}
@@ -137,7 +137,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := c.core.BatchFundingManager().NormalPagination(context, ctx, &core.BatchFunding{
+		batchFunding, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -149,14 +149,14 @@ func batchFundingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, batchFunding)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/batch-funding/search",
 		Method:       "GET",
 		ResponseType: core.BatchFundingResponse{},
 		Note:         "Returns all batch funding records for the current user's organization and branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -164,7 +164,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := c.core.BatchFundingManager().NormalPagination(context, ctx, &core.BatchFunding{
+		batchFundings, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &core.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

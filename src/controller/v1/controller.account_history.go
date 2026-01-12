@@ -4,16 +4,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func accountHistory(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
 		ResponseType: core.AccountHistoryResponse{},
@@ -21,15 +22,15 @@ func accountHistory(service *horizon.HorizonService) {
 	},
 		func(ctx echo.Context) error {
 			context := ctx.Request().Context()
-			accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+			accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_id: " + err.Error()})
 			}
-			userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+			userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
-			accountHistory, err := c.core.GetAllAccountHistory(
+			accountHistory, err := core.GetAllAccountHistory(
 				context,
 				*accountID,
 				userOrg.OrganizationID,
@@ -41,7 +42,7 @@ func accountHistory(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/:account_history_id",
 		ResponseType: core.AccountHistory{},
@@ -49,18 +50,18 @@ func accountHistory(service *horizon.HorizonService) {
 	},
 		func(ctx echo.Context) error {
 			context := ctx.Request().Context()
-			accountHistoryID, err := handlers.EngineUUIDParam(ctx, "account_history_id")
+			accountHistoryID, err := helpers.EngineUUIDParam(ctx, "account_history_id")
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_history_id: " + err.Error()})
 			}
-			accountHistory, err := c.core.AccountHistoryManager().GetByID(context, *accountHistoryID)
+			accountHistory, err := core.AccountHistoryManager(service).GetByID(context, *accountHistoryID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/account-history/:account_history_id/restore",
 		ResponseType: core.AccountHistory{},
@@ -68,19 +69,19 @@ func accountHistory(service *horizon.HorizonService) {
 	},
 		func(ctx echo.Context) error {
 			context := ctx.Request().Context()
-			accountHistoryID, err := handlers.EngineUUIDParam(ctx, "account_history_id")
+			accountHistoryID, err := helpers.EngineUUIDParam(ctx, "account_history_id")
 			if err != nil {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account_history_id: " + err.Error()})
 			}
-			userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+			userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 			if err != nil {
 				return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 			}
-			accountHistory, err := c.core.AccountHistoryManager().GetByID(context, *accountHistoryID)
+			accountHistory, err := core.AccountHistoryManager(service).GetByID(context, *accountHistoryID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account history: " + err.Error()})
 			}
-			account, err := c.core.AccountManager().GetByID(context, accountHistory.AccountID)
+			account, err := core.AccountManager(service).GetByID(context, accountHistory.AccountID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 			}
@@ -162,11 +163,11 @@ func accountHistory(service *horizon.HorizonService) {
 			account.InterestStandardComputation = accountHistory.InterestStandardComputation
 			account.CurrencyID = accountHistory.CurrencyID
 
-			if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+			if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account: " + err.Error()})
 			}
 
-			return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+			return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 		})
 
 }

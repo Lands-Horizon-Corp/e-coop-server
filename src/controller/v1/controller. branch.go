@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -16,30 +16,30 @@ import (
 func branchController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from cache.",
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil || userOrg == nil {
-			branches, err := c.core.BranchManager().List(context)
+			branches, err := core.BranchManager(service).List(context)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve branches: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, branches)
 		}
-		branches, err := c.core.GetBranchesByOrganization(context, userOrg.OrganizationID)
+		branches, err := core.GetBranchesByOrganization(context, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModels(branches))
+		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/kyc",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization in members portal.",
@@ -50,32 +50,32 @@ func branchController(service *horizon.HorizonService) {
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}
-		branches, err := c.core.GetBranchesByOrganization(context, org.ID)
+		branches, err := core.GetBranchesByOrganization(context, org.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModels(branches))
+		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := helpers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		branches, err := c.core.GetBranchesByOrganization(context, *organizationID)
+		branches, err := core.GetBranchesByOrganization(context, *organizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModels(branches))
+		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
@@ -85,9 +85,9 @@ func branchController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.BranchManager().Validate(ctx)
+		req, err := core.BranchManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to validate branch data for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -95,9 +95,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		organizationID, err := handlers.EngineUUIDParam(ctx, "organization_id")
+		organizationID, err := helpers.EngineUUIDParam(ctx, "organization_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Invalid organization ID for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -107,7 +107,7 @@ func branchController(service *horizon.HorizonService) {
 
 		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "User authentication required for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -115,12 +115,12 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
-		userOrganization, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: *organizationID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("User organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -128,7 +128,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found " + err.Error()})
 		}
 		if userOrganization.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -136,9 +136,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only organization owners can create branches "})
 		}
 
-		organization, err := c.core.OrganizationManager().GetByID(context, userOrganization.OrganizationID)
+		organization, err := core.OrganizationManager(service).GetByID(context, userOrganization.OrganizationID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Organization not found for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -146,9 +146,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found " + err.Error()})
 		}
 
-		branchCount, err := c.core.GetBranchesByOrganizationCount(context, organization.ID)
+		branchCount, err := core.GetBranchesByOrganizationCount(context, organization.ID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed branch count for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -157,7 +157,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		if branchCount >= int64(organization.SubscriptionPlanMaxBranches) {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Branch limit reached for POST /branch/organization/:organization_id",
 				Module:      "branch",
@@ -192,8 +192,8 @@ func branchController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		if err := c.core.BranchManager().CreateWithTx(context, tx, branch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BranchManager(service).CreateWithTx(context, tx, branch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -247,8 +247,8 @@ func branchController(service *horizon.HorizonService) {
 			CurrencyID:                *req.CurrencyID,
 		}
 
-		if err := c.core.BranchSettingManager().CreateWithTx(context, tx, branchSetting); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to create branch settings for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -261,8 +261,8 @@ func branchController(service *horizon.HorizonService) {
 			userOrganization.UpdatedAt = time.Now().UTC()
 			userOrganization.UpdatedByID = user.ID
 
-			if err := c.core.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to update user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -272,7 +272,7 @@ func branchController(service *horizon.HorizonService) {
 		} else {
 			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
 			if err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to generate developer key for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -302,8 +302,8 @@ func branchController(service *horizon.HorizonService) {
 				UserSettingNumberPadding: 7,
 			}
 
-			if err := c.core.UserOrganizationManager().CreateWithTx(context, tx, newUserOrg); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.UserOrganizationManager(service).CreateWithTx(context, tx, newUserOrg); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create error",
 					Description: fmt.Sprintf("Failed to create new user organization for POST /branch/organization/:organization_id: %v", err),
 					Module:      "branch",
@@ -313,7 +313,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: fmt.Sprintf("Failed to commit transaction for POST /branch/organization/:organization_id: %v", err),
 				Module:      "branch",
@@ -332,16 +332,16 @@ func branchController(service *horizon.HorizonService) {
 			NotificationType: core.NotificationInfo,
 		})
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create success",
 			Description: fmt.Sprintf("Created branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModel(branch))
+		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModel(branch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
@@ -351,9 +351,9 @@ func branchController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		req, err := c.core.BranchManager().Validate(ctx)
+		req, err := core.BranchManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch data for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -363,7 +363,7 @@ func branchController(service *horizon.HorizonService) {
 
 		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User authentication required for PUT /branch/:branch_id",
 				Module:      "branch",
@@ -371,9 +371,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
-		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		branchID, err := helpers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Invalid branch id for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -381,12 +381,12 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
 
-		userOrg, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
 			UserID:   user.ID,
 			BranchID: branchID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("User organization not found for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -394,7 +394,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
 				Module:      "branch",
@@ -402,9 +402,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can update branch information "})
 		}
 
-		branch, err := c.core.BranchManager().GetByID(context, *branchID)
+		branch, err := core.BranchManager(service).GetByID(context, *branchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Branch not found for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -432,8 +432,8 @@ func branchController(service *horizon.HorizonService) {
 		branch.IsMainBranch = req.IsMainBranch
 		branch.TaxIdentificationNumber = req.TaxIdentificationNumber
 
-		if err := c.core.BranchManager().UpdateByID(context, branch.ID, branch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BranchManager(service).UpdateByID(context, branch.ID, branch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch for PUT /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -446,25 +446,25 @@ func branchController(service *horizon.HorizonService) {
 			Description: fmt.Sprintf("Updated branch: %s", branch.Name),
 		})
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.BranchManager().ToModel(branch))
+		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModel(branch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:   "/api/v1/branch/:branch_id",
 		Method:  "DELETE",
 		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
 		Private: true,
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		branchID, err := helpers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Invalid branch ID for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -473,16 +473,16 @@ func branchController(service *horizon.HorizonService) {
 		}
 		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "User authentication required for DELETE /branch/:branch_id",
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required "})
 		}
-		branch, err := c.core.BranchManager().GetByID(context, *branchID)
+		branch, err := core.BranchManager(service).GetByID(context, *branchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Branch not found for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -490,13 +490,13 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
-		userOrganization, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
 			UserID:         user.ID,
 			BranchID:       branchID,
 			OrganizationID: branch.OrganizationID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("User organization not found for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -504,16 +504,16 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.UserType != core.UserOrganizationTypeOwner {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Only the branch owner can delete this branch for DELETE /branch/:branch_id",
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can delete this branch"})
 		}
-		count, err := c.core.CountUserOrganizationPerbranch(context, userOrganization.UserID, *userOrganization.BranchID)
+		count, err := core.CountUserOrganizationPerbranch(context, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Could not check branch membership for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -521,7 +521,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not check branch membership: " + err.Error()})
 		}
 		if count > 2 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Cannot delete branch with more than 2 members for DELETE /branch/:branch_id",
 				Module:      "branch",
@@ -530,16 +530,16 @@ func branchController(service *horizon.HorizonService) {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		if err := c.core.BranchManager().DeleteWithTx(context, tx, branch.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BranchManager(service).DeleteWithTx(context, tx, branch.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete branch for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete branch: " + endTx(err).Error()})
 		}
-		if err := c.core.UserOrganizationManager().DeleteWithTx(context, tx, userOrganization.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.UserOrganizationManager(service).DeleteWithTx(context, tx, userOrganization.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to delete user organization for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -547,7 +547,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete user organization: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: fmt.Sprintf("Failed to commit transaction for DELETE /branch/:branch_id: %v", err),
 				Module:      "branch",
@@ -558,32 +558,32 @@ func branchController(service *horizon.HorizonService) {
 			Title:       fmt.Sprintf("Delete: %s", branch.Name),
 			Description: fmt.Sprintf("Deleted branch: %s", branch.Name),
 		})
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete success",
 			Description: fmt.Sprintf("Deleted branch: %s, ID: %s", branch.Name, branch.ID),
 			Module:      "branch",
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "GET",
 		Note:         "Returns a single branch by its ID.",
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		branchID, err := handlers.EngineUUIDParam(ctx, "branch_id")
+		branchID, err := helpers.EngineUUIDParam(ctx, "branch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID"})
 		}
-		branch, err := c.core.BranchManager().GetByIDRaw(context, *branchID)
+		branch, err := core.BranchManager(service).GetByIDRaw(context, *branchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found"})
 		}
 
 		return ctx.JSON(http.StatusOK, branch)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
@@ -594,7 +594,7 @@ func branchController(service *horizon.HorizonService) {
 
 		var settingsReq core.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to bind branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -603,7 +603,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -611,9 +611,9 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil || userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User not assigned to a branch for PUT /branch-settings",
 				Module:      "branch",
@@ -622,7 +622,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",
 				Module:      "branch",
@@ -631,7 +631,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		var branchSetting *core.BranchSetting
-		branchSetting, err = c.core.BranchSettingManager().FindOne(context, &core.BranchSetting{
+		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 
@@ -684,8 +684,8 @@ func branchController(service *horizon.HorizonService) {
 				TaxInterest:         settingsReq.TaxInterest,
 			}
 
-			if err := c.core.BranchSettingManager().CreateWithTx(context, tx, branchSetting); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to create branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
@@ -736,8 +736,8 @@ func branchController(service *horizon.HorizonService) {
 			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
 			branchSetting.TaxInterest = settingsReq.TaxInterest
 
-			if err := c.core.BranchSettingManager().UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update error",
 					Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
 					Module:      "branch",
@@ -747,7 +747,7 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to commit transaction for PUT /branch-settings: %v", err),
 				Module:      "branch",
@@ -755,7 +755,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings for branch ID: %s", userOrg.BranchID),
 			Module:      "branch",
@@ -766,10 +766,10 @@ func branchController(service *horizon.HorizonService) {
 			Description: "Branch settings have been successfully updated",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.BranchSettingManager().ToModel(branchSetting))
+		return ctx.JSON(http.StatusOK, core.BranchSettingManager(service).ToModel(branchSetting))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
@@ -780,16 +780,16 @@ func branchController(service *horizon.HorizonService) {
 
 		var settingsReq core.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to bind branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil || userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "User not assigned to a branch for PUT /branch-settings/currency",
 				Module:      "branch",
@@ -797,7 +797,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
 		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -805,11 +805,11 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		branchSetting, err := c.core.BranchSettingManager().FindOne(context, &core.BranchSetting{
+		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Branch settings not found for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -824,8 +824,8 @@ func branchController(service *horizon.HorizonService) {
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.BranchSettingManager().UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
@@ -834,8 +834,8 @@ func branchController(service *horizon.HorizonService) {
 		}
 
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
-			if err := c.core.UnbalancedAccountManager().DeleteWithTx(context, tx, id); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.UnbalancedAccountManager(service).DeleteWithTx(context, tx, id); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete unbalanced account: " + err.Error(),
 					Module:      "UnbalancedAccount",
@@ -846,7 +846,7 @@ func branchController(service *horizon.HorizonService) {
 
 		for _, accountReq := range settingsReq.UnbalancedAccount {
 			if accountReq.ID != nil {
-				existingAccount, err := c.core.UnbalancedAccountManager().GetByID(context, *accountReq.ID)
+				existingAccount, err := core.UnbalancedAccountManager(service).GetByID(context, *accountReq.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + endTx(err).Error()})
 				}
@@ -861,7 +861,7 @@ func branchController(service *horizon.HorizonService) {
 
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
-				if err := c.core.UnbalancedAccountManager().UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+				if err := core.UnbalancedAccountManager(service).UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 				}
 			} else {
@@ -879,20 +879,20 @@ func branchController(service *horizon.HorizonService) {
 					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}
-				if err := c.core.UnbalancedAccountManager().CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
+				if err := core.UnbalancedAccountManager(service).CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + endTx(err).Error()})
 				}
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit unbalanced account update transaction: " + err.Error(),
 				Module:      "UnbalancedAccount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit unbalanced account update: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings currency for branch settings ID: %s", branchSetting.ID),
 			Module:      "branch",
@@ -903,6 +903,6 @@ func branchController(service *horizon.HorizonService) {
 			Description:      "Branch settings have been successfully updated",
 			NotificationType: core.NotificationAlert,
 		})
-		return ctx.JSON(http.StatusOK, c.core.BranchSettingManager().ToModel(branchSetting))
+		return ctx.JSON(http.StatusOK, core.BranchSettingManager(service).ToModel(branchSetting))
 	})
 }

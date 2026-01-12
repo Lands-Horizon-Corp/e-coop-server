@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,40 +15,40 @@ func mediaController(service *horizon.HorizonService) {
 
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media",
 		Method:       "GET",
 		Note:         "Returns all media records in the system.",
 		ResponseType: core.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		media, err := c.core.MediaManager().List(context)
+		media, err := core.MediaManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve media records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MediaManager().ToModels(media))
+		return ctx.JSON(http.StatusOK, core.MediaManager(service).ToModels(media))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a specific media record by its ID.",
 		ResponseType: core.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaID, err := handlers.EngineUUIDParam(ctx, "media_id")
+		mediaID, err := helpers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
 
-		media, err := c.core.MediaManager().GetByIDRaw(context, *mediaID)
+		media, err := core.MediaManager(service).GetByIDRaw(context, *mediaID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media record not found"})
 		}
 		return ctx.JSON(http.StatusOK, media)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media",
 		Method:       "POST",
 		ResponseType: core.MediaResponse{},
@@ -57,7 +57,7 @@ func mediaController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		file, err := ctx.FormFile("file")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), missing file in upload.",
 				Module:      "Media",
@@ -67,8 +67,8 @@ func mediaController(service *horizon.HorizonService) {
 		fileName := file.Filename
 		contentType := file.Header.Get("Content-Type")
 
-		if fileName != "" && !handlers.HasFileExtension(fileName) {
-			if ext := handlers.GetExtensionFromContentType(contentType); ext != "" {
+		if fileName != "" && !helpers.HasFileExtension(fileName) {
+			if ext := helpers.GetExtensionFromContentType(contentType); ext != "" {
 				fileName += ext
 			}
 		}
@@ -83,8 +83,8 @@ func mediaController(service *horizon.HorizonService) {
 			CreatedAt:  time.Now().UTC(),
 			UpdatedAt:  time.Now().UTC(),
 		}
-		if err := c.core.MediaManager().Create(context, initial); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaManager(service).Create(context, initial); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), db error: " + err.Error(),
 				Module:      "Media",
@@ -92,19 +92,19 @@ func mediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create media record: " + err.Error()})
 		}
 		storage, err := c.provider.Service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
-			_ = c.core.MediaManager().UpdateByID(context, initial.ID, &core.Media{
+			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &core.Media{
 				Progress:  progress,
 				Status:    "progress",
 				UpdatedAt: time.Now().UTC(),
 			})
 		})
 		if err != nil {
-			_ = c.core.MediaManager().UpdateByID(context, initial.ID, &core.Media{
+			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &core.Media{
 				ID:        initial.ID,
 				Status:    "error",
 				UpdatedAt: time.Now().UTC(),
 			})
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), file upload failed: " + err.Error(),
 				Module:      "Media",
@@ -123,23 +123,23 @@ func mediaController(service *horizon.HorizonService) {
 			UpdatedAt:  time.Now().UTC(),
 			ID:         initial.ID,
 		}
-		if err := c.core.MediaManager().UpdateByID(context, completed.ID, completed); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaManager(service).UpdateByID(context, completed.ID, completed); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Media upload failed (/media), update after upload error: " + err.Error(),
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update media record after upload: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Uploaded and created media (/media): " + completed.FileName,
 			Module:      "Media",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.MediaManager().ToModel(completed))
+		return ctx.JSON(http.StatusCreated, core.MediaManager(service).ToModel(completed))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
 		RequestType:  core.MediaRequest{},
@@ -147,27 +147,27 @@ func mediaController(service *horizon.HorizonService) {
 		Note:         "Updates the file name of a media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaID, err := handlers.EngineUUIDParam(ctx, "media_id")
+		mediaID, err := helpers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), invalid media ID.",
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
-		req, err := c.core.MediaManager().Validate(ctx)
+		req, err := core.MediaManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), validation error: " + err.Error(),
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media data: " + err.Error()})
 		}
-		media, err := c.core.MediaManager().GetByID(context, *mediaID)
+		media, err := core.MediaManager(service).GetByID(context, *mediaID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), record not found.",
 				Module:      "Media",
@@ -176,55 +176,55 @@ func mediaController(service *horizon.HorizonService) {
 		}
 		media.FileName = req.FileName
 		media.UpdatedAt = time.Now().UTC()
-		if err := c.core.MediaManager().UpdateByID(context, *mediaID, media); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaManager(service).UpdateByID(context, *mediaID, media); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Media update failed (/media/:media_id), db error: " + err.Error(),
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update media record: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated media (/media/:media_id): " + media.FileName,
 			Module:      "Media",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MediaManager().ToModel(media))
+		return ctx.JSON(http.StatusOK, core.MediaManager(service).ToModel(media))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific media record by its ID and associated file.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		mediaID, err := handlers.EngineUUIDParam(ctx, "media_id")
+		mediaID, err := helpers.EngineUUIDParam(ctx, "media_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), invalid media ID.",
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid media ID"})
 		}
-		media, err := c.core.MediaManager().GetByID(context, *mediaID)
+		media, err := core.MediaManager(service).GetByID(context, *mediaID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), record not found.",
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media record not found"})
 		}
-		if err := c.core.MediaDelete(context, media.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaDelete(context, media.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Media delete failed (/media/:media_id), db error: " + err.Error(),
 				Module:      "Media",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete media record: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted media (/media/:media_id): " + media.FileName,
 			Module:      "Media",
@@ -232,7 +232,7 @@ func mediaController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -242,7 +242,7 @@ func mediaController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Media bulk delete failed (/media/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Media",
@@ -251,7 +251,7 @@ func mediaController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Media bulk delete failed (/media/bulk-delete) | no IDs provided",
 				Module:      "Media",
@@ -263,8 +263,8 @@ func mediaController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MediaManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MediaManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Media bulk delete failed (/media/bulk-delete) | error: " + err.Error(),
 				Module:      "Media",
@@ -272,7 +272,7 @@ func mediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete media records: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted media (/media/bulk-delete)",
 			Module:      "Media",

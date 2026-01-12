@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/shopspring/decimal"
 
 	"github.com/labstack/echo/v4"
@@ -16,21 +17,21 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedSavingsInterests, err := c.core.GeneratedSavingsInterestManager().NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
+		generatedSavingsInterests, err := core.GeneratedSavingsInterestManager(service).NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -40,40 +41,40 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterests)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest by its ID.",
 		ResponseType: core.GeneratedSavingsInterestResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		generatedSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByIDRaw(context, *generatedSavingsInterestID)
+		generatedSavingsInterest, err := core.GeneratedSavingsInterestManager(service).GetByIDRaw(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Generated savings interest not found"})
 		}
 		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
 		ResponseType: core.GeneratedSavingsInterestViewResponse{},
 		Note:         "Returns generated savings interest entries for a specific generated savings interest ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		entries, err := c.core.GeneratedSavingsInterestEntryManager().Find(context, &core.GeneratedSavingsInterestEntry{
+		entries, err := core.GeneratedSavingsInterestEntryManager(service).Find(context, &core.GeneratedSavingsInterestEntry{
 			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			OrganizationID:             userOrg.OrganizationID,
 			BranchID:                   *userOrg.BranchID,
@@ -90,12 +91,12 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		}
 
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
-			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
+			Entries:       core.GeneratedSavingsInterestEntryManager(service).ToModels(entries),
 			TotalTax:      totalTax.InexactFloat64(),
 			TotalInterest: totalInterest.InexactFloat64(),
 		})
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest/view",
 		ResponseType: core.GeneratedSavingsInterestViewResponse{},
@@ -103,19 +104,19 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.core.GeneratedSavingsInterestManager().Validate(ctx)
+		request, err := core.GeneratedSavingsInterestManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
-		branch, err := c.core.BranchManager().GetByID(context, *userOrg.BranchID, "BranchSetting")
+		branch, err := core.BranchManager(service).GetByID(context, *userOrg.BranchID, "BranchSetting")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
 		}
@@ -145,13 +146,13 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		}
 
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
-			Entries:       c.core.GeneratedSavingsInterestEntryManager().ToModels(entries),
+			Entries:       core.GeneratedSavingsInterestEntryManager(service).ToModels(entries),
 			TotalTax:      totalTax.InexactFloat64(),
 			TotalInterest: totalInterest.InexactFloat64(),
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest",
 		ResponseType: core.GeneratedSavingsInterestEntry{},
@@ -159,19 +160,19 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		request, err := c.core.GeneratedSavingsInterestManager().Validate(ctx)
+		request, err := core.GeneratedSavingsInterestManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
-		branch, err := c.core.BranchManager().GetByID(context, *userOrg.BranchID, "BranchSetting")
+		branch, err := core.BranchManager(service).GetByID(context, *userOrg.BranchID, "BranchSetting")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branch information: " + err.Error()})
 		}
@@ -200,7 +201,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			TotalInterest:                   totalInterest.InexactFloat64(),
 			TotalTax:                        totalTax.InexactFloat64(),
 		}
-		if err := c.core.GeneratedSavingsInterestManager().CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
+		if err := core.GeneratedSavingsInterestManager(service).CreateWithTx(context, tx, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
@@ -229,40 +230,40 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			entry.CreatedByID = userOrg.UserID
 			entry.UpdatedAt = time.Now().UTC()
 			entry.UpdatedByID = userOrg.UserID
-			if err := c.core.GeneratedSavingsInterestEntryManager().CreateWithTx(context, tx, entry); err != nil {
+			if err := core.GeneratedSavingsInterestEntryManager(service).CreateWithTx(context, tx, entry); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest entry: " + err.Error()})
 			}
 		}
 		generatedSavingsInterest.TotalTax = totalTax.InexactFloat64()
 		generatedSavingsInterest.TotalInterest = totalInterest.InexactFloat64()
-		if err := c.core.GeneratedSavingsInterestManager().UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
+		if err := core.GeneratedSavingsInterestManager(service).UpdateByIDWithTx(context, tx, generatedSavingsInterest.ID, generatedSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest: " + err.Error()})
 		}
 
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestEntryManager().ToModels(entries))
+		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestEntryManager(service).ToModels(entries))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
 		Note:   "Prints generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := core.GeneratedSavingsInterestManager(service).GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}
@@ -275,29 +276,29 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		now := time.Now().UTC()
 		generateSavingsInterest.PrintedByUserID = &userOrg.UserID
 		generateSavingsInterest.PrintedDate = &now
-		if err := c.core.GeneratedSavingsInterestManager().UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+		if err := core.GeneratedSavingsInterestManager(service).UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update generated savings interest as printed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager().ToModel(generateSavingsInterest))
+		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestManager(service).ToModel(generateSavingsInterest))
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
 		Note:   "Undoes the print status of generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo print status of generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := core.GeneratedSavingsInterestManager(service).GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}
@@ -312,20 +313,20 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		}
 		generateSavingsInterest.PrintedByUserID = nil
 		generateSavingsInterest.PrintedDate = nil
-		if err := c.core.GeneratedSavingsInterestManager().UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
+		if err := core.GeneratedSavingsInterestManager(service).UpdateByID(context, generateSavingsInterest.ID, generateSavingsInterest); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to undo print status of generated savings interest: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneratedSavingsInterestManager().ToModel(generateSavingsInterest))
+		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestManager(service).ToModel(generateSavingsInterest))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",
 		RequestType: core.GenerateSavingsInterestPostRequest{},
 		Note:        "Posts generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generatedSavingsInterestID, err := handlers.EngineUUIDParam(ctx, "generated_savings_interest_id")
+		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated savings interest ID"})
 		}
@@ -336,14 +337,14 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to post generated savings interest entries"})
 		}
-		generateSavingsInterest, err := c.core.GeneratedSavingsInterestManager().GetByID(context, *generatedSavingsInterestID)
+		generateSavingsInterest, err := core.GeneratedSavingsInterestManager(service).GetByID(context, *generatedSavingsInterestID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve generated savings interest: " + err.Error()})
 		}

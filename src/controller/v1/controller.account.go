@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -18,21 +18,21 @@ import (
 func accountController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().RawPagination(
+		accounts, err := core.AccountManager(service).RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -64,25 +64,25 @@ func accountController(service *horizon.HorizonService) {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyID,
@@ -92,14 +92,14 @@ func accountController(service *horizon.HorizonService) {
 		}
 		return ctx.JSON(http.StatusOK, accounts)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all deposit accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -107,7 +107,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeDeposit,
@@ -118,25 +118,25 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/currency/:currency_id/paid-up-shared-capital/search",
 		Method:       "GET",
 		Note:         "Retrieve all paid-up shared capital accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
@@ -148,14 +148,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -163,7 +163,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		paginated, err := c.core.AccountManager().RawPagination(
+		paginated, err := core.AccountManager(service).RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -188,26 +188,26 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/currency/:currency_id/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
 
-		paginated, err := c.core.AccountManager().RawPagination(
+		paginated, err := core.AccountManager(service).RawPagination(
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
@@ -233,21 +233,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/ar-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Ledger accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARLedger,
@@ -258,14 +258,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/ar-aging/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Aging accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -273,7 +273,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARAging,
@@ -285,14 +285,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/fines/search",
 		Method:       "GET",
 		Note:         "Retrieve all fines accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -300,7 +300,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeFines,
@@ -312,14 +312,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/interest/search",
 		Method:       "GET",
 		Note:         "Retrieve all interest accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -327,7 +327,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeInterest,
@@ -338,21 +338,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/svf-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all SVF-Ledger accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeSVFLedger,
@@ -363,21 +363,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/w-off/search",
 		Method:       "GET",
 		Note:         "Retrieve all W-Off accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeWOff,
@@ -388,14 +388,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/ap-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/P-Ledger accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -403,7 +403,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeAPLedger,
@@ -414,14 +414,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/other/search",
 		Method:       "GET",
 		Note:         "Retrieve all other accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -429,7 +429,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeOther,
@@ -440,14 +440,14 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/time-deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all time deposit accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
@@ -455,7 +455,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeTimeDeposit,
@@ -466,31 +466,31 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModels(accounts))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModels(accounts))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account",
 		Method:       "POST",
 		Note:         "Create a new account for the current branch.",
@@ -498,9 +498,9 @@ func accountController(service *horizon.HorizonService) {
 		RequestType:  core.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountManager().Validate(ctx)
+		req, err := core.AccountManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), validation error: " + err.Error(),
 				Module:      "Account",
@@ -509,9 +509,9 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		// Get user organization
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), user org error: " + err.Error(),
 				Module:      "Account",
@@ -520,7 +520,7 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create attempt for account (/account)",
 				Module:      "Account",
@@ -614,9 +614,9 @@ func accountController(service *horizon.HorizonService) {
 			IsTaxable:                   req.IsTaxable,
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		if err := c.core.CreateAccountHistory(context, tx, account); err != nil {
+		if err := core.CreateAccountHistory(context, tx, account); err != nil {
 			endTx(err)
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), db error: " + err.Error(),
 				Module:      "Account",
@@ -644,7 +644,7 @@ func accountController(service *horizon.HorizonService) {
 			}
 			if err := tx.Create(&tags).Error; err != nil {
 				endTx(err) // rollback
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Account tag creation failed (/account), db error: " + err.Error(),
 					Module:      "Account",
@@ -654,14 +654,14 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Account creation failed (/account), commit error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created account (/account): " + account.Name,
 			Module:      "Account",
@@ -669,25 +669,25 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, account)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieve a specific account by ID.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id",
 		Method:       "PUT",
 		Note:         "Update an account by ID.",
@@ -695,18 +695,18 @@ func accountController(service *horizon.HorizonService) {
 		RequestType:  core.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.AccountManager().Validate(ctx)
+		req, err := core.AccountManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), validation error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Account validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), user org error: " + err.Error(),
 				Module:      "Account",
@@ -714,25 +714,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update attempt for account (/account/:account_id)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), invalid UUID: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), not found: " + err.Error(),
 				Module:      "Account",
@@ -824,16 +824,16 @@ func accountController(service *horizon.HorizonService) {
 		account.InterestMaturity = req.InterestMaturity
 		account.IsTaxable = req.IsTaxable
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before update failed (/account/:account_id): " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account update failed (/account/:account_id), db error: " + err.Error(),
 				Module:      "Account",
@@ -857,8 +857,8 @@ func accountController(service *horizon.HorizonService) {
 					UpdatedAt:      time.Now().UTC(),
 					UpdatedByID:    userOrg.UserID,
 				}
-				if err := c.core.AccountTagManager().Create(context, tag); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.AccountTagManager(service).Create(context, tag); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Account tag update failed (/account/:account_id), db error: " + err.Error(),
 						Module:      "Account",
@@ -867,7 +867,7 @@ func accountController(service *horizon.HorizonService) {
 				}
 			}
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated account (/account/:account_id): " + account.Name,
 			Module:      "Account",
@@ -878,18 +878,18 @@ func accountController(service *horizon.HorizonService) {
 			NotificationType: core.NotificationSystem,
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/account/:account_id",
 		Method: "DELETE",
 		Note:   "Delete an account by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -897,8 +897,8 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 
-		if err := c.core.AccountDeleteCheck(context, *accountID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountDeleteCheck(context, *accountID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id): " + err.Error(),
 				Module:      "Account",
@@ -906,9 +906,9 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), not found: " + err.Error(),
 				Module:      "Account",
@@ -916,9 +916,9 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), user org error: " + err.Error(),
 				Module:      "Account",
@@ -927,7 +927,7 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete attempt for account (/account/:account_id)",
 				Module:      "Account",
@@ -935,8 +935,8 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		if err := c.core.AccountManager().Delete(context, account.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).Delete(context, account.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id), db error: " + err.Error(),
 				Module:      "Account",
@@ -944,16 +944,16 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete account: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple accounts by their IDs.",
@@ -963,7 +963,7 @@ func accountController(service *horizon.HorizonService) {
 
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Account",
@@ -972,7 +972,7 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | no IDs provided",
 				Module:      "Account",
@@ -980,9 +980,9 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | user org error: " + err.Error(),
 				Module:      "Account",
@@ -991,7 +991,7 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Unauthorized bulk delete attempt for accounts (/account/bulk-delete)",
 				Module:      "Account",
@@ -1001,8 +1001,8 @@ func accountController(service *horizon.HorizonService) {
 
 		var failedAccounts []string
 		for _, accountID := range reqBody.IDs {
-			if err := c.core.AccountDeleteCheck(context, accountID); err != nil {
-				account, _ := c.core.AccountManager().GetByID(context, accountID)
+			if err := core.AccountDeleteCheck(context, accountID); err != nil {
+				account, _ := core.AccountManager(service).GetByID(context, accountID)
 				accountName := accountID.String()
 				if account != nil {
 					accountName = account.Name
@@ -1012,7 +1012,7 @@ func accountController(service *horizon.HorizonService) {
 		}
 
 		if len(failedAccounts) > 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | validation errors",
 				Module:      "Account",
@@ -1027,8 +1027,8 @@ func accountController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.AccountManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Failed bulk delete accounts (/account/bulk-delete) | error: " + err.Error(),
 				Module:      "Account",
@@ -1036,7 +1036,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete accounts: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: fmt.Sprintf("Bulk deleted %d accounts (/account/bulk-delete)", len(reqBody.IDs)),
 			Module:      "Account",
@@ -1045,16 +1045,16 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/index/:index",
 		Method:       "PUT",
 		Note:         "Update only the index field of an account using URL param.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1062,16 +1062,16 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized index update attempt for account (/account/:account_id/index/:index)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), invalid UUID: " + err.Error(),
 				Module:      "Account",
@@ -1082,16 +1082,16 @@ func accountController(service *horizon.HorizonService) {
 		var newIndex float64
 		_, err = fmt.Sscanf(indexParam, "%d", &newIndex)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), invalid index: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid index value: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), not found: " + err.Error(),
 				Module:      "Account",
@@ -1102,40 +1102,40 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index update failed (/account/:account_id/index/:index): " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index update failed (/account/:account_id/index/:index), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated account index (/account/:account_id/index/:index): %s to %f", account.Name, newIndex),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/index/top",
 		Method:       "PUT",
 		Note:         "Negate the account index minus 1.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index top update failed (/account/:account_id/index/top), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1143,25 +1143,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized index top update attempt for account (/account/:account_id/index/top)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index top update failed (/account/:account_id/index/top), invalid UUID: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index top update failed (/account/:account_id/index/top), not found: " + err.Error(),
 				Module:      "Account",
@@ -1172,15 +1172,15 @@ func accountController(service *horizon.HorizonService) {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index top update failed (/account/:account_id/index/top): " + err.Error(),
 				Module:      "Account",
 			})
 		}
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index top update failed (/account/:account_id/index/top), db error: " + err.Error(),
 				Module:      "Account",
@@ -1188,25 +1188,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated account index top (/account/:account_id/index/top): %s to %f", account.Name, newIndex),
 			Module:      "Account",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/index/bottom",
 		Method:       "PUT",
 		Note:         "Move the account index to the bottom (max index + 1).",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index bottom update failed (/account/:account_id/index/bottom), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1214,25 +1214,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized index bottom update attempt for account (/account/:account_id/index/bottom)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index bottom update failed (/account/:account_id/index/bottom), invalid UUID: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index bottom update failed (/account/:account_id/index/bottom), not found: " + err.Error(),
 				Module:      "Account",
@@ -1242,39 +1242,39 @@ func accountController(service *horizon.HorizonService) {
 		account.Index = account.Index + 1
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index bottom update failed (/account/:account_id/index/bottom): " + err.Error(),
 				Module:      "Account",
 			})
 		}
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account index bottom update failed (/account/:account_id/index/bottom), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account index: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Moved account to bottom index (/account/:account_id/index/bottom): %s to %f", account.Name, account.Index),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1282,25 +1282,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove GL def attempt for account (/account/:account_id/general-ledger-definition/remove)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), invalid UUID: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), not found: " + err.Error(),
 				Module:      "Account",
@@ -1311,40 +1311,40 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before GL def removal failed (/account/:account_id/general-ledger-definition/remove): " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove GL def failed (/account/:account_id/general-ledger-definition/remove), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove GeneralLedgerDefinitionID: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Removed GL def from account (/account/:account_id/general-ledger-definition/remove): %s", account.Name),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/financial-statement-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), user org error: " + err.Error(),
 				Module:      "Account",
@@ -1352,25 +1352,25 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized remove FS def attempt for account (/account/:account_id/financial-statement-definition/remove)",
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), invalid UUID: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), not found: " + err.Error(),
 				Module:      "Account",
@@ -1381,45 +1381,45 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before FS def removal failed (/account/:account_id/financial-statement-definition/remove): " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Account remove FS def failed (/account/:account_id/financial-statement-definition/remove), db error: " + err.Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to remove FinancialStatementDefinitionID: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Removed FS def from account (/account/:account_id/financial-statement-definition/remove): %s", account.Name),
 			Module:      "Account",
 		})
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                    userOrg.OrganizationID,
 			BranchID:                          *userOrg.BranchID,
 			ShowInGeneralLedgerSourceWithdraw: true,
@@ -1430,21 +1430,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/journal/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournal: true,
@@ -1455,21 +1455,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourcePayment: true,
@@ -1480,25 +1480,25 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/currency/:currency_id/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization failed: Unable to determine user organization. " + err.Error()})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			CurrencyID:                       currencyID,
@@ -1510,21 +1510,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/adjustment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                      userOrg.OrganizationID,
 			BranchID:                            *userOrg.BranchID,
 			ShowInGeneralLedgerSourceAdjustment: true,
@@ -1535,21 +1535,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                          userOrg.OrganizationID,
 			BranchID:                                *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
@@ -1560,21 +1560,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/check-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			ShowInGeneralLedgerSourceCheckVoucher: true,
@@ -1585,21 +1585,21 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1610,25 +1610,25 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager().NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1640,22 +1640,22 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all accounts connected to a computation sheet.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		computationSheetID, err := helpers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		accounts, err := c.core.AccountManager().FindRaw(context, &core.Account{
+		accounts, err := core.AccountManager(service).FindRaw(context, &core.Account{
 			ComputationSheetID: computationSheetID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -1666,26 +1666,26 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accounts)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/computation-sheet/:computation_sheet_id/connect",
 		Method:       "PUT",
 		Note:         "Connect an account to a computation sheet.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		computationSheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		computationSheetID, err := helpers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
@@ -1693,36 +1693,36 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet connection failed: " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/computation-sheet/disconnect",
 		Method:       "PUT",
 		Note:         "Disconnect an account from a computation sheet.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
@@ -1730,44 +1730,44 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet disconnection failed: " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to computation sheet: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/connect-to-loan/:loan_id",
 		Method:       "POST",
 		Note:         "Connect an account to a loan.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		loanID, err := handlers.EngineUUIDParam(ctx, "loan_id")
+		loanID, err := helpers.EngineUUIDParam(ctx, "loan_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-		loanAccount, err := c.core.AccountManager().GetByID(context, *loanID)
+		loanAccount, err := core.AccountManager(service).GetByID(context, *loanID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan not found"})
 		}
@@ -1778,36 +1778,36 @@ func accountController(service *horizon.HorizonService) {
 		loanAccount.UpdatedAt = time.Now().UTC()
 		loanAccount.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, loanAccount.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, loanAccount.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan connection failed: " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, loanAccount.ID, loanAccount); err != nil {
+		if err := core.AccountManager(service).UpdateByID(context, loanAccount.ID, loanAccount); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account to loan: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(loanAccount))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(loanAccount))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/disconnect-account",
 		Method:       "POST",
 		Note:         "Disconnect an account from a loan account.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
@@ -1815,37 +1815,37 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := c.core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan account disconnection failed: " + err.Error(),
 				Module:      "Account",
 			})
 		}
 
-		if err := c.core.AccountManager().UpdateByID(context, account.ID, account); err != nil {
+		if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to disconnect account from loan account: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModel(account))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModel(account))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/loan-connectable-account-currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
 
-		pagination, err := c.core.AccountManager().ArrPagination(context, ctx, []registry.FilterSQL{
+		pagination, err := core.AccountManager(service).ArrPagination(context, ctx, []registry.FilterSQL{
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
 			{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
@@ -1863,30 +1863,30 @@ func accountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, pagination)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account/:account_id/loan-accounts",
 		Method:       "GET",
 		Note:         "Retrieve loan account connected to an account.",
 		ResponseType: core.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-		loanAccounts, err := c.core.FindLoanAccountsByID(context,
+		loanAccounts, err := core.FindLoanAccountsByID(context,
 			userOrg.OrganizationID, *userOrg.BranchID, account.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Connected loan account not found"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.AccountManager().ToModels(loanAccounts))
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModels(loanAccounts))
 	})
 }

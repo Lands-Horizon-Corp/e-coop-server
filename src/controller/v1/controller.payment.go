@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func paymentController(service *horizon.HorizonService) {
 	req := service.API
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",
 		Method:       "POST",
 		Note:         "Processes multiple payments for the specified transaction by transaction_id and records them in the general ledger.",
@@ -22,9 +22,9 @@ func paymentController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "multipayment-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/multipayment: %v", err),
 				Module:      "Transaction",
@@ -32,9 +32,9 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		transaction, err := c.core.TransactionManager().GetByID(context, *transactionID)
+		transaction, err := core.TransactionManager(service).GetByID(context, *transactionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "multipayment-transaction-not-found",
 				Description: fmt.Sprintf("Transaction not found for ID %v: %v", transactionID, err),
 				Module:      "Transaction",
@@ -43,7 +43,7 @@ func paymentController(service *horizon.HorizonService) {
 		}
 		var req []core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "multipayment-bind-error",
 				Description: "Multiple payment failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -52,7 +52,7 @@ func paymentController(service *horizon.HorizonService) {
 		}
 
 		if len(req) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "multipayment-empty-error",
 				Description: "Multiple payment failed: no payment entries provided",
 				Module:      "Transaction",
@@ -62,7 +62,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		for i, payment := range req {
 			if err := c.provider.Service.Validator.Struct(payment); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "multipayment-validation-error",
 					Description: fmt.Sprintf("Multiple payment failed: validation error for payment %d: %v", i+1, err),
 					Module:      "Transaction",
@@ -76,7 +76,7 @@ func paymentController(service *horizon.HorizonService) {
 		for i, payment := range req {
 			tx, endTx := c.provider.Service.Database.StartTransaction(context)
 			if tx.Error != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "multipayment-db-error",
 					Description: "Multiple payment failed (/transaction/:transaction_id/multipayment), begin tx error: " + tx.Error.Error(),
 					Module:      "Transaction",
@@ -104,7 +104,7 @@ func paymentController(service *horizon.HorizonService) {
 				LoanTransactionID: payment.LoanTransactionID,
 			})
 			if err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "multipayment-error",
 					Description: fmt.Sprintf("Multiple payment processing failed for payment %d: %v", i+1, err),
 					Module:      "Transaction",
@@ -113,7 +113,7 @@ func paymentController(service *horizon.HorizonService) {
 			}
 
 			if err := endTx(nil); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "multipayment-commit-error",
 					Description: fmt.Sprintf("Multiple payment commit failed for payment %d: %v", i+1, err),
 					Module:      "Transaction",
@@ -125,42 +125,42 @@ func paymentController(service *horizon.HorizonService) {
 
 		var response []core.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
-			response = append(response, *c.core.GeneralLedgerManager().ToModel(gl))
+			response = append(response, *core.GeneralLedgerManager(service).ToModel(gl))
 		}
 
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
 		Method:       "POST",
 		Note:         "Processes print number for the specified general ledger by general_ledger_id.",
 		ResponseType: core.GeneralLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generalLedgerID, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
+		generalLedgerID, err := helpers.EngineUUIDParam(ctx, "general_ledger_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-general-ledger-param-error",
 				Description: fmt.Sprintf("Invalid general ledger id for POST /transaction/general-ledger/:general_ledger_id/payment: %v", err),
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 
 		// Get general ledger
-		generalLedger, err := c.core.GeneralLedgerManager().GetByID(context, *generalLedgerID)
+		generalLedger, err := core.GeneralLedgerManager(service).GetByID(context, *generalLedgerID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-general-ledger-not-found",
 				Description: fmt.Sprintf("General ledger not found for ID %v: %v", generalLedgerID, err),
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
-		maxNumber, err := c.core.GeneralLedgerPrintMaxNumber(
+		maxNumber, err := core.GeneralLedgerPrintMaxNumber(
 			context,
 			*generalLedger.MemberProfileID,
 			*generalLedger.AccountID,
@@ -168,15 +168,15 @@ func paymentController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 		)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-general-ledger-max-number-error",
 				Description: fmt.Sprintf("Failed to get max print number for general ledger ID %v: %v", generalLedgerID, err),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get max print number: " + err.Error()})
 		}
 		generalLedger.PrintNumber = maxNumber + 1
-		if err := c.core.GeneralLedgerManager().UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.GeneralLedgerManager(service).UpdateByID(context, generalLedger.ID, generalLedger); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect account to FS definition failed (/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect), account db error: " + err.Error(),
 				Module:      "FinancialStatement",
@@ -184,11 +184,11 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to connect account: " + err.Error()})
 		}
 
-		response := c.core.GeneralLedgerManager().ToModel(generalLedger)
+		response := core.GeneralLedgerManager(service).ToModel(generalLedger)
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
@@ -199,7 +199,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-bind-error",
 				Description: "Payment failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -208,7 +208,7 @@ func paymentController(service *horizon.HorizonService) {
 		}
 
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-validation-error",
 				Description: "Payment failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -218,7 +218,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-db-error",
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -226,9 +226,9 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/payment: %v", err),
 				Module:      "Transaction",
@@ -256,7 +256,7 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID: req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-error",
 				Description: "Payment processing failed: " + err.Error(),
 				Module:      "Transaction",
@@ -264,12 +264,12 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
 
-		response := c.core.GeneralLedgerManager().ToModel(generalLedger)
+		response := core.GeneralLedgerManager(service).ToModel(generalLedger)
 
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
@@ -279,7 +279,7 @@ func paymentController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-bind-error",
 				Description: "Withdrawal failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -287,7 +287,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid withdrawal payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-validation-error",
 				Description: "Withdrawal failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -297,7 +297,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-db-error",
 				Description: "Withdrawal failed (/transaction/:transaction_id/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -305,9 +305,9 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/withdraw: %v", err),
 				Module:      "Transaction",
@@ -334,17 +334,17 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-error",
 				Description: "Withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
@@ -354,7 +354,7 @@ func paymentController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-bind-error",
 				Description: "Deposit failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -362,7 +362,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid deposit payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-validation-error",
 				Description: "Deposit failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -372,7 +372,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-db-error",
 				Description: "Deposit failed (/transaction/:transaction_id/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -380,9 +380,9 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /transaction/:transaction_id/deposit: %v", err),
 				Module:      "Transaction",
@@ -409,17 +409,17 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-error",
 				Description: "Deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for a transaction without specifying transaction_id in the route. Used for general payments.",
@@ -429,7 +429,7 @@ func paymentController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-payment-bind-error",
 				Description: "General payment failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -437,7 +437,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payment payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-payment-validation-error",
 				Description: "General payment failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -447,7 +447,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-payment-db-error",
 				Description: "General payment failed (/transaction/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -475,17 +475,17 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-payment-error",
 				Description: "General payment processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
@@ -495,7 +495,7 @@ func paymentController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-withdraw-bind-error",
 				Description: "General withdrawal failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -503,7 +503,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid withdrawal payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-withdraw-validation-error",
 				Description: "General withdrawal failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -513,7 +513,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-withdraw-db-error",
 				Description: "General withdrawal failed (/transaction/withdraw), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -541,17 +541,17 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-withdraw-error",
 				Description: "General withdrawal processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Withdrawal processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
@@ -561,7 +561,7 @@ func paymentController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-deposit-bind-error",
 				Description: "General deposit failed: invalid payload: " + err.Error(),
 				Module:      "Transaction",
@@ -569,7 +569,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid deposit payload: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-deposit-validation-error",
 				Description: "General deposit failed: validation error: " + err.Error(),
 				Module:      "Transaction",
@@ -579,7 +579,7 @@ func paymentController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-deposit-db-error",
 				Description: "General deposit failed (/transaction/deposit), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -607,33 +607,33 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     req.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-deposit-error",
 				Description: "General deposit processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Deposit processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(generalLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/transaction/general-ledger/:general_ledger_id/reverse",
 		Method: "POST",
 		Note:   "Reverses a specific general ledger transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		generalLedgerID, err := handlers.EngineUUIDParam(ctx, "general_ledger_id")
+		generalLedgerID, err := helpers.EngineUUIDParam(ctx, "general_ledger_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general ledger ID: " + err.Error()})
 		}
-		generalLedger, err := c.core.GeneralLedgerManager().GetByID(context, *generalLedgerID)
+		generalLedger, err := core.GeneralLedgerManager(service).GetByID(context, *generalLedgerID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-db-error",
 				Description: "Payment failed (/transaction/:transaction_id/payment), begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -669,26 +669,26 @@ func paymentController(service *horizon.HorizonService) {
 			LoanTransactionID:     generalLedger.LoanTransactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-error",
 				Description: "Payment processing failed: " + err.Error(),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Payment processing failed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.GeneralLedgerManager().ToModel(newGeneralLedger))
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(newGeneralLedger))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",
 		ResponseType: core.TransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionID, err := handlers.EngineUUIDParam(ctx, "transaction_id")
+		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-reverse-param-error",
 				Description: fmt.Sprintf("Invalid transaction id for POST /general-ledger/transaction/:transaction_id/reverse: %v", err),
 				Module:      "Transaction",
@@ -696,11 +696,11 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedgers, err := c.core.GeneralLedgerManager().Find(context, &core.GeneralLedger{
+		generalLedgers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
 			TransactionID: transactionID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-reverse-ledger-error",
 				Description: fmt.Sprintf("Failed to get general ledger entries for transaction ID %v: %v", transactionID, err),
 				Module:      "Transaction",
@@ -713,7 +713,7 @@ func paymentController(service *horizon.HorizonService) {
 		}
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-reverse-db-error",
 				Description: "Transaction reverse failed, begin tx error: " + tx.Error.Error(),
 				Module:      "Transaction",
@@ -753,7 +753,7 @@ func paymentController(service *horizon.HorizonService) {
 				LoanTransactionID:     generalLedger.LoanTransactionID,
 			})
 			if err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "transaction-reverse-error",
 					Description: fmt.Sprintf("Transaction reversal failed for ledger %v: %v", generalLedger.ID, err),
 					Module:      "Transaction",
@@ -762,16 +762,16 @@ func paymentController(service *horizon.HorizonService) {
 			}
 			reversedLedgers = append(reversedLedgers, newGeneralLedger)
 		}
-		transaction, err := c.core.TransactionManager().GetByIDRaw(context, *transactionID)
+		transaction, err := core.TransactionManager(service).GetByIDRaw(context, *transactionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-reverse-fetch-error",
 				Description: fmt.Sprintf("Failed to fetch transaction %v after reversal: %v", transactionID, err),
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch transaction after reversal: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "transaction-reverse-success",
 			Description: fmt.Sprintf("Successfully reversed transaction %v with %d general ledger entries", transactionID, len(reversedLedgers)),
 			Module:      "Transaction",

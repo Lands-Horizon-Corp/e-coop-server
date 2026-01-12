@@ -4,56 +4,56 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func timeDepositTypeController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
 		Note:         "Returns a paginated list of time deposit types for the current user's organization and branch.",
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		timeDepositTypes, err := c.core.TimeDepositTypeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timeDepositTypes, err := core.TimeDepositTypeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModels(timeDepositTypes))
+		return ctx.JSON(http.StatusOK, core.TimeDepositTypeManager(service).ToModels(timeDepositTypes))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "GET",
 		Note:         "Returns a single time deposit type by its ID.",
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
+		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager().GetByIDRaw(context, *timeDepositTypeID)
+		timeDepositType, err := core.TimeDepositTypeManager(service).GetByIDRaw(context, *timeDepositTypeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
 		return ctx.JSON(http.StatusOK, timeDepositType)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "POST",
 		Note:         "Creates a new time deposit type for the current user's organization and branch.",
@@ -61,18 +61,18 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.TimeDepositTypeManager().Validate(ctx)
+		req, err := core.TimeDepositTypeManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), validation error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), user org error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -80,7 +80,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), user not assigned to branch.",
 				Module:      "TimeDepositType",
@@ -103,23 +103,23 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 			CurrencyID:     req.CurrencyID,
 		}
 
-		if err := c.core.TimeDepositTypeManager().Create(context, timeDepositType); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TimeDepositTypeManager(service).Create(context, timeDepositType); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time deposit type creation failed (/time-deposit-type), db error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit type: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created time deposit type (/time-deposit-type): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.TimeDepositTypeManager().ToModel(timeDepositType))
+		return ctx.JSON(http.StatusCreated, core.TimeDepositTypeManager(service).ToModel(timeDepositType))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit type by its ID.",
@@ -127,9 +127,9 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
+		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), invalid time deposit type ID.",
 				Module:      "TimeDepositType",
@@ -137,27 +137,27 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
 
-		req, err := c.core.TimeDepositTypeManager().Validate(ctx)
+		req, err := core.TimeDepositTypeManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), validation error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), user org error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, *timeDepositTypeID)
+		timeDepositType, err := core.TimeDepositTypeManager(service).GetByID(context, *timeDepositTypeID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), time deposit type not found.",
 				Module:      "TimeDepositType",
@@ -167,7 +167,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to start database transaction: " + tx.Error.Error(),
 				Module:      "TimeDepositType",
@@ -196,8 +196,8 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		timeDepositType.Header10 = req.Header10
 		timeDepositType.Header11 = req.Header11
 
-		if err := c.core.TimeDepositTypeManager().UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TimeDepositTypeManager(service).UpdateByIDWithTx(context, tx, timeDepositType.ID, timeDepositType); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time deposit type update failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -207,8 +207,8 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 
 		if req.TimeDepositComputationsDeleted != nil {
 			for _, id := range req.TimeDepositComputationsDeleted {
-				if err := c.core.TimeDepositComputationManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.TimeDepositComputationManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation: " + err.Error(),
 						Module:      "TimeDepositType",
@@ -220,8 +220,8 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 
 		if req.TimeDepositComputationPreMaturesDeleted != nil {
 			for _, id := range req.TimeDepositComputationPreMaturesDeleted {
-				if err := c.core.TimeDepositComputationPreMatureManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.TimeDepositComputationPreMatureManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete time deposit computation pre mature: " + err.Error(),
 						Module:      "TimeDepositType",
@@ -234,7 +234,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		if req.TimeDepositComputations != nil {
 			for _, computationReq := range req.TimeDepositComputations {
 				if computationReq.ID != nil {
-					existingComputation, err := c.core.TimeDepositComputationManager().GetByID(context, *computationReq.ID)
+					existingComputation, err := core.TimeDepositComputationManager(service).GetByID(context, *computationReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation: " + endTx(err).Error()})
 					}
@@ -253,7 +253,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 					existingComputation.Header11 = computationReq.Header11
 					existingComputation.UpdatedAt = time.Now().UTC()
 					existingComputation.UpdatedByID = userOrg.UserID
-					if err := c.core.TimeDepositComputationManager().UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
+					if err := core.TimeDepositComputationManager(service).UpdateByIDWithTx(context, tx, existingComputation.ID, existingComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + endTx(err).Error()})
 					}
 				} else {
@@ -279,7 +279,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 						BranchID:          *userOrg.BranchID,
 						OrganizationID:    userOrg.OrganizationID,
 					}
-					if err := c.core.TimeDepositComputationManager().CreateWithTx(context, tx, newComputation); err != nil {
+					if err := core.TimeDepositComputationManager(service).CreateWithTx(context, tx, newComputation); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation: " + endTx(err).Error()})
 					}
 				}
@@ -289,7 +289,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		if req.TimeDepositComputationPreMatures != nil {
 			for _, preMatureReq := range req.TimeDepositComputationPreMatures {
 				if preMatureReq.ID != nil {
-					existingPreMature, err := c.core.TimeDepositComputationPreMatureManager().GetByID(context, *preMatureReq.ID)
+					existingPreMature, err := core.TimeDepositComputationPreMatureManager(service).GetByID(context, *preMatureReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get time deposit computation pre mature: " + endTx(err).Error()})
 					}
@@ -299,7 +299,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 					existingPreMature.Rate = preMatureReq.Rate
 					existingPreMature.UpdatedAt = time.Now().UTC()
 					existingPreMature.UpdatedByID = userOrg.UserID
-					if err := c.core.TimeDepositComputationPreMatureManager().UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
+					if err := core.TimeDepositComputationPreMatureManager(service).UpdateByIDWithTx(context, tx, existingPreMature.ID, existingPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				} else {
@@ -316,7 +316,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 						BranchID:          *userOrg.BranchID,
 						OrganizationID:    userOrg.OrganizationID,
 					}
-					if err := c.core.TimeDepositComputationPreMatureManager().CreateWithTx(context, tx, newPreMature); err != nil {
+					if err := core.TimeDepositComputationPreMatureManager(service).CreateWithTx(context, tx, newPreMature); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				}
@@ -324,7 +324,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit time deposit type update transaction: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -332,51 +332,51 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit time deposit type update: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
 		})
-		newTimeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, timeDepositType.ID)
+		newTimeDepositType, err := core.TimeDepositTypeManager(service).GetByID(context, timeDepositType.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated time deposit type: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModel(newTimeDepositType))
+		return ctx.JSON(http.StatusOK, core.TimeDepositTypeManager(service).ToModel(newTimeDepositType))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit type by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timeDepositTypeID, err := handlers.EngineUUIDParam(ctx, "time_deposit_type_id")
+		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), invalid time deposit type ID.",
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid time deposit type ID"})
 		}
-		timeDepositType, err := c.core.TimeDepositTypeManager().GetByID(context, *timeDepositTypeID)
+		timeDepositType, err := core.TimeDepositTypeManager(service).GetByID(context, *timeDepositTypeID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), not found.",
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Time deposit type not found"})
 		}
-		if err := c.core.TimeDepositTypeManager().Delete(context, *timeDepositTypeID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TimeDepositTypeManager(service).Delete(context, *timeDepositTypeID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Time deposit type delete failed (/time-deposit-type/:time_deposit_type_id), db error: " + err.Error(),
 				Module:      "TimeDepositType",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete time deposit type: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted time deposit type (/time-deposit-type/:time_deposit_type_id): " + timeDepositType.Name,
 			Module:      "TimeDepositType",
@@ -384,7 +384,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/time-deposit-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit types by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -394,7 +394,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -403,7 +403,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | no IDs provided",
 				Module:      "TimeDepositType",
@@ -415,8 +415,8 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.TimeDepositTypeManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TimeDepositTypeManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Time deposit type bulk delete failed (/time-deposit-type/bulk-delete) | error: " + err.Error(),
 				Module:      "TimeDepositType",
@@ -424,7 +424,7 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete time deposit types: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted time deposit types (/time-deposit-type/bulk-delete)",
 			Module:      "TimeDepositType",
@@ -432,27 +432,27 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Fetch time deposit types by currency ID.",
 		ResponseType: core.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
 				Module:      "Bank",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositTypes, err := c.core.TimeDepositTypeManager().Find(context, &core.TimeDepositType{
+		timeDepositTypes, err := core.TimeDepositTypeManager(service).Find(context, &core.TimeDepositType{
 			CurrencyID:     *currencyID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -460,6 +460,6 @@ func timeDepositTypeController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch time deposit types: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimeDepositTypeManager().ToModels(timeDepositTypes))
+		return ctx.JSON(http.StatusOK, core.TimeDepositTypeManager(service).ToModels(timeDepositTypes))
 	})
 }

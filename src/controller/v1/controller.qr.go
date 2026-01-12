@@ -3,7 +3,6 @@ package v1
 import (
 	"net/http"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
 	"github.com/labstack/echo/v4"
 )
@@ -11,7 +10,7 @@ import (
 func qRCodeController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/qr-code/:code",
 		Method:       "GET",
 		ResponseType: horizon.QRResult{},

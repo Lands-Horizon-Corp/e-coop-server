@@ -4,35 +4,35 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func includeNegativeAccountController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		sheetID, err := helpers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager().NormalPagination(context, ctx, &core.IncludeNegativeAccount{
+		records, err := core.IncludeNegativeAccountManager(service).NormalPagination(context, ctx, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -43,25 +43,25 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, records)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: core.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheetID, err := handlers.EngineUUIDParam(ctx, "computation_sheet_id")
+		sheetID, err := helpers.EngineUUIDParam(ctx, "computation_sheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := c.core.IncludeNegativeAccountManager().Find(context, &core.IncludeNegativeAccount{
+		records, err := core.IncludeNegativeAccountManager(service).Find(context, &core.IncludeNegativeAccount{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -69,10 +69,10 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No include negative accounts found for this computation sheet"})
 		}
-		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager().ToModels(records))
+		return ctx.JSON(http.StatusOK, core.IncludeNegativeAccountManager(service).ToModels(records))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -80,18 +80,18 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.IncludeNegativeAccountManager().Validate(ctx)
+		req, err := core.IncludeNegativeAccountManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), validation error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), user org error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
@@ -99,7 +99,7 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), user not assigned to branch.",
 				Module:      "IncludeNegativeAccount",
@@ -119,23 +119,23 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 			OrganizationID:     userOrg.OrganizationID,
 		}
 
-		if err := c.core.IncludeNegativeAccountManager().Create(context, record); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.IncludeNegativeAccountManager(service).Create(context, record); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Include negative account creation failed (/include-negative-accounts), db error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create include negative account: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created include negative account (/include-negative-accounts)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.IncludeNegativeAccountManager().ToModel(record))
+		return ctx.JSON(http.StatusCreated, core.IncludeNegativeAccountManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: core.IncludeNegativeAccountResponse{},
@@ -143,9 +143,9 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := handlers.EngineUUIDParam(ctx, "include_negative_accounts_id")
+		id, err := helpers.EngineUUIDParam(ctx, "include_negative_accounts_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), invalid ID.",
 				Module:      "IncludeNegativeAccount",
@@ -153,27 +153,27 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
 
-		req, err := c.core.IncludeNegativeAccountManager().Validate(ctx)
+		req, err := core.IncludeNegativeAccountManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), validation error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), user org error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		record, err := c.core.IncludeNegativeAccountManager().GetByID(context, *id)
+		record, err := core.IncludeNegativeAccountManager(service).GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), not found.",
 				Module:      "IncludeNegativeAccount",
@@ -186,55 +186,55 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		record.UpdatedAt = time.Now().UTC()
 		record.UpdatedByID = userOrg.UserID
 
-		if err := c.core.IncludeNegativeAccountManager().UpdateByID(context, record.ID, record); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.IncludeNegativeAccountManager(service).UpdateByID(context, record.ID, record); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Include negative account update failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update include negative account: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated include negative account (/include-negative-accounts/:include_negative_accounts_id)",
 			Module:      "IncludeNegativeAccount",
 		})
-		return ctx.JSON(http.StatusOK, c.core.IncludeNegativeAccountManager().ToModel(record))
+		return ctx.JSON(http.StatusOK, core.IncludeNegativeAccountManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		id, err := handlers.EngineUUIDParam(ctx, "include_negative_accounts_id")
+		id, err := helpers.EngineUUIDParam(ctx, "include_negative_accounts_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), invalid ID.",
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid include negative account ID"})
 		}
-		record, err := c.core.IncludeNegativeAccountManager().GetByID(context, *id)
+		record, err := core.IncludeNegativeAccountManager(service).GetByID(context, *id)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), not found.",
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Include negative account not found"})
 		}
-		if err := c.core.IncludeNegativeAccountManager().Delete(context, record.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.IncludeNegativeAccountManager(service).Delete(context, record.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Include negative account delete failed (/include-negative-accounts/:include_negative_accounts_id), db error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete include negative account: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted include negative account (/include-negative-accounts/:include_negative_accounts_id)",
 			Module:      "IncludeNegativeAccount",
@@ -242,7 +242,7 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -252,7 +252,7 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
@@ -261,7 +261,7 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | no IDs provided",
 				Module:      "IncludeNegativeAccount",
@@ -272,8 +272,8 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.IncludeNegativeAccountManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.IncludeNegativeAccountManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/include-negative-accounts/bulk-delete) | error: " + err.Error(),
 				Module:      "IncludeNegativeAccount",
@@ -281,7 +281,7 @@ func includeNegativeAccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete include negative accounts: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted include negative accounts (/include-negative-accounts/bulk-delete)",
 			Module:      "IncludeNegativeAccount",

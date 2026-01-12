@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -17,28 +17,28 @@ import (
 func currencyController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
 		Note:         "Returns all currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencies, err := c.core.CurrencyManager().List(context)
+		currencies, err := core.CurrencyManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve currencies: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currencies))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currencies))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/blotter-available",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
 		Note:         "Returns all available currencies on unbalance accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
@@ -48,26 +48,26 @@ func currencyController(service *horizon.HorizonService) {
 				currency = append(currency, unbal.Currency)
 			}
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currency))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currency))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/available",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
 		Note:         "Returns all available currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Bank update failed (/bank/:bank_id), user org error: " + err.Error(),
 				Module:      "Bank",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		accounts, err := c.core.AccountManager().Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &core.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -84,22 +84,22 @@ func currencyController(service *horizon.HorizonService) {
 		for _, currency := range currencyMap {
 			currencies = append(currencies, currency)
 		}
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModels(currencies))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currencies))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
 		Note:         "Returns a specific currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager().GetByIDRaw(context, *currencyID)
+		currency, err := core.CurrencyManager(service).GetByIDRaw(context, *currencyID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
@@ -107,7 +107,7 @@ func currencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, currency)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/code/:currency_code",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -119,15 +119,15 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Currency code is required"})
 		}
 
-		currency, err := c.core.CurrencyFindByCode(context, currencyCode)
+		currency, err := core.CurrencyFindByCode(context, currencyCode)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "POST",
 		ResponseType: core.CurrencyResponse{},
@@ -135,9 +135,9 @@ func currencyController(service *horizon.HorizonService) {
 		Note:         "Creates a new currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CurrencyManager().Validate(ctx)
+		req, err := core.CurrencyManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create currency failed: validation error: " + err.Error(),
 				Module:      "Currency",
@@ -156,8 +156,8 @@ func currencyController(service *horizon.HorizonService) {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.core.CurrencyManager().Create(context, currency); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CurrencyManager(service).Create(context, currency); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create currency failed: create error: " + err.Error(),
 				Module:      "Currency",
@@ -165,16 +165,16 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create currency: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "PUT",
 		ResponseType: core.CurrencyResponse{},
@@ -182,9 +182,9 @@ func currencyController(service *horizon.HorizonService) {
 		Note:         "Updates an existing currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: invalid currency_id: " + err.Error(),
 				Module:      "Currency",
@@ -192,9 +192,9 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		req, err := c.core.CurrencyManager().Validate(ctx)
+		req, err := core.CurrencyManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: validation error: " + err.Error(),
 				Module:      "Currency",
@@ -202,9 +202,9 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager().GetByID(context, *currencyID)
+		currency, err := core.CurrencyManager(service).GetByID(context, *currencyID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: not found: " + err.Error(),
 				Module:      "Currency",
@@ -220,8 +220,8 @@ func currencyController(service *horizon.HorizonService) {
 		currency.Timezone = req.Timezone
 		currency.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CurrencyManager().UpdateByID(context, currency.ID, currency); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CurrencyManager(service).UpdateByID(context, currency.ID, currency); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update currency failed: update error: " + err.Error(),
 				Module:      "Currency",
@@ -229,24 +229,24 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update currency: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CurrencyManager().ToModel(currency))
+		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/currency/:currency_id",
 		Method: "DELETE",
 		Note:   "Deletes a currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: invalid currency_id: " + err.Error(),
 				Module:      "Currency",
@@ -254,9 +254,9 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
 
-		currency, err := c.core.CurrencyManager().GetByID(context, *currencyID)
+		currency, err := core.CurrencyManager(service).GetByID(context, *currencyID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: not found: " + err.Error(),
 				Module:      "Currency",
@@ -264,8 +264,8 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}
 
-		if err := c.core.CurrencyManager().Delete(context, *currencyID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CurrencyManager(service).Delete(context, *currencyID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete currency failed: delete error: " + err.Error(),
 				Module:      "Currency",
@@ -273,7 +273,7 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete currency: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted currency: " + currency.Name + " (" + currency.CurrencyCode + ")",
 			Module:      "Currency",
@@ -282,7 +282,7 @@ func currencyController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/currency/bulk-delete",
 		Method:      "DELETE",
 		RequestType: core.IDSRequest{},
@@ -292,7 +292,7 @@ func currencyController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: invalid request body. " + err.Error(),
 				Module:      "Currency",
@@ -301,7 +301,7 @@ func currencyController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: no IDs provided.",
 				Module:      "Currency",
@@ -313,8 +313,8 @@ func currencyController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CurrencyManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CurrencyManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete currencies failed: " + err.Error(),
 				Module:      "Currency",
@@ -322,7 +322,7 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete currencies: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted currencies.",
 			Module:      "Currency",
@@ -330,18 +330,18 @@ func currencyController(service *horizon.HorizonService) {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
 		Method:       "POST",
 		ResponseType: usecase.ExchangeResult{},
 		Note:         "Computes exchange rate between two currencies for a given amount.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyFromID, err := handlers.EngineUUIDParam(ctx, "currency_from_id")
+		currencyFromID, err := helpers.EngineUUIDParam(ctx, "currency_from_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_from_id: " + err.Error()})
 		}
-		currencyToID, err := handlers.EngineUUIDParam(ctx, "currency_to_id")
+		currencyToID, err := helpers.EngineUUIDParam(ctx, "currency_to_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_to_id: " + err.Error()})
 		}
@@ -352,11 +352,11 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid amount: " + err.Error()})
 		}
 
-		fromCurrency, err := c.core.CurrencyManager().GetByID(context, *currencyFromID)
+		fromCurrency, err := core.CurrencyManager(service).GetByID(context, *currencyFromID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency from not found: " + err.Error()})
 		}
-		toCurrency, err := c.core.CurrencyManager().GetByID(context, *currencyToID)
+		toCurrency, err := core.CurrencyManager(service).GetByID(context, *currencyToID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency to not found: " + err.Error()})
 		}
@@ -369,7 +369,7 @@ func currencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/timezone/:timezone",
 		Method:       "GET",
 		ResponseType: core.CurrencyResponse{},
@@ -380,7 +380,7 @@ func currencyController(service *horizon.HorizonService) {
 		if timezone == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Timezone is required"})
 		}
-		currency, err := c.core.CurrencyManager().FindOneRaw(context, &core.Currency{Timezone: timezone})
+		currency, err := core.CurrencyManager(service).FindOneRaw(context, &core.Currency{Timezone: timezone})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for timezone: " + err.Error()})
 		}

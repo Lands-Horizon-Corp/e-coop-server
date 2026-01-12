@@ -4,43 +4,43 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func subscriptionPlanController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.core.SubscriptionPlanManager().List(context)
+		categories, err := core.SubscriptionPlanManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve subscription plans: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager().ToModels(categories))
+		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModels(categories))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns a specific subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := helpers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.core.SubscriptionPlanManager().GetByIDRaw(context, *subscriptionPlanID)
+		subscriptionPlan, err := core.SubscriptionPlanManager(service).GetByIDRaw(context, *subscriptionPlanID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "SubscriptionPlan not found: " + err.Error()})
 		}
@@ -48,7 +48,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, subscriptionPlan)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -56,9 +56,9 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		Note:         "Creates a new subscription plan.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.SubscriptionPlanManager().Validate(ctx)
+		req, err := core.SubscriptionPlanManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create subscription plan failed: validation error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -87,8 +87,8 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			UpdatedAt:                time.Now().UTC(),
 		}
 
-		if err := c.core.SubscriptionPlanManager().Create(context, subscriptionPlan); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.SubscriptionPlanManager(service).Create(context, subscriptionPlan); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create subscription plan failed: create error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -96,16 +96,16 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager().ToModel(subscriptionPlan))
+		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModel(subscriptionPlan))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
 		ResponseType: core.SubscriptionPlanResponse{},
@@ -113,9 +113,9 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := helpers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: invalid subscription_plan_id: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -123,9 +123,9 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		req, err := c.core.SubscriptionPlanManager().Validate(ctx)
+		req, err := core.SubscriptionPlanManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: validation error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -133,9 +133,9 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.core.SubscriptionPlanManager().GetByID(context, *subscriptionPlanID)
+		subscriptionPlan, err := core.SubscriptionPlanManager(service).GetByID(context, *subscriptionPlanID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: not found: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -161,8 +161,8 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		subscriptionPlan.CurrencyID = req.CurrencyID
 		subscriptionPlan.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.SubscriptionPlanManager().UpdateByID(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.SubscriptionPlanManager(service).UpdateByID(context, subscriptionPlan.ID, subscriptionPlan); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update subscription plan failed: update error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -170,24 +170,24 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.SubscriptionPlanManager().ToModel(subscriptionPlan))
+		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModel(subscriptionPlan))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 		Note:   "Deletes a subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		subscriptionPlanID, err := handlers.EngineUUIDParam(ctx, "subscription_plan_id")
+		subscriptionPlanID, err := helpers.EngineUUIDParam(ctx, "subscription_plan_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: invalid subscription_plan_id: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -195,9 +195,9 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid subscription_plan_id: " + err.Error()})
 		}
 
-		subscriptionPlan, err := c.core.SubscriptionPlanManager().GetByID(context, *subscriptionPlanID)
+		subscriptionPlan, err := core.SubscriptionPlanManager(service).GetByID(context, *subscriptionPlanID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: not found: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -205,8 +205,8 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "SubscriptionPlan not found: " + err.Error()})
 		}
 
-		if err := c.core.SubscriptionPlanManager().Delete(context, *subscriptionPlanID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.SubscriptionPlanManager(service).Delete(context, *subscriptionPlanID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete subscription plan failed: delete error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -214,7 +214,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete subscription plan: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted subscription plan: " + subscriptionPlan.Name,
 			Module:      "SubscriptionPlan",
@@ -223,7 +223,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple subscription plan records.",
@@ -233,7 +233,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -242,7 +242,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | no IDs provided",
 				Module:      "SubscriptionPlan",
@@ -254,8 +254,8 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.SubscriptionPlanManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.SubscriptionPlanManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Subscription plan bulk delete failed (/subscription-plan/bulk-delete) | error: " + err.Error(),
 				Module:      "SubscriptionPlan",
@@ -263,7 +263,7 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete subscription plans: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted subscription plans (/subscription-plan/bulk-delete)",
 			Module:      "SubscriptionPlan",
@@ -272,18 +272,18 @@ func subscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: core.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans for a specific currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
-		subscriptionPlans, err := c.core.SubscriptionPlanManager().FindRaw(context, &core.SubscriptionPlan{
+		subscriptionPlans, err := core.SubscriptionPlanManager(service).FindRaw(context, &core.SubscriptionPlan{
 			CurrencyID: currencyID,
 		})
 		if err != nil {

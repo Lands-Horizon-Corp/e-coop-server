@@ -4,43 +4,43 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func categoryController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category",
 		Method:       "GET",
 		Note:         "Returns all categories in the system.",
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categories, err := c.core.CategoryManager().List(context)
+		categories, err := core.CategoryManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve categories: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.CategoryManager().ToModels(categories))
+		return ctx.JSON(http.StatusOK, core.CategoryManager(service).ToModels(categories))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "GET",
 		Note:         "Returns a single category by its ID.",
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := helpers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		category, err := c.core.CategoryManager().GetByIDRaw(context, *categoryID)
+		category, err := core.CategoryManager(service).GetByIDRaw(context, *categoryID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Category not found"})
 		}
@@ -48,7 +48,7 @@ func categoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, category)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
@@ -56,9 +56,9 @@ func categoryController(service *horizon.HorizonService) {
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.CategoryManager().Validate(ctx)
+		req, err := core.CategoryManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Category creation failed (/category), validation error: " + err.Error(),
 				Module:      "Category",
@@ -75,8 +75,8 @@ func categoryController(service *horizon.HorizonService) {
 			UpdatedAt:   time.Now().UTC(),
 		}
 
-		if err := c.core.CategoryManager().Create(context, category); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CategoryManager(service).Create(context, category); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Category creation failed (/category), db error: " + err.Error(),
 				Module:      "Category",
@@ -84,16 +84,16 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create category: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created category (/category): " + category.Name,
 			Module:      "Category",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.CategoryManager().ToModel(category))
+		return ctx.JSON(http.StatusCreated, core.CategoryManager(service).ToModel(category))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
@@ -101,9 +101,9 @@ func categoryController(service *horizon.HorizonService) {
 		ResponseType: core.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := helpers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), invalid category ID.",
 				Module:      "Category",
@@ -111,9 +111,9 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		req, err := c.core.CategoryManager().Validate(ctx)
+		req, err := core.CategoryManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), validation error: " + err.Error(),
 				Module:      "Category",
@@ -121,9 +121,9 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category data: " + err.Error()})
 		}
 
-		category, err := c.core.CategoryManager().GetByID(context, *categoryID)
+		category, err := core.CategoryManager(service).GetByID(context, *categoryID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), not found.",
 				Module:      "Category",
@@ -137,8 +137,8 @@ func categoryController(service *horizon.HorizonService) {
 		category.Icon = req.Icon
 		category.UpdatedAt = time.Now().UTC()
 
-		if err := c.core.CategoryManager().UpdateByID(context, category.ID, category); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CategoryManager(service).UpdateByID(context, category.ID, category); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Category update failed (/category/:category_id), db error: " + err.Error(),
 				Module:      "Category",
@@ -146,24 +146,24 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update category: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated category (/category/:category_id): " + category.Name,
 			Module:      "Category",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.CategoryManager().ToModel(category))
+		return ctx.JSON(http.StatusOK, core.CategoryManager(service).ToModel(category))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/category/:category_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified category by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		categoryID, err := handlers.EngineUUIDParam(ctx, "category_id")
+		categoryID, err := helpers.EngineUUIDParam(ctx, "category_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), invalid category ID.",
 				Module:      "Category",
@@ -171,9 +171,9 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid category ID"})
 		}
 
-		category, err := c.core.CategoryManager().GetByID(context, *categoryID)
+		category, err := core.CategoryManager(service).GetByID(context, *categoryID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), not found.",
 				Module:      "Category",
@@ -181,8 +181,8 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Category not found"})
 		}
 
-		if err := c.core.CategoryManager().Delete(context, *categoryID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CategoryManager(service).Delete(context, *categoryID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Category delete failed (/category/:category_id), db error: " + err.Error(),
 				Module:      "Category",
@@ -190,7 +190,7 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete category: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted category (/category/:category_id): " + category.Name,
 			Module:      "Category",
@@ -199,7 +199,7 @@ func categoryController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -209,7 +209,7 @@ func categoryController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Category",
@@ -218,7 +218,7 @@ func categoryController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | no IDs provided",
 				Module:      "Category",
@@ -230,8 +230,8 @@ func categoryController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.CategoryManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.CategoryManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/category/bulk-delete) | error: " + err.Error(),
 				Module:      "Category",
@@ -239,7 +239,7 @@ func categoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete categories: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted categories (/category/bulk-delete)",
 			Module:      "Category",

@@ -4,52 +4,52 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func transactionBatchController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
 		Note:         "Returns all transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager().Find(context, &core.TransactionBatch{
+		transactionBatch, err := core.TransactionBatchManager(service).Find(context, &core.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
 		Note:         "Returns paginated transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager().NormalPagination(context, ctx, &core.TransactionBatch{
+		transactionBatch, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &core.TransactionBatch{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -59,7 +59,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, transactionBatch)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
 		ResponseType: core.TransactionBatchResponse{},
@@ -69,7 +69,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.TransactionBatchSignatureRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: invalid request body: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -77,25 +77,25 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: validation error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: invalid transaction_batch_id: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -103,16 +103,16 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: user not authorized",
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil || transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: Transaction batch not found",
 				Module:      "TransactionBatch",
@@ -154,30 +154,30 @@ func transactionBatchController(service *horizon.HorizonService) {
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
 
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update signature failed: update error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated transaction batch signatures for batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
 		Note:         "Returns the current active transaction batch for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -185,22 +185,22 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 
 		if !transactionBatch.CanView {
-			result, err := c.core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
 		ResponseType: core.TransactionBatchResponse{},
@@ -208,9 +208,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: invalid transaction_batch_id: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -218,9 +218,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -228,7 +228,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: user not authorized",
 				Module:      "TransactionBatch",
@@ -238,7 +238,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 
 		var req core.TransactionBatchDepositInBankRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: invalid request body: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -246,7 +246,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: validation error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -254,9 +254,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: transaction batch not found: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -265,7 +265,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 
 		if transactionBatch.OrganizationID != userOrg.OrganizationID || transactionBatch.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: batch not in org/branch",
 				Module:      "TransactionBatch",
@@ -274,7 +274,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 
 		if transactionBatch.IsClosed {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: batch is closed",
 				Module:      "TransactionBatch",
@@ -283,8 +283,8 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 		transactionBatch.DepositInBank = req.DepositInBank
 
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update deposit in bank failed: update error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -295,23 +295,23 @@ func transactionBatchController(service *horizon.HorizonService) {
 		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated deposit in bank for batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
 
 		if !transactionBatch.CanView {
-			result, err := c.core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
 		ResponseType: core.TransactionBatchResponse{},
@@ -319,9 +319,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := c.core.BatchFundingManager().Validate(ctx)
+		batchFundingReq, err := core.BatchFundingManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: validation error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -329,9 +329,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -340,7 +340,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: user not authorized",
 				Module:      "TransactionBatch",
@@ -348,9 +348,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, _ := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, _ := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if transactionBatch != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: ongoing batch",
 				Module:      "TransactionBatch",
@@ -360,7 +360,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 		if tx.Error != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: begin tx error: " + tx.Error.Error(),
 				Module:      "TransactionBatch",
@@ -401,8 +401,8 @@ func transactionBatchController(service *horizon.HorizonService) {
 			RequestView:                   false,
 		}
 
-		if err := c.core.TransactionBatchManager().CreateWithTx(context, tx, transBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).CreateWithTx(context, tx, transBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -426,8 +426,8 @@ func transactionBatchController(service *horizon.HorizonService) {
 			CurrencyID:         batchFundingReq.CurrencyID,
 		}
 
-		if err := c.core.BatchFundingManager().CreateWithTx(context, tx, batchFunding); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.BatchFundingManager(service).CreateWithTx(context, tx, batchFunding); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: create batch funding error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -436,7 +436,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create transaction batch failed: commit tx error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -444,13 +444,13 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created transaction batch and batch funding for branch " + userOrg.BranchID.String(),
 			Module:      "TransactionBatch",
 		})
 
-		result, err := c.core.TransactionBatchMinimal(context, transBatch.ID)
+		result, err := core.TransactionBatchMinimal(context, transBatch.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 		}
@@ -458,7 +458,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
 		RequestType:  core.TransactionBatchEndRequest{},
@@ -468,7 +468,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.TransactionBatchEndRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: invalid request body: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -476,16 +476,16 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: validation error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -493,16 +493,16 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: user not authorized",
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: retrieve error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -510,7 +510,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
 		if transactionBatch == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: no active batch",
 				Module:      "TransactionBatch",
@@ -524,63 +524,63 @@ func transactionBatchController(service *horizon.HorizonService) {
 		transactionBatch.EmployeeByName = req.EmployeeByName
 		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
 		transactionBatch.EndedAt = &now
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "End transaction batch failed: update error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Ended transaction batch for branch " + userOrg.BranchID.String(),
 			Module:      "TransactionBatch",
 		})
 
 		if !transactionBatch.CanView {
-			result, err := c.core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
 		ResponseType: core.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
 		if !transactionBatch.CanView {
-			result, err := c.core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
 		RequestType:  core.TransactionBatchEndRequest{},
@@ -590,7 +590,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var req core.TransactionBatchEndRequest
 		if err := ctx.Bind(&req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: invalid request body: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -598,16 +598,16 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change request failed: validation error: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -615,25 +615,25 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: user not authorized",
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: invalid transaction_batch_id: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: batch not found: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -644,90 +644,90 @@ func transactionBatchController(service *horizon.HorizonService) {
 		transactionBatch.CanView = false
 		transactionBatch.UpdatedAt = time.Now().UTC()
 		transactionBatch.UpdatedByID = userOrg.UserID
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View request failed: update error: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Requested view for transaction batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
 		if !transactionBatch.CanView {
-			result, err := c.core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
 		ResponseType: core.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := c.core.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
 		ResponseType: core.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		batches, err := c.core.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
+		batches, err := core.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModels(batches))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(batches))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
 		ResponseType: core.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		transactionBatchID, err := handlers.EngineUUIDParam(ctx, "transaction_batch_id")
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: invalid transaction_batch_id: " + err.Error(),
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: user org error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -735,7 +735,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: user not authorized",
 				Module:      "TransactionBatch",
@@ -743,9 +743,9 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := c.core.TransactionBatchManager().GetByID(context, *transactionBatchID)
+		transactionBatch, err := core.TransactionBatchManager(service).GetByID(context, *transactionBatchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: batch not found: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -754,7 +754,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		}
 
 		if transactionBatch.OrganizationID != userOrg.OrganizationID || transactionBatch.BranchID != *userOrg.BranchID {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: batch not in org/branch",
 				Module:      "TransactionBatch",
@@ -764,8 +764,8 @@ func transactionBatchController(service *horizon.HorizonService) {
 
 		transactionBatch.CanView = true
 
-		if err := c.core.TransactionBatchManager().UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Accept view request failed: update error: " + err.Error(),
 				Module:      "TransactionBatch",
@@ -773,23 +773,23 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Accepted view request for transaction batch " + transactionBatch.ID.String(),
 			Module:      "TransactionBatch",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.TransactionBatchManager().ToModel(transactionBatch))
+		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TransactionBatchResponse{},
 		Note:         "Returns transaction batches for a specific employee (user_id) in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
@@ -797,16 +797,16 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		userOrganizationID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrganizationID, err := helpers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrganizationID)
+		userOrganization, err := core.UserOrganizationManager(service).GetByID(context, *userOrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		paginated, err := c.core.TransactionBatchManager().NormalPagination(context, ctx, &core.TransactionBatch{
+		paginated, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &core.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrganization.UserID,
@@ -817,7 +817,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 
 		for i, batch := range paginated.Data {
 			if !batch.CanView {
-				minimalBatch, err := c.core.TransactionBatchMinimal(context, batch.ID)
+				minimalBatch, err := core.TransactionBatchMinimal(context, batch.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 				}

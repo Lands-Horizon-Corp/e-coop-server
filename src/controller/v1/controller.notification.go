@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -16,7 +16,7 @@ import (
 func notificationController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/me",
 		Method:       "GET",
 		ResponseType: core.NotificationResponse{},
@@ -27,14 +27,14 @@ func notificationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		notification, err := c.core.GetNotificationByUser(context, user.ID)
+		notification, err := core.GetNotificationByUser(context, user.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get notifications: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.NotificationManager().ToModels(notification))
+		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(notification))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
 		RequestType:  core.IDSRequest{},
@@ -45,7 +45,7 @@ func notificationController(service *horizon.HorizonService) {
 
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View notifications failed: invalid request body: " + err.Error(),
 				Module:      "Notification",
@@ -55,7 +55,7 @@ func notificationController(service *horizon.HorizonService) {
 
 		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "View notifications failed: user error: " + err.Error(),
 				Module:      "Notification",
@@ -66,9 +66,9 @@ func notificationController(service *horizon.HorizonService) {
 		var notifications []*core.Notification
 		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notificationID := range reqBody.IDs {
-				notification, getErr := c.core.NotificationManager().GetByID(context, notificationID)
+				notification, getErr := core.NotificationManager(service).GetByID(context, notificationID)
 				if getErr != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("View notifications failed: notification not found: %s", notificationID.String()),
 						Module:      "Notification",
@@ -81,8 +81,8 @@ func notificationController(service *horizon.HorizonService) {
 				}
 
 				notification.IsViewed = true
-				if updateErr := c.core.NotificationManager().UpdateByID(context, notification.ID, notification); updateErr != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if updateErr := core.NotificationManager(service).UpdateByID(context, notification.ID, notification); updateErr != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "View notifications failed: update error: " + updateErr.Error(),
 						Module:      "Notification",
@@ -92,9 +92,9 @@ func notificationController(service *horizon.HorizonService) {
 			}
 
 			var getUserErr error
-			notifications, getUserErr = c.core.GetNotificationByUser(context, user.ID)
+			notifications, getUserErr = core.GetNotificationByUser(context, user.ID)
 			if getUserErr != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "View notifications failed: get notifications error: " + getUserErr.Error(),
 					Module:      "Notification",
@@ -109,16 +109,16 @@ func notificationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Marked notifications as viewed for user ID: %s", user.ID),
 			Module:      "Notification",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.NotificationManager().ToModels(notifications))
+		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(notifications))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view-all",
 		Method:       "PUT",
 		ResponseType: core.NotificationResponse{},
@@ -128,7 +128,7 @@ func notificationController(service *horizon.HorizonService) {
 
 		user, err := c.event.CurrentUser(context, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to view notifications: unable to get current user - " + err.Error(),
 				Module:      "Notification",
@@ -139,11 +139,11 @@ func notificationController(service *horizon.HorizonService) {
 			})
 		}
 
-		notifications, err := c.core.NotificationManager().Find(context, &core.Notification{
+		notifications, err := core.NotificationManager(service).Find(context, &core.Notification{
 			UserID: user.ID,
 		})
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to view notifications: unable to retrieve user notifications - " + err.Error(),
 				Module:      "Notification",
@@ -158,9 +158,9 @@ func notificationController(service *horizon.HorizonService) {
 		var newNotifications []*core.Notification
 		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notif := range notifications {
-				notification, getErr := c.core.NotificationManager().GetByID(context, notif.ID)
+				notification, getErr := core.NotificationManager(service).GetByID(context, notif.ID)
 				if getErr != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("Failed to mark notification %s as viewed: not found - %v", notif.ID, getErr),
 						Module:      "Notification",
@@ -173,8 +173,8 @@ func notificationController(service *horizon.HorizonService) {
 				}
 
 				notification.IsViewed = true
-				if updateErr := c.core.NotificationManager().UpdateByID(context, notification.ID, notification); updateErr != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if updateErr := core.NotificationManager(service).UpdateByID(context, notification.ID, notification); updateErr != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: fmt.Sprintf("Failed to update notification %s: %v", notif.ID, updateErr),
 						Module:      "Notification",
@@ -186,7 +186,7 @@ func notificationController(service *horizon.HorizonService) {
 			}
 
 			var findErr error
-			newNotifications, findErr = c.core.NotificationManager().Find(context, &core.Notification{
+			newNotifications, findErr = core.NotificationManager(service).Find(context, &core.Notification{
 				UserID: user.ID,
 			})
 			if findErr != nil {
@@ -203,47 +203,47 @@ func notificationController(service *horizon.HorizonService) {
 			})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("User %s marked %d notifications as viewed", user.ID, viewedCount),
 			Module:      "Notification",
 		})
-		return ctx.JSON(http.StatusOK, c.core.NotificationManager().ToModels(newNotifications))
+		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(newNotifications))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/notification/:notification_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific notification record by its notificationit_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		notificationID, err := handlers.EngineUUIDParam(ctx, "notification_id")
+		notificationID, err := helpers.EngineUUIDParam(ctx, "notification_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: invalid notification_id: " + err.Error(),
 				Module:      "Notification",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid notification_id: " + err.Error()})
 		}
-		notification, err := c.core.NotificationManager().GetByID(context, *notificationID)
+		notification, err := core.NotificationManager(service).GetByID(context, *notificationID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: fmt.Sprintf("Delete notification failed: not found (ID: %s): %v", notification.ID, err),
 				Module:      "Notification",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("Notification with ID %s not found: %v", notification.ID, err)})
 		}
-		if err := c.core.NotificationManager().Delete(context, notification.ID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.NotificationManager(service).Delete(context, notification.ID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete notification failed: " + err.Error(),
 				Module:      "Notification",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete notification: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: fmt.Sprintf("Deleted notification ID: %s", notificationID),
 			Module:      "Notification",

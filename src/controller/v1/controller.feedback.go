@@ -4,43 +4,43 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func feedbackController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "GET",
 		Note:         "Returns all feedback records in the system.",
 		ResponseType: core.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedback, err := c.core.FeedbackManager().List(context)
+		feedback, err := core.FeedbackManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve feedback records: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.FeedbackManager().ToModels(feedback))
+		return ctx.JSON(http.StatusOK, core.FeedbackManager(service).ToModels(feedback))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feedback/:feedback_id",
 		Method:       "GET",
 		Note:         "Returns a single feedback record by its ID.",
 		ResponseType: core.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
+		feedbackID, err := helpers.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.core.FeedbackManager().GetByIDRaw(context, *feedbackID)
+		feedback, err := core.FeedbackManager(service).GetByIDRaw(context, *feedbackID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
@@ -48,7 +48,7 @@ func feedbackController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, feedback)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feedback",
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
@@ -56,9 +56,9 @@ func feedbackController(service *horizon.HorizonService) {
 		RequestType:  core.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.FeedbackManager().Validate(ctx)
+		req, err := core.FeedbackManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), validation error: " + err.Error(),
 				Module:      "Feedback",
@@ -75,8 +75,8 @@ func feedbackController(service *horizon.HorizonService) {
 			UpdatedAt:    time.Now().UTC(),
 		}
 
-		if err := c.core.FeedbackManager().Create(context, feedback); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FeedbackManager(service).Create(context, feedback); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Feedback creation failed (/feedback), db error: " + err.Error(),
 				Module:      "Feedback",
@@ -84,24 +84,24 @@ func feedbackController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create feedback record: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created feedback (/feedback): " + feedback.Email,
 			Module:      "Feedback",
 		})
 
-		return ctx.JSON(http.StatusCreated, c.core.FeedbackManager().ToModel(feedback))
+		return ctx.JSON(http.StatusCreated, core.FeedbackManager(service).ToModel(feedback))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/feedback/:feedback_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified feedback record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		feedbackID, err := handlers.EngineUUIDParam(ctx, "feedback_id")
+		feedbackID, err := helpers.EngineUUIDParam(ctx, "feedback_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), invalid feedback ID.",
 				Module:      "Feedback",
@@ -109,9 +109,9 @@ func feedbackController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feedback ID"})
 		}
 
-		feedback, err := c.core.FeedbackManager().GetByID(context, *feedbackID)
+		feedback, err := core.FeedbackManager(service).GetByID(context, *feedbackID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), record not found.",
 				Module:      "Feedback",
@@ -119,8 +119,8 @@ func feedbackController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feedback record not found"})
 		}
 
-		if err := c.core.FeedbackManager().Delete(context, *feedbackID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FeedbackManager(service).Delete(context, *feedbackID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Feedback delete failed (/feedback/:feedback_id), db error: " + err.Error(),
 				Module:      "Feedback",
@@ -128,7 +128,7 @@ func feedbackController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete feedback record: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted feedback (/feedback/:feedback_id): " + feedback.Email,
 			Module:      "Feedback",
@@ -137,7 +137,7 @@ func feedbackController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -147,7 +147,7 @@ func feedbackController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "Feedback",
@@ -156,7 +156,7 @@ func feedbackController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | no IDs provided",
 				Module:      "Feedback",
@@ -168,8 +168,8 @@ func feedbackController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.FeedbackManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.FeedbackManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Feedback bulk delete failed (/feedback/bulk-delete) | error: " + err.Error(),
 				Module:      "Feedback",
@@ -177,7 +177,7 @@ func feedbackController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete feedback records: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted feedbacks (/feedback/bulk-delete)",
 			Module:      "Feedback",

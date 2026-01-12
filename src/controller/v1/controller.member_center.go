@@ -4,50 +4,50 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func memberCenterController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns all member center history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.core.MemberCenterHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberCenterHistory, err := core.MemberCenterHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member center history: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterHistoryManager().ToModels(memberCenterHistory))
+		return ctx.JSON(http.StatusOK, core.MemberCenterHistoryManager(service).ToModels(memberCenterHistory))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.MemberCenterHistoryResponse{},
 		Note:         "Returns member center history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenterHistory, err := c.core.MemberCenterHistoryManager().NormalPagination(context, ctx, &core.MemberCenterHistory{
+		memberCenterHistory, err := core.MemberCenterHistoryManager(service).NormalPagination(context, ctx, &core.MemberCenterHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -58,36 +58,36 @@ func memberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberCenterHistory)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns all member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberCenter, err := c.core.MemberCenterCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberCenter, err := core.MemberCenterCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member centers: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager().ToModels(memberCenter))
+		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModels(memberCenter))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/search",
 		Method:       "GET",
 		ResponseType: core.MemberCenterResponse{},
 		Note:         "Returns paginated member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.MemberCenterManager().NormalPagination(context, ctx, &core.MemberCenter{
+		value, err := core.MemberCenterManager(service).NormalPagination(context, ctx, &core.MemberCenter{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -97,7 +97,7 @@ func memberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
 		ResponseType: core.MemberCenterResponse{},
@@ -105,18 +105,18 @@ func memberCenterController(service *horizon.HorizonService) {
 		Note:         "Creates a new member center record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.MemberCenterManager().Validate(ctx)
+		req, err := core.MemberCenterManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), validation error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), user org error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -135,8 +135,8 @@ func memberCenterController(service *horizon.HorizonService) {
 			OrganizationID: userOrg.OrganizationID,
 		}
 
-		if err := c.core.MemberCenterManager().Create(context, memberCenter); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberCenterManager(service).Create(context, memberCenter); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create member center failed (/member-center), db error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -144,16 +144,16 @@ func memberCenterController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member center: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created member center (/member-center): " + memberCenter.Name,
 			Module:      "MemberCenter",
 		})
 
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager().ToModel(memberCenter))
+		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModel(memberCenter))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
 		ResponseType: core.MemberCenterResponse{},
@@ -161,36 +161,36 @@ func memberCenterController(service *horizon.HorizonService) {
 		Note:         "Updates an existing member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberCenterID, err := handlers.EngineUUIDParam(ctx, "member_center_id")
+		memberCenterID, err := helpers.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), invalid member_center_id: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), user org error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		req, err := c.core.MemberCenterManager().Validate(ctx)
+		req, err := core.MemberCenterManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), validation error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		memberCenter, err := c.core.MemberCenterManager().GetByID(context, *memberCenterID)
+		memberCenter, err := core.MemberCenterManager(service).GetByID(context, *memberCenterID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), not found: " + err.Error(),
 				Module:      "MemberCenter",
@@ -203,32 +203,32 @@ func memberCenterController(service *horizon.HorizonService) {
 		memberCenter.BranchID = *userOrg.BranchID
 		memberCenter.Name = req.Name
 		memberCenter.Description = req.Description
-		if err := c.core.MemberCenterManager().UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberCenterManager(service).UpdateByID(context, memberCenter.ID, memberCenter); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member center failed (/member-center/:member_center_id), db error: " + err.Error(),
 				Module:      "MemberCenter",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member center: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated member center (/member-center/:member_center_id): " + memberCenter.Name,
 			Module:      "MemberCenter",
 		})
-		return ctx.JSON(http.StatusOK, c.core.MemberCenterManager().ToModel(memberCenter))
+		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModel(memberCenter))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		memberCenterID, err := handlers.EngineUUIDParam(ctx, "member_center_id")
+		memberCenterID, err := helpers.EngineUUIDParam(ctx, "member_center_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | invalid member_center_id: " + err.Error(),
 				Module:      "MemberCenter",
@@ -236,9 +236,9 @@ func memberCenterController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_center_id: " + err.Error()})
 		}
 
-		value, err := c.core.MemberCenterManager().GetByID(context, *memberCenterID)
+		value, err := core.MemberCenterManager(service).GetByID(context, *memberCenterID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | not found: " + err.Error(),
 				Module:      "MemberCenter",
@@ -246,8 +246,8 @@ func memberCenterController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member center not found: " + err.Error()})
 		}
 
-		if err := c.core.MemberCenterManager().Delete(context, *memberCenterID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberCenterManager(service).Delete(context, *memberCenterID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Delete member center failed (/member-center/:member_center_id) | db error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -255,7 +255,7 @@ func memberCenterController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member center: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted member center (/member-center/:member_center_id): " + value.Name,
 			Module:      "MemberCenter",
@@ -264,7 +264,7 @@ func memberCenterController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",
@@ -274,7 +274,7 @@ func memberCenterController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "MemberCenter",
@@ -283,7 +283,7 @@ func memberCenterController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | no IDs provided",
 				Module:      "MemberCenter",
@@ -295,8 +295,8 @@ func memberCenterController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.MemberCenterManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.MemberCenterManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete member centers failed (/member-center/bulk-delete) | error: " + err.Error(),
 				Module:      "MemberCenter",
@@ -304,7 +304,7 @@ func memberCenterController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete member centers: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted member centers (/member-center/bulk-delete)",
 			Module:      "MemberCenter",

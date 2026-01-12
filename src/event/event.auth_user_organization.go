@@ -81,7 +81,8 @@ func ClearCurrentToken(ctx context.Context, service *horizon.HorizonService, ech
 	userOrganization(service).ClearCSRF(ctx, echoCtx)
 }
 
-func CurrentUserOrganization(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*core.UserOrganization, error) {
+func CurrentUserOrganization(
+	ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*core.UserOrganization, error) {
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]

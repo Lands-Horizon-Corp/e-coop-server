@@ -7,22 +7,21 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func heartbeat(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/heartbeat/online",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "User authentication failed or organization not found: " + err.Error(),
 				Module:      "User",
@@ -34,15 +33,15 @@ func heartbeat(service *horizon.HorizonService) {
 		}
 		userOrg.Status = core.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "online-error",
 				Description: "Failed to update user organization status: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "online-success",
 			Description: "User set online status",
 			Module:      "User",
@@ -56,14 +55,14 @@ func heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/heartbeat/offline",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "User authentication failed or organization not found: " + err.Error(),
 				Module:      "User",
@@ -75,15 +74,15 @@ func heartbeat(service *horizon.HorizonService) {
 		}
 		userOrg.Status = core.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "offline-error",
 				Description: "Failed to update user organization status: " + err.Error(),
 				Module:      "User",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "offline-success",
 			Description: "User set offline status",
 			Module:      "User",
@@ -97,7 +96,7 @@ func heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
 		RequestType: core.UserOrganizationStatusRequest{},
@@ -111,7 +110,7 @@ func heartbeat(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -120,7 +119,7 @@ func heartbeat(service *horizon.HorizonService) {
 		}
 		userOrg.Status = req.UserOrganizationStatus
 		userOrg.LastOnlineAt = time.Now()
-		if err := c.core.UserOrganizationManager().UpdateByID(context, userOrg.ID, userOrg); err != nil {
+		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
 		if err := c.provider.Service.Broker.Dispatch([]string{
@@ -132,24 +131,24 @@ func heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/heartbeat/status",
 		Method:       "GET",
 		ResponseType: core.UserOrganizationStatusResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		userOrganizations, err := c.core.UserOrganizationManager().Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user organization status"})
 		}
-		statuses := c.core.UserOrganizationManager().ToModels(userOrganizations)
+		statuses := core.UserOrganizationManager(service).ToModels(userOrganizations)
 
 		var (
 			offlineUsers   []*core.UserOrganizationResponse
@@ -182,7 +181,7 @@ func heartbeat(service *horizon.HorizonService) {
 				vacationUsers = append(vacationUsers, org)
 			}
 		}
-		timesheets, err := c.core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve active timesheets: " + err.Error()})
 		}
@@ -199,7 +198,7 @@ func heartbeat(service *horizon.HorizonService) {
 			OnlineEmployees:      onlineEmployees,
 			TotalEmployees:       totalEmployees,
 			TotalActiveEmployees: len(timesheets),
-			ActiveEmployees:      c.core.TimesheetManager().ToModels(timesheets),
+			ActiveEmployees:      core.TimesheetManager(service).ToModels(timesheets),
 		})
 	})
 

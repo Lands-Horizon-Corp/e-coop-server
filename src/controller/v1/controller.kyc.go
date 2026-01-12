@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ func kycController(service *horizon.HorizonService) {
 	validator := c.provider.Service.Validator
 
 	// Step 1: Personal Details
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/personal-details",
 		Method:      "POST",
 		Note:        "Submit or update basic personal information (step 1 of KYC)",
@@ -43,7 +43,7 @@ func kycController(service *horizon.HorizonService) {
 				"error": "Username must be lowercase letters, numbers, or underscores only",
 			})
 		}
-		_, err := c.core.GetUserByUsername(context, req.Username)
+		_, err := core.GetUserByUsername(context, req.Username)
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{
@@ -60,7 +60,7 @@ func kycController(service *horizon.HorizonService) {
 	})
 
 	// Step 2: Security / Account Credentials
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/security-details",
 		Method:      "POST",
 		Note:        "Create login credentials (email, phone, password)",
@@ -74,13 +74,13 @@ func kycController(service *horizon.HorizonService) {
 		if err := validator.Struct(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		_, err := c.core.GetUserByEmail(ctx.Request().Context(), req.Email)
+		_, err := core.GetUserByEmail(ctx.Request().Context(), req.Email)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Database error: " + err.Error(),
 			})
 		}
-		_, err = c.core.GetUserByContactNumber(ctx.Request().Context(), req.ContactNumber)
+		_, err = core.GetUserByContactNumber(ctx.Request().Context(), req.ContactNumber)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "Database error: " + err.Error(),
@@ -139,7 +139,7 @@ func kycController(service *horizon.HorizonService) {
 	})
 
 	// Email Verification
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-email",
 		Method:      "POST",
 		Note:        "Verify email address using OTP",
@@ -171,7 +171,7 @@ func kycController(service *horizon.HorizonService) {
 	})
 
 	// Phone Number Verification
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-contact-number",
 		Method:      "POST",
 		Note:        "Verify phone number using OTP",
@@ -199,7 +199,7 @@ func kycController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Phone number verified successfully"})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
 		Note:        "Verify one or more addresses (verification only)",
@@ -227,7 +227,7 @@ func kycController(service *horizon.HorizonService) {
 	})
 
 	// Government Benefits / ID Verification
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-government-benefits",
 		Method:      "POST",
 		Note:        "Submit government ID or benefits proof",
@@ -259,7 +259,7 @@ func kycController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/kyc/face-recognize",
 		Method: "POST",
 		Note:   "Upload video for face recognition and liveness check (multipart/form-data)",
@@ -327,7 +327,7 @@ func kycController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/kyc/selfie",
 		Method: "POST",
 		Note:   "Submit selfie image (WEBP, exactly 500x500)",
@@ -369,7 +369,7 @@ func kycController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, echo.Map{"message": "Selfie image accepted successfully"})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/resend-email-verification",
 		Method:      "POST",
 		Note:        "Resend email verification OTP",
@@ -415,7 +415,7 @@ func kycController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/resend-contact-number-verification",
 		Method:      "POST",
 		Note:        "Resend contact number verification OTP",
@@ -458,7 +458,7 @@ func kycController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/register",
 		Method:      "POST",
 		Note:        "Complete KYC registration (all-in-one endpoint)",
@@ -501,12 +501,12 @@ func kycController(service *horizon.HorizonService) {
 			Birthdate:         req.BirthDate,
 			MediaID:           req.SelfieMediaID,
 		}
-		if err := c.core.UserManager().CreateWithTx(context, tx, userProfile); err != nil {
+		if err := core.UserManager(service).CreateWithTx(context, tx, userProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create user profile: " + endTx(err).Error()})
 		}
 		passbook := req.OldPassbook
 		if passbook == "" {
-			passbook = handlers.GeneratePassbookNumber()
+			passbook = helpers.GeneratePassbookNumber()
 		}
 		memberProfile := &core.MemberProfile{
 			OrganizationID:       org.ID,
@@ -532,7 +532,7 @@ func kycController(service *horizon.HorizonService) {
 			IsMicroFinanceMember: false,
 			MediaID:              req.SelfieMediaID,
 		}
-		if err := c.core.MemberProfileManager().CreateWithTx(context, tx, memberProfile); err != nil {
+		if err := core.MemberProfileManager(service).CreateWithTx(context, tx, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + endTx(err).Error()})
 		}
 		for _, addrReq := range req.Addresses {
@@ -556,7 +556,7 @@ func kycController(service *horizon.HorizonService) {
 				UpdatedByID:     &userProfile.ID,
 			}
 
-			if err := c.core.MemberAddressManager().CreateWithTx(context, tx, value); err != nil {
+			if err := core.MemberAddressManager(service).CreateWithTx(context, tx, value); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
 		}
@@ -577,7 +577,7 @@ func kycController(service *horizon.HorizonService) {
 				UpdatedByID:     &userProfile.ID,
 			}
 
-			if err := c.core.MemberGovernmentBenefitManager().CreateWithTx(context, tx, value); err != nil {
+			if err := core.MemberGovernmentBenefitManager(service).CreateWithTx(context, tx, value); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
 		}
@@ -587,7 +587,7 @@ func kycController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/kyc/login",
 		Method:       "POST",
 		RequestType:  core.KYCLoginRequest{},
@@ -606,7 +606,7 @@ func kycController(service *horizon.HorizonService) {
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		user, err := c.core.GetUserByIdentifier(context, req.Key)
+		user, err := core.GetUserByIdentifier(context, req.Key)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
@@ -620,7 +620,7 @@ func kycController(service *horizon.HorizonService) {
 		if err := c.event.SetUser(context, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		userOrg, err := c.core.UserOrganizationManager().FindOne(context, &core.UserOrganization{
+		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: org.ID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -628,7 +628,7 @@ func kycController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, userOrg.ID)
+		userOrganization, err := core.UserOrganizationManager(service).GetByID(context, userOrg.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
@@ -636,12 +636,12 @@ func kycController(service *horizon.HorizonService) {
 			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
-			return ctx.JSON(http.StatusOK, c.core.UserOrganizationManager().ToModel(userOrganization))
+			return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))
 		}
 		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
 			UserID:           user.ID,
-			User:             c.core.UserManager().ToModel(user),
-			UserOrganization: c.core.UserOrganizationManager().ToModel(userOrganization),
+			User:             core.UserManager(service).ToModel(user),
+			UserOrganization: core.UserOrganizationManager(service).ToModel(userOrganization),
 		})
 	})
 }

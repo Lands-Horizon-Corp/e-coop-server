@@ -4,56 +4,56 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func chargesRateSchemeController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "GET",
 		Note:         "Returns a paginated list of charges rate schemes for the current user's organization and branch.",
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		chargesRateSchemes, err := c.core.ChargesRateSchemeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		chargesRateSchemes, err := core.ChargesRateSchemeCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes for pagination: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeManager().ToModels(chargesRateSchemes))
+		return ctx.JSON(http.StatusOK, core.ChargesRateSchemeManager(service).ToModels(chargesRateSchemes))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Returns a list of charges rate schemes for a specific currency.",
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		currencyID, err := handlers.EngineUUIDParam(ctx, "currency_id")
+		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		chargesRateSchemes, err := c.core.ChargesRateSchemeManager().Find(context, &core.ChargesRateScheme{
+		chargesRateSchemes, err := core.ChargesRateSchemeManager(service).Find(context, &core.ChargesRateScheme{
 			CurrencyID:     *currencyID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -61,28 +61,28 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch charges rate schemes by currency ID: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.ChargesRateSchemeManager().ToModels(chargesRateSchemes))
+		return ctx.JSON(http.StatusOK, core.ChargesRateSchemeManager(service).ToModels(chargesRateSchemes))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "GET",
 		Note:         "Returns a single charges rate scheme by its ID.",
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
+		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		chargesRateScheme, err := c.core.ChargesRateSchemeManager().GetByIDRaw(context, *chargesRateSchemeID)
+		chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByIDRaw(context, *chargesRateSchemeID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
 		return ctx.JSON(http.StatusOK, chargesRateScheme)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme for the current user's organization and branch.",
@@ -90,18 +90,18 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		req, err := c.core.ChargesRateSchemeManager().Validate(ctx)
+		req, err := core.ChargesRateSchemeManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), validation error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), user org error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -109,7 +109,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
 		if userOrg.BranchID == nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), user not assigned to branch.",
 				Module:      "ChargesRateScheme",
@@ -177,8 +177,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			Type:                  req.Type,
 		}
 
-		if err := c.core.ChargesRateSchemeManager().Create(context, chargesRateScheme); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.ChargesRateSchemeManager(service).Create(context, chargesRateScheme); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Charges rate scheme creation failed (/charges-rate-scheme), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -198,8 +198,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 					BranchID:            *userOrg.BranchID,
 					OrganizationID:      userOrg.OrganizationID,
 				}
-				if err := c.core.ChargesRateSchemeAccountManager().Create(context, chargesRateSchemeAccount); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.ChargesRateSchemeAccountManager(service).Create(context, chargesRateSchemeAccount); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "create-error",
 						Description: "Charges rate scheme account creation failed (/charges-rate-scheme), db error: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -209,15 +209,15 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			}
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created charges rate scheme (/charges-rate-scheme): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
 		})
-		return ctx.JSON(http.StatusCreated, c.core.ChargesRateSchemeManager().ToModel(chargesRateScheme))
+		return ctx.JSON(http.StatusCreated, core.ChargesRateSchemeManager(service).ToModel(chargesRateScheme))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme by its ID.",
@@ -225,9 +225,9 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		ResponseType: core.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
+		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), invalid charges rate scheme ID.",
 				Module:      "ChargesRateScheme",
@@ -235,27 +235,27 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
 
-		req, err := c.core.ChargesRateSchemeManager().Validate(ctx)
+		req, err := core.ChargesRateSchemeManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), validation error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme data: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), user org error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		chargesRateScheme, err := c.core.ChargesRateSchemeManager().GetByID(context, *chargesRateSchemeID)
+		chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(context, *chargesRateSchemeID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), charges rate scheme not found.",
 				Module:      "ChargesRateScheme",
@@ -319,8 +319,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		chargesRateScheme.UpdatedByID = userOrg.UserID
 		chargesRateScheme.CurrencyID = req.CurrencyID
 
-		if err := c.core.ChargesRateSchemeManager().UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.ChargesRateSchemeManager(service).UpdateByIDWithTx(context, tx, chargesRateScheme.ID, chargesRateScheme); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Charges rate scheme update failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -330,8 +330,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 
 		if req.ChargesRateSchemeAccountsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeAccountsDeleted {
-				if err := c.core.ChargesRateSchemeAccountManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.ChargesRateSchemeAccountManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme account: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -343,8 +343,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 
 		if req.ChargesRateByRangeOrMinimumAmountsDeleted != nil {
 			for _, id := range req.ChargesRateByRangeOrMinimumAmountsDeleted {
-				if err := c.core.ChargesRateByRangeOrMinimumAmountManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.ChargesRateByRangeOrMinimumAmountManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by range or minimum amount: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -356,8 +356,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 
 		if req.ChargesRateSchemeModeOfPaymentsDeleted != nil {
 			for _, id := range req.ChargesRateSchemeModeOfPaymentsDeleted {
-				if err := c.core.ChargesRateSchemeModeOfPaymentManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.ChargesRateSchemeModeOfPaymentManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate scheme mode of payment: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -369,8 +369,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 
 		if req.ChargesRateByTermsDeleted != nil {
 			for _, id := range req.ChargesRateByTermsDeleted {
-				if err := c.core.ChargesRateByTermManager().DeleteWithTx(context, tx, id); err != nil {
-					c.event.Footstep(ctx, event.FootstepEvent{
+				if err := core.ChargesRateByTermManager(service).DeleteWithTx(context, tx, id); err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
 						Description: "Failed to delete charges rate by term: " + err.Error(),
 						Module:      "ChargesRateScheme",
@@ -383,14 +383,14 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		if req.ChargesRateSchemeAccounts != nil {
 			for _, accountReq := range req.ChargesRateSchemeAccounts {
 				if accountReq.ID != nil {
-					existingAccount, err := c.core.ChargesRateSchemeAccountManager().GetByID(context, *accountReq.ID)
+					existingAccount, err := core.ChargesRateSchemeAccountManager(service).GetByID(context, *accountReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme account: " + endTx(err).Error()})
 					}
 					existingAccount.AccountID = accountReq.AccountID
 					existingAccount.UpdatedAt = time.Now().UTC()
 					existingAccount.UpdatedByID = userOrg.UserID
-					if err := c.core.ChargesRateSchemeAccountManager().UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+					if err := core.ChargesRateSchemeAccountManager(service).UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 					}
 				} else {
@@ -404,7 +404,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 						BranchID:            *userOrg.BranchID,
 						OrganizationID:      userOrg.OrganizationID,
 					}
-					if err := c.core.ChargesRateSchemeAccountManager().CreateWithTx(context, tx, newAccount); err != nil {
+					if err := core.ChargesRateSchemeAccountManager(service).CreateWithTx(context, tx, newAccount); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme account: " + endTx(err).Error()})
 					}
 				}
@@ -414,7 +414,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		if req.ChargesRateByRangeOrMinimumAmounts != nil {
 			for _, rangeReq := range req.ChargesRateByRangeOrMinimumAmounts {
 				if rangeReq.ID != nil {
-					existingRange, err := c.core.ChargesRateByRangeOrMinimumAmountManager().GetByID(context, *rangeReq.ID)
+					existingRange, err := core.ChargesRateByRangeOrMinimumAmountManager(service).GetByID(context, *rangeReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
@@ -425,7 +425,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 					existingRange.MinimumAmount = rangeReq.MinimumAmount
 					existingRange.UpdatedAt = time.Now().UTC()
 					existingRange.UpdatedByID = userOrg.UserID
-					if err := c.core.ChargesRateByRangeOrMinimumAmountManager().UpdateByIDWithTx(context, tx, existingRange.ID, existingRange); err != nil {
+					if err := core.ChargesRateByRangeOrMinimumAmountManager(service).UpdateByIDWithTx(context, tx, existingRange.ID, existingRange); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				} else {
@@ -443,7 +443,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 						BranchID:            *userOrg.BranchID,
 						OrganizationID:      userOrg.OrganizationID,
 					}
-					if err := c.core.ChargesRateByRangeOrMinimumAmountManager().CreateWithTx(context, tx, newRange); err != nil {
+					if err := core.ChargesRateByRangeOrMinimumAmountManager(service).CreateWithTx(context, tx, newRange); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				}
@@ -453,7 +453,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		if req.ChargesRateSchemeModeOfPayments != nil {
 			for _, modeReq := range req.ChargesRateSchemeModeOfPayments {
 				if modeReq.ID != nil {
-					existingMode, err := c.core.ChargesRateSchemeModeOfPaymentManager().GetByID(context, *modeReq.ID)
+					existingMode, err := core.ChargesRateSchemeModeOfPaymentManager(service).GetByID(context, *modeReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
@@ -483,7 +483,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 					existingMode.Column22 = modeReq.Column22
 					existingMode.UpdatedAt = time.Now().UTC()
 					existingMode.UpdatedByID = userOrg.UserID
-					if err := c.core.ChargesRateSchemeModeOfPaymentManager().UpdateByIDWithTx(context, tx, existingMode.ID, existingMode); err != nil {
+					if err := core.ChargesRateSchemeModeOfPaymentManager(service).UpdateByIDWithTx(context, tx, existingMode.ID, existingMode); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				} else {
@@ -520,7 +520,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 						BranchID:            *userOrg.BranchID,
 						OrganizationID:      userOrg.OrganizationID,
 					}
-					if err := c.core.ChargesRateSchemeModeOfPaymentManager().CreateWithTx(context, tx, newMode); err != nil {
+					if err := core.ChargesRateSchemeModeOfPaymentManager(service).CreateWithTx(context, tx, newMode); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				}
@@ -530,7 +530,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		if req.ChargesRateByTerms != nil {
 			for _, termReq := range req.ChargesRateByTerms {
 				if termReq.ID != nil {
-					existingTerm, err := c.core.ChargesRateByTermManager().GetByID(context, *termReq.ID)
+					existingTerm, err := core.ChargesRateByTermManager(service).GetByID(context, *termReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get charges rate by term: " + endTx(err).Error()})
 					}
@@ -561,7 +561,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 					existingTerm.Rate22 = termReq.Rate22
 					existingTerm.UpdatedAt = time.Now().UTC()
 					existingTerm.UpdatedByID = userOrg.UserID
-					if err := c.core.ChargesRateByTermManager().UpdateByIDWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
+					if err := core.ChargesRateByTermManager(service).UpdateByIDWithTx(context, tx, existingTerm.ID, existingTerm); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + endTx(err).Error()})
 					}
 				} else {
@@ -599,7 +599,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 						BranchID:            *userOrg.BranchID,
 						OrganizationID:      userOrg.OrganizationID,
 					}
-					if err := c.core.ChargesRateByTermManager().CreateWithTx(context, tx, newTerm); err != nil {
+					if err := core.ChargesRateByTermManager(service).CreateWithTx(context, tx, newTerm); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create charges rate by term: " + endTx(err).Error()})
 					}
 				}
@@ -607,7 +607,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Failed to commit charges rate scheme update transaction: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -615,52 +615,52 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit charges rate scheme update: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Updated charges rate scheme (/charges-rate-scheme/:charges_rate_scheme_id): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
 		})
 
-		newRateScheme, err := c.core.ChargesRateSchemeManager().GetByIDRaw(context, chargesRateScheme.ID)
+		newRateScheme, err := core.ChargesRateSchemeManager(service).GetByIDRaw(context, chargesRateScheme.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated charges rate scheme: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newRateScheme)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate scheme by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		chargesRateSchemeID, err := handlers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
+		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), invalid charges rate scheme ID.",
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid charges rate scheme ID"})
 		}
-		chargesRateScheme, err := c.core.ChargesRateSchemeManager().GetByID(context, *chargesRateSchemeID)
+		chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(context, *chargesRateSchemeID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), not found.",
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Charges rate scheme not found"})
 		}
-		if err := c.core.ChargesRateSchemeManager().Delete(context, *chargesRateSchemeID); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.ChargesRateSchemeManager(service).Delete(context, *chargesRateSchemeID); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Charges rate scheme delete failed (/charges-rate-scheme/:charges_rate_scheme_id), db error: " + err.Error(),
 				Module:      "ChargesRateScheme",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete charges rate scheme: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: "Deleted charges rate scheme (/charges-rate-scheme/:charges_rate_scheme_id): " + chargesRateScheme.Name,
 			Module:      "ChargesRateScheme",
@@ -668,7 +668,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/charges-rate-scheme/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate schemes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -677,7 +677,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -685,7 +685,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | no IDs provided",
 				Module:      "ChargesRateScheme",
@@ -696,8 +696,8 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.ChargesRateSchemeManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.ChargesRateSchemeManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/charges-rate-scheme/bulk-delete) | error: " + err.Error(),
 				Module:      "ChargesRateScheme",
@@ -705,7 +705,7 @@ func chargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete charges rate schemes: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted charges rate schemes (/charges-rate-scheme/bulk-delete)",
 			Module:      "ChargesRateScheme",

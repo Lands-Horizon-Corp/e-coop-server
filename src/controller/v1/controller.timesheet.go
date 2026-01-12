@@ -4,28 +4,28 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
 
 func timesheetController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns the current timesheet entry (not timed out yet) for the user, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheet, _ := c.core.TimesheetManager().FindOne(context, &core.Timesheet{
+		timesheet, _ := core.TimesheetManager(service).FindOne(context, &core.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -33,10 +33,10 @@ func timesheetController(service *horizon.HorizonService) {
 		if timesheet == nil || timesheet.TimeOut != nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModel(timesheet))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModel(timesheet))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/time-in-and-out",
 		Method:       "POST",
 		RequestType:  core.TimesheetRequest{},
@@ -45,9 +45,9 @@ func timesheetController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time-in/out failed: user org error: " + err.Error(),
 				Module:      "Timesheet",
@@ -55,9 +55,9 @@ func timesheetController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		req, err := c.core.TimesheetManager().Validate(ctx)
+		req, err := core.TimesheetManager(service).Validate(ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Time-in/out failed: validation error: " + err.Error(),
 				Module:      "Timesheet",
@@ -65,7 +65,7 @@ func timesheetController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		timesheet, _ := c.core.TimesheetManager().FindOne(context, &core.Timesheet{
+		timesheet, _ := core.TimesheetManager(service).FindOne(context, &core.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -86,90 +86,90 @@ func timesheetController(service *horizon.HorizonService) {
 				UserID:         userOrg.UserID,
 			}
 
-			if err := c.core.TimesheetManager().Create(context, newTimesheet); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.TimesheetManager(service).Create(context, newTimesheet); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Time-in failed: create error: " + err.Error(),
 					Module:      "Timesheet",
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create timesheet: " + err.Error()})
 			}
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-success",
 				Description: "Time-in: new timesheet created for user " + userOrg.UserID.String(),
 				Module:      "Timesheet",
 			})
-			return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModel(newTimesheet))
+			return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModel(newTimesheet))
 		}
 
 		timesheet.MediaOutID = req.MediaID
 		timesheet.TimeOut = &now
 		timesheet.UpdatedAt = now
 
-		if err := c.core.TimesheetManager().UpdateByID(context, timesheet.ID, timesheet); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.TimesheetManager(service).UpdateByID(context, timesheet.ID, timesheet); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Time-out failed: update error: " + err.Error(),
 				Module:      "Timesheet",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update timesheet: " + err.Error()})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Time-out: timesheet updated for user " + userOrg.UserID.String(),
 			Module:      "Timesheet",
 		})
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModel(timesheet))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModel(timesheet))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/:timesheet_id",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns the specific timesheet entry by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		timesheetID, err := handlers.EngineUUIDParam(ctx, "timesheet_id")
+		timesheetID, err := helpers.EngineUUIDParam(ctx, "timesheet_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid timesheet_id: " + err.Error()})
 		}
-		timesheet, err := c.core.TimesheetManager().GetByIDRaw(context, *timesheetID)
+		timesheet, err := core.TimesheetManager(service).GetByIDRaw(context, *timesheetID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheet: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, timesheet)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns all timesheets of users/employees for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.TimesheetCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.TimesheetCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModels(timesheets))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns paginated timesheets for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager().NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -179,36 +179,36 @@ func timesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
 		RequestType: core.TimesheetRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.GetUserTimesheet(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.GetUserTimesheet(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModels(timesheets))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/me/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the current user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager().NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -219,44 +219,44 @@ func timesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns all timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := helpers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.GetUserTimesheet(context, *userID, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.GetUserTimesheet(context, *userID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModels(timesheets))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userID, err := handlers.EngineUUIDParam(ctx, "user_id")
+		userID, err := helpers.EngineUUIDParam(ctx, "user_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := c.core.TimesheetManager().NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         *userID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -267,27 +267,27 @@ func timesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the specified employeee for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrgID, err := handlers.EngineUUIDParam(ctx, "user_organization_id")
+		userOrgID, err := helpers.EngineUUIDParam(ctx, "user_organization_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := c.core.UserOrganizationManager().GetByID(context, *userOrgID)
+		userOrganization, err := core.UserOrganizationManager(service).GetByID(context, *userOrgID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		value, err := c.core.TimesheetManager().NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
 			UserID:         userOrganization.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -298,22 +298,22 @@ func timesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current/users",
 		Method:       "GET",
 		ResponseType: core.TimesheetResponse{},
 		Note:         "Returns all currently timed-in users for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheets, err := c.core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
+		timesheets, err := core.TimeSheetActiveUsers(context, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve current timesheets: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.TimesheetManager().ToModels(timesheets))
+		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 }

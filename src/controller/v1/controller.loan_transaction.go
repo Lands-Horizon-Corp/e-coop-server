@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/model/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/handlers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -17,42 +17,42 @@ import (
 func loanTransactionController(service *horizon.HorizonService) {
 	req := service.API
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns the latest loan transaction for a specific member profile and account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		loanTransactions, err := c.core.LoanTransactionsMemberAccount(
+		loanTransactions, err := core.LoanTransactionsMemberAccount(
 			context, *memberProfileID, *accountID, *userOrg.BranchID, userOrg.OrganizationID,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for the current user's branch with pagination and filtering. Query params: has_print_date, has_approved_date, has_release_date (true/false)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -60,7 +60,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager().NormalPagination(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &core.LoanTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -71,19 +71,19 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -91,7 +91,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager().NormalPagination(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &core.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -103,19 +103,19 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -123,7 +123,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := c.core.LoanTransactionManager().FindRaw(context, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).FindRaw(context, &core.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -135,25 +135,25 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := handlers.EngineUUIDParam(ctx, "member_profile_id")
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
-		loanTransactions, err := c.core.LoanTransactionWithDatesNotNull(
+		loanTransactions, err := core.LoanTransactionWithDatesNotNull(
 			context, *memberProfileID, *userOrg.BranchID, userOrg.OrganizationID,
 		)
 		if err != nil {
@@ -163,16 +163,16 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTransactions)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/draft",
 		Method:       "GET",
 		Note:         "Fetches draft loan transactions for the current user's organization and branch.",
 		ResponseType: core.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "draft-error",
 				Description: "Loan transaction draft failed, user org error.",
 				Module:      "LoanTransaction",
@@ -182,23 +182,23 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.core.LoanTransactionDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		loanTransactions, err := core.LoanTransactionDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/printed",
 		Method:       "GET",
 		Note:         "Fetches printed loan transactions for the current user's organization and branch.",
 		ResponseType: core.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "printed-error",
 				Description: "Loan transaction printed fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -208,23 +208,23 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.core.LoanTransactionPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		loanTransactions, err := core.LoanTransactionPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/approved",
 		Method:       "GET",
 		Note:         "Fetches approved loan transactions for the current user's organization and branch.",
 		ResponseType: core.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "approved-error",
 				Description: "Loan transaction approved fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -234,23 +234,23 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.core.LoanTransactionApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		loanTransactions, err := core.LoanTransactionApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/released/today",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
 		ResponseType: core.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -260,22 +260,22 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.core.LoanTransactionReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		loanTransactions, err := core.LoanTransactionReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/released",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
 		ResponseType: core.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "released-error",
 				Description: "Loan transaction released fetch failed, user org error.",
 				Module:      "LoanTransaction",
@@ -285,26 +285,26 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTransactions, err := c.core.LoanTransactionReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		loanTransactions, err := core.LoanTransactionReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released loan transactions: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModels(loanTransactions))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModels(loanTransactions))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Returns a specific loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -312,7 +312,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -321,22 +321,22 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(loanTransaction))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(loanTransaction))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/total",
 		Method:       "GET",
 		ResponseType: core.LoanTransactionTotalResponse{},
 		Note:         "Returns total calculations for a specific loan transaction including total interest, debit, and credit.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -344,7 +344,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transaction totals"})
 		}
 
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -353,7 +353,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		entries, err := c.core.LoanTransactionEntryManager().Find(context, &core.LoanTransactionEntry{
+		entries, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
 			LoanTransactionID: *loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -375,14 +375,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction",
 		Method:       "POST",
 		ResponseType: core.LoanTransactionResponse{},
 		Note:         "Creates a new loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -390,7 +390,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create loan transactions"})
 		}
 
-		request, err := c.core.LoanTransactionManager().Validate(ctx)
+		request, err := core.LoanTransactionManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
@@ -475,14 +475,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 			ComakerType:                      request.ComakerType,
 		}
 
-		if err := c.core.LoanTransactionManager().CreateWithTx(context, tx, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).CreateWithTx(context, tx, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction: " + endTx(err).Error()})
 		}
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 		if cashOnHandAccountID == nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cash on hand account is not set for the branch: " + endTx(eris.New("cash on hand account not set")).Error()})
 		}
-		if err := c.core.LoanTransactionManager().UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
 		}
 		if request.LoanClearanceAnalysis != nil {
@@ -502,7 +502,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					BalancesCount:               clearanceAnalysisReq.BalancesCount,
 				}
 
-				if err := c.core.LoanClearanceAnalysisManager().CreateWithTx(context, tx, clearanceAnalysis); err != nil {
+				if err := core.LoanClearanceAnalysisManager(service).CreateWithTx(context, tx, clearanceAnalysis); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "(created) Failed to create loan clearance analysis: " + endTx(err).Error()})
 				}
 			}
@@ -521,7 +521,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					Description:       institutionReq.Description,
 				}
 
-				if err := c.core.LoanClearanceAnalysisInstitutionManager().CreateWithTx(context, tx, institution); err != nil {
+				if err := core.LoanClearanceAnalysisInstitutionManager(service).CreateWithTx(context, tx, institution); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis institution: " + endTx(err).Error()})
 				}
 			}
@@ -541,7 +541,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					Description:       suggestedPaymentReq.Description,
 				}
 
-				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager().CreateWithTx(context, tx, suggestedPayment); err != nil {
+				if err := core.LoanTermsAndConditionSuggestedPaymentManager(service).CreateWithTx(context, tx, suggestedPayment); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition suggested payment: " + endTx(err).Error()})
 				}
 			}
@@ -560,7 +560,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					Amount:            amountReceiptReq.Amount,
 				}
 
-				if err := c.core.LoanTermsAndConditionAmountReceiptManager().CreateWithTx(context, tx, amountReceipt); err != nil {
+				if err := core.LoanTermsAndConditionAmountReceiptManager(service).CreateWithTx(context, tx, amountReceipt); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms and condition amount receipt: " + endTx(err).Error()})
 				}
 			}
@@ -583,7 +583,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					YearCount:         comakerReq.YearCount,
 				}
 
-				if err := c.core.ComakerMemberProfileManager().CreateWithTx(context, tx, comakerMemberProfile); err != nil {
+				if err := core.ComakerMemberProfileManager(service).CreateWithTx(context, tx, comakerMemberProfile); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker member profile: " + endTx(err).Error()})
 				}
 			}
@@ -606,13 +606,13 @@ func loanTransactionController(service *horizon.HorizonService) {
 					YearCount:         comakerReq.YearCount,
 				}
 
-				if err := c.core.ComakerCollateralManager().CreateWithTx(context, tx, comakerCollateral); err != nil {
+				if err := core.ComakerCollateralManager(service).CreateWithTx(context, tx, comakerCollateral); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker collateral: " + endTx(err).Error()})
 				}
 			}
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -628,10 +628,10 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v: %v", err, newEndTx(err))})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(newLoanTransaction))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
 		ResponseType: core.LoanTransactionResponse{},
@@ -639,12 +639,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 		Note:         "Updates an existing loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -652,15 +652,15 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update loan transactions"})
 		}
 
-		request, err := c.core.LoanTransactionManager().Validate(ctx)
+		request, err := core.LoanTransactionManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *request.AccountID)
+		account, err := core.AccountManager(service).GetByID(context, *request.AccountID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve account: " + err.Error()})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -670,14 +670,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 		}
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		cashOnHandAccount, err := c.core.GetCashOnCashEquivalence(
+		cashOnHandAccount, err := core.GetCashOnCashEquivalence(
 			context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve cash on cash equivalence account: " + endTx(err).Error()})
 		}
 		cashOnCashEquivalenceAccountID := cashOnHandAccount.ID
-		if !handlers.UUIDPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
-			accounts, err := c.core.AccountManager().Find(context, &core.Account{
+		if !helpers.UUIDPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
+			accounts, err := core.AccountManager(service).Find(context, &core.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CurrencyID:             account.CurrencyID,
@@ -764,7 +764,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.LoanClearanceAnalysisDeleted != nil {
 			for _, deletedID := range request.LoanClearanceAnalysisDeleted {
-				clearanceAnalysis, err := c.core.LoanClearanceAnalysisManager().GetByID(context, deletedID)
+				clearanceAnalysis, err := core.LoanClearanceAnalysisManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis for deletion: " + endTx(err).Error()})
 				}
@@ -772,7 +772,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				clearanceAnalysis.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisManager().DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
+				if err := core.LoanClearanceAnalysisManager(service).DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + endTx(err).Error()})
 				}
 			}
@@ -780,7 +780,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.LoanClearanceAnalysisInstitutionDeleted != nil {
 			for _, deletedID := range request.LoanClearanceAnalysisInstitutionDeleted {
-				institution, err := c.core.LoanClearanceAnalysisInstitutionManager().GetByID(context, deletedID)
+				institution, err := core.LoanClearanceAnalysisInstitutionManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan clearance analysis institution for deletion: " + endTx(err).Error()})
 				}
@@ -788,7 +788,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan clearance analysis institution that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				institution.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanClearanceAnalysisInstitutionManager().DeleteWithTx(context, tx, institution.ID); err != nil {
+				if err := core.LoanClearanceAnalysisInstitutionManager(service).DeleteWithTx(context, tx, institution.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + endTx(err).Error()})
 				}
 			}
@@ -796,7 +796,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.LoanTermsAndConditionSuggestedPaymentDeleted != nil {
 			for _, deletedID := range request.LoanTermsAndConditionSuggestedPaymentDeleted {
-				suggestedPayment, err := c.core.LoanTermsAndConditionSuggestedPaymentManager().GetByID(context, deletedID)
+				suggestedPayment, err := core.LoanTermsAndConditionSuggestedPaymentManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms suggested payment for deletion: " + endTx(err).Error()})
 				}
@@ -804,7 +804,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms suggested payment that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				suggestedPayment.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionSuggestedPaymentManager().DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
+				if err := core.LoanTermsAndConditionSuggestedPaymentManager(service).DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + endTx(err).Error()})
 				}
 			}
@@ -812,7 +812,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.LoanTermsAndConditionAmountReceiptDeleted != nil {
 			for _, deletedID := range request.LoanTermsAndConditionAmountReceiptDeleted {
-				amountReceipt, err := c.core.LoanTermsAndConditionAmountReceiptManager().GetByID(context, deletedID)
+				amountReceipt, err := core.LoanTermsAndConditionAmountReceiptManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find loan terms amount receipt for deletion: " + endTx(err).Error()})
 				}
@@ -820,7 +820,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete loan terms amount receipt that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				amountReceipt.DeletedByID = &userOrg.UserID
-				if err := c.core.LoanTermsAndConditionAmountReceiptManager().DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
+				if err := core.LoanTermsAndConditionAmountReceiptManager(service).DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + endTx(err).Error()})
 				}
 			}
@@ -828,7 +828,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.ComakerMemberProfilesDeleted != nil {
 			for _, deletedID := range request.ComakerMemberProfilesDeleted {
-				comakerMemberProfile, err := c.core.ComakerMemberProfileManager().GetByID(context, deletedID)
+				comakerMemberProfile, err := core.ComakerMemberProfileManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker member profile for deletion: " + endTx(err).Error()})
 				}
@@ -836,7 +836,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker member profile that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerMemberProfile.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerMemberProfileManager().DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
+				if err := core.ComakerMemberProfileManager(service).DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + endTx(err).Error()})
 				}
 			}
@@ -844,7 +844,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		if request.ComakerCollateralsDeleted != nil {
 			for _, deletedID := range request.ComakerCollateralsDeleted {
-				comakerCollateral, err := c.core.ComakerCollateralManager().GetByID(context, deletedID)
+				comakerCollateral, err := core.ComakerCollateralManager(service).GetByID(context, deletedID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find comaker collateral for deletion: " + endTx(err).Error()})
 				}
@@ -852,7 +852,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete comaker collateral that doesn't belong to this loan transaction: " + endTx(eris.New("invalid loan transaction")).Error()})
 				}
 				comakerCollateral.DeletedByID = &userOrg.UserID
-				if err := c.core.ComakerCollateralManager().DeleteWithTx(context, tx, comakerCollateral.ID); err != nil {
+				if err := core.ComakerCollateralManager(service).DeleteWithTx(context, tx, comakerCollateral.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker collateral: " + endTx(err).Error()})
 				}
 			}
@@ -861,7 +861,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.LoanClearanceAnalysis != nil {
 			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
 				if clearanceAnalysisReq.ID != nil {
-					existingRecord, err := c.core.LoanClearanceAnalysisManager().GetByID(context, *clearanceAnalysisReq.ID)
+					existingRecord, err := core.LoanClearanceAnalysisManager(service).GetByID(context, *clearanceAnalysisReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan clearance analysis: " + endTx(err).Error()})
 					}
@@ -876,7 +876,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.BalancesAmount = clearanceAnalysisReq.BalancesAmount
 					existingRecord.BalancesCount = clearanceAnalysisReq.BalancesCount
 
-					if err := c.core.LoanClearanceAnalysisManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.LoanClearanceAnalysisManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis: " + endTx(err).Error()})
 					}
 				} else {
@@ -895,7 +895,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 						BalancesCount:               clearanceAnalysisReq.BalancesCount,
 					}
 
-					if err := c.core.LoanClearanceAnalysisManager().CreateWithTx(context, tx, clearanceAnalysis); err != nil {
+					if err := core.LoanClearanceAnalysisManager(service).CreateWithTx(context, tx, clearanceAnalysis); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "(updated) Failed to create loan clearance analysis: " + endTx(err).Error()})
 					}
 				}
@@ -905,7 +905,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.LoanClearanceAnalysisInstitution != nil {
 			for _, institutionReq := range request.LoanClearanceAnalysisInstitution {
 				if institutionReq.ID != nil {
-					existingRecord, err := c.core.LoanClearanceAnalysisInstitutionManager().GetByID(context, *institutionReq.ID)
+					existingRecord, err := core.LoanClearanceAnalysisInstitutionManager(service).GetByID(context, *institutionReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan clearance analysis institution: " + endTx(err).Error()})
 					}
@@ -917,7 +917,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.Name = institutionReq.Name
 					existingRecord.Description = institutionReq.Description
 
-					if err := c.core.LoanClearanceAnalysisInstitutionManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.LoanClearanceAnalysisInstitutionManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis institution: " + endTx(err).Error()})
 					}
 				} else {
@@ -933,7 +933,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 						Description:       institutionReq.Description,
 					}
 
-					if err := c.core.LoanClearanceAnalysisInstitutionManager().CreateWithTx(context, tx, institution); err != nil {
+					if err := core.LoanClearanceAnalysisInstitutionManager(service).CreateWithTx(context, tx, institution); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan clearance analysis institution: " + endTx(err).Error()})
 					}
 				}
@@ -943,7 +943,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.LoanTermsAndConditionSuggestedPayment != nil {
 			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
 				if suggestedPaymentReq.ID != nil {
-					existingRecord, err := c.core.LoanTermsAndConditionSuggestedPaymentManager().GetByID(context, *suggestedPaymentReq.ID)
+					existingRecord, err := core.LoanTermsAndConditionSuggestedPaymentManager(service).GetByID(context, *suggestedPaymentReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan terms suggested payment: " + endTx(err).Error()})
 					}
@@ -955,7 +955,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.Name = suggestedPaymentReq.Name
 					existingRecord.Description = suggestedPaymentReq.Description
 
-					if err := c.core.LoanTermsAndConditionSuggestedPaymentManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.LoanTermsAndConditionSuggestedPaymentManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms suggested payment: " + endTx(err).Error()})
 					}
 				} else {
@@ -971,7 +971,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 						Description:       suggestedPaymentReq.Description,
 					}
 
-					if err := c.core.LoanTermsAndConditionSuggestedPaymentManager().CreateWithTx(context, tx, suggestedPayment); err != nil {
+					if err := core.LoanTermsAndConditionSuggestedPaymentManager(service).CreateWithTx(context, tx, suggestedPayment); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms suggested payment: " + endTx(err).Error()})
 					}
 				}
@@ -981,7 +981,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.LoanTermsAndConditionAmountReceipt != nil {
 			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
 				if amountReceiptReq.ID != nil {
-					existingRecord, err := c.core.LoanTermsAndConditionAmountReceiptManager().GetByID(context, *amountReceiptReq.ID)
+					existingRecord, err := core.LoanTermsAndConditionAmountReceiptManager(service).GetByID(context, *amountReceiptReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing loan terms amount receipt: " + endTx(err).Error()})
 					}
@@ -993,7 +993,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.AccountID = amountReceiptReq.AccountID
 					existingRecord.Amount = amountReceiptReq.Amount
 
-					if err := c.core.LoanTermsAndConditionAmountReceiptManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.LoanTermsAndConditionAmountReceiptManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms amount receipt: " + endTx(err).Error()})
 					}
 				} else {
@@ -1009,7 +1009,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 						Amount:            amountReceiptReq.Amount,
 					}
 
-					if err := c.core.LoanTermsAndConditionAmountReceiptManager().CreateWithTx(context, tx, amountReceipt); err != nil {
+					if err := core.LoanTermsAndConditionAmountReceiptManager(service).CreateWithTx(context, tx, amountReceipt); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan terms amount receipt: " + endTx(err).Error()})
 					}
 				}
@@ -1019,7 +1019,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.ComakerMemberProfiles != nil {
 			for _, comakerReq := range request.ComakerMemberProfiles {
 				if comakerReq.ID != nil {
-					existingRecord, err := c.core.ComakerMemberProfileManager().GetByID(context, *comakerReq.ID)
+					existingRecord, err := core.ComakerMemberProfileManager(service).GetByID(context, *comakerReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing comaker member profile: " + endTx(err).Error()})
 					}
@@ -1034,7 +1034,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.MonthsCount = comakerReq.MonthsCount
 					existingRecord.YearCount = comakerReq.YearCount
 
-					if err := c.core.ComakerMemberProfileManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.ComakerMemberProfileManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker member profile: " + endTx(err).Error()})
 					}
 				} else {
@@ -1053,7 +1053,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 						YearCount:         comakerReq.YearCount,
 					}
 
-					if err := c.core.ComakerMemberProfileManager().CreateWithTx(context, tx, comakerMemberProfile); err != nil {
+					if err := core.ComakerMemberProfileManager(service).CreateWithTx(context, tx, comakerMemberProfile); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker member profile: " + endTx(err).Error()})
 					}
 				}
@@ -1063,7 +1063,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if request.ComakerCollaterals != nil {
 			for _, comakerReq := range request.ComakerCollaterals {
 				if comakerReq.ID != nil {
-					existingRecord, err := c.core.ComakerCollateralManager().GetByID(context, *comakerReq.ID)
+					existingRecord, err := core.ComakerCollateralManager(service).GetByID(context, *comakerReq.ID)
 					if err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing comaker collateral: " + endTx(err).Error()})
 					}
@@ -1079,7 +1079,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 					existingRecord.MonthsCount = comakerReq.MonthsCount
 					existingRecord.YearCount = comakerReq.YearCount
 
-					if err := c.core.ComakerCollateralManager().UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
+					if err := core.ComakerCollateralManager(service).UpdateByIDWithTx(context, tx, existingRecord.ID, existingRecord); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker collateral: " + endTx(err).Error()})
 					}
 				} else {
@@ -1098,14 +1098,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 						YearCount:         comakerReq.YearCount,
 					}
 
-					if err := c.core.ComakerCollateralManager().CreateWithTx(context, tx, comakerCollateral); err != nil {
+					if err := core.ComakerCollateralManager(service).CreateWithTx(context, tx, comakerCollateral); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create comaker collateral: " + endTx(err).Error()})
 					}
 				}
 			}
 		}
-		if !handlers.UUIDPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
-			loanTransactionEntries, err := c.core.LoanTransactionEntryManager().Find(context, &core.LoanTransactionEntry{
+		if !helpers.UUIDPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
+			loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
 				LoanTransactionID: loanTransaction.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -1114,14 +1114,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve loan transaction entries: " + endTx(err).Error()})
 			}
 			for _, entry := range loanTransactionEntries {
-				if err := c.core.LoanTransactionEntryManager().Delete(context, entry.ID); err != nil {
+				if err := core.LoanTransactionEntryManager(service).Delete(context, entry.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + endTx(err).Error()})
 				}
 			}
 		} else {
-			loanTransactionEntry, err := c.core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
+			loanTransactionEntry, err := core.GetLoanEntryAccount(context, loanTransaction.ID, userOrg.OrganizationID, *userOrg.BranchID)
 			if err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to find loan transaction entry (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change): " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1131,8 +1131,8 @@ func loanTransactionController(service *horizon.HorizonService) {
 			loanTransactionEntry.AccountID = &account.ID
 			loanTransactionEntry.Name = account.Name
 			loanTransactionEntry.Description = account.Description
-			if err := c.core.LoanTransactionEntryManager().UpdateByIDWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-				c.event.Footstep(ctx, event.FootstepEvent{
+			if err := core.LoanTransactionEntryManager(service).UpdateByIDWithTx(context, tx, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 					Module:      "LoanTransaction",
@@ -1142,11 +1142,11 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		}
 
-		if err := c.core.LoanTransactionManager().UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "db-commit-error",
 				Description: "Failed to commit transaction (/transaction/payment/:transaction_id): " + err.Error(),
 				Module:      "Transaction",
@@ -1162,21 +1162,21 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve updated loan transaction: %v: %v", err, newEndTx(err))})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(newLoanTransaction))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-transaction/:loan_transaction_id",
 		Method: "DELETE",
 		Note:   "Deletes a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -1184,7 +1184,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to delete loan transactions"})
 		}
 
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1195,7 +1195,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		tx, endTx := c.provider.Service.Database.StartTransaction(context)
 
-		clearanceAnalysisList, err := c.core.LoanClearanceAnalysisManager().Find(context, &core.LoanClearanceAnalysis{
+		clearanceAnalysisList, err := core.LoanClearanceAnalysisManager(service).Find(context, &core.LoanClearanceAnalysis{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1206,12 +1206,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, clearanceAnalysis := range clearanceAnalysisList {
 			clearanceAnalysis.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanClearanceAnalysisManager().DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
+			if err := core.LoanClearanceAnalysisManager(service).DeleteWithTx(context, tx, clearanceAnalysis.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis: " + endTx(err).Error()})
 			}
 		}
 
-		institutionList, err := c.core.LoanClearanceAnalysisInstitutionManager().Find(context, &core.LoanClearanceAnalysisInstitution{
+		institutionList, err := core.LoanClearanceAnalysisInstitutionManager(service).Find(context, &core.LoanClearanceAnalysisInstitution{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1222,12 +1222,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, institution := range institutionList {
 			institution.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanClearanceAnalysisInstitutionManager().DeleteWithTx(context, tx, institution.ID); err != nil {
+			if err := core.LoanClearanceAnalysisInstitutionManager(service).DeleteWithTx(context, tx, institution.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan clearance analysis institution: " + endTx(err).Error()})
 			}
 		}
 
-		suggestedPaymentList, err := c.core.LoanTermsAndConditionSuggestedPaymentManager().Find(context, &core.LoanTermsAndConditionSuggestedPayment{
+		suggestedPaymentList, err := core.LoanTermsAndConditionSuggestedPaymentManager(service).Find(context, &core.LoanTermsAndConditionSuggestedPayment{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1238,12 +1238,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, suggestedPayment := range suggestedPaymentList {
 			suggestedPayment.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTermsAndConditionSuggestedPaymentManager().DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
+			if err := core.LoanTermsAndConditionSuggestedPaymentManager(service).DeleteWithTx(context, tx, suggestedPayment.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms suggested payment: " + endTx(err).Error()})
 			}
 		}
 
-		amountReceiptList, err := c.core.LoanTermsAndConditionAmountReceiptManager().Find(context, &core.LoanTermsAndConditionAmountReceipt{
+		amountReceiptList, err := core.LoanTermsAndConditionAmountReceiptManager(service).Find(context, &core.LoanTermsAndConditionAmountReceipt{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1254,12 +1254,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, amountReceipt := range amountReceiptList {
 			amountReceipt.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTermsAndConditionAmountReceiptManager().DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
+			if err := core.LoanTermsAndConditionAmountReceiptManager(service).DeleteWithTx(context, tx, amountReceipt.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan terms amount receipt: " + endTx(err).Error()})
 			}
 		}
 
-		transactionEntryList, err := c.core.LoanTransactionEntryManager().Find(context, &core.LoanTransactionEntry{
+		transactionEntryList, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1270,12 +1270,12 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, transactionEntry := range transactionEntryList {
 			transactionEntry.DeletedByID = &userOrg.UserID
-			if err := c.core.LoanTransactionEntryManager().DeleteWithTx(context, tx, transactionEntry.ID); err != nil {
+			if err := core.LoanTransactionEntryManager(service).DeleteWithTx(context, tx, transactionEntry.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + endTx(err).Error()})
 			}
 		}
 
-		comakerMemberProfileList, err := c.core.ComakerMemberProfileManager().Find(context, &core.ComakerMemberProfile{
+		comakerMemberProfileList, err := core.ComakerMemberProfileManager(service).Find(context, &core.ComakerMemberProfile{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1286,19 +1286,19 @@ func loanTransactionController(service *horizon.HorizonService) {
 
 		for _, comakerMemberProfile := range comakerMemberProfileList {
 			comakerMemberProfile.DeletedByID = &userOrg.UserID
-			if err := c.core.ComakerMemberProfileManager().DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
+			if err := core.ComakerMemberProfileManager(service).DeleteWithTx(context, tx, comakerMemberProfile.ID); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comaker member profile: " + endTx(err).Error()})
 			}
 		}
 
 		loanTransaction.DeletedByID = &userOrg.UserID
 
-		if err := c.core.LoanTransactionManager().DeleteWithTx(context, tx, loanTransaction.ID); err != nil {
+		if err := core.LoanTransactionManager(service).DeleteWithTx(context, tx, loanTransaction.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction: " + endTx(err).Error()})
 		}
 
 		if err := endTx(nil); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "commit-error",
 				Description: "Failed to commit transaction: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1306,7 +1306,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "delete-success",
 			Description: fmt.Sprintf("Successfully deleted loan transaction %s and all related records", loanTransaction.ID),
 			Module:      "LoanTransaction",
@@ -1315,7 +1315,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction and all related records deleted successfully"})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/loan-transaction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan transactions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -1325,7 +1325,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		var reqBody core.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | invalid request body: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1334,7 +1334,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		}
 
 		if len(reqBody.IDs) == 0 {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | no IDs provided",
 				Module:      "LoanTransaction",
@@ -1342,9 +1342,9 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided for bulk delete"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | auth/organization error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1352,7 +1352,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | unauthorized user type",
 				Module:      "LoanTransaction",
@@ -1364,8 +1364,8 @@ func loanTransactionController(service *horizon.HorizonService) {
 		for i, id := range reqBody.IDs {
 			ids[i] = id
 		}
-		if err := c.core.LoanTransactionManager().BulkDelete(context, ids); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.LoanTransactionManager(service).BulkDelete(context, ids); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",
 				Description: "Bulk delete failed (/loan-transaction/bulk-delete) | error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1373,7 +1373,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to bulk delete loan transactions: " + err.Error()})
 		}
 
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "bulk-delete-success",
 			Description: "Bulk deleted loan transactions (/loan-transaction/bulk-delete)",
 			Module:      "LoanTransaction",
@@ -1382,7 +1382,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed by ID.",
@@ -1390,7 +1390,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
@@ -1401,14 +1401,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to print loan transactions"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1428,34 +1428,34 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-transaction/:loan_transaction_id/print-undo",
 		Method: "PUT",
 		Note:   "Reverts the print status of a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo print on loan transactions"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1473,35 +1473,35 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransaction.CheckDate = nil
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print-only",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed without additional details by ID.",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to mark loan transactions as printed"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1509,39 +1509,39 @@ func loanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 		loanTransaction.PrintNumber++
-		loanTransaction.PrintedDate = handlers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedDate = helpers.Ptr(time.Now().UTC())
 		loanTransaction.PrintedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a loan transaction by ID.",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to approve loan transactions"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1560,10 +1560,10 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransaction.ApprovedByID = &userOrg.UserID
 		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
@@ -1575,25 +1575,25 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve-undo",
 		Method:       "PUT",
 		Note:         "Reverts the approval status of a loan transaction by ID.",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to undo approval on loan transactions"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1610,35 +1610,35 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransaction.ApprovedByID = nil
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/release",
 		Method:       "PUT",
 		Note:         "Releases a loan transaction by ID. RELEASED SHOULD NOT BE UNAPPROVE",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to release loan transactions"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1669,10 +1669,10 @@ func loanTransactionController(service *horizon.HorizonService) {
 			Title:            "Loan Transaction Released",
 			NotificationType: core.NotificationInfo,
 		})
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(newLoanTransaction))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/signature",
 		Method:       "PUT",
 		Note:         "Updates the signature of a loan transaction by ID.",
@@ -1680,7 +1680,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
@@ -1691,14 +1691,14 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update loan transaction signatures"})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByID(context, *loanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, *loanTransactionID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction not found"})
 		}
@@ -1735,42 +1735,42 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransaction.UpdatedAt = time.Now().UTC()
 		loanTransaction.UpdatedByID = userOrg.UserID
 
-		if err := c.core.LoanTransactionManager().UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
+		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
 		}
-		newLoanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransaction.ID)
+		newLoanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransaction.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
 		Method:       "PUT",
 		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		accountID, err := handlers.EngineUUIDParam(ctx, "account_id")
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
 		}
-		account, err := c.core.AccountManager().GetByID(context, *accountID)
+		account, err := core.AccountManager(service).GetByID(context, *accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		loanTransactionEntry, err := c.core.GetCashOnCashEquivalence(context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
+		loanTransactionEntry, err := core.GetCashOnCashEquivalence(context, *loanTransactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction entry not found (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1780,17 +1780,17 @@ func loanTransactionController(service *horizon.HorizonService) {
 		loanTransactionEntry.AccountID = &account.ID
 		loanTransactionEntry.Name = account.Name
 		loanTransactionEntry.Description = account.Description
-		if err := c.core.LoanTransactionEntryManager().UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+		if err := core.LoanTransactionEntryManager(service).UpdateByID(context, loanTransactionEntry.ID, loanTransactionEntry); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction entry update failed (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction entry: " + err.Error()})
 		}
-		loanTransaction, err := c.core.LoanTransactionManager().GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
+		loanTransaction, err := core.LoanTransactionManager(service).GetByIDRaw(context, loanTransactionEntry.LoanTransactionID)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "not-found",
 				Description: "Loan transaction not found after entry update (/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change), db error: " + err.Error(),
 				Module:      "LoanTransaction",
@@ -1800,7 +1800,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTransaction)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
 		Method:       "POST",
 		RequestType:  core.LoanTransactionSuggestedRequest{},
@@ -1827,20 +1827,20 @@ func loanTransactionController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/schedule",
 		Method:       "GET",
 		ResponseType: event.LoanTransactionAmortizationResponse{},
 		Note:         "Retrieves the payment schedule for a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "authentication-failed",
 				Description: "Failed to authenticate user organization for loan amortization schedule generation: " + err.Error(),
 				Module:      "Loan Amortization",
@@ -1849,7 +1849,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		}
 		schedule, err := c.event.LoanAmortizationSchedule(context, *loanTransactionID, userOrg)
 		if err != nil {
-			c.event.Footstep(ctx, event.FootstepEvent{
+			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "schedule-retrieval-failed",
 				Description: "Failed to retrieve loan transaction schedule: " + err.Error(),
 				Module:      "Loan Amortization",
@@ -1859,7 +1859,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, schedule)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/adjustment",
 		Method:       "POST",
 		RequestType:  core.LoanTransactionAdjustmentRequest{},
@@ -1874,7 +1874,7 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err := c.provider.Service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -1888,18 +1888,18 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusCreated)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
 		Method:       "POST",
 		Note:         "Processes a loan transaction by ID.",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -1907,22 +1907,22 @@ func loanTransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process loan transaction: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, c.core.LoanTransactionManager().ToModel(processedLoanTransaction))
+		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(processedLoanTransaction))
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/guide",
 		Method:       "GET",
 		ResponseType: event.LoanGuideResponse{},
 		Note:         "Returns comprehensive loan payment guide with schedules, statuses, and real-time balance tracking for a specific loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		loanTransactionID, err := handlers.EngineUUIDParam(ctx, "loan_transaction_id")
+		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction ID"})
 		}
 
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
@@ -1938,18 +1938,18 @@ func loanTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanGuide)
 	})
 
-	req.RegisterWebRoute(handlers.Route{
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/process",
 		Method:       "POST",
 		Note:         "All Loan transactions that are pending to be processed will be processed",
 		ResponseType: core.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		userOrg, err := c.event.CurrentUserOrganization(context, ctx)
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		c.event.Footstep(ctx, event.FootstepEvent{
+		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "loan-processing-started",
 			Description: "Loan processing started",
 			Module:      "Loan Processing",

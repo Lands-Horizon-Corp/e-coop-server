@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"net/mail"
 	"os"
 	"reflect"
@@ -443,4 +444,12 @@ func ParseCoordinate(value string) float64 {
 	}
 	coord, _ := strconv.ParseFloat(value, 64)
 	return coord
+}
+
+func EngineUUIDParam(ctx echo.Context, param string) (*uuid.UUID, error) {
+	id, err := uuid.Parse(ctx.Param(param))
+	if err != nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "invalid UUID format")
+	}
+	return &id, nil
 }
