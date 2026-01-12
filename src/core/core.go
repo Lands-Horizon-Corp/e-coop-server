@@ -55,13 +55,13 @@ type (
 	}
 )
 
-func NewCore(provider *horizon.HorizonService) *Core {
-	return &Core{
-		provider:   provider,
-		faker:      faker.New(),
-		imagePaths: []string{},
-	}
-}
+// func NewCore(provider *horizon.HorizonService) *Core {
+// 	return &Core{
+// 		provider:   provider,
+// 		faker:      faker.New(),
+// 		imagePaths: []string{},
+// 	}
+// }
 
 func (m *Core) Start() error {
 	m.Migration = append(m.Migration, []any{
