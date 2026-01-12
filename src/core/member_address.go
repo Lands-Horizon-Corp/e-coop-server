@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -93,12 +94,12 @@ type (
 	}
 )
 
-func (m *Core) MemberAddressManager() *registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest] {
+func MemberAddressManager(service *horizon.HorizonService) *registry.Registry[MemberAddress, MemberAddressResponse, MemberAddressRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberAddress, MemberAddressResponse, MemberAddressRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberAddress) *MemberAddressResponse {
 			if data == nil {
@@ -108,16 +109,16 @@ func (m *Core) MemberAddressManager() *registry.Registry[MemberAddress, MemberAd
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     *data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     *data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				Label:           data.Label,
 				City:            data.City,
 				CountryCode:     data.CountryCode,
@@ -158,8 +159,8 @@ func (m *Core) MemberAddressManager() *registry.Registry[MemberAddress, MemberAd
 	})
 }
 
-func (m *Core) MemberAddressCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
-	return m.MemberAddressManager().Find(context, &MemberAddress{
+func MemberAddressCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAddress, error) {
+	return MemberAddressManager(service).Find(context, &MemberAddress{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

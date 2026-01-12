@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -66,16 +67,16 @@ type (
 	}
 )
 
-func (m *Core) InterestRateByYearManager() *registry.Registry[InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest] {
+func InterestRateByYearManager(service *horizon.HorizonService) *registry.Registry[InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "BrowseReference",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *InterestRateByYear) *InterestRateByYearResponse {
 			if data == nil {
@@ -85,17 +86,17 @@ func (m *Core) InterestRateByYearManager() *registry.Registry[InterestRateByYear
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				BrowseReferenceID: data.BrowseReferenceID,
-				BrowseReference:   m.BrowseReferenceManager().ToModel(data.BrowseReference),
+				BrowseReference:   BrowseReferenceManager(service).ToModel(data.BrowseReference),
 				FromYear:          data.FromYear,
 				ToYear:            data.ToYear,
 				InterestRate:      data.InterestRate,
@@ -132,35 +133,35 @@ func (m *Core) InterestRateByYearManager() *registry.Registry[InterestRateByYear
 	})
 }
 
-func (m *Core) InterestRateByYearForBrowseReference(context context.Context, browseReferenceID uuid.UUID) ([]*InterestRateByYear, error) {
+func InterestRateByYearForBrowseReference(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
-	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
+	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) InterestRateByYearForRange(context context.Context, browseReferenceID uuid.UUID, year int) ([]*InterestRateByYear, error) {
+func InterestRateByYearForRange(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, year int) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_year", Op: query.ModeLTE, Value: year},
 		{Field: "to_year", Op: query.ModeGTE, Value: year},
 	}
 
-	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
+	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) InterestRateByYearCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByYear, error) {
+func InterestRateByYearCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByYear, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.InterestRateByYearManager().ArrFind(context, filters, nil)
+	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GetInterestRateForYear(context context.Context, browseReferenceID uuid.UUID, year int) (*InterestRateByYear, error) {
-	rates, err := m.InterestRateByYearForRange(context, browseReferenceID, year)
+func GetInterestRateForYear(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, year int) (*InterestRateByYear, error) {
+	rates, err := InterestRateByYearForRange(context, service, browseReferenceID, year)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -62,12 +63,12 @@ type (
 	}
 )
 
-func (m *Core) BankManager() *registry.Registry[Bank, BankResponse, BankRequest] {
+func BankManager(service *horizon.HorizonService) *registry.Registry[Bank, BankResponse, BankRequest] {
 	return registry.GetRegistry(registry.RegistryParams[Bank, BankResponse, BankRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Bank) *BankResponse {
 			if data == nil {
@@ -77,16 +78,16 @@ func (m *Core) BankManager() *registry.Registry[Bank, BankResponse, BankRequest]
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager().ToModel(data.Media),
+				Media:          MediaManager(service).ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -119,7 +120,7 @@ func (m *Core) BankManager() *registry.Registry[Bank, BankResponse, BankRequest]
 
 }
 
-func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func bankSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	banks := []*Bank{
 		{Name: "HSBC", Description: "One of the world’s largest multinational banks, serving customers globally with retail, commercial, and investment banking."},
@@ -159,7 +160,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 		{Name: "Cash App", Description: "A US-based mobile wallet enabling peer-to-peer money transfers, Bitcoin transactions, and investing."},
 	}
 
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := BranchManager(service).GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch %s for bank seeding", branchID)
 	}
@@ -1321,7 +1322,7 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 		bank.UpdatedAt = now
 		bank.CreatedByID = userID
 		bank.UpdatedByID = userID
-		if err := m.BankManager().CreateWithTx(context, tx, bank); err != nil {
+		if err := BankManager(service).CreateWithTx(context, tx, bank); err != nil {
 			return eris.Wrapf(err, "failed to seed bank %s", bank.Name)
 		}
 	}
@@ -1329,8 +1330,8 @@ func (m *Core) bankSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, 
 	return nil
 }
 
-func (m *Core) BankCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Bank, error) {
-	return m.BankManager().Find(context, &Bank{
+func BankCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Bank, error) {
+	return BankManager(service).Find(context, &Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

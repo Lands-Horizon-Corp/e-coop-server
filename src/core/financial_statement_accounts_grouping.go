@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -75,14 +76,14 @@ type (
 	}
 )
 
-func (m *Core) FinancialStatementAccountsGroupingManager() *registry.Registry[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest] {
+func FinancialStatementAccountsGroupingManager(service *horizon.HorizonService) *registry.Registry[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest] {
 	return registry.NewRegistry(registry.RegistryParams[FinancialStatementAccountsGrouping, FinancialStatementAccountsGroupingResponse, FinancialStatementAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "IconMedia",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *FinancialStatementAccountsGrouping) *FinancialStatementAccountsGroupingResponse {
 			if data == nil {
@@ -96,17 +97,17 @@ func (m *Core) FinancialStatementAccountsGroupingManager() *registry.Registry[Fi
 			return &FinancialStatementAccountsGroupingResponse{
 				ID:                                  data.ID,
 				OrganizationID:                      data.OrganizationID,
-				Organization:                        m.OrganizationManager().ToModel(data.Organization),
+				Organization:                        OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                            data.BranchID,
-				Branch:                              m.BranchManager().ToModel(data.Branch),
+				Branch:                              BranchManager(service).ToModel(data.Branch),
 				CreatedByID:                         data.CreatedByID,
-				CreatedBy:                           m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                           UserManager(service).ToModel(data.CreatedBy),
 				UpdatedByID:                         data.UpdatedByID,
-				UpdatedBy:                           m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                           UserManager(service).ToModel(data.UpdatedBy),
 				DeletedByID:                         data.DeletedByID,
-				DeletedBy:                           m.UserManager().ToModel(data.DeletedBy),
+				DeletedBy:                           UserManager(service).ToModel(data.DeletedBy),
 				IconMediaID:                         data.IconMediaID,
-				IconMedia:                           m.MediaManager().ToModel(data.IconMedia),
+				IconMedia:                           MediaManager(service).ToModel(data.IconMedia),
 				Name:                                data.Name,
 				Description:                         data.Description,
 				Debit:                               data.Debit,
@@ -114,7 +115,7 @@ func (m *Core) FinancialStatementAccountsGroupingManager() *registry.Registry[Fi
 				CreatedAt:                           data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:                           data.UpdatedAt.Format(time.RFC3339),
 				DeletedAt:                           deletedAt,
-				FinancialStatementDefinitionEntries: m.FinancialStatementDefinitionManager().ToModels(data.FinancialStatementDefinitionEntries),
+				FinancialStatementDefinitionEntries: FinancialStatementDefinitionManager(service).ToModels(data.FinancialStatementDefinitionEntries),
 			}
 		},
 		Created: func(data *FinancialStatementAccountsGrouping) registry.Topics {
@@ -144,7 +145,7 @@ func (m *Core) FinancialStatementAccountsGroupingManager() *registry.Registry[Fi
 	})
 }
 
-func (m *Core) FinancialStatementAccountsGroupingSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func FinancialStatementAccountsGroupingSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
 	FinancialStatementAccountsGrouping := []*FinancialStatementAccountsGrouping{
@@ -210,22 +211,22 @@ func (m *Core) FinancialStatementAccountsGroupingSeed(context context.Context, t
 		},
 	}
 	for _, data := range FinancialStatementAccountsGrouping {
-		if err := m.FinancialStatementAccountsGroupingManager().CreateWithTx(context, tx, data); err != nil {
+		if err := FinancialStatementAccountsGroupingManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed financial statement accounts grouping %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) FinancialStatementAccountsGroupingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
-	return m.FinancialStatementAccountsGroupingManager().Find(context, &FinancialStatementAccountsGrouping{
+func FinancialStatementAccountsGroupingCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
+	return FinancialStatementAccountsGroupingManager(service).Find(context, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) FinancialStatementAccountsGroupingAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
-	fsGroupings, err := m.FinancialStatementAccountsGroupingManager().Find(context, &FinancialStatementAccountsGrouping{
+func FinancialStatementAccountsGroupingAlignments(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*FinancialStatementAccountsGrouping, error) {
+	fsGroupings, err := FinancialStatementAccountsGroupingManager(service).Find(context, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -235,7 +236,7 @@ func (m *Core) FinancialStatementAccountsGroupingAlignments(context context.Cont
 	for _, grouping := range fsGroupings {
 		if grouping != nil {
 			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
-			entries, err := m.FinancialStatementDefinitionManager().ArrFind(context,
+			entries, err := FinancialStatementDefinitionManager(service).ArrFind(context,
 				[]registry.FilterSQL{
 					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},

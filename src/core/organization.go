@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -178,16 +179,16 @@ type (
 	}
 )
 
-func (m *Core) OrganizationManager() *registry.Registry[Organization, OrganizationResponse, OrganizationRequest] {
+func OrganizationManager(service *horizon.HorizonService) *registry.Registry[Organization, OrganizationResponse, OrganizationRequest] {
 	return registry.GetRegistry(registry.RegistryParams[Organization, OrganizationResponse, OrganizationRequest]{
 		Preloads: []string{"Media", "CoverMedia",
 			"SubscriptionPlan", "Branches",
 			"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 			"OrganizationCategories.Category",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Organization) *OrganizationResponse {
 			if data == nil {
@@ -197,10 +198,10 @@ func (m *Core) OrganizationManager() *registry.Registry[Organization, Organizati
 				ID:          data.ID,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				CreatedByID: data.CreatedByID,
-				CreatedBy:   m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:   UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID: data.UpdatedByID,
-				UpdatedBy:   m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:   UserManager(service).ToModel(data.UpdatedBy),
 
 				Name:               data.Name,
 				Address:            data.Address,
@@ -223,26 +224,26 @@ func (m *Core) OrganizationManager() *registry.Registry[Organization, Organizati
 				XLink:               data.XLink,
 
 				MediaID:    data.MediaID,
-				Media:      m.MediaManager().ToModel(data.Media),
-				CoverMedia: m.MediaManager().ToModel(data.CoverMedia),
+				Media:      MediaManager(service).ToModel(data.Media),
+				CoverMedia: MediaManager(service).ToModel(data.CoverMedia),
 
 				SubscriptionPlanMaxBranches:         data.SubscriptionPlanMaxBranches,
 				SubscriptionPlanMaxEmployees:        data.SubscriptionPlanMaxEmployees,
 				SubscriptionPlanMaxMembersPerBranch: data.SubscriptionPlanMaxMembersPerBranch,
 				SubscriptionPlanID:                  data.SubscriptionPlanID,
 				SubscriptionPlanIsYearly:            false,
-				SubscriptionPlan:                    m.SubscriptionPlanManager().ToModel(data.SubscriptionPlan),
+				SubscriptionPlan:                    SubscriptionPlanManager(service).ToModel(data.SubscriptionPlan),
 				SubscriptionStartDate:               data.SubscriptionStartDate.Format(time.RFC3339),
 				SubscriptionEndDate:                 data.SubscriptionEndDate.Format(time.RFC3339),
 
-				Branches:               m.BranchManager().ToModels(data.Branches),
-				OrganizationCategories: m.OrganizationCategoryManager().ToModels(data.OrganizationCategories),
-				OrganizationMedias:     m.OrganizationMediaManager().ToModels(data.OrganizationMedias),
-				Footsteps:              m.FootstepManager().ToModels(data.Footsteps),
-				GeneratedReports:       m.GeneratedReportManager().ToModels(data.GeneratedReports),
-				InvitationCodes:        m.InvitationCodeManager().ToModels(data.InvitationCodes),
-				PermissionTemplates:    m.PermissionTemplateManager().ToModels(data.PermissionTemplates),
-				UserOrganizations:      m.UserOrganizationManager().ToModels(data.UserOrganizations),
+				Branches:               BranchManager(service).ToModels(data.Branches),
+				OrganizationCategories: OrganizationCategoryManager(service).ToModels(data.OrganizationCategories),
+				OrganizationMedias:     OrganizationMediaManager(service).ToModels(data.OrganizationMedias),
+				Footsteps:              FootstepManager(service).ToModels(data.Footsteps),
+				GeneratedReports:       GeneratedReportManager(service).ToModels(data.GeneratedReports),
+				InvitationCodes:        InvitationCodeManager(service).ToModels(data.InvitationCodes),
+				PermissionTemplates:    PermissionTemplateManager(service).ToModels(data.PermissionTemplates),
+				UserOrganizations:      UserOrganizationManager(service).ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -267,19 +268,19 @@ func (m *Core) OrganizationManager() *registry.Registry[Organization, Organizati
 	})
 }
 
-func (m *Core) GetPublicOrganization(ctx context.Context) ([]*Organization, error) {
+func GetPublicOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
-	return m.OrganizationManager().ArrFind(ctx, filters, nil)
+	return OrganizationManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, error) {
+func GetFeaturedOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
-	organizations, err := m.OrganizationManager().ArrFind(ctx, filters, nil, "Media", "CoverMedia",
+	organizations, err := OrganizationManager(service).ArrFind(ctx, filters, nil, "Media", "CoverMedia",
 		"SubscriptionPlan", "Branches",
 		"OrganizationCategories", "OrganizationMedias", "OrganizationMedias.Media",
 		"OrganizationCategories.Category")
@@ -301,12 +302,12 @@ func (m *Core) GetFeaturedOrganization(ctx context.Context) ([]*Organization, er
 	return featuredOrganizations, nil
 }
 
-func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*Organization, error) {
+func GetOrganizationsByCategoryID(ctx context.Context, service *horizon.HorizonService, categoryID uuid.UUID) ([]*Organization, error) {
 	filters := []registry.FilterSQL{
 		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
 
-	orgCategories, err := m.OrganizationCategoryManager().ArrFind(ctx, filters, nil, "Organization")
+	orgCategories, err := OrganizationCategoryManager(service).ArrFind(ctx, filters, nil, "Organization")
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +326,7 @@ func (m *Core) GetOrganizationsByCategoryID(ctx context.Context, categoryID uuid
 	return organizations, nil
 }
 
-func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organization, error) {
+func GetRecentlyAddedOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
 	filters := []registry.FilterSQL{
@@ -337,7 +338,7 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	organizations, err := m.OrganizationManager().ArrFind(ctx, filters, sorts)
+	organizations, err := OrganizationManager(service).ArrFind(ctx, filters, sorts)
 	if err != nil {
 		return nil, err
 	}
@@ -349,12 +350,12 @@ func (m *Core) GetRecentlyAddedOrganization(ctx context.Context) ([]*Organizatio
 	return organizations, nil
 }
 
-func (m *Core) GetOrganizationPerCategory(context context.Context) ([]OrganizationPerCategoryResponse, error) {
-	categories, err := m.CategoryManager().List(context)
+func GetOrganizationPerCategory(context context.Context, service *horizon.HorizonService) ([]OrganizationPerCategoryResponse, error) {
+	categories, err := CategoryManager(service).List(context)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get categories")
 	}
-	organizations, err := m.GetPublicOrganization(context)
+	organizations, err := GetPublicOrganization(context, service)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to retrieve organizations")
 	}
@@ -374,8 +375,8 @@ func (m *Core) GetOrganizationPerCategory(context context.Context) ([]Organizati
 			}
 		}
 		result = append(result, OrganizationPerCategoryResponse{
-			Category:      m.CategoryManager().ToModel(category),
-			Organizations: m.OrganizationManager().ToModels(orgs),
+			Category:      CategoryManager(service).ToModel(category),
+			Organizations: OrganizationManager(service).ToModels(orgs),
 		})
 	}
 	return result, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -262,7 +263,7 @@ type (
 	}
 )
 
-func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest] {
+func CashCheckVoucherManager(service *horizon.HorizonService) *registry.Registry[CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucher, CashCheckVoucherResponse, CashCheckVoucherRequest,
 	]{
@@ -278,9 +279,9 @@ func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, Ca
 			"VerifiedBySignatureMedia", "CheckBySignatureMedia", "AcknowledgeBySignatureMedia",
 			"NotedBySignatureMedia", "PostedBySignatureMedia", "PaidBySignatureMedia",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *CashCheckVoucher) *CashCheckVoucherResponse {
 			if data == nil {
@@ -307,27 +308,27 @@ func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, Ca
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager().ToModel(data.Currency),
+				Currency:       CurrencyManager(service).ToModel(data.Currency),
 
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:       UserManager(service).ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				PrintedByID:        data.PrintedByID,
-				PrintedBy:          m.UserManager().ToModel(data.PrintedBy),
+				PrintedBy:          UserManager(service).ToModel(data.PrintedBy),
 				ApprovedByID:       data.ApprovedByID,
-				ApprovedBy:         m.UserManager().ToModel(data.ApprovedBy),
+				ApprovedBy:         UserManager(service).ToModel(data.ApprovedBy),
 				ReleasedByID:       data.ReleasedByID,
-				ReleasedBy:         m.UserManager().ToModel(data.ReleasedBy),
+				ReleasedBy:         UserManager(service).ToModel(data.ReleasedBy),
 
 				PayTo: data.PayTo,
 
@@ -343,52 +344,52 @@ func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, Ca
 				ReleasedDate:      releasedDate,
 
 				ApprovedBySignatureMediaID: data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:   m.MediaManager().ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:   MediaManager(service).ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:             data.ApprovedByName,
 				ApprovedByPosition:         data.ApprovedByPosition,
 
 				PreparedBySignatureMediaID: data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:   m.MediaManager().ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:   MediaManager(service).ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:             data.PreparedByName,
 				PreparedByPosition:         data.PreparedByPosition,
 
 				CertifiedBySignatureMediaID: data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:   m.MediaManager().ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:   MediaManager(service).ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:             data.CertifiedByName,
 				CertifiedByPosition:         data.CertifiedByPosition,
 
 				VerifiedBySignatureMediaID: data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:   m.MediaManager().ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:   MediaManager(service).ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:             data.VerifiedByName,
 				VerifiedByPosition:         data.VerifiedByPosition,
 
 				CheckBySignatureMediaID: data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:   m.MediaManager().ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:   MediaManager(service).ToModel(data.CheckBySignatureMedia),
 				CheckByName:             data.CheckByName,
 				CheckByPosition:         data.CheckByPosition,
 
 				AcknowledgeBySignatureMediaID: data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:   m.MediaManager().ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:   MediaManager(service).ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:             data.AcknowledgeByName,
 				AcknowledgeByPosition:         data.AcknowledgeByPosition,
 
 				NotedBySignatureMediaID: data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:   m.MediaManager().ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:   MediaManager(service).ToModel(data.NotedBySignatureMedia),
 				NotedByName:             data.NotedByName,
 				NotedByPosition:         data.NotedByPosition,
 
 				PostedBySignatureMediaID: data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:   m.MediaManager().ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:   MediaManager(service).ToModel(data.PostedBySignatureMedia),
 				PostedByName:             data.PostedByName,
 				PostedByPosition:         data.PostedByPosition,
 
 				PaidBySignatureMediaID: data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:   m.MediaManager().ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:   MediaManager(service).ToModel(data.PaidBySignatureMedia),
 				PaidByName:             data.PaidByName,
 				PaidByPosition:         data.PaidByPosition,
 
-				CashCheckVoucherTags:    m.CashCheckVoucherTagManager().ToModels(data.CashCheckVoucherTags),
-				CashCheckVoucherEntries: m.CashCheckVoucherEntryManager().ToModels(data.CashCheckVoucherEntries),
+				CashCheckVoucherTags:    CashCheckVoucherTagManager(service).ToModels(data.CashCheckVoucherTags),
+				CashCheckVoucherEntries: CashCheckVoucherEntryManager(service).ToModels(data.CashCheckVoucherEntries),
 
 				Name: data.Name,
 			}
@@ -420,14 +421,14 @@ func (m *Core) CashCheckVoucherManager() *registry.Registry[CashCheckVoucher, Ca
 	})
 }
 
-func (m *Core) CashCheckVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
-	return m.CashCheckVoucherManager().Find(context, &CashCheckVoucher{
+func CashCheckVoucherCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucher, error) {
+	return CashCheckVoucherManager(service).Find(context, &CashCheckVoucher{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
+func CashCheckVoucherDraft(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -436,7 +437,7 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := CashCheckVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -445,7 +446,7 @@ func (m *Core) CashCheckVoucherDraft(ctx context.Context, branchID, organization
 	return cashCheckVouchers, nil
 }
 
-func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
+func CashCheckVoucherPrinted(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -454,7 +455,7 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := CashCheckVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -463,7 +464,7 @@ func (m *Core) CashCheckVoucherPrinted(ctx context.Context, branchID, organizati
 	return cashCheckVouchers, nil
 }
 
-func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
+func CashCheckVoucherApproved(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -472,7 +473,7 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := CashCheckVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -481,7 +482,7 @@ func (m *Core) CashCheckVoucherApproved(ctx context.Context, branchID, organizat
 	return cashCheckVouchers, nil
 }
 
-func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
+func CashCheckVoucherReleased(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -490,7 +491,7 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := CashCheckVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -499,7 +500,7 @@ func (m *Core) CashCheckVoucherReleased(ctx context.Context, branchID, organizat
 	return cashCheckVouchers, nil
 }
 
-func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID uuid.UUID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
+func CashCheckVoucherReleasedCurrentDay(ctx context.Context, service *horizon.HorizonService, branchID uuid.UUID, organizationID uuid.UUID) ([]*CashCheckVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -514,7 +515,7 @@ func (m *Core) CashCheckVoucherReleasedCurrentDay(ctx context.Context, branchID 
 		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
-	cashCheckVouchers, err := m.CashCheckVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	cashCheckVouchers, err := CashCheckVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {

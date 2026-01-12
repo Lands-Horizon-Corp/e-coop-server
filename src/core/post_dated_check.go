@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -95,16 +96,16 @@ type (
 	}
 )
 
-func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest] {
+func PostDatedCheckManager(service *horizon.HorizonService) *registry.Registry[PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		PostDatedCheck, PostDatedCheckResponse, PostDatedCheckRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberProfile", "Bank",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *PostDatedCheck) *PostDatedCheckResponse {
 			if data == nil {
@@ -114,16 +115,16 @@ func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDa
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:           UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:           UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager().ToModel(data.Organization),
+				Organization:        OrganizationManager(service).ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager().ToModel(data.Branch),
+				Branch:              BranchManager(service).ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:       MemberProfileManager(service).ToModel(data.MemberProfile),
 				FullName:            data.FullName,
 				PassbookNumber:      data.PassbookNumber,
 				CheckNumber:         data.CheckNumber,
@@ -131,7 +132,7 @@ func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDa
 				ClearDays:           data.ClearDays,
 				DateCleared:         data.DateCleared.Format(time.RFC3339),
 				BankID:              data.BankID,
-				Bank:                m.BankManager().ToModel(data.Bank),
+				Bank:                BankManager(service).ToModel(data.Bank),
 				Amount:              data.Amount,
 				ReferenceNumber:     data.ReferenceNumber,
 				OfficialReceiptDate: data.OfficialReceiptDate.Format(time.RFC3339),
@@ -167,8 +168,8 @@ func (m *Core) PostDatedCheckManager() *registry.Registry[PostDatedCheck, PostDa
 	})
 }
 
-func (m *Core) PostDatedCheckCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
-	return m.PostDatedCheckManager().Find(context, &PostDatedCheck{
+func PostDatedCheckCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*PostDatedCheck, error) {
+	return PostDatedCheckManager(service).Find(context, &PostDatedCheck{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

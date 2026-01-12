@@ -50,19 +50,19 @@ type (
 	}
 )
 
-func (m *Core) MediaManager() *registry.Registry[Media, MediaResponse, MediaRequest] {
+func MediaManager(service *horizon.HorizonService) *registry.Registry[Media, MediaResponse, MediaRequest] {
 	return registry.GetRegistry(
 		registry.RegistryParams[Media, MediaResponse, MediaRequest]{
 			Preloads: nil,
-			Database: m.provider.Database.Client(),
+			Database: service.Database.Client(),
 			Dispatch: func(topics registry.Topics, payload any) error {
-				return m.provider.Broker.Dispatch(topics, payload)
+				return service.Broker.Dispatch(topics, payload)
 			},
 			Resource: func(data *Media) *MediaResponse {
 				if data == nil {
 					return nil
 				}
-				temporary, err := m.provider.Storage.GeneratePresignedURL(
+				temporary, err := service.Storage.GeneratePresignedURL(
 					context.Background(),
 					&horizon.Storage{
 						StorageKey: data.StorageKey,
@@ -102,21 +102,21 @@ func (m *Core) MediaManager() *registry.Registry[Media, MediaResponse, MediaRequ
 	)
 }
 
-func (m *Core) MediaDelete(context context.Context, mediaID uuid.UUID) error {
+func MediaDelete(context context.Context, service *horizon.HorizonService, mediaID uuid.UUID) error {
 	if mediaID == uuid.Nil {
 		return nil
 	}
-	media, err := m.MediaManager().GetByID(context, mediaID)
+	media, err := MediaManager(service).GetByID(context, mediaID)
 	if err != nil {
 		return err
 	}
 	if media == nil {
 		return nil
 	}
-	if err := m.MediaManager().Delete(context, media.ID); err != nil {
+	if err := MediaManager(service).Delete(context, media.ID); err != nil {
 		return err
 	}
-	if err := m.provider.Storage.DeleteFile(context, &horizon.Storage{
+	if err := service.Storage.DeleteFile(context, &horizon.Storage{
 		FileName:   media.FileName,
 		FileSize:   media.FileSize,
 		FileType:   media.FileType,

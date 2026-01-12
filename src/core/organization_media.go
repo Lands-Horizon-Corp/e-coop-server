@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -51,12 +52,12 @@ type (
 	}
 )
 
-func (m *Core) OrganizationMediaManager() *registry.Registry[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest] {
+func OrganizationMediaManager(service *horizon.HorizonService) *registry.Registry[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest] {
 	return registry.NewRegistry(registry.RegistryParams[OrganizationMedia, OrganizationMediaResponse, OrganizationMediaRequest]{
 		Preloads: []string{"Media"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *OrganizationMedia) *OrganizationMediaResponse {
 			if data == nil {
@@ -71,10 +72,10 @@ func (m *Core) OrganizationMediaManager() *registry.Registry[OrganizationMedia, 
 				Description: data.Description,
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(&data.Organization),
+				Organization:   OrganizationManager(service).ToModel(&data.Organization),
 
 				MediaID: data.MediaID,
-				Media:   m.MediaManager().ToModel(&data.Media),
+				Media:   MediaManager(service).ToModel(&data.Media),
 			}
 		},
 		Created: func(data *OrganizationMedia) registry.Topics {
@@ -101,13 +102,13 @@ func (m *Core) OrganizationMediaManager() *registry.Registry[OrganizationMedia, 
 	})
 }
 
-func (m *Core) OrganizationMediaFindByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
-	return m.OrganizationMediaManager().Find(context, &OrganizationMedia{
+func OrganizationMediaFindByOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID) ([]*OrganizationMedia, error) {
+	return OrganizationMediaManager(service).Find(context, &OrganizationMedia{
 		OrganizationID: organizationID,
 	})
 }
 
-func (m *Core) OrganizationMediaCreateForOrganization(context context.Context, organizationID uuid.UUID, mediaID uuid.UUID, name string, description *string) (*OrganizationMedia, error) {
+func OrganizationMediaCreateForOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, mediaID uuid.UUID, name string, description *string) (*OrganizationMedia, error) {
 	organizationMedia := &OrganizationMedia{
 		Name:           name,
 		Description:    description,
@@ -115,7 +116,7 @@ func (m *Core) OrganizationMediaCreateForOrganization(context context.Context, o
 		MediaID:        mediaID,
 	}
 
-	if err := m.OrganizationMediaManager().Create(context, organizationMedia); err != nil {
+	if err := OrganizationMediaManager(service).Create(context, organizationMedia); err != nil {
 		return nil, err
 	}
 

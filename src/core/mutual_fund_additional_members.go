@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -66,12 +67,12 @@ type (
 	}
 )
 
-func (m *Core) MutualFundAdditionalMembersManager() *registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest] {
+func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MutualFundAdditionalMembers) *MutualFundAdditionalMembersResponse {
 			if data == nil {
@@ -81,18 +82,18 @@ func (m *Core) MutualFundAdditionalMembersManager() *registry.Registry[MutualFun
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MutualFundID:    data.MutualFundID,
-				MutualFund:      m.MutualFundManager().ToModel(data.MutualFund),
+				MutualFund:      MutualFundManager(service).ToModel(data.MutualFund),
 				MemberTypeID:    data.MemberTypeID,
-				MemberType:      m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:      MemberTypeManager(service).ToModel(data.MemberType),
 				NumberOfMembers: data.NumberOfMembers,
 				Ratio:           data.Ratio,
 			}
@@ -130,15 +131,15 @@ func (m *Core) MutualFundAdditionalMembersManager() *registry.Registry[MutualFun
 	})
 }
 
-func (m *Core) MutualFundAdditionalMembersCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return m.MutualFundAdditionalMembersManager().Find(context, &MutualFundAdditionalMembers{
+func MutualFundAdditionalMembersCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
+	return MutualFundAdditionalMembersManager(service).Find(context, &MutualFundAdditionalMembers{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MutualFundAdditionalMembersByMutualFund(context context.Context, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return m.MutualFundAdditionalMembersManager().Find(context, &MutualFundAdditionalMembers{
+func MutualFundAdditionalMembersByMutualFund(context context.Context, service *horizon.HorizonService, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
+	return MutualFundAdditionalMembersManager(service).Find(context, &MutualFundAdditionalMembers{
 		MutualFundID:   mutualFundID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

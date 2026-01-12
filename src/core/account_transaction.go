@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -89,7 +90,7 @@ type (
 	}
 )
 
-func (m *Core) AccountTransactionManager() *registry.Registry[
+func AccountTransactionManager(service *horizon.HorizonService) *registry.Registry[
 	AccountTransaction,
 	AccountTransactionResponse,
 	AccountTransactionRequest,
@@ -105,9 +106,9 @@ func (m *Core) AccountTransactionManager() *registry.Registry[
 			"Entries",
 			"Entries.Account",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *AccountTransaction) *AccountTransactionResponse {
 			if data == nil {
@@ -117,21 +118,21 @@ func (m *Core) AccountTransactionManager() *registry.Registry[
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				JVNumber:       data.JVNumber,
 				Date:           data.Date.Format("2006-01-02"),
 				Description:    data.Description,
 				Debit:          data.Debit,
 				Credit:         data.Credit,
 				Source:         data.Source,
-				Entries:        m.AccountTransactionEntryManager().ToModels(data.Entries),
+				Entries:        AccountTransactionEntryManager(service).ToModels(data.Entries),
 			}
 		},
 		Created: func(data *AccountTransaction) registry.Topics {
@@ -161,8 +162,9 @@ func (m *Core) AccountTransactionManager() *registry.Registry[
 	})
 }
 
-func (m *Core) AccountTransactionByMonthYear(
+func AccountTransactionByMonthYear(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	year int,
 	month int,
 	organizationID uuid.UUID,
@@ -183,11 +185,12 @@ func (m *Core) AccountTransactionByMonthYear(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	return m.AccountTransactionManager().ArrFind(ctx, filters, sorts, "Entries", "Entries.Account")
+	return AccountTransactionManager(service).ArrFind(ctx, filters, sorts, "Entries", "Entries.Account")
 }
 
-func (m *Core) AccountTransactionDestroyer(
+func AccountTransactionDestroyer(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	tx *gorm.DB,
 	day time.Time,
 	organizationID, branchID uuid.UUID,
@@ -203,7 +206,7 @@ func (m *Core) AccountTransactionDestroyer(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderAsc},
 	}
-	transactions, err := m.AccountTransactionManager().ArrFind(ctx, filters, sorts, "Entries")
+	transactions, err := AccountTransactionManager(service).ArrFind(ctx, filters, sorts, "Entries")
 	if err != nil {
 		return err
 	}
@@ -212,11 +215,11 @@ func (m *Core) AccountTransactionDestroyer(
 			continue
 		}
 		for _, entry := range item.Entries {
-			if err := m.AccountTransactionEntryManager().DeleteWithTx(ctx, tx, entry.ID); err != nil {
+			if err := AccountTransactionEntryManager(service).DeleteWithTx(ctx, tx, entry.ID); err != nil {
 				return err
 			}
 		}
-		if err := m.AccountTransactionManager().DeleteWithTx(ctx, tx, item.ID); err != nil {
+		if err := AccountTransactionManager(service).DeleteWithTx(ctx, tx, item.ID); err != nil {
 			return err
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -112,7 +113,7 @@ type (
 	}
 )
 
-func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionResponse, TransactionRequest] {
+func TransactionManager(service *horizon.HorizonService) *registry.Registry[Transaction, TransactionResponse, TransactionRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		Transaction, TransactionResponse, TransactionRequest,
 	]{
@@ -125,9 +126,9 @@ func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionR
 			"MemberJointAccount.SignatureMedia",
 			"Currency",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Transaction) *TransactionResponse {
 			if data == nil {
@@ -137,24 +138,24 @@ func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionR
 				ID:                   data.ID,
 				CreatedAt:            data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:          data.CreatedByID,
-				CreatedBy:            m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:            UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:            data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:          data.UpdatedByID,
-				UpdatedBy:            m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:            UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:       data.OrganizationID,
-				Organization:         m.OrganizationManager().ToModel(data.Organization),
+				Organization:         OrganizationManager(service).ToModel(data.Organization),
 				BranchID:             data.BranchID,
-				Branch:               m.BranchManager().ToModel(data.Branch),
+				Branch:               BranchManager(service).ToModel(data.Branch),
 				SignatureMediaID:     data.SignatureMediaID,
-				SignatureMedia:       m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:       MediaManager(service).ToModel(data.SignatureMedia),
 				TransactionBatchID:   data.TransactionBatchID,
-				TransactionBatch:     m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:     TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				EmployeeUserID:       data.EmployeeUserID,
-				EmployeeUser:         m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:         UserManager(service).ToModel(data.EmployeeUser),
 				MemberProfileID:      data.MemberProfileID,
-				MemberProfile:        m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:        MemberProfileManager(service).ToModel(data.MemberProfile),
 				MemberJointAccountID: data.MemberJointAccountID,
-				MemberJointAccount:   m.MemberJointAccountManager().ToModel(data.MemberJointAccount),
+				MemberJointAccount:   MemberJointAccountManager(service).ToModel(data.MemberJointAccount),
 				LoanBalance:          data.LoanBalance,
 				LoanDue:              data.LoanDue,
 				TotalDue:             data.TotalDue,
@@ -165,7 +166,7 @@ func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionR
 				Amount:               data.Amount,
 				Description:          data.Description,
 				CurrencyID:           data.CurrencyID,
-				Currency:             m.CurrencyManager().ToModel(data.Currency),
+				Currency:             CurrencyManager(service).ToModel(data.Currency),
 			}
 		},
 
@@ -223,15 +224,16 @@ func (m *Core) TransactionManager() *registry.Registry[Transaction, TransactionR
 	})
 }
 
-func (m *Core) TransactionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
-	return m.TransactionManager().Find(context, &Transaction{
+func TransactionCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Transaction, error) {
+	return TransactionManager(service).Find(context, &Transaction{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) TransactionsByUserType(
+func TransactionsByUserType(
 	context context.Context,
+	service *horizon.HorizonService,
 	userID uuid.UUID,
 	userType UserOrganizationType,
 	organizationID uuid.UUID,
@@ -240,7 +242,7 @@ func (m *Core) TransactionsByUserType(
 	var filter Transaction
 
 	if userType == UserOrganizationTypeMember {
-		memberProfile, err := m.MemberProfileManager().FindOne(context, &MemberProfile{
+		memberProfile, err := MemberProfileManager(service).FindOne(context, &MemberProfile{
 			UserID: &userID,
 		})
 		if err != nil {
@@ -254,5 +256,5 @@ func (m *Core) TransactionsByUserType(
 	filter.OrganizationID = organizationID
 	filter.BranchID = branchID
 
-	return m.TransactionManager().Find(context, &filter)
+	return TransactionManager(service).Find(context, &filter)
 }

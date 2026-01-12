@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -62,7 +63,7 @@ type (
 	}
 )
 
-func (m *Core) IncludeNegativeAccountManager() *registry.Registry[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest] {
+func IncludeNegativeAccountManager(service *horizon.HorizonService) *registry.Registry[IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		IncludeNegativeAccount, IncludeNegativeAccountResponse, IncludeNegativeAccountRequest,
 	]{
@@ -70,9 +71,9 @@ func (m *Core) IncludeNegativeAccountManager() *registry.Registry[IncludeNegativ
 			"CreatedBy", "UpdatedBy",
 			"ComputationSheet", "Account",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *IncludeNegativeAccount) *IncludeNegativeAccountResponse {
 			if data == nil {
@@ -82,18 +83,18 @@ func (m *Core) IncludeNegativeAccountManager() *registry.Registry[IncludeNegativ
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				ComputationSheetID: data.ComputationSheetID,
-				ComputationSheet:   m.ComputationSheetManager().ToModel(data.ComputationSheet),
+				ComputationSheet:   ComputationSheetManager(service).ToModel(data.ComputationSheet),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager().ToModel(data.Account),
+				Account:            AccountManager(service).ToModel(data.Account),
 				Description:        data.Description,
 			}
 		},
@@ -124,8 +125,8 @@ func (m *Core) IncludeNegativeAccountManager() *registry.Registry[IncludeNegativ
 	})
 }
 
-func (m *Core) IncludeNegativeAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*IncludeNegativeAccount, error) {
-	return m.IncludeNegativeAccountManager().Find(context, &IncludeNegativeAccount{
+func IncludeNegativeAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*IncludeNegativeAccount, error) {
+	return IncludeNegativeAccountManager(service).Find(context, &IncludeNegativeAccount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

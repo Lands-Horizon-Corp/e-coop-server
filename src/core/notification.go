@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -63,12 +64,12 @@ type (
 	}
 )
 
-func (m *Core) NotificationManager() *registry.Registry[Notification, NotificationResponse, any] {
+func NotificationManager(service *horizon.HorizonService) *registry.Registry[Notification, NotificationResponse, any] {
 	return registry.NewRegistry(registry.RegistryParams[Notification, NotificationResponse, any]{
 		Preloads: []string{"Recipient", "Recipient.Media"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Notification) *NotificationResponse {
 			if data == nil {
@@ -77,9 +78,9 @@ func (m *Core) NotificationManager() *registry.Registry[Notification, Notificati
 			return &NotificationResponse{
 				ID:               data.ID,
 				UserID:           data.UserID,
-				User:             m.UserManager().ToModel(data.User),
+				User:             UserManager(service).ToModel(data.User),
 				RecipientID:      data.RecipientID,
-				Recipient:        m.UserManager().ToModel(data.Recipient),
+				Recipient:        UserManager(service).ToModel(data.Recipient),
 				Title:            data.Title,
 				Description:      data.Description,
 				IsViewed:         data.IsViewed,
@@ -113,8 +114,8 @@ func (m *Core) NotificationManager() *registry.Registry[Notification, Notificati
 	})
 }
 
-func (m *Core) GetNotificationByUser(context context.Context, userID uuid.UUID) ([]*Notification, error) {
-	return m.NotificationManager().Find(context, &Notification{
+func GetNotificationByUser(context context.Context, service *horizon.HorizonService, userID uuid.UUID) ([]*Notification, error) {
+	return NotificationManager(service).Find(context, &Notification{
 		UserID: userID,
 	})
 }

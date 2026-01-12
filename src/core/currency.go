@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/numi18n/numi18n"
 
@@ -69,11 +70,11 @@ type (
 	}
 )
 
-func (m *Core) CurrencyManager() *registry.Registry[Currency, CurrencyResponse, CurrencyRequest] {
+func CurrencyManager(service *horizon.HorizonService) *registry.Registry[Currency, CurrencyResponse, CurrencyRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Currency, CurrencyResponse, CurrencyRequest]{
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Currency) *CurrencyResponse {
 			if data == nil {
@@ -158,7 +159,7 @@ func (c *Currency) ToWords(amount float64) string {
 	return options.ToWords(amount)
 }
 
-func (m *Core) currencySeed(context context.Context) error {
+func currencySeed(context context.Context, service *horizon.HorizonService) error {
 	now := time.Now().UTC()
 	availableLocales := numi18n.PerCountryLocales()
 	for _, locales := range availableLocales {
@@ -181,23 +182,23 @@ func (m *Core) currencySeed(context context.Context) error {
 			Locale:         locales.NumI18Identifier.Locale,
 			Timezone:       strings.Join(locales.NumI18Identifier.Timezone, ","),
 		}
-		if err := m.CurrencyManager().Create(context, currency); err != nil {
+		if err := CurrencyManager(service).Create(context, currency); err != nil {
 			return eris.Wrapf(err, "failed to seed currency %s (%s)", currency.Name, currency.ISO3166Alpha3)
 		}
 	}
 	return nil
 }
 
-func (m *Core) CurrencyFindByAlpha2(context context.Context, iso3166Alpha2 string) (*Currency, error) {
-	currencies, err := m.CurrencyManager().FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
+func CurrencyFindByAlpha2(context context.Context, service *horizon.HorizonService, iso3166Alpha2 string) (*Currency, error) {
+	currencies, err := CurrencyManager(service).FindOne(context, &Currency{ISO3166Alpha2: iso3166Alpha2})
 	if err != nil {
 		return nil, err
 	}
 	return currencies, nil
 }
 
-func (m *Core) CurrencyFindByCode(context context.Context, currencyCode string) (*Currency, error) {
-	currency, err := m.CurrencyManager().FindOne(context, &Currency{CurrencyCode: currencyCode})
+func CurrencyFindByCode(context context.Context, service *horizon.HorizonService, currencyCode string) (*Currency, error) {
+	currency, err := CurrencyManager(service).FindOne(context, &Currency{CurrencyCode: currencyCode})
 	if err != nil {
 		return nil, err
 	}

@@ -336,7 +336,7 @@ func (m *MemberProfile) Address() string {
 	return address
 }
 
-func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberProfileResponse, MemberProfileRequest] {
+func MemberProfileManager(service *horizon.HorizonService) *registry.Registry[MemberProfile, MemberProfileResponse, MemberProfileRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberProfile, MemberProfileResponse, MemberProfileRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -364,9 +364,9 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 			"MemberCloseRemarks",
 			"MemberDepartment",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberProfile) *MemberProfileResponse {
 			context := context.Background()
@@ -374,7 +374,7 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 				return nil
 			}
 
-			result, err := m.provider.QR.EncodeQR(context, &QRMemberProfile{
+			result, err := service.QR.EncodeQR(context, &QRMemberProfile{
 				FirstName:       data.FirstName,
 				LastName:        data.LastName,
 				MiddleName:      data.MiddleName,
@@ -391,36 +391,36 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 				ID:                             data.ID,
 				CreatedAt:                      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                    *data.CreatedByID,
-				CreatedBy:                      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                    *data.UpdatedByID,
-				UpdatedBy:                      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:                 data.OrganizationID,
-				Organization:                   m.OrganizationManager().ToModel(data.Organization),
+				Organization:                   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                       data.BranchID,
-				Branch:                         m.BranchManager().ToModel(data.Branch),
+				Branch:                         BranchManager(service).ToModel(data.Branch),
 				MediaID:                        data.MediaID,
-				Media:                          m.MediaManager().ToModel(data.Media),
+				Media:                          MediaManager(service).ToModel(data.Media),
 				SignatureMediaID:               data.SignatureMediaID,
-				SignatureMedia:                 m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:                 MediaManager(service).ToModel(data.SignatureMedia),
 				UserID:                         data.UserID,
-				User:                           m.UserManager().ToModel(data.User),
+				User:                           UserManager(service).ToModel(data.User),
 				MemberTypeID:                   data.MemberTypeID,
-				MemberType:                     m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:                     MemberTypeManager(service).ToModel(data.MemberType),
 				MemberGroupID:                  data.MemberGroupID,
-				MemberGroup:                    m.MemberGroupManager().ToModel(data.MemberGroup),
+				MemberGroup:                    MemberGroupManager(service).ToModel(data.MemberGroup),
 				MemberGenderID:                 data.MemberGenderID,
-				MemberGender:                   m.MemberGenderManager().ToModel(data.MemberGender),
+				MemberGender:                   MemberGenderManager(service).ToModel(data.MemberGender),
 				MemberCenterID:                 data.MemberCenterID,
-				MemberCenter:                   m.MemberCenterManager().ToModel(data.MemberCenter),
+				MemberCenter:                   MemberCenterManager(service).ToModel(data.MemberCenter),
 				MemberOccupationID:             data.MemberOccupationID,
-				MemberOccupation:               m.MemberOccupationManager().ToModel(data.MemberOccupation),
+				MemberOccupation:               MemberOccupationManager(service).ToModel(data.MemberOccupation),
 				MemberClassificationID:         data.MemberClassificationID,
-				MemberClassification:           m.MemberClassificationManager().ToModel(data.MemberClassification),
+				MemberClassification:           MemberClassificationManager(service).ToModel(data.MemberClassification),
 				MemberVerifiedByEmployeeUserID: data.MemberVerifiedByEmployeeUserID,
-				MemberVerifiedByEmployeeUser:   m.UserManager().ToModel(data.MemberVerifiedByEmployeeUser),
+				MemberVerifiedByEmployeeUser:   UserManager(service).ToModel(data.MemberVerifiedByEmployeeUser),
 				RecruitedByMemberProfileID:     data.RecruitedByMemberProfileID,
-				RecruitedByMemberProfile:       m.MemberProfileManager().ToModel(data.RecruitedByMemberProfile),
+				RecruitedByMemberProfile:       MemberProfileManager(service).ToModel(data.RecruitedByMemberProfile),
 				IsClosed:                       data.IsClosed,
 				IsMutualFundMember:             data.IsMutualFundMember,
 				IsMicroFinanceMember:           data.IsMicroFinanceMember,
@@ -440,19 +440,19 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 				BusinessContactNumber:          data.BusinessContactNumber,
 				CivilStatus:                    data.CivilStatus,
 				QRCode:                         result,
-				MemberAddresses:                m.MemberAddressManager().ToModels(data.MemberAddresses),
-				MemberAssets:                   m.MemberAssetManager().ToModels(data.MemberAssets),
-				MemberIncomes:                  m.MemberIncomeManager().ToModels(data.MemberIncomes),
-				MemberExpenses:                 m.MemberExpenseManager().ToModels(data.MemberExpenses),
-				MemberGovernmentBenefits:       m.MemberGovernmentBenefitManager().ToModels(data.MemberGovernmentBenefits),
-				MemberJointAccounts:            m.MemberJointAccountManager().ToModels(data.MemberJointAccounts),
-				MemberRelativeAccounts:         m.MemberRelativeAccountManager().ToModels(data.MemberRelativeAccounts),
-				MemberEducationalAttainments:   m.MemberEducationalAttainmentManager().ToModels(data.MemberEducationalAttainments),
-				MemberContactReferences:        m.MemberContactReferenceManager().ToModels(data.MemberContactReferences),
-				MemberCloseRemarks:             m.MemberCloseRemarkManager().ToModels(data.MemberCloseRemarks),
-				RecruitedMembers:               m.MemberProfileManager().ToModels(data.RecruitedMembers),
+				MemberAddresses:                MemberAddressManager(service).ToModels(data.MemberAddresses),
+				MemberAssets:                   MemberAssetManager(service).ToModels(data.MemberAssets),
+				MemberIncomes:                  MemberIncomeManager(service).ToModels(data.MemberIncomes),
+				MemberExpenses:                 MemberExpenseManager(service).ToModels(data.MemberExpenses),
+				MemberGovernmentBenefits:       MemberGovernmentBenefitManager(service).ToModels(data.MemberGovernmentBenefits),
+				MemberJointAccounts:            MemberJointAccountManager(service).ToModels(data.MemberJointAccounts),
+				MemberRelativeAccounts:         MemberRelativeAccountManager(service).ToModels(data.MemberRelativeAccounts),
+				MemberEducationalAttainments:   MemberEducationalAttainmentManager(service).ToModels(data.MemberEducationalAttainments),
+				MemberContactReferences:        MemberContactReferenceManager(service).ToModels(data.MemberContactReferences),
+				MemberCloseRemarks:             MemberCloseRemarkManager(service).ToModels(data.MemberCloseRemarks),
+				RecruitedMembers:               MemberProfileManager(service).ToModels(data.RecruitedMembers),
 				MemberDepartmentID:             data.MemberDepartmentID,
-				MemberDepartment:               m.MemberDepartmentManager().ToModel(data.MemberDepartment),
+				MemberDepartment:               MemberDepartmentManager(service).ToModel(data.MemberDepartment),
 				BirthPlace:                     data.BirthPlace,
 			}
 		},
@@ -484,221 +484,221 @@ func (m *Core) MemberProfileManager() *registry.Registry[MemberProfile, MemberPr
 	})
 }
 
-func (m *Core) MemberProfileCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
-	return m.MemberProfileManager().Find(context, &MemberProfile{
+func MemberProfileCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberProfile, error) {
+	return MemberProfileManager(service).Find(context, &MemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MemberProfileDelete(context context.Context, tx *gorm.DB, memberProfileID uuid.UUID) error {
-	memberEducationalAttainments, err := m.MemberEducationalAttainmentManager().Find(context, &MemberEducationalAttainment{
+func MemberProfileDelete(context context.Context, service *horizon.HorizonService, tx *gorm.DB, memberProfileID uuid.UUID) error {
+	memberEducationalAttainments, err := MemberEducationalAttainmentManager(service).Find(context, &MemberEducationalAttainment{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberEducationalAttainments {
-		if err := m.MemberEducationalAttainmentManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberEducationalAttainmentManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberCloseRemarks, err := m.MemberCloseRemarkManager().Find(context, &MemberCloseRemark{
+	memberCloseRemarks, err := MemberCloseRemarkManager(service).Find(context, &MemberCloseRemark{
 		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberCloseRemarks {
-		if err := m.MemberCloseRemarkManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberCloseRemarkManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberAddresses, err := m.MemberAddressManager().Find(context, &MemberAddress{
+	memberAddresses, err := MemberAddressManager(service).Find(context, &MemberAddress{
 		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberAddresses {
-		if err := m.MemberAddressManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberAddressManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberContactReferences, err := m.MemberContactReferenceManager().Find(context, &MemberContactReference{
+	memberContactReferences, err := MemberContactReferenceManager(service).Find(context, &MemberContactReference{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberContactReferences {
-		if err := m.MemberContactReferenceManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberContactReferenceManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberAssets, err := m.MemberAssetManager().Find(context, &MemberAsset{
+	memberAssets, err := MemberAssetManager(service).Find(context, &MemberAsset{
 		MemberProfileID: &memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberAssets {
-		if err := m.MemberAssetManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberAssetManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberIncomes, err := m.MemberIncomeManager().Find(context, &MemberIncome{
+	memberIncomes, err := MemberIncomeManager(service).Find(context, &MemberIncome{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberIncomes {
-		if err := m.MemberIncomeManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberIncomeManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
-	memberExpenses, err := m.MemberExpenseManager().Find(context, &MemberExpense{
+	memberExpenses, err := MemberExpenseManager(service).Find(context, &MemberExpense{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberExpenses {
-		if err := m.MemberExpenseManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberExpenseManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
-	memberGovernmentBenefits, err := m.MemberGovernmentBenefitManager().Find(context, &MemberGovernmentBenefit{
+	memberGovernmentBenefits, err := MemberGovernmentBenefitManager(service).Find(context, &MemberGovernmentBenefit{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberGovernmentBenefits {
-		if err := m.MemberGovernmentBenefitManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberGovernmentBenefitManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
-	memberJointAccounts, err := m.MemberJointAccountManager().Find(context, &MemberJointAccount{
+	memberJointAccounts, err := MemberJointAccountManager(service).Find(context, &MemberJointAccount{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberJointAccounts {
-		if err := m.MemberJointAccountManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberJointAccountManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
-	memberRelativeAccounts, err := m.MemberRelativeAccountManager().Find(context, &MemberRelativeAccount{
+	memberRelativeAccounts, err := MemberRelativeAccountManager(service).Find(context, &MemberRelativeAccount{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberRelativeAccounts {
-		if err := m.MemberRelativeAccountManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberRelativeAccountManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberGenderHistories, err := m.MemberGenderHistoryManager().Find(context, &MemberGenderHistory{
+	memberGenderHistories, err := MemberGenderHistoryManager(service).Find(context, &MemberGenderHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberGenderHistories {
-		if err := m.MemberGenderHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberGenderHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberCenterHistories, err := m.MemberCenterHistoryManager().Find(context, &MemberCenterHistory{
+	memberCenterHistories, err := MemberCenterHistoryManager(service).Find(context, &MemberCenterHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberCenterHistories {
-		if err := m.MemberCenterHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberCenterHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberTypeHistories, err := m.MemberTypeHistoryManager().Find(context, &MemberTypeHistory{
+	memberTypeHistories, err := MemberTypeHistoryManager(service).Find(context, &MemberTypeHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberTypeHistories {
-		if err := m.MemberTypeHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberTypeHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberClassificationHistories, err := m.MemberClassificationHistoryManager().Find(context, &MemberClassificationHistory{
+	memberClassificationHistories, err := MemberClassificationHistoryManager(service).Find(context, &MemberClassificationHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberClassificationHistories {
-		if err := m.MemberClassificationHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberClassificationHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberOccupationHistories, err := m.MemberOccupationHistoryManager().Find(context, &MemberOccupationHistory{
+	memberOccupationHistories, err := MemberOccupationHistoryManager(service).Find(context, &MemberOccupationHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberOccupationHistories {
-		if err := m.MemberOccupationHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberOccupationHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	memberGroupHistories, err := m.MemberGroupHistoryManager().Find(context, &MemberGroupHistory{
+	memberGroupHistories, err := MemberGroupHistoryManager(service).Find(context, &MemberGroupHistory{
 		MemberProfileID: memberProfileID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, value := range memberGroupHistories {
-		if err := m.MemberGroupHistoryManager().DeleteWithTx(context, tx, value.ID); err != nil {
+		if err := MemberGroupHistoryManager(service).DeleteWithTx(context, tx, value.ID); err != nil {
 			return err
 		}
 	}
 
-	return m.MemberProfileManager().DeleteWithTx(context, tx, memberProfileID)
+	return MemberProfileManager(service).DeleteWithTx(context, tx, memberProfileID)
 }
 
-func (m *Core) MemberProfileFindUserByID(ctx context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
-	return m.MemberProfileManager().FindOne(ctx, &MemberProfile{
+func MemberProfileFindUserByID(ctx context.Context, service *horizon.HorizonService, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (*MemberProfile, error) {
+	return MemberProfileManager(service).FindOne(ctx, &MemberProfile{
 		UserID:         &userID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberProfileSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := BranchManager(service).GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch by ID: %s", branchID)
 	}
-	organization, err := m.OrganizationManager().GetByID(context, organizationID)
+	organization, err := OrganizationManager(service).GetByID(context, organizationID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
@@ -741,19 +741,19 @@ func (m *Core) memberProfileSeed(context context.Context, tx *gorm.DB, userID uu
 		IsMicroFinanceMember:  true,
 	}
 
-	if err := m.MemberProfileManager().CreateWithTx(context, tx, memberProfile); err != nil {
+	if err := MemberProfileManager(service).CreateWithTx(context, tx, memberProfile); err != nil {
 		return eris.Wrapf(err, "failed to create founder member profile %s", memberProfile.FullName)
 	}
 
 	return nil
 }
 
-func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
-	memberProfile, err := m.MemberProfileManager().GetByID(ctx, id)
+func MemberProfileDestroy(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, id uuid.UUID) error {
+	memberProfile, err := MemberProfileManager(service).GetByID(ctx, id)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get MemberProfile by ID: %s", id)
 	}
-	memberAddresses, err := m.MemberAddressManager().Find(ctx, &MemberAddress{
+	memberAddresses, err := MemberAddressManager(service).Find(ctx, &MemberAddress{
 		MemberProfileID: &memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -762,12 +762,12 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member addresses")
 	}
 	for _, memberAddress := range memberAddresses {
-		if err := m.MemberAddressManager().DeleteWithTx(ctx, tx, memberAddress.ID); err != nil {
+		if err := MemberAddressManager(service).DeleteWithTx(ctx, tx, memberAddress.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member address: %s", memberAddress.ID)
 		}
 	}
 
-	memberAssets, err := m.MemberAssetManager().Find(ctx, &MemberAsset{
+	memberAssets, err := MemberAssetManager(service).Find(ctx, &MemberAsset{
 		MemberProfileID: &memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -776,12 +776,12 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member assets")
 	}
 	for _, memberAsset := range memberAssets {
-		if err := m.MemberAssetManager().DeleteWithTx(ctx, tx, memberAsset.ID); err != nil {
+		if err := MemberAssetManager(service).DeleteWithTx(ctx, tx, memberAsset.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member asset: %s", memberAsset.ID)
 		}
 	}
 
-	memberIncomes, err := m.MemberIncomeManager().Find(ctx, &MemberIncome{
+	memberIncomes, err := MemberIncomeManager(service).Find(ctx, &MemberIncome{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -790,12 +790,12 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member incomes")
 	}
 	for _, memberIncome := range memberIncomes {
-		if err := m.MemberIncomeManager().DeleteWithTx(ctx, tx, memberIncome.ID); err != nil {
+		if err := MemberIncomeManager(service).DeleteWithTx(ctx, tx, memberIncome.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member income: %s", memberIncome.ID)
 		}
 	}
 
-	memberExpenses, err := m.MemberExpenseManager().Find(ctx, &MemberExpense{
+	memberExpenses, err := MemberExpenseManager(service).Find(ctx, &MemberExpense{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -804,12 +804,12 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member expenses")
 	}
 	for _, memberExpense := range memberExpenses {
-		if err := m.MemberExpenseManager().DeleteWithTx(ctx, tx, memberExpense.ID); err != nil {
+		if err := MemberExpenseManager(service).DeleteWithTx(ctx, tx, memberExpense.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member expense: %s", memberExpense.ID)
 		}
 	}
 
-	memberBenefits, err := m.MemberGovernmentBenefitManager().Find(ctx, &MemberGovernmentBenefit{
+	memberBenefits, err := MemberGovernmentBenefitManager(service).Find(ctx, &MemberGovernmentBenefit{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -818,11 +818,11 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member government benefits")
 	}
 	for _, memberBenefit := range memberBenefits {
-		if err := m.MemberGovernmentBenefitManager().DeleteWithTx(ctx, tx, memberBenefit.ID); err != nil {
+		if err := MemberGovernmentBenefitManager(service).DeleteWithTx(ctx, tx, memberBenefit.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member government benefit: %s", memberBenefit.ID)
 		}
 	}
-	memberJointAccounts, err := m.MemberJointAccountManager().Find(ctx, &MemberJointAccount{
+	memberJointAccounts, err := MemberJointAccountManager(service).Find(ctx, &MemberJointAccount{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -831,12 +831,12 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member joint accounts")
 	}
 	for _, memberJointAccount := range memberJointAccounts {
-		if err := m.MemberJointAccountManager().DeleteWithTx(ctx, tx, memberJointAccount.ID); err != nil {
+		if err := MemberJointAccountManager(service).DeleteWithTx(ctx, tx, memberJointAccount.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member joint account: %s", memberJointAccount.ID)
 		}
 	}
 
-	memberRelativeAccounts, err := m.MemberRelativeAccountManager().Find(ctx, &MemberRelativeAccount{
+	memberRelativeAccounts, err := MemberRelativeAccountManager(service).Find(ctx, &MemberRelativeAccount{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -845,11 +845,11 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member relative accounts")
 	}
 	for _, memberRelativeAccount := range memberRelativeAccounts {
-		if err := m.MemberRelativeAccountManager().DeleteWithTx(ctx, tx, memberRelativeAccount.ID); err != nil {
+		if err := MemberRelativeAccountManager(service).DeleteWithTx(ctx, tx, memberRelativeAccount.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member relative account: %s", memberRelativeAccount.ID)
 		}
 	}
-	memberEducations, err := m.MemberEducationalAttainmentManager().Find(ctx, &MemberEducationalAttainment{
+	memberEducations, err := MemberEducationalAttainmentManager(service).Find(ctx, &MemberEducationalAttainment{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -858,11 +858,11 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member educational attainments")
 	}
 	for _, memberEducation := range memberEducations {
-		if err := m.MemberEducationalAttainmentManager().DeleteWithTx(ctx, tx, memberEducation.ID); err != nil {
+		if err := MemberEducationalAttainmentManager(service).DeleteWithTx(ctx, tx, memberEducation.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member educational attainment: %s", memberEducation.ID)
 		}
 	}
-	memberContacts, err := m.MemberContactReferenceManager().Find(ctx, &MemberContactReference{
+	memberContacts, err := MemberContactReferenceManager(service).Find(ctx, &MemberContactReference{
 		MemberProfileID: memberProfile.ID,
 		BranchID:        memberProfile.BranchID,
 		OrganizationID:  memberProfile.OrganizationID,
@@ -871,11 +871,11 @@ func (m *Core) MemberProfileDestroy(ctx context.Context, tx *gorm.DB, id uuid.UU
 		return eris.Wrap(err, "failed to find member contact references")
 	}
 	for _, memberContact := range memberContacts {
-		if err := m.MemberContactReferenceManager().DeleteWithTx(ctx, tx, memberContact.ID); err != nil {
+		if err := MemberContactReferenceManager(service).DeleteWithTx(ctx, tx, memberContact.ID); err != nil {
 			return eris.Wrapf(err, "failed to delete member contact reference: %s", memberContact.ID)
 		}
 	}
-	if err := m.MemberProfileDelete(ctx, tx, memberProfile.ID); err != nil {
+	if err := MemberProfileDelete(ctx, service, tx, memberProfile.ID); err != nil {
 		return eris.Wrapf(err, "failed to delete member profile: %s", memberProfile.ID)
 	}
 	return err

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -69,7 +70,7 @@ type (
 	}
 )
 
-func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest] {
+func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -77,9 +78,9 @@ func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, Mutu
 			"Organization",
 			"Branch",
 			"MemberProfile", "Account", "Account.Currency", "MutualFund"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MutualFundEntry) *MutualFundEntryResponse {
 			if data == nil {
@@ -89,21 +90,21 @@ func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, Mutu
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				AccountID:       data.AccountID,
-				Account:         m.AccountManager().ToModel(data.Account),
+				Account:         AccountManager(service).ToModel(data.Account),
 				Amount:          data.Amount,
 				MutualFundID:    data.MutualFundID,
-				MutualFund:      m.MutualFundManager().ToModel(data.MutualFund),
+				MutualFund:      MutualFundManager(service).ToModel(data.MutualFund),
 			}
 		},
 		Created: func(data *MutualFundEntry) registry.Topics {
@@ -139,23 +140,23 @@ func (m *Core) MutualFundEntryManager() *registry.Registry[MutualFundEntry, Mutu
 	})
 }
 
-func (m *Core) MutualFundEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
+func MutualFundEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MutualFundEntryByMember(context context.Context, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
+func MutualFundEntryByMember(context context.Context, service *horizon.HorizonService, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
 		MemberProfileID: memberProfileID,
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 	})
 }
 
-func (m *Core) MutualFundEntryByAccount(context context.Context, accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return m.MutualFundEntryManager().Find(context, &MutualFundEntry{
+func MutualFundEntryByAccount(context context.Context, service *horizon.HorizonService, accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
 		AccountID:      accountID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

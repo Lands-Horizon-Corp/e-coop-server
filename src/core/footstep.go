@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -99,7 +100,7 @@ type (
 	}
 )
 
-func (m *Core) FootstepManager() *registry.Registry[Footstep, FootstepResponse, FootstepRequest] {
+func FootstepManager(service *horizon.HorizonService) *registry.Registry[Footstep, FootstepResponse, FootstepRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Footstep, FootstepResponse, FootstepRequest]{
 		Preloads: []string{
 			"User",
@@ -111,9 +112,9 @@ func (m *Core) FootstepManager() *registry.Registry[Footstep, FootstepResponse, 
 			"Organization.CoverMedia",
 			"Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Footstep) *FootstepResponse {
 			if data == nil {
@@ -123,19 +124,19 @@ func (m *Core) FootstepManager() *registry.Registry[Footstep, FootstepResponse, 
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				UserID:  data.UserID,
-				User:    m.UserManager().ToModel(data.User),
+				User:    UserManager(service).ToModel(data.User),
 				MediaID: data.MediaID,
-				Media:   m.MediaManager().ToModel(data.Media),
+				Media:   MediaManager(service).ToModel(data.Media),
 
 				Description:    data.Description,
 				Activity:       data.Activity,
@@ -180,21 +181,21 @@ func (m *Core) FootstepManager() *registry.Registry[Footstep, FootstepResponse, 
 	})
 }
 
-func (m *Core) GetFootstepByUser(context context.Context, userID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager().Find(context, &Footstep{
+func GetFootstepByUser(context context.Context, service *horizon.HorizonService, userID uuid.UUID) ([]*Footstep, error) {
+	return FootstepManager(service).Find(context, &Footstep{
 		UserID: &userID,
 	})
 }
 
-func (m *Core) GetFootstepBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager().Find(context, &Footstep{
+func GetFootstepByBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+	return FootstepManager(service).Find(context, &Footstep{
 		OrganizationID: &organizationID,
 		BranchID:       &branchID,
 	})
 }
 
-func (m *Core) GetFootstepByUserOrganization(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
-	return m.FootstepManager().Find(context, &Footstep{
+func GetFootstepByUserOrganization(context context.Context, service *horizon.HorizonService, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*Footstep, error) {
+	return FootstepManager(service).Find(context, &Footstep{
 		UserID:         &userID,
 		OrganizationID: &organizationID,
 		BranchID:       &branchID,

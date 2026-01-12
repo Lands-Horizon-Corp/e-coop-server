@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/go-playground/validator/v10"
+	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
 	"go.uber.org/zap"
 )
@@ -30,12 +31,14 @@ type HorizonService struct {
 
 	Validator *validator.Validate
 	Logger    *zap.Logger
+	Faker     faker.Faker
 	secured   bool
 }
 
 func NewHorizonService() *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
+	service.Faker = faker.New()
 	logger, err := zap.NewProduction()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize zap logger: %v\n", err)

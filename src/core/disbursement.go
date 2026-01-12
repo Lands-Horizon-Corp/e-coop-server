@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -64,7 +65,7 @@ type (
 	}
 )
 
-func (m *Core) DisbursementManager() *registry.Registry[Disbursement, DisbursementResponse, DisbursementRequest] {
+func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Disbursement, DisbursementResponse, DisbursementRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		Disbursement, DisbursementResponse, DisbursementRequest,
 	]{
@@ -72,9 +73,9 @@ func (m *Core) DisbursementManager() *registry.Registry[Disbursement, Disburseme
 			"CreatedBy", "UpdatedBy", "Currency",
 			"Organization.Media", "Branch.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Disbursement) *DisbursementResponse {
 			if data == nil {
@@ -84,16 +85,16 @@ func (m *Core) DisbursementManager() *registry.Registry[Disbursement, Disburseme
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager().ToModel(data.Currency),
+				Currency:       CurrencyManager(service).ToModel(data.Currency),
 				Name:           data.Name,
 				Icon:           data.Icon,
 				Description:    data.Description,
@@ -126,10 +127,10 @@ func (m *Core) DisbursementManager() *registry.Registry[Disbursement, Disburseme
 	})
 }
 
-func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func disbursementSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := BranchManager(service).GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
@@ -272,7 +273,7 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 	}
 
 	for _, data := range disbursements {
-		if err := m.DisbursementManager().CreateWithTx(context, tx, data); err != nil {
+		if err := DisbursementManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed disbursement %s", data.Name)
 		}
 	}
@@ -280,8 +281,8 @@ func (m *Core) disbursementSeed(context context.Context, tx *gorm.DB, userID uui
 	return nil
 }
 
-func (m *Core) DisbursementCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
-	return m.DisbursementManager().Find(context, &Disbursement{
+func DisbursementCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
+	return DisbursementManager(service).Find(context, &Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -67,14 +68,14 @@ type (
 	}
 )
 
-func (m *Core) BillAndCoinsManager() *registry.Registry[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest] {
+func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
 			if data == nil {
@@ -84,18 +85,18 @@ func (m *Core) BillAndCoinsManager() *registry.Registry[BillAndCoins, BillAndCoi
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager().ToModel(data.Media),
+				Media:          MediaManager(service).ToModel(data.Media),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager().ToModel(data.Currency),
+				Currency:       CurrencyManager(service).ToModel(data.Currency),
 				Name:           data.Name,
 				Value:          data.Value,
 			}
@@ -127,9 +128,9 @@ func (m *Core) BillAndCoinsManager() *registry.Registry[BillAndCoins, BillAndCoi
 	})
 }
 
-func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	curency, err := m.CurrencyManager().List(context)
+	curency, err := CurrencyManager(service).List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for bill and coins seeding")
 	}
@@ -1406,7 +1407,7 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 			}
 		}
 		for _, data := range billAndCoins {
-			if err := m.BillAndCoinsManager().CreateWithTx(context, tx, data); err != nil {
+			if err := BillAndCoinsManager(service).CreateWithTx(context, tx, data); err != nil {
 				return eris.Wrapf(err, "failed to seed bill or coin %s", data.Name)
 			}
 		}
@@ -1415,8 +1416,8 @@ func (m *Core) billAndCoinsSeed(context context.Context, tx *gorm.DB, userID uui
 	return nil
 }
 
-func (m *Core) BillAndCoinsCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
-	return m.BillAndCoinsManager().Find(context, &BillAndCoins{
+func BillAndCoinsCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
+	return BillAndCoinsManager(service).Find(context, &BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

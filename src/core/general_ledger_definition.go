@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -98,7 +99,7 @@ type (
 	}
 )
 
-func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest] {
+func GeneralLedgerDefinitionManager(service *horizon.HorizonService) *registry.Registry[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest] {
 	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerDefinition, GeneralLedgerDefinitionResponse, GeneralLedgerDefinitionRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -120,9 +121,9 @@ func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedger
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 			"GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.GeneralLedgerDefinitionEntries.Accounts",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneralLedgerDefinition) *GeneralLedgerDefinitionResponse {
 			if data == nil {
@@ -140,29 +141,29 @@ func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedger
 				return data.Accounts[i].Index < data.Accounts[j].Index
 			})
 
-			entries := m.GeneralLedgerDefinitionManager().ToModels(data.GeneralLedgerDefinitionEntries)
+			entries := GeneralLedgerDefinitionManager(service).ToModels(data.GeneralLedgerDefinitionEntries)
 			if len(entries) == 0 || entries == nil {
 				entries = []*GeneralLedgerDefinitionResponse{}
 			}
 			return &GeneralLedgerDefinitionResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				DeletedByID:    data.DeletedByID,
-				DeletedBy:      m.UserManager().ToModel(data.DeletedBy),
+				DeletedBy:      UserManager(service).ToModel(data.DeletedBy),
 
 				GeneralLedgerDefinitionEntryID:  data.GeneralLedgerDefinitionEntryID,
 				GeneralLedgerDefinitionEntries:  entries,
 				GeneralLedgerAccountsGroupingID: data.GeneralLedgerAccountsGroupingID,
-				GeneralLedgerAccountsGrouping:   m.GeneralLedgerAccountsGroupingManager().ToModel(data.GeneralLedgerAccountsGrouping),
+				GeneralLedgerAccountsGrouping:   GeneralLedgerAccountsGroupingManager(service).ToModel(data.GeneralLedgerAccountsGrouping),
 
-				Accounts:                        m.AccountManager().ToModels(data.Accounts),
+				Accounts:                        AccountManager(service).ToModels(data.Accounts),
 				Name:                            data.Name,
 				Description:                     data.Description,
 				Index:                           data.Index,
@@ -204,8 +205,8 @@ func (m *Core) GeneralLedgerDefinitionManager() *registry.Registry[GeneralLedger
 	})
 }
 
-func (m *Core) GeneralLedgerDefinitionCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerDefinition, error) {
-	return m.GeneralLedgerDefinitionManager().Find(context, &GeneralLedgerDefinition{
+func GeneralLedgerDefinitionCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerDefinition, error) {
+	return GeneralLedgerDefinitionManager(service).Find(context, &GeneralLedgerDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

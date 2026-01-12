@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -134,7 +135,7 @@ type (
 	}
 )
 
-func (m *Core) JournalVoucherManager() *registry.Registry[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest] {
+func JournalVoucherManager(service *horizon.HorizonService) *registry.Registry[JournalVoucher, JournalVoucherResponse, JournalVoucherRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		JournalVoucher, JournalVoucherResponse, JournalVoucherRequest,
 	]{
@@ -148,9 +149,9 @@ func (m *Core) JournalVoucherManager() *registry.Registry[JournalVoucher, Journa
 			"JournalVoucherEntries.Account.Currency",
 			"JournalVoucherEntries.MemberProfile", "JournalVoucherEntries.EmployeeUser",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *JournalVoucher) *JournalVoucherResponse {
 			if data == nil {
@@ -181,16 +182,16 @@ func (m *Core) JournalVoucherManager() *registry.Registry[JournalVoucher, Journa
 				ID:                    data.ID,
 				CreatedAt:             data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:           data.CreatedByID,
-				CreatedBy:             m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:             UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:             data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:           data.UpdatedByID,
-				UpdatedBy:             m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:             UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:        data.OrganizationID,
-				Organization:          m.OrganizationManager().ToModel(data.Organization),
+				Organization:          OrganizationManager(service).ToModel(data.Organization),
 				BranchID:              data.BranchID,
-				Branch:                m.BranchManager().ToModel(data.Branch),
+				Branch:                BranchManager(service).ToModel(data.Branch),
 				CurrencyID:            data.CurrencyID,
-				Currency:              m.CurrencyManager().ToModel(data.Currency),
+				Currency:              CurrencyManager(service).ToModel(data.Currency),
 				Name:                  data.Name,
 				CashVoucherNumber:     data.CashVoucherNumber,
 				Date:                  data.Date.Format("2006-01-02"),
@@ -199,23 +200,23 @@ func (m *Core) JournalVoucherManager() *registry.Registry[JournalVoucher, Journa
 				Status:                data.Status,
 				PostedAt:              postedAt,
 				PostedByID:            data.PostedByID,
-				PostedBy:              m.UserManager().ToModel(data.PostedBy),
+				PostedBy:              UserManager(service).ToModel(data.PostedBy),
 				EmployeeUserID:        data.EmployeeUserID,
-				EmployeeUser:          m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:          UserManager(service).ToModel(data.EmployeeUser),
 				TransactionBatchID:    data.TransactionBatchID,
-				TransactionBatch:      m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:      TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				PrintedDate:           printedDate,
 				PrintedByID:           data.PrintedByID,
-				PrintedBy:             m.UserManager().ToModel(data.PrintedBy),
+				PrintedBy:             UserManager(service).ToModel(data.PrintedBy),
 				PrintNumber:           data.PrintNumber,
 				ApprovedDate:          approvedDate,
 				ApprovedByID:          data.ApprovedByID,
-				ApprovedBy:            m.UserManager().ToModel(data.ApprovedBy),
+				ApprovedBy:            UserManager(service).ToModel(data.ApprovedBy),
 				ReleasedDate:          releasedDate,
 				ReleasedByID:          data.ReleasedByID,
-				ReleasedBy:            m.UserManager().ToModel(data.ReleasedBy),
-				JournalVoucherTags:    m.JournalVoucherTagManager().ToModels(data.JournalVoucherTags),
-				JournalVoucherEntries: m.JournalVoucherEntryManager().ToModels(data.JournalVoucherEntries),
+				ReleasedBy:            UserManager(service).ToModel(data.ReleasedBy),
+				JournalVoucherTags:    JournalVoucherTagManager(service).ToModels(data.JournalVoucherTags),
+				JournalVoucherEntries: JournalVoucherEntryManager(service).ToModels(data.JournalVoucherEntries),
 				TotalDebit:            data.TotalDebit,
 				TotalCredit:           data.TotalCredit,
 			}
@@ -247,14 +248,14 @@ func (m *Core) JournalVoucherManager() *registry.Registry[JournalVoucher, Journa
 	})
 }
 
-func (m *Core) JournalVoucherCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucher, error) {
-	return m.JournalVoucherManager().Find(context, &JournalVoucher{
+func JournalVoucherCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucher, error) {
+	return JournalVoucherManager(service).Find(context, &JournalVoucher{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
+func ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 	totalDebit := decimal.NewFromInt(0)
 	totalCredit := decimal.NewFromInt(0)
 	for _, entry := range entries {
@@ -271,7 +272,7 @@ func (m *Core) ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) err
 	return nil
 }
 
-func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
+func JournalVoucherDraft(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -280,12 +281,12 @@ func (m *Core) JournalVoucherDraft(ctx context.Context, branchID, organizationID
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return JournalVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
+func JournalVoucherPrinted(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -294,12 +295,12 @@ func (m *Core) JournalVoucherPrinted(ctx context.Context, branchID, organization
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return JournalVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
+func JournalVoucherApproved(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -308,12 +309,12 @@ func (m *Core) JournalVoucherApproved(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return JournalVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
+func JournalVoucherReleased(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -322,12 +323,12 @@ func (m *Core) JournalVoucherReleased(ctx context.Context, branchID, organizatio
 		{Field: "released_date", Op: query.ModeIsNotEmpty, Value: nil},
 	}
 
-	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return JournalVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uuid.UUID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
+func JournalVoucherReleasedCurrentDay(ctx context.Context, service *horizon.HorizonService, branchID uuid.UUID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
@@ -342,7 +343,7 @@ func (m *Core) JournalVoucherReleasedCurrentDay(ctx context.Context, branchID uu
 		{Field: "released_date", Op: query.ModeLT, Value: endOfDay},
 	}
 
-	return m.JournalVoucherManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return JournalVoucherManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }

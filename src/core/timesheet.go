@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -68,7 +69,7 @@ type (
 	}
 )
 
-func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetResponse, TimesheetRequest] {
+func TimesheetManager(service *horizon.HorizonService) *registry.Registry[Timesheet, TimesheetResponse, TimesheetRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Timesheet, TimesheetResponse, TimesheetRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -79,9 +80,9 @@ func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetRespons
 			"User.Media",
 			"MediaIn", "MediaOut",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Timesheet) *TimesheetResponse {
 			if data == nil {
@@ -96,20 +97,20 @@ func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetRespons
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				UserID:         data.UserID,
-				User:           m.UserManager().ToModel(data.User),
+				User:           UserManager(service).ToModel(data.User),
 				MediaInID:      data.MediaInID,
-				MediaIn:        m.MediaManager().ToModel(data.MediaIn),
+				MediaIn:        MediaManager(service).ToModel(data.MediaIn),
 				MediaOutID:     data.MediaOutID,
-				MediaOut:       m.MediaManager().ToModel(data.MediaOut),
+				MediaOut:       MediaManager(service).ToModel(data.MediaOut),
 				TimeIn:         data.TimeIn.Format(time.RFC3339),
 				TimeOut:        timeOutStr,
 			}
@@ -145,31 +146,31 @@ func (m *Core) TimesheetManager() *registry.Registry[Timesheet, TimesheetRespons
 	})
 }
 
-func (m *Core) TimesheetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
+func TimesheetCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.TimesheetManager().ArrFind(context, filters, nil)
+	return TimesheetManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GetUserTimesheet(context context.Context, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
+func GetUserTimesheet(context context.Context, service *horizon.HorizonService, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "user_id", Op: query.ModeEqual, Value: userID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.TimesheetManager().ArrFind(context, filters, nil)
+	return TimesheetManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) TimeSheetActiveUsers(context context.Context, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
+func TimeSheetActiveUsers(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "time_out", Op: query.ModeIsEmpty, Value: nil},
 	}
 
-	return m.TimesheetManager().ArrFind(context, filters, nil)
+	return TimesheetManager(service).ArrFind(context, filters, nil)
 }

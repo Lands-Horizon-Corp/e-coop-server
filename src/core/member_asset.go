@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -73,12 +74,12 @@ type (
 	}
 )
 
-func (m *Core) MemberAssetManager() *registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest] {
+func MemberAssetManager(service *horizon.HorizonService) *registry.Registry[MemberAsset, MemberAssetResponse, MemberAssetRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberAsset, MemberAssetResponse, MemberAssetRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberAsset) *MemberAssetResponse {
 			if data == nil {
@@ -88,18 +89,18 @@ func (m *Core) MemberAssetManager() *registry.Registry[MemberAsset, MemberAssetR
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager().ToModel(data.Media),
+				Media:           MediaManager(service).ToModel(data.Media),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				Name:            data.Name,
 				EntryDate:       data.EntryDate.Format(time.RFC3339),
 				Description:     data.Description,
@@ -134,8 +135,8 @@ func (m *Core) MemberAssetManager() *registry.Registry[MemberAsset, MemberAssetR
 	})
 }
 
-func (m *Core) MemberAssetCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
-	return m.MemberAssetManager().Find(context, &MemberAsset{
+func MemberAssetCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAsset, error) {
+	return MemberAssetManager(service).Find(context, &MemberAsset{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

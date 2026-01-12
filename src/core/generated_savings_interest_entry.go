@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -92,16 +93,16 @@ type (
 	}
 )
 
-func (m *Core) GeneratedSavingsInterestEntryManager() *registry.Registry[GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest] {
+func GeneratedSavingsInterestEntryManager(service *horizon.HorizonService) *registry.Registry[GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterestEntry, GeneratedSavingsInterestEntryResponse, GeneratedSavingsInterestEntryRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "GeneratedSavingsInterest", "Account", "MemberProfile",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneratedSavingsInterestEntry) *GeneratedSavingsInterestEntryResponse {
 			if data == nil {
@@ -111,21 +112,21 @@ func (m *Core) GeneratedSavingsInterestEntryManager() *registry.Registry[Generat
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				GeneratedSavingsInterestID: data.GeneratedSavingsInterestID,
-				GeneratedSavingsInterest:   m.GeneratedSavingsInterestManager().ToModel(data.GeneratedSavingsInterest),
+				GeneratedSavingsInterest:   GeneratedSavingsInterestManager(service).ToModel(data.GeneratedSavingsInterest),
 				AccountID:                  data.AccountID,
-				Account:                    m.AccountManager().ToModel(data.Account),
+				Account:                    AccountManager(service).ToModel(data.Account),
 				MemberProfileID:            data.MemberProfileID,
-				MemberProfile:              m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:              MemberProfileManager(service).ToModel(data.MemberProfile),
 				EndingBalance:              data.EndingBalance,
 				InterestAmount:             data.InterestAmount,
 				InterestTax:                data.InterestTax,
@@ -168,38 +169,38 @@ func (m *Core) GeneratedSavingsInterestEntryManager() *registry.Registry[Generat
 	})
 }
 
-func (m *Core) GenerateSavingsInterestEntryCurrentBranch(
-	context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
+func GenerateSavingsInterestEntryCurrentBranch(
+	context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
+	return GeneratedSavingsInterestEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GenerateSavingsInterestEntryByGeneratedSavingsInterest(
-	context context.Context, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
+func GenerateSavingsInterestEntryByGeneratedSavingsInterest(
+	context context.Context, service *horizon.HorizonService, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "generated_savings_interest_id", Op: query.ModeEqual, Value: generatedSavingsInterestID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
+	return GeneratedSavingsInterestEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GenerateSavingsInterestEntryByAccount(
-	context context.Context, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
+func GenerateSavingsInterestEntryByAccount(
+	context context.Context, service *horizon.HorizonService, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
+	return GeneratedSavingsInterestEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
-	context context.Context, memberProfileID, organizationID, branchID uuid.UUID) (
+func GenerateSavingsInterestEntryByMemberProfile(
+	context context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -207,11 +208,11 @@ func (m *Core) GenerateSavingsInterestEntryByMemberProfile(
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
+	return GeneratedSavingsInterestEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
-	context context.Context, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
+func GenerateSavingsInterestEntryByEndingBalanceRange(
+	context context.Context, service *horizon.HorizonService, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -220,24 +221,24 @@ func (m *Core) GenerateSavingsInterestEntryByEndingBalanceRange(
 		{Field: "ending_balance", Op: query.ModeLTE, Value: maxEndingBalance},
 	}
 
-	return m.GeneratedSavingsInterestEntryManager().ArrFind(context, filters, nil)
+	return GeneratedSavingsInterestEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) DailyBalances(
-	context context.Context,
+func DailyBalances(
+	context context.Context, service *horizon.HorizonService,
 	generatedSavingsInterestEntryID uuid.UUID,
 ) (*GeneratedSavingsInterestEntryDailyBalanceResponse, error) {
-	generatedSavingsInterestEntry, err := m.GeneratedSavingsInterestEntryManager().GetByID(context, generatedSavingsInterestEntryID)
+	generatedSavingsInterestEntry, err := GeneratedSavingsInterestEntryManager(service).GetByID(context, generatedSavingsInterestEntryID)
 	if err != nil {
 		return nil, err
 	}
-	generatedSavingsInterest, err := m.GeneratedSavingsInterestManager().GetByID(context, generatedSavingsInterestEntry.GeneratedSavingsInterestID)
+	generatedSavingsInterest, err := GeneratedSavingsInterestManager(service).GetByID(context, generatedSavingsInterestEntry.GeneratedSavingsInterestID)
 	if err != nil {
 		return nil, err
 	}
 
-	dailyBalances, err := m.GetDailyEndingBalances(
-		context,
+	dailyBalances, err := GetDailyEndingBalances(
+		context, service,
 		generatedSavingsInterest.LastComputationDate,
 		generatedSavingsInterest.NewComputationDate,
 		generatedSavingsInterestEntry.AccountID,
@@ -320,11 +321,11 @@ func (m *Core) DailyBalances(
 		beginningBalance = decimal.NewFromFloat(0)
 	}
 
-	account, err := m.AccountManager().GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
+	account, err := AccountManager(service).GetByID(context, generatedSavingsInterestEntry.AccountID, "Currency")
 	if err != nil {
 		return nil, err
 	}
-	memberProfile, err := m.MemberProfileManager().GetByID(context, generatedSavingsInterestEntry.MemberProfileID)
+	memberProfile, err := MemberProfileManager(service).GetByID(context, generatedSavingsInterestEntry.MemberProfileID)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +337,7 @@ func (m *Core) DailyBalances(
 		LowestBalance:       lowestBalance.InexactFloat64(),
 		HighestBalance:      highestBalance.InexactFloat64(),
 		DailyBalance:        allDailyBalances,
-		Account:             m.AccountManager().ToModel(account),
-		MemberProfile:       m.MemberProfileManager().ToModel(memberProfile),
+		Account:             AccountManager(service).ToModel(account),
+		MemberProfile:       MemberProfileManager(service).ToModel(memberProfile),
 	}, nil
 }

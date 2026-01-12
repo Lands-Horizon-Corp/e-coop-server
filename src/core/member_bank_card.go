@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -75,12 +76,12 @@ type (
 	}
 )
 
-func (m *Core) MemberBankCardManager() *registry.Registry[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest] {
+func MemberBankCardManager(service *horizon.HorizonService) *registry.Registry[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberBankCard, MemberBankCardResponse, MemberBankCardRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Bank", "MemberProfile"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberBankCard) *MemberBankCardResponse {
 			if data == nil {
@@ -90,18 +91,18 @@ func (m *Core) MemberBankCardManager() *registry.Registry[MemberBankCard, Member
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				BankID:          data.BankID,
-				Bank:            m.BankManager().ToModel(data.Bank),
+				Bank:            BankManager(service).ToModel(data.Bank),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				AccountNumber:   data.AccountNumber,
 				CardName:        data.CardName,
 				ExpirationDate:  data.ExpirationDate.Format(time.RFC3339),
@@ -136,8 +137,8 @@ func (m *Core) MemberBankCardManager() *registry.Registry[MemberBankCard, Member
 	})
 }
 
-func (m *Core) MemberBankCardCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberBankCard, error) {
-	return m.MemberBankCardManager().Find(context, &MemberBankCard{
+func MemberBankCardCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberBankCard, error) {
+	return MemberBankCardManager(service).Find(context, &MemberBankCard{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

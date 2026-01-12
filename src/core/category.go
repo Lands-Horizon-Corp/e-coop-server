@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -46,8 +47,8 @@ type (
 	}
 )
 
-func (m *Core) categorySeed(ctx context.Context) error {
-	category, err := m.CategoryManager().List(ctx)
+func categorySeed(ctx context.Context, service *horizon.HorizonService) error {
+	category, err := CategoryManager(service).List(ctx)
 
 	if err != nil {
 		return err
@@ -260,19 +261,19 @@ func (m *Core) categorySeed(ctx context.Context) error {
 	}
 
 	for _, category := range categories {
-		if err := m.CategoryManager().Create(ctx, &category); err != nil {
+		if err := CategoryManager(service).Create(ctx, &category); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (m *Core) CategoryManager() *registry.Registry[Category, CategoryResponse, CategoryRequest] {
+func CategoryManager(service *horizon.HorizonService) *registry.Registry[Category, CategoryResponse, CategoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Category, CategoryResponse, CategoryRequest]{
 		Preloads: []string{"OrganizationCategories"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Category) *CategoryResponse {
 			if data == nil {
@@ -288,7 +289,7 @@ func (m *Core) CategoryManager() *registry.Registry[Category, CategoryResponse, 
 				Color:       data.Color,
 				Icon:        data.Icon,
 
-				OrganizationCategories: m.OrganizationCategoryManager().ToModels(data.OrganizationCategories),
+				OrganizationCategories: OrganizationCategoryManager(service).ToModels(data.OrganizationCategories),
 			}
 		},
 		Created: func(data *Category) registry.Topics {

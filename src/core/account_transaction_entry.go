@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -59,7 +60,7 @@ type (
 	}
 )
 
-func (m *Core) AccountTransactionEntryManager() *registry.Registry[
+func AccountTransactionEntryManager(service *horizon.HorizonService) *registry.Registry[
 	AccountTransactionEntry,
 	AccountTransactionEntryResponse,
 	any,
@@ -77,9 +78,9 @@ func (m *Core) AccountTransactionEntryManager() *registry.Registry[
 			"Account",
 			"AccountTransaction",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *AccountTransactionEntry) *AccountTransactionEntryResponse {
 			if data == nil {
@@ -92,7 +93,7 @@ func (m *Core) AccountTransactionEntryManager() *registry.Registry[
 				OrganizationID: data.OrganizationID,
 				BranchID:       data.BranchID,
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager().ToModel(data.Account),
+				Account:        AccountManager(service).ToModel(data.Account),
 				Debit:          data.Debit,
 				Credit:         data.Credit,
 				Date:           data.Date.Format("2006-01-02"),
@@ -129,8 +130,9 @@ func (m *Core) AccountTransactionEntryManager() *registry.Registry[
 	})
 }
 
-func (c *Core) AccountingEntryByAccountMonthYear(
+func AccountingEntryByAccountMonthYear(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	accountID uuid.UUID,
 	month int,
 	year int,
@@ -150,5 +152,5 @@ func (c *Core) AccountingEntryByAccountMonthYear(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "date", Order: query.SortOrderAsc},
 	}
-	return c.AccountTransactionEntryManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	return AccountTransactionEntryManager(service).ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 }

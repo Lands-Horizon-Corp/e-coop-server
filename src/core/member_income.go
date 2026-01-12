@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -70,12 +71,12 @@ type (
 	}
 )
 
-func (m *Core) MemberIncomeManager() *registry.Registry[MemberIncome, MemberIncomeResponse, MemberIncomeRequest] {
+func MemberIncomeManager(service *horizon.HorizonService) *registry.Registry[MemberIncome, MemberIncomeResponse, MemberIncomeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberIncome, MemberIncomeResponse, MemberIncomeRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberIncome) *MemberIncomeResponse {
 			if data == nil {
@@ -90,18 +91,18 @@ func (m *Core) MemberIncomeManager() *registry.Registry[MemberIncome, MemberInco
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MediaID:         data.MediaID,
-				Media:           m.MediaManager().ToModel(data.Media),
+				Media:           MediaManager(service).ToModel(data.Media),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				Name:            data.Name,
 				Source:          data.Source,
 				Amount:          data.Amount,
@@ -136,8 +137,8 @@ func (m *Core) MemberIncomeManager() *registry.Registry[MemberIncome, MemberInco
 	})
 }
 
-func (m *Core) MemberIncomeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberIncome, error) {
-	return m.MemberIncomeManager().Find(context, &MemberIncome{
+func MemberIncomeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberIncome, error) {
+	return MemberIncomeManager(service).Find(context, &MemberIncome{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

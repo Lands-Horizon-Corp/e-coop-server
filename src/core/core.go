@@ -5,7 +5,6 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/google/uuid"
-	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -47,12 +46,12 @@ type (
 		Middlename    string `json:"middle_name"`
 	}
 
-	Core struct {
-		provider   *horizon.HorizonService
-		Migration  []any
-		faker      faker.Faker
-		imagePaths []string
-	}
+	// Core struct {
+	// 	provider   *horizon.HorizonService
+	// 	Migration  []any
+	// 	faker      faker.Faker
+	// 	imagePaths []string
+	// }
 )
 
 // func NewCore(provider *horizon.HorizonService) *Core {
@@ -63,239 +62,239 @@ type (
 // 	}
 // }
 
-func (m *Core) Start() error {
-	m.Migration = append(m.Migration, []any{
-		AccountCategory{},
-		AccountClassification{},
-		Account{},
-		AccountHistory{},
-		AccountTag{},
-		AdjustmentEntry{},
-		AdjustmentTag{},
-		AutomaticLoanDeduction{},
-		Bank{},
-		BatchFunding{},
-		BillAndCoins{},
-		Branch{},
-		BranchSetting{},
-		BrowseExcludeIncludeAccounts{},
-		BrowseReference{},
-		CancelledCashCheckVoucher{},
-		CashCheckVoucherEntry{},
-		CashCheckVoucher{},
-		CashCheckVoucherTag{},
-		CashCount{},
-		Category{},
-		ChargesRateByRangeOrMinimumAmount{},
-		ChargesRateByTerm{},
-		ChargesRateSchemeAccount{},
-		ChargesRateScheme{},
-		ChargesRateSchemeModeOfPayment{},
-		CheckRemittance{},
-		Collateral{},
-		CollectorsMemberAccountEntry{},
-		ComakerCollateral{},
-		ComakerMemberProfile{},
-		Company{},
-		ComputationSheet{},
-		ContactUs{},
-		Currency{},
-		Disbursement{},
-		DisbursementTransaction{},
-		Feedback{},
-		FinancialStatementAccountsGrouping{},
-		FinancialStatementDefinition{},
-		FinesMaturity{},
-		Footstep{},
-		Funds{},
-		GeneralAccountGroupingNetSurplusNegative{},
-		GeneralAccountGroupingNetSurplusPositive{},
-		GeneralAccountingLedgerTag{},
-		GeneralLedgerAccountsGrouping{},
-		GeneralLedgerDefinition{},
-		GeneralLedger{},
-		GeneratedReport{},
-		GeneratedReportsDownloadUsers{},
-		GeneratedSavingsInterestEntry{},
-		GeneratedSavingsInterest{},
-		GroceryComputationSheet{},
-		GroceryComputationSheetMonthly{},
-		Holiday{},
-		IncludeNegativeAccount{},
-		InterestMaturity{},
-		InterestRateByAmount{},
-		InterestRateByDate{},
-		InterestRateByTerm{},
-		InterestRateByYear{},
-		InterestRatePercentage{},
-		InterestRateScheme{},
-		InvitationCode{},
-		JournalVoucherEntry{},
-		JournalVoucher{},
-		JournalVoucherTag{},
-		LoanAccount{},
-		LoanClearanceAnalysis{},
-		LoanClearanceAnalysisInstitution{},
-		LoanComakerMember{},
-		LoanGuaranteedFund{},
-		LoanGuaranteedFundPerMonth{},
-		LoanPurpose{},
-		LoanStatus{},
-		LoanTag{},
-		LoanTermsAndConditionAmountReceipt{},
-		LoanTermsAndConditionSuggestedPayment{},
-		LoanTransactionEntry{},
-		LoanTransaction{},
-		Media{},
-		MemberAccountingLedger{},
-		MemberAddress{},
-		MemberAsset{},
-		MemberBankCard{},
-		MemberCenter{},
-		MemberCenterHistory{},
-		MemberClassification{},
-		MemberClassificationHistory{},
-		MemberClassificationInterestRate{},
-		MemberCloseRemark{},
-		MemberContactReference{},
-		MemberDamayanExtensionEntry{},
-		MemberDeductionEntry{},
-		MemberDepartment{},
-		MemberDepartmentHistory{},
-		MemberEducationalAttainment{},
-		MemberExpense{},
-		MemberGender{},
-		MemberGenderHistory{},
-		MemberGovernmentBenefit{},
-		MemberGroup{},
-		MemberGroupHistory{},
-		MemberIncome{},
-		MemberJointAccount{},
-		MemberMutualFundHistory{},
-		MemberOccupation{},
-		MemberOccupationHistory{},
-		MemberOtherInformationEntry{},
-		MemberProfileArchive{},
-		MemberProfile{},
-		MemberProfileMedia{},
-		MemberRelativeAccount{},
-		MemberType{},
-		MemberTypeHistory{},
-		MemberVerification{},
-		MutualFundAdditionalMembers{},
-		MutualFundEntry{},
-		MutualFund{},
-		MutualFundTable{},
-		Notification{},
-		OnlineRemittance{},
-		OrganizationCategory{},
-		OrganizationDailyUsage{},
-		Organization{},
-		OrganizationMedia{},
-		PaymentType{},
-		PermissionTemplate{},
-		PostDatedCheck{},
-		SubscriptionPlan{},
-		TagTemplate{},
-		TimeDepositComputation{},
-		TimeDepositComputationPreMature{},
-		TimeDepositType{},
-		Timesheet{},
-		TransactionBatch{},
-		Transaction{},
-		TransactionTag{},
-		UnbalancedAccount{},
-		User{},
-		UserOrganization{},
-		UserRating{},
-		VoucherPayTo{},
-		AccountTransaction{},
-		AccountTransactionEntry{},
-	}...)
+// func Start() error {
+// 	Migration = append(Migration, []any{
+// 		AccountCategory{},
+// 		AccountClassification{},
+// 		Account{},
+// 		AccountHistory{},
+// 		AccountTag{},
+// 		AdjustmentEntry{},
+// 		AdjustmentTag{},
+// 		AutomaticLoanDeduction{},
+// 		Bank{},
+// 		BatchFunding{},
+// 		BillAndCoins{},
+// 		Branch{},
+// 		BranchSetting{},
+// 		BrowseExcludeIncludeAccounts{},
+// 		BrowseReference{},
+// 		CancelledCashCheckVoucher{},
+// 		CashCheckVoucherEntry{},
+// 		CashCheckVoucher{},
+// 		CashCheckVoucherTag{},
+// 		CashCount{},
+// 		Category{},
+// 		ChargesRateByRangeOrMinimumAmount{},
+// 		ChargesRateByTerm{},
+// 		ChargesRateSchemeAccount{},
+// 		ChargesRateScheme{},
+// 		ChargesRateSchemeModeOfPayment{},
+// 		CheckRemittance{},
+// 		Collateral{},
+// 		CollectorsMemberAccountEntry{},
+// 		ComakerCollateral{},
+// 		ComakerMemberProfile{},
+// 		Company{},
+// 		ComputationSheet{},
+// 		ContactUs{},
+// 		Currency{},
+// 		Disbursement{},
+// 		DisbursementTransaction{},
+// 		Feedback{},
+// 		FinancialStatementAccountsGrouping{},
+// 		FinancialStatementDefinition{},
+// 		FinesMaturity{},
+// 		Footstep{},
+// 		Funds{},
+// 		GeneralAccountGroupingNetSurplusNegative{},
+// 		GeneralAccountGroupingNetSurplusPositive{},
+// 		GeneralAccountingLedgerTag{},
+// 		GeneralLedgerAccountsGrouping{},
+// 		GeneralLedgerDefinition{},
+// 		GeneralLedger{},
+// 		GeneratedReport{},
+// 		GeneratedReportsDownloadUsers{},
+// 		GeneratedSavingsInterestEntry{},
+// 		GeneratedSavingsInterest{},
+// 		GroceryComputationSheet{},
+// 		GroceryComputationSheetMonthly{},
+// 		Holiday{},
+// 		IncludeNegativeAccount{},
+// 		InterestMaturity{},
+// 		InterestRateByAmount{},
+// 		InterestRateByDate{},
+// 		InterestRateByTerm{},
+// 		InterestRateByYear{},
+// 		InterestRatePercentage{},
+// 		InterestRateScheme{},
+// 		InvitationCode{},
+// 		JournalVoucherEntry{},
+// 		JournalVoucher{},
+// 		JournalVoucherTag{},
+// 		LoanAccount{},
+// 		LoanClearanceAnalysis{},
+// 		LoanClearanceAnalysisInstitution{},
+// 		LoanComakerMember{},
+// 		LoanGuaranteedFund{},
+// 		LoanGuaranteedFundPerMonth{},
+// 		LoanPurpose{},
+// 		LoanStatus{},
+// 		LoanTag{},
+// 		LoanTermsAndConditionAmountReceipt{},
+// 		LoanTermsAndConditionSuggestedPayment{},
+// 		LoanTransactionEntry{},
+// 		LoanTransaction{},
+// 		Media{},
+// 		MemberAccountingLedger{},
+// 		MemberAddress{},
+// 		MemberAsset{},
+// 		MemberBankCard{},
+// 		MemberCenter{},
+// 		MemberCenterHistory{},
+// 		MemberClassification{},
+// 		MemberClassificationHistory{},
+// 		MemberClassificationInterestRate{},
+// 		MemberCloseRemark{},
+// 		MemberContactReference{},
+// 		MemberDamayanExtensionEntry{},
+// 		MemberDeductionEntry{},
+// 		MemberDepartment{},
+// 		MemberDepartmentHistory{},
+// 		MemberEducationalAttainment{},
+// 		MemberExpense{},
+// 		MemberGender{},
+// 		MemberGenderHistory{},
+// 		MemberGovernmentBenefit{},
+// 		MemberGroup{},
+// 		MemberGroupHistory{},
+// 		MemberIncome{},
+// 		MemberJointAccount{},
+// 		MemberMutualFundHistory{},
+// 		MemberOccupation{},
+// 		MemberOccupationHistory{},
+// 		MemberOtherInformationEntry{},
+// 		MemberProfileArchive{},
+// 		MemberProfile{},
+// 		MemberProfileMedia{},
+// 		MemberRelativeAccount{},
+// 		MemberType{},
+// 		MemberTypeHistory{},
+// 		MemberVerification{},
+// 		MutualFundAdditionalMembers{},
+// 		MutualFundEntry{},
+// 		MutualFund{},
+// 		MutualFundTable{},
+// 		Notification{},
+// 		OnlineRemittance{},
+// 		OrganizationCategory{},
+// 		OrganizationDailyUsage{},
+// 		Organization{},
+// 		OrganizationMedia{},
+// 		PaymentType{},
+// 		PermissionTemplate{},
+// 		PostDatedCheck{},
+// 		SubscriptionPlan{},
+// 		TagTemplate{},
+// 		TimeDepositComputation{},
+// 		TimeDepositComputationPreMature{},
+// 		TimeDepositType{},
+// 		Timesheet{},
+// 		TransactionBatch{},
+// 		Transaction{},
+// 		TransactionTag{},
+// 		UnbalancedAccount{},
+// 		User{},
+// 		UserOrganization{},
+// 		UserRating{},
+// 		VoucherPayTo{},
+// 		AccountTransaction{},
+// 		AccountTransactionEntry{},
+// 	}...)
+// 	return nil
+// }
+
+func GlobalSeeder(ctx context.Context, service *horizon.HorizonService) error {
+	if err := currencySeed(ctx, service); err != nil {
+		return err
+	}
+	if err := categorySeed(ctx, service); err != nil {
+		return err
+	}
+	if err := subscriptionPlanSeed(ctx, service); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (m *Core) GlobalSeeder(ctx context.Context) error {
-	if err := m.currencySeed(ctx); err != nil {
+func OrganizationSeeder(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+	if err := invitationCodeSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.categorySeed(ctx); err != nil {
+	if err := bankSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.subscriptionPlanSeed(ctx); err != nil {
+	if err := billAndCoinsSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
-	if err := m.invitationCodeSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := holidaySeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.bankSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberClassificationSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.billAndCoinsSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberGenderSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.holidaySeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberGroupSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberClassificationSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberCenterSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberGenderSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberOccupationSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberGroupSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberTypeSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberCenterSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberDepartmentSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberOccupationSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := generalLedgerAccountsGroupingSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberTypeSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := FinancialStatementAccountsGroupingSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.memberDepartmentSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := accountSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.generalLedgerAccountsGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
-		return err
-	}
-	if err := m.FinancialStatementAccountsGroupingSeed(context, tx, userID, organizationID, branchID); err != nil {
-		return err
-	}
-	if err := m.accountSeed(context, tx, userID, organizationID, branchID); err != nil {
-		return err
-	}
-	if err := m.loanPurposeSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := loanPurposeSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return nil
 	}
-	if err := m.accountClassificationSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := accountClassificationSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.accountCategorySeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := accountCategorySeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.disbursementSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := disbursementSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.collateralSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := collateralSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.tagTemplateSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := tagTemplateSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.loanStatusSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := loanStatusSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	if err := m.permissionTemplateSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := permissionTemplateSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	userOrg, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+	userOrg, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
@@ -303,42 +302,42 @@ func (m *Core) OrganizationSeeder(context context.Context, tx *gorm.DB, userID u
 	if err != nil {
 		return err
 	}
-	if err := m.memberProfileSeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := memberProfileSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	userOrg.IsSeeded = true
-	if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
+	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
 		return err
 	}
-	if err := m.companySeed(context, tx, userID, organizationID, branchID); err != nil {
+	if err := companySeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizationID uuid.UUID, branchID uuid.UUID) error {
-	invitationCodes, err := m.InvitationCodeManager().Find(ctx, &InvitationCode{
+func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, organizationID uuid.UUID, branchID uuid.UUID) error {
+	invitationCodes, err := InvitationCodeManager(service).Find(ctx, &InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get invitation codes")
 	}
-	banks, err := m.BankManager().Find(ctx, &Bank{
+	banks, err := BankManager(service).Find(ctx, &Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get banks")
 	}
-	billAndCoins, err := m.BillAndCoinsManager().Find(ctx, &BillAndCoins{
+	billAndCoins, err := BillAndCoinsManager(service).Find(ctx, &BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get bill and coins")
 	}
-	holidays, err := m.HolidayManager().Find(ctx, &Holiday{
+	holidays, err := HolidayManager(service).Find(ctx, &Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -346,27 +345,27 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get holidays")
 	}
 	for _, data := range holidays {
-		if err := m.HolidayManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := HolidayManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy holiday %s", data.Name)
 		}
 	}
 	for _, data := range billAndCoins {
-		if err := m.BillAndCoinsManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := BillAndCoinsManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bill or coin %s", data.Name)
 		}
 	}
 	for _, data := range banks {
-		if err := m.BankManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := BankManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy bank %s", data.Name)
 		}
 	}
 	for _, data := range invitationCodes {
-		if err := m.InvitationCodeManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := InvitationCodeManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy invitation code %s", data.Code)
 		}
 	}
 
-	memberTypes, err := m.MemberTypeManager().Find(ctx, &MemberType{
+	memberTypes, err := MemberTypeManager(service).Find(ctx, &MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -374,12 +373,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member types")
 	}
 	for _, data := range memberTypes {
-		if err := m.MemberTypeManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberTypeManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member type %s", data.Name)
 		}
 	}
 
-	memberOccupations, err := m.MemberOccupationManager().Find(ctx, &MemberOccupation{
+	memberOccupations, err := MemberOccupationManager(service).Find(ctx, &MemberOccupation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -387,12 +386,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member occupations")
 	}
 	for _, data := range memberOccupations {
-		if err := m.MemberOccupationManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberOccupationManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member occupation %s", data.Name)
 		}
 	}
 
-	memberGroups, err := m.MemberGroupManager().Find(ctx, &MemberGroup{
+	memberGroups, err := MemberGroupManager(service).Find(ctx, &MemberGroup{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -400,12 +399,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member groups")
 	}
 	for _, data := range memberGroups {
-		if err := m.MemberGroupManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberGroupManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member group %s", data.Name)
 		}
 	}
 
-	memberGenders, err := m.MemberGenderManager().Find(ctx, &MemberGender{
+	memberGenders, err := MemberGenderManager(service).Find(ctx, &MemberGender{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -413,12 +412,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member genders")
 	}
 	for _, data := range memberGenders {
-		if err := m.MemberGenderManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberGenderManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member gender %s", data.Name)
 		}
 	}
 
-	memberCenters, err := m.MemberCenterManager().Find(ctx, &MemberCenter{
+	memberCenters, err := MemberCenterManager(service).Find(ctx, &MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -426,12 +425,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member centers")
 	}
 	for _, data := range memberCenters {
-		if err := m.MemberCenterManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberCenterManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member center %s", data.Name)
 		}
 	}
 
-	memberClassifications, err := m.MemberClassificationManager().Find(ctx, &MemberClassification{
+	memberClassifications, err := MemberClassificationManager(service).Find(ctx, &MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -439,12 +438,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member classifications")
 	}
 	for _, data := range memberClassifications {
-		if err := m.MemberClassificationManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberClassificationManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member classification %s", data.Name)
 		}
 	}
 
-	generalLedgerDefinitions, err := m.GeneralLedgerDefinitionManager().Find(ctx, &GeneralLedgerDefinition{
+	generalLedgerDefinitions, err := GeneralLedgerDefinitionManager(service).Find(ctx, &GeneralLedgerDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -452,12 +451,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get general ledger definitions")
 	}
 	for _, data := range generalLedgerDefinitions {
-		if err := m.GeneralLedgerDefinitionManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := GeneralLedgerDefinitionManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy general ledger definition %s", data.Name)
 		}
 	}
 
-	generalLedgerAccountsGroupings, err := m.GeneralLedgerAccountsGroupingManager().Find(ctx, &GeneralLedgerAccountsGrouping{
+	generalLedgerAccountsGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(ctx, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -465,12 +464,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get general ledger accounts groupings")
 	}
 	for _, data := range generalLedgerAccountsGroupings {
-		if err := m.GeneralLedgerAccountsGroupingManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := GeneralLedgerAccountsGroupingManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy general ledger accounts grouping %s", data.Name)
 		}
 	}
 
-	FinancialStatementAccountsGroupings, err := m.FinancialStatementAccountsGroupingManager().Find(ctx, &FinancialStatementAccountsGrouping{
+	FinancialStatementAccountsGroupings, err := FinancialStatementAccountsGroupingManager(service).Find(ctx, &FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -478,11 +477,11 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get financial statement accounts groupings")
 	}
 	for _, data := range FinancialStatementAccountsGroupings {
-		if err := m.FinancialStatementAccountsGroupingManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := FinancialStatementAccountsGroupingManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
 		}
 	}
-	paymentTypes, err := m.PaymentTypeManager().Find(ctx, &PaymentType{
+	paymentTypes, err := PaymentTypeManager(service).Find(ctx, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -490,11 +489,11 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get payment types")
 	}
 	for _, data := range paymentTypes {
-		if err := m.PaymentTypeManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := PaymentTypeManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy payment type %s", data.Name)
 		}
 	}
-	disbursements, err := m.DisbursementManager().Find(ctx, &Disbursement{
+	disbursements, err := DisbursementManager(service).Find(ctx, &Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -502,11 +501,11 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get disbursements")
 	}
 	for _, data := range disbursements {
-		if err := m.DisbursementManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := DisbursementManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy disbursement %s", data.Name)
 		}
 	}
-	collaterals, err := m.CollateralManager().Find(ctx, &Collateral{
+	collaterals, err := CollateralManager(service).Find(ctx, &Collateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -514,12 +513,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get collaterals")
 	}
 	for _, data := range collaterals {
-		if err := m.CollateralManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := CollateralManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy collateral %s", data.Name)
 		}
 	}
 
-	accounts, err := m.AccountManager().Find(ctx, &Account{
+	accounts, err := AccountManager(service).Find(ctx, &Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -527,12 +526,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get accounts")
 	}
 	for _, data := range accounts {
-		if err := m.AccountManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := AccountManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy account %s", data.Name)
 		}
 	}
 
-	loanPurposes, err := m.LoanPurposeManager().Find(ctx, &LoanPurpose{
+	loanPurposes, err := LoanPurposeManager(service).Find(ctx, &LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -540,12 +539,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get loan purposes")
 	}
 	for _, data := range loanPurposes {
-		if err := m.LoanPurposeManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := LoanPurposeManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy loan purpose %s", data.Description)
 		}
 	}
 
-	accountCategories, err := m.AccountCategoryManager().Find(ctx, &AccountCategory{
+	accountCategories, err := AccountCategoryManager(service).Find(ctx, &AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -553,12 +552,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get account categories")
 	}
 	for _, data := range accountCategories {
-		if err := m.AccountCategoryManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := AccountCategoryManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy account category %s", data.Name)
 		}
 	}
 
-	tagTemplates, err := m.TagTemplateManager().Find(ctx, &TagTemplate{
+	tagTemplates, err := TagTemplateManager(service).Find(ctx, &TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -566,12 +565,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get tag templates")
 	}
 	for _, data := range tagTemplates {
-		if err := m.TagTemplateManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := TagTemplateManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy tag template %s", data.Name)
 		}
 	}
 
-	loanStatuses, err := m.LoanStatusManager().Find(ctx, &LoanStatus{
+	loanStatuses, err := LoanStatusManager(service).Find(ctx, &LoanStatus{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -579,12 +578,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get loan statuses")
 	}
 	for _, data := range loanStatuses {
-		if err := m.LoanStatusManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := LoanStatusManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy loan status %s", data.Name)
 		}
 	}
 
-	memberProfiles, err := m.MemberProfileManager().Find(ctx, &MemberProfile{
+	memberProfiles, err := MemberProfileManager(service).Find(ctx, &MemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -592,12 +591,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member profiles")
 	}
 	for _, data := range memberProfiles {
-		if err := m.MemberProfileManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberProfileManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member profile %s %s", data.FirstName, data.LastName)
 		}
 	}
 
-	companies, err := m.CompanyManager().Find(ctx, &Company{
+	companies, err := CompanyManager(service).Find(ctx, &Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -605,12 +604,12 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get companies")
 	}
 	for _, data := range companies {
-		if err := m.CompanyManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := CompanyManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy company %s", data.Name)
 		}
 	}
 
-	memberDepartments, err := m.MemberDepartmentManager().Find(ctx, &MemberDepartment{
+	memberDepartments, err := MemberDepartmentManager(service).Find(ctx, &MemberDepartment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -618,7 +617,7 @@ func (m *Core) OrganizationDestroyer(ctx context.Context, tx *gorm.DB, organizat
 		return eris.Wrapf(err, "failed to get member departments")
 	}
 	for _, data := range memberDepartments {
-		if err := m.MemberDepartmentManager().DeleteWithTx(ctx, tx, data.ID); err != nil {
+		if err := MemberDepartmentManager(service).DeleteWithTx(ctx, tx, data.ID); err != nil {
 			return eris.Wrapf(err, "failed to destroy member department %s", data.Name)
 		}
 	}

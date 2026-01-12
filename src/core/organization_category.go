@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -41,12 +42,12 @@ type (
 	}
 )
 
-func (m *Core) OrganizationCategoryManager() *registry.Registry[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest] {
+func OrganizationCategoryManager(service *horizon.HorizonService) *registry.Registry[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[OrganizationCategory, OrganizationCategoryResponse, OrganizationCategoryRequest]{
 		Preloads: []string{"Organization", "Category"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *OrganizationCategory) *OrganizationCategoryResponse {
 			if data == nil {
@@ -58,9 +59,9 @@ func (m *Core) OrganizationCategoryManager() *registry.Registry[OrganizationCate
 				UpdatedAt: data.UpdatedAt.Format(time.RFC3339),
 
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				CategoryID:     data.CategoryID,
-				Category:       m.CategoryManager().ToModel(data.Category),
+				Category:       CategoryManager(service).ToModel(data.Category),
 			}
 		},
 
@@ -88,8 +89,8 @@ func (m *Core) OrganizationCategoryManager() *registry.Registry[OrganizationCate
 	})
 }
 
-func (m *Core) GetOrganizationCategoryByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
-	return m.OrganizationCategoryManager().Find(context, &OrganizationCategory{
+func GetOrganizationCategoryByOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID) ([]*OrganizationCategory, error) {
+	return OrganizationCategoryManager(service).Find(context, &OrganizationCategory{
 		OrganizationID: &organizationID,
 	})
 }

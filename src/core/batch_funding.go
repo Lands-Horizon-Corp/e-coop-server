@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -80,7 +81,7 @@ type (
 	}
 )
 
-func (m *Core) BatchFundingManager() *registry.Registry[BatchFunding, BatchFundingResponse, BatchFundingRequest] {
+func BatchFundingManager(service *horizon.HorizonService) *registry.Registry[BatchFunding, BatchFundingResponse, BatchFundingRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		BatchFunding, BatchFundingResponse, BatchFundingRequest,
 	]{
@@ -89,9 +90,9 @@ func (m *Core) BatchFundingManager() *registry.Registry[BatchFunding, BatchFundi
 			"TransactionBatch", "ProvidedByUser", "SignatureMedia", "Currency",
 			"ProvidedByUser.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *BatchFunding) *BatchFundingResponse {
 			if data == nil {
@@ -101,22 +102,22 @@ func (m *Core) BatchFundingManager() *registry.Registry[BatchFunding, BatchFundi
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				ProvidedByUserID:   data.ProvidedByUserID,
-				ProvidedByUser:     m.UserManager().ToModel(data.ProvidedByUser),
+				ProvidedByUser:     UserManager(service).ToModel(data.ProvidedByUser),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:     MediaManager(service).ToModel(data.SignatureMedia),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager().ToModel(data.Currency),
+				Currency:           CurrencyManager(service).ToModel(data.Currency),
 				Name:               data.Name,
 				Amount:             data.Amount,
 				Description:        data.Description,
@@ -149,8 +150,8 @@ func (m *Core) BatchFundingManager() *registry.Registry[BatchFunding, BatchFundi
 	})
 }
 
-func (m *Core) BatchFundingCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BatchFunding, error) {
-	return m.BatchFundingManager().Find(context, &BatchFunding{
+func BatchFundingCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*BatchFunding, error) {
+	return BatchFundingManager(service).Find(context, &BatchFunding{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

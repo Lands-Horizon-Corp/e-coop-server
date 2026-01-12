@@ -177,7 +177,7 @@ type (
 	}
 )
 
-func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegisterRequest] {
+func UserManager(service *horizon.HorizonService) *registry.Registry[User, UserResponse, UserRegisterRequest] {
 	return registry.NewRegistry(registry.RegistryParams[User, UserResponse, UserRegisterRequest]{
 		Preloads: []string{
 			"Media",
@@ -187,16 +187,16 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 			"GeneratedReports",
 			"GeneratedReports.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *User) *UserResponse {
 			context := context.Background()
 			if data == nil {
 				return nil
 			}
-			result, err := m.provider.QR.EncodeQR(context, &QRUser{
+			result, err := service.QR.EncodeQR(context, &QRUser{
 				UserID:        data.ID.String(),
 				Email:         data.Email,
 				ContactNumber: data.ContactNumber,
@@ -227,14 +227,14 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 
 				MediaID:          data.MediaID,
-				Media:            m.MediaManager().ToModel(data.Media),
+				Media:            MediaManager(service).ToModel(data.Media),
 				SignatureMediaID: data.SignatureMediaID,
-				SignatureMedia:   m.MediaManager().ToModel(data.SignatureMedia),
-				Footsteps:        m.FootstepManager().ToModels(data.Footsteps),
-				GeneratedReports: m.GeneratedReportManager().ToModels(data.GeneratedReports),
-				Notifications:    m.NotificationManager().ToModels(data.Notification),
+				SignatureMedia:   MediaManager(service).ToModel(data.SignatureMedia),
+				Footsteps:        FootstepManager(service).ToModels(data.Footsteps),
+				GeneratedReports: GeneratedReportManager(service).ToModels(data.GeneratedReports),
+				Notifications:    NotificationManager(service).ToModels(data.Notification),
 
-				UserOrganizations: m.UserOrganizationManager().ToModels(data.UserOrganizations),
+				UserOrganizations: UserOrganizationManager(service).ToModels(data.UserOrganizations),
 			}
 		},
 
@@ -259,31 +259,31 @@ func (m *Core) UserManager() *registry.Registry[User, UserResponse, UserRegister
 	})
 }
 
-func (m *Core) GetUserByContactNumber(context context.Context, contactNumber string) (*User, error) {
-	return m.UserManager().FindOne(context, &User{ContactNumber: contactNumber})
+func GetUserByContactNumber(context context.Context, service *horizon.HorizonService, contactNumber string) (*User, error) {
+	return UserManager(service).FindOne(context, &User{ContactNumber: contactNumber})
 }
 
-func (m *Core) GetUserByEmail(context context.Context, email string) (*User, error) {
-	return m.UserManager().FindOne(context, &User{Email: email})
+func GetUserByEmail(context context.Context, service *horizon.HorizonService, email string) (*User, error) {
+	return UserManager(service).FindOne(context, &User{Email: email})
 }
 
-func (m *Core) GetUserByUsername(context context.Context, userName string) (*User, error) {
-	return m.UserManager().FindOne(context, &User{Username: userName})
+func GetUserByUsername(context context.Context, service *horizon.HorizonService, userName string) (*User, error) {
+	return UserManager(service).FindOne(context, &User{Username: userName})
 }
 
-func (m *Core) GetUserByIdentifier(context context.Context, identifier string) (*User, error) {
+func GetUserByIdentifier(context context.Context, service *horizon.HorizonService, identifier string) (*User, error) {
 	if strings.Contains(identifier, "@") {
-		if u, err := m.GetUserByEmail(context, identifier); err == nil {
+		if u, err := GetUserByEmail(context, service, identifier); err == nil {
 			return u, nil
 		}
 	}
 	numeric := strings.Trim(identifier, "+-0123456789")
 	if numeric == "" {
-		if u, err := m.GetUserByContactNumber(context, identifier); err == nil {
+		if u, err := GetUserByContactNumber(context, service, identifier); err == nil {
 			return u, nil
 		}
 	}
-	if u, err := m.GetUserByUsername(context, identifier); err == nil {
+	if u, err := GetUserByUsername(context, service, identifier); err == nil {
 		return u, nil
 	}
 	return nil, eris.New("user not found by email, contact number, or username")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -100,12 +101,12 @@ type (
 	}
 )
 
-func (m *Core) SubscriptionPlanManager() *registry.Registry[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest] {
+func SubscriptionPlanManager(service *horizon.HorizonService) *registry.Registry[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest] {
 	return registry.NewRegistry(registry.RegistryParams[SubscriptionPlan, SubscriptionPlanResponse, SubscriptionPlanRequest]{
 		Preloads: []string{"Currency"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(sp *SubscriptionPlan) *SubscriptionPlanResponse {
 			if sp == nil {
@@ -147,7 +148,7 @@ func (m *Core) SubscriptionPlanManager() *registry.Registry[SubscriptionPlan, Su
 				CreatedAt:              sp.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:              sp.UpdatedAt.Format(time.RFC3339),
 				CurrencyID:             sp.CurrencyID,
-				Currency:               m.CurrencyManager().ToModel(sp.Currency),
+				Currency:               CurrencyManager(service).ToModel(sp.Currency),
 			}
 		},
 
@@ -239,8 +240,8 @@ func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscoun
 	return p
 }
 
-func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
-	subscriptionPlans, err := m.SubscriptionPlanManager().List(ctx)
+func subscriptionPlanSeed(ctx context.Context, service *horizon.HorizonService) error {
+	subscriptionPlans, err := SubscriptionPlanManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -248,7 +249,7 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 		return nil
 	}
 
-	currencies, err := m.CurrencyManager().List(ctx)
+	currencies, err := CurrencyManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -903,7 +904,7 @@ func (m *Core) subscriptionPlanSeed(ctx context.Context) error {
 		}
 
 		for _, sub := range subscriptions {
-			if err := m.SubscriptionPlanManager().Create(ctx, sub); err != nil {
+			if err := SubscriptionPlanManager(service).Create(ctx, sub); err != nil {
 				return eris.Wrapf(err, "failed to seed subscription %s for  %s", sub.Name, currency.ISO3166Alpha3)
 			}
 		}

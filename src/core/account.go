@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -476,7 +477,7 @@ type AccountRequest struct {
 	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
 }
 
-func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, AccountRequest] {
+func AccountManager(service *horizon.HorizonService) *registry.Registry[Account, AccountResponse, AccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		Account, AccountResponse, AccountRequest,
 	]{
@@ -486,9 +487,9 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 			"AccountTags", "ComputationSheet", "Currency",
 			"DefaultPaymentType", "LoanAccount",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Account) *AccountResponse {
 			if data == nil {
@@ -498,29 +499,29 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				GeneralLedgerDefinitionID:      data.GeneralLedgerDefinitionID,
-				GeneralLedgerDefinition:        m.GeneralLedgerDefinitionManager().ToModel(data.GeneralLedgerDefinition),
+				GeneralLedgerDefinition:        GeneralLedgerDefinitionManager(service).ToModel(data.GeneralLedgerDefinition),
 				FinancialStatementDefinitionID: data.FinancialStatementDefinitionID,
-				FinancialStatementDefinition:   m.FinancialStatementDefinitionManager().ToModel(data.FinancialStatementDefinition),
+				FinancialStatementDefinition:   FinancialStatementDefinitionManager(service).ToModel(data.FinancialStatementDefinition),
 				AccountClassificationID:        data.AccountClassificationID,
-				AccountClassification:          m.AccountClassificationManager().ToModel(data.AccountClassification),
+				AccountClassification:          AccountClassificationManager(service).ToModel(data.AccountClassification),
 				AccountCategoryID:              data.AccountCategoryID,
-				AccountCategory:                m.AccountCategoryManager().ToModel(data.AccountCategory),
+				AccountCategory:                AccountCategoryManager(service).ToModel(data.AccountCategory),
 				MemberTypeID:                   data.MemberTypeID,
-				MemberType:                     m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:                     MemberTypeManager(service).ToModel(data.MemberType),
 				CurrencyID:                     data.CurrencyID,
-				Currency:                       m.CurrencyManager().ToModel(data.Currency),
+				Currency:                       CurrencyManager(service).ToModel(data.Currency),
 				DefaultPaymentTypeID:           data.DefaultPaymentTypeID,
-				DefaultPaymentType:             m.PaymentTypeManager().ToModel(data.DefaultPaymentType),
+				DefaultPaymentType:             PaymentTypeManager(service).ToModel(data.DefaultPaymentType),
 
 				Name:                                  data.Name,
 				Description:                           data.Description,
@@ -557,7 +558,7 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 				CohCibFinesGracePeriodEntryLumpsumMaturity:         data.CohCibFinesGracePeriodEntryLumpsumMaturity,
 				GeneralLedgerType:                   data.GeneralLedgerType,
 				LoanAccountID:                       data.LoanAccountID,
-				LoanAccount:                         m.AccountManager().ToModel(data.LoanAccount),
+				LoanAccount:                         AccountManager(service).ToModel(data.LoanAccount),
 				FinesGracePeriodAmortization:        data.FinesGracePeriodAmortization,
 				AdditionalGracePeriod:               data.AdditionalGracePeriod,
 				NoGracePeriodDaily:                  data.NoGracePeriodDaily,
@@ -578,8 +579,8 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 				CenterRow:                                         data.CenterRow,
 				TotalRow:                                          data.TotalRow,
 				GeneralLedgerGroupingExcludeAccount:               data.GeneralLedgerGroupingExcludeAccount,
-				AccountTags:                                       m.AccountTagManager().ToModels(data.AccountTags),
-				ComputationSheet:                                  m.ComputationSheetManager().ToModel(data.ComputationSheet),
+				AccountTags:                                       AccountTagManager(service).ToModels(data.AccountTags),
+				ComputationSheet:                                  ComputationSheetManager(service).ToModel(data.ComputationSheet),
 
 				Icon:                                    data.Icon,
 				ShowInGeneralLedgerSourceWithdraw:       data.ShowInGeneralLedgerSourceWithdraw,
@@ -627,10 +628,10 @@ func (m *Core) AccountManager() *registry.Registry[Account, AccountResponse, Acc
 	})
 }
 
-func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func accountSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := BranchManager(service).GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
@@ -814,11 +815,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		data.ShowInGeneralLedgerSourceAdjustment = true
 		data.ShowInGeneralLedgerSourceJournalVoucher = true
 		data.ShowInGeneralLedgerSourceCheckVoucher = true
-		if err := m.AccountManager().CreateWithTx(context, tx, data); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", data.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, data); err != nil {
+		if err := CreateAccountHistory(context, service, tx, data); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded account %s (ID: %s, tx: %v)", data.Name, data.ID, tx != nil)
 		}
 	}
@@ -944,11 +945,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	for _, loanAccount := range loanAccounts {
 		loanAccount.CurrencyID = branch.CurrencyID
-		if err := m.AccountManager().CreateWithTx(context, tx, loanAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed loan account %s", loanAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, loanAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, loanAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
@@ -999,11 +1000,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Percent",
 		}
 
-		if err := m.AccountManager().CreateWithTx(context, tx, interestAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed interest account for %s", loanAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
@@ -1054,11 +1055,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Receipt",
 		}
 
-		if err := m.AccountManager().CreateWithTx(context, tx, serviceFeeAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed service fee account for %s", loanAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, serviceFeeAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, serviceFeeAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
@@ -1116,11 +1117,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			Icon:                                    "Warning",
 		}
 
-		if err := m.AccountManager().CreateWithTx(context, tx, finesAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fines account for %s", loanAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded fines account for %s", loanAccount.Name)
 		}
 	}
@@ -1246,11 +1247,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	for _, finesAccount := range standaloneFinesAccounts {
-		if err := m.AccountManager().CreateWithTx(context, tx, finesAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone fines account %s", finesAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, finesAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, finesAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded standalone fines account %s", finesAccount.Name)
 		}
 	}
@@ -1424,21 +1425,21 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	}
 
 	for _, interestAccount := range standaloneInterestAccounts {
-		if err := m.AccountManager().CreateWithTx(context, tx, interestAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone interest account %s", interestAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, interestAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, interestAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded standalone interest account %s", interestAccount.Name)
 		}
 	}
 
 	for _, svfAccount := range standaloneSVFAccounts {
-		if err := m.AccountManager().CreateWithTx(context, tx, svfAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed standalone SVF account %s", svfAccount.Name)
 		}
 
-		if err := m.CreateAccountHistory(context, tx, svfAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, svfAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to create history for seeded standalone SVF account %s", svfAccount.Name)
 		}
 	}
@@ -1467,17 +1468,17 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		ShowInGeneralLedgerSourceJournal:  true,
 		ShowInGeneralLedgerSourcePayment:  true,
 	}
-	if err := m.AccountManager().CreateWithTx(context, tx, paidUpShareCapital); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", paidUpShareCapital.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, paidUpShareCapital); err != nil {
+	if err := CreateAccountHistory(context, service, tx, paidUpShareCapital); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
 	var cashOnHandPaymentType *PaymentType
 
-	cashOnHandPaymentType, _ = m.PaymentTypeManager().FindOne(context, &PaymentType{
+	cashOnHandPaymentType, _ = PaymentTypeManager(service).FindOne(context, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 		Name:           "Cash On Hand",
@@ -1497,11 +1498,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			NumberOfDays:   0,
 		}
 
-		if err := m.PaymentTypeManager().CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
+		if err := PaymentTypeManager(service).CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
 		}
 
-		userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+		userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
 			UserID:         userID,
 			OrganizationID: organizationID,
 			BranchID:       &branchID,
@@ -1510,7 +1511,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 			return eris.Wrap(err, "failed to find user organization for setting default payment type")
 		}
 		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
-		if err := m.UserOrganizationManager().UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+		if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 			return eris.Wrap(err, "failed to update user organization with default payment type")
 		}
 
@@ -1638,7 +1639,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		}
 
 		for _, data := range paymentTypes {
-			if err := m.PaymentTypeManager().CreateWithTx(context, tx, data); err != nil {
+			if err := PaymentTypeManager(service).CreateWithTx(context, tx, data); err != nil {
 				return eris.Wrapf(err, "failed to seed payment type %s", data.Name)
 			}
 
@@ -1677,11 +1678,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount: OIOACashOnHand,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, cashOnHand); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnHand.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashOnHand); err != nil {
+	if err := CreateAccountHistory(context, service, tx, cashOnHand); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
@@ -1716,11 +1717,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOACashInBank,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, cashInBank); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInBank.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashInBank); err != nil {
+	if err := CreateAccountHistory(context, service, tx, cashInBank); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInBank.Name)
 	}
 
@@ -1755,11 +1756,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, cashOnline); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashOnline.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashOnline); err != nil {
+	if err := CreateAccountHistory(context, service, tx, cashOnline); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnline.Name)
 	}
 
@@ -1794,11 +1795,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, pettyCash); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", pettyCash.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, pettyCash); err != nil {
+	if err := CreateAccountHistory(context, service, tx, pettyCash); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", pettyCash.Name)
 	}
 
@@ -1833,11 +1834,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:                              branch.CurrencyID,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, cashInTransit); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", cashInTransit.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, cashInTransit); err != nil {
+	if err := CreateAccountHistory(context, service, tx, cashInTransit); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
@@ -1872,11 +1873,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOANone,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", foreignCurrencyCash.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, foreignCurrencyCash); err != nil {
+	if err := CreateAccountHistory(context, service, tx, foreignCurrencyCash); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
@@ -1911,11 +1912,11 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		OtherInformationOfAnAccount:             OIOANone,
 	}
 
-	if err := m.AccountManager().CreateWithTx(context, tx, moneyMarketFund); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", moneyMarketFund.Name)
 	}
 
-	if err := m.CreateAccountHistory(context, tx, moneyMarketFund); err != nil {
+	if err := CreateAccountHistory(context, service, tx, moneyMarketFund); err != nil {
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
@@ -3468,10 +3469,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	for _, coopAccount := range cooperativeAccounts {
 		coopAccount.CurrencyID = branch.CurrencyID
-		if err := m.AccountManager().CreateWithTx(context, tx, coopAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed cooperative account %s", coopAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, tx, coopAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, coopAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed cooperative account %s", coopAccount.Name)
 		}
 
@@ -3479,20 +3480,20 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 	for _, feeAccount := range feeAccounts {
 		feeAccount.CurrencyID = branch.CurrencyID
-		if err := m.AccountManager().CreateWithTx(context, tx, feeAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed fee account %s", feeAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, tx, feeAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, feeAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed fee account %s", feeAccount.Name)
 		}
 	}
 
 	for _, operationalAccount := range operationalAccounts {
 		operationalAccount.CurrencyID = branch.CurrencyID
-		if err := m.AccountManager().CreateWithTx(context, tx, operationalAccount); err != nil {
+		if err := AccountManager(service).CreateWithTx(context, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "failed to seed operational account %s", operationalAccount.Name)
 		}
-		if err := m.CreateAccountHistory(context, tx, operationalAccount); err != nil {
+		if err := CreateAccountHistory(context, service, tx, operationalAccount); err != nil {
 			return eris.Wrapf(err, "history: failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
@@ -3515,17 +3516,17 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		CurrencyID:        branch.CurrencyID,
 		Icon:              "Heart",
 	}
-	if err := m.AccountManager().CreateWithTx(context, tx, compassionFund); err != nil {
+	if err := AccountManager(service).CreateWithTx(context, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "failed to create compassion fund account")
 	}
-	if err := m.CreateAccountHistory(context, tx, compassionFund); err != nil {
+	if err := CreateAccountHistory(context, service, tx, compassionFund); err != nil {
 		return eris.Wrap(err, "history: failed to create compassion fund account")
 	}
 
 	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
 	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
 	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	if err := m.BranchSettingManager().UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
+	if err := BranchSettingManager(service).UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
 		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
 	}
 
@@ -3539,10 +3540,10 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		AccountForShortageID: cashOnHand.ID,
 		AccountForOverageID:  cashOnHand.ID,
 	}
-	if err := m.UnbalancedAccountManager().CreateWithTx(context, tx, unbalanced); err != nil {
+	if err := UnbalancedAccountManager(service).CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
-	userOrganization, err := m.UserOrganizationManager().FindOne(context, &UserOrganization{
+	userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -3568,7 +3569,7 @@ func (m *Core) accountSeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *Account) error {
+func CreateAccountHistory(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, account *Account) error {
 	now := time.Now().UTC()
 	history := &AccountHistory{
 		AccountID:      account.ID,
@@ -3659,11 +3660,11 @@ func (m *Core) CreateAccountHistory(ctx context.Context, tx *gorm.DB, account *A
 		return eris.New("transaction is nil in CreateAccountHistory - cannot create history without transaction context")
 	}
 
-	return m.AccountHistoryManager().CreateWithTx(ctx, tx, history)
+	return AccountHistoryManager(service).CreateWithTx(ctx, tx, history)
 }
 
-func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, updatedBy uuid.UUID) error {
-	original, err := m.AccountManager().GetByID(ctx, accountID)
+func CreateAccountHistoryBeforeUpdate(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID, updatedBy uuid.UUID) error {
+	original, err := AccountManager(service).GetByID(ctx, accountID)
 	if err != nil {
 		return nil
 	}
@@ -3755,24 +3756,24 @@ func (m *Core) CreateAccountHistoryBeforeUpdate(ctx context.Context, tx *gorm.DB
 	}
 
 	if tx != nil {
-		return m.AccountHistoryManager().CreateWithTx(ctx, tx, history)
+		return AccountHistoryManager(service).CreateWithTx(ctx, tx, history)
 	}
-	return m.AccountHistoryManager().Create(ctx, history)
+	return AccountHistoryManager(service).Create(ctx, history)
 }
 
-func (m *Core) AccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
-	return m.AccountManager().Find(context, &Account{
+func AccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+	return AccountManager(service).Find(context, &Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) AccountLockForUpdate(ctx context.Context, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
-	return m.AccountManager().GetByIDLock(ctx, tx, accountID)
+func AccountLockForUpdate(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
+	return AccountManager(service).GetByIDLock(ctx, tx, accountID)
 }
 
-func (m *Core) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
-	lockedAccount, err := m.AccountManager().GetByIDLock(ctx, tx, accountID)
+func AccountLockWithValidation(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
+	lockedAccount, err := AccountManager(service).GetByIDLock(ctx, tx, accountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to acquire account lock")
 	}
@@ -3788,18 +3789,18 @@ func (m *Core) AccountLockWithValidation(ctx context.Context, tx *gorm.DB, accou
 	return lockedAccount, nil
 }
 
-func (m *Core) LoanAccounts(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.AccountManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return AccountManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
+func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -3810,24 +3811,25 @@ func (m *Core) FindAccountsByTypesAndBranch(ctx context.Context, organizationID 
 			AccountTypeSVFLedger,
 		}},
 	}
-	return m.AccountManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return AccountManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) FindAccountsBySpecificType(ctx context.Context, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
+func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "type", Op: query.ModeEqual, Value: accountType},
 	}
 
-	return m.AccountManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return AccountManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) FindLoanAccountsByID(ctx context.Context,
+func FindLoanAccountsByID(ctx context.Context,
+	service *horizon.HorizonService,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -3835,7 +3837,7 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 		{Field: "loan_account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	accounts, err := m.AccountManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	accounts, err := AccountManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -3844,8 +3846,8 @@ func (m *Core) FindLoanAccountsByID(ctx context.Context,
 	return accounts, nil
 }
 
-func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) error {
-	hasEntries, err := m.GeneralLedgerManager().ArrExists(ctx, []registry.FilterSQL{
+func AccountDeleteCheck(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) error {
+	hasEntries, err := GeneralLedgerManager(service).ArrExists(ctx, []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {
@@ -3856,12 +3858,12 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		return eris.New("cannot delete account: account has existing general ledger entries")
 	}
 
-	account, err := m.AccountManager().GetByID(ctx, accountID)
+	account, err := AccountManager(service).GetByID(ctx, accountID)
 	if err != nil {
 		return eris.Wrap(err, "failed to retrieve account for validation")
 	}
 
-	branchSetting, err := m.BranchSettingManager().FindOne(ctx, &BranchSetting{
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{
 		BranchID: account.BranchID,
 	})
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
@@ -3878,7 +3880,7 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
 	}
 
-	UnbalancedAccount, err := m.UnbalancedAccountManager().FindOne(ctx, &UnbalancedAccount{
+	UnbalancedAccount, err := UnbalancedAccountManager(service).FindOne(ctx, &UnbalancedAccount{
 		BranchSettingsID: branchSetting.ID,
 	})
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
@@ -3894,7 +3896,7 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 		}
 	}
 
-	linkedAccounts, err := m.FindLoanAccountsByID(ctx, account.OrganizationID, account.BranchID, accountID)
+	linkedAccounts, err := FindLoanAccountsByID(ctx, service, account.OrganizationID, account.BranchID, accountID)
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
 		return eris.Wrap(err, "failed to check linked loan accounts")
 	}
@@ -3906,8 +3908,8 @@ func (m *Core) AccountDeleteCheck(ctx context.Context, accountID uuid.UUID) erro
 	return nil
 }
 
-func (m *Core) AccountDeleteCheckIncludingDeleted(ctx context.Context, accountID uuid.UUID) error {
-	hasEntries, err := m.GeneralLedgerManager().ExistsIncludingDeleted(ctx, []registry.FilterSQL{
+func AccountDeleteCheckIncludingDeleted(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) error {
+	hasEntries, err := GeneralLedgerManager(service).ExistsIncludingDeleted(ctx, []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {

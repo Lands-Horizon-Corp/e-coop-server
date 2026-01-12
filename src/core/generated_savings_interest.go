@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -141,7 +142,7 @@ type (
 	}
 )
 
-func (m *Core) GeneratedSavingsInterestManager() *registry.Registry[GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest] {
+func GeneratedSavingsInterestManager(service *horizon.HorizonService) *registry.Registry[GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		GeneratedSavingsInterest, GeneratedSavingsInterestResponse, GeneratedSavingsInterestRequest,
 	]{
@@ -155,9 +156,9 @@ func (m *Core) GeneratedSavingsInterestManager() *registry.Registry[GeneratedSav
 			"MemberType",
 			"PrintedByUser", "PostedByUser", "PostAccount",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneratedSavingsInterest) *GeneratedSavingsInterestResponse {
 			if data == nil {
@@ -180,22 +181,22 @@ func (m *Core) GeneratedSavingsInterestManager() *registry.Registry[GeneratedSav
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				DocumentNo:                      data.DocumentNo,
 				LastComputationDate:             data.LastComputationDate.Format(time.RFC3339),
 				NewComputationDate:              data.NewComputationDate.Format(time.RFC3339),
 				AccountID:                       data.AccountID,
-				Account:                         m.AccountManager().ToModel(data.Account),
+				Account:                         AccountManager(service).ToModel(data.Account),
 				MemberTypeID:                    data.MemberTypeID,
-				MemberType:                      m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:                      MemberTypeManager(service).ToModel(data.MemberType),
 				SavingsComputationType:          data.SavingsComputationType,
 				IncludeClosedAccount:            data.IncludeClosedAccount,
 				IncludeExistingComputedInterest: data.IncludeExistingComputedInterest,
@@ -203,15 +204,15 @@ func (m *Core) GeneratedSavingsInterestManager() *registry.Registry[GeneratedSav
 				TotalInterest:                   data.TotalInterest,
 				TotalTax:                        data.TotalTax,
 				PrintedByUserID:                 data.PrintedByUserID,
-				PrintedByUser:                   m.UserManager().ToModel(data.PrintedByUser),
+				PrintedByUser:                   UserManager(service).ToModel(data.PrintedByUser),
 				PrintedDate:                     printedDate,
 				PostedByUserID:                  data.PostedByUserID,
-				PostedByUser:                    m.UserManager().ToModel(data.PostedByUser),
+				PostedByUser:                    UserManager(service).ToModel(data.PostedByUser),
 				PostedDate:                      postedDate,
 				CheckVoucherNumber:              data.CheckVoucherNumber,
 				PostAccountID:                   data.PostAccountID,
-				PostAccount:                     m.AccountManager().ToModel(data.PostAccount),
-				Entries:                         m.GeneratedSavingsInterestEntryManager().ToModels(data.Entries),
+				PostAccount:                     AccountManager(service).ToModel(data.PostAccount),
+				Entries:                         GeneratedSavingsInterestEntryManager(service).ToModels(data.Entries),
 			}
 		},
 

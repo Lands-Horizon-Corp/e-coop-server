@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -67,12 +68,12 @@ type (
 	}
 )
 
-func (m *Core) GeneratedReportsDownloadUsersManager() *registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest] {
+func GeneratedReportsDownloadUsersManager(service *horizon.HorizonService) *registry.Registry[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest] {
 	return registry.NewRegistry(registry.RegistryParams[GeneratedReportsDownloadUsers, GeneratedReportsDownloadUsersResponse, GeneratedReportsDownloadUsersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "User"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneratedReportsDownloadUsers) *GeneratedReportsDownloadUsersResponse {
 			if data == nil {
@@ -82,20 +83,20 @@ func (m *Core) GeneratedReportsDownloadUsersManager() *registry.Registry[Generat
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				UserID:             data.UserID,
-				User:               m.UserManager().ToModel(data.User),
+				User:               UserManager(service).ToModel(data.User),
 				UserOrganizationID: data.UserOrganizationID,
-				UserOrganization:   m.UserOrganizationManager().ToModel(data.UserOrganization),
+				UserOrganization:   UserOrganizationManager(service).ToModel(data.UserOrganization),
 				GeneratedReportID:  data.GeneratedReportID,
-				GeneratedReport:    m.GeneratedReportManager().ToModel(data.GeneratedReport),
+				GeneratedReport:    GeneratedReportManager(service).ToModel(data.GeneratedReport),
 			}
 		},
 		Created: func(data *GeneratedReportsDownloadUsers) registry.Topics {

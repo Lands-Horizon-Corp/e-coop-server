@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -218,7 +219,7 @@ type (
 	}
 )
 
-func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest] {
+func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest] {
 	return registry.NewRegistry(registry.RegistryParams[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]{
 		Preloads: []string{
 			"Account",
@@ -237,9 +238,9 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			"Currency",
 			"CreatedBy.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {
 			if data == nil {
@@ -248,8 +249,9 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 			if data.AccountID == nil {
 				return nil
 			}
-			accountHistoryID, err := m.GetAccountHistoryLatestByTimeHistoryID(
+			accountHistoryID, err := GetAccountHistoryLatestByTimeHistoryID(
 				context.Background(),
+				service,
 				*data.AccountID,
 				data.OrganizationID,
 				data.BranchID,
@@ -263,48 +265,48 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 				EntryDate:                  data.EntryDate.Format(time.RFC3339),
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                  UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                  UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:             data.OrganizationID,
-				Organization:               m.OrganizationManager().ToModel(data.Organization),
+				Organization:               OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                   data.BranchID,
-				Branch:                     m.BranchManager().ToModel(data.Branch),
+				Branch:                     BranchManager(service).ToModel(data.Branch),
 				AccountID:                  data.AccountID,
-				Account:                    m.AccountManager().ToModel(data.Account),
+				Account:                    AccountManager(service).ToModel(data.Account),
 				TransactionID:              data.TransactionID,
-				Transaction:                m.TransactionManager().ToModel(data.Transaction),
+				Transaction:                TransactionManager(service).ToModel(data.Transaction),
 				TransactionBatchID:         data.TransactionBatchID,
-				TransactionBatch:           m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:           TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				EmployeeUserID:             data.EmployeeUserID,
-				EmployeeUser:               m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:               UserManager(service).ToModel(data.EmployeeUser),
 				MemberProfileID:            data.MemberProfileID,
-				MemberProfile:              m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:              MemberProfileManager(service).ToModel(data.MemberProfile),
 				MemberJointAccountID:       data.MemberJointAccountID,
-				MemberJointAccount:         m.MemberJointAccountManager().ToModel(data.MemberJointAccount),
+				MemberJointAccount:         MemberJointAccountManager(service).ToModel(data.MemberJointAccount),
 				TransactionReferenceNumber: data.TransactionReferenceNumber,
 				ReferenceNumber:            data.ReferenceNumber,
 				PaymentTypeID:              data.PaymentTypeID,
-				PaymentType:                m.PaymentTypeManager().ToModel(data.PaymentType),
+				PaymentType:                PaymentTypeManager(service).ToModel(data.PaymentType),
 				Source:                     data.Source,
 				JournalVoucherID:           data.JournalVoucherID,
 				AdjustmentEntryID:          data.AdjustmentEntryID,
-				AdjustmentEntry:            m.AdjustmentEntryManager().ToModel(data.AdjustmentEntry),
+				AdjustmentEntry:            AdjustmentEntryManager(service).ToModel(data.AdjustmentEntry),
 				LoanTransactionID:          data.LoanTransactionID,
-				LoanTransaction:            m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:            LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				TypeOfPaymentType:          data.TypeOfPaymentType,
 				Credit:                     data.Credit,
 				Debit:                      data.Debit,
 				SignatureMediaID:           data.SignatureMediaID,
-				SignatureMedia:             m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:             MediaManager(service).ToModel(data.SignatureMedia),
 
 				BankID:                data.BankID,
-				Bank:                  m.BankManager().ToModel(data.Bank),
+				Bank:                  BankManager(service).ToModel(data.Bank),
 				ProofOfPaymentMediaID: data.ProofOfPaymentMediaID,
-				ProofOfPaymentMedia:   m.MediaManager().ToModel(data.ProofOfPaymentMedia),
+				ProofOfPaymentMedia:   MediaManager(service).ToModel(data.ProofOfPaymentMedia),
 				CurrencyID:            data.CurrencyID,
-				Currency:              m.CurrencyManager().ToModel(data.Currency),
+				Currency:              CurrencyManager(service).ToModel(data.Currency),
 				BankReferenceNumber:   data.BankReferenceNumber,
 				Description:           data.Description,
 				PrintNumber:           data.PrintNumber,
@@ -323,8 +325,8 @@ func (m *Core) GeneralLedgerManager() *registry.Registry[GeneralLedger, GeneralL
 	})
 }
 
-func (m *Core) CreateGeneralLedgerEntry(
-	context context.Context, tx *gorm.DB, data *GeneralLedger,
+func CreateGeneralLedgerEntry(
+	context context.Context, service *horizon.HorizonService, tx *gorm.DB, data *GeneralLedger,
 ) error {
 	if data == nil {
 		return eris.New("CreateGeneralLedgerEntry: data is nil")
@@ -341,7 +343,7 @@ func (m *Core) CreateGeneralLedgerEntry(
 		})
 	}
 
-	ledger, err := m.GeneralLedgerManager().ArrFindOneWithLock(context, tx, filters, []query.ArrFilterSortSQL{
+	ledger, err := GeneralLedgerManager(service).ArrFindOneWithLock(context, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	})
 
@@ -376,13 +378,14 @@ func (m *Core) CreateGeneralLedgerEntry(
 	newBalance := previousBalance.Add(balanceChange)
 	data.Balance, _ = newBalance.Float64()
 
-	if err := m.GeneralLedgerManager().CreateWithTx(context, tx, data); err != nil {
+	if err := GeneralLedgerManager(service).CreateWithTx(context, tx, data); err != nil {
 		return eris.Wrap(err, "failed to create general ledger entry")
 	}
 
 	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
-		_, err = m.MemberAccountingLedgerUpdateOrCreate(
+		_, err = MemberAccountingLedgerUpdateOrCreate(
 			context,
+			service,
 			tx,
 			data.Balance,
 			MemberAccountingLedgerUpdateOrCreateParams{
@@ -404,8 +407,8 @@ func (m *Core) CreateGeneralLedgerEntry(
 	return nil
 }
 
-func (m *Core) GeneralLedgerPrintMaxNumber(
-	ctx context.Context,
+func GeneralLedgerPrintMaxNumber(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, accountID, branchID, organizationID uuid.UUID,
 ) (int, error) {
 	filters := []registry.FilterSQL{
@@ -414,22 +417,22 @@ func (m *Core) GeneralLedgerPrintMaxNumber(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 	}
-	res, err := m.GeneralLedgerManager().ArrGetMaxInt(ctx, "print_number", filters)
+	res, err := GeneralLedgerManager(service).ArrGetMaxInt(ctx, "print_number", filters)
 	if err != nil {
 		return 0, err
 	}
 	return int(res), nil
 }
-func (m *Core) GeneralLedgerCurrentBranch(context context.Context, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
+func GeneralLedgerCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.GeneralLedgerManager().ArrFind(context, filters, nil)
+	return GeneralLedgerManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
+func GeneralLedgerCurrentMemberAccount(context context.Context, service *horizon.HorizonService, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -437,11 +440,11 @@ func (m *Core) GeneralLedgerCurrentMemberAccount(context context.Context, member
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 	}
 
-	return m.GeneralLedgerManager().ArrFindOne(context, filters, nil)
+	return GeneralLedgerManager(service).ArrFindOne(context, filters, nil)
 }
 
-func (m *Core) GeneralLedgerExcludeCashonHand(
-	ctx context.Context,
+func GeneralLedgerExcludeCashonHand(
+	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID,
 	branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
@@ -451,7 +454,7 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	branchSetting, err := m.BranchSettingManager().FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -464,11 +467,11 @@ func (m *Core) GeneralLedgerExcludeCashonHand(
 		})
 	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, nil)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) GeneralLedgerExcludeCashonHandWithType(
-	ctx context.Context,
+func GeneralLedgerExcludeCashonHandWithType(
+	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
@@ -486,7 +489,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager().FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -499,11 +502,11 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, nil)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
-	ctx context.Context,
+func GeneralLedgerExcludeCashonHandWithSource(
+	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
 	source *GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
@@ -519,7 +522,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 			Value: *source,
 		})
 	}
-	branchSetting, err := m.BranchSettingManager().FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -530,11 +533,11 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithSource(
 			Value: *branchSetting.CashOnHandAccountID,
 		})
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, nil)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
-	ctx context.Context,
+func GeneralLedgerExcludeCashonHandWithFilters(
+	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
 	paymentType *TypeOfPaymentType,
 	source *GeneralLedgerSource,
@@ -561,7 +564,7 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	branchSetting, err := m.BranchSettingManager().FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -574,11 +577,11 @@ func (m *Core) GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, nil)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
-	glGroupings, err := m.GeneralLedgerAccountsGroupingManager().Find(context, &GeneralLedgerAccountsGrouping{
+func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
+	glGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(context, &GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -589,7 +592,7 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 	for _, grouping := range glGroupings {
 		if grouping != nil {
 			grouping.GeneralLedgerDefinitionEntries = []*GeneralLedgerDefinition{}
-			entries, err := m.GeneralLedgerDefinitionManager().ArrFind(context,
+			entries, err := GeneralLedgerDefinitionManager(service).ArrFind(context,
 				[]registry.FilterSQL{
 					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -616,8 +619,8 @@ func (m *Core) GeneralLedgerAlignments(context context.Context, organizationID u
 	return glGroupings, nil
 }
 
-func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
-	ctx context.Context,
+func GeneralLedgerCurrentMemberAccountEntries(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
@@ -631,11 +634,11 @@ func (m *Core) GeneralLedgerCurrentMemberAccountEntries(
 		{Field: "entry_date", Order: query.SortOrderDesc},
 		{Field: "created_at", Order: query.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts)
 }
 
-func (m *Core) GeneralLedgerMemberAccountTotal(
-	ctx context.Context,
+func GeneralLedgerMemberAccountTotal(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
@@ -648,11 +651,11 @@ func (m *Core) GeneralLedgerMemberAccountTotal(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts)
 }
 
-func (m *Core) GeneralLedgerMemberProfileEntries(
-	ctx context.Context,
+func GeneralLedgerMemberProfileEntries(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
@@ -664,11 +667,11 @@ func (m *Core) GeneralLedgerMemberProfileEntries(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts)
 }
 
-func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
-	ctx context.Context,
+func GeneralLedgerMemberProfileEntriesByPaymentType(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 	paymentType TypeOfPaymentType,
 ) ([]*GeneralLedger, error) {
@@ -682,11 +685,11 @@ func (m *Core) GeneralLedgerMemberProfileEntriesByPaymentType(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts)
 }
 
-func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
-	ctx context.Context,
+func GeneralLedgerMemberProfileEntriesBySource(
+	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
 	source GeneralLedgerSource,
 ) ([]*GeneralLedger, error) {
@@ -700,11 +703,11 @@ func (m *Core) GeneralLedgerMemberProfileEntriesBySource(
 	sorts := []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	}
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts)
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts)
 }
 
-func (m *Core) GeneralLedgerByLoanTransaction(
-	ctx context.Context,
+func GeneralLedgerByLoanTransaction(
+	ctx context.Context, service *horizon.HorizonService,
 	loanTransactionID, organizationID, branchID uuid.UUID,
 ) ([]*GeneralLedger, error) {
 	filters := []registry.FilterSQL{
@@ -718,7 +721,7 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	entries, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "EmployeeUser", "EmployeeUser.Media")
+	entries, err := GeneralLedgerManager(service).ArrFind(ctx, filters, sorts, "Account", "EmployeeUser", "EmployeeUser.Media")
 	if err != nil {
 		return nil, err
 	}
@@ -738,8 +741,8 @@ func (m *Core) GeneralLedgerByLoanTransaction(
 	return result, nil
 }
 
-func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
-	ctx context.Context,
+func GetGeneralLedgerOfMemberByEndOfDay(
+	ctx context.Context, service *horizon.HorizonService,
 	from, to time.Time,
 	accountID, memberProfileID,
 	organizationID,
@@ -761,10 +764,10 @@ func (m *Core) GetGeneralLedgerOfMemberByEndOfDay(
 		{Field: "entry_date", Order: "DESC"},
 	}
 
-	return m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account")
+	return GeneralLedgerManager(service).ArrFind(ctx, filters, sorts, "Account")
 }
-func (m *Core) GetDailyEndingBalances(
-	ctx context.Context,
+func GetDailyEndingBalances(
+	ctx context.Context, service *horizon.HorizonService,
 	from, to time.Time,
 	accountID, memberProfileID, organizationID, branchID uuid.UUID,
 ) ([]float64, error) {
@@ -777,7 +780,7 @@ func (m *Core) GetDailyEndingBalances(
 	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
 	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
 
-	entries, err := m.GetGeneralLedgerOfMemberByEndOfDay(ctx, from, to, accountID, memberProfileID, organizationID, branchID)
+	entries, err := GetGeneralLedgerOfMemberByEndOfDay(ctx, service, from, to, accountID, memberProfileID, organizationID, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -807,7 +810,7 @@ func (m *Core) GetDailyEndingBalances(
 	}
 
 	startingBalance := 0.0
-	lastEntry, err := m.GeneralLedgerManager().ArrFindOne(ctx, filters, sorts, "Account")
+	lastEntry, err := GeneralLedgerManager(service).ArrFindOne(ctx, filters, sorts, "Account")
 	if err == nil {
 		if lastEntry != nil {
 			startingBalance = lastEntry.Balance
@@ -831,8 +834,8 @@ func (m *Core) GetDailyEndingBalances(
 	return dailyBalances, nil
 }
 
-func (m *Core) DailyBookingCollection(
-	ctx context.Context,
+func DailyBookingCollection(
+	ctx context.Context, service *horizon.HorizonService,
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
@@ -852,7 +855,7 @@ func (m *Core) DailyBookingCollection(
 		{Field: "entry_date", Order: query.SortOrderAsc},
 	}
 
-	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	allData, err := GeneralLedgerManager(service).ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
@@ -865,8 +868,8 @@ func (m *Core) DailyBookingCollection(
 	return result, nil
 }
 
-func (m *Core) DailyDisbursementCollection(
-	ctx context.Context,
+func DailyDisbursementCollection(
+	ctx context.Context, service *horizon.HorizonService,
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
@@ -886,7 +889,7 @@ func (m *Core) DailyDisbursementCollection(
 		{Field: "entry_date", Order: query.SortOrderAsc},
 	}
 
-	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	allData, err := GeneralLedgerManager(service).ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}
@@ -902,8 +905,8 @@ func (m *Core) DailyDisbursementCollection(
 	return result, nil
 }
 
-func (m *Core) DailyJournalCollection(
-	ctx context.Context,
+func DailyJournalCollection(
+	ctx context.Context, service *horizon.HorizonService,
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
@@ -923,7 +926,7 @@ func (m *Core) DailyJournalCollection(
 		{Field: "entry_date", Order: query.SortOrderAsc},
 	}
 
-	allData, err := m.GeneralLedgerManager().ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
+	allData, err := GeneralLedgerManager(service).ArrFind(ctx, filters, sorts, "Account", "Account.Currency")
 	if err != nil {
 		return nil, err
 	}

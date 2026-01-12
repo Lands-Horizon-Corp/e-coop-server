@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -245,7 +246,7 @@ type (
 	}
 )
 
-func (m *Core) ChargesRateSchemeManager() *registry.Registry[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest] {
+func ChargesRateSchemeManager(service *horizon.HorizonService) *registry.Registry[ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateScheme, ChargesRateSchemeResponse, ChargesRateSchemeRequest,
 	]{
@@ -259,9 +260,9 @@ func (m *Core) ChargesRateSchemeManager() *registry.Registry[ChargesRateScheme, 
 			"ChargesRateSchemeModeOfPayments",
 			"ChargesRateByTerms",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *ChargesRateScheme) *ChargesRateSchemeResponse {
 			if data == nil {
@@ -271,31 +272,31 @@ func (m *Core) ChargesRateSchemeManager() *registry.Registry[ChargesRateScheme, 
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager().ToModel(data.Currency),
+				Currency:       CurrencyManager(service).ToModel(data.Currency),
 				Name:           data.Name,
 				Description:    data.Description,
 				Icon:           data.Icon,
 				Type:           data.Type,
 
-				ChargesRateSchemeAccounts: m.ChargesRateSchemeAccountManager().ToModels(data.ChargesRateSchemeAccounts),
+				ChargesRateSchemeAccounts: ChargesRateSchemeAccountManager(service).ToModels(data.ChargesRateSchemeAccounts),
 
-				ChargesRateByRangeOrMinimumAmounts: m.ChargesRateByRangeOrMinimumAmountManager().ToModels(data.ChargesRateByRangeOrMinimumAmounts),
+				ChargesRateByRangeOrMinimumAmounts: ChargesRateByRangeOrMinimumAmountManager(service).ToModels(data.ChargesRateByRangeOrMinimumAmounts),
 
-				ChargesRateSchemeModeOfPayments: m.ChargesRateSchemeModeOfPaymentManager().ToModels(data.ChargesRateSchemeModeOfPayments),
+				ChargesRateSchemeModeOfPayments: ChargesRateSchemeModeOfPaymentManager(service).ToModels(data.ChargesRateSchemeModeOfPayments),
 
-				ChargesRateByTerms: m.ChargesRateByTermManager().ToModels(data.ChargesRateByTerms),
+				ChargesRateByTerms: ChargesRateByTermManager(service).ToModels(data.ChargesRateByTerms),
 
 				MemberTypeID:  data.MemberTypeID,
-				MemberType:    m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:    MemberTypeManager(service).ToModel(data.MemberType),
 				ModeOfPayment: data.ModeOfPayment,
 
 				ModeOfPaymentHeader1:  data.ModeOfPaymentHeader1,
@@ -371,8 +372,8 @@ func (m *Core) ChargesRateSchemeManager() *registry.Registry[ChargesRateScheme, 
 	})
 }
 
-func (m *Core) ChargesRateSchemeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
-	return m.ChargesRateSchemeManager().Find(context, &ChargesRateScheme{
+func ChargesRateSchemeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateScheme, error) {
+	return ChargesRateSchemeManager(service).Find(context, &ChargesRateScheme{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

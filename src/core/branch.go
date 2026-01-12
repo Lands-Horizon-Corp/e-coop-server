@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -121,7 +122,7 @@ type (
 	}
 )
 
-func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, BranchRequest] {
+func BranchManager(service *horizon.HorizonService) *registry.Registry[Branch, BranchResponse, BranchRequest] {
 	return registry.GetRegistry(registry.RegistryParams[Branch, BranchResponse, BranchRequest]{
 		Preloads: []string{
 			"Media",
@@ -133,9 +134,9 @@ func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, Branch
 			"Organization.CreatedBy",
 			"Organization.CoverMedia",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Branch) *BranchResponse {
 			if data == nil {
@@ -145,20 +146,20 @@ func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, Branch
 				ID:           data.ID,
 				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:  data.CreatedByID,
-				CreatedBy:    m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:    UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:  data.UpdatedByID,
-				UpdatedBy:    m.UserManager().ToModel(data.UpdatedBy),
-				Organization: m.OrganizationManager().ToModel(data.Organization),
+				UpdatedBy:    UserManager(service).ToModel(data.UpdatedBy),
+				Organization: OrganizationManager(service).ToModel(data.Organization),
 
 				MediaID:       data.MediaID,
-				Media:         m.MediaManager().ToModel(data.Media),
+				Media:         MediaManager(service).ToModel(data.Media),
 				Type:          data.Type,
 				Name:          data.Name,
 				Email:         data.Email,
 				Description:   data.Description,
 				CurrencyID:    data.CurrencyID,
-				Currency:      m.CurrencyManager().ToModel(data.Currency), // Use the Currency relationship
+				Currency:      CurrencyManager(service).ToModel(data.Currency), // Use the Currency relationship
 				ContactNumber: data.ContactNumber,
 				Address:       data.Address,
 				Province:      data.Province,
@@ -171,13 +172,13 @@ func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, Branch
 
 				IsMainBranch: data.IsMainBranch,
 
-				BranchSetting: m.BranchSettingManager().ToModel(data.BranchSetting),
+				BranchSetting: BranchSettingManager(service).ToModel(data.BranchSetting),
 
-				Footsteps:           m.FootstepManager().ToModels(data.Footsteps),
-				GeneratedReports:    m.GeneratedReportManager().ToModels(data.GeneratedReports),
-				InvitationCodes:     m.InvitationCodeManager().ToModels(data.InvitationCodes),
-				PermissionTemplates: m.PermissionTemplateManager().ToModels(data.PermissionTemplates),
-				UserOrganizations:   m.UserOrganizationManager().ToModels(data.UserOrganizations),
+				Footsteps:           FootstepManager(service).ToModels(data.Footsteps),
+				GeneratedReports:    GeneratedReportManager(service).ToModels(data.GeneratedReports),
+				InvitationCodes:     InvitationCodeManager(service).ToModels(data.InvitationCodes),
+				PermissionTemplates: PermissionTemplateManager(service).ToModels(data.PermissionTemplates),
+				UserOrganizations:   UserOrganizationManager(service).ToModels(data.UserOrganizations),
 
 				TaxIdentificationNumber: data.TaxIdentificationNumber,
 			}
@@ -206,10 +207,10 @@ func (m *Core) BranchManager() *registry.Registry[Branch, BranchResponse, Branch
 	})
 }
 
-func (m *Core) GetBranchesByOrganization(context context.Context, organizationID uuid.UUID) ([]*Branch, error) {
-	return m.BranchManager().Find(context, &Branch{OrganizationID: organizationID})
+func GetBranchesByOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID) ([]*Branch, error) {
+	return BranchManager(service).Find(context, &Branch{OrganizationID: organizationID})
 }
 
-func (m *Core) GetBranchesByOrganizationCount(context context.Context, organizationID uuid.UUID) (int64, error) {
-	return m.BranchManager().Count(context, &Branch{OrganizationID: organizationID})
+func GetBranchesByOrganizationCount(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID) (int64, error) {
+	return BranchManager(service).Count(context, &Branch{OrganizationID: organizationID})
 }

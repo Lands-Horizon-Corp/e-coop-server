@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -118,7 +119,7 @@ type (
 	}
 )
 
-func (m *Core) BrowseReferenceManager() *registry.Registry[BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest] {
+func BrowseReferenceManager(service *horizon.HorizonService) *registry.Registry[BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		BrowseReference, BrowseReferenceResponse, BrowseReferenceRequest,
 	]{
@@ -126,9 +127,9 @@ func (m *Core) BrowseReferenceManager() *registry.Registry[BrowseReference, Brow
 			"Account", "Account.Currency",
 			"MemberType", "InterestRatesByYear", "InterestRatesByDate", "InterestRatesByAmount",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *BrowseReference) *BrowseReferenceResponse {
 			if data == nil {
@@ -138,14 +139,14 @@ func (m *Core) BrowseReferenceManager() *registry.Registry[BrowseReference, Brow
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				Name:                  data.Name,
 				Description:           data.Description,
@@ -153,15 +154,15 @@ func (m *Core) BrowseReferenceManager() *registry.Registry[BrowseReference, Brow
 				MinimumBalance:        data.MinimumBalance,
 				Charges:               data.Charges,
 				AccountID:             data.AccountID,
-				Account:               m.AccountManager().ToModel(data.Account),
+				Account:               AccountManager(service).ToModel(data.Account),
 				MemberTypeID:          data.MemberTypeID,
-				MemberType:            m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:            MemberTypeManager(service).ToModel(data.MemberType),
 				InterestType:          data.InterestType,
 				DefaultMinimumBalance: data.DefaultMinimumBalance,
 				DefaultInterestRate:   data.DefaultInterestRate,
-				InterestRatesByYear:   m.InterestRateByYearManager().ToModels(data.InterestRatesByYear),
-				InterestRatesByDate:   m.InterestRateByDateManager().ToModels(data.InterestRatesByDate),
-				InterestRatesByAmount: m.InterestRateByAmountManager().ToModels(data.InterestRatesByAmount),
+				InterestRatesByYear:   InterestRateByYearManager(service).ToModels(data.InterestRatesByYear),
+				InterestRatesByDate:   InterestRateByDateManager(service).ToModels(data.InterestRatesByDate),
+				InterestRatesByAmount: InterestRateByAmountManager(service).ToModels(data.InterestRatesByAmount),
 			}
 		},
 
@@ -192,37 +193,37 @@ func (m *Core) BrowseReferenceManager() *registry.Registry[BrowseReference, Brow
 	})
 }
 
-func (m *Core) BrowseReferenceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseReference, error) {
+func BrowseReferenceCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
+	return BrowseReferenceManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) BrowseReferenceByMemberType(context context.Context, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
+func BrowseReferenceByMemberType(context context.Context, service *horizon.HorizonService, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
 	}
 
-	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
+	return BrowseReferenceManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) BrowseReferenceByInterestType(context context.Context, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
+func BrowseReferenceByInterestType(context context.Context, service *horizon.HorizonService, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "interest_type", Op: query.ModeEqual, Value: string(interestType)},
 	}
 
-	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
+	return BrowseReferenceManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) BrowseReferenceByField(
-	context context.Context, organizationID, branchID uuid.UUID, accountID, memberTypeID *uuid.UUID,
+func BrowseReferenceByField(
+	context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID, accountID, memberTypeID *uuid.UUID,
 ) ([]*BrowseReference, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -241,5 +242,5 @@ func (m *Core) BrowseReferenceByField(
 		})
 	}
 
-	return m.BrowseReferenceManager().ArrFind(context, filters, nil)
+	return BrowseReferenceManager(service).ArrFind(context, filters, nil)
 }

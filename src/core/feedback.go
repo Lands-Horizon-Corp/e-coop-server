@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -44,12 +45,12 @@ type (
 	}
 )
 
-func (m *Core) FeedbackManager() *registry.Registry[Feedback, FeedbackResponse, FeedbackRequest] {
+func FeedbackManager(service *horizon.HorizonService) *registry.Registry[Feedback, FeedbackResponse, FeedbackRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Feedback, FeedbackResponse, FeedbackRequest]{
 		Preloads: []string{"Media"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Feedback) *FeedbackResponse {
 			if data == nil {
@@ -61,7 +62,7 @@ func (m *Core) FeedbackManager() *registry.Registry[Feedback, FeedbackResponse, 
 				Description:  data.Description,
 				FeedbackType: data.FeedbackType,
 				MediaID:      data.MediaID,
-				Media:        m.MediaManager().ToModel(data.Media),
+				Media:        MediaManager(service).ToModel(data.Media),
 				CreatedAt:    data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}

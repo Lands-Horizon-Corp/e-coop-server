@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -92,7 +93,7 @@ type (
 	}
 )
 
-func (m *Core) CashCheckVoucherEntryManager() *registry.Registry[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest] {
+func CashCheckVoucherEntryManager(service *horizon.HorizonService) *registry.Registry[CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		CashCheckVoucherEntry, CashCheckVoucherEntryResponse, CashCheckVoucherEntryRequest,
 	]{
@@ -101,9 +102,9 @@ func (m *Core) CashCheckVoucherEntryManager() *registry.Registry[CashCheckVouche
 			"Account", "EmployeeUser", "TransactionBatch", "CashCheckVoucher",
 			"MemberProfile", "MemberProfile.Media", "LoanTransaction",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *CashCheckVoucherEntry) *CashCheckVoucherEntryResponse {
 			if data == nil {
@@ -113,26 +114,26 @@ func (m *Core) CashCheckVoucherEntryManager() *registry.Registry[CashCheckVouche
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager().ToModel(data.Account),
+				Account:            AccountManager(service).ToModel(data.Account),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:       UserManager(service).ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				CashCheckVoucherID: data.CashCheckVoucherID,
-				CashCheckVoucher:   m.CashCheckVoucherManager().ToModel(data.CashCheckVoucher),
+				CashCheckVoucher:   CashCheckVoucherManager(service).ToModel(data.CashCheckVoucher),
 				LoanTransactionID:  data.LoanTransactionID,
-				LoanTransaction:    m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:    LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:      MemberProfileManager(service).ToModel(data.MemberProfile),
 				Debit:              data.Debit,
 				Credit:             data.Credit,
 				Description:        data.Description,
@@ -165,8 +166,8 @@ func (m *Core) CashCheckVoucherEntryManager() *registry.Registry[CashCheckVouche
 	})
 }
 
-func (m *Core) CashCheckVoucherEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherEntry, error) {
-	return m.CashCheckVoucherEntryManager().Find(context, &CashCheckVoucherEntry{
+func CashCheckVoucherEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCheckVoucherEntry, error) {
+	return CashCheckVoucherEntryManager(service).Find(context, &CashCheckVoucherEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

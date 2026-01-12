@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -334,7 +335,7 @@ type (
 	}
 )
 
-func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest] {
+func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest] {
 	return registry.NewRegistry(registry.RegistryParams[TransactionBatch, TransactionBatchResponse, TransactionBatchRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -351,9 +352,9 @@ func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, Tr
 			"PostedBySignatureMedia",
 			"PaidBySignatureMedia",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *TransactionBatch) *TransactionBatchResponse {
 			if data == nil {
@@ -370,16 +371,16 @@ func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, Tr
 				ID:                            data.ID,
 				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                   data.CreatedByID,
-				CreatedBy:                     m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                     UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                     data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                   data.UpdatedByID,
-				UpdatedBy:                     m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                     UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:                data.OrganizationID,
-				Organization:                  m.OrganizationManager().ToModel(data.Organization),
+				Organization:                  OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                      data.BranchID,
-				Branch:                        m.BranchManager().ToModel(data.Branch),
+				Branch:                        BranchManager(service).ToModel(data.Branch),
 				EmployeeUserID:                data.EmployeeUserID,
-				EmployeeUser:                  m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:                  UserManager(service).ToModel(data.EmployeeUser),
 				BatchName:                     data.BatchName,
 				TotalCashCollection:           data.TotalCashCollection,
 				TotalDepositEntry:             data.TotalDepositEntry,
@@ -405,47 +406,47 @@ func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, Tr
 				RequestView:                   data.RequestView,
 
 				EmployeeBySignatureMediaID:    data.EmployeeBySignatureMediaID,
-				EmployeeBySignatureMedia:      m.MediaManager().ToModel(data.EmployeeBySignatureMedia),
+				EmployeeBySignatureMedia:      MediaManager(service).ToModel(data.EmployeeBySignatureMedia),
 				EmployeeByName:                data.EmployeeByName,
 				EmployeeByPosition:            data.EmployeeByPosition,
 				ApprovedBySignatureMediaID:    data.ApprovedBySignatureMediaID,
-				ApprovedBySignatureMedia:      m.MediaManager().ToModel(data.ApprovedBySignatureMedia),
+				ApprovedBySignatureMedia:      MediaManager(service).ToModel(data.ApprovedBySignatureMedia),
 				ApprovedByName:                data.ApprovedByName,
 				ApprovedByPosition:            data.ApprovedByPosition,
 				PreparedBySignatureMediaID:    data.PreparedBySignatureMediaID,
-				PreparedBySignatureMedia:      m.MediaManager().ToModel(data.PreparedBySignatureMedia),
+				PreparedBySignatureMedia:      MediaManager(service).ToModel(data.PreparedBySignatureMedia),
 				PreparedByName:                data.PreparedByName,
 				PreparedByPosition:            data.PreparedByPosition,
 				CertifiedBySignatureMediaID:   data.CertifiedBySignatureMediaID,
-				CertifiedBySignatureMedia:     m.MediaManager().ToModel(data.CertifiedBySignatureMedia),
+				CertifiedBySignatureMedia:     MediaManager(service).ToModel(data.CertifiedBySignatureMedia),
 				CertifiedByName:               data.CertifiedByName,
 				CertifiedByPosition:           data.CertifiedByPosition,
 				VerifiedBySignatureMediaID:    data.VerifiedBySignatureMediaID,
-				VerifiedBySignatureMedia:      m.MediaManager().ToModel(data.VerifiedBySignatureMedia),
+				VerifiedBySignatureMedia:      MediaManager(service).ToModel(data.VerifiedBySignatureMedia),
 				VerifiedByName:                data.VerifiedByName,
 				VerifiedByPosition:            data.VerifiedByPosition,
 				CheckBySignatureMediaID:       data.CheckBySignatureMediaID,
-				CheckBySignatureMedia:         m.MediaManager().ToModel(data.CheckBySignatureMedia),
+				CheckBySignatureMedia:         MediaManager(service).ToModel(data.CheckBySignatureMedia),
 				CheckByName:                   data.CheckByName,
 				CheckByPosition:               data.CheckByPosition,
 				AcknowledgeBySignatureMediaID: data.AcknowledgeBySignatureMediaID,
-				AcknowledgeBySignatureMedia:   m.MediaManager().ToModel(data.AcknowledgeBySignatureMedia),
+				AcknowledgeBySignatureMedia:   MediaManager(service).ToModel(data.AcknowledgeBySignatureMedia),
 				AcknowledgeByName:             data.AcknowledgeByName,
 				AcknowledgeByPosition:         data.AcknowledgeByPosition,
 				NotedBySignatureMediaID:       data.NotedBySignatureMediaID,
-				NotedBySignatureMedia:         m.MediaManager().ToModel(data.NotedBySignatureMedia),
+				NotedBySignatureMedia:         MediaManager(service).ToModel(data.NotedBySignatureMedia),
 				NotedByName:                   data.NotedByName,
 				NotedByPosition:               data.NotedByPosition,
 				PostedBySignatureMediaID:      data.PostedBySignatureMediaID,
-				PostedBySignatureMedia:        m.MediaManager().ToModel(data.PostedBySignatureMedia),
+				PostedBySignatureMedia:        MediaManager(service).ToModel(data.PostedBySignatureMedia),
 				PostedByName:                  data.PostedByName,
 				PostedByPosition:              data.PostedByPosition,
 				PaidBySignatureMediaID:        data.PaidBySignatureMediaID,
-				PaidBySignatureMedia:          m.MediaManager().ToModel(data.PaidBySignatureMedia),
+				PaidBySignatureMedia:          MediaManager(service).ToModel(data.PaidBySignatureMedia),
 				PaidByName:                    data.PaidByName,
 				PaidByPosition:                data.PaidByPosition,
 				CurrencyID:                    data.CurrencyID,
-				Currency:                      m.CurrencyManager().ToModel(data.Currency),
+				Currency:                      CurrencyManager(service).ToModel(data.Currency),
 				EndedAt:                       endedAt,
 			}
 		},
@@ -480,8 +481,8 @@ func (m *Core) TransactionBatchManager() *registry.Registry[TransactionBatch, Tr
 	})
 }
 
-func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*TransactionBatchResponse, error) {
-	data, err := m.TransactionBatchManager().GetByID(context, id)
+func TransactionBatchMinimal(context context.Context, service *horizon.HorizonService, id uuid.UUID) (*TransactionBatchResponse, error) {
+	data, err := TransactionBatchManager(service).GetByID(context, id)
 	if err != nil {
 		return nil, err
 	}
@@ -495,16 +496,16 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 		ID:               data.ID,
 		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 		CreatedByID:      data.CreatedByID,
-		CreatedBy:        m.UserManager().ToModel(data.CreatedBy),
+		CreatedBy:        UserManager(service).ToModel(data.CreatedBy),
 		UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 		UpdatedByID:      data.UpdatedByID,
-		UpdatedBy:        m.UserManager().ToModel(data.UpdatedBy),
+		UpdatedBy:        UserManager(service).ToModel(data.UpdatedBy),
 		OrganizationID:   data.OrganizationID,
-		Organization:     m.OrganizationManager().ToModel(data.Organization),
+		Organization:     OrganizationManager(service).ToModel(data.Organization),
 		BranchID:         data.BranchID,
-		Branch:           m.BranchManager().ToModel(data.Branch),
+		Branch:           BranchManager(service).ToModel(data.Branch),
 		EmployeeUserID:   data.EmployeeUserID,
-		EmployeeUser:     m.UserManager().ToModel(data.EmployeeUser),
+		EmployeeUser:     UserManager(service).ToModel(data.EmployeeUser),
 		BatchName:        data.BatchName,
 		BeginningBalance: data.BeginningBalance,
 		DepositInBank:    data.DepositInBank,
@@ -515,14 +516,14 @@ func (m *Core) TransactionBatchMinimal(context context.Context, id uuid.UUID) (*
 		IsClosed:         data.IsClosed,
 		RequestView:      data.RequestView,
 		CurrencyID:       data.CurrencyID,
-		Currency:         m.CurrencyManager().ToModel(data.Currency),
+		Currency:         CurrencyManager(service).ToModel(data.Currency),
 		EndedAt:          endedAt,
 	}, nil
 }
 
-func (m *Core) TransactionBatchCurrent(context context.Context, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
+func TransactionBatchCurrent(context context.Context, service *horizon.HorizonService, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 
-	return m.TransactionBatchManager().ArrFindOne(context, []registry.FilterSQL{
+	return TransactionBatchManager(service).ArrFindOne(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "employee_user_id", Op: query.ModeEqual, Value: userID},
@@ -532,8 +533,8 @@ func (m *Core) TransactionBatchCurrent(context context.Context, userID, organiza
 	})
 }
 
-func (m *Core) TransactionBatchViewRequests(context context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	return m.TransactionBatchManager().ArrFind(context, []registry.FilterSQL{
+func TransactionBatchViewRequests(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
+	return TransactionBatchManager(service).ArrFind(context, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "request_view", Op: query.ModeEqual, Value: true},
@@ -544,12 +545,12 @@ func (m *Core) TransactionBatchViewRequests(context context.Context, organizatio
 	})
 }
 
-func (m *Core) TransactionBatchCurrentDay(ctx context.Context, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
+func TransactionBatchCurrentDay(ctx context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
 	now := time.Now().UTC()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	return m.TransactionBatchManager().ArrFind(ctx, []registry.FilterSQL{
+	return TransactionBatchManager(service).ArrFind(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "is_closed", Op: query.ModeEqual, Value: true},

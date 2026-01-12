@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -70,14 +71,14 @@ type (
 	}
 )
 
-func (m *Core) PaymentTypeManager() *registry.Registry[PaymentType, PaymentTypeResponse, PaymentTypeRequest] {
+func PaymentTypeManager(service *horizon.HorizonService) *registry.Registry[PaymentType, PaymentTypeResponse, PaymentTypeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		PaymentType, PaymentTypeResponse, PaymentTypeRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *PaymentType) *PaymentTypeResponse {
 			if data == nil {
@@ -87,14 +88,14 @@ func (m *Core) PaymentTypeManager() *registry.Registry[PaymentType, PaymentTypeR
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				NumberOfDays:   data.NumberOfDays,
@@ -128,8 +129,8 @@ func (m *Core) PaymentTypeManager() *registry.Registry[PaymentType, PaymentTypeR
 	})
 }
 
-func (m *Core) PaymentTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
-	return m.PaymentTypeManager().Find(context, &PaymentType{
+func PaymentTypeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*PaymentType, error) {
+	return PaymentTypeManager(service).Find(context, &PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

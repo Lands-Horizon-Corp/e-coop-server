@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -76,12 +77,12 @@ type (
 	}
 )
 
-func (m *Core) ComakerCollateralManager() *registry.Registry[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest] {
+func ComakerCollateralManager(service *horizon.HorizonService) *registry.Registry[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest] {
 	return registry.NewRegistry(registry.RegistryParams[ComakerCollateral, ComakerCollateralResponse, ComakerCollateralRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "LoanTransaction", "Collateral"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *ComakerCollateral) *ComakerCollateralResponse {
 			if data == nil {
@@ -91,18 +92,18 @@ func (m *Core) ComakerCollateralManager() *registry.Registry[ComakerCollateral, 
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:         UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:         UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager().ToModel(data.Organization),
+				Organization:      OrganizationManager(service).ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager().ToModel(data.Branch),
+				Branch:            BranchManager(service).ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:   LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				CollateralID:      data.CollateralID,
-				Collateral:        m.CollateralManager().ToModel(data.Collateral),
+				Collateral:        CollateralManager(service).ToModel(data.Collateral),
 				Amount:            data.Amount,
 				Description:       data.Description,
 				MonthsCount:       data.MonthsCount,
@@ -139,15 +140,15 @@ func (m *Core) ComakerCollateralManager() *registry.Registry[ComakerCollateral, 
 	})
 }
 
-func (m *Core) ComakerCollateralCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerCollateral, error) {
-	return m.ComakerCollateralManager().Find(context, &ComakerCollateral{
+func ComakerCollateralCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*ComakerCollateral, error) {
+	return ComakerCollateralManager(service).Find(context, &ComakerCollateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) ComakerCollateralByLoanTransaction(context context.Context, loanTransactionID uuid.UUID) ([]*ComakerCollateral, error) {
-	return m.ComakerCollateralManager().Find(context, &ComakerCollateral{
+func ComakerCollateralByLoanTransaction(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID) ([]*ComakerCollateral, error) {
+	return ComakerCollateralManager(service).Find(context, &ComakerCollateral{
 		LoanTransactionID: loanTransactionID,
 	})
 }

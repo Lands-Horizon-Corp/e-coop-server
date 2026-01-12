@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -84,12 +85,12 @@ type (
 	}
 )
 
-func (m *Core) OrganizationDailyUsageManager() *registry.Registry[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest] {
+func OrganizationDailyUsageManager(service *horizon.HorizonService) *registry.Registry[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest] {
 	return registry.NewRegistry(registry.RegistryParams[OrganizationDailyUsage, OrganizationDailyUsageResponse, OrganizationDailyUsageRequest]{
 		Preloads: []string{"Organization"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *OrganizationDailyUsage) *OrganizationDailyUsageResponse {
 			if data == nil {
@@ -98,7 +99,7 @@ func (m *Core) OrganizationDailyUsageManager() *registry.Registry[OrganizationDa
 			return &OrganizationDailyUsageResponse{
 				ID:             data.ID,
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				TotalMembers:   data.TotalMembers,
 				TotalBranches:  data.TotalBranches,
 				TotalEmployees: data.TotalEmployees,
@@ -145,8 +146,8 @@ func (m *Core) OrganizationDailyUsageManager() *registry.Registry[OrganizationDa
 	})
 }
 
-func (m *Core) GetOrganizationDailyUsageByOrganization(context context.Context, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
-	return m.OrganizationDailyUsageManager().Find(context, &OrganizationDailyUsage{
+func GetOrganizationDailyUsageByOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID) ([]*OrganizationDailyUsage, error) {
+	return OrganizationDailyUsageManager(service).Find(context, &OrganizationDailyUsage{
 		OrganizationID: organizationID,
 	})
 }

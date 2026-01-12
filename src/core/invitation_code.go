@@ -83,7 +83,7 @@ type (
 	}
 )
 
-func (m *Core) InvitationCodeManager() *registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest] {
+func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -93,9 +93,9 @@ func (m *Core) InvitationCodeManager() *registry.Registry[InvitationCode, Invita
 			"Branch.Media",
 			"Branch",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *InvitationCode) *InvitationCodeResponse {
 			if data == nil {
@@ -109,14 +109,14 @@ func (m *Core) InvitationCodeManager() *registry.Registry[InvitationCode, Invita
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				UserType:       data.UserType,
 				Code:           data.Code,
@@ -157,7 +157,7 @@ func (m *Core) InvitationCodeManager() *registry.Registry[InvitationCode, Invita
 	})
 }
 
-func (m *Core) invitationCodeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func invitationCodeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	expiration := now.AddDate(0, 1, 0)
 
@@ -192,28 +192,28 @@ func (m *Core) invitationCodeSeed(context context.Context, tx *gorm.DB, userID u
 		},
 	}
 	for _, data := range invitationCodes {
-		if err := m.InvitationCodeManager().CreateWithTx(context, tx, data); err != nil {
+		if err := InvitationCodeManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed invitation code for %s", data.UserType)
 		}
 	}
 	return nil
 }
 
-func (m *Core) GetInvitationCodeByBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
-	return m.InvitationCodeManager().Find(context, &InvitationCode{
+func GetInvitationCodeByBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
+	return InvitationCodeManager(service).Find(context, &InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) GetInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
-	return m.InvitationCodeManager().FindOne(context, &InvitationCode{
+func GetInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*InvitationCode, error) {
+	return InvitationCodeManager(service).FindOne(context, &InvitationCode{
 		Code: code,
 	})
 }
 
-func (m *Core) VerifyInvitationCodeByCode(context context.Context, code string) (*InvitationCode, error) {
-	data, err := m.GetInvitationCodeByCode(context, code)
+func VerifyInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*InvitationCode, error) {
+	data, err := GetInvitationCodeByCode(context, service, code)
 	if err != nil {
 		return nil, err
 	}
@@ -230,13 +230,13 @@ func (m *Core) VerifyInvitationCodeByCode(context context.Context, code string) 
 	return data, nil
 }
 
-func (m *Core) RedeemInvitationCode(context context.Context, tx *gorm.DB, invitationCodeID uuid.UUID) error {
-	data, err := m.InvitationCodeManager().GetByIDLock(context, tx, invitationCodeID)
+func RedeemInvitationCode(context context.Context, service *horizon.HorizonService, tx *gorm.DB, invitationCodeID uuid.UUID) error {
+	data, err := InvitationCodeManager(service).GetByIDLock(context, tx, invitationCodeID)
 	if err != nil {
 		return eris.Wrap(err, "failed to lock invitation code for redemption")
 	}
 	data.CurrentUse++
-	if err := m.InvitationCodeManager().UpdateByIDWithTx(context, tx, data.ID, data); err != nil {
+	if err := InvitationCodeManager(service).UpdateByIDWithTx(context, tx, data.ID, data); err != nil {
 		return eris.Wrapf(
 			err,
 			"failed to redeem invitation code %q (increment CurrentUse)",

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -131,16 +132,16 @@ type (
 	}
 )
 
-func (m *Core) ChargesRateByTermManager() *registry.Registry[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest] {
+func ChargesRateByTermManager(service *horizon.HorizonService) *registry.Registry[ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		ChargesRateByTerm, ChargesRateByTermResponse, ChargesRateByTermRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "ChargesRateScheme",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *ChargesRateByTerm) *ChargesRateByTermResponse {
 			if data == nil {
@@ -150,16 +151,16 @@ func (m *Core) ChargesRateByTermManager() *registry.Registry[ChargesRateByTerm, 
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:           UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:           UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager().ToModel(data.Organization),
+				Organization:        OrganizationManager(service).ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager().ToModel(data.Branch),
+				Branch:              BranchManager(service).ToModel(data.Branch),
 				ChargesRateSchemeID: data.ChargesRateSchemeID,
-				ChargesRateScheme:   m.ChargesRateSchemeManager().ToModel(data.ChargesRateScheme),
+				ChargesRateScheme:   ChargesRateSchemeManager(service).ToModel(data.ChargesRateScheme),
 				Name:                data.Name,
 				Description:         data.Description,
 				ModeOfPayment:       data.ModeOfPayment,
@@ -214,8 +215,8 @@ func (m *Core) ChargesRateByTermManager() *registry.Registry[ChargesRateByTerm, 
 	})
 }
 
-func (m *Core) ChargesRateByTermCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByTerm, error) {
-	return m.ChargesRateByTermManager().Find(context, &ChargesRateByTerm{
+func ChargesRateByTermCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateByTerm, error) {
+	return ChargesRateByTermManager(service).Find(context, &ChargesRateByTerm{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

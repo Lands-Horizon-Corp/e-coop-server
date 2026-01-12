@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -64,7 +65,7 @@ type (
 	}
 )
 
-func (m *Core) MemberTypeManager() *registry.Registry[MemberType, MemberTypeResponse, MemberTypeRequest] {
+func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[MemberType, MemberTypeResponse, MemberTypeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -75,9 +76,9 @@ func (m *Core) MemberTypeManager() *registry.Registry[MemberType, MemberTypeResp
 			"BrowseReferences.Account",
 			"BrowseReferences.MemberType",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberType) *MemberTypeResponse {
 			if data == nil {
@@ -87,19 +88,19 @@ func (m *Core) MemberTypeManager() *registry.Registry[MemberType, MemberTypeResp
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
-				CreatedBy:                  m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                  UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                  data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                data.UpdatedByID,
-				UpdatedBy:                  m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                  UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:             data.OrganizationID,
-				Organization:               m.OrganizationManager().ToModel(data.Organization),
+				Organization:               OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                   data.BranchID,
-				Branch:                     m.BranchManager().ToModel(data.Branch),
+				Branch:                     BranchManager(service).ToModel(data.Branch),
 				Prefix:                     data.Prefix,
 				Name:                       data.Name,
 				Description:                data.Description,
 				BrowseReferenceDescription: data.BrowseReferenceDescription,
-				BrowseReferences:           m.BrowseReferenceManager().ToModels(data.BrowseReferences),
+				BrowseReferences:           BrowseReferenceManager(service).ToModels(data.BrowseReferences),
 			}
 		},
 
@@ -130,7 +131,7 @@ func (m *Core) MemberTypeManager() *registry.Registry[MemberType, MemberTypeResp
 	})
 }
 
-func (m *Core) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	memberType := []*MemberType{
 		{
@@ -303,15 +304,15 @@ func (m *Core) memberTypeSeed(context context.Context, tx *gorm.DB, userID uuid.
 		},
 	}
 	for _, data := range memberType {
-		if err := m.MemberTypeManager().CreateWithTx(context, tx, data); err != nil {
+		if err := MemberTypeManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member type %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) MemberTypeCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
-	return m.MemberTypeManager().Find(context, &MemberType{
+func MemberTypeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
+	return MemberTypeManager(service).Find(context, &MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

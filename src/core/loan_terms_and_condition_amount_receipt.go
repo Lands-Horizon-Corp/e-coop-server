@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -64,16 +65,16 @@ type (
 	}
 )
 
-func (m *Core) LoanTermsAndConditionAmountReceiptManager() *registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest] {
+func LoanTermsAndConditionAmountReceiptManager(service *horizon.HorizonService) *registry.Registry[LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		LoanTermsAndConditionAmountReceipt, LoanTermsAndConditionAmountReceiptResponse, LoanTermsAndConditionAmountReceiptRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *LoanTermsAndConditionAmountReceipt) *LoanTermsAndConditionAmountReceiptResponse {
 			if data == nil {
@@ -83,18 +84,18 @@ func (m *Core) LoanTermsAndConditionAmountReceiptManager() *registry.Registry[Lo
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:         UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:         UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager().ToModel(data.Organization),
+				Organization:      OrganizationManager(service).ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager().ToModel(data.Branch),
+				Branch:            BranchManager(service).ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:   LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				AccountID:         data.AccountID,
-				Account:           m.AccountManager().ToModel(data.Account),
+				Account:           AccountManager(service).ToModel(data.Account),
 				Amount:            data.Amount,
 			}
 		},
@@ -126,8 +127,8 @@ func (m *Core) LoanTermsAndConditionAmountReceiptManager() *registry.Registry[Lo
 	})
 }
 
-func (m *Core) LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
-	return m.LoanTermsAndConditionAmountReceiptManager().Find(context, &LoanTermsAndConditionAmountReceipt{
+func LoanTermsAndConditionAmountReceiptCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionAmountReceipt, error) {
+	return LoanTermsAndConditionAmountReceiptManager(service).Find(context, &LoanTermsAndConditionAmountReceipt{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -55,12 +56,12 @@ type (
 	}
 )
 
-func (m *Core) MemberCenterManager() *registry.Registry[MemberCenter, MemberCenterResponse, MemberCenterRequest] {
+func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[MemberCenter, MemberCenterResponse, MemberCenterRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberCenter, MemberCenterResponse, MemberCenterRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberCenter) *MemberCenterResponse {
 			if data == nil {
@@ -70,14 +71,14 @@ func (m *Core) MemberCenterManager() *registry.Registry[MemberCenter, MemberCent
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -110,7 +111,7 @@ func (m *Core) MemberCenterManager() *registry.Registry[MemberCenter, MemberCent
 	})
 }
 
-func (m *Core) memberCenterSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberCenterSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	memberCenter := []*MemberCenter{
 		{
@@ -147,15 +148,15 @@ func (m *Core) memberCenterSeed(context context.Context, tx *gorm.DB, userID uui
 		},
 	}
 	for _, data := range memberCenter {
-		if err := m.MemberCenterManager().CreateWithTx(context, tx, data); err != nil {
+		if err := MemberCenterManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member center %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) MemberCenterCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
-	return m.MemberCenterManager().Find(context, &MemberCenter{
+func MemberCenterCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
+	return MemberCenterManager(service).Find(context, &MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

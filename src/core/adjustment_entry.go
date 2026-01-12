@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -124,7 +125,7 @@ type (
 	}
 )
 
-func (m *Core) AdjustmentEntryManager() *registry.Registry[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest] {
+func AdjustmentEntryManager(service *horizon.HorizonService) *registry.Registry[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[AdjustmentEntry, AdjustmentEntryResponse, AdjustmentEntryRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -138,9 +139,9 @@ func (m *Core) AdjustmentEntryManager() *registry.Registry[AdjustmentEntry, Adju
 			"LoanTransaction",
 			"Account.Currency",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *AdjustmentEntry) *AdjustmentEntryResponse {
 			if data == nil {
@@ -155,35 +156,35 @@ func (m *Core) AdjustmentEntryManager() *registry.Registry[AdjustmentEntry, Adju
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:     MediaManager(service).ToModel(data.SignatureMedia),
 				AccountID:          data.AccountID,
-				Account:            m.AccountManager().ToModel(data.Account),
+				Account:            AccountManager(service).ToModel(data.Account),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:      MemberProfileManager(service).ToModel(data.MemberProfile),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:       UserManager(service).ToModel(data.EmployeeUser),
 				PaymentTypeID:      data.PaymentTypeID,
-				PaymentType:        m.PaymentTypeManager().ToModel(data.PaymentType),
+				PaymentType:        PaymentTypeManager(service).ToModel(data.PaymentType),
 				TypeOfPaymentType:  data.TypeOfPaymentType,
 				Description:        data.Description,
 				ReferenceNumber:    data.ReferenceNumber,
 				EntryDate:          entryDateStr,
 				Debit:              data.Debit,
 				Credit:             data.Credit,
-				AdjustmentTags:     m.AdjustmentTagManager().ToModels(data.AdjustmentTags),
+				AdjustmentTags:     AdjustmentTagManager(service).ToModels(data.AdjustmentTags),
 				LoanTransactionID:  data.LoanTransactionID,
-				LoanTransaction:    m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:    LoanTransactionManager(service).ToModel(data.LoanTransaction),
 			}
 		},
 		Created: func(data *AdjustmentEntry) registry.Topics {
@@ -213,8 +214,8 @@ func (m *Core) AdjustmentEntryManager() *registry.Registry[AdjustmentEntry, Adju
 	})
 }
 
-func (m *Core) AdjustmentEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentEntry, error) {
-	return m.AdjustmentEntryManager().Find(context, &AdjustmentEntry{
+func AdjustmentEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*AdjustmentEntry, error) {
+	return AdjustmentEntryManager(service).Find(context, &AdjustmentEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

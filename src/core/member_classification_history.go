@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -63,7 +64,7 @@ type (
 	}
 )
 
-func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest] {
+func MemberClassificationHistoryManager(service *horizon.HorizonService) *registry.Registry[MemberClassificationHistory, MemberClassificationHistoryResponse, MemberClassificationHistoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		MemberClassificationHistory,
 		MemberClassificationHistoryResponse,
@@ -73,9 +74,9 @@ func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberCla
 			"CreatedBy", "UpdatedBy",
 			"Organization", "Branch", "MemberClassification", "MemberProfile",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberClassificationHistory) *MemberClassificationHistoryResponse {
 			if data == nil {
@@ -85,18 +86,18 @@ func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberCla
 				ID:                     data.ID,
 				CreatedAt:              data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:            data.CreatedByID,
-				CreatedBy:              m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:              UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:              data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:            data.UpdatedByID,
-				UpdatedBy:              m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:              UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:         data.OrganizationID,
-				Organization:           m.OrganizationManager().ToModel(data.Organization),
+				Organization:           OrganizationManager(service).ToModel(data.Organization),
 				BranchID:               data.BranchID,
-				Branch:                 m.BranchManager().ToModel(data.Branch),
+				Branch:                 BranchManager(service).ToModel(data.Branch),
 				MemberClassificationID: data.MemberClassificationID,
-				MemberClassification:   m.MemberClassificationManager().ToModel(data.MemberClassification),
+				MemberClassification:   MemberClassificationManager(service).ToModel(data.MemberClassification),
 				MemberProfileID:        data.MemberProfileID,
-				MemberProfile:          m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:          MemberProfileManager(service).ToModel(data.MemberProfile),
 			}
 		},
 		Created: func(data *MemberClassificationHistory) registry.Topics {
@@ -129,15 +130,15 @@ func (m *Core) MemberClassificationHistoryManager() *registry.Registry[MemberCla
 	})
 }
 
-func (m *Core) MemberClassificationHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
-	return m.MemberClassificationHistoryManager().Find(context, &MemberClassificationHistory{
+func MemberClassificationHistoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
+	return MemberClassificationHistoryManager(service).Find(context, &MemberClassificationHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MemberClassificationHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
-	return m.MemberClassificationHistoryManager().Find(context, &MemberClassificationHistory{
+func MemberClassificationHistoryMemberProfileID(context context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberClassificationHistory, error) {
+	return MemberClassificationHistoryManager(service).Find(context, &MemberClassificationHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -89,15 +90,15 @@ type (
 	}
 )
 
-func (m *Core) MemberJointAccountManager() *registry.Registry[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest] {
+func MemberJointAccountManager(service *horizon.HorizonService) *registry.Registry[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberJointAccount, MemberJointAccountResponse, MemberJointAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 			"MemberProfile", "PictureMedia", "SignatureMedia",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberJointAccount) *MemberJointAccountResponse {
 			if data == nil {
@@ -107,20 +108,20 @@ func (m *Core) MemberJointAccountManager() *registry.Registry[MemberJointAccount
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				MemberProfileID:    data.MemberProfileID,
-				MemberProfile:      m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:      MemberProfileManager(service).ToModel(data.MemberProfile),
 				PictureMediaID:     data.PictureMediaID,
-				PictureMedia:       m.MediaManager().ToModel(data.PictureMedia),
+				PictureMedia:       MediaManager(service).ToModel(data.PictureMedia),
 				SignatureMediaID:   data.SignatureMediaID,
-				SignatureMedia:     m.MediaManager().ToModel(data.SignatureMedia),
+				SignatureMedia:     MediaManager(service).ToModel(data.SignatureMedia),
 				Description:        data.Description,
 				FirstName:          data.FirstName,
 				MiddleName:         data.MiddleName,
@@ -159,8 +160,8 @@ func (m *Core) MemberJointAccountManager() *registry.Registry[MemberJointAccount
 	})
 }
 
-func (m *Core) MemberJointAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
-	return m.MemberJointAccountManager().Find(context, &MemberJointAccount{
+func MemberJointAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberJointAccount, error) {
+	return MemberJointAccountManager(service).Find(context, &MemberJointAccount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

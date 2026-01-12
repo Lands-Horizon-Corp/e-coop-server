@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -89,7 +90,7 @@ type (
 	}
 )
 
-func (m *Core) CheckRemittanceManager() *registry.Registry[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest] {
+func CheckRemittanceManager(service *horizon.HorizonService) *registry.Registry[CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		CheckRemittance, CheckRemittanceResponse, CheckRemittanceRequest,
 	]{
@@ -98,9 +99,9 @@ func (m *Core) CheckRemittanceManager() *registry.Registry[CheckRemittance, Chec
 			"Bank", "Media", "EmployeeUser", "TransactionBatch", "Currency",
 			"Bank.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *CheckRemittance) *CheckRemittanceResponse {
 			if data == nil {
@@ -115,24 +116,24 @@ func (m *Core) CheckRemittanceManager() *registry.Registry[CheckRemittance, Chec
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				BankID:             data.BankID,
-				Bank:               m.BankManager().ToModel(data.Bank),
+				Bank:               BankManager(service).ToModel(data.Bank),
 				MediaID:            data.MediaID,
-				Media:              m.MediaManager().ToModel(data.Media),
+				Media:              MediaManager(service).ToModel(data.Media),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:       UserManager(service).ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager().ToModel(data.Currency),
+				Currency:           CurrencyManager(service).ToModel(data.Currency),
 				ReferenceNumber:    data.ReferenceNumber,
 				AccountName:        data.AccountName,
 				Amount:             data.Amount,
@@ -167,8 +168,8 @@ func (m *Core) CheckRemittanceManager() *registry.Registry[CheckRemittance, Chec
 	})
 }
 
-func (m *Core) CheckRemittanceCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CheckRemittance, error) {
-	return m.CheckRemittanceManager().Find(context, &CheckRemittance{
+func CheckRemittanceCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*CheckRemittance, error) {
+	return CheckRemittanceManager(service).Find(context, &CheckRemittance{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -114,7 +115,7 @@ type (
 	}
 )
 
-func (m *Core) MemberAccountingLedgerManager() *registry.Registry[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest] {
+func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Registry[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
 	]{
@@ -122,9 +123,9 @@ func (m *Core) MemberAccountingLedgerManager() *registry.Registry[MemberAccounti
 			"MemberProfile",
 			"Account.Currency",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberAccountingLedger) *MemberAccountingLedgerResponse {
 			if data == nil {
@@ -139,18 +140,18 @@ func (m *Core) MemberAccountingLedgerManager() *registry.Registry[MemberAccounti
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:           UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:           UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager().ToModel(data.Organization),
+				Organization:        OrganizationManager(service).ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager().ToModel(data.Branch),
+				Branch:              BranchManager(service).ToModel(data.Branch),
 				MemberProfileID:     data.MemberProfileID,
-				MemberProfile:       m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:       MemberProfileManager(service).ToModel(data.MemberProfile),
 				AccountID:           data.AccountID,
-				Account:             m.AccountManager().ToModel(data.Account),
+				Account:             AccountManager(service).ToModel(data.Account),
 				Count:               data.Count,
 				Balance:             data.Balance,
 				Interest:            data.Interest,
@@ -193,14 +194,14 @@ func (m *Core) MemberAccountingLedgerManager() *registry.Registry[MemberAccounti
 	})
 }
 
-func (m *Core) MemberAccountingLedgerCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
-	return m.MemberAccountingLedgerManager().Find(context, &MemberAccountingLedger{
+func MemberAccountingLedgerCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
+	return MemberAccountingLedgerManager(service).Find(context, &MemberAccountingLedger{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+func MemberAccountingLedgerMemberProfileEntries(ctx context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -208,20 +209,21 @@ func (m *Core) MemberAccountingLedgerMemberProfileEntries(ctx context.Context, m
 		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
 
-	return m.MemberAccountingLedgerManager().ArrFind(ctx, filters, nil)
+	return MemberAccountingLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) MemberAccountingLedgerBranchEntries(ctx context.Context, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+func MemberAccountingLedgerBranchEntries(ctx context.Context, service *horizon.HorizonService, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
 	}
-	return m.MemberAccountingLedgerManager().ArrFind(ctx, filters, nil)
+	return MemberAccountingLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func (m *Core) MemberAccountingLedgerFindForUpdate(
+func MemberAccountingLedgerFindForUpdate(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	tx *gorm.DB,
 	memberProfileID,
 	accountID,
@@ -234,7 +236,7 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
-	ledger, err := m.MemberAccountingLedgerManager().ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
+	ledger, err := MemberAccountingLedgerManager(service).ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: "DESC"},
 	})
 	if err != nil {
@@ -247,8 +249,9 @@ func (m *Core) MemberAccountingLedgerFindForUpdate(
 	return ledger, nil
 }
 
-func (m *Core) MemberAccountingLedgerUpdateOrCreate(
+func MemberAccountingLedgerUpdateOrCreate(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	tx *gorm.DB,
 	balance float64,
 	params MemberAccountingLedgerUpdateOrCreateParams,
@@ -257,8 +260,8 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
 
-	ledger, err := m.MemberAccountingLedgerFindForUpdate(
-		ctx, tx,
+	ledger, err := MemberAccountingLedgerFindForUpdate(
+		ctx, service, tx,
 		params.MemberProfileID,
 		params.AccountID,
 		params.OrganizationID,
@@ -315,8 +318,9 @@ func (m *Core) MemberAccountingLedgerUpdateOrCreate(
 	return ledger, nil
 }
 
-func (m *Core) MemberAccountingLedgerFilterByCriteria(
+func MemberAccountingLedgerFilterByCriteria(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	organizationID,
 	branchID uuid.UUID,
 	accountID,
@@ -324,7 +328,7 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	includeClosedAccounts bool,
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
-	memberAccountingLedger, err := m.MemberAccountingLedgerManager().ArrFind(ctx, []registry.FilterSQL{
+	memberAccountingLedger, err := MemberAccountingLedgerManager(service).ArrFind(ctx, []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
@@ -344,11 +348,11 @@ func (m *Core) MemberAccountingLedgerFilterByCriteria(
 	return result, nil
 }
 
-func (m *Core) MemberAccountingLedgerByBrowseReference(ctx context.Context, includeClosedAccounts bool, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
+func MemberAccountingLedgerByBrowseReference(ctx context.Context, service *horizon.HorizonService, includeClosedAccounts bool, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
 	memberAccountingLedger := []*MemberAccountingLedgerBrowseReference{}
 	for _, browseRef := range data {
-		ledgers, err := m.MemberAccountingLedgerFilterByCriteria(
-			ctx, browseRef.OrganizationID, browseRef.BranchID,
+		ledgers, err := MemberAccountingLedgerFilterByCriteria(
+			ctx, service, browseRef.OrganizationID, browseRef.BranchID,
 			browseRef.AccountID,
 			browseRef.MemberTypeID, includeClosedAccounts)
 		if err != nil {

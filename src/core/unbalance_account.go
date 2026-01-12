@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -88,16 +89,16 @@ type (
 	}
 )
 
-func (m *Core) UnbalancedAccountManager() *registry.Registry[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest] {
+func UnbalancedAccountManager(service *horizon.HorizonService) *registry.Registry[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
 			"AccountForShortage", "AccountForOverage",
 			"MemberProfileForShortage", "MemberProfileForOverage",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *UnbalancedAccount) *UnbalancedAccountResponse {
 			if data == nil {
@@ -107,26 +108,26 @@ func (m *Core) UnbalancedAccountManager() *registry.Registry[UnbalancedAccount, 
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
-				CreatedBy:        m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:        UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:        data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:      data.UpdatedByID,
-				UpdatedBy:        m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:        UserManager(service).ToModel(data.UpdatedBy),
 				BranchSettingsID: data.BranchSettingsID,
-				BranchSettings:   m.BranchSettingManager().ToModel(data.BranchSettings),
+				BranchSettings:   BranchSettingManager(service).ToModel(data.BranchSettings),
 				CurrencyID:       data.CurrencyID,
-				Currency:         m.CurrencyManager().ToModel(data.Currency),
+				Currency:         CurrencyManager(service).ToModel(data.Currency),
 
 				AccountForShortageID: data.AccountForShortageID,
-				AccountForShortage:   m.AccountManager().ToModel(data.AccountForShortage),
+				AccountForShortage:   AccountManager(service).ToModel(data.AccountForShortage),
 
 				AccountForOverageID: data.AccountForOverageID,
-				AccountForOverage:   m.AccountManager().ToModel(data.AccountForOverage),
+				AccountForOverage:   AccountManager(service).ToModel(data.AccountForOverage),
 
 				MemberProfileIDForShortage: data.MemberProfileIDForShortage,
-				MemberProfileForShortage:   m.MemberProfileManager().ToModel(data.MemberProfileForShortage),
+				MemberProfileForShortage:   MemberProfileManager(service).ToModel(data.MemberProfileForShortage),
 
 				MemberProfileIDForOverage: data.MemberProfileIDForOverage,
-				MemberProfileForOverage:   m.MemberProfileManager().ToModel(data.MemberProfileForOverage),
+				MemberProfileForOverage:   MemberProfileManager(service).ToModel(data.MemberProfileForOverage),
 
 				Name:        data.Name,
 				Description: data.Description,

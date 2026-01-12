@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -142,7 +143,7 @@ func (e *GeneratedReportType) EXCEL(callback func() error) error {
 	return callback()
 }
 
-func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest] {
+func GeneratedReportManager(service *horizon.HorizonService) *registry.Registry[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest] {
 	return registry.NewRegistry(registry.RegistryParams[GeneratedReport, GeneratedReportResponse, GeneratedReportRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -154,9 +155,9 @@ func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, Gene
 			"Media",
 			"DownloadUsers.User.Media",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *GeneratedReport) *GeneratedReportResponse {
 			if data == nil {
@@ -164,7 +165,7 @@ func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, Gene
 			}
 			var media *MediaResponse
 			if data.Media != nil {
-				media = m.MediaManager().ToModel(data.Media)
+				media = MediaManager(service).ToModel(data.Media)
 				media.DownloadURL = ""
 			}
 			return &GeneratedReportResponse{
@@ -172,17 +173,17 @@ func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, Gene
 				GeneratedReportType: data.GeneratedReportType,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
-				CreatedBy:           m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:           UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:           data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:         data.UpdatedByID,
-				UpdatedBy:           m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:           UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:      data.OrganizationID,
-				Organization:        m.OrganizationManager().ToModel(data.Organization),
+				Organization:        OrganizationManager(service).ToModel(data.Organization),
 				BranchID:            data.BranchID,
-				Branch:              m.BranchManager().ToModel(data.Branch),
+				Branch:              BranchManager(service).ToModel(data.Branch),
 				SystemMessage:       data.SystemMessage,
 				UserID:              data.UserID,
-				User:                m.UserManager().ToModel(data.User),
+				User:                UserManager(service).ToModel(data.User),
 				MediaID:             data.MediaID,
 				Media:               media,
 				Name:                data.Name,
@@ -198,7 +199,7 @@ func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, Gene
 				Unit:                data.Unit,
 				Landscape:           data.Landscape,
 
-				DownloadUsers: m.GeneratedReportsDownloadUsersManager().ToModels(data.DownloadUsers),
+				DownloadUsers: GeneratedReportsDownloadUsersManager(service).ToModels(data.DownloadUsers),
 			}
 		},
 		Created: func(data *GeneratedReport) registry.Topics {
@@ -231,9 +232,9 @@ func (m *Core) GeneratedReportManager() *registry.Registry[GeneratedReport, Gene
 	})
 }
 
-func (e *Core) GeneratedReportAvailableModels(context context.Context, organizationID, branchID uuid.UUID) ([]GeneratedReportAvailableModelsResponse, error) {
+func GeneratedReportAvailableModels(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]GeneratedReportAvailableModelsResponse, error) {
 	var results []GeneratedReportAvailableModelsResponse
-	err := e.GeneratedReportManager().Client(context).
+	err := GeneratedReportManager(service).Client(context).
 		Select("model, COUNT(*) as count").
 		Where("organization_id = ? AND branch_id = ?", organizationID, branchID).
 		Group("model").

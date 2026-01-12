@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -54,7 +55,7 @@ type (
 	}
 )
 
-func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func accountClassificationSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
 	classifications := []*AccountClassification{
@@ -391,20 +392,20 @@ func (m *Core) accountClassificationSeed(context context.Context, tx *gorm.DB, u
 	}
 
 	for _, classification := range classifications {
-		if err := m.AccountClassificationManager().CreateWithTx(context, tx, classification); err != nil {
+		if err := AccountClassificationManager(service).CreateWithTx(context, tx, classification); err != nil {
 			return fmt.Errorf("failed to seed account classification %s: %w", classification.Name, err)
 		}
 	}
 	return nil
 }
-func (m *Core) AccountClassificationManager() *registry.Registry[AccountClassification, AccountClassificationResponse, AccountClassificationRequest] {
+func AccountClassificationManager(service *horizon.HorizonService) *registry.Registry[AccountClassification, AccountClassificationResponse, AccountClassificationRequest] {
 	return registry.GetRegistry(registry.RegistryParams[
 		AccountClassification, AccountClassificationResponse, AccountClassificationRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *AccountClassification) *AccountClassificationResponse {
 			if data == nil {
@@ -414,14 +415,14 @@ func (m *Core) AccountClassificationManager() *registry.Registry[AccountClassifi
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -453,8 +454,8 @@ func (m *Core) AccountClassificationManager() *registry.Registry[AccountClassifi
 	})
 }
 
-func (m *Core) AccountClassificationCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountClassification, error) {
-	return m.AccountClassificationManager().Find(context, &AccountClassification{
+func AccountClassificationCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountClassification, error) {
+	return AccountClassificationManager(service).Find(context, &AccountClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

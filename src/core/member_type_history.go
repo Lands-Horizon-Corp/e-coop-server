@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -60,12 +61,12 @@ type (
 	}
 )
 
-func (m *Core) MemberTypeHistoryManager() *registry.Registry[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest] {
+func MemberTypeHistoryManager(service *horizon.HorizonService) *registry.Registry[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberTypeHistory, MemberTypeHistoryResponse, MemberTypeHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberType", "MemberProfile"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberTypeHistory) *MemberTypeHistoryResponse {
 			if data == nil {
@@ -75,18 +76,18 @@ func (m *Core) MemberTypeHistoryManager() *registry.Registry[MemberTypeHistory, 
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
-				CreatedBy:       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:     data.UpdatedByID,
-				UpdatedBy:       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MemberTypeID:    data.MemberTypeID,
-				MemberType:      m.MemberTypeManager().ToModel(data.MemberType),
+				MemberType:      MemberTypeManager(service).ToModel(data.MemberType),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 			}
 		},
 
@@ -120,23 +121,23 @@ func (m *Core) MemberTypeHistoryManager() *registry.Registry[MemberTypeHistory, 
 	})
 }
 
-func (m *Core) MemberTypeHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
-	return m.MemberTypeHistoryManager().Find(context, &MemberTypeHistory{
+func MemberTypeHistoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
+	return MemberTypeHistoryManager(service).Find(context, &MemberTypeHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func (m *Core) MemberTypeHistoryMemberProfileID(context context.Context, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
-	return m.MemberTypeHistoryManager().Find(context, &MemberTypeHistory{
+func MemberTypeHistoryMemberProfileID(context context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberTypeHistory, error) {
+	return MemberTypeHistoryManager(service).Find(context, &MemberTypeHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,
 	})
 }
 
-func (m *Core) GetMemberTypeHistoryLatest(
-	context context.Context,
+func GetMemberTypeHistoryLatest(
+	context context.Context, service *horizon.HorizonService,
 	memberProfileID, memberTypeID, organizationID, branchID uuid.UUID,
 ) (*MemberTypeHistory, error) {
 	filters := []registry.FilterSQL{
@@ -150,5 +151,5 @@ func (m *Core) GetMemberTypeHistoryLatest(
 		{Field: "created_at", Order: "DESC"},
 	}
 
-	return m.MemberTypeHistoryManager().ArrFindOne(context, filters, sorts)
+	return MemberTypeHistoryManager(service).ArrFindOne(context, filters, sorts)
 }

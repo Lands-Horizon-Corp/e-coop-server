@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -43,12 +44,12 @@ type (
 	}
 )
 
-func (m *Core) ContactUsManager() *registry.Registry[ContactUs, ContactUsResponse, ContactUsRequest] {
+func ContactUsManager(service *horizon.HorizonService) *registry.Registry[ContactUs, ContactUsResponse, ContactUsRequest] {
 	return registry.NewRegistry(registry.RegistryParams[ContactUs, ContactUsResponse, ContactUsRequest]{
 		Preloads: nil,
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(cu *ContactUs) *ContactUsResponse {
 			if cu == nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -57,12 +58,12 @@ type (
 	}
 )
 
-func (m *Core) MemberOtherInformationEntryManager() *registry.Registry[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest] {
+func MemberOtherInformationEntryManager(service *horizon.HorizonService) *registry.Registry[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberOtherInformationEntry) *MemberOtherInformationEntryResponse {
 			if data == nil {
@@ -72,14 +73,14 @@ func (m *Core) MemberOtherInformationEntryManager() *registry.Registry[MemberOth
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				Name:           data.Name,
 				Description:    data.Description,
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
@@ -113,8 +114,8 @@ func (m *Core) MemberOtherInformationEntryManager() *registry.Registry[MemberOth
 	})
 }
 
-func (m *Core) MemberOtherInformationEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
-	return m.MemberOtherInformationEntryManager().Find(context, &MemberOtherInformationEntry{
+func MemberOtherInformationEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
+	return MemberOtherInformationEntryManager(service).Find(context, &MemberOtherInformationEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -112,16 +113,16 @@ type (
 	}
 )
 
-func (m *Core) LoanTransactionEntryManager() *registry.Registry[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest] {
+func LoanTransactionEntryManager(service *horizon.HorizonService) *registry.Registry[LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		LoanTransactionEntry, LoanTransactionEntryResponse, LoanTransactionEntryRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AutomaticLoanDeduction",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *LoanTransactionEntry) *LoanTransactionEntryResponse {
 			if data == nil {
@@ -131,23 +132,23 @@ func (m *Core) LoanTransactionEntryManager() *registry.Registry[LoanTransactionE
 				ID:                              data.ID,
 				CreatedAt:                       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                     data.CreatedByID,
-				CreatedBy:                       m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                       UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                       data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                     data.UpdatedByID,
-				UpdatedBy:                       m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                       UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:                  data.OrganizationID,
-				Organization:                    m.OrganizationManager().ToModel(data.Organization),
+				Organization:                    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                        data.BranchID,
-				Branch:                          m.BranchManager().ToModel(data.Branch),
+				Branch:                          BranchManager(service).ToModel(data.Branch),
 				LoanTransactionID:               data.LoanTransactionID,
-				LoanTransaction:                 m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:                 LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				Index:                           data.Index,
 				Type:                            data.Type,
 				IsAddOn:                         data.IsAddOn,
 				AccountID:                       data.AccountID,
-				Account:                         m.AccountManager().ToModel(data.Account),
+				Account:                         AccountManager(service).ToModel(data.Account),
 				AutomaticLoanDeductionID:        data.AutomaticLoanDeductionID,
-				AutomaticLoanDeduction:          m.AutomaticLoanDeductionManager().ToModel(data.AutomaticLoanDeduction),
+				AutomaticLoanDeduction:          AutomaticLoanDeductionManager(service).ToModel(data.AutomaticLoanDeduction),
 				IsAutomaticLoanDeductionDeleted: data.IsAutomaticLoanDeductionDeleted,
 
 				Name:        data.Name,
@@ -185,16 +186,16 @@ func (m *Core) LoanTransactionEntryManager() *registry.Registry[LoanTransactionE
 	})
 }
 
-func (m *Core) LoanTransactionEntryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
+func LoanTransactionEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.LoanTransactionEntryManager().ArrFind(context, filters, nil)
+	return LoanTransactionEntryManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
+func GetCashOnCashEquivalence(ctx context.Context, service *horizon.HorizonService, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -203,12 +204,12 @@ func (m *Core) GetCashOnCashEquivalence(ctx context.Context, loanTransactionID, 
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager().ArrFindOne(
+	return LoanTransactionEntryManager(service).ArrFindOne(
 		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
 	)
 }
 
-func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
+func GetLoanEntryAccount(ctx context.Context, service *horizon.HorizonService, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -217,5 +218,5 @@ func (m *Core) GetLoanEntryAccount(ctx context.Context, loanTransactionID, organ
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 	}
 
-	return m.LoanTransactionEntryManager().ArrFindOne(ctx, filters, nil)
+	return LoanTransactionEntryManager(service).ArrFindOne(ctx, filters, nil)
 }

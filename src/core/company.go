@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -61,12 +62,12 @@ type (
 	}
 )
 
-func (m *Core) CompanyManager() *registry.Registry[Company, CompanyResponse, CompanyRequest] {
+func CompanyManager(service *horizon.HorizonService) *registry.Registry[Company, CompanyResponse, CompanyRequest] {
 	return registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Company) *CompanyResponse {
 			if data == nil {
@@ -76,16 +77,16 @@ func (m *Core) CompanyManager() *registry.Registry[Company, CompanyResponse, Com
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				MediaID:        data.MediaID,
-				Media:          m.MediaManager().ToModel(data.Media),
+				Media:          MediaManager(service).ToModel(data.Media),
 				Name:           data.Name,
 				Description:    data.Description,
 			}
@@ -117,13 +118,13 @@ func (m *Core) CompanyManager() *registry.Registry[Company, CompanyResponse, Com
 	})
 }
 
-func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func companySeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	branch, err := m.BranchManager().GetByID(context, branchID)
+	branch, err := BranchManager(service).GetByID(context, branchID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get branch by ID: %s", branchID)
 	}
-	organization, err := m.OrganizationManager().GetByID(context, organizationID)
+	organization, err := OrganizationManager(service).GetByID(context, organizationID)
 	if err != nil {
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
@@ -2298,15 +2299,15 @@ func (m *Core) companySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 		data.UpdatedByID = userID
 		data.OrganizationID = organizationID
 		data.BranchID = branchID
-		if err := m.CompanyManager().CreateWithTx(context, tx, data); err != nil {
+		if err := CompanyManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed company %s", data.Name)
 		}
 	}
 	return nil
 }
 
-func (m *Core) CompanyCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
-	return m.CompanyManager().Find(context, &Company{
+func CompanyCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
+	return CompanyManager(service).Find(context, &Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

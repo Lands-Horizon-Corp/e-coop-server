@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
@@ -25,60 +26,59 @@ var cities = []City{
 	{11.2400, 125.0055},
 }
 
-func (c *Core) Seed(ctx context.Context, multiplier int32) error {
+func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
 	if multiplier <= 0 {
 		return nil
 	}
-	if err := c.loadImagePaths(); err != nil {
-		return eris.Wrap(err, "failed to load image paths")
+	images, err := loadImagePaths()
+	if err != nil {
+		return eris.Wrap(err, "failed to load image paths for seeding")
 	}
-	if err := c.GlobalSeeder(ctx); err != nil {
+	if err := GlobalSeeder(ctx, service); err != nil {
 		return err
 	}
-	if err := c.SeedUsers(ctx, multiplier); err != nil {
+	if err := SeedUsers(ctx, service, images, multiplier); err != nil {
 		return err
 	}
-	if err := c.SeedOrganization(ctx, multiplier); err != nil {
+	if err := SeedOrganization(ctx, service, images, multiplier); err != nil {
 		return err
 	}
-	if err := c.SeedEmployees(ctx, multiplier); err != nil {
+	if err := SeedEmployees(ctx, service, multiplier); err != nil {
 		return err
 	}
-	if err := c.SeedMemberProfiles(ctx, multiplier); err != nil {
+	if err := SeedMemberProfiles(ctx, service, multiplier); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
-	orgs, err := s.OrganizationManager().List(ctx)
+func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imagePaths []string, multiplier int32) error {
+	orgs, err := OrganizationManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
 	if len(orgs) > 0 {
 		return nil
 	}
-
 	numOrgsPerUser := int(multiplier) * 1
-	users, err := s.UserManager().List(ctx)
+	users, err := UserManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
-	subscriptions, err := s.SubscriptionPlanManager().List(ctx)
+	subscriptions, err := SubscriptionPlanManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
-	categories, err := s.CategoryManager().List(ctx)
+	categories, err := CategoryManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
-
 	for _, user := range users {
 		for j := range numOrgsPerUser {
 
 			sub := subscriptions[j%len(subscriptions)]
 			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
-			orgMedia, err := s.createImageMedia(ctx, "Organization")
+			orgMedia, err := createImageMedia(ctx, service, imagePaths, "Organization")
 			if err != nil {
 				return eris.Wrap(err, "failed to create organization media")
 			}
@@ -87,18 +87,18 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 				CreatedByID:                         user.ID,
 				UpdatedAt:                           time.Now().UTC(),
 				UpdatedByID:                         user.ID,
-				Name:                                s.faker.Company().Name(),
-				Address:                             helpers.Ptr(s.faker.Address().Address()),
-				Email:                               helpers.Ptr(s.faker.Internet().Email()),
-				ContactNumber:                       helpers.Ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
-				Description:                         helpers.Ptr(s.faker.Lorem().Paragraph(3)),
-				Color:                               helpers.Ptr(s.faker.Color().Hex()),
-				TermsAndConditions:                  helpers.Ptr(s.faker.Lorem().Paragraph(5)),
-				PrivacyPolicy:                       helpers.Ptr(s.faker.Lorem().Paragraph(5)),
-				CookiePolicy:                        helpers.Ptr(s.faker.Lorem().Paragraph(5)),
-				RefundPolicy:                        helpers.Ptr(s.faker.Lorem().Paragraph(5)),
-				UserAgreement:                       helpers.Ptr(s.faker.Lorem().Paragraph(5)),
-				IsPrivate:                           s.faker.Bool(),
+				Name:                                service.Faker.Company().Name(),
+				Address:                             helpers.Ptr(service.Faker.Address().Address()),
+				Email:                               helpers.Ptr(service.Faker.Internet().Email()),
+				ContactNumber:                       helpers.Ptr(fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999))),
+				Description:                         helpers.Ptr(service.Faker.Lorem().Paragraph(3)),
+				Color:                               helpers.Ptr(service.Faker.Color().Hex()),
+				TermsAndConditions:                  helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
+				PrivacyPolicy:                       helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
+				CookiePolicy:                        helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
+				RefundPolicy:                        helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
+				UserAgreement:                       helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
+				IsPrivate:                           service.Faker.Bool(),
 				MediaID:                             &orgMedia.ID,
 				CoverMediaID:                        &orgMedia.ID,
 				SubscriptionPlanMaxBranches:         sub.MaxBranches,
@@ -107,18 +107,18 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 				SubscriptionPlanID:                  &sub.ID,
 				SubscriptionStartDate:               time.Now().UTC(),
 				SubscriptionEndDate:                 subscriptionEndDate,
-				InstagramLink:                       helpers.Ptr(s.faker.Internet().URL()),
-				FacebookLink:                        helpers.Ptr(s.faker.Internet().URL()),
-				YoutubeLink:                         helpers.Ptr(s.faker.Internet().URL()),
-				PersonalWebsiteLink:                 helpers.Ptr(s.faker.Internet().URL()),
-				XLink:                               helpers.Ptr(s.faker.Internet().URL()),
+				InstagramLink:                       helpers.Ptr(service.Faker.Internet().URL()),
+				FacebookLink:                        helpers.Ptr(service.Faker.Internet().URL()),
+				YoutubeLink:                         helpers.Ptr(service.Faker.Internet().URL()),
+				PersonalWebsiteLink:                 helpers.Ptr(service.Faker.Internet().URL()),
+				XLink:                               helpers.Ptr(service.Faker.Internet().URL()),
 			}
 
-			if err := s.OrganizationManager().Create(ctx, organization); err != nil {
+			if err := OrganizationManager(service).Create(ctx, organization); err != nil {
 				return err
 			}
 			for _, category := range categories {
-				if err := s.OrganizationCategoryManager().Create(ctx, &OrganizationCategory{
+				if err := OrganizationCategoryManager(service).Create(ctx, &OrganizationCategory{
 					CreatedAt:      time.Now().UTC(),
 					UpdatedAt:      time.Now().UTC(),
 					OrganizationID: &organization.ID,
@@ -131,18 +131,18 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 			numBranches := int(multiplier) * 1
 
 			for k := range numBranches {
-				branchMedia, err := s.createImageMedia(ctx, "Organization")
+				branchMedia, err := createImageMedia(ctx, service, imagePaths, "Organization")
 				if err != nil {
 					return eris.Wrap(err, "failed to create organization media")
 				}
 
-				currency, err := s.CurrencyFindByAlpha2(ctx, country_code)
+				currency, err := CurrencyFindByAlpha2(ctx, service, country_code)
 				if err != nil {
 					return eris.Wrap(err, "failed to find currency for account seeding")
 				}
-				c := cities[s.faker.IntBetween(0, len(cities)-1)]
-				Latitude := c.Lat + (float64(s.faker.IntBetween(-50, 50)) / 1000.0)
-				Longitude := c.Lng + (float64(s.faker.IntBetween(-50, 50)) / 1000.0)
+				c := cities[service.Faker.IntBetween(0, len(cities)-1)]
+				Latitude := c.Lat + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
+				Longitude := c.Lng + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
 				branch := &Branch{
 					CreatedAt:               time.Now().UTC(),
 					CreatedByID:             user.ID,
@@ -150,22 +150,22 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					UpdatedByID:             user.ID,
 					OrganizationID:          organization.ID,
 					Type:                    []string{"main", "satellite", "branch"}[k%3],
-					Name:                    s.faker.Company().Name(),
-					Email:                   s.faker.Internet().Email(),
-					Address:                 s.faker.Address().Address(),
-					Province:                s.faker.Address().State(),
-					City:                    s.faker.Address().City(),
-					Region:                  s.faker.Address().State(),
-					Barangay:                s.faker.Address().StreetName(),
-					PostalCode:              s.faker.Address().PostCode(),
+					Name:                    service.Faker.Company().Name(),
+					Email:                   service.Faker.Internet().Email(),
+					Address:                 service.Faker.Address().Address(),
+					Province:                service.Faker.Address().State(),
+					City:                    service.Faker.Address().City(),
+					Region:                  service.Faker.Address().State(),
+					Barangay:                service.Faker.Address().StreetName(),
+					PostalCode:              service.Faker.Address().PostCode(),
 					CurrencyID:              &currency.ID,
-					ContactNumber:           helpers.Ptr(fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999))),
+					ContactNumber:           helpers.Ptr(fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999))),
 					MediaID:                 &branchMedia.ID,
 					Latitude:                &Latitude,
 					Longitude:               &Longitude,
-					TaxIdentificationNumber: helpers.Ptr(fmt.Sprintf("%09d", s.faker.IntBetween(100000000, 999999999))),
+					TaxIdentificationNumber: helpers.Ptr(fmt.Sprintf("%09d", service.Faker.IntBetween(100000000, 999999999))),
 				}
-				if err := s.BranchManager().Create(ctx, branch); err != nil {
+				if err := BranchManager(service).Create(ctx, branch); err != nil {
 					return err
 				}
 				branchSetting := &BranchSetting{
@@ -174,7 +174,7 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					BranchID:  branch.ID,
 
 					WithdrawAllowUserInput: true,
-					WithdrawPrefix:         s.faker.Lorem().Word(),
+					WithdrawPrefix:         service.Faker.Lorem().Word(),
 					WithdrawORStart:        1,
 					WithdrawORCurrent:      1,
 					WithdrawOREnd:          999999,
@@ -183,7 +183,7 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					WithdrawUseDateOR:      false,
 
 					DepositAllowUserInput: true,
-					DepositPrefix:         s.faker.Lorem().Word(),
+					DepositPrefix:         service.Faker.Lorem().Word(),
 					DepositORStart:        1,
 					DepositORCurrent:      1,
 					DepositOREnd:          999999,
@@ -192,7 +192,7 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					DepositUseDateOR:      false,
 
 					LoanAllowUserInput: true,
-					LoanPrefix:         s.faker.Lorem().Word(),
+					LoanPrefix:         service.Faker.Lorem().Word(),
 					LoanORStart:        1,
 					LoanORCurrent:      1,
 					LoanOREnd:          999999,
@@ -201,7 +201,7 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					LoanUseDateOR:      false,
 
 					CheckVoucherAllowUserInput: true,
-					CheckVoucherPrefix:         s.faker.Lorem().Word(),
+					CheckVoucherPrefix:         service.Faker.Lorem().Word(),
 					CheckVoucherORStart:        1,
 					CheckVoucherORCurrent:      1,
 					CheckVoucherOREnd:          999999,
@@ -214,11 +214,11 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					CurrencyID:                currency.ID,
 				}
 
-				if err := s.BranchSettingManager().Create(ctx, branchSetting); err != nil {
+				if err := BranchSettingManager(service).Create(ctx, branchSetting); err != nil {
 					return err
 				}
 
-				developerKey, err := s.provider.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
+				developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
 				if err != nil {
 					return err
 				}
@@ -232,8 +232,8 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					OrganizationID:           organization.ID,
 					UserID:                   user.ID,
 					UserType:                 UserOrganizationTypeOwner,
-					Description:              s.faker.Lorem().Sentence(5),
-					ApplicationDescription:   s.faker.Lorem().Sentence(3),
+					Description:              service.Faker.Lorem().Sentence(5),
+					ApplicationDescription:   service.Faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-owner-horizon",
 					PermissionName:           "Employee",
@@ -250,12 +250,12 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := s.UserOrganizationManager().Create(ctx, ownerOrganization); err != nil {
+				if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
 					return err
 				}
 
-				tx, endTx := s.provider.Database.StartTransaction(ctx)
-				if err := s.OrganizationSeeder(ctx, tx, user.ID, organization.ID, branch.ID); err != nil {
+				tx, endTx := service.Database.StartTransaction(ctx)
+				if err := OrganizationSeeder(ctx, service, tx, user.ID, organization.ID, branch.ID); err != nil {
 					return endTx(err)
 				}
 				if err := endTx(nil); err != nil {
@@ -279,9 +279,9 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
 						MaxUse:         50,
 						CurrentUse:     m % 25,
-						Description:    s.faker.Lorem().Sentence(3),
+						Description:    service.Faker.Lorem().Sentence(3),
 					}
-					if err := s.InvitationCodeManager().Create(ctx, invitationCode); err != nil {
+					if err := InvitationCodeManager(service).Create(ctx, invitationCode); err != nil {
 						return err
 					}
 				}
@@ -292,13 +292,13 @@ func (s *Core) SeedOrganization(ctx context.Context, multiplier int32) error {
 	return nil
 }
 
-func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
+func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
 
-	organizations, err := s.OrganizationManager().List(ctx)
+	organizations, err := OrganizationManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
-	users, err := s.UserManager().List(ctx)
+	users, err := UserManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -307,7 +307,7 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 	}
 
 	for _, org := range organizations {
-		branches, err := s.BranchManager().Find(ctx, &Branch{
+		branches, err := BranchManager(service).Find(ctx, &Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
@@ -326,7 +326,7 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 
 		employeeIndex := 0
 		for _, branch := range branches {
-			existingEmployees, err := s.Employees(ctx, org.ID, branch.ID)
+			existingEmployees, err := Employees(ctx, service, org.ID, branch.ID)
 			if err != nil {
 				continue
 			}
@@ -348,7 +348,7 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 				selectedUser := potentialEmployees[employeeIndex%len(potentialEmployees)]
 				employeeIndex++
 
-				existingAssociation, err := s.UserOrganizationManager().Count(ctx, &UserOrganization{
+				existingAssociation, err := UserOrganizationManager(service).Count(ctx, &UserOrganization{
 					UserID:         selectedUser.ID,
 					OrganizationID: org.ID,
 					BranchID:       &branch.ID,
@@ -357,11 +357,11 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 					continue
 				}
 
-				if !s.UserOrganizationEmployeeCanJoin(ctx, selectedUser.ID, org.ID, branch.ID) {
+				if !UserOrganizationEmployeeCanJoin(ctx, service, selectedUser.ID, org.ID, branch.ID) {
 					continue
 				}
 
-				developerKey, err := s.provider.Security.GenerateUUIDv5(fmt.Sprintf("emp-%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
+				developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("emp-%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
 				if err != nil {
 					return err
 				}
@@ -375,8 +375,8 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 					OrganizationID:           org.ID,
 					UserID:                   selectedUser.ID,
 					UserType:                 UserOrganizationTypeEmployee,
-					Description:              s.faker.Lorem().Sentence(5),
-					ApplicationDescription:   s.faker.Lorem().Sentence(3),
+					Description:              service.Faker.Lorem().Sentence(5),
+					ApplicationDescription:   service.Faker.Lorem().Sentence(3),
 					ApplicationStatus:        "accepted",
 					DeveloperSecretKey:       developerKey + uuid.NewString() + "-employee-horizon",
 					PermissionName:           "Employee",
@@ -393,7 +393,7 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 					LastOnlineAt:             time.Now().UTC(),
 				}
 
-				if err := s.UserOrganizationManager().Create(ctx, employeeOrg); err != nil {
+				if err := UserOrganizationManager(service).Create(ctx, employeeOrg); err != nil {
 					continue
 				}
 			}
@@ -403,8 +403,8 @@ func (s *Core) SeedEmployees(ctx context.Context, multiplier int32) error {
 	return nil
 }
 
-func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
-	users, err := s.UserManager().List(ctx)
+func SeedUsers(ctx context.Context, service *horizon.HorizonService, imagePaths []string, multiplier int32) error {
+	users, err := UserManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -413,7 +413,7 @@ func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
 	}
 
 	basePassword := "sample-hello-world-12345"
-	hashedPassword, err := s.provider.Security.HashPassword(basePassword)
+	hashedPassword, err := service.Security.HashPassword(basePassword)
 	if err != nil {
 		return err
 	}
@@ -422,13 +422,13 @@ func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
 	numUsers := int(multiplier) * baseNumUsers
 
 	for i := range numUsers {
-		firstName := s.faker.Person().FirstName()
-		middleName := s.faker.Person().LastName()[:1] // Simulate middle initial
-		lastName := s.faker.Person().LastName()
-		suffix := s.faker.Person().Suffix()
+		firstName := service.Faker.Person().FirstName()
+		middleName := service.Faker.Person().LastName()[:1] // Simulate middle initial
+		lastName := service.Faker.Person().LastName()
+		suffix := service.Faker.Person().Suffix()
 		fullName := fmt.Sprintf("%s %s %s %s", firstName, middleName, lastName, suffix)
-		birthdate := time.Now().AddDate(-25-s.faker.IntBetween(0, 40), -s.faker.IntBetween(0, 11), -s.faker.IntBetween(0, 30))
-		userSharedMedia, err := s.createImageMedia(ctx, "User")
+		birthdate := time.Now().AddDate(-25-service.Faker.IntBetween(0, 40), -service.Faker.IntBetween(0, 11), -service.Faker.IntBetween(0, 30))
+		userSharedMedia, err := createImageMedia(ctx, service, imagePaths, "User")
 		if err != nil {
 			return eris.Wrap(err, "failed to create user media")
 		}
@@ -436,7 +436,7 @@ func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
 		if i == 0 {
 			email = "sample@example.com"
 		} else {
-			email = s.faker.Internet().Email()
+			email = service.Faker.Internet().Email()
 		}
 
 		user := &User{
@@ -444,19 +444,19 @@ func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
 			Email:             email,
 			Password:          hashedPassword,
 			Birthdate:         &birthdate,
-			Username:          s.faker.Internet().User(),
+			Username:          service.Faker.Internet().User(),
 			FullName:          fullName,
 			FirstName:         helpers.Ptr(firstName),
 			MiddleName:        helpers.Ptr(middleName),
 			LastName:          helpers.Ptr(lastName),
 			Suffix:            helpers.Ptr(suffix),
-			ContactNumber:     fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999)),
+			ContactNumber:     fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
 			IsEmailVerified:   true,
 			IsContactVerified: true,
 			CreatedAt:         time.Now().UTC(),
 			UpdatedAt:         time.Now().UTC(),
 		}
-		if err := s.UserManager().Create(ctx, user); err != nil {
+		if err := UserManager(service).Create(ctx, user); err != nil {
 			return err
 		}
 
@@ -464,8 +464,8 @@ func (s *Core) SeedUsers(ctx context.Context, multiplier int32) error {
 	return nil
 }
 
-func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
-	profiles, err := s.MemberProfileManager().List(ctx)
+func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
+	profiles, err := MemberProfileManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -473,12 +473,12 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 		return nil
 	}
 
-	organizations, err := s.OrganizationManager().List(ctx)
+	organizations, err := OrganizationManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
 
-	users, err := s.UserManager().List(ctx)
+	users, err := UserManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
@@ -489,7 +489,7 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 
 	for _, org := range organizations {
 
-		branches, err := s.BranchManager().Find(ctx, &Branch{
+		branches, err := BranchManager(service).Find(ctx, &Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
@@ -501,9 +501,9 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 			numMembers = min(numMembers, len(users))
 
 			for i := 0; i < numMembers; i++ {
-				firstName := s.faker.Person().FirstName()
-				middleName := s.faker.Person().LastName()[:1]
-				lastName := s.faker.Person().LastName()
+				firstName := service.Faker.Person().FirstName()
+				middleName := service.Faker.Person().LastName()[:1]
+				lastName := service.Faker.Person().LastName()
 				fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
 
 				age := 25 + (i % 40)
@@ -525,21 +525,21 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 					FullName:              fullName,
 					BirthDate:             &birthDate,
 					Status:                MemberStatusPending,
-					Description:           s.faker.Lorem().Paragraph(2),
-					Notes:                 s.faker.Lorem().Paragraph(1),
-					ContactNumber:         fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999)),
+					Description:           service.Faker.Lorem().Paragraph(2),
+					Notes:                 service.Faker.Lorem().Paragraph(1),
+					ContactNumber:         fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
 					OldReferenceID:        fmt.Sprintf("REF-%04d", i+1),
 					Passbook:              passbook,
 					Occupation:            []string{"Farmer", "Teacher", "Driver", "Vendor", "Employee", "Business Owner"}[i%6],
-					BusinessAddress:       s.faker.Address().Address(),
-					BusinessContactNumber: fmt.Sprintf("+6391%08d", s.faker.IntBetween(10000000, 99999999)),
+					BusinessAddress:       service.Faker.Address().Address(),
+					BusinessContactNumber: fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
 					CivilStatus:           []string{"married", "single", "widowed", "divorced"}[i%4],
 					IsClosed:              false,
 					IsMutualFundMember:    i%2 == 0,
 					IsMicroFinanceMember:  i%3 == 0,
 				}
 
-				if err := s.MemberProfileManager().Create(ctx, memberProfile); err != nil {
+				if err := MemberProfileManager(service).Create(ctx, memberProfile); err != nil {
 					continue
 				}
 
@@ -552,16 +552,16 @@ func (s *Core) SeedMemberProfiles(ctx context.Context, multiplier int32) error {
 					BranchID:        branch.ID,
 					MemberProfileID: &memberProfile.ID,
 					Label:           []string{"home", "work", "other"}[i%3],
-					Address:         s.faker.Address().Address(),
-					ProvinceState:   s.faker.Address().State(),
-					City:            s.faker.Address().City(),
-					Barangay:        s.faker.Address().StreetName(),
-					PostalCode:      s.faker.Address().PostCode(),
+					Address:         service.Faker.Address().Address(),
+					ProvinceState:   service.Faker.Address().State(),
+					City:            service.Faker.Address().City(),
+					Barangay:        service.Faker.Address().StreetName(),
+					PostalCode:      service.Faker.Address().PostCode(),
 					CountryCode:     "PH",
-					Landmark:        s.faker.Lorem().Sentence(2),
+					Landmark:        service.Faker.Lorem().Sentence(2),
 				}
 
-				if err := s.MemberAddressManager().Create(ctx, memberAddress); err != nil {
+				if err := MemberAddressManager(service).Create(ctx, memberAddress); err != nil {
 					return err
 				}
 

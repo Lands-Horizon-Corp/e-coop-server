@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -65,16 +66,16 @@ type (
 	}
 )
 
-func (m *Core) InterestRatePercentageManager() *registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest] {
+func InterestRatePercentageManager(service *horizon.HorizonService) *registry.Registry[InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		InterestRatePercentage, InterestRatePercentageResponse, InterestRatePercentageRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "MemberClassificationInterestRate",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *InterestRatePercentage) *InterestRatePercentageResponse {
 			if data == nil {
@@ -84,20 +85,20 @@ func (m *Core) InterestRatePercentageManager() *registry.Registry[InterestRatePe
 				ID:                                 data.ID,
 				CreatedAt:                          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                        data.CreatedByID,
-				CreatedBy:                          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:                          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:                          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:                        data.UpdatedByID,
-				UpdatedBy:                          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:                          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:                     data.OrganizationID,
-				Organization:                       m.OrganizationManager().ToModel(data.Organization),
+				Organization:                       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:                           data.BranchID,
-				Branch:                             m.BranchManager().ToModel(data.Branch),
+				Branch:                             BranchManager(service).ToModel(data.Branch),
 				Name:                               data.Name,
 				Description:                        data.Description,
 				Months:                             data.Months,
 				InterestRate:                       data.InterestRate,
 				MemberClassificationInterestRateID: data.MemberClassificationInterestRateID,
-				MemberClassificationInterestRate:   m.MemberClassificationInterestRateManager().ToModel(data.MemberClassificationInterestRate),
+				MemberClassificationInterestRate:   MemberClassificationInterestRateManager(service).ToModel(data.MemberClassificationInterestRate),
 			}
 		},
 		Created: func(data *InterestRatePercentage) registry.Topics {
@@ -127,8 +128,8 @@ func (m *Core) InterestRatePercentageManager() *registry.Registry[InterestRatePe
 	})
 }
 
-func (m *Core) InterestRatePercentageCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRatePercentage, error) {
-	return m.InterestRatePercentageManager().Find(context, &InterestRatePercentage{
+func InterestRatePercentageCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRatePercentage, error) {
+	return InterestRatePercentageManager(service).Find(context, &InterestRatePercentage{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

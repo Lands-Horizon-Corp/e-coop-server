@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -313,7 +314,7 @@ type (
 	}
 )
 
-func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, UserOrganizationResponse, UserOrganizationRequest] {
+func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry[UserOrganization, UserOrganizationResponse, UserOrganizationRequest] {
 	return registry.NewRegistry(registry.RegistryParams[UserOrganization, UserOrganizationResponse, UserOrganizationRequest]{
 		Preloads: []string{
 			"CreatedBy",
@@ -351,9 +352,9 @@ func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, Us
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *UserOrganization) *UserOrganizationResponse {
 			if data == nil {
@@ -366,17 +367,17 @@ func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, Us
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				UserID:                 data.UserID,
-				User:                   m.UserManager().ToModel(data.User),
+				User:                   UserManager(service).ToModel(data.User),
 				UserType:               data.UserType,
 				Description:            data.Description,
 				ApplicationDescription: data.ApplicationDescription,
@@ -403,13 +404,13 @@ func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, Us
 				TimeMachineTime:                      data.TimeMachineTime,
 
 				SettingsAccountingPaymentDefaultValueID:  data.SettingsAccountingPaymentDefaultValueID,
-				SettingsAccountingPaymentDefaultValue:    m.AccountManager().ToModel(data.SettingsAccountingPaymentDefaultValue),
+				SettingsAccountingPaymentDefaultValue:    AccountManager(service).ToModel(data.SettingsAccountingPaymentDefaultValue),
 				SettingsAccountingDepositDefaultValueID:  data.SettingsAccountingDepositDefaultValueID,
-				SettingsAccountingDepositDefaultValue:    m.AccountManager().ToModel(data.SettingsAccountingDepositDefaultValue),
+				SettingsAccountingDepositDefaultValue:    AccountManager(service).ToModel(data.SettingsAccountingDepositDefaultValue),
 				SettingsAccountingWithdrawDefaultValueID: data.SettingsAccountingWithdrawDefaultValueID,
-				SettingsAccountingWithdrawDefaultValue:   m.AccountManager().ToModel(data.SettingsAccountingWithdrawDefaultValue),
+				SettingsAccountingWithdrawDefaultValue:   AccountManager(service).ToModel(data.SettingsAccountingWithdrawDefaultValue),
 				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
-				SettingsPaymentTypeDefaultValue:          m.PaymentTypeManager().ToModel(data.SettingsPaymentTypeDefaultValue),
+				SettingsPaymentTypeDefaultValue:          PaymentTypeManager(service).ToModel(data.SettingsPaymentTypeDefaultValue),
 			}
 		},
 		Created: func(data *UserOrganization) registry.Topics {
@@ -442,27 +443,27 @@ func (m *Core) UserOrganizationManager() *registry.Registry[UserOrganization, Us
 	})
 }
 
-func (m *Core) GetUserOrganizationByUser(context context.Context, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func GetUserOrganizationByUser(context context.Context, service *horizon.HorizonService, userID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		UserID: userID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager().Find(context, filter)
+	return UserOrganizationManager(service).Find(context, filter)
 }
 
-func (m *Core) GetUserOrganizationByOrganization(context context.Context, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func GetUserOrganizationByOrganization(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
 	}
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager().Find(context, filter)
+	return UserOrganizationManager(service).Find(context, filter)
 }
 
-func (m *Core) GetUserOrganizationBybranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
+func GetUserOrganizationByBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, pending *bool) ([]*UserOrganization, error) {
 	filter := &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -470,51 +471,51 @@ func (m *Core) GetUserOrganizationBybranch(context context.Context, organization
 	if pending != nil && *pending {
 		filter.ApplicationStatus = "pending"
 	}
-	return m.UserOrganizationManager().Find(context, filter)
+	return UserOrganizationManager(service).Find(context, filter)
 }
 
-func (m *Core) CountUserOrganizationPerbranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
-	return m.UserOrganizationManager().Count(context, &UserOrganization{
+func CountUserOrganizationPerBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return UserOrganizationManager(service).Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 	})
 }
 
-func (m *Core) CountUserOrganizationbranch(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
-	return m.UserOrganizationManager().Count(context, &UserOrganization{
+func CountUserOrganizationbranch(context context.Context, service *horizon.HorizonService, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) (int64, error) {
+	return UserOrganizationManager(service).Count(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
 	})
 }
 
-func (m *Core) UserOrganizationEmployeeCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
+func UserOrganizationEmployeeCanJoin(context context.Context, service *horizon.HorizonService, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := CountUserOrganizationbranch(context, service, userID, organizationID, branchID)
 	return err == nil && existing == 0
 }
 
-func (m *Core) UserOrganizationMemberCanJoin(context context.Context, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
-	existing, err := m.CountUserOrganizationbranch(context, userID, organizationID, branchID)
+func UserOrganizationMemberCanJoin(context context.Context, service *horizon.HorizonService, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) bool {
+	existing, err := CountUserOrganizationbranch(context, service, userID, organizationID, branchID)
 	if err != nil || existing > 0 {
 		return false
 	}
-	existingOrgCount, err := m.UserOrganizationManager().Count(context, &UserOrganization{
+	existingOrgCount, err := UserOrganizationManager(service).Count(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 	})
 	return err == nil && existingOrgCount == 0
 }
 
-func (m *Core) Employees(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return m.UserOrganizationManager().Find(context, &UserOrganization{
+func Employees(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return UserOrganizationManager(service).Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeEmployee,
 	})
 }
 
-func (m *Core) Members(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
-	return m.UserOrganizationManager().Find(context, &UserOrganization{
+func Members(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*UserOrganization, error) {
+	return UserOrganizationManager(service).Find(context, &UserOrganization{
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserType:       UserOrganizationTypeMember,

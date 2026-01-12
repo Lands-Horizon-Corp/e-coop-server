@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -190,7 +191,7 @@ type (
 	}
 )
 
-func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSettingResponse, BranchSettingRequest] {
+func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[BranchSetting, BranchSettingResponse, BranchSettingRequest] {
 	return registry.NewRegistry(registry.RegistryParams[BranchSetting, BranchSettingResponse, BranchSettingRequest]{
 		Preloads: []string{
 			"Branch",
@@ -208,9 +209,9 @@ func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSe
 			"UnbalancedAccounts.MemberProfileForShortage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *BranchSetting) *BranchSettingResponse {
 			if data == nil {
@@ -222,7 +223,7 @@ func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSe
 				UpdatedAt:  data.UpdatedAt.Format(time.RFC3339),
 				BranchID:   data.BranchID,
 				CurrencyID: data.CurrencyID,
-				Currency:   m.CurrencyManager().ToModel(data.Currency),
+				Currency:   CurrencyManager(service).ToModel(data.Currency),
 
 				WithdrawAllowUserInput: data.WithdrawAllowUserInput,
 				WithdrawPrefix:         data.WithdrawPrefix,
@@ -262,16 +263,16 @@ func (m *Core) BranchSettingManager() *registry.Registry[BranchSetting, BranchSe
 				CheckVoucherUseDateOR:      data.CheckVoucherUseDateOR,
 
 				DefaultMemberTypeID: data.DefaultMemberTypeID,
-				DefaultMemberType:   m.MemberTypeManager().ToModel(data.DefaultMemberType),
+				DefaultMemberType:   MemberTypeManager(service).ToModel(data.DefaultMemberType),
 
 				CashOnHandAccountID:          data.CashOnHandAccountID,
-				CashOnHandAccount:            m.AccountManager().ToModel(data.CashOnHandAccount),
+				CashOnHandAccount:            AccountManager(service).ToModel(data.CashOnHandAccount),
 				PaidUpSharedCapitalAccountID: data.PaidUpSharedCapitalAccountID,
-				PaidUpSharedCapitalAccount:   m.AccountManager().ToModel(data.PaidUpSharedCapitalAccount),
+				PaidUpSharedCapitalAccount:   AccountManager(service).ToModel(data.PaidUpSharedCapitalAccount),
 				CompassionFundAccountID:      data.CompassionFundAccountID,
-				CompassionFundAccount:        m.AccountManager().ToModel(data.CompassionFundAccount),
+				CompassionFundAccount:        AccountManager(service).ToModel(data.CompassionFundAccount),
 
-				UnbalancedAccounts: m.UnbalancedAccountManager().ToModels(data.UnbalancedAccounts),
+				UnbalancedAccounts: UnbalancedAccountManager(service).ToModels(data.UnbalancedAccounts),
 				AnnualDivisor:      data.AnnualDivisor,
 				TaxInterest:        data.TaxInterest,
 			}

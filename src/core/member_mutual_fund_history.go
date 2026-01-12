@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -53,12 +54,12 @@ type (
 	}
 )
 
-func (m *Core) MemberMutualFundHistoryManager() *registry.Registry[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest] {
+func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.Registry[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
 			if data == nil {
@@ -69,11 +70,11 @@ func (m *Core) MemberMutualFundHistoryManager() *registry.Registry[MemberMutualF
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
 				OrganizationID:  data.OrganizationID,
-				Organization:    m.OrganizationManager().ToModel(data.Organization),
+				Organization:    OrganizationManager(service).ToModel(data.Organization),
 				BranchID:        data.BranchID,
-				Branch:          m.BranchManager().ToModel(data.Branch),
+				Branch:          BranchManager(service).ToModel(data.Branch),
 				MemberProfileID: data.MemberProfileID,
-				MemberProfile:   m.MemberProfileManager().ToModel(data.MemberProfile),
+				MemberProfile:   MemberProfileManager(service).ToModel(data.MemberProfile),
 				Title:           data.Title,
 				Amount:          data.Amount,
 				Description:     data.Description,
@@ -107,8 +108,8 @@ func (m *Core) MemberMutualFundHistoryManager() *registry.Registry[MemberMutualF
 	})
 }
 
-func (m *Core) MemberMutualFundHistoryCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
-	return m.MemberMutualFundHistoryManager().Find(context, &MemberMutualFundHistory{
+func MemberMutualFundHistoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
+	return MemberMutualFundHistoryManager(service).Find(context, &MemberMutualFundHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

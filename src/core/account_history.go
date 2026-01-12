@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -234,14 +235,14 @@ type (
 	}
 )
 
-func (m *Core) AccountHistoryManager() *registry.Registry[AccountHistory, AccountHistoryResponse, AccountHistoryRequest] {
+func AccountHistoryManager(service *horizon.HorizonService) *registry.Registry[AccountHistory, AccountHistoryResponse, AccountHistoryRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		AccountHistory, AccountHistoryResponse, AccountHistoryRequest,
 	]{
 		Preloads: []string{"CreatedBy", "CreatedBy.Media", "Account", "Account.Currency", "Organization", "Branch"},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *AccountHistory) *AccountHistoryResponse {
 			if data == nil {
@@ -253,13 +254,13 @@ func (m *Core) AccountHistoryManager() *registry.Registry[AccountHistory, Accoun
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				AccountID:      data.AccountID,
-				Account:        m.AccountManager().ToModel(data.Account),
+				Account:        AccountManager(service).ToModel(data.Account),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 
 				Name:                         data.Name,
 				Description:                  data.Description,
@@ -370,7 +371,7 @@ func (m *Core) AccountHistoryManager() *registry.Registry[AccountHistory, Accoun
 	})
 }
 
-func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
+func AccountHistoryToModel(data *AccountHistory) *Account {
 	if data == nil {
 		return nil
 	}
@@ -476,31 +477,32 @@ func (m *Core) AccountHistoryToModel(data *AccountHistory) *Account {
 	}
 }
 
-func (m *Core) GetAccountHistory(ctx context.Context, accountID uuid.UUID) ([]*AccountHistory, error) {
+func GetAccountHistory(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return AccountHistoryManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "updated_at", Order: query.SortOrderDesc},
 	})
 }
 
-func (m *Core) GetAllAccountHistory(ctx context.Context, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
+func GetAllAccountHistory(ctx context.Context, service *horizon.HorizonService, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
 	filters := []registry.FilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	return AccountHistoryManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
 }
 
-func (m *Core) GetAccountHistoryLatestByTime(
+func GetAccountHistoryLatestByTime(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	accountID, organizationID, branchID uuid.UUID,
 	asOfDate *time.Time) (*Account, error) {
 	currentTime := time.Now()
@@ -514,7 +516,7 @@ func (m *Core) GetAccountHistoryLatestByTime(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := AccountHistoryManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
@@ -523,14 +525,15 @@ func (m *Core) GetAccountHistoryLatestByTime(
 	}
 
 	if len(histories) > 0 {
-		return m.AccountHistoryToModel(histories[0]), nil
+		return AccountHistoryToModel(histories[0]), nil
 	}
 
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }
 
-func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
+func GetAccountHistoryLatestByTimeHistoryID(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	accountID, organizationID, branchID uuid.UUID,
 	asOfDate *time.Time) (*uuid.UUID, error) {
 	currentTime := time.Now()
@@ -544,7 +547,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	history, err := m.AccountHistoryManager().ArrFindOne(ctx, filters, []query.ArrFilterSortSQL{
+	history, err := AccountHistoryManager(service).ArrFindOne(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc},
 	})
 	if err != nil {
@@ -554,8 +557,9 @@ func (m *Core) GetAccountHistoryLatestByTimeHistoryID(
 	return &history.ID, nil
 }
 
-func (m *Core) GetAccountHistoryLatestByTimeHistory(
+func GetAccountHistoryLatestByTimeHistory(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	accountID, organizationID, branchID uuid.UUID,
 	asOfDate *time.Time) (*AccountHistory, error) {
 	currentTime := time.Now()
@@ -569,7 +573,7 @@ func (m *Core) GetAccountHistoryLatestByTimeHistory(
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
-	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := AccountHistoryManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "created_at", Order: query.SortOrderDesc}, // Latest first
 		{Field: "updated_at", Order: query.SortOrderDesc}, // Secondary sort
 	})
@@ -584,8 +588,9 @@ func (m *Core) GetAccountHistoryLatestByTimeHistory(
 	return nil, eris.Errorf("no history found for account %s at time %s", accountID, asOfDate.Format(time.RFC3339))
 }
 
-func (m *Core) GetAccountHistoriesByFiltersAtTime(
+func GetAccountHistoriesByFiltersAtTime(
 	ctx context.Context,
+	service *horizon.HorizonService,
 	organizationID, branchID uuid.UUID,
 	asOfDate *time.Time,
 	loanAccountID *uuid.UUID,
@@ -614,7 +619,7 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 		})
 	}
 
-	histories, err := m.AccountHistoryManager().ArrFind(ctx, filters, []query.ArrFilterSortSQL{
+	histories, err := AccountHistoryManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
 		{Field: "account_id", Order: query.SortOrderAsc},
 		{Field: "created_at", Order: query.SortOrderDesc},
 	})
@@ -631,7 +636,7 @@ func (m *Core) GetAccountHistoriesByFiltersAtTime(
 
 	var accounts []*Account
 	for _, history := range accountMap {
-		accounts = append(accounts, m.AccountHistoryToModel(history))
+		accounts = append(accounts, AccountHistoryToModel(history))
 	}
 
 	return accounts, nil

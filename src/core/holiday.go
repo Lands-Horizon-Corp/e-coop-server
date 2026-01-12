@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -67,16 +68,16 @@ type (
 	}
 )
 
-func (m *Core) HolidayManager() *registry.Registry[Holiday, HolidayResponse, HolidayRequest] {
+func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday, HolidayResponse, HolidayRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		Holiday, HolidayResponse, HolidayRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *Holiday) *HolidayResponse {
 			if data == nil {
@@ -86,16 +87,16 @@ func (m *Core) HolidayManager() *registry.Registry[Holiday, HolidayResponse, Hol
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				CurrencyID:     data.CurrencyID,
-				Currency:       m.CurrencyManager().ToModel(data.Currency),
+				Currency:       CurrencyManager(service).ToModel(data.Currency),
 				EntryDate:      data.EntryDate.Format(time.RFC3339),
 				Name:           data.Name,
 				Description:    data.Description,
@@ -128,11 +129,11 @@ func (m *Core) HolidayManager() *registry.Registry[Holiday, HolidayResponse, Hol
 	})
 }
 
-func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func holidaySeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	year := now.Year()
 
-	currencies, err := m.CurrencyManager().List(context)
+	currencies, err := CurrencyManager(service).List(context)
 	if err != nil {
 		return eris.Wrap(err, "failed to list currencies for holiday seeding")
 	}
@@ -1445,7 +1446,7 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 
 		for _, holiday := range holidays {
 			holiday.CurrencyID = currency.ID
-			if err := m.HolidayManager().CreateWithTx(context, tx, holiday); err != nil {
+			if err := HolidayManager(service).CreateWithTx(context, tx, holiday); err != nil {
 				return eris.Wrapf(err, "failed to seed holiday %s for currency %s", holiday.Name, currency.ISO3166Alpha3)
 			}
 		}
@@ -1454,8 +1455,8 @@ func (m *Core) holidaySeed(context context.Context, tx *gorm.DB, userID uuid.UUI
 	return nil
 }
 
-func (m *Core) HolidayCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
-	return m.HolidayManager().Find(context, &Holiday{
+func HolidayCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
+	return HolidayManager(service).Find(context, &Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

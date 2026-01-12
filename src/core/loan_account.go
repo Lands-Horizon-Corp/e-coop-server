@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
@@ -91,16 +92,16 @@ type (
 	}
 )
 
-func (m *Core) LoanAccountManager() *registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest] {
+func LoanAccountManager(service *horizon.HorizonService) *registry.Registry[LoanAccount, LoanAccountResponse, LoanAccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		LoanAccount, LoanAccountResponse, LoanAccountRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AccountHistory",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *LoanAccount) *LoanAccountResponse {
 			if data == nil {
@@ -110,20 +111,20 @@ func (m *Core) LoanAccountManager() *registry.Registry[LoanAccount, LoanAccountR
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
-				CreatedBy:         m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:         UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:         data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:       data.UpdatedByID,
-				UpdatedBy:         m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:         UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:    data.OrganizationID,
-				Organization:      m.OrganizationManager().ToModel(data.Organization),
+				Organization:      OrganizationManager(service).ToModel(data.Organization),
 				BranchID:          data.BranchID,
-				Branch:            m.BranchManager().ToModel(data.Branch),
+				Branch:            BranchManager(service).ToModel(data.Branch),
 				LoanTransactionID: data.LoanTransactionID,
-				LoanTransaction:   m.LoanTransactionManager().ToModel(data.LoanTransaction),
+				LoanTransaction:   LoanTransactionManager(service).ToModel(data.LoanTransaction),
 				AccountID:         data.AccountID,
-				Account:           m.AccountManager().ToModel(data.Account),
+				Account:           AccountManager(service).ToModel(data.Account),
 				AccountHistoryID:  data.AccountHistoryID,
-				AccountHistory:    m.AccountHistoryManager().ToModel(data.AccountHistory),
+				AccountHistory:    AccountHistoryManager(service).ToModel(data.AccountHistory),
 				Amount:            data.Amount,
 
 				TotalAdd:            data.TotalAdd,
@@ -162,17 +163,17 @@ func (m *Core) LoanAccountManager() *registry.Registry[LoanAccount, LoanAccountR
 	})
 }
 
-func (m *Core) LoanAccountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanAccount, error) {
+func LoanAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanAccount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	return m.LoanAccountManager().ArrFind(context, filters, nil)
+	return LoanAccountManager(service).ArrFind(context, filters, nil)
 }
 
-func (m *Core) GetLoanAccountByLoanTransaction(
-	ctx context.Context, tx *gorm.DB, loanTransactionID, accountID, organizationID, branchID uuid.UUID) (*LoanAccount, error) {
+func GetLoanAccountByLoanTransaction(
+	ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, loanTransactionID, accountID, organizationID, branchID uuid.UUID) (*LoanAccount, error) {
 	filters := []registry.FilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -180,7 +181,7 @@ func (m *Core) GetLoanAccountByLoanTransaction(
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
-	return m.LoanAccountManager().ArrFindOneWithLock(
+	return LoanAccountManager(service).ArrFindOneWithLock(
 		ctx, tx, filters, nil, "Account", "Account.DefaultPaymentType", "AccountHistory",
 	)
 }

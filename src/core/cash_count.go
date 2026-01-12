@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -78,7 +79,7 @@ type (
 	}
 )
 
-func (m *Core) CashCountManager() *registry.Registry[CashCount, CashCountResponse, CashCountRequest] {
+func CashCountManager(service *horizon.HorizonService) *registry.Registry[CashCount, CashCountResponse, CashCountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		CashCount, CashCountResponse, CashCountRequest,
 	]{
@@ -86,9 +87,9 @@ func (m *Core) CashCountManager() *registry.Registry[CashCount, CashCountRespons
 			"CreatedBy", "UpdatedBy",
 			"EmployeeUser", "TransactionBatch", "Currency",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *CashCount) *CashCountResponse {
 			if data == nil {
@@ -98,20 +99,20 @@ func (m *Core) CashCountManager() *registry.Registry[CashCount, CashCountRespons
 				ID:                 data.ID,
 				CreatedAt:          data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:        data.CreatedByID,
-				CreatedBy:          m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:          UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:          data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:        data.UpdatedByID,
-				UpdatedBy:          m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:          UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID:     data.OrganizationID,
-				Organization:       m.OrganizationManager().ToModel(data.Organization),
+				Organization:       OrganizationManager(service).ToModel(data.Organization),
 				BranchID:           data.BranchID,
-				Branch:             m.BranchManager().ToModel(data.Branch),
+				Branch:             BranchManager(service).ToModel(data.Branch),
 				EmployeeUserID:     data.EmployeeUserID,
-				EmployeeUser:       m.UserManager().ToModel(data.EmployeeUser),
+				EmployeeUser:       UserManager(service).ToModel(data.EmployeeUser),
 				TransactionBatchID: data.TransactionBatchID,
-				TransactionBatch:   m.TransactionBatchManager().ToModel(data.TransactionBatch),
+				TransactionBatch:   TransactionBatchManager(service).ToModel(data.TransactionBatch),
 				CurrencyID:         data.CurrencyID,
-				Currency:           m.CurrencyManager().ToModel(data.Currency),
+				Currency:           CurrencyManager(service).ToModel(data.Currency),
 				BillAmount:         data.BillAmount,
 				Quantity:           data.Quantity,
 				Amount:             data.Amount,
@@ -145,8 +146,8 @@ func (m *Core) CashCountManager() *registry.Registry[CashCount, CashCountRespons
 	})
 }
 
-func (m *Core) CashCountCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCount, error) {
-	return m.CashCountManager().Find(context, &CashCount{
+func CashCountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*CashCount, error) {
+	return CashCountManager(service).Find(context, &CashCount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

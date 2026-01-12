@@ -590,7 +590,7 @@ func (h *APIImpl) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, m ...echo.MiddlewareFunc) error {
+func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) error, mid ...echo.MiddlewareFunc) error {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	switch method {
 	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
@@ -632,15 +632,15 @@ func (h *APIImpl) RegisterWebRoute(route Route, callback func(c echo.Context) er
 
 	switch method {
 	case http.MethodGet:
-		h.service.GET(route.Route, callback, m...)
+		h.service.GET(route.Route, callback, mid...)
 	case http.MethodPost:
-		h.service.POST(route.Route, callback, m...)
+		h.service.POST(route.Route, callback, mid...)
 	case http.MethodPut:
-		h.service.PUT(route.Route, callback, m...)
+		h.service.PUT(route.Route, callback, mid...)
 	case http.MethodPatch:
-		h.service.PATCH(route.Route, callback, m...)
+		h.service.PATCH(route.Route, callback, mid...)
 	case http.MethodDelete:
-		h.service.DELETE(route.Route, callback, m...)
+		h.service.DELETE(route.Route, callback, mid...)
 	}
 	return nil
 }

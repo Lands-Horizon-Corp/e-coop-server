@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -54,16 +55,16 @@ type (
 	}
 )
 
-func (m *Core) LoanGuaranteedFundManager() *registry.Registry[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest] {
+func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Registry[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
-		Database: m.provider.Database.Client(),
+		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
-			return m.provider.Broker.Dispatch(topics, payload)
+			return service.Broker.Dispatch(topics, payload)
 		},
 		Resource: func(data *LoanGuaranteedFund) *LoanGuaranteedFundResponse {
 			if data == nil {
@@ -73,14 +74,14 @@ func (m *Core) LoanGuaranteedFundManager() *registry.Registry[LoanGuaranteedFund
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
-				CreatedBy:      m.UserManager().ToModel(data.CreatedBy),
+				CreatedBy:      UserManager(service).ToModel(data.CreatedBy),
 				UpdatedAt:      data.UpdatedAt.Format(time.RFC3339),
 				UpdatedByID:    data.UpdatedByID,
-				UpdatedBy:      m.UserManager().ToModel(data.UpdatedBy),
+				UpdatedBy:      UserManager(service).ToModel(data.UpdatedBy),
 				OrganizationID: data.OrganizationID,
-				Organization:   m.OrganizationManager().ToModel(data.Organization),
+				Organization:   OrganizationManager(service).ToModel(data.Organization),
 				BranchID:       data.BranchID,
-				Branch:         m.BranchManager().ToModel(data.Branch),
+				Branch:         BranchManager(service).ToModel(data.Branch),
 				SchemeNumber:   data.SchemeNumber,
 				IncreasingRate: data.IncreasingRate,
 			}
@@ -113,8 +114,8 @@ func (m *Core) LoanGuaranteedFundManager() *registry.Registry[LoanGuaranteedFund
 	})
 }
 
-func (m *Core) LoanGuaranteedFundCurrentBranch(context context.Context, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFund, error) {
-	return m.LoanGuaranteedFundManager().Find(context, &LoanGuaranteedFund{
+func LoanGuaranteedFundCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFund, error) {
+	return LoanGuaranteedFundManager(service).Find(context, &LoanGuaranteedFund{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
