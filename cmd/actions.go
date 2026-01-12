@@ -188,7 +188,13 @@ func startServer() error {
 			OnStartMessageText: "Refreshing database...",
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-				return v1.Controllers(service)
+				if err := v1.Controllers(service); err != nil {
+					return err
+				}
+				if err := service.RunLifeTime(ctx); err != nil {
+					return err
+				}
+				return nil
 			},
 		},
 	)

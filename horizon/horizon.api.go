@@ -198,7 +198,7 @@ func NewAPIImpl(
 	}
 }
 
-func (h *APIImpl) Run() error {
+func (h *APIImpl) Init() error {
 	logger, _ := zap.NewProduction()
 	defer func() {
 		if err := logger.Sync(); err != nil {
@@ -570,6 +570,11 @@ func (h *APIImpl) Run() error {
 	h.service.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Welcome to Horizon API")
 	})
+	return nil
+}
+
+func (h *APIImpl) Run() error {
+
 	grouped := h.GroupedRoutes()
 	h.service.GET("web/api/routes", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, grouped)

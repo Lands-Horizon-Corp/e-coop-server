@@ -15,6 +15,9 @@ import (
 	"go.uber.org/zap"
 )
 
+const delay = 3 * time.Second
+const retry = 5
+
 type HorizonService struct {
 	API      *APIImpl
 	Broker   *MessageBrokerImpl
@@ -123,8 +126,6 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	helpers.PrintASCIIArt()
 	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
-	delay := 3 * time.Second
-	retry := 5
 
 	if h.Broker != nil {
 		h.printStatus("Broker", "init")
@@ -196,21 +197,34 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return eris.New("OTP service requires a security service")
 		}
 	}
-
 	if h.API != nil {
 		h.printStatus("Request", "init")
+		if err := helpers.Retry(ctx, retry, delay, func() error {
+			return h.API.Init()
+		}); err != nil {
+			h.printStatus("Request", "fail")
+			h.Logger.Error("Request error init", zap.Error(err))
+			return err
+		}
+		h.printStatus("Request", "ok")
+	}
+	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+
+	return nil
+}
+
+func (h *HorizonService) RunLifeTime(ctx context.Context) error {
+	if h.API != nil {
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.API.Run()
 		}); err != nil {
 			h.printStatus("Request", "fail")
-			h.Logger.Error("Request error", zap.Error(err))
+			h.Logger.Error("Request error server", zap.Error(err))
 			return err
 		}
 		h.printStatus("Request", "ok")
 	}
 	h.Logger.Info("Horizon App Started")
-	fmt.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
-
 	return nil
 }
 func (h *HorizonService) printUIEndpoints() {
