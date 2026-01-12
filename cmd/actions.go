@@ -81,7 +81,7 @@ func migrateDatabase() error {
 func seedDatabase() error {
 	return horizon.WithHorizonService(
 		horizon.DefaultHorizonRunnerParams{
-			TimeoutValue:       30 * time.Minute,
+			TimeoutValue:       2 * time.Hour,
 			OnStartMessageText: "Seeding database...",
 			OnStopMessageText:  "Database seeding completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
@@ -97,9 +97,9 @@ func seedDatabase() error {
 func seedDatabasePerformance(multiplier int32) error {
 	return horizon.WithHorizonService(
 		horizon.DefaultHorizonRunnerParams{
-			TimeoutValue:       30 * time.Minute,
+			TimeoutValue:       2 * time.Hour,
 			OnStartMessageText: "Seeding database... with performance seed",
-			OnStopMessageText:  "Database migration completed.",
+			OnStopMessageText:  "Database seeding completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 				if err := core.Seed(ctx, service, multiplier); err != nil {
 					return err
@@ -153,7 +153,7 @@ func cleanCache() error {
 func refreshDatabase() error {
 	return horizon.WithHorizonService(
 		horizon.DefaultHorizonRunnerParams{
-			TimeoutValue:       30 * time.Minute,
+			TimeoutValue:       2 * time.Hour,
 			OnStartMessageText: "Refreshing database...",
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
