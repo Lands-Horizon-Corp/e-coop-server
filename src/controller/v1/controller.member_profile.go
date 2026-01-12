@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -67,7 +67,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Create user account for member profile failed: validation error: " + err.Error(),
@@ -85,8 +85,8 @@ func memberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
+		tx, endTx := service.Database.StartTransaction(context)
+		hashedPwd, err := service.Security.HashPassword(context, req.Password)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -149,7 +149,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + endTx(err).Error()})
 		}
 
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userProfile.ID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(context, userProfile.ID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -341,7 +341,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberProfile, err := core.MemberProfileCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberProfile, err := core.MemberProfileCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
@@ -402,7 +402,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -511,7 +511,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Connect member profile to user account failed: validation error: " + err.Error(),
@@ -570,7 +570,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Quick create member profile failed: validation error: " + err.Error(),
@@ -588,13 +588,13 @@ func memberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		var userProfile *core.User
 		var userProfileID *uuid.UUID
 
 		if req.AccountInfo != nil {
-			hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.AccountInfo.Password)
+			hashedPwd, err := service.Security.HashPassword(context, req.AccountInfo.Password)
 			if err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -674,7 +674,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		}
 
 		if userProfile != nil {
-			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userOrg.ID.String())
+			developerKey, err := service.Security.GenerateUUIDv5(context, userOrg.ID.String())
 			if err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -754,7 +754,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile personal info failed: validation error: " + err.Error(),
@@ -883,7 +883,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile membership info failed: validation error: " + err.Error(),
@@ -1183,7 +1183,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		}
 
 		for i, remark := range req {
-			if err := c.provider.Service.Validator.Struct(remark); err != nil {
+			if err := service.Validator.Struct(remark); err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Validation failed for remark %d: %s", i+1, err.Error()))
 			}
 		}
@@ -1205,7 +1205,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNoContent, map[string]string{"error": "Current user organization not found"})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		memberProfile.IsClosed = true
 		if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
@@ -1251,7 +1251,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
@@ -1286,7 +1286,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update member profile coordinates failed: validation error: " + err.Error(),

@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -162,7 +162,7 @@ func cashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
+		if err := service.Validator.Struct(cashCountReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Cash count creation failed (/cash-count), validation error: " + err.Error(),
@@ -201,7 +201,7 @@ func cashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create cash count: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -292,7 +292,7 @@ func cashCountController(service *horizon.HorizonService) {
 
 		var updatedCashCounts []*core.CashCount
 		for _, cashCountReq := range batchRequest.CashCounts {
-			if err := c.provider.Service.Validator.Struct(cashCountReq); err != nil {
+			if err := service.Validator.Struct(cashCountReq); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Cash count validation failed during update (/cash-count): " + err.Error(),
@@ -414,7 +414,7 @@ func cashCountController(service *horizon.HorizonService) {
 			GrandTotal:     &grandTotal,
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -491,7 +491,7 @@ func cashCountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{

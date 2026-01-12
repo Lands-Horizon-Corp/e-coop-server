@@ -5,28 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func authenticationController(service *horizon.HorizonService) {
 	req := service.API
-
-	rateLimiterConfig := horizon.RateLimiterConfig{
-		RequestsPerSecond: 0,               // Use requests per minute instead
-		RequestsPerMinute: 5,               // 3 requests per minute for auth endpoints
-		BurstCapacity:     1,               // Allow 1 attempts quickly in burst
-		WindowDuration:    1 * time.Minute, // Track attempts per minute window
-		KeyPrefix:         "auth_api",      // Specific prefix for auth endpoints
-	}
-	rateLimiter := horizon.NewRateLimiter(
-		c.provider.Service.Cache,
-		c.provider.Service.Logger,
-		rateLimiterConfig)
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/current",
@@ -35,9 +22,9 @@ func authenticationController(service *horizon.HorizonService) {
 		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
-			c.event.ClearCurrentToken(context, ctx)
+			event.ClearCurrentToken(context, service, ctx)
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
 		userOrganization, _ := event.CurrentUserOrganization(context, service, ctx)
@@ -57,14 +44,14 @@ func authenticationController(service *horizon.HorizonService) {
 		Note:   "Logs out all users including itself for the session.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		_, err := c.event.CurrentUser(context, ctx)
+		_, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if err := c.event.LogoutOtherDevices(context, ctx); err != nil {
+		if err := event.LogoutOtherDevices(context, service, ctx); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to logout other devices: " + err.Error()})
 		}
-		c.event.ClearCurrentToken(context, ctx)
+		event.ClearCurrentToken(context, service, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -75,11 +62,11 @@ func authenticationController(service *horizon.HorizonService) {
 		ResponseType: event.UserCSRFResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		_, err := c.event.CurrentUser(context, ctx)
+		_, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		loggedIn, err := c.event.LoggedInUsers(context, ctx)
+		loggedIn, err := event.LoggedInUsers(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get logged in users: " + err.Error()})
 		}
@@ -103,18 +90,18 @@ func authenticationController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := core.GetUserByIdentifier(context, req.Key)
+		user, err := core.GetUserByIdentifier(context, service, req.Key)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
-		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		valid, err := service.Security.VerifyPassword(user.Password, req.Password)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
-		if err := c.event.SetUser(context, ctx, user); err != nil {
+		if err := event.SetUser(context, service, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -126,9 +113,7 @@ func authenticationController(service *horizon.HorizonService) {
 			UserID: user.ID,
 			User:   core.UserManager(service).ToModel(user),
 		})
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/logout",
@@ -141,7 +126,7 @@ func authenticationController(service *horizon.HorizonService) {
 			Description: "User logged out successfully",
 			Module:      "User",
 		})
-		c.event.ClearCurrentCSRF(context, ctx)
+		event.ClearCurrentCSRF(context, service, ctx)
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
@@ -162,7 +147,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
+		hashedPwd, err := service.Security.HashPassword(req.Password)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -196,7 +181,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not register user: " + err.Error()})
 		}
-		if err := c.event.SetUser(context, ctx, user); err != nil {
+		if err := event.SetUser(context, service, ctx, user); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Register failed: failed to set user token: " + err.Error(),
@@ -213,9 +198,7 @@ func authenticationController(service *horizon.HorizonService) {
 			UserID: user.ID,
 			User:   core.UserManager(service).ToModel(user),
 		})
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/authentication/forgot-password",
@@ -233,7 +216,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid forgot password payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: validation error: " + err.Error(),
@@ -241,7 +224,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := core.GetUserByIdentifier(context, req.Key)
+		user, err := core.GetUserByIdentifier(context, service, req.Key)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -250,7 +233,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No account found with those details: " + err.Error()})
 		}
-		token, err := c.provider.Service.Security.GenerateUUIDv5(context, user.Password)
+		token, err := service.Security.GenerateUUIDv5(user.Password)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -259,9 +242,8 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error generating reset token: " + err.Error()})
 		}
-		fallback := c.provider.Service.Environment.Get("APP_CLIENT_URL", "")
-		fallbackStr, _ := fallback.(string)
-		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+		fallbackStr := service.Config.AppClientURL
+		if err := service.SMTP.Send(context, horizon.SMTPRequest{
 			To:      req.Key,
 			Subject: "Forgot Password: Lands Horizon",
 			Body:    "templates/email-change-password.html",
@@ -277,7 +259,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed sending email: " + err.Error()})
 		}
-		if err := c.provider.Service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
+		if err := service.Cache.Set(context, token, user.ID, 10*time.Minute); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Forgot password failed: cache set error: " + err.Error(),
@@ -291,9 +273,7 @@ func authenticationController(service *horizon.HorizonService) {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/verify-reset-link/:reset_id",
@@ -305,7 +285,7 @@ func authenticationController(service *horizon.HorizonService) {
 		if resetID == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Reset ID is required"})
 		}
-		userID, err := c.provider.Service.Cache.Get(context, resetID)
+		userID, err := service.Cache.Get(context, resetID)
 		if err != nil || userID == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Reset link is invalid or expired"})
 		}
@@ -335,7 +315,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change password payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: validation error: " + err.Error(),
@@ -347,7 +327,7 @@ func authenticationController(service *horizon.HorizonService) {
 		if resetID == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Reset ID is required"})
 		}
-		userID, err := c.provider.Service.Cache.Get(context, resetID)
+		userID, err := service.Cache.Get(context, resetID)
 		if err != nil || userID == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Reset link is invalid or expired"})
 		}
@@ -359,7 +339,7 @@ func authenticationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User not found for reset token: " + err.Error()})
 		}
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
+		hashedPwd, err := service.Security.HashPassword(req.NewPassword)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -377,7 +357,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user password: " + err.Error()})
 		}
-		if err := c.provider.Service.Cache.Delete(context, resetID); err != nil {
+		if err := service.Cache.Delete(context, resetID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password failed: delete cache error: " + err.Error(),
@@ -391,9 +371,7 @@ func authenticationController(service *horizon.HorizonService) {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/apply-contact-number",
@@ -401,12 +379,12 @@ func authenticationController(service *horizon.HorizonService) {
 		Note:   "Sends OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
-		otp, err := c.provider.Service.OTP.Generate(context, key)
+		otp, err := service.OTP.Generate(context, key)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -415,7 +393,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
-		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+		if err := service.SMS.Send(context, horizon.SMSRequest{
 			To:   user.ContactNumber,
 			Body: "Lands Horizon: Hello {{.name}} Please dont share this to someone else to protect your account and privacy. This is your OTP:{{.otp}}",
 			Vars: map[string]string{
@@ -436,9 +414,7 @@ func authenticationController(service *horizon.HorizonService) {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
@@ -457,7 +433,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify contact number payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: validation error: " + err.Error(),
@@ -465,12 +441,12 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", user.Password, user.ContactNumber)
-		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		ok, err := service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -487,7 +463,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
-		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+		if err := service.OTP.Revoke(context, key); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: revoke OTP error: " + err.Error(),
@@ -513,7 +489,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.event.SetUser(context, ctx, updatedUser); err != nil {
+		if err := event.SetUser(context, service, ctx, updatedUser); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify contact number failed: set user token error: " + err.Error(),
@@ -535,12 +511,12 @@ func authenticationController(service *horizon.HorizonService) {
 		Note:   "Sends OTP for email verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
-		otp, err := c.provider.Service.OTP.Generate(context, key)
+		otp, err := service.OTP.Generate(context, key)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -549,7 +525,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
-		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+		if err := service.SMTP.Send(context, horizon.SMTPRequest{
 			To:      user.Email,
 			Body:    "templates/email-otp.html",
 			Subject: "Email Verification: Lands Horizon",
@@ -570,9 +546,7 @@ func authenticationController(service *horizon.HorizonService) {
 			Module:      "User",
 		})
 		return ctx.NoContent(http.StatusNoContent)
-	}, rateLimiter.RateLimitMiddleware(func(c echo.Context) string {
-		return helpers.GetClientIP(c)
-	}))
+	})
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-with-password",
@@ -586,14 +560,14 @@ func authenticationController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify with password payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		valid, err := service.Security.VerifyPassword(user.Password, req.Password)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
@@ -610,7 +584,7 @@ func authenticationController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -625,7 +599,7 @@ func authenticationController(service *horizon.HorizonService) {
 		if userOrganization.UserType != core.UserOrganizationTypeOwner {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not an owner"})
 		}
-		valid, err := c.provider.Service.Security.VerifyPassword(context, userOrganization.User.Password, req.Password)
+		valid, err := service.Security.VerifyPassword(userOrganization.User.Password, req.Password)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
@@ -654,7 +628,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify email payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: validation error: " + err.Error(),
@@ -662,12 +636,12 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", user.Password, user.Email)
-		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		ok, err := service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -684,7 +658,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
-		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+		if err := service.OTP.Revoke(context, key); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: revoke OTP error: " + err.Error(),
@@ -710,7 +684,7 @@ func authenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.event.SetUser(context, ctx, updatedUser); err != nil {
+		if err := event.SetUser(context, service, ctx, updatedUser); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Verify email failed: set user token error: " + err.Error(),

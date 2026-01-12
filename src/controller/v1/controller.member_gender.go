@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +25,7 @@ func memberGenderController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := core.MemberGenderHistoryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberGenderHistory, err := core.MemberGenderHistoryCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member gender history: " + err.Error()})
 		}
@@ -69,7 +69,7 @@ func memberGenderController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := core.MemberGenderCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		memberGender, err := core.MemberGenderCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member genders: " + err.Error()})
 		}
@@ -83,7 +83,7 @@ func memberGenderController(service *horizon.HorizonService) {
 		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		org, ok := c.event.GetOrganization(ctx)
+		org, ok := GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}

@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,7 +35,7 @@ func accountTransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		ledgers, err := c.event.AccountTransactionLedgers(context, *userOrg, year, accountID)
+		ledgers, err := event.AccountTransactionLedgers(context, service, *userOrg, year, accountID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account transaction ledgers: " + err.Error()})
 		}
@@ -58,7 +58,7 @@ func accountTransactionController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "process-gl-error",
 				Description: "Process GL failed: validation error: " + err.Error(),
@@ -73,7 +73,7 @@ func accountTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		if err := c.event.AccountTransactionProcess(context, *userOrg, req); err != nil {
+		if err := event.AccountTransactionProcess(context, service, *userOrg, req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "process-gl-error",
 				Description: "Process GL failed: " + err.Error(),
@@ -118,7 +118,7 @@ func accountTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTransactions, err := core.AccountTransactionByMonthYear(context, year, month, userOrg.OrganizationID, *userOrg.BranchID)
+		accountTransactions, err := core.AccountTransactionByMonthYear(context, service, year, month, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch account transactions: " + err.Error()})
 		}

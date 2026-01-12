@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -50,7 +50,7 @@ func browseReferenceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this browse reference"})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		browseReference.Name = request.Name
 		browseReference.Description = request.Description
@@ -302,7 +302,7 @@ func browseReferenceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 
-		browseReferences, err := core.BrowseReferenceCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		browseReferences, err := core.BrowseReferenceCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve browse references: " + err.Error()})
 		}
@@ -332,7 +332,7 @@ func browseReferenceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create browse references"})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		browseReference := &core.BrowseReference{
 			CreatedAt:             time.Now().UTC(),
@@ -502,7 +502,7 @@ func browseReferenceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
 
-		browseReferences, err := core.BrowseReferenceByMemberType(context, *memberTypeID, userOrg.OrganizationID, *userOrg.BranchID)
+		browseReferences, err := core.BrowseReferenceByMemberType(context, service, *memberTypeID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve browse references: " + err.Error()})
 		}

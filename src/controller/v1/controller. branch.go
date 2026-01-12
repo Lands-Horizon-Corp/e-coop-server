@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -31,7 +31,7 @@ func branchController(service *horizon.HorizonService) {
 			}
 			return ctx.JSON(http.StatusOK, branches)
 		}
-		branches, err := core.GetBranchesByOrganization(context, userOrg.OrganizationID)
+		branches, err := core.GetBranchesByOrganization(context, service, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
@@ -46,11 +46,11 @@ func branchController(service *horizon.HorizonService) {
 		ResponseType: core.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		org, ok := c.event.GetOrganization(ctx)
+		org, ok := event.GetOrganization(service, ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}
-		branches, err := core.GetBranchesByOrganization(context, org.ID)
+		branches, err := core.GetBranchesByOrganization(context, service, org.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
@@ -68,7 +68,7 @@ func branchController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		branches, err := core.GetBranchesByOrganization(context, *organizationID)
+		branches, err := core.GetBranchesByOrganization(context, service, *organizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not retrieve organization branches: " + err.Error()})
 		}
@@ -105,7 +105,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
 
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
@@ -146,7 +146,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found " + err.Error()})
 		}
 
-		branchCount, err := core.GetBranchesByOrganizationCount(context, organization.ID)
+		branchCount, err := core.GetBranchesByOrganizationCount(context, service, organization.ID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
@@ -190,7 +190,7 @@ func branchController(service *horizon.HorizonService) {
 			TaxIdentificationNumber: req.TaxIdentificationNumber,
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		if err := core.BranchManager(service).CreateWithTx(context, tx, branch); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -270,7 +270,7 @@ func branchController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + endTx(err).Error()})
 			}
 		} else {
-			developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+			developerKey, err := service.Security.GenerateUUIDv5(user.ID.String())
 			if err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create error",
@@ -321,12 +321,12 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 
-		c.event.Notification(ctx, event.NotificationEvent{
+		event.Notification(ctx, service, event.NotificationEvent{
 			Title:       fmt.Sprintf("Create: %s", branch.Name),
 			Description: fmt.Sprintf("Created a new branch: %s", branch.Name),
 		})
 
-		c.event.OrganizationDirectNotification(ctx, userOrganization.OrganizationID, event.NotificationEvent{
+		event.OrganizationDirectNotification(ctx, service, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New branch '%s' has been created by %s %s", branch.Name, *user.FirstName, *user.LastName),
 			Title:            "New Branch Created",
 			NotificationType: core.NotificationInfo,
@@ -361,7 +361,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch data: " + err.Error()})
 		}
 
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
@@ -441,7 +441,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch: " + err.Error()})
 		}
 
-		c.event.Notification(ctx, event.NotificationEvent{
+		event.Notification(ctx, service, event.NotificationEvent{
 			Title:       fmt.Sprintf("Update: %s", branch.Name),
 			Description: fmt.Sprintf("Updated branch: %s", branch.Name),
 		})
@@ -471,7 +471,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
@@ -511,7 +511,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only the branch owner can delete this branch"})
 		}
-		count, err := core.CountUserOrganizationPerbranch(context, userOrganization.UserID, *userOrganization.BranchID)
+		count, err := core.CountUserOrganizationPerBranch(context, service, userOrganization.UserID, *userOrganization.BranchID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
@@ -528,7 +528,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot delete branch with more than 2 members"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		if err := core.BranchManager(service).DeleteWithTx(context, tx, branch.ID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -554,7 +554,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
-		c.event.Notification(ctx, event.NotificationEvent{
+		event.Notification(ctx, service, event.NotificationEvent{
 			Title:       fmt.Sprintf("Delete: %s", branch.Name),
 			Description: fmt.Sprintf("Deleted branch: %s", branch.Name),
 		})
@@ -602,7 +602,7 @@ func branchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
-		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
+		if err := service.Validator.Struct(settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings for PUT /branch-settings: %v", err),
@@ -635,7 +635,7 @@ func branchController(service *horizon.HorizonService) {
 			BranchID: *userOrg.BranchID,
 		})
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		if err != nil {
 			branchSetting = &core.BranchSetting{
@@ -761,7 +761,7 @@ func branchController(service *horizon.HorizonService) {
 			Module:      "branch",
 		})
 
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Title:       "Branch Settings Updated",
 			Description: "Branch settings have been successfully updated",
 		})
@@ -796,7 +796,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
-		if err := c.provider.Service.Validator.Struct(settingsReq); err != nil {
+		if err := service.Validator.Struct(settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to validate branch settings currency for PUT /branch-settings/currency: %v", err),
@@ -816,7 +816,7 @@ func branchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.CompassionFundAccountID = settingsReq.CompassionFundAccountID
@@ -898,7 +898,7 @@ func branchController(service *horizon.HorizonService) {
 			Module:      "branch",
 		})
 
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Title:            "Branch Settings Updated",
 			Description:      "Branch settings have been successfully updated",
 			NotificationType: core.NotificationAlert,

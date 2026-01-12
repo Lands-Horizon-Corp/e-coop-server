@@ -5,8 +5,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -43,10 +43,10 @@ func userController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change profile payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -79,7 +79,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change password payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: validation error: " + err.Error(),
@@ -87,15 +87,15 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.OldPassword)
+		valid, err := service.Security.VerifyPassword(context, user.Password, req.OldPassword)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.NewPassword)
+		hashedPwd, err := service.Security.HashPassword(context, req.NewPassword)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -122,7 +122,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := c.event.SetUser(context, ctx, updatedUser); err != nil {
+		if err := SetUser(context, ctx, updatedUser); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: set user token error: " + err.Error(),
@@ -155,7 +155,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid profile picture update payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change profile picture failed: validation error: " + err.Error(),
@@ -163,7 +163,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -214,7 +214,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid general settings update payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change general profile failed: validation error: " + err.Error(),
@@ -222,7 +222,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}

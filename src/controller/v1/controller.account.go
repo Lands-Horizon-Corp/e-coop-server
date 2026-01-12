@@ -9,8 +9,8 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -613,8 +613,8 @@ func accountController(service *horizon.HorizonService) {
 			InterestAmortization:        req.InterestAmortization,
 			IsTaxable:                   req.IsTaxable,
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		if err := core.CreateAccountHistory(context, tx, account); err != nil {
+		tx, endTx := service.Database.StartTransaction(context)
+		if err := core.CreateAccountHistory(context, service, tx, account); err != nil {
 			endTx(err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -824,7 +824,7 @@ func accountController(service *horizon.HorizonService) {
 		account.InterestMaturity = req.InterestMaturity
 		account.IsTaxable = req.IsTaxable
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before update failed (/account/:account_id): " + err.Error(),
@@ -872,7 +872,7 @@ func accountController(service *horizon.HorizonService) {
 			Description: "Updated account (/account/:account_id): " + account.Name,
 			Module:      "Account",
 		})
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Account: the account has been updated - %s", account.Name),
 			Title:            fmt.Sprintf("Updated account: %s", account.Name),
 			NotificationType: core.NotificationSystem,
@@ -897,7 +897,7 @@ func accountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID: " + err.Error()})
 		}
 
-		if err := core.AccountDeleteCheck(context, *accountID); err != nil {
+		if err := core.AccountDeleteCheck(context, service, *accountID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Account delete failed (/account/:account_id): " + err.Error(),
@@ -1001,7 +1001,7 @@ func accountController(service *horizon.HorizonService) {
 
 		var failedAccounts []string
 		for _, accountID := range reqBody.IDs {
-			if err := core.AccountDeleteCheck(context, accountID); err != nil {
+			if err := core.AccountDeleteCheck(context, service, accountID); err != nil {
 				account, _ := core.AccountManager(service).GetByID(context, accountID)
 				accountName := accountID.String()
 				if account != nil {
@@ -1102,7 +1102,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index update failed (/account/:account_id/index/:index): " + err.Error(),
@@ -1172,7 +1172,7 @@ func accountController(service *horizon.HorizonService) {
 		account.Index = newIndex
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index top update failed (/account/:account_id/index/top): " + err.Error(),
@@ -1242,7 +1242,7 @@ func accountController(service *horizon.HorizonService) {
 		account.Index = account.Index + 1
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before index bottom update failed (/account/:account_id/index/bottom): " + err.Error(),
@@ -1311,7 +1311,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before GL def removal failed (/account/:account_id/general-ledger-definition/remove): " + err.Error(),
@@ -1381,7 +1381,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before FS def removal failed (/account/:account_id/financial-statement-definition/remove): " + err.Error(),
@@ -1693,7 +1693,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet connection failed: " + err.Error(),
@@ -1730,7 +1730,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before computation sheet disconnection failed: " + err.Error(),
@@ -1778,7 +1778,7 @@ func accountController(service *horizon.HorizonService) {
 		loanAccount.UpdatedAt = time.Now().UTC()
 		loanAccount.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, loanAccount.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, loanAccount.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan connection failed: " + err.Error(),
@@ -1815,7 +1815,7 @@ func accountController(service *horizon.HorizonService) {
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 
-		if err := core.CreateAccountHistoryBeforeUpdate(context, nil, account.ID, userOrg.UserID); err != nil {
+		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-warning",
 				Description: "Account history creation before loan account disconnection failed: " + err.Error(),
@@ -1882,7 +1882,7 @@ func accountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found"})
 		}
-		loanAccounts, err := core.FindLoanAccountsByID(context,
+		loanAccounts, err := core.FindLoanAccountsByID(context, service,
 			userOrg.OrganizationID, *userOrg.BranchID, account.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Connected loan account not found"})

@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ func notificationController(service *horizon.HorizonService) {
 		Note:         "Returns all notifications for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
@@ -53,7 +53,7 @@ func notificationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
 
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -64,7 +64,7 @@ func notificationController(service *horizon.HorizonService) {
 		}
 
 		var notifications []*core.Notification
-		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
+		err = service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notificationID := range reqBody.IDs {
 				notification, getErr := core.NotificationManager(service).GetByID(context, notificationID)
 				if getErr != nil {
@@ -126,7 +126,7 @@ func notificationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -156,7 +156,7 @@ func notificationController(service *horizon.HorizonService) {
 
 		viewedCount := 0
 		var newNotifications []*core.Notification
-		err = c.provider.Service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
+		err = service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notif := range notifications {
 				notification, getErr := core.NotificationManager(service).GetByID(context, notif.ID)
 				if getErr != nil {

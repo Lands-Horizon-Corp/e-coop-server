@@ -8,6 +8,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -264,7 +265,7 @@ func TransactionPayment(
 	if err := endTx(nil); err != nil {
 		return nil, err
 	}
-	if err := TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
+	if err := event.TransactionBatchBalancing(context, service, service, &transactionBatch.ID); err != nil {
 		return nil, err
 	}
 	return newGeneralLedger, nil

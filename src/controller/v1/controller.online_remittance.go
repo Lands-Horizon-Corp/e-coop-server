@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -147,7 +147,7 @@ func onlineRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create online remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -287,7 +287,7 @@ func onlineRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated online remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 
@@ -396,7 +396,7 @@ func onlineRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete online remittance: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 

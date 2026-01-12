@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 )
@@ -36,7 +36,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
@@ -83,7 +83,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -92,7 +92,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: *loanTransactionID,
 		})
 		if err != nil {
@@ -122,7 +122,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid loan transaction deduction payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Loan transaction deduction failed: validation error: " + err.Error(),
@@ -172,7 +172,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create loan transaction deduction: " + err.Error()})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -181,7 +181,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err := c.event.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {
@@ -233,7 +233,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete loan transaction entry: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -242,7 +242,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		_, err = c.event.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		_, err =.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {
@@ -295,7 +295,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to restore loan transaction entry: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -305,7 +305,7 @@ func loanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		loanTransaction, err := c.event.LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
+		loanTransaction, err :=LoanBalancing(context, ctx, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
 		})
 		if err != nil {

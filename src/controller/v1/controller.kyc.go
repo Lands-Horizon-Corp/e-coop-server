@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
@@ -21,7 +21,7 @@ import (
 
 func kycController(service *horizon.HorizonService) {
 	req := service.API
-	validator := c.provider.Service.Validator
+	validator := service.Validator
 
 	// Step 1: Personal Details
 	req.RegisterWebRoute(horizon.Route{
@@ -102,11 +102,11 @@ func kycController(service *horizon.HorizonService) {
 			})
 		}
 		smsKey := fmt.Sprintf("%s-%s", req.Password, req.ContactNumber)
-		smsOtp, err := c.provider.Service.OTP.Generate(context, smsKey)
+		smsOtp, err := service.OTP.Generate(context, smsKey)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
-		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+		if err := service.SMS.Send(context, horizon.SMSRequest{
 			To:   req.ContactNumber,
 			Body: "Lands Horizon: Hello {{.name}} Please dont share this to someone else to protect your account and privacy. This is your OTP:{{.otp}}",
 			Vars: map[string]string{
@@ -117,12 +117,12 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to send OTP SMS: " + err.Error()})
 		}
 		smtpKey := fmt.Sprintf("%s-%s", req.Password, req.Email)
-		smtpOtp, err := c.provider.Service.OTP.Generate(context, smtpKey)
+		smtpOtp, err := service.OTP.Generate(context, smtpKey)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate OTP: " + err.Error()})
 		}
 
-		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+		if err := service.SMTP.Send(context, horizon.SMTPRequest{
 			To:      req.Email,
 			Body:    "templates/email-otp.html",
 			Subject: "Email Verification: Lands Horizon",
@@ -154,14 +154,14 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", req.Password, req.Email)
-		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		ok, err := service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
-		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+		if err := service.OTP.Revoke(context, key); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 
@@ -186,14 +186,14 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		key := fmt.Sprintf("%s-%s", req.Password, req.ContactNumber)
-		ok, err := c.provider.Service.OTP.Verify(context, key, req.OTP)
+		ok, err := service.OTP.Verify(context, key, req.OTP)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to verify OTP: " + err.Error()})
 		}
 		if !ok {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid OTP"})
 		}
-		if err := c.provider.Service.OTP.Revoke(context, key); err != nil {
+		if err := service.OTP.Revoke(context, key); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to revoke OTP: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Phone number verified successfully"})
@@ -390,14 +390,14 @@ func kycController(service *horizon.HorizonService) {
 		}
 		key := fmt.Sprintf("%s-%s", req.Password, req.Email)
 
-		otp, err := c.provider.Service.OTP.Generate(context, key)
+		otp, err := service.OTP.Generate(context, key)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, echo.Map{
 				"error": "Failed to generate OTP: " + err.Error(),
 			})
 		}
 
-		if err := c.provider.Service.SMTP.Send(context, horizon.SMTPRequest{
+		if err := service.SMTP.Send(context, horizon.SMTPRequest{
 			To:      req.Email,
 			Subject: "Email Verification: Lands Horizon",
 			Body:    "templates/email-otp.html",
@@ -434,13 +434,13 @@ func kycController(service *horizon.HorizonService) {
 			})
 		}
 		key := fmt.Sprintf("%s-%s", req.Password, req.ContactNumber)
-		otp, err := c.provider.Service.OTP.Generate(context, key)
+		otp, err := service.OTP.Generate(context, key)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, echo.Map{
 				"error": "Failed to generate OTP: " + err.Error(),
 			})
 		}
-		if err := c.provider.Service.SMS.Send(context, horizon.SMSRequest{
+		if err := service.SMS.Send(context, horizon.SMSRequest{
 			To:   req.ContactNumber,
 			Body: "Lands Horizon: Hello {{.name}}, do not share this code. Your OTP is {{.otp}}",
 			Vars: map[string]string{
@@ -475,12 +475,12 @@ func kycController(service *horizon.HorizonService) {
 		if req.Password != req.PasswordConfirmation {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password and confirmation do not match"})
 		}
-		org, ok := c.event.GetOrganization(ctx)
+		org, ok := GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, req.Password)
+		tx, endTx := service.Database.StartTransaction(context)
+		hashedPwd, err := service.Security.HashPassword(context, req.Password)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 		}
@@ -599,10 +599,10 @@ func kycController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		org, ok := c.event.GetOrganization(ctx)
+		org, ok := GetOrganization(ctx)
 		if !ok {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
@@ -610,14 +610,14 @@ func kycController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
 		}
-		valid, err := c.provider.Service.Security.VerifyPassword(context, user.Password, req.Password)
+		valid, err := service.Security.VerifyPassword(context, user.Password, req.Password)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
 		if !user.IsEmailVerified || !user.IsContactVerified {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User has not completed KYC verification"})
 		}
-		if err := c.event.SetUser(context, ctx, user); err != nil {
+		if err := SetUser(context, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
 		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
@@ -633,7 +633,7 @@ func kycController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 		if userOrganization.ApplicationStatus == "accepted" {
-			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
+			if err := SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))

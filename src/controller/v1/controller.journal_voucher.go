@@ -8,9 +8,9 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -32,7 +32,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := core.JournalVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		journalVouchers, err := core.JournalVoucherCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No journal vouchers found for the current branch"})
 		}
@@ -116,7 +116,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		balance, err := usecase.CalculateBalance(usecase.Balance{
 			JournalVoucherEntriesRequest: request.JournalVoucherEntries,
@@ -264,7 +264,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher entries are not balanced: " + err.Error()})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		journalVoucher.Date = request.Date
 		journalVoucher.Description = request.Description
@@ -486,7 +486,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -933,7 +933,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
+			if err := RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
 
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "journal-voucher-transaction-recording-failed",
@@ -961,7 +961,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release journal voucher: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, journalVoucher.TransactionBatchID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, journalVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 
@@ -971,7 +971,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			Module:      "JournalVoucher",
 		})
 
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
 			Title:            "Journal Vouchers - Approved List Accessed",
 			NotificationType: core.NotificationSystem,
@@ -1047,7 +1047,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved journal vouchers: " + err.Error()})
 		}
 
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
 			Title:            "Journal Vouchers - Approved List Accessed",
 			NotificationType: core.NotificationInfo,

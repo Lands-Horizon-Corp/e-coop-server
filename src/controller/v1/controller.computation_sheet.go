@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +33,7 @@ func computationSheetController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&request); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(request); err != nil {
+		if err := service.Validator.Struct(request); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -42,7 +42,7 @@ func computationSheetController(service *horizon.HorizonService) {
 		}
 
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		computed, err := c.event.ComputationSheetCalculator(
+		computed, err := ComputationSheetCalculator(
 			context,
 			event.LoanComputationSheetCalculatorRequest{
 				AccountID:                    request.AccountID,
@@ -84,7 +84,7 @@ func computationSheetController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		sheets, err := core.ComputationSheetCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		sheets, err := core.ComputationSheetCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No computation sheets found for the current branch"})
 		}

@@ -7,9 +7,9 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -31,7 +31,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		cashCheckVouchers, err := core.CashCheckVoucherCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No cash check vouchers found for the current branch"})
 		}
@@ -219,7 +219,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		balance, err := usecase.CalculateBalance(usecase.Balance{
 			CashCheckVoucherEntriesRequest: request.CashCheckVoucherEntries,
@@ -396,7 +396,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + err.Error()})
 		}
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		cashCheckVoucher.PayTo = request.PayTo
 		cashCheckVoucher.Status = request.Status
@@ -656,7 +656,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		cashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, *cashCheckVoucherID)
@@ -835,7 +835,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
+			if err := RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
 
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "cash-check-voucher-transaction-recording-failed",
@@ -852,7 +852,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to release cash check voucher: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, cashCheckVoucher.TransactionBatchID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, cashCheckVoucher.TransactionBatchID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch: " + err.Error()})
 		}
 		newCashCheckVoucher, err := core.CashCheckVoucherManager(service).GetByID(context, cashCheckVoucher.ID)

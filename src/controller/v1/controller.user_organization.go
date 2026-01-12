@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -116,7 +116,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -142,7 +142,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -343,7 +343,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		isPending := false
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -458,7 +458,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -470,7 +470,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: You do not own this user organization"})
 		}
 		if userOrganization.ApplicationStatus == "accepted" {
-			if err := c.event.SetUserOrganization(context, ctx, userOrganization); err != nil {
+			if err := SetUserOrganization(context, ctx, userOrganization); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))
@@ -485,7 +485,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		c.event.ClearCurrentToken(context, ctx)
+		event.ClearCurrentToken(context, ctx)
 
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
@@ -512,7 +512,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, userOrg.UserID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(context, userOrg.UserID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -548,7 +548,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -602,7 +602,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 		}
 
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -637,7 +637,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			UserSettingUsedVoucher:   0,
 			UserSettingNumberPadding: 7,
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -675,7 +675,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			Description: "Joined organization and branch using invitation code " + code,
 			Module:      "UserOrganization",
 		})
-		c.event.OrganizationAdminsDirectNotification(ctx, invitationCode.OrganizationID, event.NotificationEvent{
+		event.OrganizationAdminsDirectNotification(ctx, invitationCode.OrganizationID, event.NotificationEvent{
 			Description: fmt.Sprintf(
 				"New %s joined using invitation code: %s %s",
 				string(userOrg.UserType),
@@ -734,7 +734,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -763,7 +763,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as employee"})
 			}
 		}
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(context, user.ID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(context, user.ID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -813,7 +813,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			Description: "Joined organization and branch " + organizationID.String() + " - " + branchID.String() + " as member",
 			Module:      "UserOrganization",
 		})
-		c.event.OrganizationAdminsDirectNotification(ctx, *organizationID, event.NotificationEvent{
+		event.OrganizationAdminsDirectNotification(ctx, *organizationID, event.NotificationEvent{
 			Description: fmt.Sprintf(
 				"New member application received from %s %s",
 				func() string {
@@ -884,7 +884,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 		Note:   "Checks if the user can join as a member.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -908,7 +908,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 		Note:   "Checks if the user can join as an employee.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := c.event.CurrentUser(context, ctx)
+		user, err := event.CurrentUser(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
@@ -1014,7 +1014,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			Module:      "UserOrganization",
 		})
 
-		c.event.OrganizationDirectNotification(ctx, userOrganization.OrganizationID, event.NotificationEvent{
+		event.OrganizationDirectNotification(ctx, service, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrganization.UserType)),
 			Title:            "Application Accepted",
 			NotificationType: core.NotificationSuccess,
@@ -1243,7 +1243,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid settings payload: " + err.Error()})
 		}
 
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: validation error: " + err.Error(),
@@ -1311,7 +1311,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid settings payload: " + err.Error()})
 		}
 
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Update settings failed: validation error: " + err.Error(),
@@ -1425,11 +1425,11 @@ func userOrganinzationController(service *horizon.HorizonService) {
 		if err := validate.Struct(payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		hashedPwd, err := c.provider.Service.Security.HashPassword(context, payload.Password)
+		hashedPwd, err := service.Security.HashPassword(context, payload.Password)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		now := time.Now().UTC()
 		user := &core.User{
 			Email:             payload.Email,
@@ -1453,7 +1453,7 @@ func userOrganinzationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": endTx(err).Error()})
 		}
 
-		developerKey, err := c.provider.Service.Security.GenerateUUIDv5(
+		developerKey, err := service.Security.GenerateUUIDv5(
 			context,
 			fmt.Sprintf("%s-%s-%s", user.ID, userOrg.OrganizationID, userOrg.BranchID),
 		)

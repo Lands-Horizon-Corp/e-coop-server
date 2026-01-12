@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/shopspring/decimal"
 
 	"github.com/labstack/echo/v4"
@@ -124,7 +124,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+		entries, err := GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -179,7 +179,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		if branch.BranchSetting == nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		totalTax := decimal.Zero
 		totalInterest := decimal.Zero
 		generatedSavingsInterest := &core.GeneratedSavingsInterest{
@@ -205,7 +205,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := c.event.GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
+		entries, err := GenerateSavingsInterestEntries(context, userOrg, core.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -334,7 +334,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid post request payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -354,7 +354,7 @@ func generateSavingsInterest(service *horizon.HorizonService) {
 		if generateSavingsInterest.PostedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Generated savings interest has already been posted"})
 		}
-		if err := c.event.GenerateSavingsInterestEntriesPost(
+		if err := GenerateSavingsInterestEntriesPost(
 			context, userOrg, generatedSavingsInterestID, req); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post generated savings interest entries: " + err.Error()})
 		}

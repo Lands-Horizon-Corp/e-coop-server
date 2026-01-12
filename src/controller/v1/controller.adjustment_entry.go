@@ -6,9 +6,9 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/usecase"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -30,7 +30,7 @@ func adjustmentEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := core.AdjustmentEntryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		adjustmentEntries, err := core.AdjustmentEntryCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}
@@ -115,7 +115,7 @@ func adjustmentEntryController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -168,7 +168,7 @@ func adjustmentEntryController(service *horizon.HorizonService) {
 			ProofOfPaymentMediaID: nil, // Not applicable for adjustment entries
 		}
 
-		if err := c.event.RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
+		if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-recording-failed",
 				Description: "Failed to record adjustment entry transaction in general ledger for reference " + req.ReferenceNumber + ": " + err.Error(),
@@ -188,7 +188,7 @@ func adjustmentEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create adjustment entry: " + err.Error()})
 		}
 
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Adjustment entry creation failed (/adjustment-entry), transaction batch balancing error: " + err.Error(),
@@ -304,7 +304,7 @@ func adjustmentEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := core.AdjustmentEntryCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		entries, err := core.AdjustmentEntryCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment entries found for the current branch"})
 		}

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -46,7 +46,7 @@ func heartbeat(service *horizon.HorizonService) {
 			Description: "User set online status",
 			Module:      "User",
 		})
-		if err := c.provider.Service.Broker.Dispatch([]string{
+		if err := service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {
@@ -87,7 +87,7 @@ func heartbeat(service *horizon.HorizonService) {
 			Description: "User set offline status",
 			Module:      "User",
 		})
-		if err := c.provider.Service.Broker.Dispatch([]string{
+		if err := service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {
@@ -107,7 +107,7 @@ func heartbeat(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -122,7 +122,7 @@ func heartbeat(service *horizon.HorizonService) {
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization status"})
 		}
-		if err := c.provider.Service.Broker.Dispatch([]string{
+		if err := service.Broker.Dispatch([]string{
 			fmt.Sprintf("user_organization.status.branch.%s", userOrg.BranchID),
 			fmt.Sprintf("user_organization.status.organization.%s", userOrg.OrganizationID),
 		}, nil); err != nil {

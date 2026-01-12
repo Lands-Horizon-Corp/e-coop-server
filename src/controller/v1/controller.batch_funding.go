@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +49,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You do not have permission to create batch funding."})
 		}
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -95,7 +95,7 @@ func batchFundingController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "Unable to create batch funding record: " + err.Error()})
 		}
-		if err := c.event.TransactionBatchBalancing(context, &transactionBatch.ID); err != nil {
+		if err := event.TransactionBatchBalancing(context, service, &transactionBatch.ID); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to balance transaction batch after saving: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{

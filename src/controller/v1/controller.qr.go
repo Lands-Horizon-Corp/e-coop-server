@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/services/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,7 +18,7 @@ func qRCodeController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
-		qr, err := c.provider.Service.QR.DecodeQR(context, &horizon.QRResult{
+		qr, err := service.QR.DecodeQR(context, &horizon.QRResult{
 			Data: code,
 		})
 		if err != nil {

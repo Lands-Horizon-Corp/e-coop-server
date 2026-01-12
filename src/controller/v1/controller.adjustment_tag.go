@@ -7,8 +7,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,7 +29,7 @@ func adjustmentTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := core.AdjustmentTagCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		tags, err := core.AdjustmentTagCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No adjustment tags found for the current branch"})
 		}
@@ -142,7 +142,7 @@ func adjustmentTagController(service *horizon.HorizonService) {
 			Module:      "AdjustmentTag",
 		})
 
-		c.event.OrganizationAdminsNotification(ctx, event.NotificationEvent{
+		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", userOrg.User.FullName),
 			Title:            "Journal Vouchers - Approved List Accessed",
 			NotificationType: core.NotificationSystem,

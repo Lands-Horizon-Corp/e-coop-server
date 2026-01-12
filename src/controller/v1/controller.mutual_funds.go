@@ -6,8 +6,8 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/server/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
@@ -29,7 +29,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		mutualFunds, err := core.MutualFundCurrentBranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		mutualFunds, err := core.MutualFundCurrentBranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No mutual funds found for the current branch"})
 		}
@@ -150,7 +150,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				map[string]string{"error": err.Error()},
 			)
 		}
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 		if err := core.MutualFundManager(service).CreateWithTx(context, tx, mutualFund); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -181,7 +181,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund table: " + endTx(err).Error()})
 			}
 		}
-		mutualFundView, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFund)
+		mutualFundView, err := GenerateMutualFundEntries(context, userOrg, mutualFund)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + endTx(err).Error()})
 		}
@@ -264,7 +264,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		mutualFund.UpdatedByID = userOrg.UserID
 		mutualFund.MemberTypeID = req.MemberTypeID
 
-		tx, endTx := c.provider.Service.Database.StartTransaction(context)
+		tx, endTx := service.Database.StartTransaction(context)
 
 		if err := core.MutualFundManager(service).UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -416,7 +416,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund: " + err.Error()})
 		}
-		mutualFundView, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFundUpdated)
+		mutualFundView, err := GenerateMutualFundEntries(context, userOrg, mutualFundUpdated)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve mutual fund view: " + err.Error()})
 		}
@@ -580,7 +580,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 				map[string]string{"error": err.Error()},
 			)
 		}
-		mutualFundEntries, err := c.event.GenerateMutualFundEntries(context, userOrg, mutualFund)
+		mutualFundEntries, err := GenerateMutualFundEntries(context, userOrg, mutualFund)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "view-error",
@@ -691,7 +691,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid post request payload: " + err.Error()})
 		}
-		if err := c.provider.Service.Validator.Struct(req); err != nil {
+		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -711,7 +711,7 @@ func mutualFundsController(service *horizon.HorizonService) {
 		if mutualFund.PostedDate != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Mutual fund has already been posted"})
 		}
-		if err := c.event.GenerateMutualFundEntriesPost(
+		if err := GenerateMutualFundEntriesPost(
 			context, userOrg, mutualFundID, req); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post mutual fund entries: " + err.Error()})
 		}
