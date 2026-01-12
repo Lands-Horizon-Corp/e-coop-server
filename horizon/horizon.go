@@ -35,7 +35,7 @@ type HorizonService struct {
 	secured   bool
 }
 
-func NewHorizonService() *HorizonService {
+func NewHorizonService(lifetime bool) *HorizonService {
 	service := &HorizonService{}
 	service.Validator = validator.New()
 	service.Faker = faker.New()
@@ -109,11 +109,12 @@ func NewHorizonService() *HorizonService {
 		service.Config.SMTPPassword,
 		service.Config.SMTPFrom,
 		service.secured)
-
-	service.API = NewAPIImpl(
-		service.Cache,
-		service.Config.AppPort,
-		service.secured)
+	if lifetime {
+		service.API = NewAPIImpl(
+			service.Cache,
+			service.Config.AppPort,
+			service.secured)
+	}
 	return service
 }
 
@@ -246,6 +247,41 @@ func (h *HorizonService) printUIEndpoints() {
 		)
 	fmt.Println(t)
 }
+
+func (h *HorizonService) Stop(ctx context.Context) error {
+	if h.API != nil {
+		if err := h.API.Stop(ctx); err != nil {
+			return err
+		}
+	}
+	if h.Schedule != nil {
+		if err := h.Schedule.Stop(); err != nil {
+			return err
+		}
+	}
+	if h.Broker != nil {
+		if err := h.Broker.Stop(); err != nil {
+			return err
+		}
+	}
+	if h.Cache != nil {
+		if err := h.Cache.Stop(ctx); err != nil {
+			return err
+		}
+	}
+	if h.Storage != nil {
+		if err := h.Storage.Stop(); err != nil {
+			return err
+		}
+	}
+	if h.Database != nil {
+		if err := h.Database.Stop(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (h *HorizonService) printStatus(service string, status string) {
 	switch status {
 	case "init":
