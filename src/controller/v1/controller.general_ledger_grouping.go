@@ -29,7 +29,7 @@ func generalLedgerGroupingController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger account groupings"})
 		}
-		gl, err := core.GeneralLedgerAlignments(context, userOrg.OrganizationID, *userOrg.BranchID)
+		gl, err := core.GeneralLedgerAlignments(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger account groupings: " + err.Error()})
 		}

@@ -30,7 +30,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -91,7 +91,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -224,7 +224,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -342,7 +342,7 @@ func checkRemittanceController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,

@@ -42,8 +42,8 @@ func computationSheetController(service *horizon.HorizonService) {
 		}
 
 		cashOnHandAccountID := userOrg.Branch.BranchSetting.CashOnHandAccountID
-		computed, err := ComputationSheetCalculator(
-			context,
+		computed, err := event.ComputationSheetCalculator(
+			context, service,
 			event.LoanComputationSheetCalculatorRequest{
 				AccountID:                    request.AccountID,
 				Applied1:                     request.Applied1,

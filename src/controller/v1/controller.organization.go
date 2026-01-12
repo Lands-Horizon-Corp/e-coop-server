@@ -22,7 +22,7 @@ func organizationController(service *horizon.HorizonService) {
 		Note:         "Returns all public organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organization, err := core.GetPublicOrganization(context)
+		organization, err := core.GetPublicOrganization(context, service)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
@@ -224,7 +224,7 @@ func organizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
 		}
 
-		developerKey, err := service.Security.GenerateUUIDv5(context, user.ID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(user.ID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -420,7 +420,7 @@ func organizationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update organization: " + endTx(err).Error()})
 		}
-		organizationsFromCategory, err := core.GetOrganizationCategoryByOrganization(context, organization.ID)
+		organizationsFromCategory, err := core.GetOrganizationCategoryByOrganization(context, service, organization.ID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -507,7 +507,7 @@ func organizationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Subscription plan is still active"})
 		}
-		userOrganizations, err := core.GetUserOrganizationByOrganization(context, organization.ID, nil)
+		userOrganizations, err := core.GetUserOrganizationByOrganization(context, service, organization.ID, nil)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -544,7 +544,7 @@ func organizationController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete organization category: " + endTx(err).Error()})
 			}
 		}
-		branches, err := core.GetBranchesByOrganization(context, organization.ID)
+		branches, err := core.GetBranchesByOrganization(context, service, organization.ID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -554,7 +554,7 @@ func organizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get branches for organization: " + endTx(err).Error()})
 		}
 		for _, branch := range branches {
-			if err := core.OrganizationDestroyer(context, tx, *organizationID, branch.ID); err != nil {
+			if err := core.OrganizationDestroyer(context, service, tx, *organizationID, branch.ID); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "delete-error",
 					Description: "Delete organization failed: destroy branch error: " + err.Error(),
@@ -612,7 +612,7 @@ func organizationController(service *horizon.HorizonService) {
 		Note:         "Returns featured organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizations, err := core.GetFeaturedOrganization(context)
+		organizations, err := core.GetFeaturedOrganization(context, service)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve featured organizations: " + err.Error()})
 		}
@@ -626,7 +626,7 @@ func organizationController(service *horizon.HorizonService) {
 		Note:         "Returns recently added organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		organizations, err := core.GetRecentlyAddedOrganization(context)
+		organizations, err := core.GetRecentlyAddedOrganization(context, service)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve recently added organizations: " + err.Error()})
 		}
@@ -644,7 +644,7 @@ func organizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organization categories: " + err.Error()})
 		}
-		organizations, err := core.GetPublicOrganization(context)
+		organizations, err := core.GetPublicOrganization(context, service)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}

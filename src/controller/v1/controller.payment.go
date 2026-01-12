@@ -84,7 +84,7 @@ func paymentController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 			}
 
-			generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+			generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 				TransactionID:        &transaction.ID,
 				MemberProfileID:      transaction.MemberProfileID,
 				MemberJointAccountID: transaction.MemberJointAccountID,
@@ -161,7 +161,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "General ledger not found: " + err.Error()})
 		}
 		maxNumber, err := core.GeneralLedgerPrintMaxNumber(
-			context,
+			context, service,
 			*generalLedger.MemberProfileID,
 			*generalLedger.AccountID,
 			*userOrg.BranchID,
@@ -236,7 +236,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
@@ -315,7 +315,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
@@ -390,7 +390,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        transactionID,
 			MemberProfileID:      nil,
 			MemberJointAccountID: nil,
@@ -455,7 +455,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
@@ -521,7 +521,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
@@ -587,7 +587,7 @@ func paymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		generalLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		generalLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
@@ -649,7 +649,7 @@ func paymentController(service *horizon.HorizonService) {
 		default:
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "General ledger entry is neither debit nor credit"})
 		}
-		newGeneralLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+		newGeneralLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 			Amount:                amount,
 			AccountID:             generalLedger.AccountID,
 			PaymentTypeID:         generalLedger.PaymentTypeID,
@@ -733,7 +733,7 @@ func paymentController(service *horizon.HorizonService) {
 			default:
 				continue
 			}
-			newGeneralLedger, err := TransactionPayment(context, ctx, tx, endTx, event.TransactionEvent{
+			newGeneralLedger, err := event.TransactionPayment(context, service, ctx, tx, endTx, event.TransactionEvent{
 				Amount:                amount,
 				AccountID:             generalLedger.AccountID,
 				PaymentTypeID:         generalLedger.PaymentTypeID,

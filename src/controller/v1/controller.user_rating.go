@@ -25,7 +25,7 @@ func userRatingController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := core.GetUserRater(context, *userID)
+		userRating, err := core.GetUserRater(context, service, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings given by user: " + err.Error()})
 		}
@@ -43,7 +43,7 @@ func userRatingController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_id: " + err.Error()})
 		}
-		userRating, err := core.GetUserRatee(context, *userID)
+		userRating, err := core.GetUserRatee(context, service, *userID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve user ratings received by user: " + err.Error()})
 		}

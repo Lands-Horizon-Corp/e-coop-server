@@ -45,7 +45,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberAccountTotal(context,
+		entries, err := core.GeneralLedgerMemberAccountTotal(context, service,
 			*memberProfileID,
 			*accountID,
 			userOrg.OrganizationID,
@@ -1459,7 +1459,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1497,7 +1497,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1535,7 +1535,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesByPaymentType(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1573,7 +1573,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1611,7 +1611,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1649,7 +1649,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1687,7 +1687,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1725,7 +1725,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1763,7 +1763,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -1801,7 +1801,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context,
+		entries, err := core.GeneralLedgerMemberProfileEntriesBySource(context, service,
 			*memberProfileID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -2545,7 +2545,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerExcludeCashonHand(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID)
+		entries, err := core.GeneralLedgerExcludeCashonHand(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2722,7 +2722,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := core.GeneralLedgerSourceDeposit
-		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2748,7 +2748,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := core.GeneralLedgerSourceJournal
-		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2774,7 +2774,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := core.GeneralLedgerSourceAdjustment
-		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2800,7 +2800,8 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := core.GeneralLedgerSourceJournalVoucher
-		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(
+			context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -2826,7 +2827,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		source := core.GeneralLedgerSourceCheckVoucher
-		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
+		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
@@ -3181,7 +3182,7 @@ func generalLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan general ledger entries"})
 		}
 		entries, err := core.GeneralLedgerByLoanTransaction(
-			context,
+			context, service,
 			*loanTransactionID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,

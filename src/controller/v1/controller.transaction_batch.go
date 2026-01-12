@@ -185,13 +185,13 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil || transactionBatch == nil {
 			return ctx.NoContent(http.StatusNoContent)
 		}
 
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
@@ -302,7 +302,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		})
 
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get minimal transaction batch: " + err.Error()})
 			}
@@ -348,7 +348,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
 
-		transactionBatch, _ := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, _ := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if transactionBatch != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -450,7 +450,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			Module:      "TransactionBatch",
 		})
 
-		result, err := core.TransactionBatchMinimal(context, transBatch.ID)
+		result, err := core.TransactionBatchMinimal(context, service, transBatch.ID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 		}
@@ -500,7 +500,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -539,7 +539,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		})
 
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
@@ -571,7 +571,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction batch not found: " + err.Error()})
 		}
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
@@ -658,7 +658,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 			Module:      "TransactionBatch",
 		})
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 			}
@@ -681,7 +681,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := core.TransactionBatchViewRequests(context, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchViewRequests(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve pending view requests: " + err.Error()})
 		}
@@ -702,7 +702,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		batches, err := core.TransactionBatchCurrentDay(context, userOrg.OrganizationID, *userOrg.BranchID)
+		batches, err := core.TransactionBatchCurrentDay(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ended transaction batches: " + err.Error()})
 		}
@@ -817,7 +817,7 @@ func transactionBatchController(service *horizon.HorizonService) {
 
 		for i, batch := range paginated.Data {
 			if !batch.CanView {
-				minimalBatch, err := core.TransactionBatchMinimal(context, batch.ID)
+				minimalBatch, err := core.TransactionBatchMinimal(context, service, batch.ID)
 				if err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
 				}

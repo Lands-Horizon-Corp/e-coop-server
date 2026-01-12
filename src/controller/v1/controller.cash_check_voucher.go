@@ -81,7 +81,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherDraft(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherDraft(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch draft cash check vouchers: " + err.Error()})
 		}
@@ -107,7 +107,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherPrinted(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherPrinted(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch printed cash check vouchers: " + err.Error()})
 		}
@@ -133,7 +133,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherApproved(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherApproved(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch approved cash check vouchers: " + err.Error()})
 		}
@@ -159,7 +159,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherReleased(context, *userOrg.BranchID, userOrg.OrganizationID)
+		cashCheckVouchers, err := core.CashCheckVoucherReleased(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch released cash check vouchers: " + err.Error()})
 		}
@@ -787,7 +787,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already released"})
 		}
 
-		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",
@@ -835,7 +835,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
+			if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
 
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "cash-check-voucher-transaction-recording-failed",
@@ -1043,7 +1043,7 @@ func cashCheckVoucherController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		vouchers, err := core.CashCheckVoucherReleasedCurrentDay(context, *userOrg.BranchID, userOrg.OrganizationID)
+		vouchers, err := core.CashCheckVoucherReleasedCurrentDay(context, service, *userOrg.BranchID, userOrg.OrganizationID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve today's released cash check vouchers: " + err.Error()})
 		}

@@ -30,7 +30,7 @@ func financialStatementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement groupings"})
 		}
 		fsGroupings, err := core.FinancialStatementAccountsGroupingAlignments(
-			context, userOrg.OrganizationID, *userOrg.BranchID,
+			context, service, userOrg.OrganizationID, *userOrg.BranchID,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve financial statement groupings: " + err.Error()})

@@ -25,7 +25,7 @@ func permissionTemplateController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := core.GetPermissionTemplateBybranch(context, userOrg.OrganizationID, *userOrg.BranchID)
+		permissionTemplates, err := core.GetPermissionTemplateBybranch(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve permission templates: " + err.Error()})
 		}

@@ -91,11 +91,11 @@ func userController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
-		valid, err := service.Security.VerifyPassword(context, user.Password, req.OldPassword)
+		valid, err := service.Security.VerifyPassword(user.Password, req.OldPassword)
 		if err != nil || !valid {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
 		}
-		hashedPwd, err := service.Security.HashPassword(context, req.NewPassword)
+		hashedPwd, err := service.Security.HashPassword(req.NewPassword)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -122,7 +122,7 @@ func userController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch updated user: " + err.Error()})
 		}
-		if err := SetUser(context, ctx, updatedUser); err != nil {
+		if err := event.SetUser(context, service, ctx, updatedUser); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Change password from profile failed: set user token error: " + err.Error(),

@@ -885,7 +885,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been released"})
 		}
 
-		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "batch-retrieval-failed",
@@ -933,7 +933,7 @@ func journalVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := RecordTransaction(context, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
+			if err := RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
 
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "journal-voucher-transaction-recording-failed",

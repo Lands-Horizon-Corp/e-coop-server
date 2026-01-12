@@ -84,7 +84,7 @@ func cashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view cash counts"})
 		}
 
-		transactionBatch, err := core.TransactionBatchCurrent(context, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
@@ -140,7 +140,7 @@ func cashCountController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -255,7 +255,7 @@ func cashCountController(service *horizon.HorizonService) {
 		}
 
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
@@ -478,7 +478,7 @@ func cashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete cash count: " + err.Error()})
 		}
 		transactionBatch, err := core.TransactionBatchCurrent(
-			context,
+			context, service,
 			userOrg.UserID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,

@@ -119,7 +119,7 @@ func currencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Currency code is required"})
 		}
 
-		currency, err := core.CurrencyFindByCode(context, currencyCode)
+		currency, err := core.CurrencyFindByCode(context, service, currencyCode)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found: " + err.Error()})
 		}

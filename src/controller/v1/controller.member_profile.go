@@ -149,7 +149,7 @@ func memberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + endTx(err).Error()})
 		}
 
-		developerKey, err := service.Security.GenerateUUIDv5(context, userProfile.ID.String())
+		developerKey, err := service.Security.GenerateUUIDv5(userProfile.ID.String())
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -674,7 +674,7 @@ func memberProfileController(service *horizon.HorizonService) {
 		}
 
 		if userProfile != nil {
-			developerKey, err := service.Security.GenerateUUIDv5(context, userOrg.ID.String())
+			developerKey, err := service.Security.GenerateUUIDv5(userOrg.ID.String())
 			if err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
