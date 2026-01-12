@@ -126,6 +126,8 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("POSTGRES_DB", "devdb")
 	v.SetDefault("POSTGRES_PORT", 5432)
 	v.SetDefault("POSTGRES_HOST", "127.0.0.1")
+	v.SetDefault("DATABASE_URL", "")
+	v.SetDefault("POSTGRES_HOST", "127.0.0.1")
 	v.SetDefault("DATABASE_MAX_IDLE_CONN", 10)
 	v.SetDefault("DATABASE_MAX_OPEN_CONN", 100)
 	v.SetDefault("DATABASE_MAX_LIFETIME", 0)
@@ -191,6 +193,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		PostgresDB:           v.GetString("POSTGRES_DB"),
 		PostgresPort:         v.GetInt("POSTGRES_PORT"),
 		PostgresHost:         v.GetString("POSTGRES_HOST"),
+		DatabaseURL:          v.GetString("DATABASE_URL"),
 		DBMaxIdleConn:        v.GetInt("DATABASE_MAX_IDLE_CONN"),
 		DBMaxOpenConn:        v.GetInt("DATABASE_MAX_OPEN_CONN"),
 		DBMaxLifetimeSeconds: v.GetInt64("DATABASE_MAX_LIFETIME"),
