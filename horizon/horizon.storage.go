@@ -409,3 +409,40 @@ func (h *StorageImpl) GenerateUniqueName(original string, contentType string) (s
 	}
 	return fmt.Sprintf("%s%s-%d%s", h.prefix, base, time.Now().UnixNano(), ext), nil
 }
+
+func (h *StorageImpl) RemoveAllFiles(ctx context.Context) error {
+	if h.client == nil {
+		return eris.New("not initialized")
+	}
+	if strings.TrimSpace(h.storageBucket) == "" {
+		return eris.New("empty bucket name")
+	}
+	objectsCh := make(chan minio.ObjectInfo)
+	go func() {
+		defer close(objectsCh)
+		opts := minio.ListObjectsOptions{
+			Recursive: true,
+		}
+		for object := range h.client.ListObjects(ctx, h.storageBucket, opts) {
+			if object.Err != nil {
+				continue
+			}
+			select {
+			case objectsCh <- object:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	errorCh := h.client.RemoveObjects(ctx, h.storageBucket, objectsCh, minio.RemoveObjectsOptions{})
+	var errors []error
+	for err := range errorCh {
+		if err.Err != nil {
+			errors = append(errors, eris.Wrapf(err.Err, "failed to delete object %s", err.ObjectName))
+		}
+	}
+	if len(errors) > 0 {
+		return eris.Errorf("failed to delete %d objects from bucket %s", len(errors), h.storageBucket)
+	}
+	return nil
+}

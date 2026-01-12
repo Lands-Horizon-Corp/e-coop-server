@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/fatih/color"
 )
 
@@ -59,16 +60,122 @@ func clearBlockedIPs() error {
 	)
 }
 
-func migrateDatabase() {}
+func migrateDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database...",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 
-func seedDatabase() {}
+				if err := service.Database.Client().AutoMigrate(core.Models()...); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
 
-func seedDatabasePerformance(multiplier int32) {}
+func seedDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database...",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := core.Seed(ctx, service, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
 
-func resetDatabase() {}
+func seedDatabasePerformance(multiplier int32) error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Migrating database... with performance seed",
+			OnStopMessageText:  "Database migration completed.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := core.Seed(ctx, service, multiplier); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
 
-func cleanCache() {}
+func resetDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Resetting database...",
+			OnStopMessageText:  "Database reset completed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
+					return err
+				}
+				models := core.Models()
+				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+					return err
+				}
+				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
 
-func refreshDatabase() {}
+func cleanCache() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Cleaning cache...",
+			OnStopMessageText:  "Cache cleaned successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+
+				if err := service.Cache.Flush(ctx); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
+
+func refreshDatabase() error {
+	return horizon.WithHorizonService(
+		horizon.DefaultHorizonRunnerParams{
+			TimeoutValue:       30 * time.Minute,
+			OnStartMessageText: "Refreshing database...",
+			OnStopMessageText:  "Database refreshed successfully.",
+			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
+				models := core.Models()
+				if err := service.Cache.Flush(ctx); err != nil {
+					return err
+				}
+				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
+					return err
+				}
+				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+					return err
+				}
+				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+					return err
+				}
+				if err := core.Seed(ctx, service, 5); err != nil {
+					return err
+				}
+				return nil
+			},
+		},
+	)
+}
 
 func startServer() {}

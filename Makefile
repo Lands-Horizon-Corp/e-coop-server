@@ -29,14 +29,15 @@ profiler:
 	go clean -cache -modcache -testcache -fuzzcache; \
 	\
 	echo ""; \
-	echo "Step 2: Building with debug-actiongraph"; \
-	go build -debug-actiongraph=$$OUTPUT_DIR/compile.json ./...; \
-	echo "Actiongraph build finished: $$OUTPUT_DIR/compile.json"; \
-	\
-	echo ""; \
+	go clean -cache -modcache -testcache -fuzzcache; \
 	echo "Step 3: Building with debug-trace"; \
 	go build -debug-trace=$$OUTPUT_DIR/trace.json ./...; \
 	echo "Trace build finished: $$OUTPUT_DIR/trace.json"; \
+	\
+	echo ""; \
+	echo "Step 2: Building with debug-actiongraph"; \
+	go build -debug-actiongraph=$$OUTPUT_DIR/compile.json ./...; \
+	echo "Actiongraph build finished: $$OUTPUT_DIR/compile.json"; \
 	\
 	echo ""; \
 	echo "Step 4: Rendering compile dependency WHY-graph"; \
