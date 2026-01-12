@@ -62,6 +62,7 @@ func WithHorizonService(params HorizonRunnerParams) error {
 	defer func() {
 		service.Stop(context.Background())
 		cancel()
+
 		if msg := params.OnStopMessage(); msg != "" {
 			color.Yellow(msg+": %v", ctx.Err())
 		}
@@ -69,8 +70,13 @@ func WithHorizonService(params HorizonRunnerParams) error {
 	if err := service.Run(ctx); err != nil {
 		return err
 	}
-	if params.Handler() == nil {
-		return nil
+	if params.Handler() != nil {
+		if err := params.Handler()(ctx, service); err != nil {
+			return err
+		}
 	}
-	return params.Handler()(ctx, service)
+	if params.ForceLifetime() {
+		<-ctx.Done()
+	}
+	return nil
 }
