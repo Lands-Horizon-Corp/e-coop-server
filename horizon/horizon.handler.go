@@ -49,34 +49,35 @@ func (p DefaultHorizonRunnerParams) ForceLifetime() bool {
 	}
 	return *p.ForceLifetimeFunc
 }
-
 func WithHorizonService(params HorizonRunnerParams) error {
-	ctx, cancel := context.WithTimeout(
+	lifecycleCtx, stop := context.WithTimeout(
 		context.Background(),
 		params.Timeout(),
 	)
+	defer stop()
 	service := NewHorizonService(params.ForceLifetime())
+
 	if msg := params.OnStartMessage(); msg != "" {
 		color.Blue(msg)
 	}
-	defer func() {
-		service.Stop(context.Background())
-		cancel()
-
-		if msg := params.OnStopMessage(); msg != "" {
-			color.Yellow(msg+": %v", ctx.Err())
-		}
-	}()
-	if err := service.Run(ctx); err != nil {
+	if err := service.Run(lifecycleCtx); err != nil {
 		return err
 	}
 	if params.Handler() != nil {
-		if err := params.Handler()(ctx, service); err != nil {
+		handlerCtx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		if err := params.Handler()(handlerCtx, service); err != nil {
+			service.Stop(context.Background())
 			return err
 		}
 	}
 	if params.ForceLifetime() {
-		<-ctx.Done()
+		<-lifecycleCtx.Done()
+	}
+	service.Stop(context.Background())
+	if msg := params.OnStopMessage(); msg != "" {
+		color.Yellow(msg)
 	}
 	return nil
 }

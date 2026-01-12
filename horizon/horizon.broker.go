@@ -54,7 +54,7 @@ func (h *MessageBrokerImpl) Stop() error {
 
 func (h *MessageBrokerImpl) Dispatch(topics []string, payload any) error {
 	if h.nc == nil {
-		return eris.New("NATS connection not initialized")
+		return eris.New("Dispatch: NATS connection not initialized")
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -72,7 +72,7 @@ func (h *MessageBrokerImpl) Dispatch(topics []string, payload any) error {
 
 func (h *MessageBrokerImpl) Publish(topic string, payload any) error {
 	if h.nc == nil {
-		return eris.New("NATS connection not initialized")
+		return eris.New("Publish: NATS connection not initialized")
 	}
 
 	data, err := json.Marshal(payload)
@@ -87,7 +87,7 @@ func (h *MessageBrokerImpl) Publish(topic string, payload any) error {
 
 func (h *MessageBrokerImpl) Subscribe(topic string, handler func(any) error) error {
 	if h.nc == nil {
-		return eris.New("NATS connection not initialized")
+		return eris.New("Subscribe: NATS connection not initialized")
 	}
 	_, err := h.nc.Subscribe(h.formatTopic(topic), func(msg *nats.Msg) {
 		var payload map[string]any
