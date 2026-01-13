@@ -694,7 +694,7 @@ func LoanTransactionManager(service *horizon.HorizonService) *registry.Registry[
 		LoanTransaction, LoanTransactionResponse, LoanTransactionRequest,
 	]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "EmployeeUser",
+			"CreatedBy", "UpdatedBy", "EmployeeUser", "EmployeeUser.Media",
 			"TransactionBatch", "LoanPurpose", "LoanStatus",
 			"ComakerDepositMemberAccountingLedger", "PreviousLoan", "ComakerDepositMemberAccountingLedger.Account",
 			"Account",
