@@ -38,37 +38,28 @@ func NewAuthImpl[T ClaimWithID](
 	}
 }
 
+// mainKey returns the Redis key for a user session's claim.
 func (h *AuthImpl[T]) mainKey(userID, token string) string {
 	return fmt.Sprintf("%s:csrf:%s:%s", h.name, userID, token)
 }
 
+// tokenToUserKey returns the Redis key for mapping a token to a user ID.
 func (h *AuthImpl[T]) tokenToUserKey(token string) string {
 	return fmt.Sprintf("%s:csrf_token_to_user:%s", h.name, token)
 }
 
+// getTokenFromContext extracts the CSRF token from the request header or cookie.
 func (h *AuthImpl[T]) getTokenFromContext(c echo.Context) string {
 	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
 		return token
 	}
-	if auth := c.Request().Header.Get("Authorization"); auth != "" {
-		const bearer = "Bearer "
-		if strings.HasPrefix(auth, bearer) {
-			return strings.TrimSpace(auth[len(bearer):])
-		}
-	}
-	if cookie, err := c.Cookie(h.csrfHeader); err == nil && cookie.Value != "" {
+	if cookie, err := c.Cookie(h.csrfHeader); err == nil {
 		return cookie.Value
 	}
-	if fv := c.FormValue(h.csrfHeader); fv != "" {
-		return fv
-	}
-	if fv := c.FormValue("token"); fv != "" {
-		return fv
-	}
-
 	return ""
 }
 
+// GetCSRF retrieves and validates the CSRF claim for the current session.
 func (h *AuthImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	var zeroT T
 	token := h.getTokenFromContext(c)
@@ -94,58 +85,52 @@ func (h *AuthImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	return claim, nil
 }
 
+// SetCSRF creates a new CSRF token, stores the claim, sets headers and cookies.
 func (h *AuthImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
 	token, err := helpers.GenerateToken()
 	if err != nil {
 		return eris.Wrap(err, "failed to generate CSRF token")
 	}
+
 	userID := claim.GetID()
 	data, err := json.Marshal(claim)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal claim")
 	}
+
 	mainKey := h.mainKey(userID, token)
 	if err := h.cache.Set(ctx, mainKey, data, expiry); err != nil {
 		return eris.Wrap(err, "failed to set CSRF token")
 	}
+
 	tokenUserKey := h.tokenToUserKey(token)
 	if err := h.cache.Set(ctx, tokenUserKey, []byte(userID), expiry); err != nil {
 		_ = h.cache.Delete(ctx, mainKey)
 		return eris.Wrap(err, "failed to set token-user mapping")
 	}
+
 	c.Response().Header().Set(h.csrfHeader, token)
-	secure := h.ssl
-	sameSite := http.SameSiteNoneMode
-	host := c.Request().Host
-	hostname := c.Request().URL.Hostname()
-	if !h.ssl || hostname == "localhost" || strings.HasPrefix(host, "192.168.") ||
-		strings.HasPrefix(host, "10.") || strings.HasPrefix(host, "172.") {
-		secure = false
-		sameSite = http.SameSiteDefaultMode
-	}
-	if secure {
-		c.SetCookie(&http.Cookie{
-			Name:     h.csrfHeader,
-			Value:    token,
-			Path:     "/",
-			Expires:  time.Now().Add(expiry),
-			HttpOnly: true,
-			Secure:   secure,
-			SameSite: sameSite,
-		})
-	} else {
-		return c.JSON(http.StatusOK, map[string]string{
-			"csrf_token": token,
-		})
-	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     h.csrfHeader,
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(expiry),
+		HttpOnly: true,
+		Secure:   h.ssl,
+		SameSite: http.SameSiteNoneMode,
+	})
+
 	return nil
 }
 
+// ClearCSRF removes the CSRF token and claim, and clears the cookie.
 func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	token := h.getTokenFromContext(c)
 	if token == "" {
 		return
 	}
+
 	tokenUserKey := h.tokenToUserKey(token)
 	userIDBytes, err := h.cache.Get(ctx, tokenUserKey)
 	if err == nil && len(userIDBytes) > 0 {
@@ -153,12 +138,6 @@ func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		_ = h.cache.Delete(ctx, h.mainKey(userID, token))
 	}
 	_ = h.cache.Delete(ctx, tokenUserKey)
-	secure := h.ssl
-	sameSite := http.SameSiteNoneMode
-	if c.Request().URL.Hostname() == "localhost" || strings.HasPrefix(c.Request().Host, "192.168.") {
-		secure = false
-		sameSite = http.SameSiteLaxMode
-	}
 
 	c.SetCookie(&http.Cookie{
 		Name:     h.csrfHeader,
@@ -166,11 +145,12 @@ func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 		Path:     "/",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   secure,
-		SameSite: sameSite,
+		Secure:   h.ssl,
+		SameSite: http.SameSiteNoneMode,
 	})
 }
 
+// IsLoggedInOnOtherDevice checks if the current user has valid CSRF tokens on other devices.
 func (h *AuthImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -201,6 +181,7 @@ func (h *AuthImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Contex
 	return false, nil
 }
 
+// GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
 func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -225,7 +206,7 @@ func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T
 		}
 		token := parts[3]
 		if token == currentToken {
-			continue
+			continue // Skip current session
 		}
 
 		val, err := h.cache.Get(ctx, key)
@@ -241,6 +222,7 @@ func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T
 	return uniqueUsers, nil
 }
 
+// LogoutAllUsers logs out all sessions for the current user.
 func (h *AuthImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -264,6 +246,7 @@ func (h *AuthImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error 
 	return nil
 }
 
+// VerifyCSRF validates a CSRF token and returns the associated claim if valid.
 func (h *AuthImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
 	if token == "" {
@@ -288,6 +271,7 @@ func (h *AuthImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	return claim, nil
 }
 
+// LogoutOtherDevices logs out all other sessions for the user except the current one.
 func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -306,6 +290,7 @@ func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) er
 		}
 		token := parts[3]
 
+		// Delete both session key and token mapping
 		if err := h.cache.Delete(ctx, key); err != nil {
 			return eris.Wrapf(err, "failed to delete session key: %s", key)
 		}
@@ -326,10 +311,12 @@ func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) er
 	return nil
 }
 
+// Key returns the Redis key for token-to-user mapping.
 func (h *AuthImpl[T]) Key(token string) string {
 	return h.tokenToUserKey(token)
 }
 
+// Name returns the service's configured name.
 func (h *AuthImpl[T]) Name() string {
 	return h.name
 }

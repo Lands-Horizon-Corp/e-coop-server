@@ -185,8 +185,8 @@ func startServer() error {
 		horizon.DefaultHorizonRunnerParams{
 			ForceLifetimeFunc:  &forceLifeTime,
 			TimeoutValue:       5 * time.Minute,
-			OnStartMessageText: "Refreshing database...",
-			OnStopMessageText:  "Database refreshed successfully.",
+			OnStartMessageText: "Starting Server ...",
+			OnStopMessageText:  "Server started successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 				if err := v1.Controllers(service); err != nil {
 					return err
