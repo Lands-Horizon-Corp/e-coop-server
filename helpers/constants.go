@@ -5,7 +5,6 @@ var suspiciousPaths = []string{
 	"env",
 	"config",
 	"secret",
-	"password",
 	"apikey",
 	".git",
 	"node_modules",
