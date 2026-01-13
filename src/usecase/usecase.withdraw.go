@@ -1,15 +1,12 @@
 package usecase
 
 import (
-	"context"
-
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 )
 
 func Withdraw(
-	ctx context.Context,
 	account *core.Account,
 	amount float64,
 ) (credit float64, debit float64, err error) {
@@ -21,7 +18,7 @@ func Withdraw(
 		return 0, 0, eris.New("amount must be greater than zero")
 	}
 	if amt.LessThan(decimal.Zero) {
-		return Deposit(ctx, account, amt.Abs().InexactFloat64())
+		return Deposit(account, amt.Abs().InexactFloat64())
 	}
 
 	switch account.Type {

@@ -164,15 +164,15 @@ func TransactionPayment(
 	switch data.Source {
 	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
 		if data.Reverse {
-			credit, debit, err = usecase.Withdraw(context, account, data.Amount)
+			credit, debit, err = usecase.Withdraw(account, data.Amount)
 		} else {
-			credit, debit, err = usecase.Deposit(context, account, data.Amount)
+			credit, debit, err = usecase.Deposit(account, data.Amount)
 		}
 	case core.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
-			credit, debit, err = usecase.Deposit(context, account, data.Amount)
+			credit, debit, err = usecase.Deposit(account, data.Amount)
 		} else {
-			credit, debit, err = usecase.Withdraw(context, account, data.Amount)
+			credit, debit, err = usecase.Withdraw(account, data.Amount)
 		}
 	default:
 		err = eris.New("unsupported source type")
