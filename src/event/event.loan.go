@@ -22,33 +22,37 @@ type LoanBalanceEvent struct {
 
 func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context, tx *gorm.DB, endTx func(error) error, data LoanBalanceEvent) (*core.LoanTransaction, error) {
 
+	// =========================
+	// STEP 1: AUTH & ORG
+	// =========================
 	userOrg, err := CurrentUserOrganization(ctx, service, echoCtx)
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "auth-error",
-			Description: "Failed to get user organization during loan balancing: " + err.Error(),
+			Description: "Failed to get user organization: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
 	}
 
+	// =========================
+	// STEP 2: LOAN TRANSACTION & ACCOUNT
+	// =========================
 	loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get loan transaction during loan balancing: " + err.Error(),
+			Description: "Failed to get loan transaction: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
 
-	if loanTransaction.AccountID == nil {
-	}
 	account, err := core.AccountManager(service).GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get loan account during loan balancing: " + err.Error(),
+			Description: "Failed to get loan account: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan account"))
@@ -62,7 +66,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get loan transaction entries during loan balancing: " + err.Error(),
+			Description: "Failed to get loan transaction entries: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction entries"))
@@ -73,33 +77,40 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
-	disableLoanDeduction := loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct || loanTransaction.LoanType == core.LoanTypeRestructured || loanTransaction.LoanType == core.LoanTypeStandardPrevious
+	disableLoanDeduction := loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == core.LoanTypeRestructured ||
+		loanTransaction.LoanType == core.LoanTypeStandardPrevious
 	if err != nil || disableLoanDeduction {
 		automaticLoanDeductions = []*core.AutomaticLoanDeduction{}
-	} else {
 	}
 
+	// =========================
+	// STEP 3: CATEGORIZE ENTRIES
+	// =========================
 	result := []*core.LoanTransactionEntry{}
 	static, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
-
 	for _, entry := range loanTransactionEntries {
-		if entry.Type == core.LoanTransactionStatic {
+		switch entry.Type {
+		case core.LoanTransactionStatic:
 			static = append(static, entry)
-		}
-		if entry.Type == core.LoanTransactionDeduction {
+		case core.LoanTransactionDeduction:
 			deduction = append(deduction, entry)
-		}
-		if entry.Type == core.LoanTransactionAutomaticDeduction && !disableLoanDeduction {
-			postComputed = append(postComputed, entry)
+		case core.LoanTransactionAutomaticDeduction:
+			if !disableLoanDeduction {
+				postComputed = append(postComputed, entry)
+			}
 		}
 	}
 
+	// =========================
+	// STEP 4: DEFAULT STATIC ENTRIES
+	// =========================
 	if len(static) < 2 {
 		cashOnCashEquivalenceAccount, err := core.AccountManager(service).GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 		if err != nil {
 			Footstep(echoCtx, service, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to get cash on cash equivalence account during loan balancing: " + err.Error(),
+				Description: "Failed to get cash on cash equivalence account: " + err.Error(),
 				Module:      "LoanBalancing",
 			})
 			return nil, endTx(eris.Wrap(err, "failed to get cash on cash equivalence account"))
@@ -107,7 +118,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 
 		static = []*core.LoanTransactionEntry{
 			{
-				Credit:            loanTransaction.Applied1,
+				Credit:            decimal.NewFromFloat(loanTransaction.Applied1).InexactFloat64(),
 				Debit:             0,
 				Description:       cashOnCashEquivalenceAccount.Description,
 				Account:           cashOnCashEquivalenceAccount,
@@ -118,7 +129,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 			},
 			{
 				Credit:            0,
-				Debit:             loanTransaction.Applied1,
+				Debit:             decimal.NewFromFloat(loanTransaction.Applied1).InexactFloat64(),
 				Account:           loanTransaction.Account,
 				AccountID:         loanTransaction.AccountID,
 				Description:       loanTransaction.Account.Description,
@@ -129,42 +140,29 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		}
 	}
 
-	if len(static) >= 2 {
-		if static[0].Account != nil && static[0].Account.CashAndCashEquivalence {
-			result = append(result, static[0])
-			result = append(result, static[1])
-		} else {
-			result = append(result, static[1])
-			result = append(result, static[0])
-		}
+	// =========================
+	// STEP 5: ARRANGE STATIC
+	// =========================
+	if static[0].Account.CashAndCashEquivalence {
+		result = append(result, static[0], static[1])
+	} else {
+		result = append(result, static[1], static[0])
 	}
 
-	addOnEntry := &core.LoanTransactionEntry{
-		Account:           nil,
-		Credit:            0,
-		Debit:             0,
-		Name:              "ADD ON INTEREST",
-		Type:              core.LoanTransactionAddOn,
-		LoanTransactionID: loanTransaction.ID,
-		IsAddOn:           true,
-	}
-
-	totalNonAddOnsDec := decimal.Zero
-	totalAddOnsDec := decimal.Zero
+	// =========================
+	// STEP 6: PROCESS DEDUCTIONS
+	// =========================
+	totalNonAddOns, totalAddOns := decimal.Zero, decimal.Zero
 
 	for _, entry := range deduction {
-		creditDec := decimal.NewFromFloat(entry.Credit)
-
-		if !entry.IsAddOn {
-			totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
+		c := decimal.NewFromFloat(entry.Credit)
+		if entry.IsAddOn {
+			totalAddOns = totalAddOns.Add(c)
 		} else {
-			totalAddOnsDec = totalAddOnsDec.Add(creditDec)
+			totalNonAddOns = totalNonAddOns.Add(c)
 		}
-
 		result = append(result, entry)
 	}
-	totalNonAddOns := totalNonAddOnsDec.InexactFloat64()
-	totalAddOns := totalAddOnsDec.InexactFloat64()
 
 	for _, entry := range postComputed {
 		if entry.IsAutomaticLoanDeductionDeleted {
@@ -174,32 +172,33 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 
 		if entry.Amount != 0 {
 			entry.Credit = entry.Amount
-		} else {
-			if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
-				chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
-				if err != nil {
-					return nil, endTx(err)
-				}
-				entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
+		} else if entry.AutomaticLoanDeduction.ChargesRateSchemeID != nil {
+			chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(ctx, *entry.AutomaticLoanDeduction.ChargesRateSchemeID)
+			if err != nil {
+				return nil, endTx(err)
 			}
-
-			if entry.Credit <= 0 {
-				entry.Credit = usecase.LoanComputation(*entry.AutomaticLoanDeduction, *loanTransaction)
-			}
-		}
-		creditDec := decimal.NewFromFloat(entry.Credit)
-
-		if !entry.IsAddOn {
-			totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
-		} else {
-			totalAddOnsDec = totalAddOnsDec.Add(creditDec)
+			entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 		}
 
-		if creditDec.GreaterThan(decimal.Zero) {
+		if decimal.NewFromFloat(entry.Credit).LessThanOrEqual(decimal.Zero) {
+			entry.Credit = usecase.LoanComputation(*entry.AutomaticLoanDeduction, *loanTransaction)
+		}
+
+		c := decimal.NewFromFloat(entry.Credit)
+		if entry.IsAddOn {
+			totalAddOns = totalAddOns.Add(c)
+		} else {
+			totalNonAddOns = totalNonAddOns.Add(c)
+		}
+
+		if entry.Credit > 0 {
 			result = append(result, entry)
 		}
 	}
 
+	// =========================
+	// STEP 7: ADD MISSING AUTOMATIC DEDUCTIONS
+	// =========================
 	for _, ald := range automaticLoanDeductions {
 		exist := false
 		for _, computed := range postComputed {
@@ -208,6 +207,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 				break
 			}
 		}
+
 		if !exist {
 			entry := &core.LoanTransactionEntry{
 				Credit:                   0,
@@ -220,10 +220,8 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 				Description:              ald.Account.Description,
 				AutomaticLoanDeductionID: &ald.ID,
 				LoanTransactionID:        loanTransaction.ID,
-				Amount:                   0,
 			}
 
-			// Compute credit using rate scheme if available
 			if ald.ChargesRateSchemeID != nil {
 				chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
@@ -232,20 +230,16 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 				entry.Credit = usecase.LoanChargesRateComputation(*chargesRateScheme, *loanTransaction)
 			}
 
-			// Fallback computation
-			if entry.Credit <= 0 {
+			if decimal.NewFromFloat(entry.Credit).LessThanOrEqual(decimal.Zero) {
 				entry.Credit = usecase.LoanComputation(*ald, *loanTransaction)
 			}
 
-			// Update totals using shopspring/decimal
-			creditDec := decimal.NewFromFloat(entry.Credit)
-			if !entry.IsAddOn {
-				totalNonAddOnsDec = totalNonAddOnsDec.Add(creditDec)
+			c := decimal.NewFromFloat(entry.Credit)
+			if entry.IsAddOn {
+				totalAddOns = totalAddOns.Add(c)
 			} else {
-				totalAddOnsDec = totalAddOnsDec.Add(creditDec)
+				totalNonAddOns = totalNonAddOns.Add(c)
 			}
-			totalNonAddOns = totalNonAddOnsDec.InexactFloat64()
-			totalAddOns = totalAddOnsDec.InexactFloat64()
 
 			if entry.Credit > 0 {
 				result = append(result, entry)
@@ -253,34 +247,41 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		}
 	}
 
+	// =========================
+	// STEP 8: PREVIOUS LOAN BALANCES
+	// =========================
 	if (loanTransaction.LoanType == core.LoanTypeRestructured ||
 		loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
 		loanTransaction.LoanType == core.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
-		previous := loanTransaction.PreviousLoan
-		if previous == nil {
-		} else {
-			result = append(result, &core.LoanTransactionEntry{
-				Account:           previous.Account,
-				AccountID:         previous.AccountID,
-				Credit:            previous.Balance,
-				Debit:             0,
-				Name:              previous.Account.Name,
-				Description:       previous.Account.Description,
-				Type:              core.LoanTransactionPrevious,
-				LoanTransactionID: loanTransaction.ID,
-			})
-			totalNonAddOnsDec := decimal.NewFromFloat(totalNonAddOns)
-			totalNonAddOnsDec = totalNonAddOnsDec.Add(decimal.NewFromFloat(previous.Balance))
-			totalNonAddOns = totalNonAddOnsDec.InexactFloat64()
-		}
+
+		prev := loanTransaction.PreviousLoan
+		result = append(result, &core.LoanTransactionEntry{
+			Account:           prev.Account,
+			AccountID:         prev.AccountID,
+			Credit:            prev.Balance,
+			Debit:             0,
+			Name:              prev.Account.Name,
+			Description:       prev.Account.Description,
+			Type:              core.LoanTransactionPrevious,
+			LoanTransactionID: loanTransaction.ID,
+		})
+		totalNonAddOns = totalNonAddOns.Add(decimal.NewFromFloat(prev.Balance))
 	}
 
+	// =========================
+	// STEP 9: FINAL CASH EQUIVALENT
+	// =========================
+	applied := decimal.NewFromFloat(loanTransaction.Applied1)
 	if loanTransaction.IsAddOn {
-		result[0].Credit = decimal.NewFromFloat(loanTransaction.Applied1).Sub(decimal.NewFromFloat(totalNonAddOns)).InexactFloat64()
+		result[0].Credit = applied.Sub(totalNonAddOns).InexactFloat64()
 	} else {
-		totalDeductionsDec := decimal.NewFromFloat(totalNonAddOns).Add(decimal.NewFromFloat(totalAddOns))
-		result[0].Credit = decimal.NewFromFloat(loanTransaction.Applied1).Sub(totalDeductionsDec).InexactFloat64()
+		totalDeductions := totalNonAddOns.Add(totalAddOns)
+		result[0].Credit = applied.Sub(totalDeductions).InexactFloat64()
 	}
+
+	// =========================
+	// STEP 10: DELETE OLD ENTRIES
+	// =========================
 	for _, entry := range loanTransactionEntries {
 		if entry.ID == uuid.Nil {
 			continue
@@ -288,38 +289,35 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		if err := core.LoanTransactionEntryManager(service).DeleteWithTx(ctx, tx, entry.ID); err != nil {
 			Footstep(echoCtx, service, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to delete existing loan transaction entries during loan balancing: " + err.Error(),
+				Description: "Failed to delete old entry: " + err.Error(),
 				Module:      "LoanBalancing",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to delete existing loan transaction entries: "+err.Error()))
-		}
-	}
-	if len(result) >= 2 {
-		result[1].Debit = loanTransaction.Applied1
-		switch loanTransaction.LoanType {
-		case core.LoanTypeStandard:
-			result[1].Name = loanTransaction.Account.Name
-		case core.LoanTypeStandardPrevious:
-			result[1].Name = loanTransaction.Account.Name
-		case core.LoanTypeRestructured:
-			result[1].Name = loanTransaction.Account.Name + " - RESTRUCTURED"
-		case core.LoanTypeRenewal:
-			result[1].Name = loanTransaction.Account.Name + " - CURRENT"
-		case core.LoanTypeRenewalWithoutDeduct:
-			result[1].Name = loanTransaction.Account.Name + " - CURRENT"
+			return nil, endTx(eris.Wrap(err, "failed to delete existing loan transaction entry"))
 		}
 	}
 
-	if loanTransaction.IsAddOn && totalAddOns > 0 {
-		addOnEntry.Debit = totalAddOns
-		result = append(result, addOnEntry)
+	// =========================
+	// STEP 11: UPDATE LOAN ACCOUNT ENTRY
+	// =========================
+	result[1].Debit = applied.InexactFloat64()
+	switch loanTransaction.LoanType {
+	case core.LoanTypeRestructured:
+		result[1].Name += " - RESTRUCTURED"
+	case core.LoanTypeRenewal, core.LoanTypeRenewalWithoutDeduct:
+		result[1].Name += " - CURRENT"
 	}
 
-	totalDebitDec := decimal.Zero
-	totalCreditDec := decimal.Zero
+	if loanTransaction.IsAddOn && totalAddOns.GreaterThan(decimal.Zero) {
+		result[1].Name += " + Add On"
+		result[1].Debit = decimal.NewFromFloat(result[1].Debit).Add(totalAddOns).InexactFloat64()
+	}
 
+	// =========================
+	// STEP 12: CREATE NEW ENTRIES & COMPUTE TOTALS
+	// =========================
+	totalCredit, totalDebit := decimal.Zero, decimal.Zero
 	for index, entry := range result {
-		value := &core.LoanTransactionEntry{
+		newEntry := &core.LoanTransactionEntry{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
 			UpdatedAt:                       time.Now().UTC(),
@@ -339,67 +337,68 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 			Amount:                          entry.Amount,
 			IsAutomaticLoanDeductionDeleted: entry.IsAutomaticLoanDeductionDeleted,
 		}
+
 		if !entry.IsAutomaticLoanDeductionDeleted {
-			totalDebitDec = totalDebitDec.Add(decimal.NewFromFloat(entry.Debit))
-			totalCreditDec = totalCreditDec.Add(decimal.NewFromFloat(entry.Credit))
+			totalDebit = totalDebit.Add(decimal.NewFromFloat(entry.Debit))
+			totalCredit = totalCredit.Add(decimal.NewFromFloat(entry.Credit))
 		}
-		if err := core.LoanTransactionEntryManager(service).CreateWithTx(ctx, tx, value); err != nil {
+
+		if err := core.LoanTransactionEntryManager(service).CreateWithTx(ctx, tx, newEntry); err != nil {
 			Footstep(echoCtx, service, FootstepEvent{
 				Activity:    "data-error",
-				Description: "Failed to create loan transaction entry during loan balancing: " + err.Error(),
+				Description: "Failed to create entry: " + err.Error(),
 				Module:      "LoanBalancing",
 			})
-			return nil, endTx(eris.Wrap(err, "failed to create loan transaction entry: "+err.Error()))
+			return nil, endTx(eris.Wrap(err, "failed to create loan transaction entry"))
 		}
 	}
 
-	amountGrantedDec := totalCreditDec
-	if loanTransaction.IsAddOn {
-		amountGrantedDec = amountGrantedDec.Add(decimal.NewFromFloat(totalAddOns))
-	}
-	amountGranted := amountGrantedDec.InexactFloat64()
-
-	amort, err := usecase.LoanModeOfPayment(amountGranted, loanTransaction)
+	// =========================
+	// STEP 13: CALCULATE AMORTIZATION & UPDATE LOAN
+	// =========================
+	amort, err := usecase.LoanModeOfPayment(loanTransaction)
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to calculate loan amortization during loan balancing: " + err.Error(),
+			Description: "Failed to calculate amortization: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization: "+err.Error()))
+		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization"))
 	}
+
 	loanTransaction.Amortization = amort
-	loanTransaction.AmountGranted = amountGranted
-	loanTransaction.TotalAddOn = totalAddOns
-	loanTransaction.TotalPrincipal = totalCreditDec.InexactFloat64()
-	loanTransaction.Balance = totalCreditDec.InexactFloat64()
-	loanTransaction.TotalCredit = totalCreditDec.InexactFloat64()
-	loanTransaction.TotalDebit = totalDebitDec.InexactFloat64()
+	loanTransaction.TotalPrincipal = totalCredit.InexactFloat64()
+	loanTransaction.TotalCredit = totalCredit.InexactFloat64()
+	loanTransaction.Balance = totalCredit.InexactFloat64()
+	loanTransaction.TotalDebit = totalDebit.InexactFloat64()
 	loanTransaction.UpdatedAt = time.Now().UTC()
 	loanTransaction.UpdatedByID = userOrg.UserID
 
 	if err := core.LoanTransactionManager(service).UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to update loan transaction during loan balancing: " + err.Error(),
+			Description: "Failed to update loan transaction: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
-		return nil, endTx(eris.Wrap(err, "failed to update loan transaction: "+err.Error()))
+		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
 
 	if err := endTx(nil); err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "db-commit-error",
-			Description: "Failed to commit transaction during loan balancing: " + err.Error(),
+			Description: "Failed to commit transaction: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 	}
 
+	// =========================
+	// STEP 14: RETURN UPDATED LOAN TRANSACTION
+	// =========================
 	newLoanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransaction.ID)
 	if err != nil {
 		Footstep(echoCtx, service, FootstepEvent{
 			Activity:    "data-error",
-			Description: "Failed to get updated loan transaction during loan balancing: " + err.Error(),
+			Description: "Failed to get updated loan transaction: " + err.Error(),
 			Module:      "LoanBalancing",
 		})
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))

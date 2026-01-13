@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
@@ -276,52 +275,74 @@ func LoanComputation(
 	return result.Round(2).InexactFloat64()
 }
 
-func LoanModeOfPayment(
-	amount float64,
-	lt *core.LoanTransaction,
-) (float64, error) {
-
-	if lt == nil {
-		return 0, errors.New("loan transaction is required")
-	}
-	if amount <= 0 {
-		return 0, errors.New("amount must be greater than 0")
-	}
-	if lt.Terms <= 0 {
-		return 0, errors.New("invalid terms: must be greater than 0")
-	}
-
-	amtDecimal := decimal.NewFromFloat(amount)
-	termsDecimal := decimal.NewFromInt(int64(lt.Terms))
-	perTerm := amtDecimal.Div(termsDecimal)
-
-	round := func(d decimal.Decimal) float64 {
-		return d.Round(2).InexactFloat64()
-	}
+func LoanModeOfPayment(lt *core.LoanTransaction) (float64, error) {
+	applied := decimal.NewFromFloat(lt.Applied1)
 
 	switch lt.ModeOfPayment {
 	case core.LoanModeOfPaymentDaily:
-		return round(perTerm.Div(decimal.NewFromInt(30))), nil
-	case core.LoanModeOfPaymentWeekly:
-		return round(perTerm.Div(decimal.NewFromInt(4))), nil
-	case core.LoanModeOfPaymentSemiMonthly:
-		return round(perTerm.Div(decimal.NewFromInt(2))), nil
-	case core.LoanModeOfPaymentMonthly:
-		return round(perTerm), nil
-	case core.LoanModeOfPaymentQuarterly:
-		return round(amtDecimal.Div(termsDecimal.Div(decimal.NewFromInt(3)))), nil
-	case core.LoanModeOfPaymentSemiAnnual:
-		return round(amtDecimal.Div(termsDecimal.Div(decimal.NewFromInt(6)))), nil
-	case core.LoanModeOfPaymentLumpsum:
-		return round(amtDecimal), nil
-	case core.LoanModeOfPaymentFixedDays:
-		if lt.ModeOfPaymentFixedDays <= 0 {
-			return 0, errors.New("invalid fixed days: must be greater than 0")
+		// Applied1 / Terms / 30
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
 		}
-		return round(decimal.NewFromFloat(lt.Applied1).Div(termsDecimal)), nil
-	default:
-		return 0, fmt.Errorf("unsupported mode of payment: %v", lt.ModeOfPayment)
+		termsDiv := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
+		result := termsDiv.Div(decimal.NewFromInt(30))
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentWeekly:
+		// Applied1 / Terms / 4
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		termsDiv := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
+		result := termsDiv.Div(decimal.NewFromInt(4))
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentSemiMonthly:
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		termsDiv := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
+		result := termsDiv.Div(decimal.NewFromInt(2))
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentMonthly:
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		result := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentQuarterly:
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		termsDiv := decimal.NewFromInt(int64(lt.Terms)).Div(decimal.NewFromInt(3))
+		result := applied.Div(termsDiv)
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentSemiAnnual:
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		termsDiv := decimal.NewFromInt(int64(lt.Terms)).Div(decimal.NewFromInt(6))
+		result := applied.Div(termsDiv)
+		return result.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentLumpsum:
+		return applied.Round(2).InexactFloat64(), nil
+
+	case core.LoanModeOfPaymentFixedDays:
+		if lt.Terms <= 0 {
+			return 0, eris.New("invalid terms: must be greater than 0")
+		}
+		if lt.ModeOfPaymentFixedDays <= 0 {
+			return 0, eris.New("invalid fixed days: must be greater than 0")
+		}
+		result := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
+		return result.Round(2).InexactFloat64(), nil
 	}
+
+	return 0, eris.New("loan mode of payment not implemented yet")
 }
 
 func SuggestedNumberOfTerms(
