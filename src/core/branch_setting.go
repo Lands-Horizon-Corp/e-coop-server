@@ -93,12 +93,13 @@ type (
 		TaxInterest                       float64 `gorm:"not null;default:0" json:"tax_interest"`
 
 		DefaultMemberGenderID *uuid.UUID    `gorm:"type:uuid" json:"default_member_gender_id,omitempty"`
-		DefaultMemberGender   *MemberGender `gorm:"foreignKey:member_gender;constraint:OnDelete:SET NULL;" json:"default_member_gender,omitempty"`
+		DefaultMemberGender   *MemberGender `gorm:"foreignKey:DefaultMemberGenderID;constraint:OnDelete:SET NULL;" json:"default_member_gender,omitempty"`
 
-		DefaultMemberTypeID *uuid.UUID           `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
-		DefaultMemberType   *MemberType          `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
-		AnnualDivisor       int                  `gorm:"not null;default:360" json:"annual_divisor"`
-		UnbalancedAccounts  []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
+		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
+		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
+
+		AnnualDivisor      int                  `gorm:"not null;default:360" json:"annual_divisor"`
+		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
 	}
 
 	BranchSettingRequest struct {
