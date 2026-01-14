@@ -62,16 +62,16 @@ type (
 		Permissions            pq.StringArray       `gorm:"type:varchar(255)[]" json:"permissions"`
 		IsSeeded               bool                 `gorm:"not null;default:false" json:"is_seeded"`
 
-		UserSettingDescription   string `gorm:"type:text" json:"user_setting_description"`
-		UserSettingNumberPadding int    `gorm:"not null;default:0" json:"user_setting_number_padding"`
+		UserSettingDescription string `gorm:"type:text" json:"user_setting_description"`
 
-		UserSettingStartOR int64 `gorm:"unsigned" json:"start_or"`
-		UserSettingEndOR   int64 `gorm:"unsigned" json:"end_or"`
-		UserSettingUsedOR  int64 `gorm:"unsigned" json:"used_or"`
-
-		UserSettingStartVoucher int64 `gorm:"unsigned" json:"start_voucher"`
-		UserSettingEndVoucher   int64 `gorm:"unsigned" json:"end_voucher"`
-		UserSettingUsedVoucher  int64 `gorm:"unsigned" json:"used_voucher"`
+		PaymentORUnique         bool  `gorm:"not null;default:false" json:"payment_or_unique"`
+		PaymentORAllowUserInput bool  `gorm:"not null;default:true" json:"payment_or_allow_user_input"`
+		PaymentORCurrent        int64 `gorm:"not null;default:1" json:"payment_or_current"`
+		PaymentOREnd            int64 `gorm:"not null;default:9999" json:"payment_or_end"`
+		PaymentORIteration      int64 `gorm:"not null;default:1" json:"payment_or_iteration"`
+		PaymentORUseDateOR      bool  `gorm:"not null;default:false" json:"payment_or_use_date_or"`
+		PaymentAllowPrefix      bool  `gorm:"not null;default:false" json:"payment_allow_prefix"`
+		PaymentPadding          int   `gorm:"not null;default:6" json:"payment_padding"`
 
 		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
@@ -157,14 +157,14 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
-		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
-
-		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
-		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
-		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+		PaymentORUnique         bool  `json:"payment_or_unique,omitempty"`
+		PaymentORAllowUserInput bool  `json:"payment_or_allow_user_input,omitempty"`
+		PaymentORCurrent        int64 `json:"payment_or_current,omitempty" validate:"min=1"`
+		PaymentOREnd            int64 `json:"payment_or_end,omitempty" validate:"min=1"`
+		PaymentORIteration      int64 `json:"payment_or_iteration,omitempty" validate:"min=1"`
+		PaymentORUseDateOR      bool  `json:"payment_or_use_date_or,omitempty"`
+		PaymentAllowPrefix      bool  `json:"payment_allow_prefix,omitempty"`
+		PaymentPadding          int   `json:"payment_padding,omitempty" validate:"min=0"`
 	}
 
 	UserOrganizationSettingsRequest struct {
@@ -176,14 +176,14 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
-		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
-
-		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
-		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
-		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+		PaymentORUnique         bool  `json:"payment_or_unique,omitempty"`
+		PaymentORAllowUserInput bool  `json:"payment_or_allow_user_input,omitempty"`
+		PaymentORCurrent        int64 `json:"payment_or_current,omitempty" validate:"min=1"`
+		PaymentOREnd            int64 `json:"payment_or_end,omitempty" validate:"min=1"`
+		PaymentORIteration      int64 `json:"payment_or_iteration,omitempty" validate:"min=1"`
+		PaymentORUseDateOR      bool  `json:"payment_or_use_date_or,omitempty"`
+		PaymentAllowPrefix      bool  `json:"payment_allow_prefix,omitempty"`
+		PaymentPadding          int   `json:"payment_padding,omitempty" validate:"min=0"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
@@ -201,14 +201,14 @@ type (
 		Description            string `json:"description,omitempty"`
 		UserSettingDescription string `json:"user_setting_description,omitempty"`
 
-		UserSettingStartOR       int64 `json:"user_setting_start_or,omitempty" validate:"min=0"`
-		UserSettingEndOR         int64 `json:"user_setting_end_or,omitempty" validate:"min=0"`
-		UserSettingUsedOR        int64 `json:"user_setting_used_or,omitempty" validate:"min=0"`
-		UserSettingNumberPadding int   `json:"user_setting_number_padding,omitempty" validate:"min=0"`
-
-		UserSettingStartVoucher int64 `json:"user_setting_start_voucher,omitempty" validate:"min=0"`
-		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher,omitempty" validate:"min=0"`
-		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher,omitempty" validate:"min=0"`
+		PaymentORUnique         bool  `json:"payment_or_unique,omitempty"`
+		PaymentORAllowUserInput bool  `json:"payment_or_allow_user_input,omitempty"`
+		PaymentORCurrent        int64 `json:"payment_or_current,omitempty" validate:"min=1"`
+		PaymentOREnd            int64 `json:"payment_or_end,omitempty" validate:"min=1"`
+		PaymentORIteration      int64 `json:"payment_or_iteration,omitempty" validate:"min=1"`
+		PaymentORUseDateOR      bool  `json:"payment_or_use_date_or,omitempty"`
+		PaymentAllowPrefix      bool  `json:"payment_allow_prefix,omitempty"`
+		PaymentPadding          int   `json:"payment_padding,omitempty" validate:"min=0"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
@@ -248,14 +248,14 @@ type (
 
 		UserSettingDescription string `json:"user_setting_description"`
 
-		UserSettingNumberPadding int   `json:"user_setting_number_padding"`
-		UserSettingStartOR       int64 `json:"user_setting_start_or"`
-		UserSettingEndOR         int64 `json:"user_setting_end_or"`
-		UserSettingUsedOR        int64 `json:"user_setting_used_or"`
-
-		UserSettingStartVoucher int64 `json:"user_setting_start_voucher"`
-		UserSettingEndVoucher   int64 `json:"user_setting_end_voucher"`
-		UserSettingUsedVoucher  int64 `json:"user_setting_used_voucher"`
+		PaymentORUnique         bool  `json:"payment_or_unique"`
+		PaymentORAllowUserInput bool  `json:"payment_or_allow_user_input"`
+		PaymentORCurrent        int64 `json:"payment_or_current"`
+		PaymentOREnd            int64 `json:"payment_or_end"`
+		PaymentORIteration      int64 `json:"payment_or_iteration"`
+		PaymentORUseDateOR      bool  `json:"payment_or_use_date_or"`
+		PaymentAllowPrefix      bool  `json:"payment_allow_prefix"`
+		PaymentPadding          int   `json:"payment_padding"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
 		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
@@ -386,13 +386,14 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 
 				UserSettingDescription: data.UserSettingDescription,
 
-				UserSettingNumberPadding:             data.UserSettingNumberPadding,
-				UserSettingStartOR:                   data.UserSettingStartOR,
-				UserSettingEndOR:                     data.UserSettingEndOR,
-				UserSettingUsedOR:                    data.UserSettingUsedOR,
-				UserSettingStartVoucher:              data.UserSettingStartVoucher,
-				UserSettingEndVoucher:                data.UserSettingEndVoucher,
-				UserSettingUsedVoucher:               data.UserSettingUsedVoucher,
+				PaymentORUnique:                      data.PaymentORUnique,
+				PaymentORAllowUserInput:              data.PaymentORAllowUserInput,
+				PaymentORCurrent:                     data.PaymentORCurrent,
+				PaymentOREnd:                         data.PaymentOREnd,
+				PaymentORIteration:                   data.PaymentORIteration,
+				PaymentORUseDateOR:                   data.PaymentORUseDateOR,
+				PaymentAllowPrefix:                   data.PaymentAllowPrefix,
+				PaymentPadding:                       data.PaymentPadding,
 				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
 				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
 				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,

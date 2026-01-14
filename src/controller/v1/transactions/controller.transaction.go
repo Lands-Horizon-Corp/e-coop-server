@@ -86,17 +86,7 @@ func TransactionController(service *horizon.HorizonService) {
 			ReferenceNumber: req.ReferenceNumber,
 			Description:     req.Description,
 		}
-		if req.IsReferenceNumberChecked {
-			userOrg.UserSettingUsedOR++
-			if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "update-error",
-					Description: "Failed to update user organization (/transaction): " + err.Error(),
-					Module:      "Transaction",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update user organization: " + err.Error()})
-			}
-		}
+
 		if err := core.TransactionManager(service).Create(context, transaction); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",

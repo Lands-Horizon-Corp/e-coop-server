@@ -613,29 +613,22 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &core.UserOrganization{
-			CreatedAt:                time.Now().UTC(),
-			CreatedByID:              user.ID,
-			UpdatedAt:                time.Now().UTC(),
-			UpdatedByID:              user.ID,
-			OrganizationID:           invitationCode.OrganizationID,
-			BranchID:                 &invitationCode.BranchID,
-			UserID:                   user.ID,
-			UserType:                 core.UserOrganizationType(invitationCode.UserType),
-			Description:              invitationCode.Description,
-			ApplicationDescription:   "anything",
-			ApplicationStatus:        "pending",
-			DeveloperSecretKey:       developerKey,
-			PermissionName:           invitationCode.PermissionName,
-			PermissionDescription:    invitationCode.PermissionDescription,
-			Permissions:              invitationCode.Permissions,
-			UserSettingDescription:   "user settings",
-			UserSettingStartOR:       0,
-			UserSettingEndOR:         1000,
-			UserSettingUsedOR:        0,
-			UserSettingStartVoucher:  0,
-			UserSettingEndVoucher:    0,
-			UserSettingUsedVoucher:   0,
-			UserSettingNumberPadding: 7,
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.ID,
+			OrganizationID:         invitationCode.OrganizationID,
+			BranchID:               &invitationCode.BranchID,
+			UserID:                 user.ID,
+			UserType:               core.UserOrganizationType(invitationCode.UserType),
+			Description:            invitationCode.Description,
+			ApplicationDescription: "anything",
+			ApplicationStatus:      "pending",
+			DeveloperSecretKey:     developerKey,
+			PermissionName:         invitationCode.PermissionName,
+			PermissionDescription:  invitationCode.PermissionDescription,
+			Permissions:            invitationCode.Permissions,
+			UserSettingDescription: "user settings",
 		}
 		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
@@ -774,29 +767,22 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
 		userOrg := &core.UserOrganization{
-			CreatedAt:                time.Now().UTC(),
-			CreatedByID:              user.ID,
-			UpdatedAt:                time.Now().UTC(),
-			UpdatedByID:              user.ID,
-			OrganizationID:           *organizationID,
-			BranchID:                 branchID,
-			UserID:                   user.ID,
-			UserType:                 core.UserOrganizationTypeMember,
-			Description:              req.Description,
-			ApplicationDescription:   "",
-			ApplicationStatus:        "pending",
-			DeveloperSecretKey:       developerKey,
-			PermissionName:           string(core.UserOrganizationTypeMember),
-			PermissionDescription:    "just a member",
-			Permissions:              []string{},
-			UserSettingDescription:   "users settings description",
-			UserSettingStartOR:       0,
-			UserSettingEndOR:         1000,
-			UserSettingUsedOR:        0,
-			UserSettingStartVoucher:  0,
-			UserSettingEndVoucher:    0,
-			UserSettingUsedVoucher:   0,
-			UserSettingNumberPadding: 7,
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            user.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            user.ID,
+			OrganizationID:         *organizationID,
+			BranchID:               branchID,
+			UserID:                 user.ID,
+			UserType:               core.UserOrganizationTypeMember,
+			Description:            req.Description,
+			ApplicationDescription: "",
+			ApplicationStatus:      "pending",
+			DeveloperSecretKey:     developerKey,
+			PermissionName:         string(core.UserOrganizationTypeMember),
+			PermissionDescription:  "just a member",
+			Permissions:            []string{},
+			UserSettingDescription: "users settings description",
 		}
 
 		if err := core.UserOrganizationManager(service).Create(context, userOrg); err != nil {
@@ -1262,13 +1248,14 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.ApplicationDescription = req.ApplicationDescription
 		userOrg.ApplicationStatus = req.ApplicationStatus
 		userOrg.UserSettingDescription = req.UserSettingDescription
-		userOrg.UserSettingStartOR = req.UserSettingStartOR
-		userOrg.UserSettingEndOR = req.UserSettingEndOR
-		userOrg.UserSettingUsedOR = req.UserSettingUsedOR
-		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
-		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
-		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
-		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
+		userOrg.PaymentORUnique = req.PaymentORUnique
+		userOrg.PaymentORAllowUserInput = req.PaymentORAllowUserInput
+		userOrg.PaymentORCurrent = req.PaymentORCurrent
+		userOrg.PaymentOREnd = req.PaymentOREnd
+		userOrg.PaymentORIteration = req.PaymentORIteration
+		userOrg.PaymentORUseDateOR = req.PaymentORUseDateOR
+		userOrg.PaymentAllowPrefix = req.PaymentAllowPrefix
+		userOrg.PaymentPadding = req.PaymentPadding
 		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
@@ -1327,16 +1314,19 @@ func UserOrganizationController(service *horizon.HorizonService) {
 
 		userOrg.Description = req.Description
 		userOrg.UserSettingDescription = req.UserSettingDescription
-		userOrg.UserSettingStartOR = req.UserSettingStartOR
-		userOrg.UserSettingEndOR = req.UserSettingEndOR
-		userOrg.UserSettingUsedOR = req.UserSettingUsedOR
-		userOrg.UserSettingStartVoucher = req.UserSettingStartVoucher
-		userOrg.UserSettingEndVoucher = req.UserSettingEndVoucher
-		userOrg.UserSettingUsedVoucher = req.UserSettingUsedVoucher
+
+		userOrg.PaymentORUnique = req.PaymentORUnique
+		userOrg.PaymentORAllowUserInput = req.PaymentORAllowUserInput
+		userOrg.PaymentORCurrent = req.PaymentORCurrent
+		userOrg.PaymentOREnd = req.PaymentOREnd
+		userOrg.PaymentORIteration = req.PaymentORIteration
+		userOrg.PaymentORUseDateOR = req.PaymentORUseDateOR
+		userOrg.PaymentAllowPrefix = req.PaymentAllowPrefix
+		userOrg.PaymentPadding = req.PaymentPadding
+
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
 		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
-		userOrg.UserSettingNumberPadding = req.UserSettingNumberPadding
 		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
