@@ -95,8 +95,9 @@ type (
 		DefaultMemberGenderID *uuid.UUID    `gorm:"type:uuid" json:"default_member_gender_id,omitempty"`
 		DefaultMemberGender   *MemberGender `gorm:"foreignKey:DefaultMemberGenderID;constraint:OnDelete:SET NULL;" json:"default_member_gender,omitempty"`
 
-		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
-		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
+		DefaultMemberTypeID       *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
+		DefaultMemberType         *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
+		LoanAppliedEqualToBalance bool        `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
 
 		AnnualDivisor      int                  `gorm:"not null;default:360" json:"annual_divisor"`
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
@@ -160,13 +161,15 @@ type (
 		CheckVoucherGeneralORStart        int    `json:"check_voucher_general_or_start" validate:"min=0"`
 		CheckVoucherGeneralORCurrent      int    `json:"check_voucher_general_or_current" validate:"min=0"`
 		CheckVoucherGeneralORIteration    int    `json:"check_voucher_general_or_iteration" validate:"min=0"`
-		CheckVoucherGeneralPadding        int    `json:"check_voucher_general_padding" validate:"min=0"`
+
+		CheckVoucherGeneralPadding int `json:"check_voucher_general_padding" validate:"min=0"`
 
 		DefaultMemberGenderID *uuid.UUID `json:"default_member_gender_id,omitempty"`
 		DefaultMemberTypeID   *uuid.UUID `json:"default_member_type_id,omitempty"`
 
-		AnnualDivisor int     `json:"annual_divisor" validate:"min=0"`
-		TaxInterest   float64 `json:"tax_interest" validate:"min=0"`
+		LoanAppliedEqualToBalance bool    `json:"loan_applied_equal_to_balance"`
+		AnnualDivisor             int     `json:"annual_divisor" validate:"min=0"`
+		TaxInterest               float64 `json:"tax_interest" validate:"min=0"`
 	}
 
 	BranchSettingsCurrencyRequest struct {
@@ -260,8 +263,9 @@ type (
 		CompassionFundAccount        *AccountResponse `json:"compassion_fund_account,omitempty"`
 		AnnualDivisor                int              `json:"annual_divisor"`
 
-		UnbalancedAccounts []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
-		TaxInterest        float64                      `json:"tax_interest"`
+		UnbalancedAccounts        []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
+		TaxInterest               float64                      `json:"tax_interest"`
+		LoanAppliedEqualToBalance bool                         `json:"loan_applied_to_balance"`
 	}
 )
 
@@ -374,6 +378,8 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 
 				DefaultMemberGenderID: data.DefaultMemberGenderID,
 				DefaultMemberGender:   MemberGenderManager(service).ToModel(data.DefaultMemberGender),
+
+				LoanAppliedEqualToBalance: data.LoanAppliedEqualToBalance,
 			}
 		},
 		Created: func(data *BranchSetting) registry.Topics {

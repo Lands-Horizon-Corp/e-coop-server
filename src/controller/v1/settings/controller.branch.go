@@ -658,10 +658,11 @@ func BranchController(service *horizon.HorizonService) {
 				CheckVoucherGeneralORIteration:    settingsReq.CheckVoucherGeneralORIteration,
 				CheckVoucherGeneralPadding:        settingsReq.CheckVoucherGeneralPadding,
 
-				AnnualDivisor:         settingsReq.AnnualDivisor,
-				DefaultMemberTypeID:   settingsReq.DefaultMemberTypeID,
-				DefaultMemberGenderID: settingsReq.DefaultMemberGenderID,
-				TaxInterest:           settingsReq.TaxInterest,
+				AnnualDivisor:             settingsReq.AnnualDivisor,
+				DefaultMemberTypeID:       settingsReq.DefaultMemberTypeID,
+				DefaultMemberGenderID:     settingsReq.DefaultMemberGenderID,
+				LoanAppliedEqualToBalance: settingsReq.LoanAppliedEqualToBalance,
+				TaxInterest:               settingsReq.TaxInterest,
 			}
 
 			if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
@@ -736,6 +737,7 @@ func BranchController(service *horizon.HorizonService) {
 
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 			branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
+			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
 			branchSetting.TaxInterest = settingsReq.TaxInterest
 
