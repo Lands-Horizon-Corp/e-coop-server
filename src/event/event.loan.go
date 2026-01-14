@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -77,6 +78,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
+
 	disableLoanDeduction := loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
 		loanTransaction.LoanType == core.LoanTypeRestructured ||
 		loanTransaction.LoanType == core.LoanTypeStandardPrevious
@@ -207,21 +209,20 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 				break
 			}
 		}
+		entry := &core.LoanTransactionEntry{
+			Credit:                   0,
+			Debit:                    0,
+			Name:                     ald.Name,
+			Type:                     core.LoanTransactionAutomaticDeduction,
+			IsAddOn:                  ald.AddOn,
+			Account:                  ald.Account,
+			AccountID:                ald.AccountID,
+			Description:              ald.Account.Description,
+			AutomaticLoanDeductionID: &ald.ID,
+			LoanTransactionID:        loanTransaction.ID,
+		}
 
 		if !exist {
-			entry := &core.LoanTransactionEntry{
-				Credit:                   0,
-				Debit:                    0,
-				Name:                     ald.Name,
-				Type:                     core.LoanTransactionAutomaticDeduction,
-				IsAddOn:                  ald.AddOn,
-				Account:                  ald.Account,
-				AccountID:                ald.AccountID,
-				Description:              ald.Account.Description,
-				AutomaticLoanDeductionID: &ald.ID,
-				LoanTransactionID:        loanTransaction.ID,
-			}
-
 			if ald.ChargesRateSchemeID != nil {
 				chargesRateScheme, err := core.ChargesRateSchemeManager(service).GetByID(ctx, *ald.ChargesRateSchemeID)
 				if err != nil {
@@ -233,7 +234,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 			if decimal.NewFromFloat(entry.Credit).LessThanOrEqual(decimal.Zero) {
 				entry.Credit = usecase.LoanComputation(*ald, *loanTransaction)
 			}
-
 			c := decimal.NewFromFloat(entry.Credit)
 			if entry.IsAddOn {
 				totalAddOns = totalAddOns.Add(c)
@@ -308,7 +308,7 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	}
 
 	if loanTransaction.IsAddOn && totalAddOns.GreaterThan(decimal.Zero) {
-		result[1].Name += " + Add On"
+		result[1].Name += fmt.Sprintf(" + Add On Interest (+%s)", totalAddOns.String())
 		result[1].Debit = decimal.NewFromFloat(result[1].Debit).Add(totalAddOns).InexactFloat64()
 	}
 
