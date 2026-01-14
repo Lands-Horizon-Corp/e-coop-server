@@ -148,12 +148,24 @@ func memberGenderSeed(context context.Context, service *horizon.HorizonService, 
 			Description:    "Identifies outside the binary gender categories.",
 		},
 	}
+	branchSetting, err := BranchSettingManager(service).FindOne(context, &BranchSetting{
+		BranchID: branchID,
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to get branch setting on member gender seed")
+	}
 	for _, data := range memberGenders {
+
 		if err := MemberGenderManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member gender %s", data.Name)
 		}
+		if data.Name == "Female" {
+			branchSetting.DefaultMemberGenderID = &data.ID
+			if err := BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+				return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
+			}
+		}
 	}
-
 	return nil
 }
 

@@ -212,6 +212,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			CheckVoucherUseDateOR:      false,
 
 			DefaultMemberTypeID:       nil,
+			DefaultMemberGenderID:     nil,
 			LoanAppliedEqualToBalance: true,
 		}
 

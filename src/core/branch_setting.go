@@ -69,7 +69,10 @@ type (
 		CheckVoucherORUnique       bool    `gorm:"not null;default:true" json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool    `gorm:"not null;default:false" json:"check_voucher_use_date_or"`
 		AnnualDivisor              int     `gorm:"not null;default:360" json:"annual_divisor"`
-		TaxInterest                float64 `gorm:"not null;default:0" json:" "`
+		TaxInterest                float64 `gorm:"not null;default:0" json:"tax_interest"`
+
+		DefaultMemberGenderID *uuid.UUID    `gorm:"type:uuid" json:"default_member_gender_id,omitempty"`
+		DefaultMemberGender   *MemberGender `gorm:"foreignKey:member_gender;constraint:OnDelete:SET NULL;" json:"default_member_gender,omitempty"`
 
 		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
@@ -115,9 +118,11 @@ type (
 		CheckVoucherORUnique       bool   `json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool   `json:"check_voucher_use_date_or"`
 
-		DefaultMemberTypeID *uuid.UUID `json:"default_member_type_id,omitempty"`
-		AnnualDivisor       int        `json:"annual_divisor" validate:"min=0"`
-		TaxInterest         float64    `json:"tax_interest" validate:"min=0"`
+		DefaultMemberGenderID *uuid.UUID `json:"default_member_gender_id,omitempty"`
+		DefaultMemberTypeID   *uuid.UUID `json:"default_member_type_id,omitempty"`
+
+		AnnualDivisor int     `json:"annual_divisor" validate:"min=0"`
+		TaxInterest   float64 `json:"tax_interest" validate:"min=0"`
 	}
 
 	BranchSettingsCurrencyRequest struct {
@@ -174,6 +179,9 @@ type (
 		CheckVoucherORIteration    int    `json:"check_voucher_or_iteration"`
 		CheckVoucherORUnique       bool   `json:"check_voucher_or_unique"`
 		CheckVoucherUseDateOR      bool   `json:"check_voucher_use_date_or"`
+
+		DefaultMemberGenderID *uuid.UUID            `json:"default_member_gender_id"`
+		DefaultMemberGender   *MemberGenderResponse `json:"default_member_gender"`
 
 		DefaultMemberTypeID *uuid.UUID          `json:"default_member_type_id,omitempty"`
 		DefaultMemberType   *MemberTypeResponse `json:"default_member_type,omitempty"`
@@ -275,6 +283,9 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				UnbalancedAccounts: UnbalancedAccountManager(service).ToModels(data.UnbalancedAccounts),
 				AnnualDivisor:      data.AnnualDivisor,
 				TaxInterest:        data.TaxInterest,
+
+				DefaultMemberGenderID: data.DefaultMemberGenderID,
+				DefaultMemberGender:   MemberGenderManager(service).ToModel(data.DefaultMemberGender),
 			}
 		},
 		Created: func(data *BranchSetting) registry.Topics {

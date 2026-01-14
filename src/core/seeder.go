@@ -210,6 +210,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 					CheckVoucherUseDateOR:      false,
 
 					DefaultMemberTypeID:       nil,
+					DefaultMemberGenderID:     nil,
 					LoanAppliedEqualToBalance: true,
 					CurrencyID:                currency.ID,
 				}
