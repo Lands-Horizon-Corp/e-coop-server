@@ -68,7 +68,7 @@ type (
 	MemberAssetRequest struct {
 		Name        string     `json:"name" validate:"required,min=1,max=255"`
 		EntryDate   time.Time  `json:"entry_date" validate:"required"`
-		Description string     `json:"description" validate:"required"`
+		Description string     `json:"description"`
 		Cost        float64    `json:"cost,omitempty"`
 		MediaID     *uuid.UUID `json:"media_id,omitempty"`
 	}

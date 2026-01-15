@@ -22,6 +22,8 @@ const (
 type LoanPayments struct {
 	Amount  float64   `json:"amount"`
 	PayDate time.Time `json:"pay_date"`
+
+	GeneralLedger *core.GeneralLedger `json:"general_ledger"`
 }
 type LoanPaymentSchedule struct {
 	LoanPayments LoanPayments `json:"loan_payments"`
