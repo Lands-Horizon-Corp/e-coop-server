@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 func TransactionBatchController(service *horizon.HorizonService) {
@@ -465,86 +466,66 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		ResponseType: core.TransactionBatchResponse{},
 		Note:         "Ends the current transaction batch for the authenticated user.",
 	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
+		c := ctx.Request().Context()
 		var req core.TransactionBatchEndRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "End transaction batch failed: invalid request body: " + err.Error(),
+				Description: eris.Wrap(err, "invalid request body").Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
+
 		if err := service.Validator.Struct(req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "End transaction batch failed: validation error: " + err.Error(),
+				Description: eris.Wrap(err, "request validation failed").Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed"})
 		}
-		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+
+		userOrg, err := event.CurrentUserOrganization(c, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "End transaction batch failed: user org error: " + err.Error(),
+				Description: eris.Wrap(err, "failed to retrieve user organization").Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization"})
 		}
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "End transaction batch failed: user not authorized",
+				Description: "user not authorized to end transaction batch",
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		transactionBatch, err := event.TransactionBatchEnd(c, service, userOrg, &req)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "End transaction batch failed: retrieve error: " + err.Error(),
+				Description: err.Error(),
 				Module:      "TransactionBatch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
-		}
-		if transactionBatch == nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "End transaction batch failed: no active batch",
-				Module:      "TransactionBatch",
-			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No active transaction batch found"})
-		}
-		now := time.Now().UTC()
-		transactionBatch.IsClosed = true
-		transactionBatch.EmployeeUserID = &userOrg.UserID
-		transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
-		transactionBatch.EmployeeByName = req.EmployeeByName
-		transactionBatch.EmployeeByPosition = req.EmployeeByPosition
-		transactionBatch.EndedAt = &now
-		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "End transaction batch failed: update error: " + err.Error(),
-				Module:      "TransactionBatch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to end transaction batch"})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: "Ended transaction batch for branch " + userOrg.BranchID.String(),
 			Module:      "TransactionBatch",
 		})
-
 		if !transactionBatch.CanView {
-			result, err := core.TransactionBatchMinimal(context, service, transactionBatch.ID)
+			result, err := core.TransactionBatchMinimal(c, service, transactionBatch.ID)
 			if err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve minimal transaction batch: " + err.Error()})
+				event.Footstep(ctx, service, event.FootstepEvent{Activity: "update-error", Description: eris.Wrap(err, "failed to retrieve minimal transaction batch").Error(), Module: "TransactionBatch"})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch"})
 			}
 			return ctx.JSON(http.StatusOK, result)
 		}
+
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 

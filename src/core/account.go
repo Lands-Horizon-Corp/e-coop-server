@@ -1501,20 +1501,6 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		if err := PaymentTypeManager(service).CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
 		}
-
-		userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
-			UserID:         userID,
-			OrganizationID: organizationID,
-			BranchID:       &branchID,
-		})
-		if err != nil {
-			return eris.Wrap(err, "failed to find user organization for setting default payment type")
-		}
-		userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
-		if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
-			return eris.Wrap(err, "failed to update user organization with default payment type")
-		}
-
 		paymentTypes := []*PaymentType{
 			{
 				CreatedAt:      now,
@@ -3543,14 +3529,6 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 	if err := UnbalancedAccountManager(service).CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
-	userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
-		UserID:         userID,
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to find user organization for seeding accounting default accounts")
-	}
 
 	var regularSavings *Account
 	for _, account := range accounts {
@@ -3560,12 +3538,23 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
+	userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
+		UserID:         userID,
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+	})
 	if regularSavings != nil {
 		userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
 		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	}
-
+	if err != nil {
+		return eris.Wrap(err, "failed to find user organization for setting default payment type")
+	}
+	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
+		return eris.Wrap(err, "failed to update user organization with default payment type")
+	}
 	return nil
 }
 

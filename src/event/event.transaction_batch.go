@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
@@ -12,27 +13,61 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func TransactionBatchBalancing(ctx context.Context, service *horizon.HorizonService, transactionBatchID *uuid.UUID) error {
+func TransactionBatchEnd(
+	context context.Context,
+	service *horizon.HorizonService,
+	userOrg *core.UserOrganization,
+	req *core.TransactionBatchEndRequest,
+) (*core.TransactionBatch, error) {
+	tx, endTx := service.Database.StartTransaction(context)
+
+	transactionBatch, err := core.TransactionBatchCurrent(
+		context,
+		service,
+		userOrg.UserID,
+		userOrg.OrganizationID,
+		*userOrg.BranchID,
+	)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to retrieve current transaction batch")
+	}
+	now := time.Now().UTC()
+	transactionBatch.IsClosed = true
+	transactionBatch.EmployeeUserID = &userOrg.UserID
+	transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
+	transactionBatch.EmployeeByName = req.EmployeeByName
+	transactionBatch.EmployeeByPosition = req.EmployeeByPosition
+	transactionBatch.EndedAt = &now
+	if err := core.TransactionBatchManager(service).UpdateByIDWithTx(context, tx, transactionBatch.ID, transactionBatch); err != nil {
+		return nil, eris.Wrap(err, "failed to update transaction batch")
+	}
+	if err := endTx(nil); err != nil {
+		return nil, eris.Wrap(err, "failed to commit database transaction")
+	}
+	return transactionBatch, nil
+}
+
+func TransactionBatchBalancing(context context.Context, service *horizon.HorizonService, transactionBatchID *uuid.UUID) error {
 	if transactionBatchID == nil {
 		return eris.New("transactionBatchID is nil")
 	}
-	tx, endTx := service.Database.StartTransaction(ctx)
-	transactionBatch, err := core.TransactionBatchManager(service).GetByIDLock(ctx, tx, *transactionBatchID)
+	tx, endTx := service.Database.StartTransaction(context)
+	transactionBatch, err := core.TransactionBatchManager(service).GetByIDLock(context, tx, *transactionBatchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to get transaction batch by ID"))
 	}
 
-	payments, err := TBPayment(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	payments, err := TBPayment(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total payments"))
 	}
 	transactionBatch.TotalCashCollection = payments.Balance
-	totalDeposit, err := TBDeposit(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	totalDeposit, err := TBDeposit(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total deposits"))
 	}
 	transactionBatch.TotalDepositEntry = totalDeposit.Balance
-	batchFunding, err := TBBatchFunding(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	batchFunding, err := TBBatchFunding(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total batch funding"))
 	}
@@ -44,7 +79,7 @@ func TransactionBatchBalancing(ctx context.Context, service *horizon.HorizonServ
 		Add(decimal.NewFromFloat(transactionBatch.TotalCashCollection))
 	transactionBatch.TotalCashHandled = totalCashHandled.InexactFloat64()
 
-	totalWithdraw, err := TBWithdraw(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	totalWithdraw, err := TBWithdraw(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total withdrawals"))
 	}
@@ -54,7 +89,7 @@ func TransactionBatchBalancing(ctx context.Context, service *horizon.HorizonServ
 	transactionBatch.SavingsWithdrawal = savingsWithdrawal.InexactFloat64()
 	less = less.Add(savingsWithdrawal)
 
-	disbursementTransaction, err := TBDisbursementTransaction(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	disbursementTransaction, err := TBDisbursementTransaction(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total disbursement transactions"))
 	}
@@ -64,20 +99,20 @@ func TransactionBatchBalancing(ctx context.Context, service *horizon.HorizonServ
 	totalSupposed := decimal.NewFromFloat(transactionBatch.TotalCashHandled).Sub(less)
 	transactionBatch.TotalSupposedRemmitance = totalSupposed.InexactFloat64()
 
-	tbCashCount, err := TBCashCount(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	tbCashCount, err := TBCashCount(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total cash count"))
 	}
 	transactionBatch.TotalCashOnHand = tbCashCount
 	transactionBatch.CashCountTotal = tbCashCount
 
-	tbCheckRemittance, err := TBCheckRemittance(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	tbCheckRemittance, err := TBCheckRemittance(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total check remittance"))
 	}
 	transactionBatch.TotalCheckRemittance = tbCheckRemittance
 
-	tbOnlineRemittance, err := TBOnlineRemittance(ctx, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	tbOnlineRemittance, err := TBOnlineRemittance(context, service, transactionBatch.ID, transactionBatch.OrganizationID, transactionBatch.BranchID)
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate total online remittance"))
 	}
@@ -102,7 +137,7 @@ func TransactionBatchBalancing(ctx context.Context, service *horizon.HorizonServ
 	totalActualSupposedComparison := totalActualRemittance.Sub(totalSupposed)
 	transactionBatch.TotalActualSupposedComparison = totalActualSupposedComparison.InexactFloat64()
 
-	if err := core.TransactionBatchManager(service).UpdateByIDWithTx(ctx, tx, transactionBatch.ID, transactionBatch); err != nil {
+	if err := core.TransactionBatchManager(service).UpdateByIDWithTx(context, tx, transactionBatch.ID, transactionBatch); err != nil {
 		return endTx(eris.Wrap(err, "failed to update transaction batch"))
 	}
 
@@ -196,9 +231,9 @@ func TBOnlineRemittance(
 		amountDec := decimal.NewFromFloat(remittance.Amount)
 		totalOnlineDec = totalOnlineDec.Add(amountDec)
 	}
-
 	return totalOnlineDec.InexactFloat64(), nil
 }
+
 func TBDisbursementTransaction(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
