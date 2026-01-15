@@ -8,91 +8,45 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
 
-func LoanRelease(context context.Context, service *horizon.HorizonService, ctx echo.Context, loanTransactionID uuid.UUID) (*core.LoanTransaction, error) {
+func LoanRelease(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID, userOrg *core.UserOrganization) (*core.LoanTransaction, error) {
 
 	tx, endTx := service.Database.StartTransaction(context)
-
-	userOrg, err := CurrentUserOrganization(context, service, ctx)
-	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "authentication-failed",
-			Description: "Unable to retrieve user organization details for loan release operation: " + err.Error(),
-			Module:      "Loan Release",
-		})
-		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
-	}
 
 	now := time.Now().UTC()
 	timeMachine := userOrg.UserOrgTime()
 	if userOrg.BranchID == nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "validation-failed",
-			Description: "User organization is missing required branch assignment for loan operations",
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.New("invalid user organization data"))
 	}
 
 	loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, loanTransactionID, "Account", "Account.Currency")
 	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "loan-data-retrieval-failed",
-			Description: "Unable to retrieve loan transaction details for release: " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
 
 	loanAccountCurrency := loanTransaction.Account.Currency
 
 	if loanAccountCurrency == nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "currency-validation-failed",
-			Description: "Missing currency information for loan account " + loanTransaction.AccountID.String(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.New("currency data is nil"))
 	}
 
 	transactionBatch, err := core.TransactionBatchCurrent(context, service, *loanTransaction.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "batch-retrieval-failed",
-			Description: "Unable to retrieve active transaction batch for user " + userOrg.UserID.String() + ": " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch - The one who created the loan must have created the transaction batch"))
 	}
 
 	if transactionBatch == nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "batch-validation-failed",
-			Description: "No active transaction batch found - batch is required for loan release operations",
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.New("transaction batch is nil"))
 	}
 
 	memberProfile, err := core.MemberProfileManager(service).GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "member-profile-retrieval-failed",
-			Description: "Unable to retrieve member profile " + loanTransaction.MemberProfileID.String() + ": " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
 	}
 
 	if memberProfile == nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "member-profile-not-found",
-			Description: "Member profile does not exist for ID: " + loanTransaction.MemberProfileID.String(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.New("member profile not found"))
 	}
 
@@ -194,11 +148,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, ctx e
 		}
 
 		if err := core.CreateGeneralLedgerEntry(context, service, tx, memberLedgerEntry); err != nil {
-			Footstep(ctx, service, FootstepEvent{
-				Activity:    "member-ledger-creation-failed",
-				Description: "Failed to create member ledger entry for account " + account.ID.String() + " and member " + memberProfile.ID.String() + ": " + err.Error(),
-				Module:      "Loan Release",
-			})
 			return nil, endTx(eris.Wrap(err, "failed to create member ledger entry"))
 		}
 
@@ -213,11 +162,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, ctx e
 		&loanAccountCurrency.ID,
 	)
 	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "account-retrieval-failed",
-			Description: "Failed to retrieve loan-related accounts for interest processing: " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String()))
 	}
 
@@ -269,29 +213,13 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, ctx e
 	}
 
 	if err := endTx(nil); err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "database-commit-failed",
-			Description: "Unable to commit loan release transaction to database: " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
 
 	updatedloanTransaction, err := core.LoanTransactionManager(service).GetByID(context, loanTransaction.ID)
 	if err != nil {
-		Footstep(ctx, service, FootstepEvent{
-			Activity:    "final-retrieval-failed",
-			Description: "Unable to retrieve updated loan transaction after successful release: " + err.Error(),
-			Module:      "Loan Release",
-		})
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
-
-	Footstep(ctx, service, FootstepEvent{
-		Activity:    "loan-release-completed",
-		Description: "Successfully completed loan release for transaction " + updatedloanTransaction.ID.String(),
-		Module:      "Loan Release",
-	})
 
 	return updatedloanTransaction, nil
 }

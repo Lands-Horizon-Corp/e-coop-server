@@ -927,14 +927,13 @@ func JournalVoucherController(service *horizon.HorizonService) {
 				ReferenceNumber:       journalVoucher.CashVoucherNumber,
 				Description:           entry.Description,
 				EntryDate:             &timeNow,
-				BankReferenceNumber:   "",  // Not applicable for journal voucher entries
-				BankID:                nil, // Not applicable for journal voucher entries
-				ProofOfPaymentMediaID: nil, // Not applicable for journal voucher entries
+				BankReferenceNumber:   "",
+				BankID:                nil,
+				ProofOfPaymentMediaID: nil,
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceJournalVoucher); err != nil {
-
+			if err := event.RecordTransaction(context, service, transactionRequest, core.GeneralLedgerSourceJournalVoucher, userOrg); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "journal-voucher-transaction-recording-failed",
 					Description: "Failed to record journal voucher entry transaction in general ledger for voucher " + journalVoucher.CashVoucherNumber + ": " + err.Error(),

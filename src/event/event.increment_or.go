@@ -18,12 +18,10 @@ func IncrementOfficialReceipt(
 	source core.GeneralLedgerSource,
 	userOrg *core.UserOrganization,
 ) error {
-
 	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{})
 	if err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to find branch setting")
 	}
-
 	userOrganization, err := core.UserOrganizationManager(service).GetByID(context, userOrg.ID)
 	if err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to get user organization by ID")

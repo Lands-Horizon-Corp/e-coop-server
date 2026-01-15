@@ -835,8 +835,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceCheckVoucher); err != nil {
-
+			if err := event.RecordTransaction(context, service, transactionRequest, core.GeneralLedgerSourceCheckVoucher, userOrg); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "cash-check-voucher-transaction-recording-failed",
 					Description: "Failed to record cash check voucher entry transaction in general ledger for voucher " + cashCheckVoucher.CashVoucherNumber + ": " + err.Error(),

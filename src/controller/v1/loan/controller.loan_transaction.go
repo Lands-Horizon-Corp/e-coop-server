@@ -621,10 +621,10 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 
 		newTx, newEndTx := service.Database.StartTransaction(context)
-		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, newTx, newEndTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := event.LoanBalancing(context, service, newTx, newEndTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: *cashOnHandAccountID,
 			LoanTransactionID:              loanTransaction.ID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v: %v", err, newEndTx(err))})
 		}
@@ -1154,11 +1154,11 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit database transaction: " + err.Error()})
 		}
 
-		newTx, newEndTx := service.Database.StartTransaction(context)
-		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, newTx, newEndTx, event.LoanBalanceEvent{
+		tx, newEndTx := service.Database.StartTransaction(context)
+		newLoanTransaction, err := event.LoanBalancing(context, service, tx, newEndTx, event.LoanBalanceEvent{
 			CashOnCashEquivalenceAccountID: cashOnCashEquivalenceAccountID,
 			LoanTransactionID:              loanTransaction.ID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to retrieve updated loan transaction: %v: %v", err, newEndTx(err))})
 		}
@@ -1655,7 +1655,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Loan transaction is already released"})
 		}
 
-		newLoanTransaction, err := event.LoanRelease(context, service, ctx, loanTransaction.ID)
+		newLoanTransaction, err := event.LoanRelease(context, service, loanTransaction.ID, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve updated loan transaction: " + err.Error()})
 		}

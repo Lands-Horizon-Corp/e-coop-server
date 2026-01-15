@@ -10,7 +10,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -21,41 +20,23 @@ type LoanBalanceEvent struct {
 	LoanTransactionID              uuid.UUID
 }
 
-func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context, tx *gorm.DB, endTx func(error) error, data LoanBalanceEvent) (*core.LoanTransaction, error) {
-
-	// =========================
-	// STEP 1: AUTH & ORG
-	// =========================
-	userOrg, err := CurrentUserOrganization(ctx, service, echoCtx)
-	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "auth-error",
-			Description: "Failed to get user organization: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
-		return nil, endTx(eris.Wrap(err, "failed to get user organization"))
-	}
+func LoanBalancing(
+	ctx context.Context,
+	service *horizon.HorizonService,
+	tx *gorm.DB, endTx func(error) error,
+	data LoanBalanceEvent,
+	userOrg *core.UserOrganization) (*core.LoanTransaction, error) {
 
 	// =========================
 	// STEP 2: LOAN TRANSACTION & ACCOUNT
 	// =========================
 	loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, data.LoanTransactionID)
 	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to get loan transaction: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
 
 	account, err := core.AccountManager(service).GetByID(ctx, *loanTransaction.AccountID)
 	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to get loan account: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan account"))
 	}
 
@@ -65,11 +46,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		BranchID:          *userOrg.BranchID,
 	})
 	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to get loan transaction entries: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction entries"))
 	}
 
@@ -110,11 +86,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	if len(static) < 2 {
 		cashOnCashEquivalenceAccount, err := core.AccountManager(service).GetByID(ctx, data.CashOnCashEquivalenceAccountID)
 		if err != nil {
-			Footstep(echoCtx, service, FootstepEvent{
-				Activity:    "data-error",
-				Description: "Failed to get cash on cash equivalence account: " + err.Error(),
-				Module:      "LoanBalancing",
-			})
 			return nil, endTx(eris.Wrap(err, "failed to get cash on cash equivalence account"))
 		}
 
@@ -287,11 +258,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 			continue
 		}
 		if err := core.LoanTransactionEntryManager(service).DeleteWithTx(ctx, tx, entry.ID); err != nil {
-			Footstep(echoCtx, service, FootstepEvent{
-				Activity:    "data-error",
-				Description: "Failed to delete old entry: " + err.Error(),
-				Module:      "LoanBalancing",
-			})
 			return nil, endTx(eris.Wrap(err, "failed to delete existing loan transaction entry"))
 		}
 	}
@@ -344,11 +310,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 		}
 
 		if err := core.LoanTransactionEntryManager(service).CreateWithTx(ctx, tx, newEntry); err != nil {
-			Footstep(echoCtx, service, FootstepEvent{
-				Activity:    "data-error",
-				Description: "Failed to create entry: " + err.Error(),
-				Module:      "LoanBalancing",
-			})
 			return nil, endTx(eris.Wrap(err, "failed to create loan transaction entry"))
 		}
 	}
@@ -358,11 +319,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	// =========================
 	amort, err := usecase.LoanModeOfPayment(loanTransaction)
 	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to calculate amortization: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to calculate loan amortization"))
 	}
 
@@ -375,20 +331,11 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	loanTransaction.UpdatedByID = userOrg.UserID
 
 	if err := core.LoanTransactionManager(service).UpdateByIDWithTx(ctx, tx, loanTransaction.ID, loanTransaction); err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to update loan transaction: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
 
 	if err := endTx(nil); err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "db-commit-error",
-			Description: "Failed to commit transaction: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
+		return nil, endTx(eris.Wrap(err, "failed to do loan balancing"))
 	}
 
 	// =========================
@@ -396,11 +343,6 @@ func LoanBalancing(ctx context.Context, service *horizon.HorizonService, echoCtx
 	// =========================
 	newLoanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransaction.ID)
 	if err != nil {
-		Footstep(echoCtx, service, FootstepEvent{
-			Activity:    "data-error",
-			Description: "Failed to get updated loan transaction: " + err.Error(),
-			Module:      "LoanBalancing",
-		})
 		return nil, endTx(eris.Wrap(err, "failed to get updated loan transaction"))
 	}
 

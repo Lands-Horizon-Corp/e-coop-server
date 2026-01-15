@@ -92,9 +92,9 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := event.LoanBalancing(context, service, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: *loanTransactionID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
@@ -181,9 +181,9 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		newLoanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
+		newLoanTransaction, err := event.LoanBalancing(context, service, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
@@ -242,9 +242,9 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
-		_, err = event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
+		_, err = event.LoanBalancing(context, service, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}
@@ -305,9 +305,9 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		loanTransaction, err := event.LoanBalancing(context, service, ctx, tx, endTx, event.LoanBalanceEvent{
+		loanTransaction, err := event.LoanBalancing(context, service, tx, endTx, event.LoanBalanceEvent{
 			LoanTransactionID: loanTransactionEntry.LoanTransactionID,
-		})
+		}, userOrg)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to balance loan transaction: %v", err)})
 		}

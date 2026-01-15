@@ -168,7 +168,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 			ProofOfPaymentMediaID: nil, // Not applicable for adjustment entries
 		}
 
-		if err := event.RecordTransaction(context, service, ctx, transactionRequest, core.GeneralLedgerSourceAdjustment); err != nil {
+		if err := event.RecordTransaction(context, service, transactionRequest, core.GeneralLedgerSourceAdjustment, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "transaction-recording-failed",
 				Description: "Failed to record adjustment entry transaction in general ledger for reference " + req.ReferenceNumber + ": " + err.Error(),
