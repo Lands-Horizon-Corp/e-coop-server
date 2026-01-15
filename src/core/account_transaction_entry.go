@@ -142,7 +142,7 @@ func AccountingEntryByAccountMonthYear(
 	normalizedMonth := ((month-1)%12+12)%12 + 1
 	startDate := time.Date(year, time.Month(normalizedMonth), 1, 0, 0, 0, 0, time.UTC)
 	endDate := startDate.AddDate(0, 1, 0).Add(-time.Nanosecond)
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},

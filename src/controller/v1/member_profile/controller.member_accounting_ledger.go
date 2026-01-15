@@ -6,7 +6,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
-	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
@@ -187,7 +186,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		paginatedResult, err := core.MemberAccountingLedgerManager(service).ArrPagination(context, ctx, []registry.FilterSQL{
+		paginatedResult, err := core.MemberAccountingLedgerManager(service).ArrPagination(context, ctx, []query.ArrFilterSQL{
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
 			{Field: "account_id", Op: query.ModeNotEqual, Value: userOrg.Branch.BranchSetting.CashOnHandAccountID},

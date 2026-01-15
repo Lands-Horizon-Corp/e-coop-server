@@ -164,7 +164,7 @@ func LoanAccountManager(service *horizon.HorizonService) *registry.Registry[Loan
 }
 
 func LoanAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanAccount, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -174,7 +174,7 @@ func LoanAccountCurrentBranch(context context.Context, service *horizon.HorizonS
 
 func GetLoanAccountByLoanTransaction(
 	ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, loanTransactionID, accountID, organizationID, branchID uuid.UUID) (*LoanAccount, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},

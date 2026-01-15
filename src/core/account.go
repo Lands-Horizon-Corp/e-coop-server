@@ -3790,7 +3790,7 @@ func AccountLockWithValidation(ctx context.Context, service *horizon.HorizonServ
 }
 
 func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -3801,7 +3801,7 @@ func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organiza
 }
 
 func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
@@ -3817,7 +3817,7 @@ func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonS
 }
 
 func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "type", Op: query.ModeEqual, Value: accountType},
@@ -3831,7 +3831,7 @@ func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonSer
 func FindLoanAccountsByID(ctx context.Context,
 	service *horizon.HorizonService,
 	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "loan_account_id", Op: query.ModeEqual, Value: accountID},
@@ -3847,7 +3847,7 @@ func FindLoanAccountsByID(ctx context.Context,
 }
 
 func AccountDeleteCheck(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) error {
-	hasEntries, err := GeneralLedgerManager(service).ArrExists(ctx, []registry.FilterSQL{
+	hasEntries, err := GeneralLedgerManager(service).ArrExists(ctx, []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {
@@ -3909,7 +3909,7 @@ func AccountDeleteCheck(ctx context.Context, service *horizon.HorizonService, ac
 }
 
 func AccountDeleteCheckIncludingDeleted(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) error {
-	hasEntries, err := GeneralLedgerManager(service).ExistsIncludingDeleted(ctx, []registry.FilterSQL{
+	hasEntries, err := GeneralLedgerManager(service).ExistsIncludingDeleted(ctx, []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	})
 	if err != nil {

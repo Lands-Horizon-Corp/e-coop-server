@@ -269,14 +269,14 @@ func OrganizationManager(service *horizon.HorizonService) *registry.Registry[Org
 }
 
 func GetPublicOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 	return OrganizationManager(service).ArrFind(ctx, filters, nil)
 }
 
 func GetFeaturedOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 	}
 
@@ -303,7 +303,7 @@ func GetFeaturedOrganization(ctx context.Context, service *horizon.HorizonServic
 }
 
 func GetOrganizationsByCategoryID(ctx context.Context, service *horizon.HorizonService, categoryID uuid.UUID) ([]*Organization, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "category_id", Op: query.ModeEqual, Value: categoryID},
 	}
 
@@ -329,7 +329,7 @@ func GetOrganizationsByCategoryID(ctx context.Context, service *horizon.HorizonS
 func GetRecentlyAddedOrganization(ctx context.Context, service *horizon.HorizonService) ([]*Organization, error) {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "is_private", Op: query.ModeEqual, Value: false},
 		{Field: "created_at", Op: query.ModeGTE, Value: thirtyDaysAgo},
 	}

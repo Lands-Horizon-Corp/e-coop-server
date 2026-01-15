@@ -237,7 +237,7 @@ func FinancialStatementAccountsGroupingAlignments(context context.Context, servi
 		if grouping != nil {
 			grouping.FinancialStatementDefinitionEntries = []*FinancialStatementDefinition{}
 			entries, err := FinancialStatementDefinitionManager(service).ArrFind(context,
-				[]registry.FilterSQL{
+				[]query.ArrFilterSQL{
 					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 					{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 					{Field: "financial_statement_grouping_id", Op: query.ModeEqual, Value: grouping.ID},

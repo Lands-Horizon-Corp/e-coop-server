@@ -140,7 +140,7 @@ func GetMemberTypeHistoryLatest(
 	context context.Context, service *horizon.HorizonService,
 	memberProfileID, memberTypeID, organizationID, branchID uuid.UUID,
 ) (*MemberTypeHistory, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},

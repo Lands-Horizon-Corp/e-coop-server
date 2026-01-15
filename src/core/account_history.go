@@ -478,7 +478,7 @@ func AccountHistoryToModel(data *AccountHistory) *Account {
 }
 
 func GetAccountHistory(ctx context.Context, service *horizon.HorizonService, accountID uuid.UUID) ([]*AccountHistory, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 	}
 
@@ -488,7 +488,7 @@ func GetAccountHistory(ctx context.Context, service *horizon.HorizonService, acc
 }
 
 func GetAllAccountHistory(ctx context.Context, service *horizon.HorizonService, accountID, organizationID, branchID uuid.UUID) ([]*AccountHistory, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -509,7 +509,7 @@ func GetAccountHistoryLatestByTime(
 	if asOfDate == nil {
 		asOfDate = &currentTime
 	}
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -540,7 +540,7 @@ func GetAccountHistoryLatestByTimeHistoryID(
 	if asOfDate == nil {
 		asOfDate = &currentTime
 	}
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -566,7 +566,7 @@ func GetAccountHistoryLatestByTimeHistory(
 	if asOfDate == nil {
 		asOfDate = &currentTime
 	}
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -601,20 +601,20 @@ func GetAccountHistoriesByFiltersAtTime(
 		asOfDate = &currentTime
 	}
 
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "created_at", Op: query.ModeLTE, Value: asOfDate},
 	}
 
 	if loanAccountID != nil {
-		filters = append(filters, registry.FilterSQL{
+		filters = append(filters, query.ArrFilterSQL{
 			Field: "loan_account_id", Op: query.ModeEqual, Value: *loanAccountID,
 		})
 	}
 
 	if currencyID != nil {
-		filters = append(filters, registry.FilterSQL{
+		filters = append(filters, query.ArrFilterSQL{
 			Field: "currency_id", Op: query.ModeEqual, Value: *currencyID,
 		})
 	}

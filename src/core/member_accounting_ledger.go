@@ -202,7 +202,7 @@ func MemberAccountingLedgerCurrentBranch(context context.Context, service *horiz
 }
 
 func MemberAccountingLedgerMemberProfileEntries(ctx context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -213,7 +213,7 @@ func MemberAccountingLedgerMemberProfileEntries(ctx context.Context, service *ho
 }
 
 func MemberAccountingLedgerBranchEntries(ctx context.Context, service *horizon.HorizonService, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeNotEqual, Value: cashOnHandAccountID},
@@ -230,7 +230,7 @@ func MemberAccountingLedgerFindForUpdate(
 	organizationID,
 	branchID uuid.UUID,
 ) (*MemberAccountingLedger, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -328,7 +328,7 @@ func MemberAccountingLedgerFilterByCriteria(
 	includeClosedAccounts bool,
 ) ([]*MemberAccountingLedger, error) {
 	result := []*MemberAccountingLedger{}
-	memberAccountingLedger, err := MemberAccountingLedgerManager(service).ArrFind(ctx, []registry.FilterSQL{
+	memberAccountingLedger, err := MemberAccountingLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},

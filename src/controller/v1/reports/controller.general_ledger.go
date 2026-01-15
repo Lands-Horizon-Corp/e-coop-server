@@ -6,7 +6,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
-	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
@@ -66,6 +65,41 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 		})
+	})
+	req.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id",
+		Method:       "GET",
+		ResponseType: core.GeneralLedgerResponse{},
+		Note:         "Returns all general ledger entries for the specified member account with pagination.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+		}
+		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+		}
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
+		}
+		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
+		}
+		entries, err := core.GeneralLedgerManager(service).ArrFind(context, []query.ArrFilterSQL{
+			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+			{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+		}, []query.ArrFilterSortSQL{
+			{Field: "entry_date", Order: query.SortOrderAsc},
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, entries)
 	})
 
 	req.RegisterWebRoute(horizon.Route{
@@ -1413,14 +1447,14 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
-		filters := []registry.FilterSQL{
+		filters := []query.ArrFilterSQL{
 			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
 		}
 		cashOnHandID := userOrg.Branch.BranchSetting.CashOnHandAccountID
 		if cashOnHandID != nil {
-			filters = append(filters, registry.FilterSQL{
+			filters = append(filters, query.ArrFilterSQL{
 				Field: "account_id", Op: query.ModeNotEqual, Value: *userOrg.Branch.BranchSetting.CashOnHandAccountID,
 			})
 		}
@@ -1810,40 +1844,6 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
-		}
-		return ctx.JSON(http.StatusOK, entries)
-	})
-
-	req.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/search",
-		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
-		Note:         "Returns all general ledger entries for the specified member account with pagination.",
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
-		}
-		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
-		}
-		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
-		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
-			MemberProfileID: memberProfileID,
-			OrganizationID:  userOrg.OrganizationID,
-			BranchID:        *userOrg.BranchID,
-			AccountID:       accountID,
-		})
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, entries)
 	})

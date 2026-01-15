@@ -7,8 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type FilterSQL = query.ArrFilterSQL
-
 func (r *Registry[TData, TResponse, TRequest]) Exists(
 	context context.Context,
 	fields *TData,
@@ -48,7 +46,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsByIDWithTx(
 
 func (r *Registry[TData, TResponse, TRequest]) ExistsIncludingDeleted(
 	context context.Context,
-	filters []FilterSQL,
+	filters []query.ArrFilterSQL,
 ) (bool, error) {
 	return r.pagination.ArrExistsIncludingDeleted(r.Client(context), filters)
 }
@@ -56,7 +54,7 @@ func (r *Registry[TData, TResponse, TRequest]) ExistsIncludingDeleted(
 func (r *Registry[TData, TResponse, TRequest]) ExistsIncludingDeletedWithTx(
 	context context.Context,
 	tx *gorm.DB,
-	filters []FilterSQL,
+	filters []query.ArrFilterSQL,
 ) (bool, error) {
 	return r.pagination.ArrExistsIncludingDeleted(tx, filters)
 }

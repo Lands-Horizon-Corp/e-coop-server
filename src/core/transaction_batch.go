@@ -523,7 +523,7 @@ func TransactionBatchMinimal(context context.Context, service *horizon.HorizonSe
 
 func TransactionBatchCurrent(context context.Context, service *horizon.HorizonService, userID, organizationID, branchID uuid.UUID) (*TransactionBatch, error) {
 
-	return TransactionBatchManager(service).ArrFindOne(context, []registry.FilterSQL{
+	return TransactionBatchManager(service).ArrFindOne(context, []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "employee_user_id", Op: query.ModeEqual, Value: userID},
@@ -534,7 +534,7 @@ func TransactionBatchCurrent(context context.Context, service *horizon.HorizonSe
 }
 
 func TransactionBatchViewRequests(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*TransactionBatch, error) {
-	return TransactionBatchManager(service).ArrFind(context, []registry.FilterSQL{
+	return TransactionBatchManager(service).ArrFind(context, []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "request_view", Op: query.ModeEqual, Value: true},
@@ -550,7 +550,7 @@ func TransactionBatchCurrentDay(ctx context.Context, service *horizon.HorizonSer
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	return TransactionBatchManager(service).ArrFind(ctx, []registry.FilterSQL{
+	return TransactionBatchManager(service).ArrFind(ctx, []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "is_closed", Op: query.ModeEqual, Value: true},

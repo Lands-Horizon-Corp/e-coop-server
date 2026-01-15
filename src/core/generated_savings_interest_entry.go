@@ -171,7 +171,7 @@ func GeneratedSavingsInterestEntryManager(service *horizon.HorizonService) *regi
 
 func GenerateSavingsInterestEntryCurrentBranch(
 	context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -181,7 +181,7 @@ func GenerateSavingsInterestEntryCurrentBranch(
 
 func GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 	context context.Context, service *horizon.HorizonService, generatedSavingsInterestID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "generated_savings_interest_id", Op: query.ModeEqual, Value: generatedSavingsInterestID},
 	}
 
@@ -190,7 +190,7 @@ func GenerateSavingsInterestEntryByGeneratedSavingsInterest(
 
 func GenerateSavingsInterestEntryByAccount(
 	context context.Context, service *horizon.HorizonService, accountID, organizationID, branchID uuid.UUID) ([]*GeneratedSavingsInterestEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
@@ -202,7 +202,7 @@ func GenerateSavingsInterestEntryByAccount(
 func GenerateSavingsInterestEntryByMemberProfile(
 	context context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
@@ -214,7 +214,7 @@ func GenerateSavingsInterestEntryByMemberProfile(
 func GenerateSavingsInterestEntryByEndingBalanceRange(
 	context context.Context, service *horizon.HorizonService, minEndingBalance, maxEndingBalance float64, organizationID, branchID uuid.UUID) (
 	[]*GeneratedSavingsInterestEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "ending_balance", Op: query.ModeGTE, Value: minEndingBalance},

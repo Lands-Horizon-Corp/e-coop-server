@@ -910,7 +910,7 @@ func mapLoanTransactionEntries(service *horizon.HorizonService, entries []*LoanT
 }
 
 func LoanTransactionWithDatesNotNull(ctx context.Context, service *horizon.HorizonService, memberID, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -933,7 +933,7 @@ func LoanTransactionsMemberAccount(ctx context.Context, service *horizon.Horizon
 	if account.Type != AccountTypeLoan {
 		accountID = *account.LoanAccountID
 	}
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -949,7 +949,7 @@ func LoanTransactionsMemberAccount(ctx context.Context, service *horizon.Horizon
 }
 
 func LoanTransactionDraft(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
@@ -963,7 +963,7 @@ func LoanTransactionDraft(ctx context.Context, service *horizon.HorizonService, 
 }
 
 func LoanTransactionPrinted(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -977,7 +977,7 @@ func LoanTransactionPrinted(ctx context.Context, service *horizon.HorizonService
 }
 
 func LoanTransactionApproved(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -991,7 +991,7 @@ func LoanTransactionApproved(ctx context.Context, service *horizon.HorizonServic
 }
 
 func LoanTransactionReleased(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*LoanTransaction, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -1009,7 +1009,7 @@ func LoanTransactionReleasedCurrentDay(ctx context.Context, service *horizon.Hor
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},

@@ -147,7 +147,7 @@ func TimesheetManager(service *horizon.HorizonService) *registry.Registry[Timesh
 }
 
 func TimesheetCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Timesheet, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -156,7 +156,7 @@ func TimesheetCurrentBranch(context context.Context, service *horizon.HorizonSer
 }
 
 func GetUserTimesheet(context context.Context, service *horizon.HorizonService, userID, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "user_id", Op: query.ModeEqual, Value: userID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -166,7 +166,7 @@ func GetUserTimesheet(context context.Context, service *horizon.HorizonService, 
 }
 
 func TimeSheetActiveUsers(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*Timesheet, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "time_out", Op: query.ModeIsEmpty, Value: nil},

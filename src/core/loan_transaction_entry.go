@@ -187,7 +187,7 @@ func LoanTransactionEntryManager(service *horizon.HorizonService) *registry.Regi
 }
 
 func LoanTransactionEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTransactionEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -196,7 +196,7 @@ func LoanTransactionEntryCurrentBranch(context context.Context, service *horizon
 }
 
 func GetCashOnCashEquivalence(ctx context.Context, service *horizon.HorizonService, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "index", Op: query.ModeEqual, Value: 0},
@@ -210,7 +210,7 @@ func GetCashOnCashEquivalence(ctx context.Context, service *horizon.HorizonServi
 }
 
 func GetLoanEntryAccount(ctx context.Context, service *horizon.HorizonService, loanTransactionID, organizationID, branchID uuid.UUID) (*LoanTransactionEntry, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "index", Op: query.ModeEqual, Value: 1},

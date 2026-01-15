@@ -194,7 +194,7 @@ func BrowseReferenceManager(service *horizon.HorizonService) *registry.Registry[
 }
 
 func BrowseReferenceCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*BrowseReference, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
@@ -203,7 +203,7 @@ func BrowseReferenceCurrentBranch(context context.Context, service *horizon.Hori
 }
 
 func BrowseReferenceByMemberType(context context.Context, service *horizon.HorizonService, memberTypeID, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "member_type_id", Op: query.ModeEqual, Value: memberTypeID},
@@ -213,7 +213,7 @@ func BrowseReferenceByMemberType(context context.Context, service *horizon.Horiz
 }
 
 func BrowseReferenceByInterestType(context context.Context, service *horizon.HorizonService, interestType InterestType, organizationID, branchID uuid.UUID) ([]*BrowseReference, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "interest_type", Op: query.ModeEqual, Value: string(interestType)},
@@ -225,19 +225,19 @@ func BrowseReferenceByInterestType(context context.Context, service *horizon.Hor
 func BrowseReferenceByField(
 	context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID, accountID, memberTypeID *uuid.UUID,
 ) ([]*BrowseReference, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
 	if memberTypeID != nil {
-		filters = append(filters, registry.FilterSQL{
+		filters = append(filters, query.ArrFilterSQL{
 			Field: "member_type_id", Op: query.ModeEqual, Value: *memberTypeID,
 		})
 	}
 
 	if accountID != nil {
-		filters = append(filters, registry.FilterSQL{
+		filters = append(filters, query.ArrFilterSQL{
 			Field: "account_id", Op: query.ModeEqual, Value: *accountID,
 		})
 	}

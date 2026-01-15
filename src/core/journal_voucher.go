@@ -273,7 +273,7 @@ func ValidateJournalVoucherBalance(entries []*JournalVoucherEntry) error {
 }
 
 func JournalVoucherDraft(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "approved_date", Op: query.ModeIsEmpty, Value: nil},
@@ -287,7 +287,7 @@ func JournalVoucherDraft(ctx context.Context, service *horizon.HorizonService, b
 }
 
 func JournalVoucherPrinted(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -301,7 +301,7 @@ func JournalVoucherPrinted(ctx context.Context, service *horizon.HorizonService,
 }
 
 func JournalVoucherApproved(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -315,7 +315,7 @@ func JournalVoucherApproved(ctx context.Context, service *horizon.HorizonService
 }
 
 func JournalVoucherReleased(ctx context.Context, service *horizon.HorizonService, branchID, organizationID uuid.UUID) ([]*JournalVoucher, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},
@@ -333,7 +333,7 @@ func JournalVoucherReleasedCurrentDay(ctx context.Context, service *horizon.Hori
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "printed_date", Op: query.ModeIsNotEmpty, Value: nil},

@@ -176,7 +176,7 @@ func AccountTransactionByMonthYear(
 	}
 	start := time.Date(year, time.Month(normalizedMonth), 1, 0, 0, 0, 0, time.UTC)
 	end := start.AddDate(0, 1, 0).Add(-time.Nanosecond)
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "created_at", Op: query.ModeGTE, Value: start},
@@ -197,7 +197,7 @@ func AccountTransactionDestroyer(
 ) error {
 	startOfDay := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
 	endOfDay := time.Date(day.Year(), day.Month(), day.Day(), 23, 59, 59, 999999999, day.Location())
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "date", Op: query.ModeGTE, Value: startOfDay},

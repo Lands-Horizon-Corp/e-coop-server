@@ -134,7 +134,7 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 }
 
 func InterestRateByDateForBrowseReference(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*InterestRateByDate, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
 
@@ -142,7 +142,7 @@ func InterestRateByDateForBrowseReference(context context.Context, service *hori
 }
 
 func InterestRateByDateForRange(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, date time.Time) ([]*InterestRateByDate, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_date", Op: query.ModeLTE, Value: date},
 		{Field: "to_date", Op: query.ModeGTE, Value: date},
@@ -152,7 +152,7 @@ func InterestRateByDateForRange(context context.Context, service *horizon.Horizo
 }
 
 func InterestRateByDateCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByDate, error) {
-	filters := []registry.FilterSQL{
+	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
