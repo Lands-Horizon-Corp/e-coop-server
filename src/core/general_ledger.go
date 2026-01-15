@@ -27,6 +27,8 @@ const (
 	GeneralLedgerSourceLoan               GeneralLedgerSource = "loan"
 	GeneralLedgerSourceSavingsInterest    GeneralLedgerSource = "savings interest"
 	GeneralLedgerSourceMutualContribution GeneralLedgerSource = "mutual contribution"
+	GeneralLedgerSourcDisbursement        GeneralLedgerSource = "disbursement"
+	GeneralLedgerSourcBlotter             GeneralLedgerSource = "blotter"
 )
 
 type (

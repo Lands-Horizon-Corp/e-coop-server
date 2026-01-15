@@ -41,6 +41,9 @@ type (
 		MemberProfileIDForOverage *uuid.UUID     `gorm:"type:uuid" json:"member_profile_id_for_overage"`
 		MemberProfileForOverage   *MemberProfile `gorm:"foreignKey:MemberProfileIDForOverage;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"member_profile_for_overage,omitempty"`
 
+		CashOnHandAccountID uuid.UUID `gorm:"type:uuid;not null" json:"cash_on_hand_account_id"`
+		CashOnHandAccount   *Account  `gorm:"foreignKey:CashOnHandAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"cash_on_hand_account,omitempty"`
+
 		Name        string `gorm:"type:varchar(255);not null" json:"name"`
 		Description string `gorm:"type:text" json:"description"`
 	}
@@ -70,6 +73,9 @@ type (
 		MemberProfileIDForOverage *uuid.UUID             `json:"member_profile_id_for_overage,omitempty"`
 		MemberProfileForOverage   *MemberProfileResponse `json:"member_profile_for_overage,omitempty"`
 
+		CashOnHandAccountID uuid.UUID        `json:"cash_on_hand_account_id"`
+		CashOnHandAccount   *AccountResponse `json:"cash_on_hand_account,omitempty"`
+
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
@@ -83,6 +89,7 @@ type (
 
 		AccountForShortageID uuid.UUID `json:"account_for_shortage_id" validate:"required"`
 		AccountForOverageID  uuid.UUID `json:"account_for_overage_id" validate:"required"`
+		CashOnHandAccountID  uuid.UUID `json:"cash_on_hand_account_id" validate:"required"`
 
 		MemberProfileIDForShortage *uuid.UUID `json:"member_profile_id_for_shortage,omitempty"`
 		MemberProfileIDForOverage  *uuid.UUID `json:"member_profile_id_for_overage,omitempty"`
@@ -92,8 +99,9 @@ type (
 func UnbalancedAccountManager(service *horizon.HorizonService) *registry.Registry[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[UnbalancedAccount, UnbalancedAccountResponse, UnbalancedAccountRequest]{
 		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "BranchSettings", "Currency",
+			"Currency",
 			"AccountForShortage", "AccountForOverage",
+			"CashOnHandAccount",
 			"MemberProfileForShortage", "MemberProfileForOverage",
 		},
 		Database: service.Database.Client(),
@@ -122,6 +130,9 @@ func UnbalancedAccountManager(service *horizon.HorizonService) *registry.Registr
 
 				AccountForOverageID: data.AccountForOverageID,
 				AccountForOverage:   AccountManager(service).ToModel(data.AccountForOverage),
+
+				CashOnHandAccountID: data.CashOnHandAccountID,
+				CashOnHandAccount:   AccountManager(service).ToModel(data.CashOnHandAccount),
 
 				MemberProfileIDForShortage: data.MemberProfileIDForShortage,
 				MemberProfileForShortage:   MemberProfileManager(service).ToModel(data.MemberProfileForShortage),

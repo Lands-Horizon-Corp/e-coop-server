@@ -3525,6 +3525,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		CurrencyID:           *branch.CurrencyID,
 		AccountForShortageID: cashOnHand.ID,
 		AccountForOverageID:  cashOnHand.ID,
+		CashOnHandAccountID:  cashOnHand.ID,
 	}
 	if err := UnbalancedAccountManager(service).CreateWithTx(context, tx, unbalanced); err != nil {
 		return eris.Wrap(err, "failed to create unbalanced account for branch")

@@ -20,7 +20,6 @@ func TransactionBatchEnd(
 	req *core.TransactionBatchEndRequest,
 ) (*core.TransactionBatch, error) {
 	tx, endTx := service.Database.StartTransaction(context)
-
 	transactionBatch, err := core.TransactionBatchCurrent(
 		context,
 		service,
@@ -32,6 +31,7 @@ func TransactionBatchEnd(
 		return nil, eris.Wrap(err, "failed to retrieve current transaction batch")
 	}
 	now := time.Now().UTC()
+	timeMachine := userOrg.UserOrgTime()
 	transactionBatch.IsClosed = true
 	transactionBatch.EmployeeUserID = &userOrg.UserID
 	transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
@@ -40,6 +40,96 @@ func TransactionBatchEnd(
 	transactionBatch.EndedAt = &now
 	if err := core.TransactionBatchManager(service).UpdateByIDWithTx(context, tx, transactionBatch.ID, transactionBatch); err != nil {
 		return nil, eris.Wrap(err, "failed to update transaction batch")
+	}
+	disbursementTransactions, err := core.DisbursementTransactionManager(service).Find(context, &core.DisbursementTransaction{
+		TransactionBatchID: transactionBatch.ID,
+		OrganizationID:     userOrg.OrganizationID,
+		BranchID:           *userOrg.BranchID,
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to find disbursement transactions")
+	}
+	for _, transaction := range disbursementTransactions {
+		amount := transaction.Amount
+		newGeneralLedger := &core.GeneralLedger{
+			CreatedAt:                  now,
+			CreatedByID:                userOrg.UserID,
+			UpdatedAt:                  now,
+			UpdatedByID:                userOrg.UserID,
+			BranchID:                   *userOrg.BranchID,
+			OrganizationID:             userOrg.OrganizationID,
+			TransactionBatchID:         &transaction.TransactionBatchID,
+			ReferenceNumber:            transaction.ReferenceNumber,
+			EntryDate:                  timeMachine,
+			AccountID:                  &transactionBatch.UnbalancedAccount.CashOnHandAccountID,
+			Account:                    transactionBatch.UnbalancedAccount.CashOnHandAccount,
+			TransactionReferenceNumber: transaction.ReferenceNumber,
+			Source:                     core.GeneralLedgerSourcDisbursement,
+			EmployeeUserID:             &userOrg.UserID,
+			Description:                transaction.Description,
+			TypeOfPaymentType:          core.PaymentTypeCash,
+			Debit:                      0,
+			Credit:                     amount,
+			CurrencyID:                 &transactionBatch.CurrencyID,
+		}
+		if err := core.CreateGeneralLedgerEntry(context, service, tx, newGeneralLedger); err != nil {
+			return nil, endTx(err)
+		}
+	}
+	difference := decimal.NewFromFloat(transactionBatch.TotalActualSupposedComparison)
+	if difference.GreaterThan(decimal.Zero) {
+		gl := &core.GeneralLedger{
+			CreatedAt:                  now,
+			CreatedByID:                userOrg.UserID,
+			UpdatedAt:                  now,
+			UpdatedByID:                userOrg.UserID,
+			BranchID:                   *userOrg.BranchID,
+			OrganizationID:             userOrg.OrganizationID,
+			TransactionBatchID:         &transactionBatch.ID,
+			ReferenceNumber:            transactionBatch.BatchName,
+			EntryDate:                  timeMachine,
+			AccountID:                  &transactionBatch.UnbalancedAccount.AccountForOverageID,
+			Account:                    transactionBatch.UnbalancedAccount.AccountForOverage,
+			TransactionReferenceNumber: transactionBatch.BatchName,
+			Source:                     core.GeneralLedgerSourcBlotter,
+			EmployeeUserID:             &userOrg.UserID,
+			Description:                "Cash overage adjustment",
+			TypeOfPaymentType:          core.PaymentTypeCash,
+			Debit:                      0,
+			Credit:                     difference.InexactFloat64(),
+			CurrencyID:                 &transactionBatch.CurrencyID,
+		}
+
+		if err := core.CreateGeneralLedgerEntry(context, service, tx, gl); err != nil {
+			return nil, endTx(err)
+		}
+	}
+	if difference.LessThan(decimal.Zero) {
+		shortageAmount := difference.Abs()
+		gl := &core.GeneralLedger{
+			CreatedAt:                  now,
+			CreatedByID:                userOrg.UserID,
+			UpdatedAt:                  now,
+			UpdatedByID:                userOrg.UserID,
+			BranchID:                   *userOrg.BranchID,
+			OrganizationID:             userOrg.OrganizationID,
+			TransactionBatchID:         &transactionBatch.ID,
+			ReferenceNumber:            transactionBatch.BatchName,
+			EntryDate:                  timeMachine,
+			AccountID:                  &transactionBatch.UnbalancedAccount.AccountForShortageID,
+			Account:                    transactionBatch.UnbalancedAccount.AccountForShortage,
+			TransactionReferenceNumber: transactionBatch.BatchName,
+			Source:                     core.GeneralLedgerSourcBlotter,
+			EmployeeUserID:             &userOrg.UserID,
+			Description:                "Cash shortage adjustment",
+			TypeOfPaymentType:          core.PaymentTypeCash,
+			Debit:                      shortageAmount.InexactFloat64(),
+			Credit:                     0,
+			CurrencyID:                 &transactionBatch.CurrencyID,
+		}
+		if err := core.CreateGeneralLedgerEntry(context, service, tx, gl); err != nil {
+			return nil, endTx(err)
+		}
 	}
 	if err := endTx(nil); err != nil {
 		return nil, eris.Wrap(err, "failed to commit database transaction")
@@ -146,6 +236,7 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 	}
 	return nil
 }
+
 func TBBatchFunding(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,

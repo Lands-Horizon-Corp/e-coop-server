@@ -861,6 +861,7 @@ func BranchController(service *horizon.HorizonService) {
 				existingAccount.CurrencyID = accountReq.CurrencyID
 				existingAccount.AccountForShortageID = accountReq.AccountForShortageID
 				existingAccount.AccountForOverageID = accountReq.AccountForOverageID
+				existingAccount.CashOnHandAccountID = accountReq.CashOnHandAccountID
 				existingAccount.MemberProfileIDForShortage = accountReq.MemberProfileIDForShortage
 				existingAccount.MemberProfileIDForOverage = accountReq.MemberProfileIDForOverage
 
@@ -876,11 +877,13 @@ func BranchController(service *horizon.HorizonService) {
 					UpdatedAt:   time.Now().UTC(),
 					UpdatedByID: userOrg.UserID,
 
-					Name:                       accountReq.Name,
-					Description:                accountReq.Description,
-					CurrencyID:                 accountReq.CurrencyID,
-					AccountForShortageID:       accountReq.AccountForShortageID,
-					AccountForOverageID:        accountReq.AccountForOverageID,
+					Name:                 accountReq.Name,
+					Description:          accountReq.Description,
+					CurrencyID:           accountReq.CurrencyID,
+					AccountForShortageID: accountReq.AccountForShortageID,
+					AccountForOverageID:  accountReq.AccountForOverageID,
+
+					CashOnHandAccountID:        accountReq.CashOnHandAccountID,
 					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}

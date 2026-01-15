@@ -122,6 +122,9 @@ type (
 		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
 
 		EndedAt *time.Time `gorm:"type:timestamp"`
+
+		UnbalancedAccountID uuid.UUID          `gorm:"type:uuid;not null" json:"unbalanced_account_id"`
+		UnbalancedAccount   *UnbalancedAccount `gorm:"foreignKey:UnbalancedAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"unbalanced_account,omitempty"`
 	}
 
 	TransactionBatchResponse struct {
@@ -218,6 +221,9 @@ type (
 		Currency   *CurrencyResponse `json:"currency,omitempty"`
 
 		EndedAt *string `json:"ended_at,omitempty"`
+
+		UnbalancedAccountID uuid.UUID                  `json:"unbalanced_account_id"`
+		UnbalancedAccount   *UnbalancedAccountResponse `json:"unbalanced_account,omitempty"`
 	}
 
 	TransactionBatchRequest struct {
@@ -342,6 +348,10 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 			"EmployeeUser",
 			"EmployeeUser.Media",
 			"Currency",
+			"UnbalancedAccount",
+			"UnbalancedAccount.AccountForShortage",
+			"UnbalancedAccount.AccountForOverage",
+			"UnbalancedAccount.CashOnHandAccount",
 			"ApprovedBySignatureMedia",
 			"PreparedBySignatureMedia",
 			"CertifiedBySignatureMedia",
@@ -448,6 +458,9 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 				CurrencyID:                    data.CurrencyID,
 				Currency:                      CurrencyManager(service).ToModel(data.Currency),
 				EndedAt:                       endedAt,
+
+				UnbalancedAccountID: data.UnbalancedAccountID,
+				UnbalancedAccount:   UnbalancedAccountManager(service).ToModel(data.UnbalancedAccount),
 			}
 		},
 		Created: func(data *TransactionBatch) registry.Topics {

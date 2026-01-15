@@ -320,7 +320,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		batchFundingReq, err := core.BatchFundingManager(service).Validate(ctx)
+		req, err := core.BatchFundingManager(service).Validate(ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -338,6 +338,15 @@ func TransactionBatchController(service *horizon.HorizonService) {
 				Module:      "TransactionBatch",
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{BranchID: *userOrg.BranchID})
+		if err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create transaction batch failed: branch setting not found",
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found for this branch"})
 		}
 
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
@@ -358,6 +367,18 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "There is an ongoing transaction batch"})
 		}
+		unbalanced, err := core.UnbalancedAccountManager(service).FindOne(context, &core.UnbalancedAccount{
+			CurrencyID:       req.CurrencyID,
+			BranchSettingsID: branchSetting.ID,
+		})
+		if err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Create transaction batch failed: unbalanced account not configured",
+				Module:      "TransactionBatch",
+			})
+			return ctx.JSON(http.StatusUnprocessableEntity, map[string]string{"error": "Unbalanced account is not configured for this branch and currency"})
+		}
 
 		tx, endTx := service.Database.StartTransaction(context)
 		if tx.Error != nil {
@@ -377,8 +398,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			OrganizationID:                userOrg.OrganizationID,
 			BranchID:                      *userOrg.BranchID,
 			EmployeeUserID:                &userOrg.UserID,
-			CurrencyID:                    batchFundingReq.CurrencyID,
-			BeginningBalance:              batchFundingReq.Amount,
+			CurrencyID:                    req.CurrencyID,
+			BeginningBalance:              req.Amount,
 			DepositInBank:                 0,
 			CashCountTotal:                0,
 			GrandTotal:                    0,
@@ -396,12 +417,12 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			TotalDepositInBank:            0,
 			TotalActualRemittance:         0,
 			TotalActualSupposedComparison: 0,
-			BatchName:                     batchFundingReq.Name,
+			BatchName:                     req.Name,
 			IsClosed:                      false,
 			CanView:                       false,
 			RequestView:                   false,
+			UnbalancedAccountID:           unbalanced.ID,
 		}
-
 		if err := core.TransactionBatchManager(service).CreateWithTx(context, tx, transBatch); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -420,11 +441,11 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: transBatch.ID,
 			ProvidedByUserID:   userOrg.UserID,
-			Name:               batchFundingReq.Name,
-			Description:        batchFundingReq.Description,
-			Amount:             batchFundingReq.Amount,
-			SignatureMediaID:   batchFundingReq.SignatureMediaID,
-			CurrencyID:         batchFundingReq.CurrencyID,
+			Name:               req.Name,
+			Description:        req.Description,
+			Amount:             req.Amount,
+			SignatureMediaID:   req.SignatureMediaID,
+			CurrencyID:         req.CurrencyID,
 		}
 
 		if err := core.BatchFundingManager(service).CreateWithTx(context, tx, batchFunding); err != nil {
