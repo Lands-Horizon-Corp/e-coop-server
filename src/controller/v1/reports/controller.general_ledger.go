@@ -67,19 +67,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		})
 	})
 	req.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id",
+		Route:        "/api/v1/general-ledger/member-accounting-ledger/:member_accounting_ledger_id",
 		Method:       "GET",
 		ResponseType: core.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
+		memberAccountingLedgerID, err := helpers.EngineUUIDParam(ctx, "member_accounting_ledger_id")
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
-		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
+		memberAccountingLedgerm, err := core.MemberAccountingLedgerManager(service).GetByID(context, memberAccountingLedgerID)
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Member accounting ledger not found " + err.Error()})
 		}
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
@@ -89,10 +89,10 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := core.GeneralLedgerManager(service).ArrFind(context, []query.ArrFilterSQL{
-			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
+			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberAccountingLedgerm.MemberProfileID},
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
 			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
-			{Field: "account_id", Op: query.ModeEqual, Value: accountID},
+			{Field: "account_id", Op: query.ModeEqual, Value: memberAccountingLedgerm.AccountID},
 		}, []query.ArrFilterSortSQL{
 			{Field: "entry_date", Order: query.SortOrderAsc},
 		})
