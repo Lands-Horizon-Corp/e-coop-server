@@ -28,7 +28,6 @@ func IncrementOfficialReceipt(
 	if err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to get user organization by ID")
 	}
-
 	switch source {
 	case core.GeneralLedgerSourcePayment:
 		if userOrganization.PaymentORUseDateOR || branchSetting.WithdrawCommonOR != "" {
@@ -109,6 +108,9 @@ func IncrementOfficialReceipt(
 		}
 		branchSetting.AdjustmentVoucherORCurrent++
 	case core.GeneralLedgerSourceCheckVoucher:
+		if branchSetting.CheckVoucherGeneral {
+			break
+		}
 		if branchSetting.CashCheckVoucherORUnique {
 			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
@@ -125,8 +127,11 @@ func IncrementOfficialReceipt(
 		}
 		branchSetting.CashCheckVoucherORCurrent++
 	case core.GeneralLedgerSourceLoan:
+		if branchSetting.CheckVoucherGeneral {
+			break
+		}
 		if branchSetting.LoanVoucherORUnique {
-			adjustments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			loans, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				Source:          core.GeneralLedgerSourceLoan,
@@ -135,20 +140,47 @@ func IncrementOfficialReceipt(
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find loan vouchers")
 			}
-			if len(adjustments) > 0 {
+			if len(loans) > 0 {
 				return eris.New("IncrementOfficialReceipt: loan with the same reference number already exists")
 			}
 		}
 		branchSetting.LoanVoucherORCurrent++
 	}
 
+	if branchSetting.CheckVoucherGeneral {
+		if branchSetting.CheckVoucherGeneralORUnique {
+			loans, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceLoan,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: (general) failed to find loans")
+			}
+			if len(loans) > 0 {
+				return eris.New("IncrementOfficialReceipt: (general) loan with the same reference number already exists")
+			}
+			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceCheckVoucher,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: (general) failed to find check vouchers")
+			}
+			if len(checkVouchers) > 0 {
+				return eris.New("IncrementOfficialReceipt: (general) check voucher with the same reference number already exists")
+			}
+		}
+		branchSetting.CheckVoucherGeneralORCurrent++
+	}
 	if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to update branch setting with transaction")
 	}
-
 	if err := core.UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to update user organization with transaction")
 	}
-
 	return nil
 }
