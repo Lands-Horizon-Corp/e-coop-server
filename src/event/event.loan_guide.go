@@ -19,19 +19,26 @@ const (
 	LoanScheduleStatusAdvance LoanScheduleStatus = "advance"
 )
 
+type LoanPayments struct {
+	Amount  float64   `json:"amount"`
+	PayDate time.Time `json:"pay_date"`
+}
 type LoanPaymentSchedule struct {
+	LoanPayments LoanPayments `json:"loan_payments"`
+
 	PaymentDate   time.Time `json:"payment_date"`
 	ScheduledDate time.Time `json:"scheduled_date"`
 	ActualDate    time.Time `json:"actual_date"`
 	DaysSkipped   int       `json:"days_skipped"`
 
-	AmountDue       float64            `json:"amount_due" validate:"required,gte=0"`
-	AmountPaid      float64            `json:"amount_paid" validate:"required,gte=0"`
-	Balance         float64            `json:"balance" validate:"required,gte=0"`
-	PrincipalAmount float64            `json:"principal_amount" validate:"required,gte=0"`
-	InterestAmount  float64            `json:"interest_amount" validate:"required,gte=0"`
-	FinesAmount     float64            `json:"fines_amount" validate:"required,gte=0"`
-	Type            LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
+	AmountDue       float64 `json:"amount_due" validate:"required,gte=0"`
+	AmountPaid      float64 `json:"amount_paid" validate:"required,gte=0"`
+	Balance         float64 `json:"balance" validate:"required,gte=0"`
+	PrincipalAmount float64 `json:"principal_amount" validate:"required,gte=0"`
+	InterestAmount  float64 `json:"interest_amount" validate:"required,gte=0"`
+	FinesAmount     float64 `json:"fines_amount" validate:"required,gte=0"`
+
+	Type LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
 }
 type LoanAccountSummary struct {
 	LoanAccount      core.LoanAccountResponse `json:"loan_account"`
