@@ -1251,10 +1251,11 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.PaymentORUnique = req.PaymentORUnique
 		userOrg.PaymentORAllowUserInput = req.PaymentORAllowUserInput
 		userOrg.PaymentORCurrent = req.PaymentORCurrent
+		userOrg.PaymentORStart = req.PaymentORStart
 		userOrg.PaymentOREnd = req.PaymentOREnd
 		userOrg.PaymentORIteration = req.PaymentORIteration
 		userOrg.PaymentORUseDateOR = req.PaymentORUseDateOR
-		userOrg.PaymentAllowPrefix = req.PaymentAllowPrefix
+		userOrg.PaymentPrefix = req.PaymentPrefix
 		userOrg.PaymentPadding = req.PaymentPadding
 		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
@@ -1318,10 +1319,11 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.PaymentORUnique = req.PaymentORUnique
 		userOrg.PaymentORAllowUserInput = req.PaymentORAllowUserInput
 		userOrg.PaymentORCurrent = req.PaymentORCurrent
+		userOrg.PaymentORStart = req.PaymentORStart
 		userOrg.PaymentOREnd = req.PaymentOREnd
 		userOrg.PaymentORIteration = req.PaymentORIteration
 		userOrg.PaymentORUseDateOR = req.PaymentORUseDateOR
-		userOrg.PaymentAllowPrefix = req.PaymentAllowPrefix
+		userOrg.PaymentPrefix = req.PaymentPrefix
 		userOrg.PaymentPadding = req.PaymentPadding
 
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
