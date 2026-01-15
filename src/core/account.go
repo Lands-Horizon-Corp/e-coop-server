@@ -3538,21 +3538,25 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			break
 		}
 	}
-
+	if regularSavings == nil {
+		return eris.New("Regular Savings account not found")
+	}
 	userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 	})
-	if regularSavings != nil {
-		userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
-		userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
-		userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
-	}
 	if err != nil {
 		return eris.Wrap(err, "failed to find user organization for setting default payment type")
 	}
+	if cashOnHandPaymentType == nil {
+		return eris.New("cashOnHandPaymentType is nil")
+	}
+	userOrganization.SettingsAccountingPaymentDefaultValueID = &regularSavings.ID
+	userOrganization.SettingsAccountingDepositDefaultValueID = &regularSavings.ID
+	userOrganization.SettingsAccountingWithdrawDefaultValueID = &regularSavings.ID
 	userOrganization.SettingsPaymentTypeDefaultValueID = &cashOnHandPaymentType.ID
+	userOrganization.IsSeeded = true
 	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
 	}

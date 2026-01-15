@@ -278,19 +278,7 @@ func OrganizationSeeder(context context.Context, service *horizon.HorizonService
 	if err := permissionTemplateSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err
 	}
-	userOrg, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
-		OrganizationID: organizationID,
-		BranchID:       &branchID,
-		UserID:         userID,
-	})
-	if err != nil {
-		return err
-	}
 	if err := memberProfileSeed(context, service, tx, userID, organizationID, branchID); err != nil {
-		return err
-	}
-	userOrg.IsSeeded = true
-	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrg.ID, userOrg); err != nil {
 		return err
 	}
 	if err := companySeed(context, service, tx, userID, organizationID, branchID); err != nil {

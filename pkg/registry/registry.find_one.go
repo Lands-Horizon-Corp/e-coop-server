@@ -23,6 +23,7 @@ func (r *Registry[TData, TResponse, TRequest]) FindOne(
 
 func (r *Registry[TData, TResponse, TRequest]) FindOneWithLock(
 	context context.Context,
+	tx *gorm.DB,
 	fields *TData,
 	preloads ...string,
 ) (*TData, error) {
