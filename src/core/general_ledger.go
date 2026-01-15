@@ -19,7 +19,6 @@ type GeneralLedgerSource string
 const (
 	GeneralLedgerSourceWithdraw           GeneralLedgerSource = "withdraw"
 	GeneralLedgerSourceDeposit            GeneralLedgerSource = "deposit"
-	GeneralLedgerSourceJournal            GeneralLedgerSource = "journal"
 	GeneralLedgerSourcePayment            GeneralLedgerSource = "payment"
 	GeneralLedgerSourceAdjustment         GeneralLedgerSource = "adjustment"
 	GeneralLedgerSourceJournalVoucher     GeneralLedgerSource = "journal voucher"

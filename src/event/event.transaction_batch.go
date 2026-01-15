@@ -382,7 +382,7 @@ func TBJournal(context context.Context, service *horizon.HorizonService, transac
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceJournal,
+		Source:             core.GeneralLedgerSourceJournalVoucher,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journals")
