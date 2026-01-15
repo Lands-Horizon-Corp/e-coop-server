@@ -622,7 +622,6 @@ func BranchController(service *horizon.HorizonService) {
 				CashCheckVoucherPrefix:         settingsReq.CashCheckVoucherPrefix,
 				CashCheckVoucherORStart:        settingsReq.CashCheckVoucherORStart,
 				CashCheckVoucherORCurrent:      settingsReq.CashCheckVoucherORCurrent,
-				CashCheckVoucherORIteration:    settingsReq.CashCheckVoucherORIteration,
 				CashCheckVoucherPadding:        settingsReq.CashCheckVoucherPadding,
 
 				JournalVoucherAllowUserInput: settingsReq.JournalVoucherAllowUserInput,
@@ -630,7 +629,6 @@ func BranchController(service *horizon.HorizonService) {
 				JournalVoucherPrefix:         settingsReq.JournalVoucherPrefix,
 				JournalVoucherORStart:        settingsReq.JournalVoucherORStart,
 				JournalVoucherORCurrent:      settingsReq.JournalVoucherORCurrent,
-				JournalVoucherORIteration:    settingsReq.JournalVoucherORIteration,
 				JournalVoucherPadding:        settingsReq.JournalVoucherPadding,
 
 				AdjustmentVoucherAllowUserInput: settingsReq.AdjustmentVoucherAllowUserInput,
@@ -638,7 +636,6 @@ func BranchController(service *horizon.HorizonService) {
 				AdjustmentVoucherPrefix:         settingsReq.AdjustmentVoucherPrefix,
 				AdjustmentVoucherORStart:        settingsReq.AdjustmentVoucherORStart,
 				AdjustmentVoucherORCurrent:      settingsReq.AdjustmentVoucherORCurrent,
-				AdjustmentVoucherORIteration:    settingsReq.AdjustmentVoucherORIteration,
 				AdjustmentVoucherPadding:        settingsReq.AdjustmentVoucherPadding,
 
 				LoanVoucherAllowUserInput: settingsReq.LoanVoucherAllowUserInput,
@@ -646,7 +643,6 @@ func BranchController(service *horizon.HorizonService) {
 				LoanVoucherPrefix:         settingsReq.LoanVoucherPrefix,
 				LoanVoucherORStart:        settingsReq.LoanVoucherORStart,
 				LoanVoucherORCurrent:      settingsReq.LoanVoucherORCurrent,
-				LoanVoucherORIteration:    settingsReq.LoanVoucherORIteration,
 				LoanVoucherPadding:        settingsReq.LoanVoucherPadding,
 
 				CheckVoucherGeneral:               settingsReq.CheckVoucherGeneral,
@@ -655,7 +651,6 @@ func BranchController(service *horizon.HorizonService) {
 				CheckVoucherGeneralPrefix:         settingsReq.CheckVoucherGeneralPrefix,
 				CheckVoucherGeneralORStart:        settingsReq.CheckVoucherGeneralORStart,
 				CheckVoucherGeneralORCurrent:      settingsReq.CheckVoucherGeneralORCurrent,
-				CheckVoucherGeneralORIteration:    settingsReq.CheckVoucherGeneralORIteration,
 				CheckVoucherGeneralPadding:        settingsReq.CheckVoucherGeneralPadding,
 
 				AnnualDivisor:             settingsReq.AnnualDivisor,
@@ -699,7 +694,6 @@ func BranchController(service *horizon.HorizonService) {
 			branchSetting.CashCheckVoucherPrefix = settingsReq.CashCheckVoucherPrefix
 			branchSetting.CashCheckVoucherORStart = settingsReq.CashCheckVoucherORStart
 			branchSetting.CashCheckVoucherORCurrent = settingsReq.CashCheckVoucherORCurrent
-			branchSetting.CashCheckVoucherORIteration = settingsReq.CashCheckVoucherORIteration
 			branchSetting.CashCheckVoucherPadding = settingsReq.CashCheckVoucherPadding
 
 			branchSetting.JournalVoucherAllowUserInput = settingsReq.JournalVoucherAllowUserInput
@@ -707,7 +701,6 @@ func BranchController(service *horizon.HorizonService) {
 			branchSetting.JournalVoucherPrefix = settingsReq.JournalVoucherPrefix
 			branchSetting.JournalVoucherORStart = settingsReq.JournalVoucherORStart
 			branchSetting.JournalVoucherORCurrent = settingsReq.JournalVoucherORCurrent
-			branchSetting.JournalVoucherORIteration = settingsReq.JournalVoucherORIteration
 			branchSetting.JournalVoucherPadding = settingsReq.JournalVoucherPadding
 
 			branchSetting.AdjustmentVoucherAllowUserInput = settingsReq.AdjustmentVoucherAllowUserInput
@@ -715,7 +708,6 @@ func BranchController(service *horizon.HorizonService) {
 			branchSetting.AdjustmentVoucherPrefix = settingsReq.AdjustmentVoucherPrefix
 			branchSetting.AdjustmentVoucherORStart = settingsReq.AdjustmentVoucherORStart
 			branchSetting.AdjustmentVoucherORCurrent = settingsReq.AdjustmentVoucherORCurrent
-			branchSetting.AdjustmentVoucherORIteration = settingsReq.AdjustmentVoucherORIteration
 			branchSetting.AdjustmentVoucherPadding = settingsReq.AdjustmentVoucherPadding
 
 			branchSetting.LoanVoucherAllowUserInput = settingsReq.LoanVoucherAllowUserInput
@@ -723,7 +715,6 @@ func BranchController(service *horizon.HorizonService) {
 			branchSetting.LoanVoucherPrefix = settingsReq.LoanVoucherPrefix
 			branchSetting.LoanVoucherORStart = settingsReq.LoanVoucherORStart
 			branchSetting.LoanVoucherORCurrent = settingsReq.LoanVoucherORCurrent
-			branchSetting.LoanVoucherORIteration = settingsReq.LoanVoucherORIteration
 			branchSetting.LoanVoucherPadding = settingsReq.LoanVoucherPadding
 
 			branchSetting.CheckVoucherGeneral = settingsReq.CheckVoucherGeneral
@@ -732,7 +723,6 @@ func BranchController(service *horizon.HorizonService) {
 			branchSetting.CheckVoucherGeneralPrefix = settingsReq.CheckVoucherGeneralPrefix
 			branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
 			branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
-			branchSetting.CheckVoucherGeneralORIteration = settingsReq.CheckVoucherGeneralORIteration
 			branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
 
 			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID

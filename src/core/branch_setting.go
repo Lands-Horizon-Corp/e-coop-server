@@ -55,7 +55,6 @@ type (
 		CashCheckVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'CCV'" json:"cash_check_voucher_prefix"`
 		CashCheckVoucherORStart        int    `gorm:"not null;default:0" json:"cash_check_voucher_or_start"`
 		CashCheckVoucherORCurrent      int    `gorm:"not null;default:1" json:"cash_check_voucher_or_current"`
-		CashCheckVoucherORIteration    int    `gorm:"not null;default:1" json:"cash_check_voucher_or_iteration"`
 		CashCheckVoucherPadding        int    `gorm:"not null;default:6" json:"cash_check_voucher_padding"`
 
 		JournalVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"journal_voucher_allow_user_input"`
@@ -63,7 +62,6 @@ type (
 		JournalVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'JV'" json:"journal_voucher_prefix"`
 		JournalVoucherORStart        int    `gorm:"not null;default:0" json:"journal_voucher_or_start"`
 		JournalVoucherORCurrent      int    `gorm:"not null;default:1" json:"journal_voucher_or_current"`
-		JournalVoucherORIteration    int    `gorm:"not null;default:1" json:"journal_voucher_or_iteration"`
 		JournalVoucherPadding        int    `gorm:"not null;default:6" json:"journal_voucher_padding"`
 
 		AdjustmentVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"adjustment_voucher_allow_user_input"`
@@ -71,7 +69,6 @@ type (
 		AdjustmentVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'AV'" json:"adjustment_voucher_prefix"`
 		AdjustmentVoucherORStart        int    `gorm:"not null;default:0" json:"adjustment_voucher_or_start"`
 		AdjustmentVoucherORCurrent      int    `gorm:"not null;default:1" json:"adjustment_voucher_or_current"`
-		AdjustmentVoucherORIteration    int    `gorm:"not null;default:1" json:"adjustment_voucher_or_iteration"`
 		AdjustmentVoucherPadding        int    `gorm:"not null;default:6" json:"adjustment_voucher_padding"`
 
 		LoanVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"loan_voucher_allow_user_input"`
@@ -79,7 +76,6 @@ type (
 		LoanVoucherPrefix         string `gorm:"type:varchar(50);not null;default:'LV'" json:"loan_voucher_prefix"`
 		LoanVoucherORStart        int    `gorm:"not null;default:0" json:"loan_voucher_or_start"`
 		LoanVoucherORCurrent      int    `gorm:"not null;default:1" json:"loan_voucher_or_current"`
-		LoanVoucherORIteration    int    `gorm:"not null;default:1" json:"loan_voucher_or_iteration"`
 		LoanVoucherPadding        int    `gorm:"not null;default:6" json:"loan_voucher_padding"`
 
 		CheckVoucherGeneral               bool    `gorm:"not null;default:false" json:"check_voucher_general"`
@@ -88,7 +84,6 @@ type (
 		CheckVoucherGeneralPrefix         string  `gorm:"type:varchar(50);not null;default:'CV'" json:"check_voucher_general_prefix"`
 		CheckVoucherGeneralORStart        int     `gorm:"not null;default:0" json:"check_voucher_general_or_start"`
 		CheckVoucherGeneralORCurrent      int     `gorm:"not null;default:1" json:"check_voucher_general_or_current"`
-		CheckVoucherGeneralORIteration    int     `gorm:"not null;default:1" json:"check_voucher_general_or_iteration"`
 		CheckVoucherGeneralPadding        int     `gorm:"not null;default:6" json:"check_voucher_general_padding"`
 		TaxInterest                       float64 `gorm:"not null;default:0" json:"tax_interest"`
 
@@ -127,7 +122,6 @@ type (
 		CashCheckVoucherPrefix         string `json:"cash_check_voucher_prefix" validate:"omitempty"`
 		CashCheckVoucherORStart        int    `json:"cash_check_voucher_or_start" validate:"min=0"`
 		CashCheckVoucherORCurrent      int    `json:"cash_check_voucher_or_current" validate:"min=0"`
-		CashCheckVoucherORIteration    int    `json:"cash_check_voucher_or_iteration" validate:"min=0"`
 		CashCheckVoucherPadding        int    `json:"cash_check_voucher_padding" validate:"min=0"`
 
 		JournalVoucherAllowUserInput bool   `json:"journal_voucher_allow_user_input"`
@@ -135,7 +129,6 @@ type (
 		JournalVoucherPrefix         string `json:"journal_voucher_prefix" validate:"omitempty"`
 		JournalVoucherORStart        int    `json:"journal_voucher_or_start" validate:"min=0"`
 		JournalVoucherORCurrent      int    `json:"journal_voucher_or_current" validate:"min=0"`
-		JournalVoucherORIteration    int    `json:"journal_voucher_or_iteration" validate:"min=0"`
 		JournalVoucherPadding        int    `json:"journal_voucher_padding" validate:"min=0"`
 
 		AdjustmentVoucherAllowUserInput bool   `json:"adjustment_voucher_allow_user_input"`
@@ -143,7 +136,6 @@ type (
 		AdjustmentVoucherPrefix         string `json:"adjustment_voucher_prefix" validate:"omitempty"`
 		AdjustmentVoucherORStart        int    `json:"adjustment_voucher_or_start" validate:"min=0"`
 		AdjustmentVoucherORCurrent      int    `json:"adjustment_voucher_or_current" validate:"min=0"`
-		AdjustmentVoucherORIteration    int    `json:"adjustment_voucher_or_iteration" validate:"min=0"`
 		AdjustmentVoucherPadding        int    `json:"adjustment_voucher_padding" validate:"min=0"`
 
 		LoanVoucherAllowUserInput bool   `json:"loan_voucher_allow_user_input"`
@@ -151,7 +143,6 @@ type (
 		LoanVoucherPrefix         string `json:"loan_voucher_prefix" validate:"omitempty"`
 		LoanVoucherORStart        int    `json:"loan_voucher_or_start" validate:"min=0"`
 		LoanVoucherORCurrent      int    `json:"loan_voucher_or_current" validate:"min=0"`
-		LoanVoucherORIteration    int    `json:"loan_voucher_or_iteration" validate:"min=0"`
 		LoanVoucherPadding        int    `json:"loan_voucher_padding" validate:"min=0"`
 
 		CheckVoucherGeneral               bool   `json:"check_voucher_general"`
@@ -160,7 +151,6 @@ type (
 		CheckVoucherGeneralPrefix         string `json:"check_voucher_general_prefix" validate:"omitempty"`
 		CheckVoucherGeneralORStart        int    `json:"check_voucher_general_or_start" validate:"min=0"`
 		CheckVoucherGeneralORCurrent      int    `json:"check_voucher_general_or_current" validate:"min=0"`
-		CheckVoucherGeneralORIteration    int    `json:"check_voucher_general_or_iteration" validate:"min=0"`
 
 		CheckVoucherGeneralPadding int `json:"check_voucher_general_padding" validate:"min=0"`
 
@@ -213,7 +203,6 @@ type (
 		CashCheckVoucherPrefix         string `json:"cash_check_voucher_prefix"`
 		CashCheckVoucherORStart        int    `json:"cash_check_voucher_or_start"`
 		CashCheckVoucherORCurrent      int    `json:"cash_check_voucher_or_current"`
-		CashCheckVoucherORIteration    int    `json:"cash_check_voucher_or_iteration"`
 		CashCheckVoucherPadding        int    `json:"cash_check_voucher_padding"`
 
 		JournalVoucherAllowUserInput bool   `json:"journal_voucher_allow_user_input"`
@@ -221,7 +210,6 @@ type (
 		JournalVoucherPrefix         string `json:"journal_voucher_prefix"`
 		JournalVoucherORStart        int    `json:"journal_voucher_or_start"`
 		JournalVoucherORCurrent      int    `json:"journal_voucher_or_current"`
-		JournalVoucherORIteration    int    `json:"journal_voucher_or_iteration"`
 		JournalVoucherPadding        int    `json:"journal_voucher_padding"`
 
 		AdjustmentVoucherAllowUserInput bool   `json:"adjustment_voucher_allow_user_input"`
@@ -229,7 +217,6 @@ type (
 		AdjustmentVoucherPrefix         string `json:"adjustment_voucher_prefix"`
 		AdjustmentVoucherORStart        int    `json:"adjustment_voucher_or_start"`
 		AdjustmentVoucherORCurrent      int    `json:"adjustment_voucher_or_current"`
-		AdjustmentVoucherORIteration    int    `json:"adjustment_voucher_or_iteration"`
 		AdjustmentVoucherPadding        int    `json:"adjustment_voucher_padding"`
 
 		LoanVoucherAllowUserInput bool   `json:"loan_voucher_allow_user_input"`
@@ -237,7 +224,6 @@ type (
 		LoanVoucherPrefix         string `json:"loan_voucher_prefix"`
 		LoanVoucherORStart        int    `json:"loan_voucher_or_start"`
 		LoanVoucherORCurrent      int    `json:"loan_voucher_or_current"`
-		LoanVoucherORIteration    int    `json:"loan_voucher_or_iteration"`
 		LoanVoucherPadding        int    `json:"loan_voucher_padding"`
 
 		CheckVoucherGeneral               bool   `json:"check_voucher_general"`
@@ -246,7 +232,6 @@ type (
 		CheckVoucherGeneralPrefix         string `json:"check_voucher_general_prefix"`
 		CheckVoucherGeneralORStart        int    `json:"check_voucher_general_or_start"`
 		CheckVoucherGeneralORCurrent      int    `json:"check_voucher_general_or_current"`
-		CheckVoucherGeneralORIteration    int    `json:"check_voucher_general_or_iteration"`
 		CheckVoucherGeneralPadding        int    `json:"check_voucher_general_padding"`
 
 		DefaultMemberGenderID *uuid.UUID            `json:"default_member_gender_id"`
@@ -326,7 +311,6 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				CashCheckVoucherPrefix:         data.CashCheckVoucherPrefix,
 				CashCheckVoucherORStart:        data.CashCheckVoucherORStart,
 				CashCheckVoucherORCurrent:      data.CashCheckVoucherORCurrent,
-				CashCheckVoucherORIteration:    data.CashCheckVoucherORIteration,
 				CashCheckVoucherPadding:        data.CashCheckVoucherPadding,
 
 				JournalVoucherAllowUserInput: data.JournalVoucherAllowUserInput,
@@ -334,7 +318,6 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				JournalVoucherPrefix:         data.JournalVoucherPrefix,
 				JournalVoucherORStart:        data.JournalVoucherORStart,
 				JournalVoucherORCurrent:      data.JournalVoucherORCurrent,
-				JournalVoucherORIteration:    data.JournalVoucherORIteration,
 				JournalVoucherPadding:        data.JournalVoucherPadding,
 
 				AdjustmentVoucherAllowUserInput: data.AdjustmentVoucherAllowUserInput,
@@ -342,7 +325,6 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				AdjustmentVoucherPrefix:         data.AdjustmentVoucherPrefix,
 				AdjustmentVoucherORStart:        data.AdjustmentVoucherORStart,
 				AdjustmentVoucherORCurrent:      data.AdjustmentVoucherORCurrent,
-				AdjustmentVoucherORIteration:    data.AdjustmentVoucherORIteration,
 				AdjustmentVoucherPadding:        data.AdjustmentVoucherPadding,
 
 				LoanVoucherAllowUserInput: data.LoanVoucherAllowUserInput,
@@ -350,7 +332,6 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				LoanVoucherPrefix:         data.LoanVoucherPrefix,
 				LoanVoucherORStart:        data.LoanVoucherORStart,
 				LoanVoucherORCurrent:      data.LoanVoucherORCurrent,
-				LoanVoucherORIteration:    data.LoanVoucherORIteration,
 				LoanVoucherPadding:        data.LoanVoucherPadding,
 
 				CheckVoucherGeneral:               data.CheckVoucherGeneral,
@@ -359,7 +340,6 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[Br
 				CheckVoucherGeneralPrefix:         data.CheckVoucherGeneralPrefix,
 				CheckVoucherGeneralORStart:        data.CheckVoucherGeneralORStart,
 				CheckVoucherGeneralORCurrent:      data.CheckVoucherGeneralORCurrent,
-				CheckVoucherGeneralORIteration:    data.CheckVoucherGeneralORIteration,
 				CheckVoucherGeneralPadding:        data.CheckVoucherGeneralPadding,
 
 				DefaultMemberTypeID: data.DefaultMemberTypeID,

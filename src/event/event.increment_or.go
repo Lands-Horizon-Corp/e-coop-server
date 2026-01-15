@@ -67,7 +67,6 @@ func IncrementOfficialReceipt(
 			branchSetting.WithdrawORIteration++
 			branchSetting.WithdrawORCurrent = branchSetting.WithdrawORStart
 		}
-
 	case core.GeneralLedgerSourceDeposit:
 		if branchSetting.DepositUseDateOR || branchSetting.DepositCommonOR != "" {
 			break
@@ -77,14 +76,70 @@ func IncrementOfficialReceipt(
 			branchSetting.DepositORIteration++
 			branchSetting.DepositORCurrent = branchSetting.DepositORStart
 		}
-	case core.GeneralLedgerSourceCheckVoucher:
-		// TODO: implement logic
 	case core.GeneralLedgerSourceJournalVoucher:
-		// TODO: implement logic
+		if branchSetting.JournalVoucherORUnique {
+			journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceJournalVoucher,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find journal vouchers")
+			}
+			if len(journalVouchers) > 0 {
+				return eris.New("IncrementOfficialReceipt: journal voucher with the same reference number already exists")
+			}
+		}
+		branchSetting.JournalVoucherORCurrent++
 	case core.GeneralLedgerSourceAdjustment:
-		// TODO: implement logic
+		if branchSetting.AdjustmentVoucherORUnique {
+			adjustments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceAdjustment,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find adjustment vouchers")
+			}
+			if len(adjustments) > 0 {
+				return eris.New("IncrementOfficialReceipt: adjustments with the same reference number already exists")
+			}
+		}
+		branchSetting.AdjustmentVoucherORCurrent++
+	case core.GeneralLedgerSourceCheckVoucher:
+		if branchSetting.CashCheckVoucherORUnique {
+			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceCheckVoucher,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find check vouchers")
+			}
+			if len(checkVouchers) > 0 {
+				return eris.New("IncrementOfficialReceipt: check voucher with the same reference number already exists")
+			}
+		}
+		branchSetting.CashCheckVoucherORCurrent++
 	case core.GeneralLedgerSourceLoan:
-		// TODO: implement logic
+		if branchSetting.LoanVoucherORUnique {
+			adjustments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+				OrganizationID:  userOrg.OrganizationID,
+				BranchID:        *userOrg.BranchID,
+				Source:          core.GeneralLedgerSourceLoan,
+				ReferenceNumber: referenceNumber,
+			})
+			if err != nil {
+				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find loan vouchers")
+			}
+			if len(adjustments) > 0 {
+				return eris.New("IncrementOfficialReceipt: loan with the same reference number already exists")
+			}
+		}
+		branchSetting.LoanVoucherORCurrent++
 	}
 
 	if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
