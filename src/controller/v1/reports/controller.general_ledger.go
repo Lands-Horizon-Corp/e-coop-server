@@ -99,7 +99,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, entries)
+		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModels(entries))
 	})
 
 	req.RegisterWebRoute(horizon.Route{

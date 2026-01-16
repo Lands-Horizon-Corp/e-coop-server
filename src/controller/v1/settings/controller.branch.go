@@ -772,7 +772,6 @@ func BranchController(service *horizon.HorizonService) {
 		ResponseType: core.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		var settingsReq core.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
