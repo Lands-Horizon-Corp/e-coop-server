@@ -307,7 +307,7 @@ func ExtractInterfaceName(i any) string {
 		return "<nil>"
 	}
 	t := reflect.TypeOf(i)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	return t.Name()

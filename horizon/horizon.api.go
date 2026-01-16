@@ -2,18 +2,16 @@ package horizon
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"reflect"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/invopop/jsonschema"
+	"github.com/Lands-Horizon-Corp/go2ts/go2ts"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rotisserie/eris"
@@ -624,48 +622,27 @@ func (h *APIImpl) RegisterWebRoute(
 	if route.Private {
 		return nil
 	}
-	reflector := &jsonschema.Reflector{}
-	var (
-		reqSchema  string
-		respSchema string
-	)
+	request := go2ts.Convert(route.RequestType)
+	response := go2ts.Convert(route.ResponseType)
+
 	if route.RequestType != nil {
-		reqType := reflect.TypeOf(route.RequestType)
-		if reqType.Kind() == reflect.Pointer {
-			reqType = reqType.Elem()
-		}
-		schema := reflector.ReflectFromType(reqType)
-		b, err := json.MarshalIndent(schema, "", "  ")
-		if err != nil {
-			return eris.Wrapf(err, "failed to marshal request schema for route: %s", route.Route)
-		}
-		reqSchema = string(b)
+
 		h.interfacesList = append(h.interfacesList, APIInterfaces{
 			Key:   helpers.ExtractInterfaceName(route.RequestType),
-			Value: reqSchema,
+			Value: request,
 		})
 	}
 	if route.ResponseType != nil {
-		respType := reflect.TypeOf(route.ResponseType)
-		if respType.Kind() == reflect.Pointer {
-			respType = respType.Elem()
-		}
-		schema := reflector.ReflectFromType(respType)
-		b, err := json.MarshalIndent(schema, "", "  ")
-		if err != nil {
-			return eris.Wrapf(err, "failed to marshal response schema for route: %s", route.Route)
-		}
-		respSchema = string(b)
 		h.interfacesList = append(h.interfacesList, APIInterfaces{
 			Key:   helpers.ExtractInterfaceName(route.ResponseType),
-			Value: respSchema,
+			Value: response,
 		})
 	}
 	h.routesList = append(h.routesList, Route{
 		Route:    route.Route,
 		Method:   method,
-		Request:  reqSchema,
-		Response: respSchema,
+		Request:  request,
+		Response: response,
 		Note:     route.Note,
 	})
 	switch method {
