@@ -1261,6 +1261,9 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
+		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
+		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
+		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
 
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
