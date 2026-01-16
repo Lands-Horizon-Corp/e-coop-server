@@ -22,6 +22,7 @@ func TransactionController(service *horizon.HorizonService) {
 		Note:         "Creates a new transaction record with provided details, allowing subsequent deposit or withdrawal actions.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -29,8 +30,11 @@ func TransactionController(service *horizon.HorizonService) {
 				Description: "Failed to get user organization (/transaction): " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+			return ctx.JSON(http.StatusUnauthorized, echo.Map{
+				"error": "Failed to get user organization",
+			})
 		}
+
 		var req core.TransactionRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -38,27 +42,40 @@ func TransactionController(service *horizon.HorizonService) {
 				Description: "Invalid request body (/transaction): " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
-		}
-		if err := service.Validator.Struct(req); err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Change request failed: validation error: " + err.Error(),
-				Module:      "User",
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
+				"error": "Invalid request body",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		transactionBatch, err := core.TransactionBatchCurrent(context, service, userOrg.UserID, userOrg.OrganizationID, *userOrg.BranchID)
+		if err := service.Validator.Struct(req); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "validation-error",
+				Description: "Validation failed (/transaction): " + err.Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusBadRequest, echo.Map{
+				"error": "Validation failed",
+			})
+		}
+
+		transactionBatch, err := core.TransactionBatchCurrent(
+			context,
+			service,
+			userOrg.UserID,
+			userOrg.OrganizationID,
+			*userOrg.BranchID,
+		)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "batch-error",
 				Description: "Failed to retrieve transaction batch (/transaction): " + err.Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
+			return ctx.JSON(http.StatusForbidden, echo.Map{
+				"error": "Failed to retrieve transaction batch",
+			})
 		}
-
+		tx, endTx := service.Database.StartTransaction(context)
 		transaction := &core.Transaction{
 			CreatedAt:   time.Now().UTC(),
 			CreatedByID: userOrg.UserID,
@@ -76,30 +93,45 @@ func TransactionController(service *horizon.HorizonService) {
 			MemberJointAccountID: req.MemberJointAccountID,
 			CurrencyID:           req.CurrencyID,
 
-			LoanBalance:     0,
-			LoanDue:         0,
-			TotalDue:        0,
-			FinesDue:        0,
-			TotalLoan:       0,
-			InterestDue:     0,
-			Amount:          0,
+			LoanBalance: 0,
+			LoanDue:     0,
+			TotalDue:    0,
+			FinesDue:    0,
+			TotalLoan:   0,
+			InterestDue: 0,
+			Amount:      0,
+
 			ReferenceNumber: req.ReferenceNumber,
 			Description:     req.Description,
 		}
-
-		if err := core.TransactionManager(service).Create(context, transaction); err != nil {
+		if req.IsReferenceNumberChecked {
+			if err := event.IncrementOfficialReceipt(context, service, tx, transaction.ReferenceNumber, core.GeneralLedgerSourcePayment, userOrg); err != nil {
+				return ctx.JSON(http.StatusConflict, echo.Map{"error": endTx(err).Error()})
+			}
+		}
+		if err := core.TransactionManager(service).CreateWithTx(context, tx, transaction); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
-				Description: "Transaction creation failed (/transaction), db error: " + err.Error(),
+				Description: "Transaction creation failed (/transaction): " + endTx(err).Error(),
 				Module:      "Transaction",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to create transaction"})
+		}
+
+		if err := endTx(nil); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "commit-error",
+				Description: "Transaction commit failed (/transaction): " + endTx(err).Error(),
+				Module:      "Transaction",
+			})
+			return ctx.JSON(http.StatusInternalServerError, echo.Map{"error": "Failed to commit transaction"})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Transaction created successfully (/transaction), transaction_id: " + transaction.ID.String(),
 			Module:      "Transaction",
 		})
+
 		return ctx.JSON(http.StatusCreated, core.TransactionManager(service).ToModel(transaction))
 	})
 
