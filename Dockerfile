@@ -1,5 +1,5 @@
 # ---------- Builder ----------
-FROM golang:1.25.5-alpine AS builder
+FROM golang:1.25.6-alpine AS builder
 
 # Install git (needed for some modules) and bash
 RUN apk add --no-cache git bash
