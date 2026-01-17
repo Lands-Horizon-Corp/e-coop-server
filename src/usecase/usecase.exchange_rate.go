@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 )
 
@@ -92,8 +92,8 @@ func GetExchangeRate(currencyFrom, currencyTo string, amount float64) (*Exchange
 }
 
 func ExchangeRateComputeAmount(
-	fromCurrency core.Currency,
-	toCurrency core.Currency,
+	fromCurrency types.Currency,
+	toCurrency types.Currency,
 	amount float64) (*ExchangeResult, error) {
 
 	fromCurrencyStr := fromCurrency.CurrencyCode

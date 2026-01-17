@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
@@ -24,17 +23,17 @@ func Withdraw(
 
 	switch account.Type {
 
-	case core.AccountTypeDeposit,
-		core.AccountTypeTimeDeposit,
-		core.AccountTypeSVFLedger,
-		core.AccountTypeLoan,
-		core.AccountTypeFines,
-		core.AccountTypeInterest,
-		core.AccountTypeAPLedger,
-		core.AccountTypeARLedger,
-		core.AccountTypeARAging,
-		core.AccountTypeWOff,
-		core.AccountTypeOther:
+	case types.AccountTypeDeposit,
+		types.AccountTypeTimeDeposit,
+		types.AccountTypeSVFLedger,
+		types.AccountTypeLoan,
+		types.AccountTypeFines,
+		types.AccountTypeInterest,
+		types.AccountTypeAPLedger,
+		types.AccountTypeARLedger,
+		types.AccountTypeARAging,
+		types.AccountTypeWOff,
+		types.AccountTypeOther:
 		return 0, amt.InexactFloat64(), nil
 	default:
 		return 0, 0, nil

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -62,14 +61,14 @@ func CalculateBalance(data Balance) (BalanceResponse, error) {
 	var lastDebit *time.Time
 
 	apply := func(
-		accType core.GeneralLedgerType,
+		accType types.GeneralLedgerType,
 		dr decimal.Decimal,
 		cr decimal.Decimal,
 	) {
 		switch accType {
-		case core.GLTypeAssets, core.GLTypeExpenses:
+		case types.GLTypeAssets, types.GLTypeExpenses:
 			balance = balance.Add(dr.Sub(cr))
-		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
+		case types.GLTypeLiabilities, types.GLTypeEquity, types.GLTypeRevenue:
 			balance = balance.Add(cr.Sub(dr))
 		default:
 			balance = balance.Add(dr.Sub(cr))
@@ -293,10 +292,10 @@ func GeneralLedgerAddBalanceByAccount(
 		credit := decimal.NewFromFloat(ledger.Credit)
 
 		switch ledger.Account.GeneralLedgerType {
-		case core.GLTypeAssets, core.GLTypeExpenses:
+		case types.GLTypeAssets, types.GLTypeExpenses:
 			current = current.Add(debit.Sub(credit))
 
-		case core.GLTypeLiabilities, core.GLTypeEquity, core.GLTypeRevenue:
+		case types.GLTypeLiabilities, types.GLTypeEquity, types.GLTypeRevenue:
 			current = current.Add(credit.Sub(debit))
 
 		default:

@@ -5,15 +5,14 @@ import (
 	"errors"
 	"math"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 )
 
 func LoanChargesRateComputation(
-	crs core.ChargesRateScheme,
-	ald core.LoanTransaction,
+	crs types.ChargesRateScheme,
+	ald types.LoanTransaction,
 ) float64 {
 
 	result := decimal.Zero
@@ -61,22 +60,22 @@ func LoanChargesRateComputation(
 		base := applied.Mul(rate).Div(decimal.NewFromInt(100))
 
 		switch ald.ModeOfPayment {
-		case core.LoanModeOfPaymentDaily:
+		case types.LoanModeOfPaymentDaily:
 			return base.Div(decimal.NewFromInt(30))
 
-		case core.LoanModeOfPaymentWeekly:
+		case types.LoanModeOfPaymentWeekly:
 			return base.Mul(decimal.NewFromInt(7)).Div(decimal.NewFromInt(30))
 
-		case core.LoanModeOfPaymentSemiMonthly:
+		case types.LoanModeOfPaymentSemiMonthly:
 			return base.Mul(decimal.NewFromInt(15)).Div(decimal.NewFromInt(30))
 
-		case core.LoanModeOfPaymentMonthly:
+		case types.LoanModeOfPaymentMonthly:
 			return base
 
-		case core.LoanModeOfPaymentQuarterly:
+		case types.LoanModeOfPaymentQuarterly:
 			return base.Mul(decimal.NewFromInt(3))
 
-		case core.LoanModeOfPaymentSemiAnnual:
+		case types.LoanModeOfPaymentSemiAnnual:
 			return base.Mul(decimal.NewFromInt(6))
 
 		default:
@@ -88,7 +87,7 @@ func LoanChargesRateComputation(
 
 	/* ---------------- BY RANGE ---------------- */
 
-	case core.ChargesRateSchemeTypeByRange:
+	case types.ChargesRateSchemeTypeByRange:
 		for _, r := range crs.ChargesRateByRangeOrMinimumAmounts {
 			if ald.Applied1 < r.From || ald.Applied1 > r.To {
 				continue
@@ -112,7 +111,7 @@ func LoanChargesRateComputation(
 
 	/* ---------------- BY TYPE ---------------- */
 
-	case core.ChargesRateSchemeTypeByType:
+	case types.ChargesRateSchemeTypeByType:
 
 		if crs.MemberType != nil &&
 			ald.MemberProfile.MemberTypeID != &crs.MemberType.ID {
@@ -152,7 +151,7 @@ func LoanChargesRateComputation(
 
 	/* ---------------- BY TERM ---------------- */
 
-	case core.ChargesRateSchemeTypeByTerm:
+	case types.ChargesRateSchemeTypeByTerm:
 		if ald.Terms < 1 {
 			return 0
 		}
@@ -187,23 +186,23 @@ func LoanChargesRateComputation(
 	return 0
 }
 
-func LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
+func LoanNumberOfPayments(mp types.LoanModeOfPayment, terms int) (int, error) {
 	switch mp {
-	case core.LoanModeOfPaymentDaily:
+	case types.LoanModeOfPaymentDaily:
 		return terms * 30, nil
-	case core.LoanModeOfPaymentWeekly:
+	case types.LoanModeOfPaymentWeekly:
 		return terms * 4, nil
-	case core.LoanModeOfPaymentSemiMonthly:
+	case types.LoanModeOfPaymentSemiMonthly:
 		return terms * 2, nil
-	case core.LoanModeOfPaymentMonthly:
+	case types.LoanModeOfPaymentMonthly:
 		return terms, nil
-	case core.LoanModeOfPaymentQuarterly:
+	case types.LoanModeOfPaymentQuarterly:
 		return terms / 3, nil
-	case core.LoanModeOfPaymentSemiAnnual:
+	case types.LoanModeOfPaymentSemiAnnual:
 		return terms / 6, nil
-	case core.LoanModeOfPaymentLumpsum:
+	case types.LoanModeOfPaymentLumpsum:
 		return 1, nil
-	case core.LoanModeOfPaymentFixedDays:
+	case types.LoanModeOfPaymentFixedDays:
 		if terms <= 0 {
 			return 0, eris.New("invalid fixed days: must be greater than 0")
 		}
@@ -213,8 +212,8 @@ func LoanNumberOfPayments(mp core.LoanModeOfPayment, terms int) (int, error) {
 }
 
 func LoanComputation(
-	ald core.AutomaticLoanDeduction,
-	lt core.LoanTransaction,
+	ald types.AutomaticLoanDeduction,
+	lt types.LoanTransaction,
 ) float64 {
 
 	result := decimal.NewFromFloat(lt.Applied1)
@@ -280,7 +279,7 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 	applied := decimal.NewFromFloat(lt.Applied1)
 
 	switch lt.ModeOfPayment {
-	case core.LoanModeOfPaymentDaily:
+	case types.LoanModeOfPaymentDaily:
 		// Applied1 / Terms / 30
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
@@ -289,7 +288,7 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 		result := termsDiv.Div(decimal.NewFromInt(30))
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentWeekly:
+	case types.LoanModeOfPaymentWeekly:
 		// Applied1 / Terms / 4
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
@@ -298,7 +297,7 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 		result := termsDiv.Div(decimal.NewFromInt(4))
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentSemiMonthly:
+	case types.LoanModeOfPaymentSemiMonthly:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
@@ -306,14 +305,14 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 		result := termsDiv.Div(decimal.NewFromInt(2))
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentMonthly:
+	case types.LoanModeOfPaymentMonthly:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
 		result := applied.Div(decimal.NewFromInt(int64(lt.Terms)))
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentQuarterly:
+	case types.LoanModeOfPaymentQuarterly:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
@@ -321,7 +320,7 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 		result := applied.Div(termsDiv)
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentSemiAnnual:
+	case types.LoanModeOfPaymentSemiAnnual:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
@@ -329,10 +328,10 @@ func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 		result := applied.Div(termsDiv)
 		return result.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentLumpsum:
+	case types.LoanModeOfPaymentLumpsum:
 		return applied.Round(2).InexactFloat64(), nil
 
-	case core.LoanModeOfPaymentFixedDays:
+	case types.LoanModeOfPaymentFixedDays:
 		if lt.Terms <= 0 {
 			return 0, eris.New("invalid terms: must be greater than 0")
 		}
@@ -350,7 +349,7 @@ func SuggestedNumberOfTerms(
 	_ context.Context,
 	suggestedAmount float64,
 	principal float64,
-	modeOfPayment core.LoanModeOfPayment,
+	modeOfPayment types.LoanModeOfPayment,
 	fixedDays int,
 ) (int, error) {
 
@@ -366,21 +365,21 @@ func SuggestedNumberOfTerms(
 	var terms decimal.Decimal
 
 	switch modeOfPayment {
-	case core.LoanModeOfPaymentDaily:
+	case types.LoanModeOfPaymentDaily:
 		terms = baseTerms.Div(decimal.NewFromInt(30))
-	case core.LoanModeOfPaymentWeekly:
+	case types.LoanModeOfPaymentWeekly:
 		terms = baseTerms.Div(decimal.NewFromInt(4))
-	case core.LoanModeOfPaymentSemiMonthly:
+	case types.LoanModeOfPaymentSemiMonthly:
 		terms = baseTerms.Div(decimal.NewFromInt(2))
-	case core.LoanModeOfPaymentMonthly:
+	case types.LoanModeOfPaymentMonthly:
 		terms = baseTerms
-	case core.LoanModeOfPaymentQuarterly:
+	case types.LoanModeOfPaymentQuarterly:
 		terms = baseTerms.Mul(decimal.NewFromInt(3))
-	case core.LoanModeOfPaymentSemiAnnual:
+	case types.LoanModeOfPaymentSemiAnnual:
 		terms = baseTerms.Mul(decimal.NewFromInt(6))
-	case core.LoanModeOfPaymentLumpsum:
+	case types.LoanModeOfPaymentLumpsum:
 		terms = decimal.NewFromInt(1)
-	case core.LoanModeOfPaymentFixedDays:
+	case types.LoanModeOfPaymentFixedDays:
 		if fixedDays <= 0 {
 			return 0, errors.New("invalid fixed days: must be greater than 0")
 		}
@@ -402,9 +401,9 @@ func ComputeFines(
 	finesAmortRate float64,
 	finesMaturityRate float64,
 	daysSkipped int,
-	mode core.LoanModeOfPayment,
+	mode types.LoanModeOfPayment,
 	noGracePeriodDaily bool,
-	account core.Account,
+	account types.Account,
 ) float64 {
 	if daysSkipped <= 0 {
 		return 0.0
@@ -423,19 +422,19 @@ func ComputeFines(
 	if !noGracePeriodDaily {
 		gracePercentage := decimal.Zero
 		switch mode {
-		case core.LoanModeOfPaymentDaily, core.LoanModeOfPaymentFixedDays:
+		case types.LoanModeOfPaymentDaily, types.LoanModeOfPaymentFixedDays:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntryDailyAmortization)
-		case core.LoanModeOfPaymentWeekly:
+		case types.LoanModeOfPaymentWeekly:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntryWeeklyAmortization)
-		case core.LoanModeOfPaymentMonthly:
+		case types.LoanModeOfPaymentMonthly:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntryMonthlyAmortization)
-		case core.LoanModeOfPaymentSemiMonthly:
+		case types.LoanModeOfPaymentSemiMonthly:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntrySemiMonthlyAmortization)
-		case core.LoanModeOfPaymentQuarterly:
+		case types.LoanModeOfPaymentQuarterly:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntryQuarterlyAmortization)
-		case core.LoanModeOfPaymentSemiAnnual:
+		case types.LoanModeOfPaymentSemiAnnual:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntrySemiAnnualAmortization)
-		case core.LoanModeOfPaymentLumpsum:
+		case types.LoanModeOfPaymentLumpsum:
 			gracePercentage = decimal.NewFromFloat(account.CohCibFinesGracePeriodEntryLumpsumAmortization)
 		}
 
@@ -459,19 +458,19 @@ func ComputeFines(
 	}
 
 	switch mode {
-	case core.LoanModeOfPaymentDaily, core.LoanModeOfPaymentFixedDays:
+	case types.LoanModeOfPaymentDaily, types.LoanModeOfPaymentFixedDays:
 		return calc(float64(daysSkipped))
-	case core.LoanModeOfPaymentWeekly:
+	case types.LoanModeOfPaymentWeekly:
 		return calc(float64(daysSkipped) / 7.0)
-	case core.LoanModeOfPaymentSemiMonthly:
+	case types.LoanModeOfPaymentSemiMonthly:
 		return calc(float64(daysSkipped) / 15.0)
-	case core.LoanModeOfPaymentMonthly:
+	case types.LoanModeOfPaymentMonthly:
 		return calc(float64(daysSkipped) / 30.0)
-	case core.LoanModeOfPaymentQuarterly:
+	case types.LoanModeOfPaymentQuarterly:
 		return calc(float64(daysSkipped) / 90.0)
-	case core.LoanModeOfPaymentSemiAnnual:
+	case types.LoanModeOfPaymentSemiAnnual:
 		return calc(float64(daysSkipped) / 180.0)
-	case core.LoanModeOfPaymentLumpsum:
+	case types.LoanModeOfPaymentLumpsum:
 		finalRate := decimal.NewFromFloat(finesMaturityRate)
 		if finalRate.Cmp(decimal.Zero) <= 0 {
 			finalRate = decimal.NewFromFloat(finesAmortRate)
@@ -487,7 +486,7 @@ func ComputeFines(
 func ComputeInterest(
 	balance float64,
 	rate float64,
-	mode core.LoanModeOfPayment,
+	mode types.LoanModeOfPayment,
 ) float64 {
 	b := decimal.NewFromFloat(balance)
 	r := decimal.NewFromFloat(rate).Div(decimal.NewFromInt(100))
@@ -495,21 +494,21 @@ func ComputeInterest(
 		return b.Mul(multiplier).Round(2).InexactFloat64()
 	}
 	switch mode {
-	case core.LoanModeOfPaymentMonthly, core.LoanModeOfPaymentLumpsum:
+	case types.LoanModeOfPaymentMonthly, types.LoanModeOfPaymentLumpsum:
 		return calc(r)
-	case core.LoanModeOfPaymentDaily, core.LoanModeOfPaymentFixedDays:
+	case types.LoanModeOfPaymentDaily, types.LoanModeOfPaymentFixedDays:
 		dailyRate := r.Div(decimal.NewFromInt(30))
 		return calc(dailyRate)
-	case core.LoanModeOfPaymentSemiMonthly:
+	case types.LoanModeOfPaymentSemiMonthly:
 		dailyRate := r.Div(decimal.NewFromInt(30))
 		return calc(dailyRate.Mul(decimal.NewFromInt(15)))
-	case core.LoanModeOfPaymentWeekly:
+	case types.LoanModeOfPaymentWeekly:
 		dailyRate := r.Div(decimal.NewFromInt(30))
 		return calc(dailyRate.Mul(decimal.NewFromInt(7)))
-	case core.LoanModeOfPaymentQuarterly:
+	case types.LoanModeOfPaymentQuarterly:
 		return calc(r.Mul(decimal.NewFromInt(3)))
 
-	case core.LoanModeOfPaymentSemiAnnual:
+	case types.LoanModeOfPaymentSemiAnnual:
 		return calc(r.Mul(decimal.NewFromInt(6)))
 	default:
 		return 0.0
