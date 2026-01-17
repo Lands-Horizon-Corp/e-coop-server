@@ -1,1 +1,109 @@
 package types
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type (
+	Transaction struct {
+		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+		CreatedAt   time.Time      `gorm:"not null;default:now()"`
+		CreatedByID uuid.UUID      `gorm:"type:uuid"`
+		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
+		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
+		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+		DeletedAt   gorm.DeletedAt `gorm:"index"`
+		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
+		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
+
+		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction"`
+		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
+		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction"`
+		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
+
+		SignatureMediaID   *uuid.UUID        `gorm:"type:uuid"`
+		SignatureMedia     *Media            `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
+		TransactionBatchID *uuid.UUID        `gorm:"type:uuid"`
+		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
+
+		EmployeeUserID *uuid.UUID `gorm:"type:uuid"`
+		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
+
+		MemberProfileID      *uuid.UUID          `gorm:"type:uuid"`
+		MemberProfile        *MemberProfile      `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
+		MemberJointAccountID *uuid.UUID          `gorm:"type:uuid"`
+		MemberJointAccount   *MemberJointAccount `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
+
+		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
+		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
+
+		LoanBalance float64 `gorm:"type:decimal;default:0"`
+		LoanDue     float64 `gorm:"type:decimal;default:0"`
+		TotalDue    float64 `gorm:"type:decimal;default:0"`
+		FinesDue    float64 `gorm:"type:decimal;default:0"`
+		TotalLoan   float64 `gorm:"type:decimal;default:0"`
+		InterestDue float64 `gorm:"type:decimal;default:0"`
+
+		ReferenceNumber string `gorm:"type:varchar(50)"`
+
+		Amount         float64         `gorm:"type:decimal"`
+		Description    string          `gorm:"type:text"`
+		GeneralLedgers []GeneralLedger `gorm:"foreignKey:TransactionID" json:"general_ledgers,omitempty"`
+	}
+
+	TransactionResponse struct {
+		ID             uuid.UUID             `json:"id"`
+		CreatedAt      string                `json:"created_at"`
+		CreatedByID    uuid.UUID             `json:"created_by_id"`
+		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
+		UpdatedAt      string                `json:"updated_at"`
+		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
+		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
+		OrganizationID uuid.UUID             `json:"organization_id"`
+		Organization   *OrganizationResponse `json:"organization,omitempty"`
+		BranchID       uuid.UUID             `json:"branch_id"`
+		Branch         *BranchResponse       `json:"branch,omitempty"`
+
+		SignatureMediaID     *uuid.UUID                  `json:"signature_media_id,omitempty"`
+		SignatureMedia       *MediaResponse              `json:"signature_media,omitempty"`
+		TransactionBatchID   *uuid.UUID                  `json:"transaction_batch_id,omitempty"`
+		TransactionBatch     *TransactionBatchResponse   `json:"transaction_batch,omitempty"`
+		EmployeeUserID       *uuid.UUID                  `json:"employee_user_id,omitempty"`
+		EmployeeUser         *UserResponse               `json:"employee_user,omitempty"`
+		MemberProfileID      *uuid.UUID                  `json:"member_profile_id,omitempty"`
+		MemberProfile        *MemberProfileResponse      `json:"member_profile,omitempty"`
+		MemberJointAccountID *uuid.UUID                  `json:"member_joint_account_id,omitempty"`
+		MemberJointAccount   *MemberJointAccountResponse `json:"member_joint_account,omitempty"`
+		CurrencyID           uuid.UUID                   `json:"currency_id"`
+		Currency             *CurrencyResponse           `json:"currency,omitempty"`
+		LoanBalance          float64                     `json:"loan_balance"`
+		LoanDue              float64                     `json:"loan_due"`
+		TotalDue             float64                     `json:"total_due"`
+		FinesDue             float64                     `json:"fines_due"`
+		TotalLoan            float64                     `json:"total_loan"`
+		InterestDue          float64                     `json:"interest_due"`
+		ReferenceNumber      string                      `json:"reference_number"`
+		Amount               float64                     `json:"amount"`
+		Description          string                      `json:"description"`
+	}
+
+	TransactionRequest struct {
+		SignatureMediaID     *uuid.UUID `json:"signature_media_id,omitempty"`
+		MemberProfileID      *uuid.UUID `json:"member_profile_id" validate:"required"`
+		MemberJointAccountID *uuid.UUID `json:"member_joint_account_id,omitempty"`
+
+		ReferenceNumber          string    `json:"reference_number" validate:"required"`
+		IsReferenceNumberChecked bool      `json:"is_reference_number_checked,omitempty"`
+		Description              string    `json:"description,omitempty"`
+		CurrencyID               uuid.UUID `json:"currency_id" validate:"required"`
+	}
+
+	TransactionRequestEdit struct {
+		Description     string `json:"description,omitempty"`
+		ReferenceNumber string `json:"reference_number,omitempty"`
+	}
+)
